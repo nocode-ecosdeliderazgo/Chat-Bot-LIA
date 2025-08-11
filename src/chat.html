@@ -60,6 +60,39 @@
                     <div class="collapsible-content" id="livestreamContent">
                         <div id="leftLivestreamPlayer" class="left-video-player" aria-label="Livestream"></div>
                         <div id="livestreamNotice" class="note" style="margin-top:8px; display:none"></div>
+                        
+                        <!-- Chat del Livestream -->
+                        <div class="livestream-chat-container">
+                            <div class="livestream-chat-header">
+                                <h5>Chat en vivo</h5>
+                                <span class="users-count" id="livestreamUsersCount">0 usuarios</span>
+                            </div>
+                            
+                            <div class="livestream-chat-messages" id="livestreamChatMessages">
+                                <div class="welcome-message">
+                                    <i class='bx bx-message-dots'></i>
+                                    <span>¡Únete a la conversación!</span>
+                                </div>
+                            </div>
+                            
+                            <div class="livestream-chat-input">
+                                <input 
+                                    type="text" 
+                                    id="livestreamMessageInput" 
+                                    placeholder="Escribe un mensaje..." 
+                                    maxlength="200"
+                                    disabled
+                                >
+                                <button id="livestreamSendBtn" class="livestream-send-btn" disabled title="Enviar mensaje">
+                                    <i class='bx bx-send'></i>
+                                </button>
+                            </div>
+                            
+                            <div class="livestream-connection-status" id="livestreamConnectionStatus">
+                                <span class="status-indicator offline"></span>
+                                <span class="status-text">Desconectado</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="tool-group">
@@ -175,6 +208,7 @@
         <button id="avatarLightboxClose" class="avatar-close" aria-label="Cerrar">×</button>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script src="scripts/main.js"></script>
 </body>
 </html>
