@@ -2316,7 +2316,10 @@ function initializeLivestreamChat() {
     }
 
     // Inicializar conexión Socket.IO
-    livestreamSocket = io();
+    livestreamSocket = io({
+        transports: ['websocket', 'polling'],
+        timeout: 10000
+    });
 
     // Generar nombre de usuario automáticamente
     livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
@@ -2333,8 +2336,11 @@ function initializeLivestreamChat() {
         });
 
         // Habilitar interfaz
-        messageInput.disabled = false;
+        messageInput.placeholder = 'Escribe un mensaje...';
         sendBtn.disabled = false;
+        if (document.activeElement !== messageInput) {
+            messageInput.focus();
+        }
     });
 
     livestreamSocket.on('disconnect', () => {
@@ -2342,8 +2348,8 @@ function initializeLivestreamChat() {
         livestreamChatState.isConnected = false;
         updateConnectionStatus('Desconectado', false);
         
-        // Deshabilitar interfaz
-        messageInput.disabled = true;
+        // UX de reconexión
+        messageInput.placeholder = 'Reconectando…';
         sendBtn.disabled = true;
     });
 

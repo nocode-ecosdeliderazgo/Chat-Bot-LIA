@@ -52,7 +52,14 @@ app.use(helmet({
                 'https://source.zoom.us'
             ],
             imgSrc: ["'self'", 'data:', 'https:'],
-            connectSrc: ["'self'", 'https://api.openai.com', 'https://api.assemblyai.com', 'https://meet.google.com', 'https://zoom.us', 'https://*.zoom.us', 'https://source.zoom.us'],
+            connectSrc: [
+                "'self'",
+                'ws:', 'wss:',
+                'https://api.openai.com',
+                'https://api.assemblyai.com',
+                'https://meet.google.com',
+                'https://zoom.us', 'https://*.zoom.us', 'https://source.zoom.us'
+            ],
             mediaSrc: ["'self'", 'blob:', 'data:', 'https:'],
             fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://unpkg.com', 'data:'],
             frameAncestors: ["'none'"],
@@ -809,9 +816,9 @@ io.on('connection', (socket) => {
             type: 'system'
         });
         
-        // Enviar lista de usuarios conectados al nuevo usuario
+        // Enviar lista de usuarios conectados a todos
         const connectedUsers = Array.from(livestreamUsers.values()).map(user => user.username);
-        socket.emit('users-list', connectedUsers);
+        io.to('livestream-chat').emit('users-list', connectedUsers);
         
         console.log(`📺 ${userInfo.username} se unió al chat del livestream`);
     });
@@ -845,6 +852,8 @@ io.on('connection', (socket) => {
                 timestamp: new Date().toISOString(),
                 type: 'system'
             });
+            const connectedUsers = Array.from(livestreamUsers.values()).map(u => u.username);
+            io.to('livestream-chat').emit('users-list', connectedUsers);
             console.log(`👋 ${user.username} se desconectó del livestream`);
         }
     });
