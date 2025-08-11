@@ -2086,6 +2086,9 @@ function showModulesStudioPanel() {
     }));
     card.querySelectorAll('.studio-btn[data-module]').forEach(b => b.addEventListener('click', () => {
         const mod = b.getAttribute('data-module');
+        // marcar activo
+        card.querySelectorAll('.studio-btn[data-module]').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
         renderModule(mod);
     }));
 
