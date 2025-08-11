@@ -1720,6 +1720,18 @@ a:focus-visible,
   margin-right: 0;
 }
 
+/* Estado pendiente para mensajes offline */
+.message-content.user.pending {
+  opacity: 0.7;
+  position: relative;
+}
+.message-content.user .message-status {
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .message-header {
   display: flex;
   justify-content: space-between;

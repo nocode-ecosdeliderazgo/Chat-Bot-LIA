@@ -2293,7 +2293,8 @@ let livestreamChatState = {
     isConnected: false,
     username: '',
     messages: [],
-    connectedUsers: []
+    connectedUsers: [],
+    pendingMessages: []
 };
 
 function initializeLivestreamChat() {
@@ -2341,6 +2342,13 @@ function initializeLivestreamChat() {
         if (document.activeElement !== messageInput) {
             messageInput.focus();
         }
+
+        // Reintentar envío de pendientes
+        if (livestreamChatState.pendingMessages.length > 0) {
+            livestreamChatState.pendingMessages.forEach(p => {
+                livestreamSocket.emit('livestream-message', { message: p.message, clientMessageId: p.id });
+            });
+        }
     });
 
     livestreamSocket.on('disconnect', () => {
@@ -2350,11 +2358,35 @@ function initializeLivestreamChat() {
         
         // UX de reconexión
         messageInput.placeholder = 'Reconectando…';
-        sendBtn.disabled = true;
+        // Mantener botón habilitado para encolar mensajes
+        sendBtn.disabled = false;
     });
 
     // Eventos del chat
     livestreamSocket.on('new-livestream-message', (messageData) => {
+        // Reconciliar mensajes pendientes por clientMessageId
+        if (messageData.clientMessageId) {
+            const existing = document.querySelector(`.livestream-message[data-client-message-id="${messageData.clientMessageId}"]`);
+            if (existing) {
+                const time = new Date(messageData.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                const isOwn = messageData.username === livestreamChatState.username;
+                const replacement = document.createElement('div');
+                replacement.className = `livestream-message ${messageData.type}`;
+                replacement.dataset.clientMessageId = messageData.clientMessageId;
+                replacement.innerHTML = `
+                    <div class="message-content user ${isOwn ? 'own' : ''}">
+                        <div class="message-header">
+                            <span class="username">${messageData.username}</span>
+                            <span class="timestamp">${time}</span>
+                        </div>
+                        <div class="message-text">${messageData.message}</div>
+                    </div>
+                `;
+                existing.replaceWith(replacement);
+                livestreamChatState.pendingMessages = livestreamChatState.pendingMessages.filter(p => p.id !== messageData.clientMessageId);
+                return;
+            }
+        }
         addLivestreamMessage(messageData);
     });
 
@@ -2383,11 +2415,25 @@ function initializeLivestreamChat() {
 
     function sendLivestreamMessage() {
         const message = messageInput.value.trim();
-        if (!message || !livestreamChatState.isConnected) return;
+        if (!message) return;
 
-        livestreamSocket.emit('livestream-message', {
-            message: message
+        const clientMessageId = `c_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+
+        // Render inmediato
+        addLivestreamMessage({
+            username: livestreamChatState.username,
+            message,
+            timestamp: new Date().toISOString(),
+            type: 'user',
+            clientMessageId,
+            pending: !livestreamChatState.isConnected
         });
+
+        if (!livestreamChatState.isConnected) {
+            livestreamChatState.pendingMessages.push({ id: clientMessageId, message });
+        } else {
+            livestreamSocket.emit('livestream-message', { message, clientMessageId });
+        }
 
         messageInput.value = '';
     }
@@ -2404,6 +2450,9 @@ function initializeLivestreamChat() {
 
         const messageElement = document.createElement('div');
         messageElement.className = `livestream-message ${messageData.type}`;
+        if (messageData.clientMessageId) {
+            messageElement.dataset.clientMessageId = messageData.clientMessageId;
+        }
         
         const time = new Date(messageData.timestamp).toLocaleTimeString('es-ES', {
             hour: '2-digit',
@@ -2421,12 +2470,13 @@ function initializeLivestreamChat() {
         } else {
             const isOwnMessage = messageData.username === livestreamChatState.username;
             messageElement.innerHTML = `
-                <div class="message-content user ${isOwnMessage ? 'own' : ''}">
+                <div class="message-content user ${isOwnMessage ? 'own' : ''} ${messageData.pending ? 'pending' : ''}">
                     <div class="message-header">
                         <span class="username">${messageData.username}</span>
                         <span class="timestamp">${time}</span>
                     </div>
                     <div class="message-text">${messageData.message}</div>
+                    ${messageData.pending ? '<div class="message-status">Pendiente…</div>' : ''}
                 </div>
             `;
         }
