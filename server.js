@@ -92,6 +92,8 @@ app.use(express.static('src'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Servir prompts para depuración/inspección (protegido por API en endpoints abajo)
 app.use('/prompts', express.static(path.join(__dirname, 'prompts')));
+// Servir datos del curso
+app.use('/data', express.static(path.join(__dirname, 'src/data')));
 
 // Carpeta temporal de audios (entradas del micro)
 const tempDir = path.join(__dirname, 'tmp');

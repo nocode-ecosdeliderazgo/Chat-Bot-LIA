@@ -1523,9 +1523,81 @@ function getUserAuthHeaders() {
     return {};
 }
 
+// Cargar datos del curso hardcodeados
+async function loadCourseData() {
+    try {
+        const response = await fetch('/data/course-data.js');
+        if (response.ok) {
+            const text = await response.text();
+            // Evaluar el módulo para obtener los datos
+            const moduleText = text.replace('module.exports = COURSE_DATA;', 'COURSE_DATA');
+            return eval(`(${moduleText})`);
+        }
+    } catch (error) {
+        console.log('Usando datos de curso embebidos como fallback');
+    }
+    return null;
+}
+
+// Buscar información relevante en los datos del curso
+function searchCourseData(courseData, query) {
+    if (!courseData) return '';
+    
+    const queryLower = query.toLowerCase();
+    let relevantInfo = [];
+    
+    // Buscar en glosario
+    courseData.glossary.forEach(item => {
+        if (item.term.toLowerCase().includes(queryLower) || 
+            item.definition.toLowerCase().includes(queryLower)) {
+            relevantInfo.push(`📖 ${item.term}: ${item.definition}`);
+        }
+    });
+    
+    // Buscar en sesiones
+    courseData.sessions.forEach(session => {
+        // Buscar en conceptos de la sesión
+        session.content.concepts.forEach(concept => {
+            if (concept.term.toLowerCase().includes(queryLower) || 
+                concept.definition.toLowerCase().includes(queryLower)) {
+                relevantInfo.push(`🎓 Sesión ${session.id} - ${concept.term}: ${concept.definition}`);
+            }
+        });
+        
+        // Buscar en FAQs
+        session.faq.forEach(faq => {
+            if (faq.question.toLowerCase().includes(queryLower) || 
+                faq.answer.toLowerCase().includes(queryLower)) {
+                relevantInfo.push(`❓ FAQ (${session.title}): ${faq.question} - ${faq.answer}`);
+            }
+        });
+        
+        // Buscar en actividades
+        session.activities.forEach(activity => {
+            if (activity.title.toLowerCase().includes(queryLower) || 
+                activity.description.toLowerCase().includes(queryLower)) {
+                relevantInfo.push(`🎯 Actividad (${session.title}): ${activity.title} - ${activity.description}`);
+            }
+        });
+    });
+    
+    // Buscar en ejercicios prácticos
+    courseData.practicalExercises.forEach(exercise => {
+        if (exercise.title.toLowerCase().includes(queryLower) || 
+            exercise.description.toLowerCase().includes(queryLower)) {
+            relevantInfo.push(`💻 Ejercicio: ${exercise.title} - ${exercise.description}`);
+        }
+    });
+    
+    return relevantInfo.slice(0, 8); // Limitar a 8 resultados más relevantes
+}
+
 // Procesar mensaje del usuario con IA
 async function processUserMessageWithAI(message) {
     try {
+        // Cargar datos del curso hardcodeados
+        const courseData = await loadCourseData();
+        
         // Obtener contexto de la base de datos (si está disponible)
         const dbContext = await getDatabaseContext(message);
         
@@ -1551,6 +1623,21 @@ async function processUserMessageWithAI(message) {
             });
         }
         
+        // Agregar contexto de datos del curso hardcodeados
+        if (courseData) {
+            const courseInfo = searchCourseData(courseData, message);
+            if (courseInfo.length > 0) {
+                contextInfo += '\n\nInformación del curso "Aprende y Aplica IA":\n';
+                courseInfo.forEach(info => {
+                    contextInfo += `${info}\n`;
+                });
+                
+                // Agregar información general del curso
+                contextInfo += `\n📚 Curso: ${courseData.info.title} (${courseData.info.duration})\n`;
+                contextInfo += `🎯 Descripción: ${courseData.info.description}\n`;
+            }
+        }
+        
         // Prompt completo siguiendo PROMPT_CLAUDE.md al pie de la letra
         const systemPrompt = `Sistema — Claude (ES)
 
@@ -1558,8 +1645,24 @@ Rol y alcance
 - Eres "Asistente de Aprende y Aplica IA": experto en IA que guía a estudiantes en español con tono profesional, cercano y nada robotizado.
 - Límite estricto: céntrate en contenidos del curso de IA, ejercicios, glosario y actividades. Si algo está fuera de alcance, redirige amablemente con 2–4 opciones del temario.
 
+CURSO "APRENDE Y APLICA IA" - CONTENIDO DISPONIBLE:
+- 8 Sesiones completas: desde fundamentos hasta implementación en producción
+- Sesión 1: Introducción a la IA (conceptos básicos, historia, tipos de IA)
+- Sesión 2: Fundamentos de Machine Learning (supervisado, no supervisado, algoritmos)
+- Sesión 3: Redes Neuronales y Deep Learning (CNN, RNN, backpropagation)
+- Sesión 4: Procesamiento de Lenguaje Natural (tokenización, transformers, LLMs)
+- Sesión 5: Visión por Computadora (CNN, detección de objetos, transfer learning)
+- Sesión 6: IA Generativa y Modelos de Lenguaje (prompt engineering, fine-tuning)
+- Sesión 7: Ética y Responsabilidad en IA (sesgo algorítmico, explicabilidad)
+- Sesión 8: Implementación y Despliegue (MLOps, producción, monitoreo)
+
+GLOSARIO COMPLETO: +50 términos con definiciones (desde conceptos básicos hasta avanzados)
+EJERCICIOS PRÁCTICOS: 5 proyectos hands-on (clasificación, redes neuronales, NLP, visión, chatbots)
+RECURSOS: Libros recomendados, cursos online, herramientas, datasets
+
 Objetivo general
-- Entregar respuestas claras, accionables y verificables; generar casos de uso y prompts listos para copiar cuando aporten valor.
+- Entregar respuestas claras, accionables y verificables basadas en el contenido específico del curso
+- Generar casos de uso y prompts listos para copiar cuando aporten valor
 
 Manejo de preguntas largas
 - Acepta entradas extensas sin recortar contenido. Resume el objetivo en 1–2 líneas, divide en sub‑tareas y responde por secciones. Si la consulta es muy amplia, propone un plan paso a paso y entrega un primer bloque útil; ofrece continuar con "¿sigo con la parte B/C…?)".
@@ -1581,12 +1684,12 @@ Casos de uso (cuando aplique)
 - Entrega 3–5 casos con: propósito, pasos clave, herramientas/recursos, métrica de éxito y riesgo/consideración.
 
 Prompts (cuando aplique)
-- Ofrece 2–4 prompts listos para copiar orientados a estudio/práctica o evaluación, alineados al temario.
+- Ofrece 2–4 prompts listos para copiar orientados a estudio/práctica o evaluación, alineados al temario específico del curso.
 
 Formato de respuesta
 - 1 línea inicial que responda directo a la intención.
-- 3–6 viñetas con lo esencial (usa **negritas** para conceptos clave).
-- Cierra con una pregunta breve que proponga el siguiente paso u opciones del curso.
+- 3–6 viñetas con lo esencial (usa **negritas** para conceptos clave del curso).
+- Cierra con una pregunta breve que proponga el siguiente paso u opciones específicas del curso.
 - Español neutro, claro y preciso. Evita párrafos largos; usa listas.
 
 Límites y seguridad
@@ -1597,7 +1700,7 @@ Nunca pidas el nombre/apellido del usuario ni bloquees la conversación por iden
 
 ${contextInfo}
 
-Responde siguiendo exactamente el formato especificado:`;
+Responde siguiendo exactamente el formato especificado y utilizando la información específica del curso "Aprende y Aplica IA":`;
         
         const fullPrompt = `${systemPrompt}\n\nUsuario: ${message}\n\nAsistente:`;
         
