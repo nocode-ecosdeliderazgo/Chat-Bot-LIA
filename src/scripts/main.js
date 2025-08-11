@@ -2286,3 +2286,176 @@ function setupAvatarLightbox() {
     lightbox.addEventListener('click', (e) => { if (e.target === lightbox || e.target === lbClose) close(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
 }
+
+// ===== Chat del Livestream en Tiempo Real =====
+let livestreamSocket = null;
+let livestreamChatState = {
+    isConnected: false,
+    username: '',
+    messages: [],
+    connectedUsers: []
+};
+
+function initializeLivestreamChat() {
+    // Verificar que Socket.IO está disponible
+    if (typeof io === 'undefined') {
+        console.error('Socket.IO no está disponible');
+        return;
+    }
+
+    // Configurar elementos del DOM
+    const messageInput = document.getElementById('livestreamMessageInput');
+    const sendBtn = document.getElementById('livestreamSendBtn');
+    const messagesContainer = document.getElementById('livestreamChatMessages');
+    const connectionStatus = document.getElementById('livestreamConnectionStatus');
+    const usersCount = document.getElementById('livestreamUsersCount');
+
+    if (!messageInput || !sendBtn || !messagesContainer) {
+        console.error('Elementos del chat del livestream no encontrados');
+        return;
+    }
+
+    // Inicializar conexión Socket.IO
+    livestreamSocket = io();
+
+    // Generar nombre de usuario automáticamente
+    livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
+
+    // Eventos de conexión
+    livestreamSocket.on('connect', () => {
+        console.log('Conectado al chat del livestream');
+        livestreamChatState.isConnected = true;
+        updateConnectionStatus('Conectado', true);
+        
+        // Unirse al chat del livestream
+        livestreamSocket.emit('join-livestream-chat', {
+            username: livestreamChatState.username
+        });
+
+        // Habilitar interfaz
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+    });
+
+    livestreamSocket.on('disconnect', () => {
+        console.log('Desconectado del chat del livestream');
+        livestreamChatState.isConnected = false;
+        updateConnectionStatus('Desconectado', false);
+        
+        // Deshabilitar interfaz
+        messageInput.disabled = true;
+        sendBtn.disabled = true;
+    });
+
+    // Eventos del chat
+    livestreamSocket.on('new-livestream-message', (messageData) => {
+        addLivestreamMessage(messageData);
+    });
+
+    livestreamSocket.on('user-joined', (data) => {
+        addLivestreamMessage(data);
+    });
+
+    livestreamSocket.on('user-left', (data) => {
+        addLivestreamMessage(data);
+    });
+
+    livestreamSocket.on('users-list', (users) => {
+        livestreamChatState.connectedUsers = users;
+        updateUsersCount(users.length);
+    });
+
+    // Eventos de la interfaz
+    sendBtn.addEventListener('click', sendLivestreamMessage);
+    
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendLivestreamMessage();
+        }
+    });
+
+    function sendLivestreamMessage() {
+        const message = messageInput.value.trim();
+        if (!message || !livestreamChatState.isConnected) return;
+
+        livestreamSocket.emit('livestream-message', {
+            message: message
+        });
+
+        messageInput.value = '';
+    }
+
+    function addLivestreamMessage(messageData) {
+        const messagesContainer = document.getElementById('livestreamChatMessages');
+        if (!messagesContainer) return;
+
+        // Remover mensaje de bienvenida si existe
+        const welcomeMessage = messagesContainer.querySelector('.welcome-message');
+        if (welcomeMessage) {
+            welcomeMessage.remove();
+        }
+
+        const messageElement = document.createElement('div');
+        messageElement.className = `livestream-message ${messageData.type}`;
+        
+        const time = new Date(messageData.timestamp).toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        if (messageData.type === 'system') {
+            messageElement.innerHTML = `
+                <div class="message-content system">
+                    <i class='bx bx-info-circle'></i>
+                    <span>${messageData.message}</span>
+                    <span class="timestamp">${time}</span>
+                </div>
+            `;
+        } else {
+            const isOwnMessage = messageData.username === livestreamChatState.username;
+            messageElement.innerHTML = `
+                <div class="message-content user ${isOwnMessage ? 'own' : ''}">
+                    <div class="message-header">
+                        <span class="username">${messageData.username}</span>
+                        <span class="timestamp">${time}</span>
+                    </div>
+                    <div class="message-text">${messageData.message}</div>
+                </div>
+            `;
+        }
+
+        messagesContainer.appendChild(messageElement);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Mantener solo los últimos 50 mensajes
+        const messages = messagesContainer.querySelectorAll('.livestream-message');
+        if (messages.length > 50) {
+            messages[0].remove();
+        }
+    }
+
+    function updateConnectionStatus(status, isConnected) {
+        const statusIndicator = connectionStatus.querySelector('.status-indicator');
+        const statusText = connectionStatus.querySelector('.status-text');
+        
+        if (statusIndicator && statusText) {
+            statusIndicator.className = `status-indicator ${isConnected ? 'online' : 'offline'}`;
+            statusText.textContent = status;
+        }
+    }
+
+    function updateUsersCount(count) {
+        if (usersCount) {
+            usersCount.textContent = `${count} usuario${count !== 1 ? 's' : ''}`;
+        }
+    }
+}
+
+// Inicializar chat del livestream cuando se carga la página
+document.addEventListener('DOMContentLoaded', () => {
+    // Delay para asegurar que Socket.IO se carga primero
+    setTimeout(() => {
+        initializeLivestreamChat();
+    }, 1000);
+});
