@@ -432,6 +432,8 @@ function setupEventListeners() {
             // Asegurar que el contenido esté cargado antes de mostrar
             renderSessionPicker();
             toggleSessionMenu();
+            // Mostrar panel de módulos en Studio a la derecha
+            try { showModulesStudioPanel(); } catch (_) {}
         });
     }
 }
@@ -2051,6 +2053,170 @@ function renderSessionPicker() {
         <button class=\"session-item\" data-session=\"${num}\" data-module=\"0\">\n            <span class=\"module-index\">S${num}</span>\n            <span class=\"module-title\">${s.title}</span>\n        </button>
     `).join('');
     picker.innerHTML = `<div class=\"module-list\">${html}</div>`;
+}
+
+// ===== Studio: Panel de Módulos y Contenido =====
+function showModulesStudioPanel() {
+    const cardsRoot = document.getElementById('studioCards');
+    if (!cardsRoot) return;
+    // eliminar tarjetas previas de módulos
+    Array.from(cardsRoot.querySelectorAll('[data-card="modules"]')).forEach(el => el.remove());
+
+    const card = document.createElement('div');
+    card.className = 'studio-card';
+    card.dataset.card = 'modules';
+    card.innerHTML = `
+        <h4 style="margin:0 0 8px 0">Studio</h4>
+        <div class="studio-modules">
+            <div class="modules-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px">
+                <button class="studio-btn" data-action="open-notes"><i class='bx bx-notepad'></i><span>Notas</span></button>
+                <button class="studio-btn" data-module="1"><i class='bx bx-book-content'></i><span>Módulo 1: Introducción a IA</span></button>
+                <button class="studio-btn" data-module="2"><i class='bx bx-book-content'></i><span>Módulo 2: Fundamentos de ML</span></button>
+                <button class="studio-btn" data-module="3"><i class='bx bx-book-content'></i><span>Módulo 3: Deep Learning</span></button>
+                <button class="studio-btn" data-module="4"><i class='bx bx-book-content'></i><span>Módulo 4: Proyecto final</span></button>
+            </div>
+            <div class="module-view" id="moduleView" style="border-top:1px solid rgba(68,229,255,.18);padding-top:10px"></div>
+        </div>
+    `;
+    cardsRoot.prepend(card);
+
+    // Acciones
+    card.querySelectorAll('.studio-btn[data-action="open-notes"]').forEach(b => b.addEventListener('click', () => {
+        if (window.UI?.openNotes) window.UI.openNotes();
+    }));
+    card.querySelectorAll('.studio-btn[data-module]').forEach(b => b.addEventListener('click', () => {
+        const mod = b.getAttribute('data-module');
+        renderModule(mod);
+    }));
+
+    // Render por defecto: menú con botones como en la imagen
+    renderModuleMenuButtons();
+
+    function renderModuleMenuButtons() {
+        const view = card.querySelector('#moduleView');
+        if (!view) return;
+        view.innerHTML = `
+            <div style="margin-bottom:8px">
+                <h5 style="margin:0 0 6px">Módulo 1: Introducción a IA</h5>
+                <p style="margin:0;color:var(--text-muted)">Conceptos básicos y evolución</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <a class="keyboard-button" href="https://forms.gle/GxwqVJhHW7ahj4NF7" target="_blank" rel="noopener noreferrer">📄 Cuestionario</a>
+                <button class="keyboard-button" id="btnContenido">📚 Contenido</button>
+                <a class="keyboard-button" href="https://www.youtube.com/watch?v=DPyJmxgUGk8" target="_blank" rel="noopener noreferrer">🎬 Ejercicio</a>
+            </div>
+        `;
+        const btnContenido = view.querySelector('#btnContenido');
+        btnContenido?.addEventListener('click', () => renderModule('1'));
+    }
+
+    function renderModule(moduleId) {
+        const view = card.querySelector('#moduleView');
+        if (!view) return;
+        if (moduleId !== '1') {
+            view.innerHTML = `<div style="color:var(--text-muted)">Contenido próximamente…</div>`;
+            return;
+        }
+        view.innerHTML = `
+            <div class="module-content">
+                <h5>Paso 1: El Prompt de Investigación</h5>
+                <ol>
+                    <li>Abre Gemini y, en la caja de chat, copia y pega el siguiente prompt en su totalidad.</li>
+                    <li>Activa la herramienta deep research y ejecuta.</li>
+                </ol>
+                <p><strong>Prompt Detallado:</strong> <button class="keyboard-button" id="copyPrompt">Copiar prompt</button></p>
+                <pre class="code-block" style="white-space:pre-wrap;background:rgba(255,255,255,0.04);padding:10px;border-radius:8px;border:1px solid rgba(68,229,255,0.18);max-height:240px;overflow:auto">Actúa como un analista experto en inteligencia artificial generativa. Realiza una investigación exhaustiva con el título "Gen AI El Despertar de una Nueva Era Humana del miedo al entusiasmo" para identificar y analizar los siguientes puntos clave:
+
+Evolución de la percepción: Describe el cambio en la percepción de la IA generativa desde su aparición masiva, incluyendo la reacción inicial y la mentalidad actual en la alta dirección.
+
+Impacto transformador y ejemplos de uso actuales:
+
+Identifica cómo la IA generativa está redefiniendo la productividad humana y transformando modelos de negocio en diversas industrias.
+
+Proporciona ejemplos específicos de empresas y sectores que ya están utilizando la IA generativa, detallando las aplicaciones y los beneficios obtenidos.
+
+Avances tecnológicos y ecosistema:
+
+Detalla las nuevas generaciones de modelos de IA generativa (Finales 2024-2025) y sus capacidades mejoradas.
+
+Describe el ecosistema de proveedores líderes y sus herramientas para entornos corporativos.
+
+Explica las estrategias de adopción de la IA generativa por parte de las empresas, incluyendo la elección entre modelos públicos y la construcción de IP propia.
+
+Implicaciones humanas y sociales: Analiza cómo la IA generativa está democratizando el conocimiento, amplificando la creatividad y reimaginando el trabajo, destacando el valor humano en este nuevo escenario.
+
+Casos de uso en finanzas y banca:
+
+Desglosa los casos de uso recientes de la IA generativa en el sector financiero y bancario, incluyendo asistentes virtuales, optimización de riesgos y cumplimiento, y personalización/eficiencia.
+
+Menciona las proyecciones de McKinsey para el futuro del trabajo en relación con la IA generativa.
+
+Desafíos y consideraciones estratégicas para líderes: Extrae las recomendaciones clave para los CEOs y C - levels en la adopción e integración de la IA generativa, incluyendo la necesidad de ética, visión, valentía e inversión en talento.
+
+Asegúrate de citar cada dato o afirmación con el número de fuente correspondiente. Organiza tu respuesta de manera clara y concisa, utilizando un formato de investigación formal.</pre>
+
+                <h5 style="margin-top:14px">Paso 2: Explorando tu Proyecto de Investigación</h5>
+                <ol>
+                    <li>Revisa la respuesta estructurada que creó Gemini (con fuentes numeradas).</li>
+                    <li>Familiarízate con la interfaz y la estructura de tu “proyecto de investigación” base.</li>
+                </ol>
+
+                <h5 style="margin-top:14px">Paso 3: Creación de Formatos Interactivos desde tu Investigación</h5>
+                <p>Asegúrate de volver siempre a la vista principal de tu investigación antes de cada creación.</p>
+                <ol type="A">
+                    <li><strong>Generar un Reporte Interactivo (Página Web en Canvas)</strong>
+                        <ol>
+                            <li>Haz clic en Crear.</li>
+                            <li>Selecciona Página Web o Reporte en Canvas.</li>
+                            <li>Observa cómo Gemini monta automáticamente tu contenido en un lienzo interactivo.</li>
+                            <li>Explora la página web y, cuando termines, ciérrala para volver al proyecto.</li>
+                        </ol>
+                    </li>
+                    <li><strong>Generar una Infografía Visual</strong>
+                        <ol>
+                            <li>Vuelve a la vista de tu investigación.</li>
+                            <li>Haz clic en Crear.</li>
+                            <li>Selecciona Infografía.</li>
+                            <li>Deja que Gemini sintetice íconos, barras y diagramas de tus puntos clave.</li>
+                            <li>Descarga la imagen (.png o .jpg) y regresa al proyecto.</li>
+                        </ol>
+                    </li>
+                    <li><strong>Generar un Cuestionario de Evaluación</strong>
+                        <ol>
+                            <li>Regresa a la pantalla de investigación.</li>
+                            <li>Haz clic en Crear.</li>
+                            <li>Selecciona Cuestionario o Quiz.</li>
+                            <li>Revisa las preguntas generadas (opción múltiple, V/F, respuesta corta) y la hoja de respuestas.</li>
+                        </ol>
+                    </li>
+                    <li><strong>Generar un Resumen de Audio</strong>
+                        <ol>
+                            <li>Vuelve a la vista principal.</li>
+                            <li>Haz clic en Crear.</li>
+                            <li>Selecciona Resumen de audio.</li>
+                            <li>Revisa el guion y elige la voz neuronal para la narración.</li>
+                            <li>Descarga o reproduce el archivo .mp3 en la interfaz.</li>
+                        </ol>
+                    </li>
+                </ol>
+
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+                    <a class="keyboard-button" href="https://www.youtube.com/watch?v=DPyJmxgUGk8" target="_blank" rel="noopener noreferrer">Ver video</a>
+                    <a class="keyboard-button" href="https://forms.gle/GxwqVJhHW7ahj4NF7" target="_blank" rel="noopener noreferrer">Abrir cuestionario</a>
+                </div>
+            </div>
+        `;
+
+        const copyBtn = view.querySelector('#copyPrompt');
+        copyBtn?.addEventListener('click', async () => {
+            try {
+                const text = view.querySelector('pre')?.innerText || '';
+                await navigator.clipboard.writeText(text);
+                copyBtn.textContent = 'Copiado ✔';
+                setTimeout(() => copyBtn.textContent = 'Copiar prompt', 1200);
+            } catch(_) {}
+        });
+    }
 }
 
 // Barra de redimensionado del panel izquierdo
