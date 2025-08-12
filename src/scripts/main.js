@@ -2374,21 +2374,13 @@ function setupVideoPicker() {
                 if (isOpen) {
                     const liveMount = document.getElementById('leftLivestreamPlayer');
                     const notice = document.getElementById('livestreamNotice');
+                    if (notice) notice.style.display = 'none';
                     if (liveMount) {
-                        liveMount.innerHTML = '';
-                        liveMount.classList.add('active');
-                        // Zoom Web Client (iframe a zoom.us/wc) — requiere meeting ID y passcode
-                        // Para demo incrustamos el web client con parámetros que el host comparta (meeting id y pwd)
-                        // Nota: Para producción se recomienda Zoom Web SDK con firma generada en backend
+                        // Dejamos el placeholder visual. Si hay Zoom configurado, lo embebemos.
                         const meetingId = (window.ZOOM_MEETING_ID || '').replaceAll('-', '');
                         const pwd = window.ZOOM_MEETING_PWD || '';
-                        if (!meetingId) {
-                            if (notice) {
-                                notice.style.display = 'block';
-                                notice.textContent = 'Configura window.ZOOM_MEETING_ID y window.ZOOM_MEETING_PWD para cargar el Web Client de Zoom dentro de la app.';
-                            }
-                            return;
-                        }
+                        if (!meetingId) return; // sin player, solo placeholder bonito
+                        liveMount.innerHTML = '';
                         const zoomUrl = `https://zoom.us/wc/${meetingId}/join?pwd=${encodeURIComponent(pwd)}`;
                         const iframe = document.createElement('iframe');
                         iframe.src = zoomUrl;
