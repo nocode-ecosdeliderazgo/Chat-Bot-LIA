@@ -22,33 +22,6 @@
                 <button class="collapse-btn" id="collapseLeft" title="Ocultar/mostrar">⟨⟩</button>
             </div>
             <nav class="tool-list">
-                <div class="tool-group collapsible" id="videosSection">
-                    <div class="collapsible-header">
-                        <h4 style="margin:0">Videos</h4>
-                        <button id="videosToggle" class="collapsible-toggle" aria-expanded="false" aria-controls="videosList" title="Mostrar/Ocultar">
-                            <i class='bx bx-chevron-down'></i>
-                        </button>
-                    </div>
-                    <div class="collapsible-content" id="videosList">
-                        <button class="tool-btn video-select" data-video-label="Bienvenida al curso" data-video-url="https://www.youtube.com/watch?v=y7xsTTRmk88">
-                            <i class='bx bx-play-circle'></i><span>Bienvenida al curso</span>
-                        </button>
-                        <button class="tool-btn video-select" data-video-label="Introducción a IA" data-video-url="https://www.youtube.com/watch?v=DPyJmxgUGk8">
-                            <i class='bx bx-play-circle'></i><span>Introducción a IA</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="tool-group collapsible" id="glossarySection">
-                    <div class="collapsible-header">
-                        <h4 style="margin:0">Glosario</h4>
-                        <button id="glossaryToggle" class="collapsible-toggle" aria-expanded="false" aria-controls="glossaryLeftMount" title="Mostrar/Ocultar">
-                            <i class='bx bx-chevron-down'></i>
-                        </button>
-                    </div>
-                    <div class="collapsible-content">
-                        <div id="glossaryLeftMount" class="glossary-left"></div>
-                    </div>
-                </div>
 
                 <div class="tool-group collapsible" id="livestreamSection">
                     <div class="collapsible-header">
@@ -99,9 +72,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="tool-group">
-                    <div id="leftVideoPlayerContainer" class="left-video-player" aria-label="Reproductor de video"></div>
-                </div>
             </nav>
             <div class="left-resizer" id="leftResizer" title="Ajustar ancho"></div>
         </aside>
@@ -124,7 +94,7 @@
 
                 <div class="chat-input">
                     <div class="input-container" id="inputContainer" style="position:relative">
-                        <button id="sessionMenuButton" class="session-menu-button" aria-label="Gestión de sesiones" title="Gestionar sesiones">
+                        <button id="sessionMenuButton" class="session-menu-button" aria-label="Menú" title="Menú">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12 6V18M6 12H18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                             </svg>
@@ -144,13 +114,22 @@
                     </div>
                     
                     <!-- Panel de selector de sesiones y módulos -->
-                    <div class="session-menu" id="sessionMenu">
-                        <div class="session-header">
-                            <h4>Sesiones y Módulos</h4>
-                            <span class="current-session" id="currentSessionTitle">Selecciona una sesión</span>
+                    <div class="global-menu" id="globalMenu" aria-hidden="true">
+                        <div class="gm-group">
+                            <button class="gm-item" data-toggle="sessions">Sesiones</button>
+                            <div class="gm-submenu" id="gmSessions">
+                                <button class="gm-subitem" data-session="1">Sesión 1</button>
+                                <button class="gm-subitem" data-session="2">Sesión 2</button>
+                                <button class="gm-subitem" data-session="3">Sesión 3</button>
+                                <button class="gm-subitem" data-session="4">Sesión 4</button>
+                            </div>
                         </div>
-                        <div class="session-picker" id="sessionPicker">
-                            <!-- Render dinámico de sesiones y módulos -->
+                        <div class="gm-group">
+                            <button class="gm-item" data-toggle="reports">Informes</button>
+                            <div class="gm-submenu" id="gmReports">
+                                <button class="gm-subitem" data-report="docs">Documentos</button>
+                                <button class="gm-subitem" data-report="bonos">Bonos</button>
+                            </div>
                         </div>
                     </div>
                 </div>
