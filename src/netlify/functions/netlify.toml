@@ -23,6 +23,13 @@
   status = 200
 
 [[redirects]]
+  from = "/api/register"
+  to   = "/.netlify/functions/register"
+  status = 200
+
+
+
+[[redirects]]
   from = "/api/*"
   to   = "/.netlify/functions/:splat"
   status = 200
