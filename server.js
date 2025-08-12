@@ -835,7 +835,8 @@ io.on('connection', (socket) => {
             username: user.username,
             message: messageData.message,
             timestamp: new Date().toISOString(),
-            type: 'user'
+            type: 'user',
+            clientMessageId: messageData.clientMessageId || null
         };
         
         // Enviar mensaje a todos los usuarios en el chat del livestream

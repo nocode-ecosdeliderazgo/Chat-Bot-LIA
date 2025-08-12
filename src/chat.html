@@ -58,8 +58,13 @@
                         </button>
                     </div>
                     <div class="collapsible-content" id="livestreamContent">
-                        <div id="leftLivestreamPlayer" class="left-video-player" aria-label="Livestream"></div>
-                        <div id="livestreamNotice" class="note" style="margin-top:8px; display:none"></div>
+                        <div class="livestream-placeholder">
+                            <i class='bx bx-broadcast'></i>
+                            <div class="lp-text">
+                                <h5>Transmisión en vivo</h5>
+                                <p>El reproductor aparecerá aquí cuando esté disponible.</p>
+                            </div>
+                        </div>
                         
                         <!-- Chat del Livestream -->
                         <div class="livestream-chat-container">
@@ -157,45 +162,7 @@
                 <h3>Studio</h3>
                 <button class="collapse-btn" id="collapseRight" title="Ocultar/mostrar">⟨⟩</button>
             </div>
-            <div class="studio-tiles" aria-label="Accesos principales">
-                <button class="tile" data-action="open-audio" title="Resumen de audio">
-                    <i class='bx bx-analyse'></i>
-                    <span>Resumen de audio</span>
-                </button>
-                <button class="tile disabled" data-action="open-video" title="Resumen de video" id="videoSummaryTile">
-                    <i class='bx bx-movie-play'></i>
-                    <span>Resumen de video</span>
-                </button>
-                <button class="tile" data-action="open-notes" title="Notas">
-                    <i class='bx bx-notepad'></i>
-                    <span>Notas</span>
-                </button>
-                <button class="tile" data-action="open-report" title="Informes/Resúmenes">
-                    <i class='bx bx-file-blank'></i>
-                    <span>Informes/Resúmenes</span>
-                </button>
-                <button class="tile" data-action="open-zoom" title="Sesiones Zoom">
-                    <i class='bx bx-video'></i>
-                    <span>Sesiones Zoom</span>
-                </button>
-                <button class="tile" data-action="open-teachers" title="Docentes">
-                    <i class='bx bx-user-voice'></i>
-                    <span>Docentes</span>
-                </button>
-                <button class="tile full" data-action="open-glossary" title="Glosario">
-                    <i class='bx bx-book-open'></i>
-                    <span>Glosario</span>
-                </button>
-            </div>
-            <nav class="studio-rail" aria-label="Accesos Studio (colapsado)">
-                <button class="rail-btn" data-action="open-audio" title="Audio"><i class='bx bx-microphone'></i></button>
-                <button class="rail-btn" data-action="open-video" title="Video"><i class='bx bx-movie-play'></i></button>
-                <button class="rail-btn" data-action="open-report" title="Informe"><i class='bx bx-file-blank'></i></button>
-                <button class="rail-btn" data-action="open-zoom" title="Zoom"><i class='bx bx-video'></i></button>
-                <button class="rail-btn" data-action="open-teachers" title="Docentes"><i class='bx bx-user-voice'></i></button>
-                <button class="rail-btn" data-action="open-notes" title="Notas"><i class='bx bx-notepad'></i></button>
-                <button class="rail-btn" data-action="open-glossary" title="Glosario"><i class='bx bx-book-open'></i></button>
-            </nav>
+            
             <div class="studio-cards" id="studioCards"></div>
             <div class="right-resizer" id="rightResizer" title="Ajustar ancho"></div>
         </aside>
