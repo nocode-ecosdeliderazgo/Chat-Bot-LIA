@@ -9,6 +9,8 @@ const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
 require('dotenv').config();
 
 const app = express();
@@ -26,7 +28,7 @@ app.use(helmet({
             scriptSrc: DEV_MODE ? ["'self'", "'unsafe-inline'", 'https://source.zoom.us'] : ["'self'", 'https://source.zoom.us'],
             // Permitir atributos inline (onclick) explícitamente en CSP nivel 3 durante desarrollo
             scriptSrcAttr: DEV_MODE ? ["'unsafe-inline'"] : [],
-            // Permitir iframes de YouTube/Vimeo para reproducir videos
+            // Permitir iframes de YouTube/Vimeo para reproducir videos y Google Forms
             frameSrc: [
                 "'self'",
                 'https://www.youtube.com',
@@ -36,7 +38,9 @@ app.use(helmet({
                 'https://meet.jit.si',
                 'https://zoom.us',
                 'https://*.zoom.us',
-                'https://source.zoom.us'
+                'https://source.zoom.us',
+                'https://forms.gle',
+                'https://docs.google.com'
             ],
             childSrc: [
                 "'self'",
@@ -47,13 +51,23 @@ app.use(helmet({
                 'https://meet.jit.si',
                 'https://zoom.us',
                 'https://*.zoom.us',
-                'https://source.zoom.us'
+                'https://source.zoom.us',
+                'https://forms.gle',
+                'https://docs.google.com'
             ],
             imgSrc: ["'self'", 'data:', 'https:'],
-            connectSrc: ["'self'", 'https://api.openai.com', 'https://api.assemblyai.com', 'https://meet.google.com', 'https://zoom.us', 'https://*.zoom.us', 'https://source.zoom.us'],
+            connectSrc: [
+                "'self'",
+                'ws:', 'wss:',
+                'https://api.openai.com',
+                'https://api.assemblyai.com',
+                'https://meet.google.com',
+                'https://zoom.us', 'https://*.zoom.us', 'https://source.zoom.us'
+            ],
             mediaSrc: ["'self'", 'blob:', 'data:', 'https:'],
             fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://unpkg.com', 'data:'],
-            frameAncestors: ["'none'"],
+            // Permitir que nosotros mostremos iframes de terceros dentro de nuestra propia app
+            frameAncestors: ["'self'"],
             objectSrc: ["'none'"]
         }
     },
@@ -83,6 +97,8 @@ app.use(express.static('src'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Servir prompts para depuración/inspección (protegido por API en endpoints abajo)
 app.use('/prompts', express.static(path.join(__dirname, 'prompts')));
+// Servir datos del curso
+app.use('/data', express.static(path.join(__dirname, 'src/data')));
 
 // Carpeta temporal de audios (entradas del micro)
 const tempDir = path.join(__dirname, 'tmp');
@@ -773,10 +789,89 @@ app.use((req, res) => {
     res.status(404).json({ error: 'Ruta no encontrada' });
 });
 
+// Crear servidor HTTP y configurar Socket.IO
+const server = createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: DEV_MODE ? "*" : false,
+        methods: ["GET", "POST"]
+    }
+});
+
+// Almacenar usuarios conectados al chat del livestream
+const livestreamUsers = new Map();
+
+// Configurar eventos de Socket.IO para el chat del livestream
+io.on('connection', (socket) => {
+    console.log(`👤 Usuario conectado al livestream: ${socket.id}`);
+    
+    // Usuario se une al chat del livestream
+    socket.on('join-livestream-chat', (userData) => {
+        const userInfo = {
+            id: socket.id,
+            username: userData.username || `Usuario_${Math.floor(Math.random() * 1000)}`,
+            joinedAt: new Date().toISOString()
+        };
+        
+        livestreamUsers.set(socket.id, userInfo);
+        socket.join('livestream-chat');
+        
+        // Notificar a todos que un usuario se unió
+        socket.to('livestream-chat').emit('user-joined', {
+            message: `${userInfo.username} se unió al chat`,
+            timestamp: new Date().toISOString(),
+            type: 'system'
+        });
+        
+        // Enviar lista de usuarios conectados a todos
+        const connectedUsers = Array.from(livestreamUsers.values()).map(user => user.username);
+        io.to('livestream-chat').emit('users-list', connectedUsers);
+        
+        console.log(`📺 ${userInfo.username} se unió al chat del livestream`);
+    });
+    
+    // Recibir mensaje del chat del livestream
+    socket.on('livestream-message', (messageData) => {
+        const user = livestreamUsers.get(socket.id);
+        if (!user) return;
+        
+        const message = {
+            id: uuidv4(),
+            username: user.username,
+            message: messageData.message,
+            timestamp: new Date().toISOString(),
+            type: 'user',
+            clientMessageId: messageData.clientMessageId || null
+        };
+        
+        // Enviar mensaje a todos los usuarios en el chat del livestream
+        io.to('livestream-chat').emit('new-livestream-message', message);
+        
+        console.log(`💬 Mensaje del livestream de ${user.username}: ${messageData.message}`);
+    });
+    
+    // Usuario se desconecta
+    socket.on('disconnect', () => {
+        const user = livestreamUsers.get(socket.id);
+        if (user) {
+            livestreamUsers.delete(socket.id);
+            socket.to('livestream-chat').emit('user-left', {
+                message: `${user.username} abandonó el chat`,
+                timestamp: new Date().toISOString(),
+                type: 'system'
+            });
+            const connectedUsers = Array.from(livestreamUsers.values()).map(u => u.username);
+            io.to('livestream-chat').emit('users-list', connectedUsers);
+            console.log(`👋 ${user.username} se desconectó del livestream`);
+        }
+    });
+});
+
 // Iniciar servidor
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`🚀 Lia IA — servidor iniciado en puerto ${PORT}`);
     console.log(`🔒 Modo: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📺 Socket.IO habilitado para chat del livestream`);
 });
 
 module.exports = app;
