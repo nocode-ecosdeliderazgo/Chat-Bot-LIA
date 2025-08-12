@@ -1,5 +1,8 @@
 [build]
   node_version = "18"
+  
+[build.environment]
+  NODE_ENV = "production"
 
 [functions]
   directory = "netlify/functions"
