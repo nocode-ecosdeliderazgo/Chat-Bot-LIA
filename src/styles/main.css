@@ -827,6 +827,34 @@ body:not(.left-collapsed):not(.right-collapsed) { --chat-max: 520px; }
     text-shadow: 0 1px 0 rgba(0,0,0,0.25);
 }
 
+/* Botón de flecha para volver a cursos (estilo WhatsApp) */
+.back-to-courses-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-on-dark);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    opacity: 0.8;
+    margin-right: 4px;
+}
+
+.back-to-courses-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 1;
+    transform: scale(1.06);
+}
+
+.back-to-courses-btn i {
+    font-size: 20px;
+}
+
 /* Removidos estilos de overlay previo */
 
 .bot-avatar {

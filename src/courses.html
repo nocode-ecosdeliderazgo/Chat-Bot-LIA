@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" href="assets/images/icono.png">
     <meta name="description" content="Mis Cursos - Panel de aprendizaje personal con seguimiento de progreso">
     <meta name="keywords" content="cursos, aprendizaje, progreso, IA, educación">
     <meta name="author" content="Lia IA">
@@ -21,18 +21,8 @@
         <div class="nav-container">
             <div class="nav-brand">
                 <img src="assets/images/FOTO LIA.png" alt="Lia IA" class="nav-logo">
-                <h1>Mi Aprendizaje</h1>
             </div>
-            <div class="nav-links">
-                <a href="chat.html" class="nav-link">
-                    <i class='bx bx-chat'></i>
-                    <span>Chat</span>
-                </a>
-                <a href="courses.html" class="nav-link active">
-                    <i class='bx bx-book-open'></i>
-                    <span>Mis Cursos</span>
-                </a>
-            </div>
+            <div class="nav-links"></div>
         </div>
     </nav>
 
@@ -45,19 +35,19 @@
                     <i class='bx bx-book'></i>
                     Todos los cursos
                 </button>
-                <button class="tab-button" data-tab="my-lists">
+                <button class="tab-button" data-tab="my-lists" disabled>
                     <i class='bx bx-list-ul'></i>
                     Mis Listas
                 </button>
-                <button class="tab-button" data-tab="wishlist">
+                <button class="tab-button" data-tab="wishlist" disabled>
                     <i class='bx bx-heart'></i>
                     Lista de deseos
                 </button>
-                <button class="tab-button" data-tab="archived">
+                <button class="tab-button" data-tab="archived" disabled>
                     <i class='bx bx-archive'></i>
                     Archivados
                 </button>
-                <button class="tab-button" data-tab="learning-tools">
+                <button class="tab-button" data-tab="learning-tools" disabled>
                     <i class='bx bx-wrench'></i>
                     Herramientas
                 </button>
@@ -123,7 +113,7 @@
 
                     <!-- Lista de cursos -->
                     <div class="courses-grid">
-                        <div class="course-card">
+                        <div class="course-card" id="course-main">
                             <div class="course-image">
                                 <img src="assets/images/brain-icon.jpg" alt="Curso de IA">
                                 <div class="course-menu">
@@ -133,13 +123,13 @@
                                 </div>
                             </div>
                             <div class="course-info">
-                                <h3>Aprende y Aplica IA — Curso Completo</h3>
+                                <h3>Dominando ChatGPT y Gemini para la Productividad</h3>
                                 <p class="course-instructor">Instructor: Lia IA</p>
                                 <div class="course-progress">
                                     <div class="progress-bar">
-                                        <div class="progress-fill" style="width: 25%"></div>
+                                        <div class="progress-fill" style="width: 0%"></div>
                                     </div>
-                                    <span class="progress-text">25% completado</span>
+                                    <span class="progress-text">0% completado</span>
                                 </div>
                                 <div class="course-actions">
                                     <button class="btn-course-primary">
@@ -151,7 +141,7 @@
                         </div>
 
                         <!-- Curso de ejemplo adicional -->
-                        <div class="course-card">
+                        <div class="course-card disabled" id="course-upcoming">
                             <div class="course-image">
                                 <img src="assets/images/brain-icon.jpg" alt="Fundamentos de Machine Learning">
                                 <div class="course-menu">
@@ -161,18 +151,18 @@
                                 </div>
                             </div>
                             <div class="course-info">
-                                <h3>Fundamentos de Machine Learning</h3>
-                                <p class="course-instructor">Instructor: Lia IA</p>
+                                <h3>Próximamente</h3>
+                                <p class="course-instructor">Disponible pronto</p>
                                 <div class="course-progress">
                                     <div class="progress-bar">
                                         <div class="progress-fill" style="width: 0%"></div>
                                     </div>
-                                    <span class="progress-text">0% completado</span>
+                                    <span class="progress-text">Anuncio en breve</span>
                                 </div>
                                 <div class="course-actions">
-                                    <button class="btn-course-primary">
-                                        <i class='bx bx-play-circle'></i>
-                                        Iniciar curso
+                                    <button class="btn-course-primary" disabled>
+                                        <i class='bx bx-time-five'></i>
+                                        Próximamente
                                     </button>
                                 </div>
                             </div>

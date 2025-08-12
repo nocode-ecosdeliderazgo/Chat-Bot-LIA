@@ -76,18 +76,18 @@ function init() {
     console.log('[CHAT_INIT] Iniciando aplicación...');
     
     try {
-        // EventBus y UI API para el nuevo layout tipo NotebookLM
-        setupEventBusAndUI();
+    // EventBus y UI API para el nuevo layout tipo NotebookLM
+    setupEventBusAndUI();
         console.log('[CHAT_INIT] EventBus y UI configurados');
         
         // Seguridad e inicializaciones básicas
-        initializeSecurity();
+    initializeSecurity();
         console.log('[CHAT_INIT] Seguridad inicializada');
         
         // Audio (opcional, no debe romper si falla)
         try {
-            initializeAudio();
-            loadAudioPreference();
+    initializeAudio();
+    loadAudioPreference();
             console.log('[CHAT_INIT] Audio inicializado');
         } catch (error) {
             console.warn('[CHAT_INIT] Error inicializando audio:', error);
@@ -95,24 +95,24 @@ function init() {
         
         // Base de datos (opcional)
         try {
-            initializeDatabase();
+    initializeDatabase();
             console.log('[CHAT_INIT] Base de datos inicializada');
         } catch (error) {
             console.warn('[CHAT_INIT] Error inicializando base de datos:', error);
         }
         
         // Animación de apertura y chat principal
-        playChatOpenAnimation().then(() => {
-            initializeChat();
+    playChatOpenAnimation().then(() => {
+    initializeChat();
             console.log('[CHAT_INIT] Chat inicializado');
-        });
+    });
         
         // Event listeners del chat
-        setupEventListeners();
+    setupEventListeners();
         console.log('[CHAT_INIT] Event listeners configurados');
         
         // Paneles redimensionables
-        setupResizableLeft();
+    setupResizableLeft();
         setupResizableRight();
         console.log('[CHAT_INIT] Paneles redimensionables configurados');
         
@@ -125,8 +125,8 @@ function init() {
         }
         
         // Componentes UI
-        setupLivestreamToggle();
-        setupAvatarLightbox();
+    setupLivestreamToggle();
+    setupAvatarLightbox();
         console.log('[CHAT_INIT] Componentes UI configurados');
         
         // Livestream (con delay para Socket.IO, no debe romper si falla)
@@ -146,11 +146,11 @@ function init() {
         // Sincronizar estado inicial del botón de acción con guardas null-safe
         try {
             if (messageInput && inputContainer) {
-                if (messageInput.value.trim().length > 0) {
-                    inputContainer.classList.add('input-has-text');
-                } else {
-                    inputContainer.classList.remove('input-has-text');
-                }
+    if (messageInput.value.trim().length > 0) {
+        inputContainer.classList.add('input-has-text');
+    } else {
+        inputContainer.classList.remove('input-has-text');
+    }
             }
         } catch (error) {
             console.warn('[CHAT_INIT] Error sincronizando estado del botón:', error);
@@ -484,10 +484,10 @@ function setupEventListeners() {
     // Mostrar botón enviar si hay texto; micrófono si está vacío
     const updateActionState = () => {
         try {
-            if (messageInput.value.trim().length > 0) {
-                inputContainer.classList.add('input-has-text');
-            } else {
-                inputContainer.classList.remove('input-has-text');
+        if (messageInput.value.trim().length > 0) {
+            inputContainer.classList.add('input-has-text');
+        } else {
+            inputContainer.classList.remove('input-has-text');
             }
         } catch (error) {
             console.warn('[CHAT_INIT] Error actualizando estado del botón:', error);
@@ -546,11 +546,11 @@ function setupEventListeners() {
     actionButton.addEventListener('click', (ev) => {
         try {
             console.log('[CHAT_INIT] actionButton clicked, text length:', messageInput.value.trim().length);
-            // Con texto: enviar (click estándar)
-            if (messageInput.value.trim().length > 0) {
-                ev.preventDefault();
+        // Con texto: enviar (click estándar)
+        if (messageInput.value.trim().length > 0) {
+            ev.preventDefault();
                 console.log('[CHAT_INIT] Enviando mensaje via click');
-                sendMessage();
+            sendMessage();
             } else {
                 console.log('[CHAT_INIT] Sin texto, no se envía mensaje');
             }
@@ -833,7 +833,7 @@ function setupEventBusAndUI() {
                 }
                 
                 // Re-render lista en el background
-                window.UI.openNotes();
+            window.UI.openNotes();
             }, 1000); // Auto-save después de 1 segundo de inactividad
         };
 
@@ -3180,11 +3180,11 @@ function initializeLivestreamChat() {
 
         // Habilitar interfaz con guardas null-safe
         if (messageInput) {
-            messageInput.placeholder = 'Escribe un mensaje...';
+        messageInput.placeholder = 'Escribe un mensaje...';
             messageInput.disabled = false;
         }
         if (sendBtn) {
-            sendBtn.disabled = false;
+        sendBtn.disabled = false;
         }
         if (messageInput && document.activeElement !== messageInput) {
             messageInput.focus();
@@ -3210,7 +3210,7 @@ function initializeLivestreamChat() {
         
         // UX de reconexión con guardas null-safe
         if (messageInput) {
-            messageInput.placeholder = 'Reconectando…';
+        messageInput.placeholder = 'Reconectando…';
             messageInput.disabled = true;
         }
         if (sendBtn) {
@@ -3261,16 +3261,16 @@ function initializeLivestreamChat() {
 
     // Eventos de la interfaz con guardas null-safe
     if (sendBtn) {
-        sendBtn.addEventListener('click', sendLivestreamMessage);
+    sendBtn.addEventListener('click', sendLivestreamMessage);
     }
     
     if (messageInput) {
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendLivestreamMessage();
-            }
-        });
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendLivestreamMessage();
+        }
+    });
     }
 
     function sendLivestreamMessage() {

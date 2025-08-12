@@ -495,22 +495,28 @@ body {
     position: fixed;
     top: 20px;
     right: 20px;
-    padding: 15px 20px;
+    padding: 14px 18px;
     border-radius: 10px;
-    color: var(--text-on-dark);
-    font-weight: 500;
+    color: #fff;
+    font-weight: 600;
     z-index: 1000;
     animation: slideInRight 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.35);
 }
 
 .error-message {
-    background: #ff4757;
-    border-left: 4px solid #ff4757;
+    background: rgba(220, 38, 38, 0.95); /* rojo */
+    border-left: 4px solid #ef4444;
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);
 }
 
 .success-message {
-    background: #2ed573;
-    border-left: 4px solid #2ed573;
+    background: rgba(16, 185, 129, 0.95); /* verde */
+    border-left: 4px solid #10b981;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
 }
 
 @keyframes slideInRight {

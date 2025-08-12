@@ -107,6 +107,7 @@ function setupEventListeners() {
     // Pestañas de navegación
     const tabButtons = document.querySelectorAll('.tab-button');
     tabButtons.forEach(button => {
+        if (button.disabled) return; // ignorar deshabilitados
         button.addEventListener('click', function() {
             const tabId = this.getAttribute('data-tab');
             switchTab(tabId);

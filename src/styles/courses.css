@@ -17,10 +17,15 @@
 }
 
 /* Layout principal de la página de cursos */
-body.courses-page {
+html, body.courses-page {
     margin: 0;
     padding: 0;
-    background: var(--bg-gradient);
+    background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px),
+        radial-gradient(1200px 800px at 20% 0%, rgba(68, 229, 255, 0.08), transparent 60%),
+        radial-gradient(800px 600px at 80% 100%, rgba(0, 119, 166, 0.12), transparent 60%),
+        linear-gradient(160deg, var(--color-bg-1) 0%, var(--color-bg-2) 100%);
     color: var(--course-text-primary);
     font-family: var(--font-body);
     min-height: 100vh;
@@ -29,7 +34,7 @@ body.courses-page {
 
 /* ===== NAVEGACIÓN SUPERIOR ===== */
 .top-nav {
-    background: var(--course-bg-primary);
+    background: transparent;
     border-bottom: 1px solid var(--course-border);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     position: sticky;
@@ -39,31 +44,31 @@ body.courses-page {
 }
 
 .nav-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 20px;
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0 16px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 12px;
     height: 70px;
 }
 
 .nav-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    display: none; /* Oculta avatar/título para quitar recuadro */
 }
 
 .nav-logo {
-    width: 40px;
-    height: 40px;
+    width: 0px;
+    height: 0px;
     border-radius: 50%;
     object-fit: cover;
 }
 
 .nav-brand h1 {
     font-family: var(--font-heading);
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 800;
     margin: 0;
     background: linear-gradient(135deg, var(--course-accent), #ffffff);
@@ -107,9 +112,10 @@ body.courses-page {
 
 /* ===== CONTENIDO PRINCIPAL ===== */
 .courses-main {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 30px 20px;
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
 }
 
 .courses-container {
@@ -121,12 +127,12 @@ body.courses-page {
 /* ===== PESTAÑAS DE NAVEGACIÓN ===== */
 .course-tabs {
     display: flex;
-    background: var(--course-bg-secondary);
+    background: transparent;
     border-radius: 16px;
     padding: 6px;
     gap: 4px;
     overflow-x: auto;
-    border: 1px solid var(--course-border);
+    border: 1px solid rgba(255,255,255,0.08);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
@@ -145,6 +151,13 @@ body.courses-page {
     white-space: nowrap;
     position: relative;
     overflow: hidden;
+}
+
+/* Estados deshabilitados para pestañas */
+.tab-button[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .tab-button::before {
@@ -436,6 +449,17 @@ body.courses-page {
     overflow: hidden;
     transition: all 0.3s ease;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.course-card.disabled {
+    opacity: 0.6;
+    filter: grayscale(0.2);
+}
+
+.course-card.disabled .menu-btn,
+.course-card.disabled .btn-course-primary {
+    pointer-events: none;
+    cursor: not-allowed;
 }
 
 .course-card:hover {
