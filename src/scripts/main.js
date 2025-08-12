@@ -1775,9 +1775,81 @@ function searchCourseData(courseData, query) {
     return relevantInfo.slice(0, 8); // Limitar a 8 resultados más relevantes
 }
 
+// Cargar datos del curso hardcodeados
+async function loadCourseData() {
+    try {
+        const response = await fetch('/data/course-data.js');
+        if (response.ok) {
+            const text = await response.text();
+            // Evaluar el módulo para obtener los datos
+            const moduleText = text.replace('module.exports = COURSE_DATA;', 'COURSE_DATA');
+            return eval(`(${moduleText})`);
+        }
+    } catch (error) {
+        console.log('Usando datos de curso embebidos como fallback');
+    }
+    return null;
+}
+
+// Buscar información relevante en los datos del curso
+function searchCourseData(courseData, query) {
+    if (!courseData) return '';
+    
+    const queryLower = query.toLowerCase();
+    let relevantInfo = [];
+    
+    // Buscar en glosario
+    courseData.glossary.forEach(item => {
+        if (item.term.toLowerCase().includes(queryLower) || 
+            item.definition.toLowerCase().includes(queryLower)) {
+            relevantInfo.push(`📖 ${item.term}: ${item.definition}`);
+        }
+    });
+    
+    // Buscar en sesiones
+    courseData.sessions.forEach(session => {
+        // Buscar en conceptos de la sesión
+        session.content.concepts.forEach(concept => {
+            if (concept.term.toLowerCase().includes(queryLower) || 
+                concept.definition.toLowerCase().includes(queryLower)) {
+                relevantInfo.push(`🎓 Sesión ${session.id} - ${concept.term}: ${concept.definition}`);
+            }
+        });
+        
+        // Buscar en FAQs
+        session.faq.forEach(faq => {
+            if (faq.question.toLowerCase().includes(queryLower) || 
+                faq.answer.toLowerCase().includes(queryLower)) {
+                relevantInfo.push(`❓ FAQ (${session.title}): ${faq.question} - ${faq.answer}`);
+            }
+        });
+        
+        // Buscar en actividades
+        session.activities.forEach(activity => {
+            if (activity.title.toLowerCase().includes(queryLower) || 
+                activity.description.toLowerCase().includes(queryLower)) {
+                relevantInfo.push(`🎯 Actividad (${session.title}): ${activity.title} - ${activity.description}`);
+            }
+        });
+    });
+    
+    // Buscar en ejercicios prácticos
+    courseData.practicalExercises.forEach(exercise => {
+        if (exercise.title.toLowerCase().includes(queryLower) || 
+            exercise.description.toLowerCase().includes(queryLower)) {
+            relevantInfo.push(`💻 Ejercicio: ${exercise.title} - ${exercise.description}`);
+        }
+    });
+    
+    return relevantInfo.slice(0, 8); // Limitar a 8 resultados más relevantes
+}
+
 // Procesar mensaje del usuario con IA
 async function processUserMessageWithAI(message) {
     try {
+        // Cargar datos del curso hardcodeados
+        const courseData = await loadCourseData();
+        
         // Cargar datos del curso hardcodeados
         const courseData = await loadCourseData();
         
@@ -1821,6 +1893,21 @@ async function processUserMessageWithAI(message) {
             }
         }
         
+        // Agregar contexto de datos del curso hardcodeados
+        if (courseData) {
+            const courseInfo = searchCourseData(courseData, message);
+            if (courseInfo.length > 0) {
+                contextInfo += '\n\nInformación del curso "Aprende y Aplica IA":\n';
+                courseInfo.forEach(info => {
+                    contextInfo += `${info}\n`;
+                });
+                
+                // Agregar información general del curso
+                contextInfo += `\n📚 Curso: ${courseData.info.title} (${courseData.info.duration})\n`;
+                contextInfo += `🎯 Descripción: ${courseData.info.description}\n`;
+            }
+        }
+        
         // Prompt completo siguiendo PROMPT_CLAUDE.md al pie de la letra
         const systemPrompt = `Sistema — Claude (ES)
 
@@ -1843,7 +1930,24 @@ GLOSARIO COMPLETO: +50 términos con definiciones (desde conceptos básicos hast
 EJERCICIOS PRÁCTICOS: 5 proyectos hands-on (clasificación, redes neuronales, NLP, visión, chatbots)
 RECURSOS: Libros recomendados, cursos online, herramientas, datasets
 
+CURSO "APRENDE Y APLICA IA" - CONTENIDO DISPONIBLE:
+- 8 Sesiones completas: desde fundamentos hasta implementación en producción
+- Sesión 1: Introducción a la IA (conceptos básicos, historia, tipos de IA)
+- Sesión 2: Fundamentos de Machine Learning (supervisado, no supervisado, algoritmos)
+- Sesión 3: Redes Neuronales y Deep Learning (CNN, RNN, backpropagation)
+- Sesión 4: Procesamiento de Lenguaje Natural (tokenización, transformers, LLMs)
+- Sesión 5: Visión por Computadora (CNN, detección de objetos, transfer learning)
+- Sesión 6: IA Generativa y Modelos de Lenguaje (prompt engineering, fine-tuning)
+- Sesión 7: Ética y Responsabilidad en IA (sesgo algorítmico, explicabilidad)
+- Sesión 8: Implementación y Despliegue (MLOps, producción, monitoreo)
+
+GLOSARIO COMPLETO: +50 términos con definiciones (desde conceptos básicos hasta avanzados)
+EJERCICIOS PRÁCTICOS: 5 proyectos hands-on (clasificación, redes neuronales, NLP, visión, chatbots)
+RECURSOS: Libros recomendados, cursos online, herramientas, datasets
+
 Objetivo general
+- Entregar respuestas claras, accionables y verificables basadas en el contenido específico del curso
+- Generar casos de uso y prompts listos para copiar cuando aporten valor
 - Entregar respuestas claras, accionables y verificables basadas en el contenido específico del curso
 - Generar casos de uso y prompts listos para copiar cuando aporten valor
 
@@ -1868,9 +1972,12 @@ Casos de uso (cuando aplique)
 
 Prompts (cuando aplique)
 - Ofrece 2–4 prompts listos para copiar orientados a estudio/práctica o evaluación, alineados al temario específico del curso.
+- Ofrece 2–4 prompts listos para copiar orientados a estudio/práctica o evaluación, alineados al temario específico del curso.
 
 Formato de respuesta
 - 1 línea inicial que responda directo a la intención.
+- 3–6 viñetas con lo esencial (usa **negritas** para conceptos clave del curso).
+- Cierra con una pregunta breve que proponga el siguiente paso u opciones específicas del curso.
 - 3–6 viñetas con lo esencial (usa **negritas** para conceptos clave del curso).
 - Cierra con una pregunta breve que proponga el siguiente paso u opciones específicas del curso.
 - Español neutro, claro y preciso. Evita párrafos largos; usa listas.
@@ -1883,6 +1990,7 @@ Nunca pidas el nombre/apellido del usuario ni bloquees la conversación por iden
 
 ${contextInfo}
 
+Responde siguiendo exactamente el formato especificado y utilizando la información específica del curso "Aprende y Aplica IA":`;
 Responde siguiendo exactamente el formato especificado y utilizando la información específica del curso "Aprende y Aplica IA":`;
         
         const fullPrompt = `${systemPrompt}\n\nUsuario: ${message}\n\nAsistente:`;
@@ -2708,10 +2816,14 @@ function setupLivestreamToggle() {
                     const liveMount = document.getElementById('leftLivestreamPlayer');
                     const notice = document.getElementById('livestreamNotice');
                     if (notice) notice.style.display = 'none';
+                    if (notice) notice.style.display = 'none';
                     if (liveMount) {
+                        // Dejamos el placeholder visual. Si hay Zoom configurado, lo embebemos.
                         // Dejamos el placeholder visual. Si hay Zoom configurado, lo embebemos.
                         const meetingId = (window.ZOOM_MEETING_ID || '').replaceAll('-', '');
                         const pwd = window.ZOOM_MEETING_PWD || '';
+                        if (!meetingId) return; // sin player, solo placeholder bonito
+                        liveMount.innerHTML = '';
                         if (!meetingId) return; // sin player, solo placeholder bonito
                         liveMount.innerHTML = '';
                         const zoomUrl = `https://zoom.us/wc/${meetingId}/join?pwd=${encodeURIComponent(pwd)}`;
@@ -2751,6 +2863,235 @@ function setupAvatarLightbox() {
     lightbox.addEventListener('click', (e) => { if (e.target === lightbox || e.target === lbClose) close(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
 }
+
+// ===== Chat del Livestream en Tiempo Real =====
+let livestreamSocket = null;
+let livestreamChatState = {
+    isConnected: false,
+    username: '',
+    messages: [],
+    connectedUsers: [],
+    pendingMessages: []
+};
+
+function initializeLivestreamChat() {
+    // Verificar que Socket.IO está disponible
+    if (typeof io === 'undefined') {
+        console.error('Socket.IO no está disponible');
+        return;
+    }
+
+    // Configurar elementos del DOM
+    const messageInput = document.getElementById('livestreamMessageInput');
+    const sendBtn = document.getElementById('livestreamSendBtn');
+    const messagesContainer = document.getElementById('livestreamChatMessages');
+    const connectionStatus = document.getElementById('livestreamConnectionStatus');
+    const usersCount = document.getElementById('livestreamUsersCount');
+
+    if (!messageInput || !sendBtn || !messagesContainer) {
+        console.error('Elementos del chat del livestream no encontrados');
+        return;
+    }
+
+    // Inicializar conexión Socket.IO
+    livestreamSocket = io({
+        transports: ['websocket', 'polling'],
+        timeout: 10000
+    });
+
+    // Generar nombre de usuario automáticamente
+    livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
+
+    // Eventos de conexión
+    livestreamSocket.on('connect', () => {
+        console.log('Conectado al chat del livestream');
+        livestreamChatState.isConnected = true;
+        updateConnectionStatus('Conectado', true);
+        
+        // Unirse al chat del livestream
+        livestreamSocket.emit('join-livestream-chat', {
+            username: livestreamChatState.username
+        });
+
+        // Habilitar interfaz
+        messageInput.placeholder = 'Escribe un mensaje...';
+        sendBtn.disabled = false;
+        if (document.activeElement !== messageInput) {
+            messageInput.focus();
+        }
+
+        // Reintentar envío de pendientes
+        if (livestreamChatState.pendingMessages.length > 0) {
+            livestreamChatState.pendingMessages.forEach(p => {
+                livestreamSocket.emit('livestream-message', { message: p.message, clientMessageId: p.id });
+            });
+        }
+    });
+
+    livestreamSocket.on('disconnect', () => {
+        console.log('Desconectado del chat del livestream');
+        livestreamChatState.isConnected = false;
+        updateConnectionStatus('Desconectado', false);
+        
+        // UX de reconexión
+        messageInput.placeholder = 'Reconectando…';
+        // Mantener botón habilitado para encolar mensajes
+        sendBtn.disabled = false;
+    });
+
+    // Eventos del chat
+    livestreamSocket.on('new-livestream-message', (messageData) => {
+        // Reconciliar mensajes pendientes por clientMessageId
+        if (messageData.clientMessageId) {
+            const existing = document.querySelector(`.livestream-message[data-client-message-id="${messageData.clientMessageId}"]`);
+            if (existing) {
+                const time = new Date(messageData.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                const isOwn = messageData.username === livestreamChatState.username;
+                const replacement = document.createElement('div');
+                replacement.className = `livestream-message ${messageData.type}`;
+                replacement.dataset.clientMessageId = messageData.clientMessageId;
+                replacement.innerHTML = `
+                    <div class="message-content user ${isOwn ? 'own' : ''}">
+                        <div class="message-header">
+                            <span class="username">${messageData.username}</span>
+                            <span class="timestamp">${time}</span>
+                        </div>
+                        <div class="message-text">${messageData.message}</div>
+                    </div>
+                `;
+                existing.replaceWith(replacement);
+                livestreamChatState.pendingMessages = livestreamChatState.pendingMessages.filter(p => p.id !== messageData.clientMessageId);
+                return;
+            }
+        }
+        addLivestreamMessage(messageData);
+    });
+
+    livestreamSocket.on('user-joined', (data) => {
+        addLivestreamMessage(data);
+    });
+
+    livestreamSocket.on('user-left', (data) => {
+        addLivestreamMessage(data);
+    });
+
+    livestreamSocket.on('users-list', (users) => {
+        livestreamChatState.connectedUsers = users;
+        updateUsersCount(users.length);
+    });
+
+    // Eventos de la interfaz
+    sendBtn.addEventListener('click', sendLivestreamMessage);
+    
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendLivestreamMessage();
+        }
+    });
+
+    function sendLivestreamMessage() {
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        const clientMessageId = `c_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+
+        // Render inmediato
+        addLivestreamMessage({
+            username: livestreamChatState.username,
+            message,
+            timestamp: new Date().toISOString(),
+            type: 'user',
+            clientMessageId,
+            pending: !livestreamChatState.isConnected
+        });
+
+        if (!livestreamChatState.isConnected) {
+            livestreamChatState.pendingMessages.push({ id: clientMessageId, message });
+        } else {
+            livestreamSocket.emit('livestream-message', { message, clientMessageId });
+        }
+
+        messageInput.value = '';
+    }
+
+    function addLivestreamMessage(messageData) {
+        const messagesContainer = document.getElementById('livestreamChatMessages');
+        if (!messagesContainer) return;
+
+        // Remover mensaje de bienvenida si existe
+        const welcomeMessage = messagesContainer.querySelector('.welcome-message');
+        if (welcomeMessage) {
+            welcomeMessage.remove();
+        }
+
+        const messageElement = document.createElement('div');
+        messageElement.className = `livestream-message ${messageData.type}`;
+        if (messageData.clientMessageId) {
+            messageElement.dataset.clientMessageId = messageData.clientMessageId;
+        }
+        
+        const time = new Date(messageData.timestamp).toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        if (messageData.type === 'system') {
+            messageElement.innerHTML = `
+                <div class="message-content system">
+                    <i class='bx bx-info-circle'></i>
+                    <span>${messageData.message}</span>
+                    <span class="timestamp">${time}</span>
+                </div>
+            `;
+        } else {
+            const isOwnMessage = messageData.username === livestreamChatState.username;
+            messageElement.innerHTML = `
+                <div class="message-content user ${isOwnMessage ? 'own' : ''} ${messageData.pending ? 'pending' : ''}">
+                    <div class="message-header">
+                        <span class="username">${messageData.username}</span>
+                        <span class="timestamp">${time}</span>
+                    </div>
+                    <div class="message-text">${messageData.message}</div>
+                    ${messageData.pending ? '<div class="message-status">Pendiente…</div>' : ''}
+                </div>
+            `;
+        }
+
+        messagesContainer.appendChild(messageElement);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Mantener solo los últimos 50 mensajes
+        const messages = messagesContainer.querySelectorAll('.livestream-message');
+        if (messages.length > 50) {
+            messages[0].remove();
+        }
+    }
+
+    function updateConnectionStatus(status, isConnected) {
+        const statusIndicator = connectionStatus.querySelector('.status-indicator');
+        const statusText = connectionStatus.querySelector('.status-text');
+        
+        if (statusIndicator && statusText) {
+            statusIndicator.className = `status-indicator ${isConnected ? 'online' : 'offline'}`;
+            statusText.textContent = status;
+        }
+    }
+
+    function updateUsersCount(count) {
+        if (usersCount) {
+            usersCount.textContent = `${count} usuario${count !== 1 ? 's' : ''}`;
+        }
+    }
+}
+
+// Inicializar chat del livestream cuando se carga la página
+document.addEventListener('DOMContentLoaded', () => {
+    // Delay para asegurar que Socket.IO se carga primero
+    setTimeout(() => {
+        initializeLivestreamChat();
+    }, 1000);
+});
 
 // ===== Chat del Livestream en Tiempo Real =====
 let livestreamSocket = null;

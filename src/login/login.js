@@ -1,4 +1,15 @@
 // Configuración del sistema de login
+const API_BASE = (() => {
+    try {
+        if (window.API_BASE) return window.API_BASE;
+        const loc = window.location;
+        // Si servimos todo desde Node (puerto 3000) o mismo host, usar relativo
+        if (!loc.port || loc.port === '3000') return '';
+        // Si el login se sirve desde un host estático (Netlify), apunta al backend local/dev
+        return `${loc.protocol}//localhost:3000`;
+    } catch (_) { return ''; }
+})();
+
 const LOGIN_CONFIG = {
     minUsernameLength: 3,
     minPasswordLength: 6,
@@ -84,12 +95,75 @@ function setupEventListeners() {
             elements.form.dispatchEvent(new Event('submit'));
         }
     });
+    // Registro: abrir modal
+    const openRegister = document.getElementById('openRegister');
+    const registerModal = document.getElementById('registerModal');
+    const cancelRegister = document.getElementById('cancelRegister');
+    const registerForm = document.getElementById('registerForm');
+    if (openRegister && registerModal && cancelRegister && registerForm) {
+        openRegister.addEventListener('click', (e) => { e.preventDefault(); registerModal.classList.remove('hidden'); });
+        cancelRegister.addEventListener('click', () => registerModal.classList.add('hidden'));
+        registerForm.addEventListener('submit', handleRegisterSubmit);
+    }
+}
+
+async function handleRegisterSubmit(e) {
+    e.preventDefault();
+    const full_name = document.getElementById('reg_fullname')?.value.trim();
+    const username = document.getElementById('reg_username')?.value.trim();
+    const email = document.getElementById('reg_email')?.value.trim();
+    const password = document.getElementById('reg_password')?.value;
+
+    if (!full_name || !username || !password) {
+        showError('Completa nombre, usuario y contraseña.');
+        return;
+    }
+
+    // Intentar registro real si el backend tiene BD; en DEV, cae a local
+    try {
+        const res = await fetch(`${API_BASE}/api/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ full_name, username, email, password })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        showSuccess('Cuenta creada. Inicia sesión.');
+        document.getElementById('registerModal')?.classList.add('hidden');
+        // Autocompleta usuario en login
+        elements.username.value = username;
+        elements.password.value = '';
+        elements.username.focus();
+        return;
+    } catch (_) {
+        // Modo desarrollo: persistencia local
+        try {
+            const users = JSON.parse(localStorage.getItem('dev_users') || '[]');
+            if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                showError('Ese usuario ya existe (local).');
+                return;
+            }
+            users.push({ full_name, username, email: email || null, password });
+            localStorage.setItem('dev_users', JSON.stringify(users));
+            showSuccess('Cuenta creada en modo desarrollo. Inicia sesión.');
+            document.getElementById('registerModal')?.classList.add('hidden');
+            elements.username.value = username;
+            elements.password.value = '';
+            elements.username.focus();
+            return;
+        } catch (err) {
+            showError('No se pudo registrar.');
+        }
+    }
 }
 
 async function handleLogin(e) {
     e.preventDefault();
 
-    if (loginState.isLoading || loginState.isLocked) {
+    if (loginState.isLoading) {
         return;
     }
 
@@ -105,10 +179,14 @@ async function handleLogin(e) {
     setLoadingState(true);
 
     try {
-        // Simular validación de credenciales
+        // Validación de credenciales (intenta backend primero)
         const isValid = await validateCredentials(username, password);
 
         if (isValid) {
+            if (loginState.isLocked) {
+                // Si estaba bloqueado pero el servidor validó, desbloquear y continuar
+                unlockUser();
+            }
             await handleSuccessfulLogin(username, remember);
         } else {
             await handleFailedLogin();
@@ -121,10 +199,25 @@ async function handleLogin(e) {
 }
 
 async function validateCredentials(username, password) {
-    // Simular delay de red
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // 0) Intentar validar en backend si está disponible
+    try {
+        const res = await fetch(`${API_BASE}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body: JSON.stringify({ username, password })
+        });
+        if (res.ok) return true;
+        // si la BD no está configurada o endpoint no disponible, seguimos flujo local
+    } catch(_) {}
 
-    // Verificar credenciales de prueba
+    // 1) Intentar validar con usuarios locales (si existen)
+    try {
+        const users = JSON.parse(localStorage.getItem('dev_users') || '[]');
+        const found = users.find(u => u.username?.toLowerCase() === username.toLowerCase());
+        if (found) return found.password === password;
+    } catch(_) {}
+
+    // 2) Fallback a credenciales de prueba
     return TEST_CREDENTIALS.some(cred => 
         cred.username.toLowerCase() === username.toLowerCase() && 
         cred.password === password
@@ -231,7 +324,7 @@ function generateSessionKey() {
 }
 
 async function issueUserSession(username) {
-    const res = await fetch('/api/auth/issue', {
+    const res = await fetch(`${API_BASE}/api/auth/issue`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

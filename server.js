@@ -363,6 +363,56 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
+// Login de usuario (valida contra BD si está disponible)
+app.post('/api/login', async (req, res) => {
+    try {
+        const { username, password } = req.body || {};
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
+        }
+
+        if (!pool) {
+            return res.status(503).json({ error: 'Base de datos no configurada' });
+        }
+
+        // Verificar si existe la columna password_hash
+        let hasPassword = false;
+        try {
+            const col = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'password_hash' LIMIT 1");
+            hasPassword = col.rows.length > 0;
+        } catch (_) {}
+
+        if (!hasPassword) {
+            return res.status(500).json({ error: 'La tabla users no tiene password_hash' });
+        }
+
+        const query = `SELECT id, username, full_name, email, password_hash FROM users WHERE LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($1) LIMIT 1`;
+        const result = await pool.query(query, [String(username)]);
+        if (result.rows.length === 0) {
+            return res.status(401).json({ error: 'Credenciales inválidas' });
+        }
+
+        const user = result.rows[0];
+        const bcrypt = require('bcryptjs');
+        let ok = false;
+        try {
+            ok = await bcrypt.compare(String(password), user.password_hash || '');
+        } catch(_) { ok = false; }
+        // Modo desarrollo: permitir coincidencia en texto plano si el hash no es válido
+        if (!ok && DEV_MODE && user.password_hash && !String(user.password_hash).startsWith('$2')) {
+            ok = String(user.password_hash) === String(password);
+        }
+        if (!ok) {
+            return res.status(401).json({ error: 'Credenciales inválidas' });
+        }
+
+        return res.json({ user: { id: user.id, username: user.username, full_name: user.full_name, email: user.email } });
+    } catch (err) {
+        console.error('Error en /api/login:', err);
+        return res.status(500).json({ error: 'Error interno en login' });
+    }
+});
+
 // Endpoint para subir audio (push-to-talk)
 app.post('/api/audio/upload', authenticateRequest, requireUserSession, upload.single('audio'), (req, res) => {
     try {
