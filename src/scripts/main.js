@@ -71,28 +71,117 @@ function getUserAvatarHTML() {
     `;
 }
 
-// Inicialización
-document.addEventListener('DOMContentLoaded', function() {
-    // EventBus y UI API para el nuevo layout tipo NotebookLM
-    setupEventBusAndUI();
-    initializeSecurity();
-    initializeAudio();
-    loadAudioPreference();
-    initializeDatabase();
-    playChatOpenAnimation().then(() => {
-    initializeChat();
-    });
-    setupEventListeners();
-    setupResizableLeft();
-    setupLivestreamToggle();
-    setupAvatarLightbox();
-    // Sincronizar estado inicial del botón de acción
-    if (messageInput.value.trim().length > 0) {
-        inputContainer.classList.add('input-has-text');
-    } else {
-        inputContainer.classList.remove('input-has-text');
+// Función de inicialización principal consolidada
+function init() {
+    console.log('[CHAT_INIT] Iniciando aplicación...');
+    
+    try {
+        // EventBus y UI API para el nuevo layout tipo NotebookLM
+        setupEventBusAndUI();
+        console.log('[CHAT_INIT] EventBus y UI configurados');
+        
+        // Seguridad e inicializaciones básicas
+        initializeSecurity();
+        console.log('[CHAT_INIT] Seguridad inicializada');
+        
+        // Audio (opcional, no debe romper si falla)
+        try {
+            initializeAudio();
+            loadAudioPreference();
+            console.log('[CHAT_INIT] Audio inicializado');
+        } catch (error) {
+            console.warn('[CHAT_INIT] Error inicializando audio:', error);
+        }
+        
+        // Base de datos (opcional)
+        try {
+            initializeDatabase();
+            console.log('[CHAT_INIT] Base de datos inicializada');
+        } catch (error) {
+            console.warn('[CHAT_INIT] Error inicializando base de datos:', error);
+        }
+        
+        // Animación de apertura y chat principal
+        playChatOpenAnimation().then(() => {
+            initializeChat();
+            console.log('[CHAT_INIT] Chat inicializado');
+        });
+        
+        // Event listeners del chat
+        setupEventListeners();
+        console.log('[CHAT_INIT] Event listeners configurados');
+        
+        // Paneles redimensionables
+        setupResizableLeft();
+        setupResizableRight();
+        console.log('[CHAT_INIT] Paneles redimensionables configurados');
+        
+        // Gestión de sesiones
+        try {
+            initializeSessionManager();
+            console.log('[CHAT_INIT] Gestor de sesiones inicializado');
+        } catch (error) {
+            console.warn('[CHAT_INIT] Error inicializando gestor de sesiones:', error);
+        }
+        
+        // Componentes UI
+        setupLivestreamToggle();
+        setupAvatarLightbox();
+        console.log('[CHAT_INIT] Componentes UI configurados');
+        
+        // Livestream (con delay para Socket.IO, no debe romper si falla)
+        try {
+            setTimeout(() => {
+                if (typeof io !== 'undefined') {
+                    initializeLivestreamChat();
+                    console.log('[CHAT_INIT] Chat del livestream inicializado');
+                } else {
+                    console.warn('[CHAT_INIT] Socket.IO no disponible, livestream deshabilitado');
+                }
+            }, 1000);
+        } catch (error) {
+            console.warn('[CHAT_INIT] Error inicializando livestream:', error);
+        }
+        
+        // Sincronizar estado inicial del botón de acción con guardas null-safe
+        try {
+            if (messageInput && inputContainer) {
+                if (messageInput.value.trim().length > 0) {
+                    inputContainer.classList.add('input-has-text');
+                } else {
+                    inputContainer.classList.remove('input-has-text');
+                }
+            }
+        } catch (error) {
+            console.warn('[CHAT_INIT] Error sincronizando estado del botón:', error);
+        }
+        
+        // Remover cualquier clase loading que pueda estar bloqueando la UI
+        try {
+            const containers = [
+                document.querySelector('.telegram-container'),
+                document.querySelector('.chat-main'),
+                document.body
+            ];
+            containers.forEach(container => {
+                if (container) {
+                    container.classList.remove('loading');
+                }
+            });
+            console.log('[CHAT_INIT] Estados de loading removidos');
+        } catch (error) {
+            console.warn('[CHAT_INIT] Error removiendo estados loading:', error);
+        }
+        
+        console.log('[CHAT_INIT] Inicialización completada exitosamente');
+        
+    } catch (error) {
+        console.error('[CHAT_INIT] Error crítico durante la inicialización:', error);
     }
-});
+}
+
+// Inicialización principal
+document.addEventListener('DOMContentLoaded', init);
 
 // Animación de apertura del contenedor de chat
 function playChatOpenAnimation() {
@@ -278,23 +367,49 @@ function playWelcomeAudioFile() {
 
 // Configurar event listeners
 function setupEventListeners() {
+    console.log('[CHAT_INIT] Configurando event listeners...');
+    
+    // Guard para messageInput
+    if (!messageInput) {
+        console.error('[CHAT_INIT] messageInput no encontrado');
+        return;
+    }
+    
+    // Guard para inputContainer
+    if (!inputContainer) {
+        console.error('[CHAT_INIT] inputContainer no encontrado');
+        return;
+    }
+    
+    // Guard para actionButton
+    if (!actionButton) {
+        console.error('[CHAT_INIT] actionButton no encontrado');
+        return;
+    }
+    
+    // Envío por Enter
     messageInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
+            console.log('[CHAT_INIT] Enter presionado, enviando mensaje');
             sendMessage();
         }
     });
 
-    // Ya no hay sendButton; se usa actionButton
-
     // Mostrar botón enviar si hay texto; micrófono si está vacío
     const updateActionState = () => {
-        if (messageInput.value.trim().length > 0) {
-            inputContainer.classList.add('input-has-text');
-        } else {
-            inputContainer.classList.remove('input-has-text');
+        try {
+            if (messageInput.value.trim().length > 0) {
+                inputContainer.classList.add('input-has-text');
+            } else {
+                inputContainer.classList.remove('input-has-text');
+            }
+        } catch (error) {
+            console.warn('[CHAT_INIT] Error actualizando estado del botón:', error);
         }
     };
+    
+    // Listeners para cambios en el input
     messageInput.addEventListener('input', updateActionState);
     messageInput.addEventListener('keyup', updateActionState);
     messageInput.addEventListener('change', updateActionState);
@@ -344,10 +459,18 @@ function setupEventListeners() {
     });
 
     actionButton.addEventListener('click', (ev) => {
-        // Con texto: enviar (click estándar)
-        if (messageInput.value.trim().length > 0) {
-            ev.preventDefault();
-            sendMessage();
+        try {
+            console.log('[CHAT_INIT] actionButton clicked, text length:', messageInput.value.trim().length);
+            // Con texto: enviar (click estándar)
+            if (messageInput.value.trim().length > 0) {
+                ev.preventDefault();
+                console.log('[CHAT_INIT] Enviando mensaje via click');
+                sendMessage();
+            } else {
+                console.log('[CHAT_INIT] Sin texto, no se envía mensaje');
+            }
+        } catch (error) {
+            console.error('[CHAT_INIT] Error en click del actionButton:', error);
         }
     });
 
@@ -1850,9 +1973,6 @@ async function processUserMessageWithAI(message) {
         // Cargar datos del curso hardcodeados
         const courseData = await loadCourseData();
         
-        // Cargar datos del curso hardcodeados
-        const courseData = await loadCourseData();
-        
         // Obtener contexto de la base de datos (si está disponible)
         const dbContext = await getDatabaseContext(message);
         
@@ -1991,7 +2111,6 @@ Nunca pidas el nombre/apellido del usuario ni bloquees la conversación por iden
 ${contextInfo}
 
 Responde siguiendo exactamente el formato especificado y utilizando la información específica del curso "Aprende y Aplica IA":`;
-Responde siguiendo exactamente el formato especificado y utilizando la información específica del curso "Aprende y Aplica IA":`;
         
         const fullPrompt = `${systemPrompt}\n\nUsuario: ${message}\n\nAsistente:`;
         
@@ -2027,12 +2146,32 @@ Responde siguiendo exactamente el formato especificado y utilizando la informaci
 
 // Enviar mensaje
 function sendMessage() {
+    console.log('[CHAT] Iniciando envío de mensaje...');
     const message = messageInput.value.trim();
-    if (!message || chatState.isTyping) return;
+    
+    if (!message) {
+        console.log('[CHAT] Mensaje vacío, cancelando envío');
+        return;
+    }
+    
+    if (chatState.isTyping) {
+        console.log('[CHAT] Chat está escribiendo, cancelando envío');
+        return;
+    }
 
+    console.log('[CHAT] Enviando mensaje:', message);
     addUserMessage(message);
     messageInput.value = '';
     messageInput.style.height = 'auto';
+    
+    // Actualizar estado del botón después de limpiar el input
+    try {
+        if (inputContainer) {
+            inputContainer.classList.remove('input-has-text');
+        }
+    } catch (error) {
+        console.warn('[CHAT] Error actualizando estado del botón después de enviar:', error);
+    }
 
     // Mostrar indicador de escritura
     showTypingIndicator();
@@ -2410,10 +2549,7 @@ function handleSessionAction(action) {
 }
 
 // Inicializar sistema de sesiones al cargar
-document.addEventListener('DOMContentLoaded', () => {
-    initializeSessionManager();
-    setupResizableRight();
-});
+
 
 // Exportar funciones para uso externo
 window.Chatbot = {
@@ -2875,13 +3011,15 @@ let livestreamChatState = {
 };
 
 function initializeLivestreamChat() {
+    console.log('[LIVESTREAM] Inicializando chat del livestream...');
+    
     // Verificar que Socket.IO está disponible
     if (typeof io === 'undefined') {
-        console.error('Socket.IO no está disponible');
+        console.error('[LIVESTREAM] Socket.IO no está disponible');
         return;
     }
 
-    // Configurar elementos del DOM
+    // Configurar elementos del DOM con guardas null-safe
     const messageInput = document.getElementById('livestreamMessageInput');
     const sendBtn = document.getElementById('livestreamSendBtn');
     const messagesContainer = document.getElementById('livestreamChatMessages');
@@ -2889,7 +3027,7 @@ function initializeLivestreamChat() {
     const usersCount = document.getElementById('livestreamUsersCount');
 
     if (!messageInput || !sendBtn || !messagesContainer) {
-        console.error('Elementos del chat del livestream no encontrados');
+        console.error('[LIVESTREAM] Elementos del chat del livestream no encontrados');
         return;
     }
 
@@ -2904,7 +3042,7 @@ function initializeLivestreamChat() {
 
     // Eventos de conexión
     livestreamSocket.on('connect', () => {
-        console.log('Conectado al chat del livestream');
+        console.log('[LIVESTREAM] Conectado al chat del livestream');
         livestreamChatState.isConnected = true;
         updateConnectionStatus('Conectado', true);
         
@@ -2913,11 +3051,21 @@ function initializeLivestreamChat() {
             username: livestreamChatState.username
         });
 
-        // Habilitar interfaz
-        messageInput.placeholder = 'Escribe un mensaje...';
-        sendBtn.disabled = false;
-        if (document.activeElement !== messageInput) {
+        // Habilitar interfaz con guardas null-safe
+        if (messageInput) {
+            messageInput.placeholder = 'Escribe un mensaje...';
+            messageInput.disabled = false;
+        }
+        if (sendBtn) {
+            sendBtn.disabled = false;
+        }
+        if (messageInput && document.activeElement !== messageInput) {
             messageInput.focus();
+        }
+
+        // Actualizar contador de usuarios con guarda null-safe
+        if (usersCount) {
+            usersCount.textContent = `${livestreamChatState.connectedUsers.length} usuarios`;
         }
 
         // Reintentar envío de pendientes
@@ -2929,14 +3077,18 @@ function initializeLivestreamChat() {
     });
 
     livestreamSocket.on('disconnect', () => {
-        console.log('Desconectado del chat del livestream');
+        console.log('[LIVESTREAM] Desconectado del chat del livestream');
         livestreamChatState.isConnected = false;
         updateConnectionStatus('Desconectado', false);
         
-        // UX de reconexión
-        messageInput.placeholder = 'Reconectando…';
-        // Mantener botón habilitado para encolar mensajes
-        sendBtn.disabled = false;
+        // UX de reconexión con guardas null-safe
+        if (messageInput) {
+            messageInput.placeholder = 'Reconectando…';
+            messageInput.disabled = true;
+        }
+        if (sendBtn) {
+            sendBtn.disabled = true;
+        }
     });
 
     // Eventos del chat
@@ -2980,15 +3132,19 @@ function initializeLivestreamChat() {
         updateUsersCount(users.length);
     });
 
-    // Eventos de la interfaz
-    sendBtn.addEventListener('click', sendLivestreamMessage);
+    // Eventos de la interfaz con guardas null-safe
+    if (sendBtn) {
+        sendBtn.addEventListener('click', sendLivestreamMessage);
+    }
     
-    messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendLivestreamMessage();
-        }
-    });
+    if (messageInput) {
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendLivestreamMessage();
+            }
+        });
+    }
 
     function sendLivestreamMessage() {
         const message = messageInput.value.trim();
@@ -3086,238 +3242,3 @@ function initializeLivestreamChat() {
 }
 
 // Inicializar chat del livestream cuando se carga la página
-document.addEventListener('DOMContentLoaded', () => {
-    // Delay para asegurar que Socket.IO se carga primero
-    setTimeout(() => {
-        initializeLivestreamChat();
-    }, 1000);
-});
-
-// ===== Chat del Livestream en Tiempo Real =====
-let livestreamSocket = null;
-let livestreamChatState = {
-    isConnected: false,
-    username: '',
-    messages: [],
-    connectedUsers: [],
-    pendingMessages: []
-};
-
-function initializeLivestreamChat() {
-    // Verificar que Socket.IO está disponible
-    if (typeof io === 'undefined') {
-        console.error('Socket.IO no está disponible');
-        return;
-    }
-
-    // Configurar elementos del DOM
-    const messageInput = document.getElementById('livestreamMessageInput');
-    const sendBtn = document.getElementById('livestreamSendBtn');
-    const messagesContainer = document.getElementById('livestreamChatMessages');
-    const connectionStatus = document.getElementById('livestreamConnectionStatus');
-    const usersCount = document.getElementById('livestreamUsersCount');
-
-    if (!messageInput || !sendBtn || !messagesContainer) {
-        console.error('Elementos del chat del livestream no encontrados');
-        return;
-    }
-
-    // Inicializar conexión Socket.IO
-    livestreamSocket = io({
-        transports: ['websocket', 'polling'],
-        timeout: 10000
-    });
-
-    // Generar nombre de usuario automáticamente
-    livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
-
-    // Eventos de conexión
-    livestreamSocket.on('connect', () => {
-        console.log('Conectado al chat del livestream');
-        livestreamChatState.isConnected = true;
-        updateConnectionStatus('Conectado', true);
-        
-        // Unirse al chat del livestream
-        livestreamSocket.emit('join-livestream-chat', {
-            username: livestreamChatState.username
-        });
-
-        // Habilitar interfaz
-        messageInput.placeholder = 'Escribe un mensaje...';
-        sendBtn.disabled = false;
-        if (document.activeElement !== messageInput) {
-            messageInput.focus();
-        }
-
-        // Reintentar envío de pendientes
-        if (livestreamChatState.pendingMessages.length > 0) {
-            livestreamChatState.pendingMessages.forEach(p => {
-                livestreamSocket.emit('livestream-message', { message: p.message, clientMessageId: p.id });
-            });
-        }
-    });
-
-    livestreamSocket.on('disconnect', () => {
-        console.log('Desconectado del chat del livestream');
-        livestreamChatState.isConnected = false;
-        updateConnectionStatus('Desconectado', false);
-        
-        // UX de reconexión
-        messageInput.placeholder = 'Reconectando…';
-        // Mantener botón habilitado para encolar mensajes
-        sendBtn.disabled = false;
-    });
-
-    // Eventos del chat
-    livestreamSocket.on('new-livestream-message', (messageData) => {
-        // Reconciliar mensajes pendientes por clientMessageId
-        if (messageData.clientMessageId) {
-            const existing = document.querySelector(`.livestream-message[data-client-message-id="${messageData.clientMessageId}"]`);
-            if (existing) {
-                const time = new Date(messageData.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-                const isOwn = messageData.username === livestreamChatState.username;
-                const replacement = document.createElement('div');
-                replacement.className = `livestream-message ${messageData.type}`;
-                replacement.dataset.clientMessageId = messageData.clientMessageId;
-                replacement.innerHTML = `
-                    <div class="message-content user ${isOwn ? 'own' : ''}">
-                        <div class="message-header">
-                            <span class="username">${messageData.username}</span>
-                            <span class="timestamp">${time}</span>
-                        </div>
-                        <div class="message-text">${messageData.message}</div>
-                    </div>
-                `;
-                existing.replaceWith(replacement);
-                livestreamChatState.pendingMessages = livestreamChatState.pendingMessages.filter(p => p.id !== messageData.clientMessageId);
-                return;
-            }
-        }
-        addLivestreamMessage(messageData);
-    });
-
-    livestreamSocket.on('user-joined', (data) => {
-        addLivestreamMessage(data);
-    });
-
-    livestreamSocket.on('user-left', (data) => {
-        addLivestreamMessage(data);
-    });
-
-    livestreamSocket.on('users-list', (users) => {
-        livestreamChatState.connectedUsers = users;
-        updateUsersCount(users.length);
-    });
-
-    // Eventos de la interfaz
-    sendBtn.addEventListener('click', sendLivestreamMessage);
-    
-    messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendLivestreamMessage();
-        }
-    });
-
-    function sendLivestreamMessage() {
-        const message = messageInput.value.trim();
-        if (!message) return;
-
-        const clientMessageId = `c_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
-
-        // Render inmediato
-        addLivestreamMessage({
-            username: livestreamChatState.username,
-            message,
-            timestamp: new Date().toISOString(),
-            type: 'user',
-            clientMessageId,
-            pending: !livestreamChatState.isConnected
-        });
-
-        if (!livestreamChatState.isConnected) {
-            livestreamChatState.pendingMessages.push({ id: clientMessageId, message });
-        } else {
-            livestreamSocket.emit('livestream-message', { message, clientMessageId });
-        }
-
-        messageInput.value = '';
-    }
-
-    function addLivestreamMessage(messageData) {
-        const messagesContainer = document.getElementById('livestreamChatMessages');
-        if (!messagesContainer) return;
-
-        // Remover mensaje de bienvenida si existe
-        const welcomeMessage = messagesContainer.querySelector('.welcome-message');
-        if (welcomeMessage) {
-            welcomeMessage.remove();
-        }
-
-        const messageElement = document.createElement('div');
-        messageElement.className = `livestream-message ${messageData.type}`;
-        if (messageData.clientMessageId) {
-            messageElement.dataset.clientMessageId = messageData.clientMessageId;
-        }
-        
-        const time = new Date(messageData.timestamp).toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-
-        if (messageData.type === 'system') {
-            messageElement.innerHTML = `
-                <div class="message-content system">
-                    <i class='bx bx-info-circle'></i>
-                    <span>${messageData.message}</span>
-                    <span class="timestamp">${time}</span>
-                </div>
-            `;
-        } else {
-            const isOwnMessage = messageData.username === livestreamChatState.username;
-            messageElement.innerHTML = `
-                <div class="message-content user ${isOwnMessage ? 'own' : ''} ${messageData.pending ? 'pending' : ''}">
-                    <div class="message-header">
-                        <span class="username">${messageData.username}</span>
-                        <span class="timestamp">${time}</span>
-                    </div>
-                    <div class="message-text">${messageData.message}</div>
-                    ${messageData.pending ? '<div class="message-status">Pendiente…</div>' : ''}
-                </div>
-            `;
-        }
-
-        messagesContainer.appendChild(messageElement);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-        // Mantener solo los últimos 50 mensajes
-        const messages = messagesContainer.querySelectorAll('.livestream-message');
-        if (messages.length > 50) {
-            messages[0].remove();
-        }
-    }
-
-    function updateConnectionStatus(status, isConnected) {
-        const statusIndicator = connectionStatus.querySelector('.status-indicator');
-        const statusText = connectionStatus.querySelector('.status-text');
-        
-        if (statusIndicator && statusText) {
-            statusIndicator.className = `status-indicator ${isConnected ? 'online' : 'offline'}`;
-            statusText.textContent = status;
-        }
-    }
-
-    function updateUsersCount(count) {
-        if (usersCount) {
-            usersCount.textContent = `${count} usuario${count !== 1 ? 's' : ''}`;
-        }
-    }
-}
-
-// Inicializar chat del livestream cuando se carga la página
-document.addEventListener('DOMContentLoaded', () => {
-    // Delay para asegurar que Socket.IO se carga primero
-    setTimeout(() => {
-        initializeLivestreamChat();
-    }, 1000);
-});
