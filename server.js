@@ -14,7 +14,7 @@ const { Server } = require('socket.io');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT || 3000);
 const DEV_MODE = process.env.NODE_ENV !== 'production';
 
 // Configuración de seguridad
