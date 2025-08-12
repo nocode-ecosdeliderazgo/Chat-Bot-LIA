@@ -28,7 +28,7 @@ app.use(helmet({
             scriptSrc: DEV_MODE ? ["'self'", "'unsafe-inline'", 'https://source.zoom.us'] : ["'self'", 'https://source.zoom.us'],
             // Permitir atributos inline (onclick) explícitamente en CSP nivel 3 durante desarrollo
             scriptSrcAttr: DEV_MODE ? ["'unsafe-inline'"] : [],
-            // Permitir iframes de YouTube/Vimeo para reproducir videos
+            // Permitir iframes de YouTube/Vimeo para reproducir videos y Google Forms
             frameSrc: [
                 "'self'",
                 'https://www.youtube.com',
@@ -38,7 +38,9 @@ app.use(helmet({
                 'https://meet.jit.si',
                 'https://zoom.us',
                 'https://*.zoom.us',
-                'https://source.zoom.us'
+                'https://source.zoom.us',
+                'https://forms.gle',
+                'https://docs.google.com'
             ],
             childSrc: [
                 "'self'",
@@ -49,7 +51,9 @@ app.use(helmet({
                 'https://meet.jit.si',
                 'https://zoom.us',
                 'https://*.zoom.us',
-                'https://source.zoom.us'
+                'https://source.zoom.us',
+                'https://forms.gle',
+                'https://docs.google.com'
             ],
             imgSrc: ["'self'", 'data:', 'https:'],
             connectSrc: [
@@ -62,7 +66,8 @@ app.use(helmet({
             ],
             mediaSrc: ["'self'", 'blob:', 'data:', 'https:'],
             fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://unpkg.com', 'data:'],
-            frameAncestors: ["'none'"],
+            // Permitir que nosotros mostremos iframes de terceros dentro de nuestra propia app
+            frameAncestors: ["'self'"],
             objectSrc: ["'none'"]
         }
     },

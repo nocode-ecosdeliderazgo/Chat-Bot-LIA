@@ -38,7 +38,9 @@
     "node-fetch": "^3.3.2",
     "pg": "^8.11.3",
     "socket.io": "^4.8.1",
-    "uuid": "^9.0.1"
+<<<<<<< HEAD
+    "uuid": "^9.0.1",
+    "html2pdf.js": "^0.10.1"
   },
   "devDependencies": {
     "eslint": "^8.55.0",
