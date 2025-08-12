@@ -175,6 +175,11 @@ function init() {
         
         console.log('[CHAT_INIT] Inicialización completada exitosamente');
         
+        // Manejar redirección desde cursos (debe ser al final)
+        setTimeout(() => {
+            handleCourseRedirect();
+        }, 500);
+        
     } catch (error) {
         console.error('[CHAT_INIT] Error crítico durante la inicialización:', error);
     }
@@ -182,6 +187,86 @@ function init() {
 
 // Inicialización principal
 document.addEventListener('DOMContentLoaded', init);
+
+// Función para manejar la llegada desde cursos
+function handleCourseRedirect() {
+    // Verificar si venimos desde un curso específico
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = urlParams.get('course');
+    const selectedCourse = localStorage.getItem('selectedCourse');
+    
+    if (courseId || selectedCourse) {
+        let courseData = null;
+        
+        if (selectedCourse) {
+            try {
+                courseData = JSON.parse(selectedCourse);
+                // Verificar que no sea muy antiguo (más de 5 minutos)
+                if (Date.now() - courseData.timestamp > 5 * 60 * 1000) {
+                    localStorage.removeItem('selectedCourse');
+                    courseData = null;
+                }
+            } catch (e) {
+                localStorage.removeItem('selectedCourse');
+            }
+        }
+        
+        const finalCourseId = courseId || (courseData ? courseData.id : null);
+        
+        if (finalCourseId) {
+            console.log(`[CHAT] Iniciando desde curso: ${finalCourseId}`);
+            showCourseWelcomeMessage(finalCourseId);
+            
+            // Limpiar el localStorage después de usar
+            localStorage.removeItem('selectedCourse');
+        }
+    }
+}
+
+// Función para mostrar mensaje de bienvenida del curso
+function showCourseWelcomeMessage(courseId) {
+    const courseNames = {
+        'curso-ia-completo': 'Aprende y Aplica IA — Curso Completo',
+        'ml-fundamentos': 'Fundamentos de Machine Learning'
+    };
+    
+    const courseName = courseNames[courseId] || 'el curso seleccionado';
+    
+    // Esperar a que el chat esté inicializado
+    setTimeout(() => {
+        const welcomeMessage = `¡Hola! Veo que has comenzado "${courseName}". Estoy aquí para ayudarte en tu aprendizaje. ¿En qué puedo asistirte hoy?`;
+        
+        // Mostrar mensaje del bot
+        addBotMessage(welcomeMessage, null, false, true);
+        
+        // También mostrar sugerencias específicas del curso
+        if (courseId === 'curso-ia-completo') {
+            setTimeout(() => {
+                const suggestions = `Puedes preguntarme sobre:
+• Conceptos básicos de Inteligencia Artificial
+• Fundamentos de Machine Learning
+• Redes Neuronales y Deep Learning
+• Procesamiento de Lenguaje Natural
+• IA Generativa y aplicaciones prácticas
+
+¿Por dónde te gustaría empezar?`;
+                addBotMessage(suggestions, null, false, false);
+            }, 1500);
+        } else if (courseId === 'ml-fundamentos') {
+            setTimeout(() => {
+                const suggestions = `En este curso aprenderás:
+• Tipos de aprendizaje: supervisado y no supervisado
+• Algoritmos fundamentales de ML
+• Evaluación de modelos
+• Preprocesamiento de datos
+• Implementación práctica
+
+¿Qué tema te interesa más?`;
+                addBotMessage(suggestions, null, false, false);
+            }, 1500);
+        }
+    }, 2000); // Esperar 2 segundos para que el chat esté listo
+}
 
 // Animación de apertura del contenedor de chat
 function playChatOpenAnimation() {
@@ -688,11 +773,18 @@ function setupEventBusAndUI() {
                     <div style="display:flex;align-items:center;gap:8px;color:var(--text-muted)">Studio <span>›</span> <strong>Nota</strong></div>
                     <div style="display:flex;gap:6px;margin-left:auto">
                         <button id="exportPdfBtn" class="keyboard-button" style="max-width:160px">Exportar a PDF</button>
-                        <button id="closeNoteBtn" class="prompt-close" aria-label="Cerrar">×</button>
+                        <button id="closeNoteBtn" class="prompt-close" aria-label="Cerrar">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
                 <div class="prompt-body" style="display:flex;flex-direction:column;gap:10px">
-                    <input id="noteTitle" value="${note.title || ''}" placeholder="Título" style="background:rgba(10,10,10,0.85);border:1px solid rgba(68,229,255,0.2);border-radius:10px;padding:10px 12px;color:var(--text-on-dark);font-weight:700" />
+                    <div style="display:flex;align-items:center;gap:8px">
+                        <input id="noteTitle" value="${note.title || ''}" placeholder="Título" style="background:rgba(10,10,10,0.85);border:1px solid rgba(68,229,255,0.2);border-radius:10px;padding:10px 12px;color:var(--text-on-dark);font-weight:700;flex:1" />
+                        <button id="deleteNoteBtn" class="session-btn" style="border-color:rgba(255,99,71,.45);color:rgba(255,99,71,.8);min-width:40px;height:40px;padding:8px;font-size:16px;display:flex;align-items:center;justify-content:center" title="Eliminar nota">🗑️</button>
+                    </div>
                     <div class="editor-toolbar" style="display:flex;gap:6px">
                         <button class="session-btn" data-cmd="undo" title="Deshacer">↶</button>
                         <button class="session-btn" data-cmd="redo" title="Rehacer">↷</button>
@@ -701,13 +793,9 @@ function setupEventBusAndUI() {
                         <button class="session-btn" data-cmd="italic" title="Cursiva"><em>I</em></button>
                         <button class="session-btn" data-cmd="insertUnorderedList" title="Lista">• Lista</button>
                     </div>
-                    <div id="noteContent" contenteditable="true" style="min-height:55vh;background:rgba(10,10,10,0.85);border:1px solid rgba(68,229,255,0.2);border-radius:10px;padding:12px;">${note.content || ''}</div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;color:var(--text-muted);font-size:12px">
-                        <div>Actualizado: ${formatDate(note.updatedAt)}</div>
-                        <div style="display:flex;gap:8px">
-                            <button id="deleteNoteBtn" class="session-btn" style="border-color:rgba(255,99,71,.45)">Eliminar</button>
-                            <button id="saveNoteBtn" class="keyboard-button" style="max-width:140px">Guardar</button>
-                        </div>
+                    <div id="noteContent" contenteditable="true" style="min-height:70vh;background:rgba(10,10,10,0.85);border:1px solid rgba(68,229,255,0.2);border-radius:10px;padding:12px;flex:1;">${note.content || ''}</div>
+                    <div style="display:flex;justify-content:flex-start;align-items:center;color:var(--text-muted);font-size:12px;margin-top:8px">
+                        <div id="noteUpdateStatus">Actualizado: ${formatDate(note.updatedAt)}</div>
                     </div>
                 </div>
             </div>`;
@@ -722,16 +810,55 @@ function setupEventBusAndUI() {
                 contentEl?.focus();
             });
         });
-        overlay.querySelector('#closeNoteBtn')?.addEventListener('click', () => overlay.remove());
-        overlay.querySelector('#saveNoteBtn')?.addEventListener('click', () => {
-            notesStore.update(note.id, { title: titleEl.value.trim() || 'Sin título', content: contentEl.innerHTML });
+        // Auto-save functionality
+        let autoSaveTimeout;
+        const updateStatus = overlay.querySelector('#noteUpdateStatus');
+        
+        const autoSave = () => {
+            clearTimeout(autoSaveTimeout);
+            
+            autoSaveTimeout = setTimeout(() => {
+                const updatedNote = notesStore.update(note.id, { 
+                    title: titleEl.value.trim() || 'Sin título', 
+                    content: contentEl.innerHTML 
+                });
+                
+                if (updatedNote && updateStatus) {
+                    updateStatus.textContent = `Actualizado: ${formatDate(updatedNote.updatedAt)}`;
+                    updateStatus.style.color = 'rgba(68,229,255,0.8)';
+                    
+                    setTimeout(() => {
+                        updateStatus.style.color = 'var(--text-muted)';
+                    }, 2000);
+                }
+                
+                // Re-render lista en el background
+                window.UI.openNotes();
+            }, 1000); // Auto-save después de 1 segundo de inactividad
+        };
+
+        // Event listeners para auto-save
+        titleEl?.addEventListener('input', autoSave);
+        contentEl?.addEventListener('input', autoSave);
+        contentEl?.addEventListener('paste', () => setTimeout(autoSave, 100));
+
+        // Event listeners para botones
+        overlay.querySelector('#closeNoteBtn')?.addEventListener('click', () => {
+            // Guardar antes de cerrar
+            clearTimeout(autoSaveTimeout);
+            notesStore.update(note.id, { 
+                title: titleEl.value.trim() || 'Sin título', 
+                content: contentEl.innerHTML 
+            });
             overlay.remove();
-            // Re-render lista
+        });
+        
+        overlay.querySelector('#deleteNoteBtn')?.addEventListener('click', () => {
+            notesStore.remove(note.id); 
+            overlay.remove(); 
             window.UI.openNotes();
         });
-        overlay.querySelector('#deleteNoteBtn')?.addEventListener('click', () => {
-            notesStore.remove(note.id); overlay.remove(); window.UI.openNotes();
-        });
+        
         overlay.querySelector('#exportPdfBtn')?.addEventListener('click', () => exportElementToPDF(contentEl, (titleEl.value || 'notas') + '.pdf'));
     }
 
@@ -2674,7 +2801,7 @@ function showModulesStudioPanel(activeSession = '1') {
                             </div>
                             <div class="collapsible-content" id="step1Body" style="display:none">
                                 <ol style="margin:0 0 8px 18px">
-                    <li>Abre Gemini y, en la caja de chat, copia y pega el siguiente prompt en su totalidad.</li>
+                    <li>Abre <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer">Gemini</a> y, en la caja de chat, copia y pega el siguiente prompt en su totalidad.</li>
                                     <li>Activa la herramienta <strong>deep research</strong> y ejecuta.</li>
                 </ol>
                                 <p><strong>Prompt detallado</strong> <button class="micro-btn" id="copyPrompt">Copiar prompt</button></p>
