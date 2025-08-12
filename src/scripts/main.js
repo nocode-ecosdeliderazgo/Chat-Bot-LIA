@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     setupEventListeners();
     setupResizableLeft();
-    setupVideoPicker();
+    setupLivestreamToggle();
     setupAvatarLightbox();
     // Sincronizar estado inicial del botón de acción
     if (messageInput.value.trim().length > 0) {
@@ -423,16 +423,63 @@ function setupEventListeners() {
         this.style.height = this.scrollHeight + 'px';
     });
 
-    // Botón + de sesiones
+    // Botón de menú global (estilo ChatGPT)
     const sessionBtn = document.getElementById('sessionMenuButton');
     if (sessionBtn) {
         sessionBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            // Asegurar que el contenido esté cargado antes de mostrar
-            renderSessionPicker();
-            toggleSessionMenu();
+            e.preventDefault(); e.stopPropagation();
+            const gm = document.getElementById('globalMenu');
+            if (!gm) return;
+            gm.classList.toggle('show');
         });
+        document.addEventListener('mousedown', (e) => {
+            const gm = document.getElementById('globalMenu');
+            if (gm && !gm.contains(e.target) && e.target !== sessionBtn) gm.classList.remove('show');
+        });
+        const gm = document.getElementById('globalMenu');
+        if (gm) {
+            const sessionsBtn = gm.querySelector('[data-toggle="sessions"]');
+            const reportsBtn = gm.querySelector('[data-toggle="reports"]');
+            const sessionsMenu = gm.querySelector('#gmSessions');
+            const reportsMenu = gm.querySelector('#gmReports');
+            if (sessionsBtn && sessionsMenu) {
+                const toggleSessions = (show) => sessionsMenu.style.display = show ? 'block' : 'none';
+                const sesGroup = sessionsBtn.closest('.gm-group');
+                const adjustSide = () => {
+                    const gmRect = gm.getBoundingClientRect();
+                    const subRect = sessionsMenu.getBoundingClientRect();
+                    // si se corta a la derecha, abrir hacia la izquierda
+                    const overRight = gmRect.right + 220 > window.innerWidth;
+                    sessionsMenu.classList.toggle('left', overRight);
+                };
+                sesGroup?.addEventListener('mouseenter', () => { adjustSide(); toggleSessions(true); });
+                sesGroup?.addEventListener('mouseleave', () => toggleSessions(false));
+                sessionsBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); toggleSessions(sessionsMenu.style.display !== 'block'); });
+            }
+            if (reportsBtn && reportsMenu) {
+                const toggleReports = (show) => reportsMenu.style.display = show ? 'block' : 'none';
+                const repGroup = reportsBtn.closest('.gm-group');
+                const adjustSideR = () => {
+                    const gmRect = gm.getBoundingClientRect();
+                    const overRight = gmRect.right + 220 > window.innerWidth;
+                    reportsMenu.classList.toggle('left', overRight);
+                };
+                repGroup?.addEventListener('mouseenter', () => { adjustSideR(); toggleReports(true); });
+                repGroup?.addEventListener('mouseleave', () => toggleReports(false));
+                reportsBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); toggleReports(reportsMenu.style.display !== 'block'); });
+            }
+            // Acciones
+            gm.querySelectorAll('#gmSessions .gm-subitem').forEach(b => b.addEventListener('mousedown', (ev) => {
+                ev.preventDefault(); ev.stopPropagation();
+                const ses = b.getAttribute('data-session') || '1';
+                showModulesStudioPanel(String(ses));
+                gm.classList.remove('show');
+            }));
+            const docsBtn = gm.querySelector('#gmReports [data-report="docs"]');
+            const bonusBtn = gm.querySelector('#gmReports [data-report="bonos"]');
+            docsBtn?.addEventListener('mousedown', (ev) => { ev.preventDefault(); ev.stopPropagation(); addCard('Documentos', '<div style="color:var(--text-muted)">Sin documentos aún</div>'); gm.classList.remove('show'); });
+            bonusBtn?.addEventListener('mousedown', (ev) => { ev.preventDefault(); ev.stopPropagation(); addCard('Bonos', '<div style="color:var(--text-muted)">Sin bonos aún</div>'); gm.classList.remove('show'); });
+        }
     }
 }
 
@@ -456,8 +503,179 @@ function setupEventBusAndUI() {
         return el;
     };
 
+    // ===== Notas minimalistas estilo NotebookLM =====
+    const notesStore = (() => {
+        const KEY = 'lia_notes_v1';
+        const read = () => {
+            try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (_) { return []; }
+        };
+        const write = (arr) => { try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch(_) {} };
+        const now = () => new Date().toISOString();
+        const uid = () => Math.random().toString(36).slice(2, 10);
+        return {
+            all() { return read(); },
+            get(id) { return read().find(n => n.id === id) || null; },
+            create({ title = 'Nueva nota', content = '' } = {}) {
+                const note = { id: uid(), title, content, updatedAt: now() };
+                const arr = read(); arr.unshift(note); write(arr); return note;
+            },
+            update(id, data) {
+                const arr = read();
+                const idx = arr.findIndex(n => n.id === id);
+                if (idx >= 0) { arr[idx] = { ...arr[idx], ...data, updatedAt: now() }; write(arr); return arr[idx]; }
+                return null;
+            },
+            remove(id) { write(read().filter(n => n.id !== id)); }
+        };
+    })();
+
+    function formatDate(ts) {
+        try { const d = new Date(ts); return d.toLocaleDateString() + ' ' + d.toLocaleTimeString().slice(0,5); } catch(_) { return ''; }
+    }
+
+    async function exportElementToPDF(element, filename = 'notas.pdf') {
+        try {
+            let html2pdf;
+            try {
+                const mod = await import(/* webpackChunkName: "html2pdf" */ 'html2pdf.js');
+                html2pdf = mod?.default || mod;
+            } catch (e) {
+                await new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = 'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
+                    s.onload = resolve; s.onerror = reject; document.head.appendChild(s);
+                });
+                html2pdf = window.html2pdf;
+            }
+            const opt = { margin: 10, filename, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            html2pdf().set(opt).from(element).save();
+        } catch (err) { console.error('Exportación PDF falló', err); }
+    }
+
+    function openNoteEditor(note) {
+        // Overlay reutilizando estilos del panel de prompt
+        const existing = document.getElementById('noteEditorOverlay');
+        if (existing) existing.remove();
+        const overlay = document.createElement('div');
+        overlay.id = 'noteEditorOverlay';
+        overlay.className = 'prompt-overlay open';
+        overlay.innerHTML = `
+            <div class="prompt-panel" role="dialog" aria-modal="true">
+                <div class="prompt-header" style="gap:8px">
+                    <div style="display:flex;align-items:center;gap:8px;color:var(--text-muted)">Studio <span>›</span> <strong>Nota</strong></div>
+                    <div style="display:flex;gap:6px;margin-left:auto">
+                        <button id="exportPdfBtn" class="keyboard-button" style="max-width:160px">Exportar a PDF</button>
+                        <button id="closeNoteBtn" class="prompt-close" aria-label="Cerrar">×</button>
+                    </div>
+                </div>
+                <div class="prompt-body" style="display:flex;flex-direction:column;gap:10px">
+                    <input id="noteTitle" value="${note.title || ''}" placeholder="Título" style="background:rgba(10,10,10,0.85);border:1px solid rgba(68,229,255,0.2);border-radius:10px;padding:10px 12px;color:var(--text-on-dark);font-weight:700" />
+                    <div class="editor-toolbar" style="display:flex;gap:6px">
+                        <button class="session-btn" data-cmd="undo" title="Deshacer">↶</button>
+                        <button class="session-btn" data-cmd="redo" title="Rehacer">↷</button>
+                        <span style="width:8px"></span>
+                        <button class="session-btn" data-cmd="bold" title="Negritas">B</button>
+                        <button class="session-btn" data-cmd="italic" title="Cursiva"><em>I</em></button>
+                        <button class="session-btn" data-cmd="insertUnorderedList" title="Lista">• Lista</button>
+                    </div>
+                    <div id="noteContent" contenteditable="true" style="min-height:55vh;background:rgba(10,10,10,0.85);border:1px solid rgba(68,229,255,0.2);border-radius:10px;padding:12px;">${note.content || ''}</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;color:var(--text-muted);font-size:12px">
+                        <div>Actualizado: ${formatDate(note.updatedAt)}</div>
+                        <div style="display:flex;gap:8px">
+                            <button id="deleteNoteBtn" class="session-btn" style="border-color:rgba(255,99,71,.45)">Eliminar</button>
+                            <button id="saveNoteBtn" class="keyboard-button" style="max-width:140px">Guardar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(overlay);
+
+        const titleEl = overlay.querySelector('#noteTitle');
+        const contentEl = overlay.querySelector('#noteContent');
+        overlay.querySelectorAll('.editor-toolbar .session-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const cmd = btn.getAttribute('data-cmd');
+                document.execCommand(cmd, false, null);
+                contentEl?.focus();
+            });
+        });
+        overlay.querySelector('#closeNoteBtn')?.addEventListener('click', () => overlay.remove());
+        overlay.querySelector('#saveNoteBtn')?.addEventListener('click', () => {
+            notesStore.update(note.id, { title: titleEl.value.trim() || 'Sin título', content: contentEl.innerHTML });
+            overlay.remove();
+            // Re-render lista
+            window.UI.openNotes();
+        });
+        overlay.querySelector('#deleteNoteBtn')?.addEventListener('click', () => {
+            notesStore.remove(note.id); overlay.remove(); window.UI.openNotes();
+        });
+        overlay.querySelector('#exportPdfBtn')?.addEventListener('click', () => exportElementToPDF(contentEl, (titleEl.value || 'notas') + '.pdf'));
+    }
+
     window.UI = {
-        openNotes(initial = '') { addCard('Notas', `<textarea style="width:100%;height:160px">${initial}</textarea>`); },
+        openNotes() {
+            const renderList = () => {
+                const notes = notesStore.all();
+                const list = notes.map(n => `
+                    <button class="session-item" data-id="${n.id}" title="${n.title}">
+                        <span class="module-index"><i class='bx bx-file-blank'></i></span>
+                        <span class="module-title">${n.title}</span>
+                        <span style="font-size:11px;color:var(--text-muted)">${formatDate(n.updatedAt)}</span>
+                    </button>`).join('');
+                return `<div class="module-list">${list || '<div style="color:var(--text-muted);padding:8px">Sin notas aún</div>'}</div>`;
+            };
+
+            // Si ya existe la card de notas, solo re-renderizamos su contenido
+            const existing = document.querySelector('.studio-card[data-card="notes"]');
+            const content = `
+                <div class="collapsible" id="notesCard">
+                    <div class="collapsible-header" style="margin-bottom:8px">
+                        <h4 style="margin:0">Notas</h4>
+                        <div style="display:flex;gap:6px">
+                            <button class="collapsible-toggle" id="removeNotesCard" title="Eliminar" aria-label="Eliminar">🗑</button>
+                            <button class="collapsible-toggle" id="notesCardToggle" aria-expanded="true" aria-controls="notesCardBody"><i class='bx bx-chevron-down'></i></button>
+                        </div>
+                    </div>
+                    <div class="collapsible-content" id="notesCardBody" style="display:block">
+                        ${renderList()}
+                        <div style="position:sticky;bottom:0;margin-top:8px;padding-top:8px;border-top:1px solid rgba(68,229,255,.12);display:flex;justify-content:center">
+                            <button id="addNoteBtn" class="keyboard-button" style="width:220px">+ Nota</button>
+                        </div>
+                    </div>
+                </div>`;
+            let el = existing;
+            if (el) {
+                el.innerHTML = `<h4 style="margin:0 0 8px 0">Notas</h4>` + content;
+            } else {
+                el = addCard('Notas', content);
+                el.dataset.card = 'notes';
+            }
+
+            // Toggle/Eliminar card
+            const section = el.querySelector('#notesCard');
+            const body = el.querySelector('#notesCardBody');
+            const toggle = el.querySelector('#notesCardToggle');
+            toggle?.addEventListener('click', () => {
+                const isOpen = section.classList.toggle('open');
+                if (body) body.style.display = isOpen ? 'block' : 'none';
+                toggle.setAttribute('aria-expanded', String(isOpen));
+            });
+            el.querySelector('#removeNotesCard')?.addEventListener('click', () => el.remove());
+
+            // Abrir existente
+            el.querySelectorAll('.session-item')?.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    const note = notesStore.get(id);
+                    if (note) openNoteEditor(note);
+                });
+            });
+            // Crear nueva
+            el.querySelector('#addNoteBtn')?.addEventListener('click', () => {
+                const note = notesStore.create({});
+                openNoteEditor(note);
+            });
+        },
         openGlossary() { addCard('Glosario', `<div id="glossaryPanelMount">Usa las letras para explorar términos.</div>`); showGlossary(); },
         openAudioSummary() { addCard('Resumen de audio', '<div>Sube audio desde el botón de micrófono y lo resumiré aquí.</div>'); },
         openZoomSessions() { 
@@ -625,40 +843,6 @@ function setupEventBusAndUI() {
                 </div>
             `); 
         },
-        openVideoSummary() {
-            // Reutilizar una única tarjeta de resumen
-            let card = document.querySelector('.studio-card[data-kind="video-summary"]');
-            if (!card) {
-                card = addCard('Resumen de video', `
-                    <div id="videoSummary" style="color:var(--text-muted)">
-                        ${currentVideo ? 'Generando resumen con IA…' : 'Selecciona un video en el panel izquierdo para habilitar el resumen.'}
-                    </div>
-                    <div style="display:flex;gap:8px;margin-top:8px">
-                        <button id="refreshVideoSummary" class="keyboard-button" style="max-width:160px">Actualizar</button>
-                    </div>
-                `);
-                card.setAttribute('data-kind', 'video-summary');
-            } else {
-                const header = card.querySelector('h4');
-                if (header) header.textContent = currentVideo ? `Resumen de video — ${currentVideo.label}` : 'Resumen de video';
-                const body = card.querySelector('#videoSummary');
-                if (body) body.textContent = currentVideo ? 'Generando resumen con IA…' : 'Selecciona un video en el panel izquierdo para habilitar el resumen.';
-            }
-            // Si hay video seleccionado, pedir resumen a la IA
-            setTimeout(async () => {
-                const el = card.querySelector('#videoSummary');
-                const btn = card.querySelector('#refreshVideoSummary');
-                const runSummary = async () => {
-                    if (!currentVideo || !el) return;
-                    el.textContent = 'Generando resumen con IA…';
-                    const prompt = `Resume el video actual de YouTube en español con 5 viñetas, tono claro y aplicable. Incluye propósito, puntos clave y una acción práctica.\n\nVideo: ${currentVideo.label} (${currentVideo.url})`;
-                    const response = await processUserMessageWithAI(prompt);
-                    el.textContent = response || 'No fue posible generar el resumen.';
-                };
-                if (btn) btn.addEventListener('click', runSummary);
-                if (currentVideo) await runSummary();
-            }, 0);
-        },
         openReport(opts={}) { 
             addCard('Informes y Resúmenes', `
                 <div style="display:grid;gap:16px">
@@ -695,7 +879,6 @@ function setupEventBusAndUI() {
     EventBus.on('ui:openNotes', () => UI.openNotes());
     EventBus.on('ui:openGlossary', () => UI.openGlossary());
     EventBus.on('ui:openAudio', () => UI.openAudioSummary());
-    EventBus.on('ui:openVideo', () => UI.openVideoSummary());
     EventBus.on('ui:openReport', () => UI.openReport());
     EventBus.on('ui:copyPrompts', () => UI.copyPrompts());
     EventBus.on('ui:openFAQ', () => UI.openFAQ());
@@ -1523,9 +1706,81 @@ function getUserAuthHeaders() {
     return {};
 }
 
+// Cargar datos del curso hardcodeados
+async function loadCourseData() {
+    try {
+        const response = await fetch('/data/course-data.js');
+        if (response.ok) {
+            const text = await response.text();
+            // Evaluar el módulo para obtener los datos
+            const moduleText = text.replace('module.exports = COURSE_DATA;', 'COURSE_DATA');
+            return eval(`(${moduleText})`);
+        }
+    } catch (error) {
+        console.log('Usando datos de curso embebidos como fallback');
+    }
+    return null;
+}
+
+// Buscar información relevante en los datos del curso
+function searchCourseData(courseData, query) {
+    if (!courseData) return '';
+    
+    const queryLower = query.toLowerCase();
+    let relevantInfo = [];
+    
+    // Buscar en glosario
+    courseData.glossary.forEach(item => {
+        if (item.term.toLowerCase().includes(queryLower) || 
+            item.definition.toLowerCase().includes(queryLower)) {
+            relevantInfo.push(`📖 ${item.term}: ${item.definition}`);
+        }
+    });
+    
+    // Buscar en sesiones
+    courseData.sessions.forEach(session => {
+        // Buscar en conceptos de la sesión
+        session.content.concepts.forEach(concept => {
+            if (concept.term.toLowerCase().includes(queryLower) || 
+                concept.definition.toLowerCase().includes(queryLower)) {
+                relevantInfo.push(`🎓 Sesión ${session.id} - ${concept.term}: ${concept.definition}`);
+            }
+        });
+        
+        // Buscar en FAQs
+        session.faq.forEach(faq => {
+            if (faq.question.toLowerCase().includes(queryLower) || 
+                faq.answer.toLowerCase().includes(queryLower)) {
+                relevantInfo.push(`❓ FAQ (${session.title}): ${faq.question} - ${faq.answer}`);
+            }
+        });
+        
+        // Buscar en actividades
+        session.activities.forEach(activity => {
+            if (activity.title.toLowerCase().includes(queryLower) || 
+                activity.description.toLowerCase().includes(queryLower)) {
+                relevantInfo.push(`🎯 Actividad (${session.title}): ${activity.title} - ${activity.description}`);
+            }
+        });
+    });
+    
+    // Buscar en ejercicios prácticos
+    courseData.practicalExercises.forEach(exercise => {
+        if (exercise.title.toLowerCase().includes(queryLower) || 
+            exercise.description.toLowerCase().includes(queryLower)) {
+            relevantInfo.push(`💻 Ejercicio: ${exercise.title} - ${exercise.description}`);
+        }
+    });
+    
+    return relevantInfo.slice(0, 8); // Limitar a 8 resultados más relevantes
+}
+
 // Procesar mensaje del usuario con IA
 async function processUserMessageWithAI(message) {
     try {
+        // Cargar datos del curso hardcodeados
+        const courseData = await loadCourseData();
+        
         // Obtener contexto de la base de datos (si está disponible)
         const dbContext = await getDatabaseContext(message);
         
@@ -1551,6 +1806,21 @@ async function processUserMessageWithAI(message) {
             });
         }
         
+        // Agregar contexto de datos del curso hardcodeados
+        if (courseData) {
+            const courseInfo = searchCourseData(courseData, message);
+            if (courseInfo.length > 0) {
+                contextInfo += '\n\nInformación del curso "Aprende y Aplica IA":\n';
+                courseInfo.forEach(info => {
+                    contextInfo += `${info}\n`;
+                });
+                
+                // Agregar información general del curso
+                contextInfo += `\n📚 Curso: ${courseData.info.title} (${courseData.info.duration})\n`;
+                contextInfo += `🎯 Descripción: ${courseData.info.description}\n`;
+            }
+        }
+        
         // Prompt completo siguiendo PROMPT_CLAUDE.md al pie de la letra
         const systemPrompt = `Sistema — Claude (ES)
 
@@ -1558,8 +1828,24 @@ Rol y alcance
 - Eres "Asistente de Aprende y Aplica IA": experto en IA que guía a estudiantes en español con tono profesional, cercano y nada robotizado.
 - Límite estricto: céntrate en contenidos del curso de IA, ejercicios, glosario y actividades. Si algo está fuera de alcance, redirige amablemente con 2–4 opciones del temario.
 
+CURSO "APRENDE Y APLICA IA" - CONTENIDO DISPONIBLE:
+- 8 Sesiones completas: desde fundamentos hasta implementación en producción
+- Sesión 1: Introducción a la IA (conceptos básicos, historia, tipos de IA)
+- Sesión 2: Fundamentos de Machine Learning (supervisado, no supervisado, algoritmos)
+- Sesión 3: Redes Neuronales y Deep Learning (CNN, RNN, backpropagation)
+- Sesión 4: Procesamiento de Lenguaje Natural (tokenización, transformers, LLMs)
+- Sesión 5: Visión por Computadora (CNN, detección de objetos, transfer learning)
+- Sesión 6: IA Generativa y Modelos de Lenguaje (prompt engineering, fine-tuning)
+- Sesión 7: Ética y Responsabilidad en IA (sesgo algorítmico, explicabilidad)
+- Sesión 8: Implementación y Despliegue (MLOps, producción, monitoreo)
+
+GLOSARIO COMPLETO: +50 términos con definiciones (desde conceptos básicos hasta avanzados)
+EJERCICIOS PRÁCTICOS: 5 proyectos hands-on (clasificación, redes neuronales, NLP, visión, chatbots)
+RECURSOS: Libros recomendados, cursos online, herramientas, datasets
+
 Objetivo general
-- Entregar respuestas claras, accionables y verificables; generar casos de uso y prompts listos para copiar cuando aporten valor.
+- Entregar respuestas claras, accionables y verificables basadas en el contenido específico del curso
+- Generar casos de uso y prompts listos para copiar cuando aporten valor
 
 Manejo de preguntas largas
 - Acepta entradas extensas sin recortar contenido. Resume el objetivo en 1–2 líneas, divide en sub‑tareas y responde por secciones. Si la consulta es muy amplia, propone un plan paso a paso y entrega un primer bloque útil; ofrece continuar con "¿sigo con la parte B/C…?)".
@@ -1581,12 +1867,12 @@ Casos de uso (cuando aplique)
 - Entrega 3–5 casos con: propósito, pasos clave, herramientas/recursos, métrica de éxito y riesgo/consideración.
 
 Prompts (cuando aplique)
-- Ofrece 2–4 prompts listos para copiar orientados a estudio/práctica o evaluación, alineados al temario.
+- Ofrece 2–4 prompts listos para copiar orientados a estudio/práctica o evaluación, alineados al temario específico del curso.
 
 Formato de respuesta
 - 1 línea inicial que responda directo a la intención.
-- 3–6 viñetas con lo esencial (usa **negritas** para conceptos clave).
-- Cierra con una pregunta breve que proponga el siguiente paso u opciones del curso.
+- 3–6 viñetas con lo esencial (usa **negritas** para conceptos clave del curso).
+- Cierra con una pregunta breve que proponga el siguiente paso u opciones específicas del curso.
 - Español neutro, claro y preciso. Evita párrafos largos; usa listas.
 
 Límites y seguridad
@@ -1597,7 +1883,7 @@ Nunca pidas el nombre/apellido del usuario ni bloquees la conversación por iden
 
 ${contextInfo}
 
-Responde siguiendo exactamente el formato especificado:`;
+Responde siguiendo exactamente el formato especificado y utilizando la información específica del curso "Aprende y Aplica IA":`;
         
         const fullPrompt = `${systemPrompt}\n\nUsuario: ${message}\n\nAsistente:`;
         
@@ -2051,6 +2337,279 @@ function renderSessionPicker() {
         <button class=\"session-item\" data-session=\"${num}\" data-module=\"0\">\n            <span class=\"module-index\">S${num}</span>\n            <span class=\"module-title\">${s.title}</span>\n        </button>
     `).join('');
     picker.innerHTML = `<div class=\"module-list\">${html}</div>`;
+
+    // Al seleccionar una sesión, cerrar menú y mostrar panel de módulos para esa sesión
+    picker.querySelectorAll('.session-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+            try { hideSessionMenu(); } catch(_) {}
+            const ses = btn.getAttribute('data-session') || '1';
+            try { showModulesStudioPanel(String(ses)); } catch(_) {}
+        });
+    });
+}
+
+// ===== Studio: Panel de Módulos y Contenido =====
+function showModulesStudioPanel(activeSession = '1') {
+    const cardsRoot = document.getElementById('studioCards');
+    if (!cardsRoot) return;
+    // eliminar tarjetas previas de módulos
+    Array.from(cardsRoot.querySelectorAll('[data-card="modules"]')).forEach(el => el.remove());
+
+    const card = document.createElement('div');
+    card.className = 'studio-card';
+    card.dataset.card = 'modules';
+    card.innerHTML = `
+        <div class="studio-modules">
+            <div class="collapsible studio-collapsible" id="modulesSection">
+                <div class="collapsible-header">
+                    <h4 style="margin:0">Módulos</h4>
+                    <div style="display:flex;gap:6px">
+                        <button id="modulesRemove" class="collapsible-toggle" title="Quitar" aria-label="Quitar">🗑</button>
+                        <button id="modulesToggle" class="collapsible-toggle" aria-expanded="false" aria-controls="modulesGrid" title="Mostrar/Ocultar">
+                            <i class='bx bx-chevron-down'></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="collapsible-content" id="modulesGrid">
+            <div class="modules-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px">
+                        <button class="studio-btn" data-module="1"><i class='bx bx-book-content'></i><span>Módulo 1</span></button>
+                        <button class="studio-btn" data-module="2"><i class='bx bx-book-content'></i><span>Módulo 2</span></button>
+                        <button class="studio-btn" data-module="3"><i class='bx bx-book-content'></i><span>Módulo 3</span></button>
+                        <button class="studio-btn" data-module="4"><i class='bx bx-book-content'></i><span>Módulo 4</span></button>
+            </div>
+                </div>
+            </div>
+            <div class="module-view" id="moduleView" style="border-top:1px solid rgba(68,229,255,.18);padding-top:10px;color:var(--text-muted)">Selecciona un módulo para ver el contenido</div>
+        </div>
+    `;
+    cardsRoot.prepend(card);
+
+    // Acciones
+    const modulesSection = card.querySelector('#modulesSection');
+    const modulesToggle = card.querySelector('#modulesToggle');
+    if (modulesSection && modulesToggle) {
+        modulesToggle.addEventListener('click', () => {
+            const isOpen = modulesSection.classList.toggle('open');
+            modulesToggle.setAttribute('aria-expanded', String(isOpen));
+        });
+    }
+    // Quitar card completa de módulos
+    card.querySelector('#modulesRemove')?.addEventListener('click', () => card.remove());
+    // Botón de notas ya no está en la grilla; se agrega como footer global
+    card.querySelectorAll('.studio-btn[data-module]').forEach(b => b.addEventListener('click', () => {
+        const mod = b.getAttribute('data-module');
+        // marcar activo
+        card.querySelectorAll('.studio-btn[data-module]').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        renderModule(mod);
+    }));
+
+    function renderModule(moduleId) {
+        const view = card.querySelector('#moduleView');
+        if (!view) return;
+        // Solo módulo 1 para sesión 1
+        if (moduleId === '1' && String(activeSession) === '1') {
+            const ACTIVIDAD_COLABORATIVA_VIDEO_ID = (window.APP?.videos?.actividadColaborativaId) || '';
+        view.innerHTML = `
+                <div class="collapsible" id="mod1Content">
+                    <div class="collapsible-header" style="margin-bottom:8px">
+                        <h5 style="margin:0">Actividad Colaborativa #1 — Investigación Profunda</h5>
+                        <div style="display:flex;gap:6px">
+                            <button class="collapsible-toggle" id="mod1Remove" title="Quitar" aria-label="Quitar">🗑</button>
+                            <button class="collapsible-toggle" id="mod1Toggle" aria-expanded="true" aria-controls="mod1Body"><i class='bx bx-chevron-down'></i></button>
+            </div>
+            </div>
+                    <div class="collapsible-content" id="mod1Body" style="display:block">
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px">
+                            <button class="keyboard-button" id="btnVideo">Ver video</button>
+                        </div>
+                        <div class="collapsible" id="step1">
+                            <div class="collapsible-header" style="margin-bottom:6px">
+                                <h5 style="margin:0">Paso 1: El Prompt de Investigación</h5>
+                                <button class="collapsible-toggle" data-toggle="#step1Body" aria-expanded="false"><i class='bx bx-chevron-down'></i></button>
+                            </div>
+                            <div class="collapsible-content" id="step1Body" style="display:none">
+                                <ol style="margin:0 0 8px 18px">
+                    <li>Abre Gemini y, en la caja de chat, copia y pega el siguiente prompt en su totalidad.</li>
+                                    <li>Activa la herramienta <strong>deep research</strong> y ejecuta.</li>
+                </ol>
+                                <p><strong>Prompt detallado</strong> <button class="micro-btn" id="copyPrompt">Copiar prompt</button></p>
+                            </div>
+                        </div>
+
+                        <div class="collapsible" id="step2">
+                            <div class="collapsible-header" style="margin-bottom:6px">
+                                <h5 style="margin:0">Paso 2: Explorando tu Proyecto de Investigación</h5>
+                                <button class="collapsible-toggle" data-toggle="#step2Body" aria-expanded="false"><i class='bx bx-chevron-down'></i></button>
+                            </div>
+                            <div class="collapsible-content" id="step2Body" style="display:none">
+                                <ol style="margin:0 0 8px 18px">
+                    <li>Revisa la respuesta estructurada que creó Gemini (con fuentes numeradas).</li>
+                                    <li>Familiarízate con la interfaz y la estructura de tu proyecto base.</li>
+                </ol>
+                            </div>
+                        </div>
+
+                <div class="collapsible" id="step3">
+                            <div class="collapsible-header" style="margin-bottom:6px">
+                                <h5 style="margin:0">Paso 3: Creación de Formatos Interactivos</h5>
+                                <button class="collapsible-toggle" data-toggle="#step3Body" aria-expanded="false"><i class='bx bx-chevron-down'></i></button>
+                            </div>
+                            <div class="collapsible-content" id="step3Body" style="display:none">
+                                <p style="color:var(--text-muted);margin:0 0 6px">Asegúrate de volver siempre a la vista principal antes de cada creación.</p>
+                                <ol type="A" style="margin:0 0 8px 18px">
+                                    <li><strong>Reporte Interactivo (Canvas)</strong>
+                        <ol>
+                            <li>Haz clic en Crear.</li>
+                            <li>Selecciona Página Web o Reporte en Canvas.</li>
+                                            <li>Explora la página y ciérrala para volver al proyecto.</li>
+                        </ol>
+                    </li>
+                                    <li><strong>Infografía Visual</strong>
+                        <ol>
+                            <li>Vuelve a la vista de tu investigación.</li>
+                            <li>Haz clic en Crear.</li>
+                                            <li>Selecciona Infografía y descarga la imagen.</li>
+                        </ol>
+                    </li>
+                                    <li><strong>Cuestionario</strong>
+                        <ol>
+                            <li>Regresa a la pantalla de investigación.</li>
+                            <li>Haz clic en Crear.</li>
+                                            <li>Selecciona Cuestionario/Quiz y revisa las preguntas.</li>
+                        </ol>
+                    </li>
+                                    <li><strong>Resumen de audio</strong>
+                                        <ol>
+                                            <li>Elige la voz neuronal.</li>
+                                            <li>Descarga o reproduce el .mp3.</li>
+                        </ol>
+                    </li>
+                </ol>
+                                <div style="margin-top:10px;display:flex;justify-content:flex-start">
+                                    <button class="keyboard-button" id="openQuizBottom">Abrir cuestionario</button>
+                </div>
+            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+            const t = view.querySelector('#mod1Toggle');
+            const sec = view.querySelector('#mod1Content');
+            if (t && sec) {
+                t.addEventListener('click', () => {
+                    const isOpen = sec.classList.toggle('open');
+                    // Forzar mostrar/ocultar manualmente el contenido para consistencia
+                    const body = view.querySelector('#mod1Body');
+                    if (body) body.style.display = isOpen ? 'block' : 'none';
+                    t.setAttribute('aria-expanded', String(isOpen));
+                });
+                // Open initially
+                sec.classList.add('open');
+            }
+            // Quitar actividad (limpiar módulo)
+            view.querySelector('#mod1Remove')?.addEventListener('click', () => {
+                view.innerHTML = `<div style="color:var(--text-muted)">Selecciona un módulo para ver el contenido</div>`;
+            });
+            // Toggles de secciones
+            view.querySelectorAll('.collapsible-toggle[data-toggle]')?.forEach(btn => {
+                const sel = btn.getAttribute('data-toggle');
+                const target = sel ? view.querySelector(sel) : null;
+                btn.addEventListener('click', () => {
+                    if (!target) return;
+                    const isOpen = target.style.display === 'block';
+                    target.style.display = isOpen ? 'none' : 'block';
+                    btn.setAttribute('aria-expanded', String(!isOpen));
+                    btn.closest('.collapsible')?.classList.toggle('open', !isOpen);
+                });
+            });
+
+            // Acciones: abrir en panel izquierdo
+            view.querySelector('#btnVideo')?.addEventListener('click', () => {
+                const url = 'https://www.youtube.com/embed/DPyJmxgUGk8';
+                openLeftEmbed({ title: 'Actividad colaborativa', src: url, groupId: 'leftVideoEmbed' });
+            });
+            view.querySelector('#copyPrompt')?.addEventListener('click', async () => {
+                const text = `Actúa como un analista experto en inteligencia artificial generativa. Realiza una investigación exhaustiva con el título "Gen AI El Despertar de una Nueva Era Humana del miedo al entusiasmo" para identificar y analizar los siguientes puntos clave:  Evolución de la percepción: Describe el cambio en la percepción de la IA generativa desde su aparición masiva, incluyendo la reacción inicial y la mentalidad actual en la alta dirección.  Impacto transformador y ejemplos de uso actuales:  Identifica cómo la IA generativa está redefiniendo la productividad humana y transformando modelos de negocio en diversas industrias.  Proporciona ejemplos específicos de empresas y sectores que ya están utilizando la IA generativa, detallando las aplicaciones y los beneficios obtenidos.  Avances tecnológicos y ecosistema:  Detalla las nuevas generaciones de modelos de IA generativa (Finales 2024-2025) y sus capacidades mejoradas.  Describe el ecosistema de proveedores líderes y sus herramientas para entornos corporativos.  Explica las estrategias de adopción de la IA generativa por parte de las empresas, incluyendo la elección entre modelos públicos y la construcción de IP propia.  Implicaciones humanas y sociales: Analiza cómo la IA generativa está democratizando el conocimiento, amplificando la creatividad y reimaginando el trabajo, destacando el valor humano en este nuevo escenario.  Casos de uso en finanzas y banca:  Desglosa los casos de uso recientes de la IA generativa en el sector financiero y bancario, incluyendo asistentes virtuales, optimización de riesgos y cumplimiento, y personalización/eficiencia.  Menciona las proyecciones de McKinsey para el futuro del trabajo en relación con la IA generativa.  Desafíos y consideraciones estratégicas para líderes: Extrae las recomendaciones clave para los CEOs y C - levels en la adopción e integración de la IA generativa, incluyendo la necesidad de ética, visión, valentía e inversión en talento.  Asegúrate de citar cada dato o afirmación con el número de fuente correspondiente. Organiza tu respuesta de manera clara y concisa, utilizando un formato de investigación formal.`;
+                try { await navigator.clipboard.writeText(text); } catch(_) {}
+            });
+            // Abrir cuestionario desde el Paso 3 (botón inferior)
+            const openQuiz = () => {
+                openLeftEmbed({ title: 'Cuestionario', src: 'https://forms.gle/GxwqVJhHW7ahj4NF7', groupId: 'leftQuizEmbed' });
+            };
+            view.querySelector('#openQuizBottom')?.addEventListener('click', openQuiz);
+            return;
+        }
+        // Para sesiones distintas a 1 no desplegar módulos
+        const modulesSectionEl = card.querySelector('#modulesSection');
+        modulesSectionEl?.classList.remove('open');
+        view.textContent = 'Selecciona un módulo para ver el contenido';
+    }
+    // Asegurar footer global de notas
+    try { renderStudioFooter(); } catch(_) {}
+}
+
+// Footer inferior del panel derecho con botón "+ Nota"
+function renderStudioFooter() {
+    const cards = document.getElementById('studioCards');
+    if (!cards) return;
+    if (document.getElementById('studioFooter')) return; // evitar duplicado
+    const footer = document.createElement('div');
+    footer.id = 'studioFooter';
+    footer.className = 'studio-footer';
+    footer.innerHTML = `<button id="addNoteFab" class="add-note-fab">+ Nota</button>`;
+    cards.appendChild(footer);
+    footer.querySelector('#addNoteFab')?.addEventListener('click', () => {
+        try {
+            const note = (typeof notesStore !== 'undefined') ? notesStore.create({}) : null;
+            if (note) {
+                openNoteEditor(note);
+            } else if (window.UI?.openNotes) {
+                window.UI.openNotes();
+            }
+        } catch(_) {
+            window.UI?.openNotes?.();
+        }
+    });
+}
+
+// Abrir un iframe embebido en el panel izquierdo (video/cuestionario)
+function openLeftEmbed({ title, src, groupId = 'leftDynamicGroup' }) {
+    const toolList = document.querySelector('.sidebar-left .tool-list');
+    if (!toolList) return;
+    let group = document.getElementById(groupId);
+    if (!group) {
+        group = document.createElement('div');
+        group.className = 'tool-group collapsible';
+        group.id = groupId;
+        group.innerHTML = `
+            <div class="collapsible-header">
+                <h4 style="margin:0" id="leftDynamicTitle"></h4>
+                <div style="display:flex;gap:6px">
+                    <button class="collapsible-toggle" data-action="remove" title="Quitar" aria-label="Quitar">🗑</button>
+                    <button class="collapsible-toggle" data-action="toggle" aria-expanded="true" aria-controls="${groupId}Content" title="Mostrar/Ocultar"><i class='bx bx-chevron-down'></i></button>
+                </div>
+            </div>
+            <div class="collapsible-content" id="${groupId}Content" style="display:block"></div>
+        `;
+        toolList.prepend(group);
+        const toggle = group.querySelector('[data-action="toggle"]');
+        toggle?.addEventListener('click', () => {
+            const isOpen = group.classList.toggle('open');
+            const body = group.querySelector(`#${groupId}Content`);
+            if (body) body.style.display = isOpen ? 'block' : 'none';
+            toggle.setAttribute('aria-expanded', String(isOpen));
+        });
+        group.querySelector('[data-action="remove"]')?.addEventListener('click', () => group.remove());
+    }
+    const titleEl = group.querySelector('#leftDynamicTitle');
+    const mount = group.querySelector(`#${groupId}Content`);
+    if (titleEl) titleEl.textContent = title;
+    if (mount) {
+        mount.innerHTML = `<div class="left-video-player active" style="display:block"><iframe src="${src}" allowfullscreen title="${title}"></iframe></div>`;
+    }
+    // Asegurar abierto
+    group.classList.add('open');
 }
 
 // Barra de redimensionado del panel izquierdo
@@ -2135,66 +2694,9 @@ function setupResizableRight() {
     } catch(_) {}
 }
 
-// ===== Videos integrados en panel izquierdo =====
-let currentVideo = null; // { label, url, id }
-function setupVideoPicker() {
+// ===== Livestream en panel izquierdo =====
+function setupLivestreamToggle() {
     try {
-        // Toggle colapsable
-        const sec = document.getElementById('videosSection');
-        const btnToggle = document.getElementById('videosToggle');
-        if (sec && btnToggle) {
-            btnToggle.addEventListener('click', () => {
-                const isOpen = sec.classList.toggle('open');
-                btnToggle.setAttribute('aria-expanded', String(isOpen));
-            });
-        }
-
-        // Botones de selección
-        document.querySelectorAll('.video-select').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const label = btn.getAttribute('data-video-label');
-                const url = new URL(btn.getAttribute('data-video-url'));
-                let id = url.searchParams.get('v');
-                if (!id && url.pathname) { id = url.pathname.split('/').pop(); }
-                currentVideo = { label, url: url.toString(), id };
-                const mount = document.getElementById('leftVideoPlayerContainer');
-                if (mount) {
-                    mount.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}" allowfullscreen title="${label}"></iframe>`;
-                    mount.classList.add('active');
-                }
-                // Habilitar el tile de resumen de video
-                const tile = document.getElementById('videoSummaryTile');
-                if (tile) tile.classList.remove('disabled');
-                // Si ya hay una tarjeta de resumen abierta, refrescar su contenido
-                const summaryCard = document.querySelector('.studio-card[data-kind="video-summary"]');
-                if (summaryCard) {
-                    const text = summaryCard.querySelector('#videoSummary');
-                    if (text) text.textContent = 'Generando resumen con IA…';
-                    EventBus.emit('ui:openVideo');
-                }
-            });
-        });
- 
-        // Hook para botón de resumen desde el panel derecho
-        const tile = document.getElementById('videoSummaryTile');
-        if (tile) {
-            tile.addEventListener('click', () => {
-                // Abrir la tarjeta de resumen dentro del panel derecho
-                EventBus.emit('ui:openVideo');
-            });
-        }
-
-        // Toggle glosario en panel izquierdo
-        const gsec = document.getElementById('glossarySection');
-        const gtoggle = document.getElementById('glossaryToggle');
-        if (gsec && gtoggle) {
-            gtoggle.addEventListener('click', () => {
-                const isOpen = gsec.classList.toggle('open');
-                gtoggle.setAttribute('aria-expanded', String(isOpen));
-                if (isOpen) renderLeftGlossary();
-            });
-        }
-
         // Livestream: Meet incrustado (si el navegador lo permite)
         const lsec = document.getElementById('livestreamSection');
         const ltoggle = document.getElementById('livestreamToggle');
@@ -2205,21 +2707,13 @@ function setupVideoPicker() {
                 if (isOpen) {
                     const liveMount = document.getElementById('leftLivestreamPlayer');
                     const notice = document.getElementById('livestreamNotice');
+                    if (notice) notice.style.display = 'none';
                     if (liveMount) {
-                        liveMount.innerHTML = '';
-                        liveMount.classList.add('active');
-                        // Zoom Web Client (iframe a zoom.us/wc) — requiere meeting ID y passcode
-                        // Para demo incrustamos el web client con parámetros que el host comparta (meeting id y pwd)
-                        // Nota: Para producción se recomienda Zoom Web SDK con firma generada en backend
+                        // Dejamos el placeholder visual. Si hay Zoom configurado, lo embebemos.
                         const meetingId = (window.ZOOM_MEETING_ID || '').replaceAll('-', '');
                         const pwd = window.ZOOM_MEETING_PWD || '';
-                        if (!meetingId) {
-                            if (notice) {
-                                notice.style.display = 'block';
-                                notice.textContent = 'Configura window.ZOOM_MEETING_ID y window.ZOOM_MEETING_PWD para cargar el Web Client de Zoom dentro de la app.';
-                            }
-                            return;
-                        }
+                        if (!meetingId) return; // sin player, solo placeholder bonito
+                        liveMount.innerHTML = '';
                         const zoomUrl = `https://zoom.us/wc/${meetingId}/join?pwd=${encodeURIComponent(pwd)}`;
                         const iframe = document.createElement('iframe');
                         iframe.src = zoomUrl;
@@ -2245,35 +2739,6 @@ function setupVideoPicker() {
     } catch (_) {}
 }
 
-function renderLeftGlossary() {
-    const mount = document.getElementById('glossaryLeftMount');
-    if (!mount) return;
-    mount.innerHTML = `
-        <div class="glossary-header"><h5 style="margin:0">Glosario de Términos</h5></div>
-        <div class="glossary-subtitle">Selecciona una letra:</div>
-        <div class="alphabet-grid" id="gAlpha"></div>
-        <div class="glossary-results" id="gResults"><div class="glossary-empty">Selecciona una letra</div></div>
-    `;
-    const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-    const gAlpha = mount.querySelector('#gAlpha');
-    alpha.forEach(letter => {
-        const b = document.createElement('button');
-        b.className = 'alpha-btn'; b.textContent = letter;
-        b.addEventListener('click', () => {
-            const entries = GLOSSARY[letter] || [];
-            const gRes = mount.querySelector('#gResults');
-            if (!entries.length) {
-                gRes.innerHTML = `<div class="glossary-empty">No hay términos para la letra ${letter}</div>`;
-            } else {
-                gRes.innerHTML = entries.map(e => `
-                    <div class="glossary-item"><div class="term">${e.term}</div><div class="def">${e.def}</div></div>
-                `).join('');
-            }
-        });
-        gAlpha.appendChild(b);
-    });
-}
-
 function setupAvatarLightbox() {
     const img = document.getElementById('botAvatarImg');
     const lightbox = document.getElementById('avatarLightbox');
@@ -2286,3 +2751,232 @@ function setupAvatarLightbox() {
     lightbox.addEventListener('click', (e) => { if (e.target === lightbox || e.target === lbClose) close(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
 }
+
+// ===== Chat del Livestream en Tiempo Real =====
+let livestreamSocket = null;
+let livestreamChatState = {
+    isConnected: false,
+    username: '',
+    messages: [],
+    connectedUsers: [],
+    pendingMessages: []
+};
+
+function initializeLivestreamChat() {
+    // Verificar que Socket.IO está disponible
+    if (typeof io === 'undefined') {
+        console.error('Socket.IO no está disponible');
+        return;
+    }
+
+    // Configurar elementos del DOM
+    const messageInput = document.getElementById('livestreamMessageInput');
+    const sendBtn = document.getElementById('livestreamSendBtn');
+    const messagesContainer = document.getElementById('livestreamChatMessages');
+    const connectionStatus = document.getElementById('livestreamConnectionStatus');
+    const usersCount = document.getElementById('livestreamUsersCount');
+
+    if (!messageInput || !sendBtn || !messagesContainer) {
+        console.error('Elementos del chat del livestream no encontrados');
+        return;
+    }
+
+    // Inicializar conexión Socket.IO
+    livestreamSocket = io({
+        transports: ['websocket', 'polling'],
+        timeout: 10000
+    });
+
+    // Generar nombre de usuario automáticamente
+    livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
+
+    // Eventos de conexión
+    livestreamSocket.on('connect', () => {
+        console.log('Conectado al chat del livestream');
+        livestreamChatState.isConnected = true;
+        updateConnectionStatus('Conectado', true);
+        
+        // Unirse al chat del livestream
+        livestreamSocket.emit('join-livestream-chat', {
+            username: livestreamChatState.username
+        });
+
+        // Habilitar interfaz
+        messageInput.placeholder = 'Escribe un mensaje...';
+        sendBtn.disabled = false;
+        if (document.activeElement !== messageInput) {
+            messageInput.focus();
+        }
+
+        // Reintentar envío de pendientes
+        if (livestreamChatState.pendingMessages.length > 0) {
+            livestreamChatState.pendingMessages.forEach(p => {
+                livestreamSocket.emit('livestream-message', { message: p.message, clientMessageId: p.id });
+            });
+        }
+    });
+
+    livestreamSocket.on('disconnect', () => {
+        console.log('Desconectado del chat del livestream');
+        livestreamChatState.isConnected = false;
+        updateConnectionStatus('Desconectado', false);
+        
+        // UX de reconexión
+        messageInput.placeholder = 'Reconectando…';
+        // Mantener botón habilitado para encolar mensajes
+        sendBtn.disabled = false;
+    });
+
+    // Eventos del chat
+    livestreamSocket.on('new-livestream-message', (messageData) => {
+        // Reconciliar mensajes pendientes por clientMessageId
+        if (messageData.clientMessageId) {
+            const existing = document.querySelector(`.livestream-message[data-client-message-id="${messageData.clientMessageId}"]`);
+            if (existing) {
+                const time = new Date(messageData.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                const isOwn = messageData.username === livestreamChatState.username;
+                const replacement = document.createElement('div');
+                replacement.className = `livestream-message ${messageData.type}`;
+                replacement.dataset.clientMessageId = messageData.clientMessageId;
+                replacement.innerHTML = `
+                    <div class="message-content user ${isOwn ? 'own' : ''}">
+                        <div class="message-header">
+                            <span class="username">${messageData.username}</span>
+                            <span class="timestamp">${time}</span>
+                        </div>
+                        <div class="message-text">${messageData.message}</div>
+                    </div>
+                `;
+                existing.replaceWith(replacement);
+                livestreamChatState.pendingMessages = livestreamChatState.pendingMessages.filter(p => p.id !== messageData.clientMessageId);
+                return;
+            }
+        }
+        addLivestreamMessage(messageData);
+    });
+
+    livestreamSocket.on('user-joined', (data) => {
+        addLivestreamMessage(data);
+    });
+
+    livestreamSocket.on('user-left', (data) => {
+        addLivestreamMessage(data);
+    });
+
+    livestreamSocket.on('users-list', (users) => {
+        livestreamChatState.connectedUsers = users;
+        updateUsersCount(users.length);
+    });
+
+    // Eventos de la interfaz
+    sendBtn.addEventListener('click', sendLivestreamMessage);
+    
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendLivestreamMessage();
+        }
+    });
+
+    function sendLivestreamMessage() {
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        const clientMessageId = `c_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+
+        // Render inmediato
+        addLivestreamMessage({
+            username: livestreamChatState.username,
+            message,
+            timestamp: new Date().toISOString(),
+            type: 'user',
+            clientMessageId,
+            pending: !livestreamChatState.isConnected
+        });
+
+        if (!livestreamChatState.isConnected) {
+            livestreamChatState.pendingMessages.push({ id: clientMessageId, message });
+        } else {
+            livestreamSocket.emit('livestream-message', { message, clientMessageId });
+        }
+
+        messageInput.value = '';
+    }
+
+    function addLivestreamMessage(messageData) {
+        const messagesContainer = document.getElementById('livestreamChatMessages');
+        if (!messagesContainer) return;
+
+        // Remover mensaje de bienvenida si existe
+        const welcomeMessage = messagesContainer.querySelector('.welcome-message');
+        if (welcomeMessage) {
+            welcomeMessage.remove();
+        }
+
+        const messageElement = document.createElement('div');
+        messageElement.className = `livestream-message ${messageData.type}`;
+        if (messageData.clientMessageId) {
+            messageElement.dataset.clientMessageId = messageData.clientMessageId;
+        }
+        
+        const time = new Date(messageData.timestamp).toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        if (messageData.type === 'system') {
+            messageElement.innerHTML = `
+                <div class="message-content system">
+                    <i class='bx bx-info-circle'></i>
+                    <span>${messageData.message}</span>
+                    <span class="timestamp">${time}</span>
+                </div>
+            `;
+        } else {
+            const isOwnMessage = messageData.username === livestreamChatState.username;
+            messageElement.innerHTML = `
+                <div class="message-content user ${isOwnMessage ? 'own' : ''} ${messageData.pending ? 'pending' : ''}">
+                    <div class="message-header">
+                        <span class="username">${messageData.username}</span>
+                        <span class="timestamp">${time}</span>
+                    </div>
+                    <div class="message-text">${messageData.message}</div>
+                    ${messageData.pending ? '<div class="message-status">Pendiente…</div>' : ''}
+                </div>
+            `;
+        }
+
+        messagesContainer.appendChild(messageElement);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Mantener solo los últimos 50 mensajes
+        const messages = messagesContainer.querySelectorAll('.livestream-message');
+        if (messages.length > 50) {
+            messages[0].remove();
+        }
+    }
+
+    function updateConnectionStatus(status, isConnected) {
+        const statusIndicator = connectionStatus.querySelector('.status-indicator');
+        const statusText = connectionStatus.querySelector('.status-text');
+        
+        if (statusIndicator && statusText) {
+            statusIndicator.className = `status-indicator ${isConnected ? 'online' : 'offline'}`;
+            statusText.textContent = status;
+        }
+    }
+
+    function updateUsersCount(count) {
+        if (usersCount) {
+            usersCount.textContent = `${count} usuario${count !== 1 ? 's' : ''}`;
+        }
+    }
+}
+
+// Inicializar chat del livestream cuando se carga la página
+document.addEventListener('DOMContentLoaded', () => {
+    // Delay para asegurar que Socket.IO se carga primero
+    setTimeout(() => {
+        initializeLivestreamChat();
+    }, 1000);
+});
