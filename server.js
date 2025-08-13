@@ -14,7 +14,7 @@ const { Server } = require('socket.io');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT || 3000);
 const DEV_MODE = process.env.NODE_ENV !== 'production';
 
 // Configuración de seguridad
@@ -841,9 +841,15 @@ app.use((req, res) => {
 
 // Crear servidor HTTP y configurar Socket.IO
 const server = createServer(app);
+// Permitir orígenes específicos en producción para Socket.IO (tomados de ALLOWED_ORIGINS)
+const allowedSocketOrigins = (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+
 const io = new Server(server, {
     cors: {
-        origin: DEV_MODE ? "*" : false,
+        origin: DEV_MODE ? "*" : (allowedSocketOrigins.length > 0 ? allowedSocketOrigins : false),
         methods: ["GET", "POST"]
     }
 });

@@ -153,7 +153,30 @@
         <button id="avatarLightboxClose" class="avatar-close" aria-label="Cerrar">×</button>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Socket.IO client: autodetecta origen del servidor en producción y permite override por localStorage -->
+    <script>
+        (function() {
+            try {
+                var current = localStorage.getItem('SOCKET_IO_ORIGIN');
+                var heroku = 'https://lia-ia-live-1da7d26ba883.herokuapp.com';
+                var host = (window.location && window.location.hostname) ? window.location.hostname : '';
+
+                // Si no hay configuración previa, elegir origen según dominio público
+                if (!current) {
+                    if (host.includes('ecosdeliderazgo.com') || host.endsWith('.netlify.app')) {
+                        window.SOCKET_IO_ORIGIN = heroku;
+                        try { localStorage.setItem('SOCKET_IO_ORIGIN', heroku); } catch(_) {}
+                    } else {
+                        window.SOCKET_IO_ORIGIN = '';
+                    }
+                } else {
+                    window.SOCKET_IO_ORIGIN = current;
+                }
+            } catch (_) { window.SOCKET_IO_ORIGIN = window.SOCKET_IO_ORIGIN || ''; }
+        })();
+    </script>
+    <!-- Nota: Se omite 'integrity' porque el CDN puede rotar hashes; esto evitaba que el navegador bloquee la carga -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="scripts/main.js"></script>
 </body>
 </html>
