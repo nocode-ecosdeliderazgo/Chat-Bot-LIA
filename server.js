@@ -92,32 +92,59 @@ const allowedOriginsFromEnv = (process.env.ALLOWED_ORIGINS || '')
     .map(o => o.trim())
     .filter(Boolean);
 
-// Whitelist por patrón cuando no hay ALLOWED_ORIGINS configurado
-const originRegexWhitelist = [
-    /(^|\.)ecosdeliderazgo\.com$/i,
-    /\.netlify\.app$/i,
-    /\.netlify\.live$/i,
-    /^http:\/\/localhost:3000$/i,
-    /\.herokuapp\.com$/i
+// Whitelist por hostname cuando no hay ALLOWED_ORIGINS configurado
+const hostnameWhitelist = [
+    'ecosdeliderazgo.com',
+    'www.ecosdeliderazgo.com'
 ];
+
+const tldsWhitelist = [
+    'netlify.app',
+    'netlify.live',
+    'herokuapp.com'
+];
+
+function isHostAllowed(hostname) {
+    if (!hostname) return false;
+    if (hostnameWhitelist.includes(hostname)) return true;
+    return tldsWhitelist.some(tld => hostname.endsWith(`.${tld}`));
+}
 
 const resolveCorsOrigin = (origin, callback) => {
     // Permitir solicitudes sin cabecera Origin (cURL, same-origin)
     if (!origin) return callback(null, true);
 
+    // Si se configuró ALLOWED_ORIGINS, aceptar coincidencia exacta o por hostname
     if (allowedOriginsFromEnv.length > 0) {
-        return callback(null, allowedOriginsFromEnv.includes(origin));
+        if (allowedOriginsFromEnv.includes(origin)) return callback(null, true);
+        try {
+            const host = new URL(origin).hostname;
+            const allowedByHost = allowedOriginsFromEnv.some(value => {
+                try {
+                    const valHost = new URL(value).hostname;
+                    return valHost === host;
+                } catch { return false; }
+            });
+            return callback(null, allowedByHost);
+        } catch {
+            return callback(null, false);
+        }
     }
 
-    const isAllowed = originRegexWhitelist.some((re) => re.test(origin));
-    return callback(null, isAllowed);
+    // Sin ALLOWED_ORIGINS, usar whitelist por hostname/TLD
+    try {
+        const host = new URL(origin).hostname;
+        return callback(null, isHostAllowed(host));
+    } catch {
+        return callback(null, false);
+    }
 };
 
 const corsOptions = {
     origin: resolveCorsOrigin,
     credentials: true,
     methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'X-Requested-With', 'X-API-Key', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'X-Requested-With', 'X-API-Key', 'Authorization', 'Accept', 'Origin'],
     optionsSuccessStatus: 204,
     maxAge: 86400
 };
