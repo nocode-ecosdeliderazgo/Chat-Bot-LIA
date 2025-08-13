@@ -258,10 +258,17 @@ async function handleSuccessfulLogin(username, remember) {
             localStorage.removeItem('authToken');
         }
 
-        // Redirigir a cursos después del login exitoso
-        setTimeout(() => {
-            window.location.href = '../courses.html';
-        }, LOGIN_CONFIG.redirectDelay);
+        // Verificar rol del usuario y redirigir apropiadamente
+        const userRole = await getUserRole(username);
+        if (userRole === 'Administrador') {
+            setTimeout(() => {
+                window.location.href = '/admin';
+            }, LOGIN_CONFIG.redirectDelay);
+        } else {
+            setTimeout(() => {
+                window.location.href = '../courses.html';
+            }, LOGIN_CONFIG.redirectDelay);
+        }
     } catch (err) {
         console.warn('No se pudo emitir sesión segura:', err);
         // Fallback de desarrollo: permitir acceso local sin token real
@@ -280,9 +287,24 @@ async function handleSuccessfulLogin(username, remember) {
                 localStorage.removeItem('authToken');
             }
             // Redirigir aunque no haya token real (solo dev)
-            setTimeout(() => {
-                window.location.href = '../courses.html';
-            }, LOGIN_CONFIG.redirectDelay);
+            // En modo desarrollo, verificar rol también
+            try {
+                const userRole = await getUserRole(username);
+                if (userRole === 'Administrador') {
+                    setTimeout(() => {
+                        window.location.href = '/admin';
+                    }, LOGIN_CONFIG.redirectDelay);
+                } else {
+                    setTimeout(() => {
+                        window.location.href = '../courses.html';
+                    }, LOGIN_CONFIG.redirectDelay);
+                }
+            } catch {
+                // Fallback final: ir a cursos
+                setTimeout(() => {
+                    window.location.href = '../courses.html';
+                }, LOGIN_CONFIG.redirectDelay);
+            }
             return;
         }
         let detail = 'No se pudo establecer una sesión segura. Inténtalo de nuevo.';
@@ -340,6 +362,37 @@ async function issueUserSession(username) {
         throw err;
     }
     return res.json();
+}
+
+async function getUserRole(username) {
+    try {
+        // Intentar obtener el rol desde el backend
+        const res = await fetch(`${API_BASE}/api/user/role`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': getApiKeyForLogin(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ username })
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            return data.cargo_rol || null;
+        }
+    } catch (error) {
+        console.warn('Error obteniendo rol del usuario:', error);
+    }
+    
+    // Fallback: verificar en localStorage para usuarios de desarrollo
+    try {
+        const users = JSON.parse(localStorage.getItem('dev_users') || '[]');
+        const user = users.find(u => u.username?.toLowerCase() === username.toLowerCase());
+        return user?.cargo_rol || null;
+    } catch {
+        return null;
+    }
 }
 
 async function handleFailedLogin() {

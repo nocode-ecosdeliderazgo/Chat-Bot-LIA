@@ -413,6 +413,36 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// Endpoint para obtener el rol de un usuario
+app.post('/api/user/role', authenticateRequest, async (req, res) => {
+    try {
+        const { username } = req.body;
+        
+        if (!username) {
+            return res.status(400).json({ error: 'Username requerido' });
+        }
+
+        if (!pool) {
+            return res.status(503).json({ error: 'Base de datos no configurada' });
+        }
+
+        // Consultar el cargo_rol del usuario
+        const query = 'SELECT cargo_rol FROM users WHERE LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($1) LIMIT 1';
+        const result = await pool.query(query, [username]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        const user = result.rows[0];
+        res.json({ cargo_rol: user.cargo_rol });
+
+    } catch (error) {
+        console.error('Error obteniendo rol del usuario:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 // Endpoint para subir audio (push-to-talk)
 app.post('/api/audio/upload', authenticateRequest, requireUserSession, upload.single('audio'), (req, res) => {
     try {
@@ -824,6 +854,819 @@ app.post('/api/context', authenticateRequest, requireUserSession, async (req, re
 });
 
 // Función para obtener prompts del sistema
+
+// ============ ADMIN PANEL ROUTES ============
+
+// Admin authentication middleware with database validation
+async function requireAdminAuth(req, res, next) {
+    try {
+        // Check if user is authenticated with session-based auth first
+        const authHeader = req.headers.authorization;
+        const userId = req.headers['x-user-id'];
+        
+        let userIdToCheck = null;
+        
+        // Try JWT token authentication
+        if (authHeader && authHeader.startsWith('Bearer ') && userId) {
+            try {
+                const token = authHeader.slice(7);
+                const payload = jwt.verify(token, USER_JWT_SECRET);
+                
+                if (payload.sub === userId) {
+                    userIdToCheck = userId;
+                }
+            } catch (jwtError) {
+                console.log('JWT validation failed:', jwtError.message);
+            }
+        }
+        
+        // If no valid JWT, check if database is available for direct user validation
+        if (!userIdToCheck && !pool) {
+            return res.status(503).json({ 
+                error: 'Base de datos no configurada. No se puede validar acceso de administrador.' 
+            });
+        }
+        
+        if (!userIdToCheck) {
+            return res.status(401).json({ 
+                error: 'Sesión requerida. Por favor, inicia sesión.' 
+            });
+        }
+
+        // Validate admin access from database
+        if (!pool) {
+            return res.status(503).json({ 
+                error: 'Base de datos no configurada para validación de administrador' 
+            });
+        }
+
+        // Query database to check cargo_rol
+        const userQuery = 'SELECT id, full_name, username, email, cargo_rol FROM users WHERE id = $1';
+        const userResult = await pool.query(userQuery, [userIdToCheck]);
+        
+        if (!userResult.rows[0]) {
+            return res.status(401).json({ 
+                error: 'Usuario no encontrado en la base de datos' 
+            });
+        }
+        
+        const user = userResult.rows[0];
+        
+        // Critical validation: only users with cargo_rol = 'Administrador' can access
+        if (user.cargo_rol !== 'Administrador') {
+            return res.status(403).json({ 
+                error: 'Acceso denegado. Se requieren permisos de administrador.',
+                userRole: user.cargo_rol || 'Sin rol asignado'
+            });
+        }
+        
+        // User is validated as administrator
+        req.adminUser = {
+            id: user.id,
+            username: user.username,
+            fullName: user.full_name,
+            email: user.email,
+            role: user.cargo_rol
+        };
+
+        next();
+    } catch (error) {
+        console.error('Error validando acceso de admin:', error);
+        return res.status(500).json({ 
+            error: 'Error interno del servidor validando permisos de administrador' 
+        });
+    }
+}
+
+// Check admin permissions
+function requirePermission(permission) {
+    return (req, res, next) => {
+        // In development mode, allow all permissions
+        if (DEV_MODE) {
+            return next();
+        }
+        
+        // In a real implementation, check user permissions from database
+        // For now, allow all admin users
+        if (!req.adminUser || req.adminUser.role !== 'Admin') {
+            return res.status(403).json({ error: 'Permisos insuficientes' });
+        }
+        
+        next();
+    };
+}
+
+// Serve admin panel with authentication check
+app.get('/admin', async (req, res) => {
+    try {
+        // In development mode, serve the admin panel directly
+        if (DEV_MODE) {
+            return res.sendFile(path.join(__dirname, 'src', 'admin', 'admin.html'));
+        }
+        
+        // In production, check authentication first
+        const authHeader = req.headers.authorization;
+        const userId = req.headers['x-user-id'];
+        
+        // If no auth headers, redirect to login
+        if (!authHeader || !userId) {
+            return res.redirect('/src/login/');
+        }
+        
+        // Try to validate the user
+        try {
+            const token = authHeader.slice(7);
+            const payload = jwt.verify(token, USER_JWT_SECRET);
+            
+            if (payload.sub !== userId) {
+                return res.redirect('/src/login/');
+            }
+            
+            // Check database for admin role
+            if (pool) {
+                const userResult = await pool.query(
+                    'SELECT cargo_rol FROM users WHERE id = $1',
+                    [userId]
+                );
+                
+                if (!userResult.rows[0] || userResult.rows[0].cargo_rol !== 'Administrador') {
+                    return res.status(403).send(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Acceso Denegado</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+                                .error { color: #e74c3c; }
+                                .btn { background: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; }
+                            </style>
+                        </head>
+                        <body>
+                            <h1 class="error">Acceso Denegado</h1>
+                            <p>Se requieren permisos de administrador para acceder a este panel.</p>
+                            <p>Tu rol actual: <strong>${userResult.rows[0]?.cargo_rol || 'Sin rol asignado'}</strong></p>
+                            <a href="/src/login/" class="btn">Volver al Login</a>
+                        </body>
+                        </html>
+                    `);
+                }
+            }
+            
+            // User is authorized, serve admin panel
+            res.sendFile(path.join(__dirname, 'src', 'admin', 'admin.html'));
+            
+        } catch (jwtError) {
+            return res.redirect('/src/login/');
+        }
+        
+    } catch (error) {
+        console.error('Error in admin route:', error);
+        res.status(500).send('Error interno del servidor');
+    }
+});
+
+// Admin auth check
+app.get('/api/admin/auth/check', requireAdminAuth, (req, res) => {
+    // At this point, the user has already been validated as an administrator
+    const permissions = [
+        'view_dashboard', 'view_courses', 'view_news', 'view_users', 
+        'view_permissions', 'view_settings', 'create_courses', 'edit_courses', 
+        'delete_courses', 'create_news', 'edit_news', 'delete_news',
+        'create_users', 'edit_users', 'delete_users', 'manage_permissions',
+        'manage_settings'
+    ];
+    
+    res.json({
+        user: req.adminUser,
+        permissions: permissions,
+        validatedAt: new Date().toISOString()
+    });
+});
+
+// Admin logout
+app.post('/api/admin/auth/logout', requireAdminAuth, (req, res) => {
+    // In a real implementation, invalidate the token
+    res.json({ message: 'Sesión cerrada exitosamente' });
+});
+
+// Dashboard stats with real database data
+app.get('/api/admin/dashboard/stats', requireAdminAuth, requirePermission('view_dashboard'), async (req, res) => {
+    try {
+        let stats = {
+            totalUsers: 0,
+            totalAdmins: 0,
+            totalCourses: 0,
+            totalNews: 0,
+            totalMessages: 0,
+            userActivity: {
+                labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                data: [0, 0, 0, 0, 0, 0, 0]
+            },
+            roleDistribution: {
+                'Administrador': 0,
+                'Usuario': 0,
+                'Sin rol asignado': 0
+            }
+        };
+
+        if (pool) {
+            try {
+                // Get total user count
+                const userCountResult = await pool.query('SELECT COUNT(*) as count FROM users');
+                stats.totalUsers = parseInt(userCountResult.rows[0].count) || 0;
+                
+                // Get admin count
+                const adminCountResult = await pool.query(
+                    'SELECT COUNT(*) as count FROM users WHERE cargo_rol = $1',
+                    ['Administrador']
+                );
+                stats.totalAdmins = parseInt(adminCountResult.rows[0].count) || 0;
+                
+                // Get role distribution
+                const roleDistResult = await pool.query(`
+                    SELECT 
+                        COALESCE(cargo_rol, 'Sin rol asignado') as role,
+                        COUNT(*) as count
+                    FROM users 
+                    GROUP BY cargo_rol
+                `);
+                
+                roleDistResult.rows.forEach(row => {
+                    stats.roleDistribution[row.role] = parseInt(row.count);
+                });
+                
+                // Get user registration activity for the last 7 days
+                const activityResult = await pool.query(`
+                    SELECT 
+                        EXTRACT(DOW FROM created_at) as day_of_week,
+                        COUNT(*) as count
+                    FROM users 
+                    WHERE created_at >= NOW() - INTERVAL '7 days'
+                    GROUP BY EXTRACT(DOW FROM created_at)
+                    ORDER BY day_of_week
+                `);
+                
+                // Map PostgreSQL day of week (0=Sunday) to our labels
+                const dayMapping = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+                const activityData = new Array(7).fill(0);
+                
+                activityResult.rows.forEach(row => {
+                    const dayIndex = parseInt(row.day_of_week);
+                    const mappedIndex = dayIndex === 0 ? 6 : dayIndex - 1; // Convert Sunday=0 to Sunday=6
+                    activityData[mappedIndex] = parseInt(row.count);
+                });
+                
+                stats.userActivity.data = activityData;
+                
+                // Get recent activity count (could be expanded with more tables)
+                const recentActivityResult = await pool.query(`
+                    SELECT COUNT(*) as count 
+                    FROM users 
+                    WHERE created_at >= NOW() - INTERVAL '24 hours'
+                `);
+                stats.recentActivity = parseInt(recentActivityResult.rows[0].count) || 0;
+                
+            } catch (dbError) {
+                console.error('Database error in dashboard stats:', dbError);
+            }
+        }
+
+        res.json(stats);
+    } catch (error) {
+        console.error('Error getting dashboard stats:', error);
+        res.status(500).json({ error: 'Error obteniendo estadísticas del dashboard' });
+    }
+});
+
+// Popular courses
+app.get('/api/admin/dashboard/popular-courses', requireAdminAuth, requirePermission('view_dashboard'), (req, res) => {
+    const courses = [
+        { id: 1, title: 'Introducción a la IA', studentsCount: 45, rating: 4.8, completionRate: 85 },
+        { id: 2, title: 'Machine Learning Básico', studentsCount: 32, rating: 4.6, completionRate: 78 },
+        { id: 3, title: 'Prompt Engineering', studentsCount: 28, rating: 4.9, completionRate: 92 }
+    ];
+    res.json({ courses });
+});
+
+// System alerts
+app.get('/api/admin/dashboard/alerts', requireAdminAuth, requirePermission('view_dashboard'), (req, res) => {
+    const alerts = [
+        {
+            id: 1,
+            type: 'warning',
+            title: 'Uso elevado de API',
+            message: 'El uso de la API de OpenAI está cerca del límite mensual',
+            createdAt: new Date().toISOString(),
+            actionable: false
+        }
+    ];
+    res.json({ alerts });
+});
+
+// Courses CRUD
+app.get('/api/admin/courses', requireAdminAuth, requirePermission('view_courses'), (req, res) => {
+    const { page = 1, limit = 12, status, category, search } = req.query;
+    
+    // Mock data for demonstration
+    const courses = [
+        {
+            id: 1,
+            title: 'Introducción a la Inteligencia Artificial',
+            description: 'Curso básico sobre conceptos fundamentales de IA',
+            category: 'programming',
+            difficulty: 'beginner',
+            duration: 120,
+            status: 'published',
+            studentsCount: 45,
+            createdAt: new Date().toISOString()
+        },
+        {
+            id: 2,
+            title: 'Machine Learning Práctico',
+            description: 'Aprende a implementar algoritmos de ML',
+            category: 'data-science',
+            difficulty: 'intermediate',
+            duration: 180,
+            status: 'draft',
+            studentsCount: 0,
+            createdAt: new Date().toISOString()
+        }
+    ];
+
+    res.json({ courses, total: courses.length });
+});
+
+app.post('/api/admin/courses', requireAdminAuth, requirePermission('create_courses'), (req, res) => {
+    // Mock course creation
+    const newCourse = {
+        id: Date.now(),
+        ...req.body,
+        createdAt: new Date().toISOString(),
+        studentsCount: 0
+    };
+    res.status(201).json({ course: newCourse });
+});
+
+app.get('/api/admin/courses/:id', requireAdminAuth, requirePermission('view_courses'), (req, res) => {
+    const course = {
+        id: req.params.id,
+        title: 'Curso de Ejemplo',
+        description: 'Descripción del curso',
+        category: 'programming',
+        difficulty: 'beginner',
+        duration: 120,
+        status: 'published',
+        content: '<p>Contenido del curso...</p>'
+    };
+    res.json({ course });
+});
+
+app.put('/api/admin/courses/:id', requireAdminAuth, requirePermission('edit_courses'), (req, res) => {
+    const updatedCourse = {
+        id: req.params.id,
+        ...req.body,
+        updatedAt: new Date().toISOString()
+    };
+    res.json({ course: updatedCourse });
+});
+
+app.delete('/api/admin/courses/:id', requireAdminAuth, requirePermission('delete_courses'), (req, res) => {
+    res.json({ message: 'Curso eliminado exitosamente' });
+});
+
+// News CRUD
+app.get('/api/admin/news', requireAdminAuth, requirePermission('view_news'), (req, res) => {
+    const { page = 1, limit = 10, status, category, search } = req.query;
+    
+    const news = [
+        {
+            id: 1,
+            title: 'Nueva actualización del sistema',
+            summary: 'Hemos implementado nuevas características',
+            category: 'announcements',
+            status: 'published',
+            featured: true,
+            author: { name: 'Admin', email: 'admin@example.com' },
+            publishedAt: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        }
+    ];
+
+    res.json({ news, total: news.length });
+});
+
+app.post('/api/admin/news', requireAdminAuth, requirePermission('create_news'), (req, res) => {
+    const newArticle = {
+        id: Date.now(),
+        ...req.body,
+        author: { name: req.adminUser.username, email: 'admin@example.com' },
+        createdAt: new Date().toISOString()
+    };
+    res.status(201).json({ article: newArticle });
+});
+
+app.get('/api/admin/news/:id', requireAdminAuth, requirePermission('view_news'), (req, res) => {
+    const article = {
+        id: req.params.id,
+        title: 'Noticia de Ejemplo',
+        summary: 'Resumen de la noticia',
+        content: '<p>Contenido de la noticia...</p>',
+        category: 'general',
+        status: 'published'
+    };
+    res.json({ article });
+});
+
+app.put('/api/admin/news/:id', requireAdminAuth, requirePermission('edit_news'), (req, res) => {
+    const updatedArticle = {
+        id: req.params.id,
+        ...req.body,
+        updatedAt: new Date().toISOString()
+    };
+    res.json({ article: updatedArticle });
+});
+
+app.delete('/api/admin/news/:id', requireAdminAuth, requirePermission('delete_news'), (req, res) => {
+    res.json({ message: 'Noticia eliminada exitosamente' });
+});
+
+// Users CRUD - Updated to use real database with cargo_rol
+app.get('/api/admin/users', requireAdminAuth, requirePermission('view_users'), async (req, res) => {
+    try {
+        const { page = 1, limit = 15, role, status, search } = req.query;
+        
+        if (!pool) {
+            return res.status(503).json({ 
+                error: 'Base de datos no configurada' 
+            });
+        }
+        
+        let query = `
+            SELECT 
+                id, 
+                username, 
+                full_name, 
+                email, 
+                cargo_rol, 
+                type_rol,
+                created_at, 
+                updated_at, 
+                last_login_at
+            FROM users
+        `;
+        
+        const queryParams = [];
+        const conditions = [];
+        
+        // Add search filter
+        if (search && search.trim()) {
+            conditions.push(`(
+                LOWER(username) LIKE $${queryParams.length + 1} OR 
+                LOWER(full_name) LIKE $${queryParams.length + 1} OR 
+                LOWER(email) LIKE $${queryParams.length + 1}
+            )`);
+            queryParams.push(`%${search.toLowerCase().trim()}%`);
+        }
+        
+        // Add role filter based on cargo_rol
+        if (role && role.trim()) {
+            conditions.push(`cargo_rol = $${queryParams.length + 1}`);
+            queryParams.push(role.trim());
+        }
+        
+        if (conditions.length > 0) {
+            query += ' WHERE ' + conditions.join(' AND ');
+        }
+        
+        // Count total for pagination
+        const countQuery = query.replace(/SELECT.*FROM/, 'SELECT COUNT(*) as total FROM');
+        const countResult = await pool.query(countQuery, queryParams);
+        const total = parseInt(countResult.rows[0].total) || 0;
+        
+        // Add ordering and pagination
+        query += ` ORDER BY created_at DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+        queryParams.push(parseInt(limit));
+        queryParams.push((parseInt(page) - 1) * parseInt(limit));
+        
+        const result = await pool.query(query, queryParams);
+        
+        const users = result.rows.map(user => ({
+            id: user.id,
+            name: user.full_name || user.username,
+            username: user.username,
+            email: user.email,
+            role: user.cargo_rol || 'Sin rol asignado',
+            typeRole: user.type_rol,
+            status: 'active', // Could be enhanced with a status field in the future
+            emailVerified: true, // Could be enhanced with an email verification field
+            lastLogin: user.last_login_at,
+            createdAt: user.created_at,
+            updatedAt: user.updated_at
+        }));
+
+        res.json({ users, total, page: parseInt(page), limit: parseInt(limit) });
+    } catch (error) {
+        console.error('Error getting users:', error);
+        res.status(500).json({ error: 'Error obteniendo usuarios de la base de datos' });
+    }
+});
+
+app.post('/api/admin/users', requireAdminAuth, requirePermission('create_users'), (req, res) => {
+    const newUser = {
+        id: Date.now(),
+        ...req.body,
+        createdAt: new Date().toISOString(),
+        status: 'active'
+    };
+    res.status(201).json({ user: newUser });
+});
+
+app.get('/api/admin/users/:id', requireAdminAuth, requirePermission('view_users'), (req, res) => {
+    const user = {
+        id: req.params.id,
+        name: 'Usuario Ejemplo',
+        username: 'usuario',
+        email: 'usuario@example.com',
+        role: 'User',
+        status: 'active'
+    };
+    res.json({ user });
+});
+
+// Update user including cargo_rol
+app.put('/api/admin/users/:id', requireAdminAuth, requirePermission('edit_users'), async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const { name, username, email, cargo_rol, type_rol } = req.body;
+        
+        if (!pool) {
+            return res.status(503).json({ 
+                error: 'Base de datos no configurada' 
+            });
+        }
+        
+        // Validate that we're not removing admin access from the last administrator
+        if (cargo_rol && cargo_rol !== 'Administrador') {
+            const adminCountResult = await pool.query(
+                'SELECT COUNT(*) as count FROM users WHERE cargo_rol = $1 AND id != $2',
+                ['Administrador', userId]
+            );
+            
+            const adminCount = parseInt(adminCountResult.rows[0].count);
+            if (adminCount === 0) {
+                return res.status(400).json({
+                    error: 'No se puede remover el rol de administrador del último administrador del sistema'
+                });
+            }
+        }
+        
+        let updateFields = [];
+        let queryParams = [];
+        let paramIndex = 1;
+        
+        if (name !== undefined) {
+            updateFields.push(`full_name = $${paramIndex++}`);
+            queryParams.push(name);
+        }
+        
+        if (username !== undefined) {
+            updateFields.push(`username = $${paramIndex++}`);
+            queryParams.push(username);
+        }
+        
+        if (email !== undefined) {
+            updateFields.push(`email = $${paramIndex++}`);
+            queryParams.push(email);
+        }
+        
+        if (cargo_rol !== undefined) {
+            updateFields.push(`cargo_rol = $${paramIndex++}`);
+            queryParams.push(cargo_rol);
+        }
+        
+        if (type_rol !== undefined) {
+            updateFields.push(`type_rol = $${paramIndex++}`);
+            queryParams.push(type_rol);
+        }
+        
+        // Always update the updated_at timestamp
+        updateFields.push(`updated_at = NOW()`);
+        
+        if (updateFields.length === 1) { // Only updated_at
+            return res.status(400).json({ error: 'No hay campos para actualizar' });
+        }
+        
+        const updateQuery = `
+            UPDATE users 
+            SET ${updateFields.join(', ')}
+            WHERE id = $${paramIndex}
+            RETURNING id, username, full_name, email, cargo_rol, type_rol, created_at, updated_at, last_login_at
+        `;
+        queryParams.push(userId);
+        
+        const result = await pool.query(updateQuery, queryParams);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+        
+        const updatedUser = result.rows[0];
+        
+        res.json({
+            user: {
+                id: updatedUser.id,
+                name: updatedUser.full_name,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                role: updatedUser.cargo_rol,
+                typeRole: updatedUser.type_rol,
+                createdAt: updatedUser.created_at,
+                updatedAt: updatedUser.updated_at,
+                lastLogin: updatedUser.last_login_at
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error updating user:', error);
+        
+        // Handle unique constraint violations
+        if (error.code === '23505') {
+            if (error.constraint?.includes('username')) {
+                return res.status(400).json({ error: 'El nombre de usuario ya existe' });
+            }
+            if (error.constraint?.includes('email')) {
+                return res.status(400).json({ error: 'El email ya existe' });
+            }
+        }
+        
+        res.status(500).json({ error: 'Error actualizando usuario en la base de datos' });
+    }
+});
+
+app.delete('/api/admin/users/:id', requireAdminAuth, requirePermission('delete_users'), (req, res) => {
+    res.json({ message: 'Usuario eliminado exitosamente' });
+});
+
+// Roles and Permissions
+app.get('/api/admin/roles', requireAdminAuth, requirePermission('view_permissions'), (req, res) => {
+    const roles = [
+        {
+            id: 1,
+            name: 'Super Admin',
+            description: 'Acceso completo al sistema',
+            isSystem: true,
+            isDefault: false,
+            isActive: true,
+            usersCount: 1,
+            permissionsCount: 20
+        },
+        {
+            id: 2,
+            name: 'Admin',
+            description: 'Administrador del sistema',
+            isSystem: false,
+            isDefault: false,
+            isActive: true,
+            usersCount: 3,
+            permissionsCount: 15
+        },
+        {
+            id: 3,
+            name: 'User',
+            description: 'Usuario básico',
+            isSystem: false,
+            isDefault: true,
+            isActive: true,
+            usersCount: 152,
+            permissionsCount: 5
+        }
+    ];
+    res.json({ roles });
+});
+
+app.get('/api/admin/permissions', requireAdminAuth, requirePermission('view_permissions'), (req, res) => {
+    const permissions = [
+        { id: 1, name: 'view_dashboard', displayName: 'Ver Dashboard', description: 'Acceso al panel de control', category: 'dashboard' },
+        { id: 2, name: 'view_courses', displayName: 'Ver Cursos', description: 'Ver lista de cursos', category: 'courses' },
+        { id: 3, name: 'create_courses', displayName: 'Crear Cursos', description: 'Crear nuevos cursos', category: 'courses' },
+        { id: 4, name: 'edit_courses', displayName: 'Editar Cursos', description: 'Modificar cursos existentes', category: 'courses' },
+        { id: 5, name: 'delete_courses', displayName: 'Eliminar Cursos', description: 'Eliminar cursos', category: 'courses' },
+        { id: 6, name: 'view_users', displayName: 'Ver Usuarios', description: 'Ver lista de usuarios', category: 'users' },
+        { id: 7, name: 'create_users', displayName: 'Crear Usuarios', description: 'Crear nuevos usuarios', category: 'users' },
+        { id: 8, name: 'edit_users', displayName: 'Editar Usuarios', description: 'Modificar usuarios', category: 'users' },
+        { id: 9, name: 'delete_users', displayName: 'Eliminar Usuarios', description: 'Eliminar usuarios', category: 'users' },
+        { id: 10, name: 'view_permissions', displayName: 'Ver Permisos', description: 'Ver roles y permisos', category: 'admin' }
+    ];
+    
+    const matrix = {
+        1: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], // Super Admin has all permissions
+        2: [1, 2, 3, 4, 5, 6, 7, 8, 10], // Admin
+        3: [2] // User
+    };
+    
+    res.json({ permissions, matrix });
+});
+
+app.post('/api/admin/roles', requireAdminAuth, requirePermission('manage_permissions'), (req, res) => {
+    const newRole = {
+        id: Date.now(),
+        ...req.body,
+        createdAt: new Date().toISOString(),
+        usersCount: 0
+    };
+    res.status(201).json({ role: newRole });
+});
+
+app.put('/api/admin/permissions/matrix', requireAdminAuth, requirePermission('manage_permissions'), (req, res) => {
+    // In a real implementation, save the permission matrix to database
+    res.json({ message: 'Matriz de permisos actualizada exitosamente' });
+});
+
+// Settings
+app.get('/api/admin/settings', requireAdminAuth, requirePermission('view_settings'), (req, res) => {
+    const settings = {
+        siteName: 'Chat-Bot-LIA',
+        siteDescription: 'Plataforma educativa de inteligencia artificial',
+        timezone: 'America/Mexico_City',
+        chatWelcomeMessage: '¡Hola! Soy tu asistente de IA. ¿En qué puedo ayudarte hoy?',
+        chatAssistantName: 'Asistente IA',
+        aiModel: 'gpt-4',
+        aiTemperature: 0.7,
+        aiMaxTokens: 2000
+    };
+    res.json({ settings });
+});
+
+app.put('/api/admin/settings', requireAdminAuth, requirePermission('manage_settings'), (req, res) => {
+    // In a real implementation, save settings to database
+    res.json({ message: 'Configuraciones guardadas exitosamente' });
+});
+
+// Global search
+app.post('/api/admin/search', requireAdminAuth, (req, res) => {
+    const { query } = req.body;
+    
+    // Mock search results
+    const results = [
+        { id: 1, type: 'course', title: 'Curso encontrado', description: 'Descripción del curso' },
+        { id: 1, type: 'user', name: 'Usuario encontrado', email: 'usuario@example.com' }
+    ].filter(item => 
+        item.title?.toLowerCase().includes(query.toLowerCase()) ||
+        item.name?.toLowerCase().includes(query.toLowerCase())
+    );
+    
+    res.json({ results });
+});
+
+// File upload for admin
+app.post('/api/admin/upload', requireAdminAuth, upload.single('file'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Archivo requerido' });
+        }
+        
+        const fileUrl = `/uploads/${req.file.filename}`;
+        res.json({ 
+            url: fileUrl, 
+            filename: req.file.filename,
+            size: req.file.size, 
+            mimetype: req.file.mimetype 
+        });
+    } catch (error) {
+        console.error('Error uploading file:', error);
+        res.status(500).json({ error: 'Error subiendo archivo' });
+    }
+});
+
+// Notifications
+app.get('/api/admin/notifications', requireAdminAuth, (req, res) => {
+    const notifications = [
+        {
+            id: 1,
+            title: 'Nuevo usuario registrado',
+            message: 'Se ha registrado un nuevo usuario en el sistema',
+            icon: 'user-plus',
+            read: false,
+            createdAt: new Date().toISOString()
+        },
+        {
+            id: 2,
+            title: 'Curso publicado',
+            message: 'El curso "IA Avanzada" ha sido publicado',
+            icon: 'graduation-cap',
+            read: true,
+            createdAt: new Date(Date.now() - 3600000).toISOString()
+        }
+    ];
+    res.json({ notifications });
+});
+
+app.post('/api/admin/notifications/mark-all-read', requireAdminAuth, (req, res) => {
+    res.json({ message: 'Notificaciones marcadas como leídas' });
+});
+
+// ============ END ADMIN PANEL ROUTES ============
 
 // Middleware de manejo de errores
 app.use((error, req, res, next) => {

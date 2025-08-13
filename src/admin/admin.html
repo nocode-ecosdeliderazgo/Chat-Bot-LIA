@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administrador - Chat-Bot-LIA</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-robot"></i>
+                    <h2>Chat-Bot-LIA</h2>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item active">
+                        <a href="#dashboard" class="nav-link" data-section="dashboard">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#courses" class="nav-link" data-section="courses">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Cursos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#news" class="nav-link" data-section="news">
+                            <i class="fas fa-newspaper"></i>
+                            <span>Noticias</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#users" class="nav-link" data-section="users">
+                            <i class="fas fa-users"></i>
+                            <span>Usuarios</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#permissions" class="nav-link" data-section="permissions">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Permisos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#settings" class="nav-link" data-section="settings">
+                            <i class="fas fa-cog"></i>
+                            <span>Configuraciones</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name" id="userName">Administrador</span>
+                        <span class="user-role" id="userRole">Super Admin</span>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="breadcrumb">
+                        <span class="breadcrumb-item" id="currentSection">Dashboard</span>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="notifications">
+                        <button class="notification-btn" id="notificationBtn">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge" id="notificationBadge">3</span>
+                        </button>
+                        <div class="notification-dropdown" id="notificationDropdown">
+                            <div class="notification-header">
+                                <h4>Notificaciones</h4>
+                                <button class="mark-all-read">Marcar como leídas</button>
+                            </div>
+                            <div class="notification-list" id="notificationList">
+                                <!-- Notifications will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="search-box">
+                        <input type="text" placeholder="Buscar..." id="globalSearch">
+                        <i class="fas fa-search"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-area" id="contentArea">
+                <!-- Dashboard Section -->
+                <section class="content-section active" id="dashboard-section">
+                    <div class="section-header">
+                        <h1>Dashboard</h1>
+                        <p>Resumen general del sistema</p>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="totalUsers">0</h3>
+                                <p>Usuarios Activos</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="totalCourses">0</h3>
+                                <p>Cursos Publicados</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-newspaper"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="totalNews">0</h3>
+                                <p>Noticias Activas</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="totalMessages">0</h3>
+                                <p>Mensajes del Chat</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3>Actividad de Usuarios</h3>
+                            </div>
+                            <div class="card-content">
+                                <canvas id="userActivityChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3>Cursos Más Populares</h3>
+                            </div>
+                            <div class="card-content">
+                                <div class="popular-courses" id="popularCourses">
+                                    <!-- Popular courses will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3>Notificaciones del Sistema</h3>
+                            </div>
+                            <div class="card-content">
+                                <div class="system-alerts" id="systemAlerts">
+                                    <!-- System alerts will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Courses Section -->
+                <section class="content-section" id="courses-section">
+                    <div class="section-header">
+                        <h1>Gestión de Cursos</h1>
+                        <button class="btn btn-primary" id="addCourseBtn">
+                            <i class="fas fa-plus"></i>
+                            Crear Curso
+                        </button>
+                    </div>
+                    
+                    <div class="filters-bar">
+                        <div class="filter-group">
+                            <select id="courseStatusFilter">
+                                <option value="">Todos los estados</option>
+                                <option value="draft">Borrador</option>
+                                <option value="published">Publicado</option>
+                                <option value="archived">Archivado</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <select id="courseCategoryFilter">
+                                <option value="">Todas las categorías</option>
+                                <option value="programming">Programación</option>
+                                <option value="data-science">Ciencia de Datos</option>
+                                <option value="design">Diseño</option>
+                                <option value="business">Negocios</option>
+                            </select>
+                        </div>
+                        
+                        <div class="search-group">
+                            <input type="text" placeholder="Buscar cursos..." id="courseSearch">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="courses-grid" id="coursesGrid">
+                        <!-- Courses will be loaded here -->
+                    </div>
+                    
+                    <div class="pagination" id="coursesPagination">
+                        <!-- Pagination will be loaded here -->
+                    </div>
+                </section>
+
+                <!-- News Section -->
+                <section class="content-section" id="news-section">
+                    <div class="section-header">
+                        <h1>Gestión de Noticias</h1>
+                        <button class="btn btn-primary" id="addNewsBtn">
+                            <i class="fas fa-plus"></i>
+                            Crear Noticia
+                        </button>
+                    </div>
+                    
+                    <div class="news-table-container">
+                        <table class="data-table" id="newsTable">
+                            <thead>
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Autor</th>
+                                    <th>Categoría</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="newsTableBody">
+                                <!-- News will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Users Section -->
+                <section class="content-section" id="users-section">
+                    <div class="section-header">
+                        <h1>Gestión de Usuarios</h1>
+                        <button class="btn btn-primary" id="addUserBtn">
+                            <i class="fas fa-plus"></i>
+                            Agregar Usuario
+                        </button>
+                    </div>
+                    
+                    <div class="users-table-container">
+                        <table class="data-table" id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th>Estado</th>
+                                    <th>Último Acceso</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Permissions Section -->
+                <section class="content-section" id="permissions-section">
+                    <div class="section-header">
+                        <h1>Sistema de Permisos</h1>
+                        <button class="btn btn-primary" id="addRoleBtn">
+                            <i class="fas fa-plus"></i>
+                            Crear Rol
+                        </button>
+                    </div>
+                    
+                    <div class="permissions-grid">
+                        <div class="roles-panel">
+                            <h3>Roles</h3>
+                            <div class="roles-list" id="rolesList">
+                                <!-- Roles will be loaded here -->
+                            </div>
+                        </div>
+                        
+                        <div class="permissions-panel">
+                            <h3>Permisos</h3>
+                            <div class="permissions-list" id="permissionsList">
+                                <!-- Permissions will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Settings Section -->
+                <section class="content-section" id="settings-section">
+                    <div class="section-header">
+                        <h1>Configuraciones del Sistema</h1>
+                    </div>
+                    
+                    <div class="settings-tabs">
+                        <button class="tab-button active" data-tab="general">General</button>
+                        <button class="tab-button" data-tab="chat">Chat</button>
+                        <button class="tab-button" data-tab="security">Seguridad</button>
+                        <button class="tab-button" data-tab="email">Email</button>
+                    </div>
+                    
+                    <div class="settings-content" id="settingsContent">
+                        <!-- Settings content will be loaded here -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Course Modal -->
+    <div class="modal" id="courseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="courseModalTitle">Crear Curso</h2>
+                <button class="modal-close" id="closeCourseModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="courseForm">
+                    <!-- Course form fields will be loaded here -->
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- News Modal -->
+    <div class="modal" id="newsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="newsModalTitle">Crear Noticia</h2>
+                <button class="modal-close" id="closeNewsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="newsForm">
+                    <!-- News form fields will be loaded here -->
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div class="modal" id="userModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="userModalTitle">Agregar Usuario</h2>
+                <button class="modal-close" id="closeUserModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <!-- User form fields will be loaded here -->
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Confirmar Acción</h2>
+                <button class="modal-close" id="closeConfirmModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancelAction">Cancelar</button>
+                    <button class="btn btn-danger" id="confirmAction">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer">
+        <!-- Toast notifications will be added here -->
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Cargando...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="admin.js" type="module"></script>
+</body>
+</html>
