@@ -3032,9 +3032,13 @@ function initializeLivestreamChat() {
     }
 
     // Inicializar conexión Socket.IO
-    livestreamSocket = io({
+    // Si el HTML se sirve fuera del servidor Node (p.ej. Netlify estático),
+    // define window.SOCKET_IO_ORIGIN = 'https://TU_DOMINIO_NODE' para conectar.
+    const ioOrigin = (typeof window !== 'undefined' && window.SOCKET_IO_ORIGIN) ? window.SOCKET_IO_ORIGIN : '';
+    livestreamSocket = io(ioOrigin || undefined, {
         transports: ['websocket', 'polling'],
-        timeout: 10000
+        timeout: 10000,
+        withCredentials: false
     });
 
     // Generar nombre de usuario automáticamente

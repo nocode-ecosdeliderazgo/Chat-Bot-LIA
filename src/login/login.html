@@ -108,6 +108,18 @@
         </div>
     </div>
 
+    <script>
+      (function() {
+        try {
+          var host = window.location && window.location.hostname ? window.location.hostname : '';
+          if (host.includes('ecosdeliderazgo.com')) {
+            // En producción cuando el HTML vive fuera de Netlify,
+            // redirige las llamadas /api/* al sitio de Netlify Functions
+            window.API_BASE = 'https://bot-lia-ai.netlify.app';
+          }
+        } catch (_) {}
+      })();
+    </script>
     <script src="login.js"></script>
 </body>
 </html>

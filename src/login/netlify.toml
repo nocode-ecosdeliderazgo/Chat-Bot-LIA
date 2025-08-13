@@ -1,6 +1,6 @@
 [build]
   node_version = "18"
-  
+
 [build.environment]
   NODE_ENV = "production"
 
@@ -15,11 +15,6 @@
 [[redirects]]
   from = "/api/auth/issue"
   to   = "/.netlify/functions/auth-issue"
-  status = 200
-
-[[redirects]]
-  from = "/api/register"
-  to   = "/.netlify/functions/register"
   status = 200
 
 [[redirects]]

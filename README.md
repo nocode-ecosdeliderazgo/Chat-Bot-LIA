@@ -138,3 +138,35 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para
 ---
 
 ⭐ Si este proyecto te ha sido útil, ¡no olvides darle una estrella! 
+
+## 🚀 Deploy (Producción)
+
+### Backend (Heroku) — websockets y API
+
+1. Crea una app en Heroku (o Render/Railway) y conecta el repo.
+2. Añade el archivo `Procfile` con:
+   
+   ```
+   web: node server.js
+   ```
+3. Configura variables de entorno en la app:
+   - `PORT` (Heroku la define automáticamente)
+   - `ALLOWED_ORIGINS` → dominios del frontend (coma-separado), por ejemplo:
+     `https://bot-lia-ai.netlify.app,https://ecosdeliderazgo.com`
+   - `OPENAI_API_KEY`, `DATABASE_URL`, `API_SECRET_KEY`, `USER_JWT_SECRET` (según uso)
+4. Deploy desde GitHub/Heroku CLI. El servidor expondrá Socket.IO en `/socket.io/`.
+
+### Frontend (Netlify) — estáticos y Functions
+
+1. `netlify.toml` con redirects para `/api/*` → Functions.
+2. Variables del sitio:
+   - `DATABASE_URL` (pooling 6543) y `JWT_SECRET` para Functions de login/issue/register.
+3. Si el HTML se sirve fuera de Netlify, el `login.html` ya define `window.API_BASE` para apuntar a Netlify.
+4. Para el livestream, define el origen del socket en el navegador o en el HTML:
+   
+   - En consola del navegador:
+     ```js
+     localStorage.setItem('SOCKET_IO_ORIGIN', 'https://tu-app.herokuapp.com');
+     location.reload();
+     ```
+   - O en `chat.html` establecer `window.SOCKET_IO_ORIGIN` antes de cargar `scripts/main.js`.

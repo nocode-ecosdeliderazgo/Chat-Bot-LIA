@@ -1,6 +1,11 @@
+[[redirects]]
+  from = "/api/register"
+  to   = "/.netlify/functions/register"
+  status = 200
+
 [build]
   node_version = "18"
-  
+
 [build.environment]
   NODE_ENV = "production"
 
@@ -21,6 +26,8 @@
   from = "/api/register"
   to   = "/.netlify/functions/register"
   status = 200
+
+
 
 [[redirects]]
   from = "/api/*"
