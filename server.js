@@ -244,12 +244,20 @@ function authenticateRequest(req, res, next) {
 // Verificación de origen/Referer para reducir CSRF cuando se usen cookies (defensa adicional)
 function verifyOrigin(req, res, next) {
     try {
-        const allowed = (process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000']).map(o => o.trim());
         const origin = req.headers.origin || '';
         const referer = req.headers.referer || '';
-        if (origin && !allowed.includes(origin)) return res.status(403).json({ error: 'Origen no permitido' });
-        if (referer && !allowed.some(a => referer.startsWith(a))) return res.status(403).json({ error: 'Referer no permitido' });
-        next();
+
+        const isAllowedOrigin = (cb) => resolveCorsOrigin(origin, (err, ok) => cb(ok));
+        const isAllowedReferer = () => {
+            if (!referer) return true;
+            try { return isHostAllowed(new URL(referer).hostname); } catch { return false; }
+        };
+
+        return isAllowedOrigin((ok) => {
+            if (!ok) return res.status(403).json({ error: 'Origen no permitido' });
+            if (!isAllowedReferer()) return res.status(403).json({ error: 'Referer no permitido' });
+            next();
+        });
     } catch (_) { next(); }
 }
 if (!DEV_MODE) app.use('/api/', verifyOrigin);
