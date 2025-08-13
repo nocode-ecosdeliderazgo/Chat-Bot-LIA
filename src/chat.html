@@ -158,7 +158,8 @@
         // Permitir definir el origen del servidor de sockets desde localStorage o variable global
         window.SOCKET_IO_ORIGIN = localStorage.getItem('SOCKET_IO_ORIGIN') || window.SOCKET_IO_ORIGIN || '';
     </script>
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-Nt4q1uOmy8inB2c5JvQnH2T3p8HUBxq5o4mQdC/3z8Wk+1Jm3zQ9pQ8nP0w2v8hH" crossorigin="anonymous"></script>
+    <!-- Nota: Se omite 'integrity' porque el CDN puede rotar hashes; esto evitaba que el navegador bloquee la carga -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="scripts/main.js"></script>
 </body>
 </html>
