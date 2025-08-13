@@ -180,14 +180,16 @@ async function handleLogin(e) {
 
     try {
         // Validación de credenciales (intenta backend primero)
-        const isValid = await validateCredentials(username, password);
+        const result = await validateCredentials(username, password);
+        const isValid = typeof result === 'boolean' ? result : !!(result && result.success);
+        const userInfo = (result && result.user) ? result.user : undefined;
 
         if (isValid) {
             if (loginState.isLocked) {
                 // Si estaba bloqueado pero el servidor validó, desbloquear y continuar
                 unlockUser();
             }
-            await handleSuccessfulLogin(username, remember);
+            await handleSuccessfulLogin(username, remember, userInfo);
         } else {
             await handleFailedLogin();
         }
@@ -206,7 +208,14 @@ async function validateCredentials(username, password) {
             headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
             body: JSON.stringify({ username, password })
         });
-        if (res.ok) return true;
+        if (res.ok) {
+            try {
+                const data = await res.json();
+                return { success: true, user: data && data.user ? data.user : undefined };
+            } catch (_) {
+                return { success: true };
+            }
+        }
         // si la BD no está configurada o endpoint no disponible, seguimos flujo local
     } catch(_) {}
 
@@ -214,20 +223,36 @@ async function validateCredentials(username, password) {
     try {
         const users = JSON.parse(localStorage.getItem('dev_users') || '[]');
         const found = users.find(u => u.username?.toLowerCase() === username.toLowerCase());
-        if (found) return found.password === password;
+        if (found) return { success: found.password === password };
     } catch(_) {}
 
     // 2) Fallback a credenciales de prueba
-    return TEST_CREDENTIALS.some(cred => 
+    const ok = TEST_CREDENTIALS.some(cred => 
         cred.username.toLowerCase() === username.toLowerCase() && 
         cred.password === password
     );
+    return { success: ok };
 }
 
-async function handleSuccessfulLogin(username, remember) {
+async function handleSuccessfulLogin(username, remember, userInfo = undefined) {
     // Guardar siempre el usuario en la sesión actual para que el chat pueda leerlo
     try {
         sessionStorage.setItem('loggedUser', username);
+    } catch (_) {}
+
+    // Guardar siempre los estados de roles en la sesión (vacío si no vienen)
+    try {
+        const cargoRol = userInfo && Object.prototype.hasOwnProperty.call(userInfo, 'cargo_rol') ? (userInfo.cargo_rol || '') : '';
+        const typeRol = userInfo && Object.prototype.hasOwnProperty.call(userInfo, 'type_rol') ? (userInfo.type_rol || '') : '';
+        sessionStorage.setItem('cargo_rol', String(cargoRol));
+        sessionStorage.setItem('type_rol', String(typeRol));
+        if (remember) {
+            localStorage.setItem('cargo_rol', String(cargoRol));
+            localStorage.setItem('type_rol', String(typeRol));
+        } else {
+            localStorage.removeItem('cargo_rol');
+            localStorage.removeItem('type_rol');
+        }
     } catch (_) {}
 
     // Guardar información del usuario si "recordarme" está marcado
@@ -284,6 +309,16 @@ async function handleSuccessfulLogin(username, remember) {
                 localStorage.removeItem('userId');
                 localStorage.removeItem('authToken');
             }
+            // Asegurar persistencia de roles en dev
+            try {
+                if (remember) {
+                    localStorage.setItem('cargo_rol', String(sessionStorage.getItem('cargo_rol') || ''));
+                    localStorage.setItem('type_rol', String(sessionStorage.getItem('type_rol') || ''));
+                } else {
+                    localStorage.removeItem('cargo_rol');
+                    localStorage.removeItem('type_rol');
+                }
+            } catch (_) {}
             // Redirigir aunque no haya token real (solo dev)
             setTimeout(() => {
                 window.location.href = '../courses.html';

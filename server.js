@@ -377,16 +377,36 @@ app.post('/api/login', async (req, res) => {
 
         // Verificar si existe la columna password_hash
         let hasPassword = false;
+        let hasCargoRol = false;
+        let hasTypeRol = false;
         try {
             const col = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'password_hash' LIMIT 1");
             hasPassword = col.rows.length > 0;
+        } catch (_) {}
+
+        // Detectar columnas opcionales de roles
+        try {
+            const cols = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND column_name IN ('cargo_rol','type_rol')");
+            const names = (cols.rows || []).map(r => String(r.column_name || '').toLowerCase());
+            hasCargoRol = names.includes('cargo_rol');
+            hasTypeRol = names.includes('type_rol');
         } catch (_) {}
 
         if (!hasPassword) {
             return res.status(500).json({ error: 'La tabla users no tiene password_hash' });
         }
 
-        const query = `SELECT id, username, full_name, email, password_hash FROM users WHERE LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($1) LIMIT 1`;
+        const selectCols = [
+            'id',
+            'username',
+            'full_name',
+            'email',
+            'password_hash',
+            ...(hasCargoRol ? ['cargo_rol'] : []),
+            ...(hasTypeRol ? ['type_rol'] : [])
+        ].join(', ');
+
+        const query = `SELECT ${selectCols} FROM users WHERE LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($1) LIMIT 1`;
         const result = await pool.query(query, [String(username)]);
         if (result.rows.length === 0) {
             return res.status(401).json({ error: 'Credenciales inválidas' });
@@ -406,7 +426,16 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ error: 'Credenciales inválidas' });
         }
 
-        return res.json({ user: { id: user.id, username: user.username, full_name: user.full_name, email: user.email } });
+        const payloadUser = {
+            id: user.id,
+            username: user.username,
+            full_name: user.full_name,
+            email: user.email
+        };
+        if (hasCargoRol) payloadUser.cargo_rol = user.cargo_rol || null;
+        if (hasTypeRol) payloadUser.type_rol = user.type_rol || null;
+
+        return res.json({ user: payloadUser });
     } catch (err) {
         console.error('Error en /api/login:', err);
         return res.status(500).json({ error: 'Error interno en login' });
