@@ -87,16 +87,34 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // CORS configurado de forma segura (habilitar preflight con cabeceras personalizadas)
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+const allowedOriginsFromEnv = (process.env.ALLOWED_ORIGINS || '')
     .split(',')
     .map(o => o.trim())
     .filter(Boolean);
-if (allowedOrigins.length === 0) {
-    allowedOrigins.push('http://localhost:3000');
-}
+
+// Whitelist por patrón cuando no hay ALLOWED_ORIGINS configurado
+const originRegexWhitelist = [
+    /(^|\.)ecosdeliderazgo\.com$/i,
+    /\.netlify\.app$/i,
+    /\.netlify\.live$/i,
+    /^http:\/\/localhost:3000$/i,
+    /\.herokuapp\.com$/i
+];
+
+const resolveCorsOrigin = (origin, callback) => {
+    // Permitir solicitudes sin cabecera Origin (cURL, same-origin)
+    if (!origin) return callback(null, true);
+
+    if (allowedOriginsFromEnv.length > 0) {
+        return callback(null, allowedOriginsFromEnv.includes(origin));
+    }
+
+    const isAllowed = originRegexWhitelist.some((re) => re.test(origin));
+    return callback(null, isAllowed);
+};
 
 const corsOptions = {
-    origin: allowedOrigins,
+    origin: resolveCorsOrigin,
     credentials: true,
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'X-Requested-With', 'X-API-Key', 'Authorization'],
