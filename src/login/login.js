@@ -560,20 +560,20 @@ style.textContent = `
         right: 20px;
         padding: 15px 20px;
         border-radius: 10px;
-        color: var(--white);
+        color: #fff;
         font-weight: 500;
         z-index: 1000;
         animation: slideInRight 0.3s ease-out;
     }
 
     .error-message {
-        background: var(--error);
-        border-left: 4px solid #ff6b7a;
+        background: rgba(220, 38, 38, 0.95);
+        border-left: 4px solid #ef4444;
     }
 
     .success-message {
-        background: var(--success);
-        border-left: 4px solid #7bed9f;
+        background: rgba(16, 185, 129, 0.95);
+        border-left: 4px solid #10b981;
     }
 
     @keyframes slideInRight {
