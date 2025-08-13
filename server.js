@@ -86,11 +86,27 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// CORS configurado de forma segura
-app.use(cors({
-    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000'],
-    credentials: true
-}));
+// CORS configurado de forma segura (habilitar preflight con cabeceras personalizadas)
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+if (allowedOrigins.length === 0) {
+    allowedOrigins.push('http://localhost:3000');
+}
+
+const corsOptions = {
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'X-Requested-With', 'X-API-Key', 'Authorization'],
+    optionsSuccessStatus: 204,
+    maxAge: 86400
+};
+
+app.use(cors(corsOptions));
+// Responder explícitamente preflight para rutas de API
+app.options('/api/*', cors(corsOptions));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static('src'));
