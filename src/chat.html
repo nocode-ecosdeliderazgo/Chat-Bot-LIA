@@ -159,14 +159,20 @@
 
                 // Si no hay configuración previa, elegir origen según dominio público
                 if (!current) {
-                    if (host.includes('ecosdeliderazgo.com') || host.endsWith('.netlify.app')) {
-                        window.SOCKET_IO_ORIGIN = heroku;
-                        window.API_BASE = heroku;
-                        try { localStorage.setItem('SOCKET_IO_ORIGIN', heroku); } catch(_) {}
-                        try { localStorage.setItem('API_BASE', heroku); } catch(_) {}
-                    } else {
+                    if (host.includes('ecosdeliderazgo.com')) {
+                        // Si el HTML vive en el dominio propio, apunte API hacia Netlify Functions
+                        var netlify = 'https://bot-lia-ai.netlify.app';
+                        window.SOCKET_IO_ORIGIN = netlify;
+                        window.API_BASE = netlify;
+                        try { localStorage.setItem('SOCKET_IO_ORIGIN', netlify); } catch(_) {}
+                        try { localStorage.setItem('API_BASE', netlify); } catch(_) {}
+                    } else if (host.endsWith('.netlify.app')) {
+                        // Cuando se sirve desde el mismo sitio de Netlify
                         window.SOCKET_IO_ORIGIN = '';
                         window.API_BASE = '';
+                    } else {
+                        window.SOCKET_IO_ORIGIN = heroku;
+                        window.API_BASE = heroku;
                     }
                 } else {
                     window.SOCKET_IO_ORIGIN = current;

@@ -1946,17 +1946,18 @@ function getApiKey() {
     return 'dev-api-key';
 }
 
-// Función para generar una clave de sesión temporal
-function generateSessionKey() {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2);
-    return btoa(`${timestamp}-${random}`).replace(/[^a-zA-Z0-9]/g, '');
-}
-
 // Encabezados de autenticación de usuario
 function getUserAuthHeaders() {
-    // Para desarrollo, retorna headers vacíos ya que la autenticación está deshabilitada en el servidor
-    return {};
+    try {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken') || '';
+        const userId = sessionStorage.getItem('userId') || localStorage.getItem('userId') || '';
+        const headers = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        if (userId) headers['X-User-Id'] = userId;
+        return headers;
+    } catch (_) {
+        return {};
+    }
 }
 
 // Cargar datos del curso hardcodeados
