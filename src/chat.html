@@ -161,12 +161,16 @@
                 if (!current) {
                     if (host.includes('ecosdeliderazgo.com') || host.endsWith('.netlify.app')) {
                         window.SOCKET_IO_ORIGIN = heroku;
+                        window.API_BASE = heroku;
                         try { localStorage.setItem('SOCKET_IO_ORIGIN', heroku); } catch(_) {}
+                        try { localStorage.setItem('API_BASE', heroku); } catch(_) {}
                     } else {
                         window.SOCKET_IO_ORIGIN = '';
+                        window.API_BASE = '';
                     }
                 } else {
                     window.SOCKET_IO_ORIGIN = current;
+                    window.API_BASE = current;
                 }
             } catch (_) { window.SOCKET_IO_ORIGIN = window.SOCKET_IO_ORIGIN || ''; }
         })();

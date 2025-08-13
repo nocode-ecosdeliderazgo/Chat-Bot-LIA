@@ -1859,7 +1859,8 @@ function glossaryBackToMenu() {
 // Función para hacer llamadas a OpenAI de forma segura
 async function callOpenAI(prompt, context = '') {
     try {
-        const response = await fetch('/api/openai', {
+        const base = (typeof window !== 'undefined' && (window.API_BASE || localStorage.getItem('API_BASE'))) || '';
+        const response = await fetch(`${base}/api/openai`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1886,7 +1887,8 @@ async function callOpenAI(prompt, context = '') {
 // Función para consultar la base de datos de forma segura
 async function queryDatabase(query, params = []) {
     try {
-        const response = await fetch('/api/database', {
+        const base = (typeof window !== 'undefined' && (window.API_BASE || localStorage.getItem('API_BASE'))) || '';
+        const response = await fetch(`${base}/api/database`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1913,7 +1915,8 @@ async function queryDatabase(query, params = []) {
 // Función para obtener contexto de la base de datos de forma segura
 async function getDatabaseContext(userQuestion) {
     try {
-        const response = await fetch('/api/context', {
+        const base = (typeof window !== 'undefined' && (window.API_BASE || localStorage.getItem('API_BASE'))) || '';
+        const response = await fetch(`${base}/api/context`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
