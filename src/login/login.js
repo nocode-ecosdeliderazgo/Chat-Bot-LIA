@@ -225,6 +225,11 @@ async function validateCredentials(username, password) {
 }
 
 async function handleSuccessfulLogin(username, remember) {
+    // Guardar siempre el usuario en la sesión actual para que el chat pueda leerlo
+    try {
+        sessionStorage.setItem('loggedUser', username);
+    } catch (_) {}
+
     // Guardar información del usuario si "recordarme" está marcado
     if (remember) {
         localStorage.setItem('rememberedUser', username);
