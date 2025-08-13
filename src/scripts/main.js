@@ -3168,8 +3168,18 @@ function initializeLivestreamChat() {
         withCredentials: false
     });
 
-    // Generar nombre de usuario automáticamente
-    livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
+    // Determinar nombre de usuario desde la sesión o fallback aleatorio
+    try {
+        const storedName = (chatState && chatState.userName ? String(chatState.userName) : '')
+            || (sessionStorage.getItem('loggedUser') || '')
+            || (localStorage.getItem('rememberedUser') || '');
+        const clean = String(storedName).trim();
+        livestreamChatState.username = clean && clean.length >= 3
+            ? clean
+            : `Usuario_${Math.floor(Math.random() * 1000)}`;
+    } catch (_) {
+        livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
+    }
 
     // Eventos de conexión
     livestreamSocket.on('connect', () => {
@@ -3261,6 +3271,11 @@ function initializeLivestreamChat() {
     livestreamSocket.on('users-list', (users) => {
         livestreamChatState.connectedUsers = users;
         updateUsersCount(users.length);
+        try {
+            if (usersCount) {
+                usersCount.title = users && users.length ? users.join(', ') : 'Sin usuarios conectados';
+            }
+        } catch (_) {}
     });
 
     // Eventos de la interfaz con guardas null-safe
