@@ -153,6 +153,45 @@ app.use(cors(corsOptions));
 // Responder explícitamente preflight para rutas de API
 app.options('/api/*', cors(corsOptions));
 
+// Salvaguarda: establecer encabezados CORS manualmente para todos los orígenes permitidos
+app.use((req, res, next) => {
+    try {
+        const origin = req.headers.origin;
+        let allow = false;
+        if (!origin) {
+            allow = true;
+        } else if (allowedOriginsFromEnv.length > 0) {
+            allow = allowedOriginsFromEnv.includes(origin);
+            if (!allow) {
+                try {
+                    const host = new URL(origin).hostname;
+                    allow = allowedOriginsFromEnv.some(v => {
+                        try { return new URL(v).hostname === host; } catch { return false; }
+                    });
+                } catch {}
+            }
+        } else {
+            try {
+                const host = new URL(origin).hostname;
+                allow = isHostAllowed(host);
+            } catch {}
+        }
+
+        if (allow) {
+            res.setHeader('Access-Control-Allow-Origin', origin || '*');
+            res.setHeader('Vary', 'Origin');
+            res.setHeader('Access-Control-Allow-Credentials', 'true');
+            res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, X-API-Key, Authorization, Accept, Origin');
+            res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+        }
+
+        if (req.method === 'OPTIONS') {
+            return res.sendStatus(204);
+        }
+    } catch (_) {}
+    next();
+});
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static('src'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
