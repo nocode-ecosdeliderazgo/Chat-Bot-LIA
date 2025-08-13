@@ -258,9 +258,9 @@ async function handleSuccessfulLogin(username, remember) {
             localStorage.removeItem('authToken');
         }
 
-        // Redirigir al chat solo si hay token
+        // Redirigir a cursos después del login exitoso
         setTimeout(() => {
-            window.location.href = '../chat.html';
+            window.location.href = '../courses.html';
         }, LOGIN_CONFIG.redirectDelay);
     } catch (err) {
         console.warn('No se pudo emitir sesión segura:', err);
@@ -281,7 +281,7 @@ async function handleSuccessfulLogin(username, remember) {
             }
             // Redirigir aunque no haya token real (solo dev)
             setTimeout(() => {
-                window.location.href = '../chat.html';
+                window.location.href = '../courses.html';
             }, LOGIN_CONFIG.redirectDelay);
             return;
         }

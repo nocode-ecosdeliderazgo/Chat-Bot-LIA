@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" href="assets/images/icono.png">
     <meta name="description" content="Lia IA: asistente inteligente para una experiencia educativa interactiva y personalizada">
     <meta name="keywords" content="coach lia ia, asistente, educativo, inteligencia artificial, curso">
     <meta name="author" content="Tu Nombre">
@@ -25,20 +25,12 @@
 
                 <div class="tool-group collapsible" id="livestreamSection">
                     <div class="collapsible-header">
-                        <h4 style="margin:0">Livestream</h4>
+                        <h4 style="margin:0">Chat en vivo</h4>
                         <button id="livestreamToggle" class="collapsible-toggle" aria-expanded="false" aria-controls="livestreamContent" title="Mostrar/Ocultar">
                             <i class='bx bx-chevron-down'></i>
                         </button>
                     </div>
                     <div class="collapsible-content" id="livestreamContent">
-                        <div class="livestream-placeholder">
-                            <i class='bx bx-broadcast'></i>
-                            <div class="lp-text">
-                                <h5>Transmisión en vivo</h5>
-                                <p>El reproductor aparecerá aquí cuando esté disponible.</p>
-                            </div>
-                        </div>
-                        
                         <!-- Chat del Livestream -->
                         <div class="livestream-chat-container">
                             <div class="livestream-chat-header">
@@ -79,6 +71,9 @@
         <main class="chat-main">
             <div class="telegram-container">
                 <div class="chat-header">
+                    <button id="backToCoursesBtn" class="back-to-courses-btn" onclick="window.location.href='courses.html'" title="Volver a Mis Cursos">
+                        <i class='bx bx-chevron-left'></i>
+                    </button>
                     <div class="bot-avatar">
                         <img id="botAvatarImg" src="assets/images/FOTO%20LIA.png" alt="Lia IA" onerror="this.onerror=null;this.src='assets/images/brain-icon.jpg'">
                     </div>
@@ -131,6 +126,7 @@
                                 <button class="gm-subitem" data-report="bonos">Bonos</button>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
