@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Cursos — Lia IA</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/courses.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="icon" type="image/png" href="assets/images/icono.png">
+    <meta name="description" content="Mis Cursos - Panel de aprendizaje personal con seguimiento de progreso">
+    <meta name="keywords" content="cursos, aprendizaje, progreso, IA, educación">
+    <meta name="author" content="Lia IA">
+</head>
+<body class="courses-page">
+    <!-- Barra de navegación superior -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="assets/images/FOTO LIA.png" alt="Lia IA" class="nav-logo">
+            </div>
+            <div class="nav-links"></div>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <main class="courses-main">
+        <div class="courses-container">
+            <!-- Pestañas de navegación -->
+            <div class="course-tabs">
+                <button class="tab-button active" data-tab="all-courses">
+                    <i class='bx bx-book'></i>
+                    Todos los cursos
+                </button>
+                <button class="tab-button" data-tab="my-lists" disabled>
+                    <i class='bx bx-list-ul'></i>
+                    Mis Listas
+                </button>
+                <button class="tab-button" data-tab="wishlist" disabled>
+                    <i class='bx bx-heart'></i>
+                    Lista de deseos
+                </button>
+                <button class="tab-button" data-tab="archived" disabled>
+                    <i class='bx bx-archive'></i>
+                    Archivados
+                </button>
+                <button class="tab-button" data-tab="learning-tools" disabled>
+                    <i class='bx bx-wrench'></i>
+                    Herramientas
+                </button>
+            </div>
+
+            <!-- Panel de contenido de cursos -->
+            <div class="course-content">
+                <!-- Pestaña: Todos los cursos -->
+                <div id="all-courses" class="tab-content active">
+                    <!-- Tarjeta de racha de aprendizaje -->
+                    <div class="learning-streak-card">
+                        <div class="streak-content">
+                            <div class="streak-info">
+                                <h2>Inicia una racha semanal</h2>
+                                <p>¡Un anillo menos! Ahora, mira tu(s) curso(s).</p>
+                            </div>
+                            <div class="streak-visual">
+                                <div class="streak-ring">
+                                    <svg width="80" height="80" viewBox="0 0 80 80">
+                                        <circle cx="40" cy="40" r="36" stroke="rgba(255,255,255,0.1)" stroke-width="8" fill="none"/>
+                                        <circle cx="40" cy="40" r="36" stroke="var(--accent-primary)" stroke-width="8" fill="none" 
+                                                stroke-dasharray="226" stroke-dashoffset="226" class="progress-circle"/>
+                                    </svg>
+                                    <div class="streak-number">0</div>
+                                </div>
+                                <div class="streak-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-value">0</span>
+                                        <span class="stat-label">semanas</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">0/30</span>
+                                        <span class="stat-label">min curso</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">1/1</span>
+                                        <span class="stat-label">visita</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="streak-status">
+                            <span class="current-streak">Racha actual</span>
+                            <span class="streak-period">Ago 10 - 17</span>
+                        </div>
+                    </div>
+
+                    <!-- Recordatorio de tiempo de aprendizaje -->
+                    <div class="learning-reminder-card">
+                        <div class="reminder-icon">
+                            <i class='bx bx-time-five'></i>
+                        </div>
+                        <div class="reminder-content">
+                            <h3>Programa tu tiempo de aprendizaje</h3>
+                            <p>Aprender un poco cada día suma. Las investigaciones muestran que los estudiantes que hacen del aprendizaje un hábito tienen más probabilidades de alcanzar sus objetivos.</p>
+                            <p>Reserva tiempo para aprender y recibe recordatorios usando tu programador de aprendizaje.</p>
+                            <div class="reminder-actions">
+                                <button class="btn-primary" id="getStartedBtn">Comenzar</button>
+                                <button class="btn-secondary" id="dismissBtn">Descartar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de cursos -->
+                    <div class="courses-grid">
+                        <div class="course-card" id="course-main">
+                            <div class="course-image">
+                                <img src="assets/images/brain-icon.jpg" alt="Curso de IA">
+                                <div class="course-menu">
+                                    <button class="menu-btn">
+                                        <i class='bx bx-dots-vertical-rounded'></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="course-info">
+                                <h3>Dominando ChatGPT y Gemini para la Productividad</h3>
+                                <p class="course-instructor">Instructor: Lia IA</p>
+                                <div class="course-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 0%"></div>
+                                    </div>
+                                    <span class="progress-text">0% completado</span>
+                                </div>
+                                <div class="course-actions">
+                                    <button class="btn-course-primary">
+                                        <i class='bx bx-play-circle'></i>
+                                        Continuar curso
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Curso de ejemplo adicional -->
+                        <div class="course-card disabled" id="course-upcoming">
+                            <div class="course-image">
+                                <img src="assets/images/brain-icon.jpg" alt="Fundamentos de Machine Learning">
+                                <div class="course-menu">
+                                    <button class="menu-btn">
+                                        <i class='bx bx-dots-vertical-rounded'></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="course-info">
+                                <h3>Próximamente</h3>
+                                <p class="course-instructor">Disponible pronto</p>
+                                <div class="course-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 0%"></div>
+                                    </div>
+                                    <span class="progress-text">Anuncio en breve</span>
+                                </div>
+                                <div class="course-actions">
+                                    <button class="btn-course-primary" disabled>
+                                        <i class='bx bx-time-five'></i>
+                                        Próximamente
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pestaña: Mis Listas -->
+                <div id="my-lists" class="tab-content">
+                    <div class="empty-state">
+                        <i class='bx bx-list-ul'></i>
+                        <h3>No tienes listas creadas</h3>
+                        <p>Crea listas personalizadas para organizar tus cursos por tema o objetivo.</p>
+                        <button class="btn-primary">Crear mi primera lista</button>
+                    </div>
+                </div>
+
+                <!-- Pestaña: Lista de deseos -->
+                <div id="wishlist" class="tab-content">
+                    <div class="empty-state">
+                        <i class='bx bx-heart'></i>
+                        <h3>Tu lista de deseos está vacía</h3>
+                        <p>Marca los cursos que te interesan para guardarlos en tu lista de deseos.</p>
+                        <button class="btn-primary">Explorar cursos</button>
+                    </div>
+                </div>
+
+                <!-- Pestaña: Archivados -->
+                <div id="archived" class="tab-content">
+                    <div class="empty-state">
+                        <i class='bx bx-archive'></i>
+                        <h3>No hay cursos archivados</h3>
+                        <p>Los cursos que archives aparecerán aquí para mantener organizado tu aprendizaje.</p>
+                    </div>
+                </div>
+
+                <!-- Pestaña: Herramientas de aprendizaje -->
+                <div id="learning-tools" class="tab-content">
+                    <div class="tools-grid">
+                        <div class="tool-card">
+                            <div class="tool-icon">
+                                <i class='bx bx-note'></i>
+                            </div>
+                            <h3>Notas de curso</h3>
+                            <p>Toma notas mientras estudias y organízalas por curso.</p>
+                            <button class="btn-secondary">Abrir notas</button>
+                        </div>
+                        <div class="tool-card">
+                            <div class="tool-icon">
+                                <i class='bx bx-bookmark'></i>
+                            </div>
+                            <h3>Marcadores</h3>
+                            <p>Guarda puntos importantes de tus lecciones para revisar después.</p>
+                            <button class="btn-secondary">Ver marcadores</button>
+                        </div>
+                        <div class="tool-card">
+                            <div class="tool-icon">
+                                <i class='bx bx-chart-line'></i>
+                            </div>
+                            <h3>Progreso</h3>
+                            <p>Visualiza tu progreso de aprendizaje y estadísticas detalladas.</p>
+                            <button class="btn-secondary">Ver estadísticas</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="scripts/courses.js"></script>
+</body>
+</html>

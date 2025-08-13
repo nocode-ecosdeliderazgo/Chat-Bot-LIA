@@ -64,7 +64,7 @@ body {
     font-weight: var(--body-weight);
     font-size: var(--font-size-base);
     min-height: 100vh;
-    padding: 20px;
+    padding: 2px;
     line-height: var(--line-height);
     color: var(--text-on-dark);
     background:
@@ -116,16 +116,16 @@ body:not(.landing) {
     align-items: center;
 }
 /* Ajustes específicos para layout NotebookLM: ocupar toda la pantalla y acercar a bordes */
-body.layout-notebook { padding: 8px; align-items: stretch; justify-content: stretch; }
+body.layout-notebook { padding: 1px; align-items: stretch; justify-content: stretch; }
 
 /* Nuevo layout NotebookLM: 3 paneles */
 .layout-notebook .layout-3panels {
     display: grid;
     grid-template-columns: var(--left-col, 300px) 1fr var(--right-col, 360px);
-    gap: 12px;
+    gap: 1px;
     width: 100vw;
     max-width: none;
-    height: calc(100vh - 16px);
+    height: calc(100vh - 2px);
     transition: grid-template-columns .35s cubic-bezier(.2,.9,.2,1);
 }
 /* Cuando el panel izquierdo esté colapsado, elimina por completo su columna para que el chat no quede "cortado" */
@@ -149,7 +149,7 @@ body.left-collapsed #videosSection { display: none; }
     border: 1px solid rgba(68,229,255,0.18);
     border-radius: var(--radius-lg);
     box-shadow: 0 12px 36px rgba(0,0,0,0.35);
-    padding: 12px;
+    padding: 4px;
     display: flex; flex-direction: column;
     overflow: hidden;
     transition: width .35s ease, padding .35s ease;
@@ -248,7 +248,7 @@ body.left-collapsed .sidebar-left { border-right: 1px solid rgba(68,229,255,0.15
     border: 1px solid rgba(68,229,255,0.18);
     border-radius: var(--radius-lg);
     box-shadow: 0 12px 36px rgba(0,0,0,0.35);
-    padding: 12px;
+    padding: 4px;
     display: flex; flex-direction: column;
     overflow: hidden;
     transition: width .35s ease, padding .35s ease;
@@ -370,6 +370,7 @@ body.left-collapsed .sidebar-left { border-right: 1px solid rgba(68,229,255,0.15
 .gm-group:last-child { border-bottom: 0; }
 .gm-item { width: 100%; text-align: left; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.16)); border: 1px solid rgba(68,229,255,0.45); color: var(--text-on-dark); border-radius: 12px; padding: 10px 12px; cursor: pointer; font-weight: 700; display:flex; align-items:center; gap:8px; }
 .gm-item:hover { background: rgba(68,229,255,0.16); }
+.gm-item i { font-size: 18px; }
 .gm-submenu { position: absolute; left: 100%; top: 0; background: rgba(12,14,18,0.98); border: 1px solid rgba(68,229,255,0.45); border-radius: 12px; box-shadow: 0 22px 48px rgba(0,0,0,0.6); display: none; min-width: 220px; padding: 8px; max-height: 60vh; overflow: auto; }
 .gm-submenu.left { left: auto; right: 100%; }
 .gm-subitem { width: 100%; text-align: left; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.16)); border: 1px solid rgba(68,229,255,0.45); color: var(--text-on-dark); border-radius: 12px; padding: 10px 12px; cursor: pointer; margin-bottom: 8px; font-weight: 600; }
@@ -511,14 +512,15 @@ body.left-collapsed .sidebar-left { border-right: 1px solid rgba(68,229,255,0.15
 }
 
 @media (max-width: 1100px) {
-    .layout-notebook .layout-3panels { grid-template-columns: var(--left-col,64px) 1fr var(--right-col, 64px); }
-    .sidebar-left { padding: 8px; }
+    .layout-notebook .layout-3panels { grid-template-columns: var(--left-col,64px) 1fr var(--right-col, 64px); gap: 1px; }
+    .sidebar-left { padding: 2px; }
+    .studio-right { padding: 2px; }
     .sidebar-header h3 { display: none; }
-    .tool-btn { font-size: 0; padding: 10px; }
+    .tool-btn { font-size: 0; padding: 6px; }
 }
 
 @media (max-width: 860px) {
-    .layout-notebook .layout-3panels { grid-template-columns: 1fr; height: auto; }
+    .layout-notebook .layout-3panels { grid-template-columns: 1fr; height: auto; gap: 1px; }
     .sidebar-left { order: 1; }
     .chat-main { order: 2; }
     .studio-right { order: 3; }
@@ -526,6 +528,7 @@ body.left-collapsed .sidebar-left { border-right: 1px solid rgba(68,229,255,0.15
     :root { --left-col: 64px; --right-col: 64px; }
     .studio-rail { display:flex; flex-direction: column; align-items:center; }
     .studio-cards { display:none; }
+    body.layout-notebook { padding: 0px; }
 }
 
 /* Ajuste del ancho del chat según colapso de paneles */
@@ -822,6 +825,34 @@ body:not(.left-collapsed):not(.right-collapsed) { --chat-max: 520px; }
     z-index: 10;
     position: relative;
     text-shadow: 0 1px 0 rgba(0,0,0,0.25);
+}
+
+/* Botón de flecha para volver a cursos (estilo WhatsApp) */
+.back-to-courses-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-on-dark);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    opacity: 0.8;
+    margin-right: 4px;
+}
+
+.back-to-courses-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 1;
+    transform: scale(1.06);
+}
+
+.back-to-courses-btn i {
+    font-size: 20px;
 }
 
 /* Removidos estilos de overlay previo */
@@ -1409,7 +1440,46 @@ body:not(.left-collapsed):not(.right-collapsed) { --chat-max: 520px; }
 .prompt-overlay.open .prompt-panel { transform: translateX(0) scale(1); opacity: 1; }
 .prompt-header { display:flex; align-items:center; justify-content:space-between; padding: var(--spacing-sm) var(--spacing-md); border-bottom: 1px solid rgba(68,229,255,0.15); background: rgba(6,20,40,0.6); }
 .prompt-header h3 { margin:0; font-family: var(--font-heading); font-weight:800; color: var(--text-on-dark); }
-.prompt-close { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: var(--text-on-dark); border-radius: var(--spacing-xs); padding: var(--spacing-xs) var(--spacing-sm); cursor: pointer; font-family: var(--font-body); }
+.prompt-close { 
+    background: transparent; 
+    border: 1px solid rgba(255,255,255,0.25); 
+    color: var(--text-on-dark); 
+    border-radius: var(--spacing-xs); 
+    padding: var(--spacing-xs) var(--spacing-sm); 
+    cursor: pointer; 
+    font-family: var(--font-body);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+
+.prompt-close:hover {
+    background: rgba(255, 99, 71, 0.1);
+    border-color: rgba(255, 99, 71, 0.4);
+    color: rgba(255, 99, 71, 0.9);
+}
+
+/* Estilos para el botón eliminar junto al título */
+#deleteNoteBtn {
+    background: transparent;
+    min-width: 40px;
+    height: 40px;
+    padding: 8px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#deleteNoteBtn:hover {
+    background: rgba(255, 99, 71, 0.15);
+    border-color: rgba(255, 99, 71, 0.6);
+    transform: translateY(-1px) scale(1.05);
+}
 .prompt-body { flex: 1; overflow: auto; padding: var(--spacing-sm) var(--spacing-md); background: rgba(6,20,40,0.35); }
 .prompt-intro { color: var(--text-muted); margin-bottom: 10px; }
 .prompt-actions { margin: 6px 0 10px; }
@@ -1421,6 +1491,48 @@ body:not(.left-collapsed):not(.right-collapsed) { --chat-max: 520px; }
 .prompt-body::-webkit-scrollbar-thumb, .prompt-text::-webkit-scrollbar-thumb { background: linear-gradient(180deg, rgba(68,229,255,0.6), rgba(0,119,166,0.6)); border-radius: 4px; }
 .prompt-body::-webkit-scrollbar-thumb:hover, .prompt-text::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 .recording-overlay.show { opacity: 1; transform: translateY(0); }
+
+/* Estilos para menú contextual de cursos */
+.course-context-menu .menu-item {
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-on-dark);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.course-context-menu .menu-item:hover {
+    background: rgba(68, 229, 255, 0.1);
+    color: var(--accent-primary);
+}
+
+.course-context-menu .menu-item i {
+    font-size: 16px;
+}
+
+/* Animación de ripple para navegación */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(68, 229, 255, 0.4);
+    transform: scale(0);
+    animation: ripple-animation 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
 .recording-bar {
     background: rgba(6, 20, 40, 0.92);
     border: 1px solid rgba(68,229,255,0.3);
