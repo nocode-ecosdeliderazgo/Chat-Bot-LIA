@@ -2280,11 +2280,14 @@ function sendMessage() {
         console.log('[CHAT] Mensaje vacío, cancelando envío');
         return;
     }
-    
-    if (chatState.isTyping) {
-        console.log('[CHAT] Chat está escribiendo, cancelando envío');
-        return;
-    }
+
+    // Cancelar cualquier escritura del bot en curso para no bloquear el primer envío
+    try {
+        chatState.typingToken++;
+        hideTypingIndicator();
+        setHeaderTyping(false);
+        chatState.isTyping = false;
+    } catch (_) {}
 
     console.log('[CHAT] Enviando mensaje:', message);
     addUserMessage(message);
@@ -2314,7 +2317,8 @@ async function handleUserMessage(message) {
     if (chatState.currentState === 'start' && !chatState.userName) {
         // Ya no se requiere capturar nombre; ir directo al procesamiento IA
         chatState.currentState = 'main_menu';
-        showMainMenu();
+        // Evitar error si showMainMenu fue eliminado
+        try { if (typeof showMainMenu === 'function') { showMainMenu(); } } catch (_) {}
         const response = await processUserMessageWithAI(message);
         await sendBotMessage(response, null, false, false);
     } else {
