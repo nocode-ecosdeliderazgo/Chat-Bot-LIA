@@ -160,7 +160,7 @@
                 // Si no hay configuración previa, elegir origen según dominio público
                 if (!current) {
                     if (host.includes('ecosdeliderazgo.com')) {
-                        // Si el HTML vive en el dominio propio, apunte API hacia Netlify Functions
+                        // Si el HTML vive en el dominio propio, apunte API hacia Netlify Functions y sobreescriba cualquier valor guardado
                         var netlify = 'https://bot-lia-ai.netlify.app';
                         window.SOCKET_IO_ORIGIN = netlify;
                         window.API_BASE = netlify;
@@ -175,8 +175,17 @@
                         window.API_BASE = heroku;
                     }
                 } else {
+                    // En ecosdeliderazgo, forzar siempre Netlify como backend aunque exista un valor previo
+                    if (host.includes('ecosdeliderazgo.com')) {
+                        var net = 'https://bot-lia-ai.netlify.app';
+                        window.SOCKET_IO_ORIGIN = net;
+                        window.API_BASE = net;
+                        try { localStorage.setItem('SOCKET_IO_ORIGIN', net); } catch(_) {}
+                        try { localStorage.setItem('API_BASE', net); } catch(_) {}
+                    } else {
                     window.SOCKET_IO_ORIGIN = current;
                     window.API_BASE = current;
+                    }
                 }
             } catch (_) { window.SOCKET_IO_ORIGIN = window.SOCKET_IO_ORIGIN || ''; }
         })();
