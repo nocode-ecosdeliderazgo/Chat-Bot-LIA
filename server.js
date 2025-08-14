@@ -144,7 +144,7 @@ const corsOptions = {
     origin: resolveCorsOrigin,
     credentials: true,
     methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'X-Requested-With', 'X-API-Key', 'Authorization', 'Accept', 'Origin', 'X-User-Id'],
+    allowedHeaders: ['Content-Type', 'X-Requested-With', 'X-API-Key', 'Authorization', 'Accept', 'Origin'],
     optionsSuccessStatus: 204,
     maxAge: 86400
 };
@@ -181,7 +181,7 @@ app.use((req, res, next) => {
             res.setHeader('Access-Control-Allow-Origin', origin || '*');
             res.setHeader('Vary', 'Origin');
             res.setHeader('Access-Control-Allow-Credentials', 'true');
-            res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, X-API-Key, Authorization, Accept, Origin, X-User-Id');
+            res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, X-API-Key, Authorization, Accept, Origin');
             res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
         }
 

@@ -1956,7 +1956,7 @@ function getUserAuthHeaders() {
         if (userId) headers['X-User-Id'] = userId;
         return headers;
     } catch (_) {
-        return {};
+    return {};
     }
 }
 

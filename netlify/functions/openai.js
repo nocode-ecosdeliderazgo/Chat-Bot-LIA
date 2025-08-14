@@ -2,13 +2,15 @@ const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 
-function json(status, data) {
+function json(status, data, event = null) {
+    const origin = event && (event.headers['origin'] || event.headers['Origin']) || '*';
     return {
         statusCode: status,
         headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With, Authorization, X-User-Id',
+            'Access-Control-Allow-Origin': origin,
+            'Vary': 'Origin',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With, Authorization, X-User-Id, X-API-Key',
             'Access-Control-Allow-Methods': 'OPTIONS,POST'
         },
         body: JSON.stringify(data)
@@ -49,19 +51,19 @@ function verifyUser(event) {
 }
 
 exports.handler = async (event) => {
-    if (event.httpMethod === 'OPTIONS') return json(200, { ok: true });
+    if (event.httpMethod === 'OPTIONS') return json(200, { ok: true }, event);
     if (event.httpMethod !== 'POST') return json(405, { error: 'Method Not Allowed' });
 
     try {
         const user = verifyUser(event);
-        if (!user) return json(401, { error: 'Sesión requerida' });
+        if (!user) return json(401, { error: 'Sesión requerida' }, event);
 
         if (!process.env.OPENAI_API_KEY) {
-            return json(500, { error: 'Configuración de OpenAI faltante' });
+            return json(500, { error: 'Configuración de OpenAI faltante' }, event);
         }
 
         const { prompt, context } = JSON.parse(event.body || '{}');
-        if (!prompt) return json(400, { error: 'Prompt requerido' });
+        if (!prompt) return json(400, { error: 'Prompt requerido' }, event);
 
         const { combined, examples } = getPrompts();
 
@@ -97,17 +99,17 @@ exports.handler = async (event) => {
 
         if (!res.ok) {
             const t = await res.text();
-            return json(500, { error: 'Error en la API de OpenAI', details: `Status ${res.status}: ${t.substring(0, 200)}` });
+            return json(500, { error: 'Error en la API de OpenAI', details: `Status ${res.status}: ${t.substring(0, 200)}` }, event);
         }
         const data = await res.json();
         const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
         if (!content || !String(content).trim()) {
-            return json(200, { response: 'Lo siento, hubo un problema técnico con la respuesta.' });
+            return json(200, { response: 'Lo siento, hubo un problema técnico con la respuesta.' }, event);
         }
-        return json(200, { response: String(content).trim() });
+        return json(200, { response: String(content).trim() }, event);
     } catch (e) {
         console.error('openai fn error', e);
-        return json(500, { error: 'Error procesando la solicitud' });
+        return json(500, { error: 'Error procesando la solicitud' }, event);
     }
 };
 
