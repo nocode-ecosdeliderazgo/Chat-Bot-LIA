@@ -288,17 +288,10 @@ async function handleSuccessfulLogin(username, remember, userInfo = undefined) {
             localStorage.removeItem('authToken');
         }
 
-        // Verificar rol del usuario y redirigir apropiadamente
-        const userRole = await getUserRole(username);
-        if (userRole === 'Administrador') {
-            setTimeout(() => {
-                window.location.href = '/admin';
-            }, LOGIN_CONFIG.redirectDelay);
-        } else {
-            setTimeout(() => {
-                window.location.href = '../courses.html';
-            }, LOGIN_CONFIG.redirectDelay);
-        }
+        // Redirigir a cursos después del login exitoso
+        setTimeout(() => {
+            window.location.href = '../courses.html';
+        }, LOGIN_CONFIG.redirectDelay);
     } catch (err) {
         console.warn('No se pudo emitir sesión segura:', err);
         // Fallback de desarrollo: permitir acceso local sin token real
@@ -327,24 +320,9 @@ async function handleSuccessfulLogin(username, remember, userInfo = undefined) {
                 }
             } catch (_) {}
             // Redirigir aunque no haya token real (solo dev)
-            // En modo desarrollo, verificar rol también
-            try {
-                const userRole = await getUserRole(username);
-                if (userRole === 'Administrador') {
-                    setTimeout(() => {
-                        window.location.href = '/admin';
-                    }, LOGIN_CONFIG.redirectDelay);
-                } else {
-                    setTimeout(() => {
-                        window.location.href = '../courses.html';
-                    }, LOGIN_CONFIG.redirectDelay);
-                }
-            } catch {
-                // Fallback final: ir a cursos
-                setTimeout(() => {
-                    window.location.href = '../courses.html';
-                }, LOGIN_CONFIG.redirectDelay);
-            }
+            setTimeout(() => {
+                window.location.href = '../courses.html';
+            }, LOGIN_CONFIG.redirectDelay);
             return;
         }
         let detail = 'No se pudo establecer una sesión segura. Inténtalo de nuevo.';
@@ -402,37 +380,6 @@ async function issueUserSession(username) {
         throw err;
     }
     return res.json();
-}
-
-async function getUserRole(username) {
-    try {
-        // Intentar obtener el rol desde el backend
-        const res = await fetch(`${API_BASE}/api/user/role`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-API-Key': getApiKeyForLogin(),
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ username })
-        });
-        
-        if (res.ok) {
-            const data = await res.json();
-            return data.cargo_rol || null;
-        }
-    } catch (error) {
-        console.warn('Error obteniendo rol del usuario:', error);
-    }
-    
-    // Fallback: verificar en localStorage para usuarios de desarrollo
-    try {
-        const users = JSON.parse(localStorage.getItem('dev_users') || '[]');
-        const user = users.find(u => u.username?.toLowerCase() === username.toLowerCase());
-        return user?.cargo_rol || null;
-    } catch {
-        return null;
-    }
 }
 
 async function handleFailedLogin() {
@@ -653,20 +600,20 @@ style.textContent = `
         right: 20px;
         padding: 15px 20px;
         border-radius: 10px;
-        color: #fff;
+        color: var(--white);
         font-weight: 500;
         z-index: 1000;
         animation: slideInRight 0.3s ease-out;
     }
 
     .error-message {
-        background: rgba(220, 38, 38, 0.95);
-        border-left: 4px solid #ef4444;
+        background: var(--error);
+        border-left: 4px solid #ff6b7a;
     }
 
     .success-message {
-        background: rgba(16, 185, 129, 0.95);
-        border-left: 4px solid #10b981;
+        background: var(--success);
+        border-left: 4px solid #7bed9f;
     }
 
     @keyframes slideInRight {
