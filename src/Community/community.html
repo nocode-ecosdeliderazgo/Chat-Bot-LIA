@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunidad</title>
+    <link rel="stylesheet" href="community.css">
+    <link rel="icon" type="image/x-icon" href="../assets/images/icono.png">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <div class="course-tabs">
+        <button class="tab-button" data-tab="mis-cursos">
+            <i class='bx bx-book'></i>
+            Mis cursos
+        </button>
+        <button class="tab-button" data-tab="noticias">
+            <i class='bx bx-news'></i>
+            Noticias
+        </button>
+        <button class="tab-button active" data-tab="comunidad">
+            <i class='bx bx-group'></i>
+            Comunidad
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <h1 class="hero-title">Comunidad de Aprende y Aplica</h1>
+                    <p class="hero-subtitle">Conecta con otros estudiantes, comparte conocimientos y participa en discusiones sobre inteligencia artificial y tecnología educativa</p>
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalMembers">0</span>
+                            <span class="stat-label">Miembros</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="activeChats">3</span>
+                            <span class="stat-label">Chats Activos</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalMessages">0</span>
+                            <span class="stat-label">Mensajes</span>
+                        </div>
+                    </div>
+                </div>
+                                 <div class="hero-image">
+                     <div class="hero-graphic">
+                         <img src="../assets/images/icono.png" alt="Icono" class="hero-icon">
+                     </div>
+                 </div>
+            </div>
+        </section>
+
+        <!-- Chat Rooms Section -->
+        <section class="chat-rooms-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Salas de Chat</h2>
+                    <p class="section-subtitle">Únete a las conversaciones y conecta con la comunidad</p>
+                </div>
+                <div class="chat-rooms-grid">
+                                         <!-- Chat General -->
+                     <div class="chat-room-card" data-chat="general">
+                         <div class="chat-room-icon">
+                             <img src="../assets/icons/chat-general.svg" alt="Chat General" class="chat-room-svg-icon">
+                         </div>
+                         <div class="chat-room-content">
+                             <h3 class="chat-room-title">Chat General</h3>
+                             <p class="chat-room-description">Discusiones generales sobre IA, tecnología y educación. ¡Todos son bienvenidos!</p>
+                             <div class="chat-room-stats">
+                                 <span class="online-users">
+                                     <i class="fas fa-circle"></i>
+                                     <span id="generalOnline">0</span> en línea
+                                 </span>
+                                 <span class="total-messages">
+                                     <i class="fas fa-message"></i>
+                                     <span id="generalMessages">0</span> mensajes
+                                 </span>
+                             </div>
+                             <button class="join-chat-btn" data-chat="general">
+                                 <i class="fas fa-sign-in-alt"></i>
+                                 Unirse al chat
+                             </button>
+                         </div>
+                     </div>
+
+                     <!-- Chat por Rol -->
+                     <div class="chat-room-card" data-chat="role">
+                         <div class="chat-room-icon">
+                             <img src="../assets/icons/chat-role.svg" alt="Chat por Rol" class="chat-room-svg-icon">
+                         </div>
+                         <div class="chat-room-content">
+                             <h3 class="chat-room-title">Chat por Rol</h3>
+                             <p class="chat-room-description">Conversaciones específicas según tu rol en la plataforma.</p>
+                             <div class="chat-room-stats">
+                                 <span class="online-users">
+                                     <i class="fas fa-circle"></i>
+                                     <span id="roleOnline">0</span> en línea
+                                 </span>
+                                 <span class="total-messages">
+                                     <i class="fas fa-message"></i>
+                                     <span id="roleMessages">0</span> mensajes
+                                 </span>
+                             </div>
+                             <button class="join-chat-btn" data-chat="role">
+                                 <i class="fas fa-sign-in-alt"></i>
+                                 Unirse al chat
+                             </button>
+                         </div>
+                     </div>
+
+                     <!-- Chat de Cursos -->
+                     <div class="chat-room-card" data-chat="courses">
+                         <div class="chat-room-icon">
+                             <img src="../assets/icons/chat-courses.svg" alt="Chat de Cursos" class="chat-room-svg-icon">
+                         </div>
+                         <div class="chat-room-content">
+                             <h3 class="chat-room-title">Chat de Cursos</h3>
+                             <p class="chat-room-description">Discute sobre los cursos que estás tomando con otros estudiantes.</p>
+                             <div class="chat-room-stats">
+                                 <span class="online-users">
+                                     <i class="fas fa-circle"></i>
+                                     <span id="coursesOnline">0</span> en línea
+                                 </span>
+                                 <span class="total-messages">
+                                     <i class="fas fa-message"></i>
+                                     <span id="coursesMessages">0</span> mensajes
+                                 </span>
+                             </div>
+                             <button class="join-chat-btn" data-chat="courses">
+                                 <i class="fas fa-sign-in-alt"></i>
+                                 Unirse al chat
+                             </button>
+                         </div>
+                     </div>
+                </div>
+            </div>
+        </section>
+
+                 <!-- Community Guidelines Section -->
+         <section class="guidelines-section">
+             <div class="container">
+                 <div class="section-header">
+                     <h2 class="section-title">Normas de la Comunidad</h2>
+                     <p class="section-subtitle">Ayúdanos a mantener un ambiente respetuoso y constructivo</p>
+                 </div>
+                                   <div class="guidelines-grid">
+                      <div class="guideline-card">
+                          <div class="guideline-icon">
+                              <img src="../assets/icons/respect.svg" alt="Respeto" class="guideline-svg-icon">
+                          </div>
+                          <h3 class="guideline-title">Sé Respetuoso</h3>
+                          <p class="guideline-description">Trata a todos los miembros con respeto y cortesía. No toleramos el acoso o la discriminación.</p>
+                      </div>
+                      <div class="guideline-card">
+                          <div class="guideline-icon">
+                              <img src="../assets/icons/knowledge.svg" alt="Conocimiento" class="guideline-svg-icon">
+                          </div>
+                          <h3 class="guideline-title">Comparte Conocimiento</h3>
+                          <p class="guideline-description">Contribuye con información útil y constructiva. Ayuda a otros a aprender y crecer.</p>
+                      </div>
+                      <div class="guideline-card">
+                          <div class="guideline-icon">
+                              <img src="../assets/icons/privacy.svg" alt="Privacidad" class="guideline-svg-icon">
+                          </div>
+                          <h3 class="guideline-title">Mantén la Privacidad</h3>
+                          <p class="guideline-description">No compartas información personal de otros miembros sin su consentimiento.</p>
+                      </div>
+                      <div class="guideline-card">
+                          <div class="guideline-icon">
+                              <img src="../assets/icons/report.svg" alt="Reportar" class="guideline-svg-icon">
+                          </div>
+                          <h3 class="guideline-title">Reporta Problemas</h3>
+                          <p class="guideline-description">Si ves contenido inapropiado, repórtalo inmediatamente a los moderadores.</p>
+                      </div>
+                      <div class="guideline-card">
+                          <div class="guideline-icon">
+                              <img src="../assets/icons/communication.svg" alt="Comunicación" class="guideline-svg-icon">
+                          </div>
+                          <h3 class="guideline-title">Comunica con Claridad</h3>
+                          <p class="guideline-description">Expresa tus ideas de manera clara y constructiva. Evita el spam y mensajes irrelevantes.</p>
+                      </div>
+                      <div class="guideline-card">
+                          <div class="guideline-icon">
+                              <img src="../assets/icons/collaboration.svg" alt="Colaboración" class="guideline-svg-icon">
+                          </div>
+                          <h3 class="guideline-title">Fomenta la Colaboración</h3>
+                          <p class="guideline-description">Anima a otros a participar y colaborar. Construye una comunidad inclusiva y acogedora.</p>
+                      </div>
+                      <div class="guideline-card">
+                          <div class="guideline-icon">
+                              <img src="../assets/icons/learn.svg" alt="Aprender" class="guideline-svg-icon">
+                          </div>
+                          <h3 class="guideline-title">Aprende Continuamente</h3>
+                          <p class="guideline-description">Mantén una mente abierta y dispuesta a aprender de otros. Comparte recursos educativos.</p>
+                      </div>
+                      <div class="guideline-card">
+                          <div class="guideline-icon">
+                              <img src="../assets/icons/punctual.svg" alt="Puntualidad" class="guideline-svg-icon">
+                          </div>
+                          <h3 class="guideline-title">Sé Puntual</h3>
+                          <p class="guideline-description">Respeta los horarios de las sesiones y eventos. Valora el tiempo de los demás.</p>
+                      </div>
+                  </div>
+             </div>
+         </section>
+
+        <!-- Recent Activity Section -->
+        <section class="activity-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Actividad Reciente</h2>
+                    <p class="section-subtitle">Mantente al día con las últimas conversaciones y eventos</p>
+                </div>
+                <div class="activity-feed" id="activityFeed">
+                    <!-- Activity items will be loaded here -->
+                </div>
+                <div class="load-more-container">
+                    <button class="load-more-btn" id="loadMoreActivity">
+                        <span>Cargar más actividad</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Chat Modal -->
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-modal-content">
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <h3 class="chat-title" id="modalChatTitle">Chat General</h3>
+                    <span class="chat-subtitle" id="modalChatSubtitle">0 miembros en línea</span>
+                </div>
+                <button class="close-chat-btn" id="closeChatBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be loaded here -->
+            </div>
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." class="chat-input">
+                    <button class="send-message-btn" id="sendMessageBtn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Cargando comunidad...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="community.js"></script>
+</body>
+</html>

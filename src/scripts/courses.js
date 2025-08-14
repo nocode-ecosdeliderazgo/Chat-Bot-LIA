@@ -139,7 +139,17 @@ function setupEventListeners() {
 }
 
 function switchTab(tabId) {
-    // Actualizar botones de pestañas
+    // Handle navigation to other pages
+    if (tabId === 'noticias') {
+        window.location.href = 'Notices/notices.html';
+        return;
+    }
+    
+    if (tabId === 'comunidad') {
+        window.location.href = 'Community/community.html';
+        return;
+    }
+    
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('active');
     });

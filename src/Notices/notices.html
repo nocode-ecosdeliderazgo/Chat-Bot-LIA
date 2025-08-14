@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noticias</title>
+    <link rel="stylesheet" href="notices.css">
+    <link rel="icon" type="image/x-icon" href="../assets/images/icono.png">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <div class="course-tabs">
+        <button class="tab-button" data-tab="mis-cursos">
+            <i class='bx bx-book'></i>
+            Mis cursos
+        </button>
+        <button class="tab-button active" data-tab="noticias">
+            <i class='bx bx-news'></i>
+            Noticias
+        </button>
+        <button class="tab-button" data-tab="comunidad">
+            <i class='bx bx-group'></i>
+            Comunidad
+        </button>
+    </div>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-container">
+            <div class="search-header">
+                <h3>Buscar Noticias</h3>
+                <button class="close-search" id="closeSearch">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="search-input-container">
+                <input type="text" id="searchInput" placeholder="Buscar noticias, categorías, fechas..." class="search-input">
+                <button class="search-submit">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div class="search-filters">
+                <select id="categoryFilter" class="filter-select">
+                    <option value="">Todas las categorías</option>
+                    <option value="tecnologia">Tecnología</option>
+                    <option value="ia">Inteligencia Artificial</option>
+                    <option value="educacion">Educación</option>
+                    <option value="eventos">Eventos</option>
+                    <option value="actualizaciones">Actualizaciones</option>
+                </select>
+                <select id="dateFilter" class="filter-select">
+                    <option value="">Todas las fechas</option>
+                    <option value="hoy">Hoy</option>
+                    <option value="semana">Esta semana</option>
+                    <option value="mes">Este mes</option>
+                    <option value="año">Este año</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <h1 class="hero-title">Noticias y Actualizaciones</h1>
+                    <p class="hero-subtitle">Mantente al día con las últimas novedades en inteligencia artificial, tecnología educativa y todo lo relacionado con Chat-Bot-LIA</p>
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalNews">0</span>
+                            <span class="stat-label">Noticias</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalCategories">5</span>
+                            <span class="stat-label">Categorías</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalViews">0</span>
+                            <span class="stat-label">Visualizaciones</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-image">
+                                    <div class="hero-graphic">
+                    <i class="fas fa-brain"></i>
+                </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured News -->
+        <section class="featured-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Noticias Destacadas</h2>
+                    <p class="section-subtitle">Las noticias más importantes y relevantes del momento</p>
+                </div>
+                <div class="featured-grid" id="featuredGrid">
+                    <!-- Featured news will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section class="categories-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Explorar por Categoría</h2>
+                    <p class="section-subtitle">Encuentra noticias específicas según tus intereses</p>
+                </div>
+                <div class="categories-grid">
+                    <div class="category-card" data-category="tecnologia">
+                        <div class="category-icon">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <h3 class="category-title">Tecnología</h3>
+                        <p class="category-description">Últimas innovaciones y avances tecnológicos</p>
+                        <span class="category-count">12 noticias</span>
+                    </div>
+                    <div class="category-card" data-category="ia">
+                        <div class="category-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3 class="category-title">Inteligencia Artificial</h3>
+                        <p class="category-description">Avances en IA y machine learning</p>
+                        <span class="category-count">8 noticias</span>
+                    </div>
+                    <div class="category-card" data-category="educacion">
+                        <div class="category-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="category-title">Educación</h3>
+                        <p class="category-description">Nuevas metodologías y herramientas educativas</p>
+                        <span class="category-count">15 noticias</span>
+                    </div>
+                    <div class="category-card" data-category="eventos">
+                        <div class="category-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <h3 class="category-title">Eventos</h3>
+                        <p class="category-description">Conferencias, webinars y eventos especiales</p>
+                        <span class="category-count">6 noticias</span>
+                    </div>
+                    <div class="category-card" data-category="actualizaciones">
+                        <div class="category-icon">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <h3 class="category-title">Actualizaciones</h3>
+                        <p class="category-description">Nuevas funcionalidades y mejoras del sistema</p>
+                        <span class="category-count">10 noticias</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Latest News -->
+        <section class="latest-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Últimas Noticias</h2>
+                    <div class="section-controls">
+                        <button class="view-toggle active" data-view="grid">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button class="view-toggle" data-view="list">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="news-container">
+                    <div class="news-grid" id="newsGrid">
+                        <!-- News items will be loaded here -->
+                    </div>
+                    <div class="news-list hidden" id="newsList">
+                        <!-- News list view will be loaded here -->
+                    </div>
+                </div>
+                <div class="load-more-container">
+                    <button class="load-more-btn" id="loadMoreBtn">
+                        <span>Cargar más noticias</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Newsletter Section -->
+        <section class="newsletter-section">
+            <div class="container">
+                <div class="newsletter-content">
+                    <div class="newsletter-text">
+                        <h2 class="newsletter-title">¡No te pierdas nada!</h2>
+                        <p class="newsletter-description">Suscríbete a nuestro boletín para recibir las últimas noticias y actualizaciones directamente en tu correo electrónico.</p>
+                    </div>
+                    <div class="newsletter-form">
+                        <div class="form-group">
+                            <input type="email" id="newsletterEmail" placeholder="Tu correo electrónico" class="newsletter-input">
+                            <button class="newsletter-btn" id="newsletterBtn">
+                                <span>Suscribirse</span>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <p class="newsletter-note">No spam, solo contenido relevante. Puedes cancelar en cualquier momento.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Cargando noticias...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="notices.js"></script>
+</body>
+</html>

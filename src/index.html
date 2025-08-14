@@ -1,17 +1,263 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Redirigiendo…</title>
-    <meta http-equiv="refresh" content="0; url=welcome-new.html" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Domina la IA que transformará tu futuro - Aprende fundamentos claros, herramientas que importan y hábitos de aprendizaje continuo">
+    <meta name="keywords" content="inteligencia artificial, IA, aprendizaje, cursos, tecnología, futuro">
+    <meta name="author" content="Aprende y Aplica">
+    <title>Aprende y Aplica IA - Domina la IA que transformará tu futuro</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="styles/main.css" as="style">
+    <link rel="preload" href="assets/fonts/montserrat.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="assets/images/icono.png" />
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/welcome.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 </head>
-  <body>
-    <noscript>
-      Si no eres redirigido automáticamente, ve a
-      <a href="welcome-new.html">Inicio</a> o
-      <a href="courses.html">Mis Cursos</a>.
-    </noscript>
+<body>
+    <!-- Header Hero Section -->
+    <header class="hero-section">
+        <!-- Fondo con partículas animadas -->
+        <div class="hero-background">
+            <div class="particles-container"></div>
+            <div class="gradient-overlay"></div>
+        </div>
+        
+        <!-- Navegación -->
+        <nav class="hero-nav">
+            <div class="nav-logo">
+                <div class="logo-icon">
+                    <img src="assets/images/icono.png" alt="Aprende y Aplica" class="logo-img">
+                </div>
+                <span class="logo-text">Aprende y Aplica</span>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-secondary" onclick="window.location.href='login/login.html'">Iniciar Sesión</button>
+                <button class="btn-primary" onclick="window.location.href='login/login.html'">Registrarse</button>
+            </div>
+        </nav>
+        
+        <!-- Contenido Principal -->
+        <div class="hero-content">
+            <div class="hero-text">
+                <div class="hero-badge animate-on-scroll">
+                    <span class="rocket-icon">🚀</span>
+                    <span>Aprende y Aplica IA</span>
+                </div>
+                <h1 class="hero-title animate-on-scroll">Domina la IA que transformará tu futuro</h1>
+                <p class="hero-description animate-on-scroll">
+                    Conviértete en experto aplicado: fundamentos claros, herramientas que importan, 
+                    y hábitos de aprendizaje continuo para destacar en la era de la inteligencia artificial.
+                </p>
+                <div class="hero-actions animate-on-scroll">
+                    <button class="btn-primary btn-large" onclick="window.location.href='login/login.html'">
+                        <span>Iniciar Sesión</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+                    <button class="btn-secondary btn-large glass-button" onclick="window.location.href='courses.html'">
+                        <span>Ver Demo</span>
+                        <span class="btn-icon">▶</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Elemento Visual -->
+            <div class="hero-visual animate-on-scroll">
+                <div class="floating-card glass-card floating">
+                    <div class="card-content">
+                        <h3>Lo que aprenderás</h3>
+                        <ul class="learning-list">
+                            <li class="stagger-item">✓ Fundamentos de IA sin complicarte</li>
+                            <li class="stagger-item">✓ Herramientas que realmente importan</li>
+                            <li class="stagger-item">✓ Aplicación en proyectos reales</li>
+                            <li class="stagger-item">✓ Hábitos de aprendizaje continuo</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sección de Características -->
+    <section class="features-section">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <h2>¿Por qué elegir nuestra plataforma?</h2>
+                <p>Descubre las ventajas que te harán destacar en el mundo de la IA</p>
+            </div>
+            <div class="features-grid stagger-container">
+                <div class="feature-card animate-on-scroll lift-hover">
+                    <div class="feature-icon">
+                        <span class="icon-brain">🧠</span>
+                    </div>
+                    <h3>Fundamentos Sólidos</h3>
+                    <p>Aprende los conceptos esenciales de IA sin perderte en teoría innecesaria</p>
+                </div>
+                <div class="feature-card animate-on-scroll lift-hover">
+                    <div class="feature-icon">
+                        <span class="icon-tools">🛠️</span>
+                    </div>
+                    <h3>Herramientas Prácticas</h3>
+                    <p>Utiliza las herramientas que realmente importan en el mercado laboral</p>
+                </div>
+                <div class="feature-card animate-on-scroll lift-hover">
+                    <div class="feature-icon">
+                        <span class="icon-projects">📊</span>
+                    </div>
+                    <h3>Proyectos Reales</h3>
+                    <p>Aplica tus conocimientos en proyectos del mundo real</p>
+                </div>
+                <div class="feature-card animate-on-scroll lift-hover">
+                    <div class="feature-icon">
+                        <span class="icon-growth">📈</span>
+                    </div>
+                    <h3>Crecimiento Continuo</h3>
+                    <p>Desarrolla hábitos de aprendizaje que te mantendrán actualizado</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Estadísticas -->
+    <section class="stats-section animated-gradient">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item animate-on-scroll">
+                    <div class="stat-number" data-target="1000">0</div>
+                    <div class="stat-label">Estudiantes Activos</div>
+                </div>
+                <div class="stat-item animate-on-scroll">
+                    <div class="stat-number" data-target="50">0</div>
+                    <div class="stat-label">Proyectos Completados</div>
+                </div>
+                <div class="stat-item animate-on-scroll">
+                    <div class="stat-number" data-target="95">0</div>
+                    <div class="stat-label">% de Satisfacción</div>
+                </div>
+                <div class="stat-item animate-on-scroll">
+                    <div class="stat-number" data-target="24">0</div>
+                    <div class="stat-label">Horas de Contenido</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Testimonios -->
+    <section class="testimonials-section">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <h2>Lo que dicen nuestros estudiantes</h2>
+            </div>
+            <div class="testimonials-carousel">
+                <div class="testimonial-card active glass-card">
+                    <div class="testimonial-content">
+                        <p>"Esta plataforma transformó mi carrera. Los proyectos prácticos me dieron la confianza para aplicar IA en mi trabajo."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="assets/images/avatar1.jpg" alt="Ana García" class="lazy-image">
+                        <div>
+                            <h4>Ana García</h4>
+                            <span>Data Scientist</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card glass-card">
+                    <div class="testimonial-content">
+                        <p>"Los fundamentos claros y las herramientas prácticas me ayudaron a destacar en mi equipo de desarrollo."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="assets/images/avatar2.jpg" alt="Carlos Ruiz" class="lazy-image">
+                        <div>
+                            <h4>Carlos Ruiz</h4>
+                            <span>Software Engineer</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card glass-card">
+                    <div class="testimonial-content">
+                        <p>"Aprendí más en 3 meses aquí que en años de cursos teóricos. Los proyectos reales hacen la diferencia."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="assets/images/avatar3.jpg" alt="María López" class="lazy-image">
+                        <div>
+                            <h4>María López</h4>
+                            <span>Product Manager</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Final -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content animate-on-scroll">
+                <h2>¿Listo para transformar tu futuro?</h2>
+                <p>Únete a miles de estudiantes que ya están dominando la IA</p>
+                <div class="cta-actions">
+                    <button class="btn-primary btn-large pulse" onclick="window.location.href='login/login.html'">
+                        <span>Comenzar Ahora</span>
+                        <span class="btn-icon">🚀</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <img src="assets/images/icono.png" alt="Aprende y Aplica" class="logo-img">
+                        <span>Aprende y Aplica</span>
+                    </div>
+                    <p>Transformando el futuro con inteligencia artificial</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4>Plataforma</h4>
+                        <ul>
+                            <li><a href="courses.html">Cursos</a></li>
+                            <li><a href="Community/community.html">Comunidad</a></li>
+                            <li><a href="Notices/notices.html">Recursos</a></li>
+                        </ul>
+                    </div>
+                    <div class="link-group">
+                        <h4>Soporte</h4>
+                        <ul>
+                            <li><a href="#ayuda">Ayuda</a></li>
+                            <li><a href="#contacto">Contacto</a></li>
+                            <li><a href="#faq">FAQ</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Aprende y Aplica. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="scripts/particles.js"></script>
+    <script src="scripts/animations.js"></script>
+    <script src="scripts/carousel.js"></script>
+    <script src="scripts/welcome.js"></script>
 </body>
 </html>
