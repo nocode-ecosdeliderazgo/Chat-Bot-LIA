@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
+const { createCorsResponse } = require('./_cors-utils');
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -7,19 +8,7 @@ const pool = new Pool({
 });
 
 function json(status, data, event = null) {
-    const origin = event && (event.headers['origin'] || event.headers['Origin']) || '*';
-    return {
-        statusCode: status,
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': origin,
-            'Vary': 'Origin',
-            'Access-Control-Allow-Credentials': 'true',
-            'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With, Authorization, X-User-Id, X-API-Key',
-            'Access-Control-Allow-Methods': 'OPTIONS,POST'
-        },
-        body: JSON.stringify(data)
-    };
+    return createCorsResponse(status, data, event, true); // true para incluir credentials
 }
 
 function verifyUser(event) {

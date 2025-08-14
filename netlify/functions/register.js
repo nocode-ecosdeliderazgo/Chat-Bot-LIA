@@ -1,33 +1,25 @@
 // netlify/functions/register.js
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
+const { createCorsResponse } = require('./_cors-utils');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
 });
 
-const json = (status, data) => ({
-  statusCode: status,
-  headers: {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With, X-API-Key',
-    'Access-Control-Allow-Methods': 'OPTIONS,POST',
-  },
-  body: JSON.stringify(data),
-});
+const json = (status, data, event = null) => createCorsResponse(status, data, event);
 
 exports.handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return json(200, { ok: true });
-  if (event.httpMethod !== 'POST') return json(405, { error: 'Method Not Allowed' });
+  if (event.httpMethod === 'OPTIONS') return json(200, { ok: true }, event);
+  if (event.httpMethod !== 'POST') return json(405, { error: 'Method Not Allowed' }, event);
 
   try {
-    if (!process.env.DATABASE_URL) return json(500, { error: 'Base de datos no configurada' });
+    if (!process.env.DATABASE_URL) return json(500, { error: 'Base de datos no configurada' }, event);
 
     const { full_name, username, email, password } = JSON.parse(event.body || '{}');
     if (!full_name || !username || !password) {
-      return json(400, { error: 'full_name, username y password son requeridos' });
+      return json(400, { error: 'full_name, username y password son requeridos' }, event);
     }
 
     // Verificar existencia de columna password_hash en users
@@ -55,18 +47,18 @@ exports.handler = async (event) => {
 
     try {
       const result = await pool.query(query, params);
-      return json(201, { user: result.rows[0] });
+      return json(201, { user: result.rows[0] }, event);
     } catch (error) {
       const msg = String(error && error.message || '').toLowerCase();
       if (msg.includes('duplicate') || msg.includes('unique constraint')) {
-        return json(409, { error: 'El usuario ya existe' });
+        return json(409, { error: 'El usuario ya existe' }, event);
       }
       console.error('register insert error', error);
-      return json(500, { error: 'Error registrando usuario' });
+      return json(500, { error: 'Error registrando usuario' }, event);
     }
   } catch (e) {
     console.error('register error', e);
-    return json(500, { error: 'Error interno' });
+    return json(500, { error: 'Error interno' }, event);
   }
 };
 
