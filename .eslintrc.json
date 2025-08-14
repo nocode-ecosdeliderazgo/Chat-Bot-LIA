@@ -5,20 +5,19 @@
     "node": true
   },
   "extends": [
-    "eslint:recommended",
-    "prettier"
+    "eslint:recommended"
   ],
   "parserOptions": {
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
   "rules": {
-    "indent": ["error", 2],
-    "linebreak-style": ["error", "unix"],
+    "indent": ["error", 4],
+    "linebreak-style": "off",
     "quotes": ["error", "single"],
     "semi": ["error", "always"],
     "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
-    "no-console": "warn",
+    "no-console": "off",
     "prefer-const": "error",
     "no-var": "error"
   },
