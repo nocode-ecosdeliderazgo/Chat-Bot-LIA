@@ -6,13 +6,16 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-function json(status, data) {
+function json(status, data, event = null) {
+    const origin = event && (event.headers['origin'] || event.headers['Origin']) || '*';
     return {
         statusCode: status,
         headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With, Authorization, X-User-Id',
+            'Access-Control-Allow-Origin': origin,
+            'Vary': 'Origin',
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With, Authorization, X-User-Id, X-API-Key',
             'Access-Control-Allow-Methods': 'OPTIONS,POST'
         },
         body: JSON.stringify(data)
@@ -34,18 +37,18 @@ function verifyUser(event) {
 }
 
 exports.handler = async (event) => {
-    if (event.httpMethod === 'OPTIONS') return json(200, { ok: true });
+    if (event.httpMethod === 'OPTIONS') return json(200, { ok: true }, event);
     if (event.httpMethod !== 'POST') return json(405, { error: 'Method Not Allowed' });
 
     try {
         const user = verifyUser(event);
-        if (!user) return json(401, { error: 'Sesión requerida' });
+        if (!user) return json(401, { error: 'Sesión requerida' }, event);
 
-        if (!process.env.DATABASE_URL) return json(200, { data: [] });
+        if (!process.env.DATABASE_URL) return json(200, { data: [] }, event);
 
         const { userQuestion } = JSON.parse(event.body || '{}');
         if (!userQuestion || typeof userQuestion !== 'string') {
-            return json(400, { error: 'userQuestion requerido como string' });
+            return json(400, { error: 'userQuestion requerido como string' }, event);
         }
 
         const searchTerm = `%${userQuestion.toLowerCase().trim()}%`;
@@ -97,10 +100,10 @@ exports.handler = async (event) => {
             }
         });
 
-        return json(200, { data: formatted });
+        return json(200, { data: formatted }, event);
     } catch (e) {
         console.error('context fn error', e);
-        return json(500, { error: 'Error consultando contexto' });
+        return json(500, { error: 'Error consultando contexto' }, event);
     }
 };
 

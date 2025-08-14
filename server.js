@@ -986,8 +986,18 @@ const allowedSocketOrigins = (process.env.ALLOWED_ORIGINS || '')
 
 const io = new Server(server, {
     cors: {
-        origin: DEV_MODE ? "*" : (allowedSocketOrigins.length > 0 ? allowedSocketOrigins : false),
-        methods: ["GET", "POST"]
+        origin: DEV_MODE ? "*" : (allowedSocketOrigins.length > 0 ? allowedSocketOrigins : function(origin, callback) {
+            try {
+                if (!origin) return callback(null, true);
+                const host = new URL(origin).hostname;
+                const ok = isHostAllowed(host);
+                return callback(null, ok);
+            } catch (_) {
+                return callback(null, false);
+            }
+        }),
+        methods: ["GET", "POST"],
+        credentials: true
     }
 });
 
