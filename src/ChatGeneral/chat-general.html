@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat General - Comunidad</title>
+    <link rel="stylesheet" href="chat-general.css">
+    <link rel="icon" type="image/x-icon" href="../assets/images/icono.png">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    <!-- Header -->
+    <header class="chat-header">
+        <div class="header-left">
+            <button class="back-btn" id="backBtn">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="chat-info">
+                <h1 class="chat-title">Chat General</h1>
+                <div class="chat-stats">
+                    <span class="online-indicator">
+                        <i class="fas fa-circle"></i>
+                        <span id="onlineCount">0</span> en línea
+                    </span>
+                    <span class="message-count">
+                        <i class="fas fa-message"></i>
+                        <span id="messageCount">0</span> mensajes
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="header-btn" id="searchBtn" title="Buscar mensajes">
+                <i class="fas fa-search"></i>
+            </button>
+            <button class="header-btn" id="settingsBtn" title="Configuración">
+                <i class="fas fa-cog"></i>
+            </button>
+            <button class="header-btn" id="membersBtn" title="Ver miembros">
+                <i class="fas fa-users"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Chat Container -->
+    <main class="chat-container">
+        <!-- Sidebar -->
+        <aside class="chat-sidebar" id="chatSidebar">
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Miembros Activos</h3>
+                <div class="members-list" id="membersList">
+                    <!-- Members will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Funciones Rápidas</h3>
+                <div class="quick-actions">
+                    <button class="quick-action-btn" data-action="code">
+                        <i class="fas fa-code"></i>
+                        Insertar Código
+                    </button>
+                    <button class="quick-action-btn" data-action="image">
+                        <i class="fas fa-image"></i>
+                        Compartir Imagen
+                    </button>
+                    <button class="quick-action-btn" data-action="file">
+                        <i class="fas fa-file"></i>
+                        Subir Archivo
+                    </button>
+                    <button class="quick-action-btn" data-action="poll">
+                        <i class="fas fa-poll"></i>
+                        Crear Encuesta
+                    </button>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Temas Populares</h3>
+                <div class="topics-list" id="topicsList">
+                    <!-- Topics will be loaded here -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Chat Messages Area -->
+        <section class="chat-main">
+            <!-- Search Overlay -->
+            <div class="search-overlay" id="searchOverlay">
+                <div class="search-container">
+                    <div class="search-header">
+                        <h3>Buscar en el chat</h3>
+                        <button class="close-search" id="closeSearch">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Buscar mensajes...">
+                        <button class="clear-search" id="clearSearch">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="search-filters">
+                        <button class="filter-btn active" data-filter="all">Todos</button>
+                        <button class="filter-btn" data-filter="code">Código</button>
+                        <button class="filter-btn" data-filter="links">Enlaces</button>
+                        <button class="filter-btn" data-filter="images">Imágenes</button>
+                    </div>
+                    <div class="search-results" id="searchResults">
+                        <!-- Search results will appear here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Container -->
+            <div class="messages-container" id="messagesContainer">
+                <div class="messages-wrapper" id="messagesWrapper">
+                    <!-- Messages will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Message Input Area -->
+            <div class="message-input-area">
+                <div class="input-toolbar">
+                    <button class="toolbar-btn" id="emojiBtn" title="Emojis">
+                        <i class="far fa-smile"></i>
+                    </button>
+                    <button class="toolbar-btn" id="formatBtn" title="Formato">
+                        <i class="fas fa-bold"></i>
+                    </button>
+                    <button class="toolbar-btn" id="codeBtn" title="Insertar código">
+                        <i class="fas fa-code"></i>
+                    </button>
+                    <button class="toolbar-btn" id="linkBtn" title="Insertar enlace">
+                        <i class="fas fa-link"></i>
+                    </button>
+                    <button class="toolbar-btn" id="imageBtn" title="Subir imagen">
+                        <i class="fas fa-image"></i>
+                    </button>
+                    <button class="toolbar-btn" id="fileBtn" title="Subir archivo">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                </div>
+                
+                <div class="message-input-wrapper">
+                    <div class="input-container">
+                        <textarea id="messageInput" placeholder="Escribe tu mensaje..." rows="1"></textarea>
+                        <div class="input-actions">
+                            <button class="voice-btn" id="voiceBtn" title="Grabar audio">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <button class="send-btn" id="sendBtn" title="Enviar mensaje">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typing Indicator -->
+                <div class="typing-indicator" id="typingIndicator">
+                    <span class="typing-text">Alguien está escribiendo...</span>
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+    <!-- Code Modal -->
+    <div class="modal" id="codeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Insertar Código</h3>
+                <button class="close-modal" id="closeCodeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="codeLanguage">Lenguaje:</label>
+                    <select id="codeLanguage">
+                        <option value="javascript">JavaScript</option>
+                        <option value="python">Python</option>
+                        <option value="html">HTML</option>
+                        <option value="css">CSS</option>
+                        <option value="java">Java</option>
+                        <option value="csharp">C#</option>
+                        <option value="php">PHP</option>
+                        <option value="sql">SQL</option>
+                        <option value="bash">Bash</option>
+                        <option value="json">JSON</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="codeContent">Código:</label>
+                    <textarea id="codeContent" placeholder="Pega tu código aquí..." rows="10"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="codeDescription">Descripción (opcional):</label>
+                    <input type="text" id="codeDescription" placeholder="Breve descripción del código">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelCode">Cancelar</button>
+                <button class="btn-primary" id="insertCode">Insertar Código</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Poll Modal -->
+    <div class="modal" id="pollModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Crear Encuesta</h3>
+                <button class="close-modal" id="closePollModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="pollQuestion">Pregunta:</label>
+                    <input type="text" id="pollQuestion" placeholder="¿Cuál es tu pregunta?">
+                </div>
+                <div class="form-group">
+                    <label>Opciones:</label>
+                    <div class="poll-options" id="pollOptions">
+                        <div class="poll-option">
+                            <input type="text" placeholder="Opción 1" class="poll-option-input">
+                            <button class="remove-option" type="button">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="poll-option">
+                            <input type="text" placeholder="Opción 2" class="poll-option-input">
+                            <button class="remove-option" type="button">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="add-option-btn" id="addPollOption">
+                        <i class="fas fa-plus"></i> Agregar Opción
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="pollMultiple"> Permitir múltiples votos
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelPoll">Cancelar</button>
+                <button class="btn-primary" id="createPoll">Crear Encuesta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Configuración del Chat</h3>
+                <button class="close-modal" id="closeSettingsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4>Notificaciones</h4>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="soundNotifications" checked>
+                            Sonidos de notificación
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="desktopNotifications" checked>
+                            Notificaciones de escritorio
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4>Apariencia</h4>
+                    <div class="setting-item">
+                        <label>Densidad de mensajes:</label>
+                        <select id="messageDensity">
+                            <option value="compact">Compacta</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="comfortable">Cómoda</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="showTimestamps" checked>
+                            Mostrar timestamps
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4>Funciones</h4>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="autoScroll" checked>
+                            Auto-scroll a nuevos mensajes
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="showTypingIndicator" checked>
+                            Mostrar indicador de escritura
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelSettings">Cancelar</button>
+                <button class="btn-primary" id="saveSettings">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Upload Modal -->
+    <div class="modal" id="fileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Subir Archivo</h3>
+                <button class="close-modal" id="closeFileModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="file-upload-area" id="fileUploadArea">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Arrastra archivos aquí o haz clic para seleccionar</p>
+                    <input type="file" id="fileInput" multiple accept="image/*,.pdf,.doc,.docx,.txt,.zip,.rar">
+                </div>
+                <div class="file-list" id="fileList">
+                    <!-- Selected files will appear here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelFile">Cancelar</button>
+                <button class="btn-primary" id="uploadFiles">Subir Archivos</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Cargando chat...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="chat-general.js"></script>
+</body>
+</html>

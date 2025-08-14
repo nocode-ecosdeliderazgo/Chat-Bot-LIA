@@ -125,6 +125,19 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'src', 'admin', 'admin.html'));
 });
 
+// Ruta para la página de noticias
+app.get('/notices', (req, res) => {
+    res.sendFile(path.join(__dirname, 'src', 'Notices', 'notices.html'));
+});
+
+app.get('/community', (req, res) => {
+    res.sendFile(path.join(__dirname, 'src', 'Community', 'community.html'));
+});
+
+app.get('/chat-general', (req, res) => {
+    res.sendFile(path.join(__dirname, 'src', 'ChatGeneral', 'chat-general.html'));
+});
+
 // Pool de conexiones a PostgreSQL
 let pool;
 if (process.env.DATABASE_URL) {
