@@ -1,224 +1,875 @@
-# PROMPT PARA CLAUDE - CHAT CON ISLA DINÁMICA DE IPHONE
+# PROMPT COMPLETO: Rediseño Total de Página de Bienvenida - Chat-Bot-LIA
 
-## CONTEXTO
+## 🎯 OBJETIVO PRINCIPAL
+Rediseñar completamente la página de bienvenida (`index.html`) para crear una experiencia visual moderna, atractiva y profesional con animaciones fluidas, transiciones elegantes y efectos visuales avanzados, manteniendo total coherencia con el sistema de diseño existente del proyecto Chat-Bot-LIA.
 
-Necesito transformar el área de entrada de mensajes de mi chat para que se vea y funcione como la "Dynamic Island" de los iPhones modernos. El objetivo es que el contenedor principal de la entrada de mensajes (donde están el botón de +, el campo de texto y el botón de micrófono/enviar) se vea como una única "isla" oscura, cohesiva y flotante, sin ningún fondo adicional que la rodee o que sea parte de él, más allá del propio color oscuro de la isla.
+## 🎨 SISTEMA DE DISEÑO ACTUAL (OBLIGATORIO RESPETAR)
 
-**La imagen de referencia muestra:**
-- **Una píldora horizontal oscura** centrada en la pantalla con tres elementos:
-  - **Botón + (izquierda)**: Circular con fondo oscuro y símbolo + en azul-verde brillante
-  - **Campo de texto (centro)**: Rectangular con esquinas redondeadas, fondo gris oscuro, placeholder "Escribe tu mensaje..."
-  - **Botón de micrófono (derecha)**: Circular azul brillante con icono blanco de micrófono
-- **Fondo**: Azul-gris oscuro uniforme sin elementos adicionales
-- **Sombra suave**: La píldora tiene una sombra difusa que la hace parecer flotante
-
-**Mi objetivo es que el `input-container` de mi chat se vea exactamente como esta "isla" oscura y flotante, y que no haya ningún "fondo azul" (o cualquier otro fondo) que lo rodee o que sea parte de él, más allá del propio color oscuro de la isla.**
-
-## ARCHIVOS A MODIFICAR
-
-- `src/ChatGeneral/chat-general.css`
-
-## CAMBIOS ESPECÍFICOS REQUERIDOS
-
-### 1. Asegurar que el área de entrada principal sea completamente transparente
-
-El contenedor más externo del área de entrada (`.message-input-area`) debe ser completamente invisible para que solo la "isla" (`.input-container`) sea visible.
-
+### Colores Principales (de Courses.css):
 ```css
-.message-input-area {
-    background: none;           /* Asegurar que no haya fondo */
-    border-top: none;           /* Asegurar que no haya borde superior */
-    padding: var(--spacing-sm); /* Mantener un padding mínimo si es necesario, o ajustarlo */
-    backdrop-filter: none;      /* Asegurar que no haya efecto de blur */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /* Considerar si se necesita ajustar la altura o el margen para que no ocupe espacio innecesario */
-    /* height: auto; */
-    /* min-height: 0; */
+--course-primary: #44E5FF      /* Turquesa IA - Accent principal (Uso: CTA, iconos, links) */
+--course-secondary: #0077A6    /* Azul Oscuro - Secundario (Uso: Hover links, badges) */
+--course-success: #22C55E      /* Verde Éxito */
+--course-warning: #F59E0B      /* Amarillo Advertencia */
+--course-error: #EF4444        /* Rojo Error */
+--course-dark: #0A0A0A         /* Carbón Digital - Neutro Oscuro (Uso: Texto headlines, fondos hero) */
+--course-light: #F2F2F2        /* Gris Neblina - Neutro Claro (Uso: Secciones de respiro) */
+--course-white: #FFFFFF        /* Blanco Puro - Contraste (Uso: Texto sobre oscuro) */
+--course-bg-gradient-start: #0a0f19
+--course-bg-gradient-end: #1a2332
+```
+
+### Tipografías:
+- **Títulos (H1, H2)**: Montserrat ExtraBold / Bold
+- **Cuerpo de Texto**: Inter Regular / Medium
+- **Fallback**: Arial, Helvetica, sans-serif
+
+### Iconografía & Ilustraciones:
+- **Íconos**: Outline en Turquesa IA (#44E5FF) o Carbón Digital (#0A0A0A)
+- **Ilustraciones**: Isométricas con patrón molecular (círculos conectados) para fondos hero
+
+### Gradientes Existentes:
+```css
+--gradient-primary: linear-gradient(135deg, #44E5FF 0%, #0077A6 100%);
+--gradient-dark: linear-gradient(135deg, #0a0f19 0%, #1a2332 50%, #0a0f19 100%);
+--gradient-glass: linear-gradient(135deg, rgba(68, 229, 255, 0.1) 0%, rgba(0, 119, 166, 0.1) 100%);
+```
+
+## 🚀 REQUISITOS DE DISEÑO COMPLETOS
+
+### 1. ESTRUCTURA HTML SEMÁNTICA
+
+#### Header Hero Section:
+```html
+<header class="hero-section">
+    <!-- Fondo con partículas animadas -->
+    <div class="hero-background">
+        <div class="particles-container"></div>
+        <div class="gradient-overlay"></div>
+    </div>
+    
+    <!-- Navegación -->
+    <nav class="hero-nav">
+        <div class="nav-logo">
+            <svg class="logo-icon">...</svg>
+            <span class="logo-text">Aprende y Aplica</span>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-secondary">Iniciar Sesión</button>
+            <button class="btn-primary">Registrarse</button>
+        </div>
+    </nav>
+    
+    <!-- Contenido Principal -->
+    <div class="hero-content">
+        <div class="hero-badge">
+            <svg class="rocket-icon">🚀</svg>
+            <span>Aprende y Aplica IA</span>
+        </div>
+        <h1 class="hero-title">Domina la IA que transformará tu futuro</h1>
+        <p class="hero-description">
+            Conviértete en experto aplicado: fundamentos claros, herramientas que importan, 
+            y hábitos de aprendizaje continuo para destacar en la era de la inteligencia artificial.
+        </p>
+        <div class="hero-actions">
+            <button class="btn-primary btn-large">
+                <span>Iniciar Sesión</span>
+                <svg class="btn-icon">→</svg>
+            </button>
+            <button class="btn-secondary btn-large">
+                <span>Ver Demo</span>
+                <svg class="btn-icon">▶</svg>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Elemento Visual -->
+    <div class="hero-visual">
+        <div class="floating-card">
+            <div class="card-content">
+                <h3>Lo que aprenderás</h3>
+                <ul class="learning-list">
+                    <li>✓ Fundamentos de IA sin complicarte</li>
+                    <li>✓ Herramientas que realmente importan</li>
+                    <li>✓ Aplicación en proyectos reales</li>
+                    <li>✓ Hábitos de aprendizaje continuo</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</header>
+```
+
+#### Sección de Características:
+```html
+<section class="features-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>¿Por qué elegir nuestra plataforma?</h2>
+            <p>Descubre las ventajas que te harán destacar en el mundo de la IA</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg class="icon-brain">🧠</svg>
+                </div>
+                <h3>Fundamentos Sólidos</h3>
+                <p>Aprende los conceptos esenciales de IA sin perderte en teoría innecesaria</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg class="icon-tools">🛠️</svg>
+                </div>
+                <h3>Herramientas Prácticas</h3>
+                <p>Utiliza las herramientas que realmente importan en el mercado laboral</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg class="icon-projects">📊</svg>
+                </div>
+                <h3>Proyectos Reales</h3>
+                <p>Aplica tus conocimientos en proyectos del mundo real</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg class="icon-growth">📈</svg>
+                </div>
+                <h3>Crecimiento Continuo</h3>
+                <p>Desarrolla hábitos de aprendizaje que te mantendrán actualizado</p>
+            </div>
+        </div>
+    </div>
+</section>
+```
+
+#### Sección de Estadísticas:
+```html
+<section class="stats-section">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number" data-target="1000">0</div>
+                <div class="stat-label">Estudiantes Activos</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="50">0</div>
+                <div class="stat-label">Proyectos Completados</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="95">0</div>
+                <div class="stat-label">% de Satisfacción</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="24">0</div>
+                <div class="stat-label">Horas de Contenido</div>
+            </div>
+        </div>
+    </div>
+</section>
+```
+
+#### Sección de Testimonios:
+```html
+<section class="testimonials-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Lo que dicen nuestros estudiantes</h2>
+        </div>
+        <div class="testimonials-carousel">
+            <div class="testimonial-card active">
+                <div class="testimonial-content">
+                    <p>"Esta plataforma transformó mi carrera. Los proyectos prácticos me dieron la confianza para aplicar IA en mi trabajo."</p>
+                </div>
+                <div class="testimonial-author">
+                    <img src="avatar1.jpg" alt="Ana García">
+                    <div>
+                        <h4>Ana García</h4>
+                        <span>Data Scientist</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Más testimonios... -->
+        </div>
+    </div>
+</section>
+```
+
+#### Footer:
+```html
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <svg class="logo-icon">...</svg>
+                    <span>Aprende y Aplica</span>
+                </div>
+                <p>Transformando el futuro con inteligencia artificial</p>
+            </div>
+            <div class="footer-links">
+                <div class="link-group">
+                    <h4>Plataforma</h4>
+                    <ul>
+                        <li><a href="#">Cursos</a></li>
+                        <li><a href="#">Comunidad</a></li>
+                        <li><a href="#">Recursos</a></li>
+                    </ul>
+                </div>
+                <div class="link-group">
+                    <h4>Soporte</h4>
+                    <ul>
+                        <li><a href="#">Ayuda</a></li>
+                        <li><a href="#">Contacto</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Aprende y Aplica. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>
+```
+
+### 2. ANIMACIONES Y EFECTOS AVANZADOS
+
+#### Animaciones de Entrada:
+```css
+/* Fade In Animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Stagger Animation */
+.stagger-item {
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0.1s; }
+.stagger-item:nth-child(2) { animation-delay: 0.2s; }
+.stagger-item:nth-child(3) { animation-delay: 0.3s; }
+.stagger-item:nth-child(4) { animation-delay: 0.4s; }
+```
+
+#### Efectos Hover Avanzados:
+```css
+/* Glow Effect */
+.glow-hover {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.glow-hover::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, var(--course-primary), var(--course-secondary));
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.glow-hover:hover::before {
+    opacity: 1;
+}
+
+/* Lift Effect */
+.lift-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lift-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(68, 229, 255, 0.3);
+}
+
+/* Magnetic Effect */
+.magnetic {
+    transition: transform 0.3s ease;
+}
+
+.magnetic:hover {
+    transform: scale(1.05);
 }
 ```
 
-### 2. Transformar `.input-container` en la "Isla Dinámica"
-
-El `.input-container` debe ser la píldora oscura y flotante que se ve en la imagen.
-
+#### Animaciones Continuas:
 ```css
-.input-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: #000; /* CAMBIAR: Fondo negro sólido como la Dynamic Island */
-    border: none; /* CAMBIAR: Eliminar cualquier borde */
-    border-radius: 30px; /* CAMBIAR: Hacerlo muy redondeado para que sea una píldora */
-    padding: 8px 16px; /* Ajustar padding para que los elementos internos se vean bien */
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7); /* CAMBIAR: Sombra más pronunciada para efecto flotante */
-    position: relative;
-    backdrop-filter: none; /* CAMBIAR: La Dynamic Island es opaca, no tiene blur en sí misma */
+/* Floating Animation */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+.floating {
+    animation: float 6s ease-in-out infinite;
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(68, 229, 255, 0.7);
+    }
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(68, 229, 255, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(68, 229, 255, 0);
+    }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Gradient Animation */
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.animated-gradient {
+    background: linear-gradient(-45deg, var(--course-primary), var(--course-secondary), var(--course-success), var(--course-primary));
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+}
+```
+
+### 3. SISTEMA DE PARTÍCULAS
+
+#### JavaScript para Partículas:
+```javascript
+class ParticleSystem {
+    constructor(container) {
+        this.container = container;
+        this.particles = [];
+        this.mouse = { x: 0, y: 0 };
+        this.init();
+    }
+
+    init() {
+        this.createParticles();
+        this.bindEvents();
+        this.animate();
+    }
+
+    createParticles() {
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 5 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            
+            this.container.appendChild(particle);
+            this.particles.push(particle);
+        }
+    }
+
+    bindEvents() {
+        document.addEventListener('mousemove', (e) => {
+            this.mouse.x = e.clientX;
+            this.mouse.y = e.clientY;
+        });
+    }
+
+    animate() {
+        this.particles.forEach(particle => {
+            const rect = particle.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const deltaX = this.mouse.x - centerX;
+            const deltaY = this.mouse.y - centerY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            
+            if (distance < 100) {
+                const force = (100 - distance) / 100;
+                particle.style.transform = `translate(${deltaX * force * 0.1}px, ${deltaY * force * 0.1}px)`;
+            }
+        });
+        
+        requestAnimationFrame(() => this.animate());
+    }
+}
+```
+
+#### CSS para Partículas:
+```css
+.particles-container {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    max-width: 600px; /* Ajustar el ancho máximo para que se vea como una píldora en el centro */
-    min-height: 48px; /* Mantener una altura mínima adecuada */
-    margin-bottom: 15px; /* Añadir un margen inferior para separarlo del borde inferior de la pantalla */
-}
-```
-
-### 3. Ajustar el campo de texto (`#messageInput`) para que se integre en la isla
-
-El campo de texto debe tener un fondo ligeramente diferente al de la isla, pero sin bordes, para que se vea como un área de entrada dentro de la píldora.
-
-```css
-#messageInput {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.1); /* CAMBIAR: Fondo más claro y sutil para el campo de texto */
-    border: none; /* Asegurar que no tenga borde */
-    color: var(--course-text-primary);
-    font-family: var(--font-primary);
-    font-size: 0.95rem;
-    resize: none;
-    max-height: 100px;
-    min-height: 20px;
-    outline: none;
-    line-height: 1.4;
-    padding: 8px 16px;
-    border-radius: 18px; /* Mantener un border-radius para el campo de texto */
-    margin: 0 8px;
-    min-width: 0;
-    box-shadow: none; /* Eliminar sombra del campo de texto si la tiene */
-}
-```
-
-### 4. Ajustar los botones (`.plus-btn` y `.action-button`)
-
-Asegurar que los botones se vean bien dentro de la nueva "isla" y que sus colores y tamaños sean adecuados.
-
-```css
-/* Ajustes para el botón '+' */
-.plus-btn {
-    background: rgba(255, 255, 255, 0.15); /* Fondo sutil para el botón */
-    border: none; /* Sin borde */
-    color: #fff; /* Color blanco para el icono */
-    font-size: 1.3rem;
-    font-weight: 900;
-    cursor: pointer;
-    border-radius: 50%; /* Hacerlo circular */
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-    width: 38px;
-    height: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    box-shadow: none; /* Eliminar sombra si la tiene */
-}
-
-/* Ajustes para el botón de acción (micrófono/enviar) */
-.action-button {
-    background: #007AFF; /* Un azul brillante para el botón de acción, similar a iOS */
-    border: none;
-    color: #fff; /* Icono blanco */
-    cursor: pointer;
-    border-radius: 50%;
-    transition: all 0.2s ease;
-    width: 38px;
-    height: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    flex-shrink: 0;
-    position: relative;
-    box-shadow: none; /* Eliminar sombra si la tiene */
-}
-```
-
-### 5. EXPANDIR LA VENTANA DE CONVERSACIÓN HASTA ABAJO
-
-El contenedor principal de mensajes (`.messages-container`) debe extenderse completamente hasta el área de entrada, eliminando cualquier espacio o fondo azul.
-
-```css
-/* Expandir el contenedor de mensajes hasta abajo */
-.messages-container {
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--spacing-md);
-    background: var(--course-card-bg);
-    background-image: 
-        radial-gradient(circle at 25% 25%, rgba(68, 229, 255, 0.05) 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, rgba(68, 229, 255, 0.05) 0%, transparent 50%);
-    background-size: 100px 100px;
-    /* CAMBIAR: Extender hasta el área de entrada */
-    margin-bottom: 0; /* Eliminar margen inferior si existe */
-    padding-bottom: var(--spacing-lg); /* Añadir padding inferior para separar de la Dynamic Island */
-}
-
-/* Asegurar que el contenedor principal ocupe todo el espacio disponible */
-.chat-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: var(--course-card-bg);
-    position: relative;
-    /* CAMBIAR: Asegurar que ocupe todo el espacio vertical */
     height: 100%;
-    min-height: 0; /* Permitir que se contraiga si es necesario */
+    overflow: hidden;
+    pointer-events: none;
 }
 
-/* Eliminar cualquier fondo azul del área de entrada */
-.message-input-area {
-    background: none;           /* Sin fondo */
-    border-top: none;           /* Sin borde superior */
-    padding: var(--spacing-sm); /* Padding mínimo */
-    backdrop-filter: none;      /* Sin blur */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /* CAMBIAR: Asegurar que no ocupe espacio innecesario */
-    flex-shrink: 0; /* No permitir que se contraiga */
-    position: relative;
-    z-index: 10; /* Asegurar que esté por encima del contenido */
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--course-primary);
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: particleFloat 15s linear infinite;
+}
+
+@keyframes particleFloat {
+    0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.6;
+    }
+    90% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+    }
 }
 ```
 
-### 6. ELIMINAR CUALQUIER FONDO AZUL ADICIONAL
-
-Buscar y eliminar cualquier otro elemento que pueda estar creando un fondo azul no deseado.
+### 4. EFECTOS GLASSMORPHISM
 
 ```css
-/* Verificar que no haya fondos azules en elementos padres */
-.chat-container {
-    display: flex;
-    height: calc(100vh - 60px);
-    background: none; /* Asegurar que no tenga fondo */
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-/* Asegurar que el body no tenga fondos adicionales */
-body {
-    font-family: var(--font-primary);
-    background:
-        repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px),
-        repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px),
-        radial-gradient(1200px 800px at 20% 0%, rgba(68, 229, 255, 0.08), transparent 60%),
-        radial-gradient(800px 600px at 80% 100%, rgba(0, 119, 166, 0.12), transparent 60%),
-        var(--chat-bg);
-    color: var(--course-text-primary);
-    line-height: 1.4;
-    overflow: hidden;
-    height: 100vh;
+.glass-button {
+    background: rgba(68, 229, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(68, 229, 255, 0.3);
+    color: var(--course-primary);
+    transition: all 0.3s ease;
+}
+
+.glass-button:hover {
+    background: rgba(68, 229, 255, 0.2);
+    border-color: var(--course-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(68, 229, 255, 0.3);
 }
 ```
 
-## RESULTADO ESPERADO
+### 5. BOTONES AVANZADOS
 
-- El área de entrada de mensajes debe aparecer como una única píldora oscura y flotante en la parte inferior central de la pantalla
-- La ventana de conversación debe extenderse completamente hasta el área de entrada sin espacios vacíos
-- No debe haber ningún fondo azul visible alrededor de la píldora
-- La píldora misma debe ser opaca y de color oscuro, similar a la Dynamic Island de iPhone
-- Los mensajes deben ocupar todo el espacio disponible hasta la Dynamic Island
+```css
+.btn-primary {
+    background: var(--gradient-primary);
+    border: none;
+    border-radius: 50px;
+    padding: 15px 30px;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
 
-## NOTAS IMPORTANTES
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
 
-- Asegúrate de que no haya ningún otro `background` o `border` en elementos padres o hermanos que puedan estar creando un "fondo azul" no deseado
-- Verifica que el `max-width` del `.input-container` sea adecuado para que la "isla" no sea demasiado ancha y mantenga su forma de píldora
-- Asegúrate de que los `padding` y `margin` internos de los elementos (`.plus-btn`, `#messageInput`, `.action-button`) dentro del `.input-container` permitan que todo se vea bien espaciado y centrado verticalmente dentro de la píldora
-- La ventana de conversación debe ocupar todo el espacio vertical disponible hasta la Dynamic Island
+.btn-primary:hover::before {
+    left: 100%;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(68, 229, 255, 0.4);
+}
+
+.btn-large {
+    padding: 18px 40px;
+    font-size: 18px;
+}
+
+.btn-icon {
+    margin-left: 10px;
+    transition: transform 0.3s ease;
+}
+
+.btn-primary:hover .btn-icon {
+    transform: translateX(5px);
+}
+```
+
+### 6. RESPONSIVE DESIGN
+
+```css
+/* Mobile First */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Tablet */
+@media (min-width: 768px) {
+    .container {
+        padding: 0 40px;
+    }
+    
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+    .features-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 40px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .hero-content {
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+    }
+}
+
+/* Large Desktop */
+@media (min-width: 1440px) {
+    .container {
+        max-width: 1400px;
+    }
+}
+```
+
+### 7. SCROLL ANIMATIONS
+
+```javascript
+class ScrollAnimations {
+    constructor() {
+        this.observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        this.init();
+    }
+
+    init() {
+        this.observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                }
+            });
+        }, this.observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            this.observer.observe(el);
+        });
+    }
+}
+```
+
+```css
+.animate-on-scroll {
+    opacity: 0;
+    transform: translateY(50px);
+    transition: all 0.8s ease;
+}
+
+.animate-on-scroll.animate-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Stagger animations */
+.stagger-container .animate-on-scroll:nth-child(1) { transition-delay: 0.1s; }
+.stagger-container .animate-on-scroll:nth-child(2) { transition-delay: 0.2s; }
+.stagger-container .animate-on-scroll:nth-child(3) { transition-delay: 0.3s; }
+.stagger-container .animate-on-scroll:nth-child(4) { transition-delay: 0.4s; }
+```
+
+### 8. CONTADORES ANIMADOS
+
+```javascript
+class AnimatedCounters {
+    constructor() {
+        this.counters = document.querySelectorAll('[data-target]');
+        this.init();
+    }
+
+    init() {
+        this.counters.forEach(counter => {
+            const target = parseInt(counter.getAttribute('data-target'));
+            const duration = 2000; // 2 seconds
+            const increment = target / (duration / 16); // 60fps
+            let current = 0;
+
+            const updateCounter = () => {
+                current += increment;
+                if (current < target) {
+                    counter.textContent = Math.floor(current);
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    counter.textContent = target;
+                }
+            };
+
+            // Start animation when element is visible
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        updateCounter();
+                        observer.unobserve(entry.target);
+                    }
+                });
+            });
+
+            observer.observe(counter);
+        });
+    }
+}
+```
+
+### 9. CARRUSEL DE TESTIMONIOS
+
+```javascript
+class TestimonialsCarousel {
+    constructor() {
+        this.currentSlide = 0;
+        this.slides = document.querySelectorAll('.testimonial-card');
+        this.totalSlides = this.slides.length;
+        this.init();
+    }
+
+    init() {
+        this.showSlide(0);
+        this.startAutoPlay();
+    }
+
+    showSlide(index) {
+        this.slides.forEach((slide, i) => {
+            slide.classList.remove('active');
+            if (i === index) {
+                slide.classList.add('active');
+            }
+        });
+    }
+
+    nextSlide() {
+        this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
+        this.showSlide(this.currentSlide);
+    }
+
+    startAutoPlay() {
+        setInterval(() => {
+            this.nextSlide();
+        }, 5000);
+    }
+}
+```
+
+### 10. PERFORMANCE Y OPTIMIZACIÓN
+
+```css
+/* Optimizaciones de performance */
+* {
+    box-sizing: border-box;
+}
+
+/* Usar transform y opacity para animaciones */
+.optimized-animation {
+    will-change: transform, opacity;
+}
+
+/* Lazy loading para imágenes */
+.lazy-image {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.lazy-image.loaded {
+    opacity: 1;
+}
+
+/* Preload critical resources */
+<link rel="preload" href="critical.css" as="style">
+<link rel="preload" href="hero-image.jpg" as="image">
+```
+
+## 🎯 IMPLEMENTACIÓN COMPLETA
+
+### Estructura de Archivos:
+```
+index.html          # Página principal
+styles/
+├── main.css        # Estilos principales
+├── animations.css  # Animaciones y efectos
+├── components.css  # Componentes específicos
+└── responsive.css  # Media queries
+scripts/
+├── main.js         # JavaScript principal
+├── particles.js    # Sistema de partículas
+├── animations.js   # Animaciones de scroll
+└── carousel.js     # Carrusel de testimonios
+```
+
+### Inicialización:
+```javascript
+document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar sistema de partículas
+    new ParticleSystem(document.querySelector('.particles-container'));
+    
+    // Inicializar animaciones de scroll
+    new ScrollAnimations();
+    
+    // Inicializar contadores animados
+    new AnimatedCounters();
+    
+    // Inicializar carrusel de testimonios
+    new TestimonialsCarousel();
+});
+```
+
+## 📋 CHECKLIST DE ENTREGA
+
+### ✅ Estructura HTML:
+- [ ] HTML semántico y accesible
+- [ ] Meta tags optimizados
+- [ ] Estructura de secciones completa
+- [ ] Formularios funcionales
+
+### ✅ Estilos CSS:
+- [ ] Variables CSS organizadas
+- [ ] Sistema de grid responsive
+- [ ] Efectos glassmorphism
+- [ ] Animaciones fluidas
+- [ ] Gradientes animados
+
+### ✅ JavaScript:
+- [ ] Sistema de partículas
+- [ ] Animaciones de scroll
+- [ ] Contadores animados
+- [ ] Carrusel de testimonios
+- [ ] Efectos de interacción
+
+### ✅ Performance:
+- [ ] CSS optimizado
+- [ ] JavaScript modular
+- [ ] Lazy loading
+- [ ] Core Web Vitals optimizados
+
+### ✅ Accesibilidad:
+- [ ] Navegación por teclado
+- [ ] ARIA labels
+- [ ] Contraste de colores
+- [ ] Screen reader friendly
+
+## 🎯 RESULTADO FINAL ESPERADO
+
+Una página de bienvenida completamente moderna que:
+
+1. **Captura la atención inmediatamente** con animaciones de entrada impactantes
+2. **Comunica el valor** de manera clara y atractiva
+3. **Proporciona una experiencia excepcional** con interacciones fluidas
+4. **Mantiene coherencia total** con el sistema de diseño existente
+5. **Es completamente responsive** y funciona en todos los dispositivos
+6. **Tiene performance optimizada** y carga rápidamente
+7. **Es accesible** para todos los usuarios
+8. **Incluye efectos visuales avanzados** como partículas, glassmorphism y gradientes animados
+
+## 📝 NOTAS IMPORTANTES
+
+- **OBLIGATORIO**: Usar exactamente los colores del sistema existente
+- **OBLIGATORIO**: Mantener la identidad visual del proyecto
+- **OBLIGATORIO**: Implementar todas las animaciones y efectos especificados
+- **OBLIGATORIO**: Código limpio, comentado y bien estructurado
+- **OBLIGATORIO**: Responsive design mobile-first
+- **OBLIGATORIO**: Performance optimizada y accesibilidad completa
+
+**ENTREGA**: Proporcionar todos los archivos HTML, CSS y JavaScript necesarios para implementar completamente esta página de bienvenida moderna y atractiva.

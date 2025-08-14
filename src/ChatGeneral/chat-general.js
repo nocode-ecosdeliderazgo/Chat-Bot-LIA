@@ -2,752 +2,523 @@
 
 class ChatGeneral {
     constructor() {
+        this.messages = [];
         this.currentUser = {
             id: 1,
             name: 'Usuario',
-            avatar: 'U',
-            role: 'Estudiante'
+            avatar: '../assets/images/icono.png'
         };
-        
-        this.messages = [];
-        this.members = [];
-        this.topics = [];
-        this.searchResults = [];
-        this.isTyping = false;
-        this.typingTimeout = null;
-        this.settings = {
-            soundNotifications: true,
-            desktopNotifications: true,
-            messageDensity: 'normal',
-            showTimestamps: true,
-            autoScroll: true
-        };
-        
+        this.settings = this.loadSettings();
+        this.applySettings();
         this.init();
     }
 
-    init() {
-        this.loadSettings();
-        this.setupEventListeners();
-        this.loadMockData();
-        this.renderMessages();
-        this.renderMembers();
-        this.renderTopics();
-        this.updateStats();
-        this.autoScrollToBottom();
+    // Cargar configuración guardada
+    loadSettings() {
+        const defaultSettings = {
+            soundNotifications: true,
+            desktopNotifications: true,
+            chatBackground: 'default',
+            customBackgroundUrl: '',
+            messageDensity: 'normal',
+            showTimestamps: true,
+            showAvatars: true,
+            showMessageBorders: false,
+            autoScroll: true,
+            enterToSend: false,
+            showTypingIndicator: true,
+            colorTheme: 'cybernetic'
+        };
+
+        try {
+            const savedSettings = localStorage.getItem('chatSettings');
+            return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
+        } catch (error) {
+            console.error('Error loading settings:', error);
+            return defaultSettings;
+        }
+    }
+
+    // Guardar configuración
+    saveSettings() {
+        try {
+            localStorage.setItem('chatSettings', JSON.stringify(this.settings));
+            this.applySettings();
+            this.showToast('Configuración guardada exitosamente', 'success');
+        } catch (error) {
+            console.error('Error saving settings:', error);
+            this.showToast('Error al guardar la configuración', 'error');
+        }
+    }
+
+    // Aplicar configuración al chat
+    applySettings() {
+        const body = document.body;
+        const messagesContainer = document.getElementById('messagesContainer');
         
-        // Initialize action button state
-        this.handleInputChange({ target: { value: '' } });
+        // Aplicar fondo al contenedor de mensajes
+        body.className = body.className.replace(/bg-\w+/g, ''); // Remover clases de fondo existentes
+        body.classList.add(`bg-${this.settings.chatBackground}`);
+        
+        // SOLUCIÓN DEFINITIVA - Limpiar cualquier imagen de fondo y asegurar gradiente
+        if (messagesContainer) {
+            // Eliminar cualquier imagen de fondo que pueda estar aplicada
+            messagesContainer.style.backgroundImage = '';
+            // Asegurar que el gradiente de CSS se aplique
+            messagesContainer.style.background = '';
+            // Eliminar cualquier otra propiedad de background que pueda interferir
+            messagesContainer.style.backgroundSize = '';
+            messagesContainer.style.backgroundPosition = '';
+            messagesContainer.style.backgroundRepeat = '';
+            messagesContainer.style.backgroundAttachment = '';
+        }
+        
+        if (this.settings.chatBackground === 'custom' && this.settings.customBackgroundUrl) {
+            if (messagesContainer) {
+                messagesContainer.style.backgroundImage = `url(${this.settings.customBackgroundUrl})`;
+            }
+        }
+
+        // Aplicar tema de color
+        body.className = body.className.replace(/theme-\w+/g, ''); // Remover clases de tema existentes
+        body.classList.add(`theme-${this.settings.colorTheme}`);
+
+        // Aplicar densidad de mensajes
+        body.className = body.className.replace(/density-\w+/g, ''); // Remover clases de densidad existentes
+        body.classList.add(`density-${this.settings.messageDensity}`);
+
+        // Aplicar visibilidad de elementos
+        if (!this.settings.showTimestamps) body.classList.add('hide-timestamps');
+        if (!this.settings.showAvatars) body.classList.add('hide-avatars');
+        if (this.settings.showMessageBorders) body.classList.add('show-message-borders');
+
+        // Aplicar configuración de Enter para enviar
+        this.setupEnterToSend();
+    }
+
+    // Configurar Enter para enviar
+    setupEnterToSend() {
+        const messageInput = document.getElementById('messageInput');
+        if (!messageInput) return;
+
+        messageInput.removeEventListener('keydown', this.handleKeyDown);
+        messageInput.addEventListener('keydown', this.handleKeyDown.bind(this));
+    }
+
+    handleKeyDown(event) {
+        if (this.settings.enterToSend) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                this.sendMessage();
+            }
+        } else {
+            if (event.key === 'Enter' && event.shiftKey) {
+                event.preventDefault();
+                this.sendMessage();
+            }
+        }
+    }
+
+    init() {
+        this.loadMessages();
+        this.setupEventListeners();
+        this.setupSettingsModal();
+        this.updateStats();
+        this.hideLoading();
+    }
+
+    setupSettingsModal() {
+        const settingsModal = document.getElementById('settingsModal');
+        const closeSettingsModal = document.getElementById('closeSettingsModal');
+        const cancelSettings = document.getElementById('cancelSettings');
+        const saveSettings = document.getElementById('saveSettings');
+        const chatBackground = document.getElementById('chatBackground');
+        const customBackgroundContainer = document.getElementById('customBackgroundContainer');
+        const customBackgroundUrl = document.getElementById('customBackgroundUrl');
+
+        // Cargar configuración actual en el modal
+        this.loadSettingsToModal();
+
+        // Mostrar/ocultar campo de URL personalizada
+        chatBackground.addEventListener('change', () => {
+            if (chatBackground.value === 'custom') {
+                customBackgroundContainer.style.display = 'block';
+            } else {
+                customBackgroundContainer.style.display = 'none';
+            }
+        });
+
+        // Cerrar modal
+        closeSettingsModal.addEventListener('click', () => this.closeModal(settingsModal));
+        cancelSettings.addEventListener('click', () => this.closeModal(settingsModal));
+
+        // Guardar configuración
+        saveSettings.addEventListener('click', () => {
+            this.saveSettingsFromModal();
+            this.closeModal(settingsModal);
+        });
+
+        // Cerrar con Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && settingsModal.classList.contains('active')) {
+                this.closeModal(settingsModal);
+            }
+        });
+    }
+
+    // Cargar configuración actual en el modal
+    loadSettingsToModal() {
+        const elements = {
+            soundNotifications: document.getElementById('soundNotifications'),
+            desktopNotifications: document.getElementById('desktopNotifications'),
+            chatBackground: document.getElementById('chatBackground'),
+            customBackgroundUrl: document.getElementById('customBackgroundUrl'),
+            messageDensity: document.getElementById('messageDensity'),
+            showTimestamps: document.getElementById('showTimestamps'),
+            showAvatars: document.getElementById('showAvatars'),
+            showMessageBorders: document.getElementById('showMessageBorders'),
+            autoScroll: document.getElementById('autoScroll'),
+            enterToSend: document.getElementById('enterToSend'),
+            showTypingIndicator: document.getElementById('showTypingIndicator'),
+            colorTheme: document.getElementById('colorTheme')
+        };
+
+        // Aplicar valores guardados
+        Object.keys(this.settings).forEach(key => {
+            if (elements[key]) {
+                if (elements[key].type === 'checkbox') {
+                    elements[key].checked = this.settings[key];
+                } else {
+                    elements[key].value = this.settings[key];
+                }
+            }
+        });
+
+        // Mostrar/ocultar campo de URL personalizada
+        const customBackgroundContainer = document.getElementById('customBackgroundContainer');
+        if (this.settings.chatBackground === 'custom') {
+            customBackgroundContainer.style.display = 'block';
+        }
+    }
+
+    // Guardar configuración desde el modal
+    saveSettingsFromModal() {
+        const elements = {
+            soundNotifications: document.getElementById('soundNotifications'),
+            desktopNotifications: document.getElementById('desktopNotifications'),
+            chatBackground: document.getElementById('chatBackground'),
+            customBackgroundUrl: document.getElementById('customBackgroundUrl'),
+            messageDensity: document.getElementById('messageDensity'),
+            showTimestamps: document.getElementById('showTimestamps'),
+            showAvatars: document.getElementById('showAvatars'),
+            showMessageBorders: document.getElementById('showMessageBorders'),
+            autoScroll: document.getElementById('autoScroll'),
+            enterToSend: document.getElementById('enterToSend'),
+            showTypingIndicator: document.getElementById('showTypingIndicator'),
+            colorTheme: document.getElementById('colorTheme')
+        };
+
+        // Recopilar valores del modal
+        Object.keys(this.settings).forEach(key => {
+            if (elements[key]) {
+                if (elements[key].type === 'checkbox') {
+                    this.settings[key] = elements[key].checked;
+                } else {
+                    this.settings[key] = elements[key].value;
+                }
+            }
+        });
+
+        // Guardar configuración
+        this.saveSettings();
     }
 
     setupEventListeners() {
-        // Navigation
-        document.getElementById('backBtn').addEventListener('click', () => {
-            window.location.href = '../Community/community.html';
-        });
-
         // Header buttons
-        document.getElementById('searchBtn').addEventListener('click', () => this.toggleSearch());
-        document.getElementById('settingsBtn').addEventListener('click', () => this.openSettingsModal());
-        document.getElementById('membersBtn').addEventListener('click', () => this.toggleSidebar());
-
-        // Search functionality
-        document.getElementById('closeSearch').addEventListener('click', () => this.toggleSearch());
-        document.getElementById('clearSearch').addEventListener('click', () => this.clearSearch());
-        document.getElementById('searchInput').addEventListener('input', (e) => this.handleSearch(e.target.value));
-        
-        // Search filters
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.handleSearchFilter(e.target.dataset.filter));
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = '../community/community.html';
         });
+
+        document.getElementById('searchBtn').addEventListener('click', () => this.openSearchOverlay());
+        document.getElementById('menuBtn').addEventListener('click', () => this.toggleHeaderMenu());
+
+        // Header menu items
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const action = e.currentTarget.dataset.action;
+                this.handleMenuAction(action);
+            });
+        });
+
+        // Sidebar buttons
+        document.getElementById('newChatBtn').addEventListener('click', () => this.createNewChat());
+        document.getElementById('sidebarMenuBtn').addEventListener('click', () => this.toggleSidebarMenu());
+
+        // Conversation items
+        document.querySelectorAll('.conversation-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const chatId = e.currentTarget.dataset.chatId;
+                this.switchConversation(chatId);
+            });
+        });
+
+        // Sidebar search
+        const sidebarSearchInput = document.querySelector('.sidebar-search-input');
+        if (sidebarSearchInput) {
+            sidebarSearchInput.addEventListener('input', (e) => {
+                this.filterConversations(e.target.value);
+            });
+        }
 
         // Message input
         const messageInput = document.getElementById('messageInput');
-        messageInput.addEventListener('input', (e) => this.handleInputChange(e));
-        messageInput.addEventListener('keyup', (e) => this.handleInputChange(e));
-        messageInput.addEventListener('change', (e) => this.handleInputChange(e));
-        messageInput.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        if (messageInput) {
+            messageInput.addEventListener('input', (e) => this.handleInputChange(e));
+            messageInput.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        }
+
+        // Action button
+        const actionButton = document.getElementById('actionButton');
+        if (actionButton) {
+            actionButton.addEventListener('click', () => this.handleActionButton());
+        }
+
+        // Plus button and quick actions
+        const plusBtn = document.getElementById('plusBtn');
+        const quickActionsDropdown = document.getElementById('quickActionsDropdown');
         
-        // Action button (dual functionality: send when text, voice when empty)
-        document.getElementById('actionButton').addEventListener('click', () => this.handleActionButton());
+        if (plusBtn) {
+            plusBtn.addEventListener('click', () => this.toggleQuickActions());
+        }
+
+        if (quickActionsDropdown) {
+            quickActionsDropdown.addEventListener('click', (e) => {
+                const actionItem = e.target.closest('.quick-action-item');
+                if (actionItem) {
+                    const action = actionItem.dataset.action;
+                    this.handleQuickAction(action);
+                }
+            });
+        }
+
+        // Close quick actions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.input-container') && !e.target.closest('.quick-actions-dropdown')) {
+                this.closeQuickActions();
+            }
+        });
+
+        // Search overlay
+        document.getElementById('closeSearch').addEventListener('click', () => this.closeSearchOverlay());
+        document.getElementById('clearSearch').addEventListener('click', () => this.clearSearch());
+        document.getElementById('searchInput').addEventListener('input', (e) => this.handleSearch(e.target.value));
+
+        // Search filters
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                this.filterSearchResults(e.target.dataset.filter);
+            });
+        });
 
         // Toolbar buttons
         document.getElementById('emojiBtn').addEventListener('click', () => this.showEmojiPicker());
-        document.getElementById('formatBtn').addEventListener('click', () => this.showFormatOptions());
+        document.getElementById('formatBtn').addEventListener('click', () => this.toggleFormatToolbar());
         document.getElementById('codeBtn').addEventListener('click', () => this.openCodeModal());
         document.getElementById('linkBtn').addEventListener('click', () => this.insertLink());
         document.getElementById('imageBtn').addEventListener('click', () => this.uploadImage());
         document.getElementById('fileBtn').addEventListener('click', () => this.openFileModal());
 
-        // Plus button and quick actions dropdown
-        document.getElementById('plusBtn').addEventListener('click', () => this.toggleQuickActions());
-        
-        // Quick actions dropdown items
-        document.querySelectorAll('.quick-action-item').forEach(item => {
-            item.addEventListener('click', (e) => this.handleQuickAction(e.currentTarget.dataset.action));
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            const dropdown = document.getElementById('quickActionsDropdown');
-            const plusBtn = document.getElementById('plusBtn');
-            
-            if (!dropdown.contains(e.target) && !plusBtn.contains(e.target)) {
-                this.closeQuickActions();
-            }
-        });
-
-        // Modal events
-        this.setupModalEvents();
-
-        // Auto-resize textarea
-        messageInput.addEventListener('input', () => this.autoResizeTextarea());
-    }
-
-    setupModalEvents() {
-        // Code modal
+        // Modals
         document.getElementById('closeCodeModal').addEventListener('click', () => this.closeModal('codeModal'));
         document.getElementById('cancelCode').addEventListener('click', () => this.closeModal('codeModal'));
         document.getElementById('insertCode').addEventListener('click', () => this.insertCode());
 
-        // Poll modal
         document.getElementById('closePollModal').addEventListener('click', () => this.closeModal('pollModal'));
         document.getElementById('cancelPoll').addEventListener('click', () => this.closeModal('pollModal'));
         document.getElementById('createPoll').addEventListener('click', () => this.createPoll());
         document.getElementById('addPollOption').addEventListener('click', () => this.addPollOption());
 
-        // Settings modal
-        document.getElementById('closeSettingsModal').addEventListener('click', () => this.closeModal('settingsModal'));
-        document.getElementById('cancelSettings').addEventListener('click', () => this.closeModal('settingsModal'));
-        document.getElementById('saveSettings').addEventListener('click', () => this.saveSettings());
-
-        // File modal
         document.getElementById('closeFileModal').addEventListener('click', () => this.closeModal('fileModal'));
         document.getElementById('cancelFile').addEventListener('click', () => this.closeModal('fileModal'));
         document.getElementById('uploadFiles').addEventListener('click', () => this.uploadFiles());
 
-        // File upload area
-        const fileUploadArea = document.getElementById('fileUploadArea');
+        // File upload
         const fileInput = document.getElementById('fileInput');
+        const fileUploadArea = document.getElementById('fileUploadArea');
         
-        fileUploadArea.addEventListener('click', () => fileInput.click());
-        fileUploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
-        fileUploadArea.addEventListener('drop', (e) => this.handleFileDrop(e));
-        fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+        }
+        
+        if (fileUploadArea) {
+            fileUploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
+            fileUploadArea.addEventListener('drop', (e) => this.handleFileDrop(e));
+            fileUploadArea.addEventListener('click', () => fileInput.click());
+        }
+
+        // Close modals with Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeAllModals();
+            }
+        });
     }
 
-    loadMockData() {
-        // Mock members
-        this.members = [
-            { id: 1, name: 'Ana García', avatar: 'A', status: 'online', role: 'Estudiante' },
-            { id: 2, name: 'Carlos López', avatar: 'C', status: 'online', role: 'Instructor' },
-            { id: 3, name: 'María Rodríguez', avatar: 'M', status: 'away', role: 'Estudiante' },
-            { id: 4, name: 'Juan Pérez', avatar: 'J', status: 'online', role: 'Estudiante' },
-            { id: 5, name: 'Laura Silva', avatar: 'L', status: 'offline', role: 'Estudiante' }
-        ];
-
-        // Mock topics
-        this.topics = [
-            { name: 'Machine Learning', count: 45 },
-            { name: 'JavaScript Avanzado', count: 32 },
-            { name: 'React y Redux', count: 28 },
-            { name: 'Python para IA', count: 23 },
-            { name: 'Bases de Datos', count: 19 }
-        ];
-
-        // Mock messages
+    loadMessages() {
+        // Simular carga de mensajes
         this.messages = [
             {
                 id: 1,
-                author: 'Ana García',
-                avatar: 'A',
-                content: '¡Hola a todos! ¿Alguien está tomando el curso de Machine Learning?',
-                timestamp: '10:30',
-                type: 'text'
+                author: 'Sistema',
+                content: '¡Bienvenido al Chat General! Aquí puedes conversar con otros miembros de la comunidad.',
+                timestamp: new Date(Date.now() - 3600000),
+                type: 'system'
             },
             {
                 id: 2,
-                author: 'Carlos López',
-                avatar: 'C',
-                content: '¡Hola Ana! Sí, yo lo estoy tomando. Es muy interesante.',
-                timestamp: '10:32',
+                author: 'Ana García',
+                content: '¡Hola a todos! ¿Cómo están?',
+                timestamp: new Date(Date.now() - 1800000),
                 type: 'text'
             },
             {
                 id: 3,
-                author: this.currentUser.name,
-                avatar: this.currentUser.avatar,
-                content: '¡Hola! Yo también estoy interesado en ese curso.',
-                timestamp: '10:35',
-                type: 'text',
-                isOwn: true
-            },
-            {
-                id: 4,
-                author: 'María Rodríguez',
-                avatar: 'M',
-                content: 'Aquí tienes un ejemplo de código que me ayudó mucho:',
-                timestamp: '10:40',
-                type: 'text'
-            },
-            {
-                id: 5,
-                author: 'María Rodríguez',
-                avatar: 'M',
-                content: {
-                    language: 'python',
-                    code: `import numpy as np
-import pandas as pd
-from sklearn.model_selection import train_test_split
-
-# Cargar datos
-data = pd.read_csv('dataset.csv')
-X = data.drop('target', axis=1)
-y = data['target']
-
-# Dividir datos
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-print("Datos cargados exitosamente!")`,
-                    description: 'Ejemplo de carga de datos para ML'
-                },
-                timestamp: '10:41',
-                type: 'code'
-            },
-            {
-                id: 6,
-                author: 'Juan Pérez',
-                avatar: 'J',
-                content: '¡Excelente ejemplo! ¿Podrías explicar más sobre el preprocesamiento?',
-                timestamp: '10:45',
-                type: 'text'
-            },
-            {
-                id: 7,
-                author: this.currentUser.name,
-                avatar: this.currentUser.avatar,
-                content: 'hola',
-                timestamp: '23:41',
-                type: 'text',
-                isOwn: true
-            },
-            {
-                id: 8,
-                author: 'Ana García',
-                avatar: 'A',
-                content: '¡Excelente punto!',
-                timestamp: '23:41',
+                author: 'Carlos López',
+                content: '¡Hola Ana! Todo bien, gracias. ¿Alguien está trabajando en algún proyecto interesante?',
+                timestamp: new Date(Date.now() - 900000),
                 type: 'text'
             }
         ];
+        
+        this.renderMessages();
+        this.autoScrollToBottom();
     }
 
     renderMessages() {
         const messagesWrapper = document.getElementById('messagesWrapper');
-        messagesWrapper.innerHTML = '';
+        if (!messagesWrapper) return;
 
-        this.messages.forEach(message => {
-            const messageElement = this.createMessageElement(message);
-            messagesWrapper.appendChild(messageElement);
-        });
-
-        this.autoScrollToBottom();
+        messagesWrapper.innerHTML = this.messages.map(message => this.createMessageHTML(message)).join('');
     }
 
-    createMessageElement(message) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${message.isOwn ? 'own' : ''}`;
-
-        const avatar = document.createElement('div');
-        avatar.className = 'message-avatar';
-        avatar.textContent = message.avatar;
-
-        const content = document.createElement('div');
-        content.className = 'message-content';
-
-        const header = document.createElement('div');
-        header.className = 'message-header';
-        header.innerHTML = `
-            <span class="message-author">${message.author}</span>
-            <span class="message-time">${message.timestamp}</span>
-        `;
-
-        content.appendChild(header);
-
-        if (message.type === 'text') {
-            const text = document.createElement('div');
-            text.className = 'message-text';
-            text.textContent = message.content;
-            content.appendChild(text);
-        } else if (message.type === 'code') {
-            const codeBlock = this.createCodeBlock(message.content);
-            content.appendChild(codeBlock);
-        } else if (message.type === 'poll') {
-            const pollBlock = this.createPollBlock(message.content);
-            content.appendChild(pollBlock);
-        }
-
-        messageDiv.appendChild(avatar);
-        messageDiv.appendChild(content);
-
-        return messageDiv;
-    }
-
-    createCodeBlock(codeData) {
-        const codeDiv = document.createElement('div');
-        codeDiv.className = 'message-code';
-
-        const header = document.createElement('div');
-        header.className = 'code-header';
-        header.innerHTML = `
-            <span class="code-language">${codeData.language}</span>
-            <button class="copy-code-btn" title="Copiar código">
-                <i class="fas fa-copy"></i>
-            </button>
-        `;
-
-        const code = document.createElement('pre');
-        code.textContent = codeData.code;
-
-        const description = document.createElement('div');
-        description.className = 'code-description';
-        description.textContent = codeData.description;
-
-        codeDiv.appendChild(header);
-        codeDiv.appendChild(code);
-        codeDiv.appendChild(description);
-
-        // Add copy functionality
-        header.querySelector('.copy-code-btn').addEventListener('click', () => {
-            navigator.clipboard.writeText(codeData.code);
-            this.showToast('Código copiado al portapapeles', 'success');
-        });
-
-        return codeDiv;
-    }
-
-    createPollBlock(pollData) {
-        const pollDiv = document.createElement('div');
-        pollDiv.className = 'message-poll';
-
-        const question = document.createElement('div');
-        question.className = 'poll-question';
-        question.textContent = pollData.question;
-
-        const options = document.createElement('div');
-        options.className = 'poll-options';
-
-        pollData.options.forEach(option => {
-            const optionDiv = document.createElement('div');
-            optionDiv.className = 'poll-option';
-            optionDiv.innerHTML = `
-                <span class="poll-option-text">${option.text}</span>
-                <span class="poll-option-votes">${option.votes} votos</span>
-            `;
-            optionDiv.addEventListener('click', () => this.votePoll(pollData.id, option.id));
-            options.appendChild(optionDiv);
-        });
-
-        pollDiv.appendChild(question);
-        pollDiv.appendChild(options);
-
-        return pollDiv;
-    }
-
-    renderMembers() {
-        const membersList = document.getElementById('membersList');
-        membersList.innerHTML = '';
-
-        this.members.forEach(member => {
-            const memberDiv = document.createElement('div');
-            memberDiv.className = 'member-item';
-            memberDiv.innerHTML = `
-                <div class="member-avatar">${member.avatar}</div>
-                <div class="member-info">
-                    <div class="member-name">${member.name}</div>
-                    <div class="member-status ${member.status}">${member.status}</div>
+    createMessageHTML(message) {
+        const isOwn = message.author === this.currentUser.name;
+        const timeString = this.formatTime(message.timestamp);
+        
+        let messageClass = `message ${isOwn ? 'own' : ''}`;
+        if (message.type === 'system') messageClass += ' system';
+        
+        return `
+            <div class="${messageClass}" data-message-id="${message.id}">
+                <div class="message-content">
+                    ${message.type !== 'system' ? `
+                        <div class="message-header">
+                            <span class="message-author">${message.author}</span>
+                            ${this.settings.showTimestamps ? `<span class="message-time">${timeString}</span>` : ''}
+                        </div>
+                    ` : ''}
+                    <div class="message-text">${message.content}</div>
                 </div>
-            `;
-            membersList.appendChild(memberDiv);
+            </div>
+        `;
+    }
+
+    formatTime(date) {
+        return date.toLocaleTimeString('es-ES', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
         });
-    }
-
-    renderTopics() {
-        const topicsList = document.getElementById('topicsList');
-        topicsList.innerHTML = '';
-
-        this.topics.forEach(topic => {
-            const topicDiv = document.createElement('div');
-            topicDiv.className = 'topic-item';
-            topicDiv.innerHTML = `
-                <div class="topic-name">${topic.name}</div>
-                <div class="topic-count">${topic.count} mensajes</div>
-            `;
-            topicDiv.addEventListener('click', () => this.searchTopic(topic.name));
-            topicsList.appendChild(topicDiv);
-        });
-    }
-
-    updateStats() {
-        const onlineCount = this.members.filter(m => m.status === 'online').length;
-        const messageCount = this.messages.length;
-
-        document.getElementById('onlineCount').textContent = onlineCount;
-        document.getElementById('messageCount').textContent = messageCount;
-    }
-
-    handleInputChange(event) {
-        const message = event.target.value.trim();
-        const inputContainer = document.getElementById('inputContainer');
-        
-        // Update action button state based on text presence
-        if (message) {
-            inputContainer.classList.add('input-has-text');
-        } else {
-            inputContainer.classList.remove('input-has-text');
-        }
-    }
-
-    handleKeyDown(event) {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            this.sendMessage();
-        }
-    }
-
-    handleActionButton() {
-        const message = document.getElementById('messageInput').value.trim();
-        
-        if (message) {
-            // If there's text, send the message
-            this.sendMessage();
-        } else {
-            // If no text, toggle voice recording
-            this.toggleVoiceRecording();
-        }
     }
 
     sendMessage() {
         const messageInput = document.getElementById('messageInput');
-        const message = messageInput.value.trim();
+        const content = messageInput.value.trim();
+        
+        if (!content) return;
 
-        if (!message) return;
-
-        const newMessage = {
-            id: this.messages.length + 1,
+        const message = {
+            id: Date.now(),
             author: this.currentUser.name,
-            avatar: this.currentUser.avatar,
-            content: message,
-            timestamp: this.getCurrentTime(),
-            type: 'text',
-            isOwn: true
-        };
-
-        this.messages.push(newMessage);
-        this.renderMessages();
-        messageInput.value = '';
-        this.autoResizeTextarea();
-
-        // Reset action button state after sending
-        const inputContainer = document.getElementById('inputContainer');
-        inputContainer.classList.remove('input-has-text');
-
-        // Simulate response after a delay
-        setTimeout(() => this.simulateResponse(), 2000);
-    }
-
-    simulateResponse() {
-        const responses = [
-            '¡Interesante punto!',
-            'Gracias por compartir eso.',
-            '¿Podrías explicar más sobre eso?',
-            '¡Excelente contribución!',
-            'Estoy de acuerdo contigo.',
-            '¿Alguien más tiene experiencia con esto?'
-        ];
-
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        const randomMember = this.members[Math.floor(Math.random() * this.members.length)];
-
-        const responseMessage = {
-            id: this.messages.length + 1,
-            author: randomMember.name,
-            avatar: randomMember.avatar,
-            content: randomResponse,
-            timestamp: this.getCurrentTime(),
+            content: content,
+            timestamp: new Date(),
             type: 'text'
         };
 
-        this.messages.push(responseMessage);
+        this.messages.push(message);
         this.renderMessages();
-        this.updateStats();
+        
+        if (this.settings.autoScroll) {
+            this.autoScrollToBottom();
+        }
+
+        messageInput.value = '';
+        this.handleInputChange({ target: { value: '' } });
+
+        // Simular respuesta del sistema
+        setTimeout(() => {
+            const response = {
+                id: Date.now() + 1,
+                author: 'Sistema',
+                content: 'Mensaje recibido correctamente.',
+                timestamp: new Date(),
+                type: 'system'
+            };
+            this.messages.push(response);
+            this.renderMessages();
+            if (this.settings.autoScroll) {
+                this.autoScrollToBottom();
+            }
+        }, 1000);
     }
-
-    getCurrentTime() {
-        const now = new Date();
-        return now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-    }
-
-    autoResizeTextarea() {
-        const textarea = document.getElementById('messageInput');
-        textarea.style.height = 'auto';
-        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-    }
-
-
 
     autoScrollToBottom() {
-        if (this.settings.autoScroll) {
-            const messagesContainer = document.getElementById('messagesContainer');
+        const messagesContainer = document.getElementById('messagesContainer');
+        if (messagesContainer) {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
     }
 
-    toggleSearch() {
-        const searchOverlay = document.getElementById('searchOverlay');
-        searchOverlay.classList.toggle('active');
+    handleInputChange(event) {
+        const inputContainer = document.getElementById('inputContainer');
+        const actionButton = document.getElementById('actionButton');
+        const hasText = event.target.value.trim().length > 0;
         
-        if (searchOverlay.classList.contains('active')) {
-            document.getElementById('searchInput').focus();
-        }
-    }
-
-    handleSearch(query) {
-        if (!query.trim()) {
-            this.searchResults = [];
-            this.renderSearchResults();
-            return;
-        }
-
-        this.searchResults = this.messages.filter(message => 
-            message.content.toLowerCase().includes(query.toLowerCase()) ||
-            message.author.toLowerCase().includes(query.toLowerCase())
-        );
-
-        this.renderSearchResults();
-    }
-
-    handleSearchFilter(filter) {
-        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-
-        // Filter search results based on type
-        if (filter === 'all') {
-            this.renderSearchResults();
+        if (hasText) {
+            inputContainer.classList.add('input-has-text');
+            actionButton.classList.add('has-text');
         } else {
-            const filtered = this.searchResults.filter(message => message.type === filter);
-            this.renderSearchResults(filtered);
+            inputContainer.classList.remove('input-has-text');
+            actionButton.classList.remove('has-text');
         }
     }
 
-    renderSearchResults(results = this.searchResults) {
-        const searchResults = document.getElementById('searchResults');
-        searchResults.innerHTML = '';
-
-        if (results.length === 0) {
-            searchResults.innerHTML = '<p style="text-align: center; color: var(--text-muted);">No se encontraron resultados</p>';
-            return;
-        }
-
-        results.forEach(message => {
-            const resultDiv = document.createElement('div');
-            resultDiv.className = 'search-result-item';
-            resultDiv.innerHTML = `
-                <div class="result-author">${message.author}</div>
-                <div class="result-content">${message.content}</div>
-                <div class="result-time">${message.timestamp}</div>
-            `;
-            resultDiv.addEventListener('click', () => this.scrollToMessage(message.id));
-            searchResults.appendChild(resultDiv);
-        });
-    }
-
-    scrollToMessage(messageId) {
-        // Implementation for scrolling to specific message
-        this.toggleSearch();
-        this.showToast('Navegando al mensaje...', 'info');
-    }
-
-    clearSearch() {
-        document.getElementById('searchInput').value = '';
-        this.searchResults = [];
-        this.renderSearchResults();
-    }
-
-    toggleSidebar() {
-        const sidebar = document.getElementById('chatSidebar');
-        sidebar.classList.toggle('active');
-    }
-
-    // Modal functions
-    openModal(modalId) {
-        document.getElementById(modalId).classList.add('active');
-    }
-
-    closeModal(modalId) {
-        document.getElementById(modalId).classList.remove('active');
-    }
-
-    openCodeModal() {
-        this.openModal('codeModal');
-    }
-
-    insertCode() {
-        const language = document.getElementById('codeLanguage').value;
-        const code = document.getElementById('codeContent').value;
-        const description = document.getElementById('codeDescription').value;
-
-        if (!code.trim()) {
-            this.showToast('Por favor ingresa el código', 'warning');
-            return;
-        }
-
-        const codeMessage = {
-            id: this.messages.length + 1,
-            author: this.currentUser.name,
-            avatar: this.currentUser.avatar,
-            content: {
-                language: language,
-                code: code,
-                description: description
-            },
-            timestamp: this.getCurrentTime(),
-            type: 'code',
-            isOwn: true
-        };
-
-        this.messages.push(codeMessage);
-        this.renderMessages();
-        this.closeModal('codeModal');
-        this.showToast('Código insertado exitosamente', 'success');
-
-        // Clear form
-        document.getElementById('codeContent').value = '';
-        document.getElementById('codeDescription').value = '';
-    }
-
-    openFileModal() {
-        this.openModal('fileModal');
-    }
-
-    handleFileSelect(event) {
-        const files = Array.from(event.target.files);
-        this.addFilesToList(files);
-    }
-
-    handleDragOver(event) {
-        event.preventDefault();
-        event.currentTarget.style.borderColor = 'var(--primary-color)';
-        event.currentTarget.style.background = 'rgba(68, 229, 255, 0.05)';
-    }
-
-    handleFileDrop(event) {
-        event.preventDefault();
-        const files = Array.from(event.dataTransfer.files);
-        this.addFilesToList(files);
+    handleActionButton() {
+        const messageInput = document.getElementById('messageInput');
+        const hasText = messageInput.value.trim().length > 0;
         
-        // Reset styling
-        event.currentTarget.style.borderColor = '';
-        event.currentTarget.style.background = '';
-    }
-
-    addFilesToList(files) {
-        const fileList = document.getElementById('fileList');
-        
-        files.forEach(file => {
-            const fileItem = document.createElement('div');
-            fileItem.className = 'file-item';
-            fileItem.innerHTML = `
-                <i class="fas fa-file"></i>
-                <span class="file-item-name">${file.name}</span>
-                <button class="remove-file" type="button">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            
-            fileItem.querySelector('.remove-file').addEventListener('click', () => {
-                fileItem.remove();
-            });
-            
-            fileList.appendChild(fileItem);
-        });
-    }
-
-    uploadFiles() {
-        const fileItems = document.querySelectorAll('.file-item');
-        if (fileItems.length === 0) {
-            this.showToast('Por favor selecciona archivos', 'warning');
-            return;
+        if (hasText) {
+            this.sendMessage();
+        } else {
+            // Activar micrófono
+            this.startVoiceRecording();
         }
-
-        this.showToast('Archivos subidos exitosamente', 'success');
-        this.closeModal('fileModal');
-        
-        // Clear file list
-        document.getElementById('fileList').innerHTML = '';
     }
 
-    openSettingsModal() {
-        this.openModal('settingsModal');
-        this.loadSettingsToForm();
-    }
-
-    loadSettingsToForm() {
-        document.getElementById('soundNotifications').checked = this.settings.soundNotifications;
-        document.getElementById('desktopNotifications').checked = this.settings.desktopNotifications;
-        document.getElementById('messageDensity').value = this.settings.messageDensity;
-        document.getElementById('showTimestamps').checked = this.settings.showTimestamps;
-        document.getElementById('autoScroll').checked = this.settings.autoScroll;
-        document.getElementById('showTypingIndicator').checked = this.settings.showTypingIndicator;
-    }
-
-    saveSettings() {
-        this.settings = {
-            soundNotifications: document.getElementById('soundNotifications').checked,
-            desktopNotifications: document.getElementById('desktopNotifications').checked,
-            messageDensity: document.getElementById('messageDensity').value,
-            showTimestamps: document.getElementById('showTimestamps').checked,
-            autoScroll: document.getElementById('autoScroll').checked,
-            showTypingIndicator: document.getElementById('showTypingIndicator').checked
-        };
-
-        localStorage.setItem('chatSettings', JSON.stringify(this.settings));
-        this.closeModal('settingsModal');
-        this.showToast('Configuración guardada', 'success');
-    }
-
-    loadSettings() {
-        const saved = localStorage.getItem('chatSettings');
-        if (saved) {
-            this.settings = { ...this.settings, ...JSON.parse(saved) };
-        }
+    startVoiceRecording() {
+        this.showToast('Grabación de voz iniciada...', 'info');
+        // Aquí iría la lógica de grabación de voz
     }
 
     toggleQuickActions() {
         const dropdown = document.getElementById('quickActionsDropdown');
-        const plusBtn = document.getElementById('plusBtn');
-        
-        if (dropdown.classList.contains('active')) {
-            this.closeQuickActions();
-        } else {
-            this.openQuickActions();
-        }
-    }
-
-    openQuickActions() {
-        const dropdown = document.getElementById('quickActionsDropdown');
-        const plusBtn = document.getElementById('plusBtn');
-        
-        dropdown.classList.add('active');
-        plusBtn.classList.add('active');
+        dropdown.classList.toggle('active');
     }
 
     closeQuickActions() {
         const dropdown = document.getElementById('quickActionsDropdown');
-        const plusBtn = document.getElementById('plusBtn');
-        
         dropdown.classList.remove('active');
-        plusBtn.classList.remove('active');
     }
 
     handleQuickAction(action) {
@@ -769,145 +540,141 @@ print("Datos cargados exitosamente!")`,
         }
     }
 
-    openPollModal() {
-        this.openModal('pollModal');
+    toggleHeaderMenu() {
+        const dropdown = document.getElementById('headerMenuDropdown');
+        dropdown.classList.toggle('active');
     }
 
-    addPollOption() {
-        const pollOptions = document.getElementById('pollOptions');
-        const optionDiv = document.createElement('div');
-        optionDiv.className = 'poll-option';
-        optionDiv.innerHTML = `
-            <input type="text" placeholder="Nueva opción" class="poll-option-input">
-            <button class="remove-option" type="button">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
+    handleMenuAction(action) {
+        this.toggleHeaderMenu();
         
-        optionDiv.querySelector('.remove-option').addEventListener('click', () => {
-            optionDiv.remove();
+        switch (action) {
+            case 'settings':
+                this.openSettingsModal();
+                break;
+            case 'members':
+                this.toggleSidebar();
+                break;
+            case 'info':
+                this.showChatInfo();
+                break;
+            case 'export':
+                this.exportChat();
+                break;
+            case 'clear':
+                this.clearChat();
+                break;
+        }
+    }
+
+    openSettingsModal() {
+        this.openModal('settingsModal');
+        this.loadSettingsToModal();
+    }
+
+    openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    closeAllModals() {
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.classList.remove('active');
         });
+        document.body.style.overflow = '';
+    }
+
+    updateStats() {
+        const onlineCountElement = document.getElementById('onlineCount');
+        const messageCountElement = document.getElementById('messageCount');
         
-        pollOptions.appendChild(optionDiv);
-    }
-
-    createPoll() {
-        const question = document.getElementById('pollQuestion').value;
-        const options = Array.from(document.querySelectorAll('.poll-option-input'))
-            .map(input => input.value)
-            .filter(value => value.trim());
-
-        if (!question.trim() || options.length < 2) {
-            this.showToast('Por favor completa la pregunta y al menos 2 opciones', 'warning');
-            return;
+        if (onlineCountElement) {
+            onlineCountElement.textContent = Math.floor(Math.random() * 10) + 1;
         }
-
-        const pollMessage = {
-            id: this.messages.length + 1,
-            author: this.currentUser.name,
-            avatar: this.currentUser.avatar,
-            content: {
-                id: Date.now(),
-                question: question,
-                options: options.map((option, index) => ({
-                    id: index,
-                    text: option,
-                    votes: 0
-                })),
-                multiple: document.getElementById('pollMultiple').checked
-            },
-            timestamp: this.getCurrentTime(),
-            type: 'poll',
-            isOwn: true
-        };
-
-        this.messages.push(pollMessage);
-        this.renderMessages();
-        this.closeModal('pollModal');
-        this.showToast('Encuesta creada exitosamente', 'success');
-
-        // Clear form
-        document.getElementById('pollQuestion').value = '';
-        document.getElementById('pollOptions').innerHTML = `
-            <div class="poll-option">
-                <input type="text" placeholder="Opción 1" class="poll-option-input">
-                <button class="remove-option" type="button">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="poll-option">
-                <input type="text" placeholder="Opción 2" class="poll-option-input">
-                <button class="remove-option" type="button">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-    }
-
-    votePoll(pollId, optionId) {
-        // Implementation for voting in polls
-        this.showToast('Voto registrado', 'success');
-    }
-
-    searchTopic(topicName) {
-        document.getElementById('searchInput').value = topicName;
-        this.handleSearch(topicName);
-        this.toggleSearch();
-    }
-
-    toggleVoiceRecording() {
-        this.showToast('Función de grabación de voz próximamente', 'info');
-    }
-
-    showEmojiPicker() {
-        this.showToast('Selector de emojis próximamente', 'info');
-    }
-
-    showFormatOptions() {
-        this.showToast('Opciones de formato próximamente', 'info');
-    }
-
-    insertLink() {
-        const url = prompt('Ingresa la URL:');
-        if (url) {
-            const messageInput = document.getElementById('messageInput');
-            messageInput.value += ` ${url}`;
-            messageInput.focus();
+        
+        if (messageCountElement) {
+            messageCountElement.textContent = this.messages.length;
         }
-    }
-
-    uploadImage() {
-        this.showToast('Función de subida de imágenes próximamente', 'info');
     }
 
     showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toastContainer');
         const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `
-            <div class="toast-content">
-                <span>${message}</span>
-                <button class="toast-close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-
-        const container = document.getElementById('toastContainer');
-        container.appendChild(toast);
-
-        // Auto remove after 3 seconds
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        
+        toastContainer.appendChild(toast);
+        
         setTimeout(() => {
-            toast.remove();
+            toast.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toastContainer.removeChild(toast);
+            }, 300);
         }, 3000);
+    }
 
-        // Close button functionality
-        toast.querySelector('.toast-close').addEventListener('click', () => {
-            toast.remove();
-        });
+    hideLoading() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+    }
+
+    // Funciones placeholder para funcionalidades futuras
+    openSearchOverlay() { this.showToast('Búsqueda en desarrollo', 'info'); }
+    closeSearchOverlay() { this.showToast('Cerrar búsqueda', 'info'); }
+    clearSearch() { this.showToast('Limpiar búsqueda', 'info'); }
+    handleSearch(query) { this.showToast(`Buscando: ${query}`, 'info'); }
+    filterSearchResults(filter) { this.showToast(`Filtrando por: ${filter}`, 'info'); }
+    showEmojiPicker() { this.showToast('Selector de emojis en desarrollo', 'info'); }
+    toggleFormatToolbar() { this.showToast('Barra de formato en desarrollo', 'info'); }
+    openCodeModal() { this.openModal('codeModal'); }
+    closeCodeModal() { this.closeModal('codeModal'); }
+    insertCode() { this.showToast('Código insertado', 'success'); this.closeModal('codeModal'); }
+    insertLink() { this.showToast('Insertar enlace en desarrollo', 'info'); }
+    uploadImage() { this.showToast('Subir imagen en desarrollo', 'info'); }
+    openFileModal() { this.openModal('fileModal'); }
+    closeFileModal() { this.closeModal('fileModal'); }
+    uploadFiles() { this.showToast('Archivos subidos', 'success'); this.closeModal('fileModal'); }
+    handleFileSelect(event) { this.showToast(`${event.target.files.length} archivo(s) seleccionado(s)`, 'info'); }
+    handleDragOver(event) { event.preventDefault(); }
+    handleFileDrop(event) { event.preventDefault(); this.showToast('Archivos soltados', 'info'); }
+    openPollModal() { this.openModal('pollModal'); }
+    closePollModal() { this.closeModal('pollModal'); }
+    createPoll() { this.showToast('Encuesta creada', 'success'); this.closeModal('pollModal'); }
+    addPollOption() { this.showToast('Opción agregada', 'info'); }
+    createNewChat() { this.showToast('Nuevo chat en desarrollo', 'info'); }
+    toggleSidebarMenu() { this.showToast('Menú del sidebar en desarrollo', 'info'); }
+    switchConversation(chatId) { this.showToast(`Cambiando a chat: ${chatId}`, 'info'); }
+    filterConversations(searchTerm) { this.showToast(`Filtrando conversaciones: ${searchTerm}`, 'info'); }
+    toggleSidebar() { this.showToast('Mostrar miembros en desarrollo', 'info'); }
+    showChatInfo() { this.showToast('Información del chat en desarrollo', 'info'); }
+    exportChat() { this.showToast('Exportar chat en desarrollo', 'info'); }
+    clearChat() { 
+        if (confirm('¿Estás seguro de que quieres limpiar el chat? Esta acción no se puede deshacer.')) {
+            this.messages = [];
+            this.renderMessages();
+            this.showToast('Chat limpiado', 'success');
+        }
     }
 }
 
-// Initialize chat when DOM is loaded
+// Inicializar el chat cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     new ChatGeneral();
 });

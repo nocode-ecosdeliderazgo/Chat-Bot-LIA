@@ -908,8 +908,8 @@ body:not(.left-collapsed):not(.right-collapsed) { --chat-max: 520px; }
     z-index: 0;
 }
 
-/* Partículas sutiles en el fondo del área de mensajes */
-.chat-messages::before {
+/* Partículas sutiles en el fondo del área de mensajes - SOLO PARA CHAT PRINCIPAL */
+.chat-container .chat-messages::before {
     content: "";
     position: absolute;
     inset: 0;
