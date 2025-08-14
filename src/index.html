@@ -54,7 +54,7 @@
         <div class="hero-content">
             <div class="hero-text">
                 <div class="hero-badge animate-on-scroll">
-                    <span class="rocket-icon">🚀</span>
+                    <img src="assets/icons/rocket.svg" alt="Rocket" class="icon rocket-icon">
                     <span>Aprende y Aplica IA</span>
                 </div>
                 <h1 class="hero-title animate-on-scroll">Domina la IA que transformará tu futuro</h1>
@@ -66,10 +66,6 @@
                     <button class="btn-primary btn-large" onclick="window.location.href='login/login.html'">
                         <span>Iniciar Sesión</span>
                         <span class="btn-icon">→</span>
-                    </button>
-                    <button class="btn-secondary btn-large glass-button" onclick="window.location.href='courses.html'">
-                        <span>Ver Demo</span>
-                        <span class="btn-icon">▶</span>
                     </button>
                 </div>
             </div>
@@ -101,28 +97,28 @@
             <div class="features-grid stagger-container">
                 <div class="feature-card animate-on-scroll lift-hover">
                     <div class="feature-icon">
-                        <span class="icon-brain">🧠</span>
+                        <img src="assets/icons/brain.svg" alt="Brain" class="icon icon-brain">
                     </div>
                     <h3>Fundamentos Sólidos</h3>
                     <p>Aprende los conceptos esenciales de IA sin perderte en teoría innecesaria</p>
                 </div>
                 <div class="feature-card animate-on-scroll lift-hover">
                     <div class="feature-icon">
-                        <span class="icon-tools">🛠️</span>
+                        <img src="assets/icons/tools.svg" alt="Tools" class="icon icon-tools">
                     </div>
                     <h3>Herramientas Prácticas</h3>
                     <p>Utiliza las herramientas que realmente importan en el mercado laboral</p>
                 </div>
                 <div class="feature-card animate-on-scroll lift-hover">
                     <div class="feature-icon">
-                        <span class="icon-projects">📊</span>
+                        <img src="assets/icons/chart.svg" alt="Chart" class="icon icon-projects">
                     </div>
                     <h3>Proyectos Reales</h3>
                     <p>Aplica tus conocimientos en proyectos del mundo real</p>
                 </div>
                 <div class="feature-card animate-on-scroll lift-hover">
                     <div class="feature-icon">
-                        <span class="icon-growth">📈</span>
+                        <img src="assets/icons/growth.svg" alt="Growth" class="icon icon-growth">
                     </div>
                     <h3>Crecimiento Continuo</h3>
                     <p>Desarrolla hábitos de aprendizaje que te mantendrán actualizado</p>
@@ -167,8 +163,10 @@
                         <p>"Esta plataforma transformó mi carrera. Los proyectos prácticos me dieron la confianza para aplicar IA en mi trabajo."</p>
                     </div>
                     <div class="testimonial-author">
-                        <img src="assets/images/avatar1.jpg" alt="Ana García" class="lazy-image">
-                        <div>
+                        <div class="author-avatar">
+                            <div class="avatar-placeholder"></div>
+                        </div>
+                        <div class="author-info">
                             <h4>Ana García</h4>
                             <span>Data Scientist</span>
                         </div>
@@ -179,8 +177,10 @@
                         <p>"Los fundamentos claros y las herramientas prácticas me ayudaron a destacar en mi equipo de desarrollo."</p>
                     </div>
                     <div class="testimonial-author">
-                        <img src="assets/images/avatar2.jpg" alt="Carlos Ruiz" class="lazy-image">
-                        <div>
+                        <div class="author-avatar">
+                            <div class="avatar-placeholder"></div>
+                        </div>
+                        <div class="author-info">
                             <h4>Carlos Ruiz</h4>
                             <span>Software Engineer</span>
                         </div>
@@ -191,8 +191,10 @@
                         <p>"Aprendí más en 3 meses aquí que en años de cursos teóricos. Los proyectos reales hacen la diferencia."</p>
                     </div>
                     <div class="testimonial-author">
-                        <img src="assets/images/avatar3.jpg" alt="María López" class="lazy-image">
-                        <div>
+                        <div class="author-avatar">
+                            <div class="avatar-placeholder"></div>
+                        </div>
+                        <div class="author-info">
                             <h4>María López</h4>
                             <span>Product Manager</span>
                         </div>
@@ -211,48 +213,13 @@
                 <div class="cta-actions">
                     <button class="btn-primary btn-large pulse" onclick="window.location.href='login/login.html'">
                         <span>Comenzar Ahora</span>
-                        <span class="btn-icon">🚀</span>
+                        <img src="assets/icons/rocket.svg" alt="Rocket" class="icon btn-icon">
                     </button>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <div class="footer-logo">
-                        <img src="assets/images/icono.png" alt="Aprende y Aplica" class="logo-img">
-                        <span>Aprende y Aplica</span>
-                    </div>
-                    <p>Transformando el futuro con inteligencia artificial</p>
-                </div>
-                <div class="footer-links">
-                    <div class="link-group">
-                        <h4>Plataforma</h4>
-                        <ul>
-                            <li><a href="courses.html">Cursos</a></li>
-                            <li><a href="Community/community.html">Comunidad</a></li>
-                            <li><a href="Notices/notices.html">Recursos</a></li>
-                        </ul>
-                    </div>
-                    <div class="link-group">
-                        <h4>Soporte</h4>
-                        <ul>
-                            <li><a href="#ayuda">Ayuda</a></li>
-                            <li><a href="#contacto">Contacto</a></li>
-                            <li><a href="#faq">FAQ</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 Aprende y Aplica. Todos los derechos reservados.</p>
-            </div>
-        </div>
-    </footer>
 
     <!-- Scripts -->
     <script src="scripts/particles.js"></script>
