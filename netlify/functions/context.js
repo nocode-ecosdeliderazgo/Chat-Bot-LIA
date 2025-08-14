@@ -1,6 +1,6 @@
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
-const { createCorsResponse } = require('./_cors-utils');
+const { createCorsResponse } = require('./cors-utils');
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,

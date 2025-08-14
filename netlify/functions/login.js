@@ -1,7 +1,7 @@
 // netlify/functions/login.js
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
-const { createCorsResponse } = require('./_cors-utils');
+const { createCorsResponse } = require('./cors-utils');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,

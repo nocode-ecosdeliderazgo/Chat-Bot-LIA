@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
-const { createCorsResponse } = require('./_cors-utils');
+const { createCorsResponse } = require('./cors-utils');
 
 function json(status, data, event = null) {
     return createCorsResponse(status, data, event);
