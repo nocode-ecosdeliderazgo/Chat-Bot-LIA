@@ -1,100 +1,224 @@
-Eres un ingeniero full‑stack senior (frontend JS vanilla + Node/Express + Socket.IO). Tras el último merge entre la rama `fer2` y la de Gael, el chat quedó roto: los botones aparecen desactivados y no se puede enviar mensajes ni interactuar. Debes corregir el chat sin romper nada que ya funciona (login, endpoints del servidor, CSP, etc.). Haz ediciones mínimas, seguras y enfocadas en regresiones de merge.
+# PROMPT PARA CLAUDE - CHAT CON ISLA DINÁMICA DE IPHONE
 
-## Objetivo general
-- Recuperar la interactividad completa del chat (entrada, envío, menús y livestream) en `src/chat.html` + `src/scripts/main.js`, manteniendo intactos login y demás flujos.
+## CONTEXTO
 
-## Síntomas reportados
-- Botones “desactivados” o sin respuesta en la UI del chat.
-- No se envían mensajes al presionar Enter o al hacer click en el botón de acción.
-- Después del merge, “todo se descompuso” en la vista de chat.
+Necesito transformar el área de entrada de mensajes de mi chat para que se vea y funcione como la "Dynamic Island" de los iPhones modernos. El objetivo es que el contenedor principal de la entrada de mensajes (donde están el botón de +, el campo de texto y el botón de micrófono/enviar) se vea como una única "isla" oscura, cohesiva y flotante, sin ningún fondo adicional que la rodee o que sea parte de él, más allá del propio color oscuro de la isla.
 
-## Ámbito y restricciones
-- No tocar autenticación ni vistas en `src/login/` ni endpoints/seguridad en `server.js` (login y API deben quedar iguales).
-- No modificar CSP, ni `helmet` ni rutas del servidor salvo que detectes un bug evidente que afecte EXCLUSIVAMENTE al chat.
-- Mantener IDs/clases actuales del DOM. Evitar renombrar selectores públicos.
-- Minimizar diffs y no eliminar funcionalidades existentes (audio, livestream, menús), solo arreglar wiring/estados rotos.
+**La imagen de referencia muestra:**
+- **Una píldora horizontal oscura** centrada en la pantalla con tres elementos:
+  - **Botón + (izquierda)**: Circular con fondo oscuro y símbolo + en azul-verde brillante
+  - **Campo de texto (centro)**: Rectangular con esquinas redondeadas, fondo gris oscuro, placeholder "Escribe tu mensaje..."
+  - **Botón de micrófono (derecha)**: Circular azul brillante con icono blanco de micrófono
+- **Fondo**: Azul-gris oscuro uniforme sin elementos adicionales
+- **Sombra suave**: La píldora tiene una sombra difusa que la hace parecer flotante
 
-## Puntos de referencia en el código (para verificar wiring)
-- `src/chat.html` (elementos críticos):
-  - `#messageInput`, `#actionButton`, `#sessionMenuButton`, `#globalMenu`.
-  - Bloque de livestream: `#livestreamMessageInput`, `#livestreamSendBtn`, `#livestreamChatMessages`, `#livestreamUsersCount`, `#livestreamConnectionStatus`, `#livestreamToggle`.
-- `src/styles/main.css`:
-  - La clase `.loading` aplica `pointer-events: none;` y `opacity: 0.6;`. Asegúrate de que no quede aplicada al contenedor del chat tras la inicialización (puede “congelar” la UI).
-- `src/scripts/main.js` (eventos y posibles conflictos de merge):
-  - Selectores y listeners del chat: `messageInput`, `actionButton`, `sessionMenuButton` y su lógica de `updateActionState` para alternar mic/enviar.
-  - Envío por Enter: listeners sobre `messageInput` para keypress Enter.
-  - Inicialización de audio: `initializeAudio()`, `toggleAudio()`, `playWelcomeAudio()`.
-  - Socket.IO del livestream: hay inicialización duplicada del bloque de livestream (dos secciones similares con `livestreamSocket = io({...})` y comentarios “Inicializar chat del livestream…”). Debe existir UNA sola inicialización.
-  - Múltiples `DOMContentLoaded`: hay varias instancias; consolidar para evitar doble wiring.
+**Mi objetivo es que el `input-container` de mi chat se vea exactamente como esta "isla" oscura y flotante, y que no haya ningún "fondo azul" (o cualquier otro fondo) que lo rodee o que sea parte de él, más allá del propio color oscuro de la isla.**
 
-## Correcciones requeridas (prioridad y detalle)
-1) Rehabilitar envío de mensajes y estado del botón de acción
-   - Asegúrate de que `updateActionState()` se ejecute en `input/keyup/change` de `#messageInput` y que añada/quite la clase `input-has-text` en `#inputContainer` para mostrar el ícono de enviar.
-   - `#actionButton` debe:
-     - Con texto en `#messageInput` → enviar mensaje al click/Enter.
-     - Sin texto → comportarse como botón de “hablar” solo si el modo audio está activo. Evita estados intermedios que deshabiliten el click.
-   - Valida que ningún `preventDefault()` o `return` temprano esté bloqueando el flujo de envío cuando hay texto.
+## ARCHIVOS A MODIFICAR
 
-2) Quitar estados globales que bloquean interacción
-   - Verifica que no quede aplicada `.loading` en contenedores del chat al finalizar la init. Si existe, remuévela explícitamente.
-   - Revisa overlays o paneles con `pointer-events: none` aplicados al contenedor principal por error después del merge.
+- `src/ChatGeneral/chat-general.css`
 
-3) Unificar inicialización del livestream (Socket.IO)
-   - El bloque de livestream aparece duplicado en `src/scripts/main.js` (dos veces se observa `livestreamSocket = io({...})` y handlers `on('connect')/on('disconnect')/...`). Conserva UNA versión funcional.
-   - Al conectar: habilita `#livestreamSendBtn` y actualiza `#livestreamConnectionStatus` a online; al desconectar: deshabilita el botón y marca offline.
-   - Mantén la lógica de “pendientes” (mensajes en cola) pero sin duplicación/condiciones contradictorias.
+## CAMBIOS ESPECÍFICOS REQUERIDOS
 
-4) Consolidar la inicialización (DOMContentLoaded)
-   - Reduce a una sola rutina `init()` llamada en un único `document.addEventListener('DOMContentLoaded', ...)`.
-   - Dentro de `init()`: enlaza todos los listeners (chat básico, global menu, audio opcional y livestream). No anidar múltiples `DOMContentLoaded` que se pisan.
-   - Añade guardas null‑safe: si un selector no existe, no rompas la init del resto.
+### 1. Asegurar que el área de entrada principal sea completamente transparente
 
-5) Manejo robusto de errores y ausencia de Socket.IO
-   - Si `/socket.io/socket.io.js` no carga, el chat básico debe seguir funcionando (no errores que aborten listeners del chat). Envuelve el acceso a `io` con comprobación y logs claros.
+El contenedor más externo del área de entrada (`.message-input-area`) debe ser completamente invisible para que solo la "isla" (`.input-container`) sea visible.
 
-6) No tocar login, seguridad ni base de datos
-   - No modificar nada en `src/login/`, ni autenticación en `server.js`, ni endpoints `/api/*` ajenos al chat/livestream. Solo arregla JS del cliente.
+```css
+.message-input-area {
+    background: none;           /* Asegurar que no haya fondo */
+    border-top: none;           /* Asegurar que no haya borde superior */
+    padding: var(--spacing-sm); /* Mantener un padding mínimo si es necesario, o ajustarlo */
+    backdrop-filter: none;      /* Asegurar que no haya efecto de blur */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Considerar si se necesita ajustar la altura o el margen para que no ocupe espacio innecesario */
+    /* height: auto; */
+    /* min-height: 0; */
+}
+```
 
-## Checklist de edición por archivo
-- `src/scripts/main.js`:
-  - [ ] Consolidar a un único `DOMContentLoaded` con `init()`.
-  - [ ] Restaurar wiring de `#messageInput` (input/keyup/change), Enter para enviar y click en `#actionButton` respetando estado mic/enviar.
-  - [ ] Eliminar el bloque duplicado de livestream (dejar una sola sección con `livestreamSocket = io({...})`).
-  - [ ] Asegurar habilitado/deshabilitado de `#livestreamSendBtn` en función de conexión.
-  - [ ] Quitar clases `.loading` sobrantes al completar init.
-  - [ ] Envoltorios null‑safe para que la falta de algún nodo no rompa el resto de listeners.
-- `src/chat.html`:
-  - [ ] Verifica que los IDs usados por JS existen: `messageInput`, `actionButton`, `sessionMenuButton`, `globalMenu`, y los del livestream.
-  - [ ] Sin cambios estructurales mayores (no renombrar IDs/clases públicas).
-- `src/styles/main.css`:
-  - [ ] Revisa `.loading` y cualquier selector que deje `pointer-events: none` activo tras la carga. No tocar otros estilos.
+### 2. Transformar `.input-container` en la "Isla Dinámica"
 
-## Pruebas de aceptación (manuales)
-- Chat básico:
-  - [ ] Escribir texto activa el modo “enviar” (ícono de enviar visible). Enter/Click envía y el mensaje aparece en `#chatMessages`.
-  - [ ] Sin texto, el botón no bloquea clicks ni queda “muerto” (si audio desactivado, no hace nada; si activado, inicia flujo de hablar sin colgar la UI).
-- Menú global:
-  - [ ] `#sessionMenuButton` abre/cierra `#globalMenu` y permite interactuar (sin overlays que bloqueen).
-- Livestream:
-  - [ ] Conexión establece estado “online”, habilita `#livestreamSendBtn` y recibe/emite `new-livestream-message`.
-  - [ ] Desconexión muestra “offline”, deshabilita el botón y conserva mensajes pendientes.
-- No regresiones:
-  - [ ] Login en `src/login/` sigue funcionando.
-  - [ ] `/api/health` responde y `server.js` no tuvo cambios funcionales.
-  - [ ] Sin errores uncaught en consola; no hay listeners duplicados.
+El `.input-container` debe ser la píldora oscura y flotante que se ve en la imagen.
 
-## Notas de implementación
-- Prefiere early‑returns y guardas para evitar que un fallo en livestream rompa el chat básico.
-- Evita variables globales duplicadas (`let livestreamSocket` aparece dos veces tras el merge). Deja una sola definición.
-- Añade logs claros con prefijo, por ejemplo: `[CHAT_INIT]`, `[LIVESTREAM]`, para depurar.
+```css
+.input-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #000; /* CAMBIAR: Fondo negro sólido como la Dynamic Island */
+    border: none; /* CAMBIAR: Eliminar cualquier borde */
+    border-radius: 30px; /* CAMBIAR: Hacerlo muy redondeado para que sea una píldora */
+    padding: 8px 16px; /* Ajustar padding para que los elementos internos se vean bien */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7); /* CAMBIAR: Sombra más pronunciada para efecto flotante */
+    position: relative;
+    backdrop-filter: none; /* CAMBIAR: La Dynamic Island es opaca, no tiene blur en sí misma */
+    width: 100%;
+    max-width: 600px; /* Ajustar el ancho máximo para que se vea como una píldora en el centro */
+    min-height: 48px; /* Mantener una altura mínima adecuada */
+    margin-bottom: 15px; /* Añadir un margen inferior para separarlo del borde inferior de la pantalla */
+}
+```
 
-## Entregables
-- Commits pequeños con mensajes claros, por ejemplo:
-  - `fix(chat): restaurar wiring de input/acción y envío por Enter`
-  - `fix(livestream): unificar init de socket y habilitar botón correctamente`
-  - `chore(init): consolidar DOMContentLoaded en init()`
+### 3. Ajustar el campo de texto (`#messageInput`) para que se integre en la isla
 
-## Criterio de done
-- El chat vuelve a ser usable end‑to‑end, los botones responden, y no se introducen regresiones en login u otras áreas. Sin warnings/errores en consola durante uso normal.
+El campo de texto debe tener un fondo ligeramente diferente al de la isla, pero sin bordes, para que se vea como un área de entrada dentro de la píldora.
 
+```css
+#messageInput {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1); /* CAMBIAR: Fondo más claro y sutil para el campo de texto */
+    border: none; /* Asegurar que no tenga borde */
+    color: var(--course-text-primary);
+    font-family: var(--font-primary);
+    font-size: 0.95rem;
+    resize: none;
+    max-height: 100px;
+    min-height: 20px;
+    outline: none;
+    line-height: 1.4;
+    padding: 8px 16px;
+    border-radius: 18px; /* Mantener un border-radius para el campo de texto */
+    margin: 0 8px;
+    min-width: 0;
+    box-shadow: none; /* Eliminar sombra del campo de texto si la tiene */
+}
+```
 
+### 4. Ajustar los botones (`.plus-btn` y `.action-button`)
+
+Asegurar que los botones se vean bien dentro de la nueva "isla" y que sus colores y tamaños sean adecuados.
+
+```css
+/* Ajustes para el botón '+' */
+.plus-btn {
+    background: rgba(255, 255, 255, 0.15); /* Fondo sutil para el botón */
+    border: none; /* Sin borde */
+    color: #fff; /* Color blanco para el icono */
+    font-size: 1.3rem;
+    font-weight: 900;
+    cursor: pointer;
+    border-radius: 50%; /* Hacerlo circular */
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    box-shadow: none; /* Eliminar sombra si la tiene */
+}
+
+/* Ajustes para el botón de acción (micrófono/enviar) */
+.action-button {
+    background: #007AFF; /* Un azul brillante para el botón de acción, similar a iOS */
+    border: none;
+    color: #fff; /* Icono blanco */
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    flex-shrink: 0;
+    position: relative;
+    box-shadow: none; /* Eliminar sombra si la tiene */
+}
+```
+
+### 5. EXPANDIR LA VENTANA DE CONVERSACIÓN HASTA ABAJO
+
+El contenedor principal de mensajes (`.messages-container`) debe extenderse completamente hasta el área de entrada, eliminando cualquier espacio o fondo azul.
+
+```css
+/* Expandir el contenedor de mensajes hasta abajo */
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+    background: var(--course-card-bg);
+    background-image: 
+        radial-gradient(circle at 25% 25%, rgba(68, 229, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(68, 229, 255, 0.05) 0%, transparent 50%);
+    background-size: 100px 100px;
+    /* CAMBIAR: Extender hasta el área de entrada */
+    margin-bottom: 0; /* Eliminar margen inferior si existe */
+    padding-bottom: var(--spacing-lg); /* Añadir padding inferior para separar de la Dynamic Island */
+}
+
+/* Asegurar que el contenedor principal ocupe todo el espacio disponible */
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--course-card-bg);
+    position: relative;
+    /* CAMBIAR: Asegurar que ocupe todo el espacio vertical */
+    height: 100%;
+    min-height: 0; /* Permitir que se contraiga si es necesario */
+}
+
+/* Eliminar cualquier fondo azul del área de entrada */
+.message-input-area {
+    background: none;           /* Sin fondo */
+    border-top: none;           /* Sin borde superior */
+    padding: var(--spacing-sm); /* Padding mínimo */
+    backdrop-filter: none;      /* Sin blur */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* CAMBIAR: Asegurar que no ocupe espacio innecesario */
+    flex-shrink: 0; /* No permitir que se contraiga */
+    position: relative;
+    z-index: 10; /* Asegurar que esté por encima del contenido */
+}
+```
+
+### 6. ELIMINAR CUALQUIER FONDO AZUL ADICIONAL
+
+Buscar y eliminar cualquier otro elemento que pueda estar creando un fondo azul no deseado.
+
+```css
+/* Verificar que no haya fondos azules en elementos padres */
+.chat-container {
+    display: flex;
+    height: calc(100vh - 60px);
+    background: none; /* Asegurar que no tenga fondo */
+}
+
+/* Asegurar que el body no tenga fondos adicionales */
+body {
+    font-family: var(--font-primary);
+    background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px),
+        radial-gradient(1200px 800px at 20% 0%, rgba(68, 229, 255, 0.08), transparent 60%),
+        radial-gradient(800px 600px at 80% 100%, rgba(0, 119, 166, 0.12), transparent 60%),
+        var(--chat-bg);
+    color: var(--course-text-primary);
+    line-height: 1.4;
+    overflow: hidden;
+    height: 100vh;
+}
+```
+
+## RESULTADO ESPERADO
+
+- El área de entrada de mensajes debe aparecer como una única píldora oscura y flotante en la parte inferior central de la pantalla
+- La ventana de conversación debe extenderse completamente hasta el área de entrada sin espacios vacíos
+- No debe haber ningún fondo azul visible alrededor de la píldora
+- La píldora misma debe ser opaca y de color oscuro, similar a la Dynamic Island de iPhone
+- Los mensajes deben ocupar todo el espacio disponible hasta la Dynamic Island
+
+## NOTAS IMPORTANTES
+
+- Asegúrate de que no haya ningún otro `background` o `border` en elementos padres o hermanos que puedan estar creando un "fondo azul" no deseado
+- Verifica que el `max-width` del `.input-container` sea adecuado para que la "isla" no sea demasiado ancha y mantenga su forma de píldora
+- Asegúrate de que los `padding` y `margin` internos de los elementos (`.plus-btn`, `#messageInput`, `.action-button`) dentro del `.input-container` permitan que todo se vea bien espaciado y centrado verticalmente dentro de la píldora
+- La ventana de conversación debe ocupar todo el espacio vertical disponible hasta la Dynamic Island

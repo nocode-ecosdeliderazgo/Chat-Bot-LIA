@@ -20,8 +20,7 @@ class ChatGeneral {
             desktopNotifications: true,
             messageDensity: 'normal',
             showTimestamps: true,
-            autoScroll: true,
-            showTypingIndicator: true
+            autoScroll: true
         };
         
         this.init();
@@ -36,6 +35,9 @@ class ChatGeneral {
         this.renderTopics();
         this.updateStats();
         this.autoScrollToBottom();
+        
+        // Initialize action button state
+        this.handleInputChange({ target: { value: '' } });
     }
 
     setupEventListeners() {
@@ -62,13 +64,12 @@ class ChatGeneral {
         // Message input
         const messageInput = document.getElementById('messageInput');
         messageInput.addEventListener('input', (e) => this.handleInputChange(e));
+        messageInput.addEventListener('keyup', (e) => this.handleInputChange(e));
+        messageInput.addEventListener('change', (e) => this.handleInputChange(e));
         messageInput.addEventListener('keydown', (e) => this.handleKeyDown(e));
         
-        // Send message
-        document.getElementById('sendBtn').addEventListener('click', () => this.sendMessage());
-
-        // Voice recording
-        document.getElementById('voiceBtn').addEventListener('click', () => this.toggleVoiceRecording());
+        // Action button (dual functionality: send when text, voice when empty)
+        document.getElementById('actionButton').addEventListener('click', () => this.handleActionButton());
 
         // Toolbar buttons
         document.getElementById('emojiBtn').addEventListener('click', () => this.showEmojiPicker());
@@ -78,9 +79,22 @@ class ChatGeneral {
         document.getElementById('imageBtn').addEventListener('click', () => this.uploadImage());
         document.getElementById('fileBtn').addEventListener('click', () => this.openFileModal());
 
-        // Quick actions
-        document.querySelectorAll('.quick-action-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.handleQuickAction(e.target.dataset.action));
+        // Plus button and quick actions dropdown
+        document.getElementById('plusBtn').addEventListener('click', () => this.toggleQuickActions());
+        
+        // Quick actions dropdown items
+        document.querySelectorAll('.quick-action-item').forEach(item => {
+            item.addEventListener('click', (e) => this.handleQuickAction(e.currentTarget.dataset.action));
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('quickActionsDropdown');
+            const plusBtn = document.getElementById('plusBtn');
+            
+            if (!dropdown.contains(e.target) && !plusBtn.contains(e.target)) {
+                this.closeQuickActions();
+            }
         });
 
         // Modal events
@@ -384,31 +398,32 @@ print("Datos cargados exitosamente!")`,
 
     handleInputChange(event) {
         const message = event.target.value.trim();
+        const inputContainer = document.getElementById('inputContainer');
         
-        if (message && !this.isTyping) {
-            this.isTyping = true;
-            this.showTypingIndicator();
-        } else if (!message && this.isTyping) {
-            this.isTyping = false;
-            this.hideTypingIndicator();
+        // Update action button state based on text presence
+        if (message) {
+            inputContainer.classList.add('input-has-text');
+        } else {
+            inputContainer.classList.remove('input-has-text');
         }
-
-        // Clear typing timeout
-        if (this.typingTimeout) {
-            clearTimeout(this.typingTimeout);
-        }
-
-        // Set new timeout
-        this.typingTimeout = setTimeout(() => {
-            this.isTyping = false;
-            this.hideTypingIndicator();
-        }, 2000);
     }
 
     handleKeyDown(event) {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
             this.sendMessage();
+        }
+    }
+
+    handleActionButton() {
+        const message = document.getElementById('messageInput').value.trim();
+        
+        if (message) {
+            // If there's text, send the message
+            this.sendMessage();
+        } else {
+            // If no text, toggle voice recording
+            this.toggleVoiceRecording();
         }
     }
 
@@ -432,7 +447,10 @@ print("Datos cargados exitosamente!")`,
         this.renderMessages();
         messageInput.value = '';
         this.autoResizeTextarea();
-        this.hideTypingIndicator();
+
+        // Reset action button state after sending
+        const inputContainer = document.getElementById('inputContainer');
+        inputContainer.classList.remove('input-has-text');
 
         // Simulate response after a delay
         setTimeout(() => this.simulateResponse(), 2000);
@@ -476,15 +494,7 @@ print("Datos cargados exitosamente!")`,
         textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
     }
 
-    showTypingIndicator() {
-        if (this.settings.showTypingIndicator) {
-            document.getElementById('typingIndicator').classList.add('active');
-        }
-    }
 
-    hideTypingIndicator() {
-        document.getElementById('typingIndicator').classList.remove('active');
-    }
 
     autoScrollToBottom() {
         if (this.settings.autoScroll) {
@@ -713,7 +723,36 @@ print("Datos cargados exitosamente!")`,
         }
     }
 
+    toggleQuickActions() {
+        const dropdown = document.getElementById('quickActionsDropdown');
+        const plusBtn = document.getElementById('plusBtn');
+        
+        if (dropdown.classList.contains('active')) {
+            this.closeQuickActions();
+        } else {
+            this.openQuickActions();
+        }
+    }
+
+    openQuickActions() {
+        const dropdown = document.getElementById('quickActionsDropdown');
+        const plusBtn = document.getElementById('plusBtn');
+        
+        dropdown.classList.add('active');
+        plusBtn.classList.add('active');
+    }
+
+    closeQuickActions() {
+        const dropdown = document.getElementById('quickActionsDropdown');
+        const plusBtn = document.getElementById('plusBtn');
+        
+        dropdown.classList.remove('active');
+        plusBtn.classList.remove('active');
+    }
+
     handleQuickAction(action) {
+        this.closeQuickActions();
+        
         switch (action) {
             case 'code':
                 this.openCodeModal();

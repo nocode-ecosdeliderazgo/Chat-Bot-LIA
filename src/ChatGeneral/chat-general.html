@@ -6,7 +6,7 @@
     <title>Chat General - Comunidad</title>
     <link rel="stylesheet" href="chat-general.css">
     <link rel="icon" type="image/x-icon" href="../assets/images/icono.png">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
@@ -56,24 +56,9 @@
             </div>
             
             <div class="sidebar-section">
-                <h3 class="sidebar-title">Funciones Rápidas</h3>
-                <div class="quick-actions">
-                    <button class="quick-action-btn" data-action="code">
-                        <i class="fas fa-code"></i>
-                        Insertar Código
-                    </button>
-                    <button class="quick-action-btn" data-action="image">
-                        <i class="fas fa-image"></i>
-                        Compartir Imagen
-                    </button>
-                    <button class="quick-action-btn" data-action="file">
-                        <i class="fas fa-file"></i>
-                        Subir Archivo
-                    </button>
-                    <button class="quick-action-btn" data-action="poll">
-                        <i class="fas fa-poll"></i>
-                        Crear Encuesta
-                    </button>
+                <h3 class="sidebar-title">Miembros Activos</h3>
+                <div class="members-list" id="membersList">
+                    <!-- Members will be loaded here -->
                 </div>
             </div>
 
@@ -146,28 +131,45 @@
                 </div>
                 
                 <div class="message-input-wrapper">
-                    <div class="input-container">
+                    <div class="input-container" id="inputContainer">
+                        <button class="plus-btn" id="plusBtn" title="Más opciones">
+                            <i class="fas fa-plus"></i>
+                        </button>
                         <textarea id="messageInput" placeholder="Escribe tu mensaje..." rows="1"></textarea>
-                        <div class="input-actions">
-                            <button class="voice-btn" id="voiceBtn" title="Grabar audio">
-                                <i class="fas fa-microphone"></i>
-                            </button>
-                            <button class="send-btn" id="sendBtn" title="Enviar mensaje">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
+                        <button id="actionButton" class="action-button" aria-label="Hablar / Enviar" title="Hablar / Enviar">
+                            <svg class="mic-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 14a3 3 0 0 0 3-3V7a3 3 0 0 0-6 0v4a3 3 0 0 0 3 3z" fill="currentColor"/>
+                                <path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M12 18v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <svg class="send-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Quick Actions Dropdown -->
+                    <div class="quick-actions-dropdown" id="quickActionsDropdown">
+                        <div class="quick-action-item" data-action="code">
+                            <i class="fas fa-code"></i>
+                            <span>Insertar Código</span>
+                        </div>
+                        <div class="quick-action-item" data-action="image">
+                            <i class="fas fa-image"></i>
+                            <span>Compartir Imagen</span>
+                        </div>
+                        <div class="quick-action-item" data-action="file">
+                            <i class="fas fa-file"></i>
+                            <span>Subir Archivo</span>
+                        </div>
+                        <div class="quick-action-item" data-action="poll">
+                            <i class="fas fa-poll"></i>
+                            <span>Crear Encuesta</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Typing Indicator -->
-                <div class="typing-indicator" id="typingIndicator">
-                    <span class="typing-text">Alguien está escribiendo...</span>
-                    <div class="typing-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                </div>
+
             </div>
         </section>
     </main>
@@ -311,12 +313,7 @@
                             Auto-scroll a nuevos mensajes
                         </label>
                     </div>
-                    <div class="setting-item">
-                        <label>
-                            <input type="checkbox" id="showTypingIndicator" checked>
-                            Mostrar indicador de escritura
-                        </label>
-                    </div>
+
                 </div>
             </div>
             <div class="modal-footer">
