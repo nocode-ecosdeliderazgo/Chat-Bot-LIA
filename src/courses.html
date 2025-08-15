@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Cursos — Lia IA</title>
+    <title>Mis Cursos — Lia</title>
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/courses.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,18 +13,10 @@
     <link rel="icon" type="image/png" href="assets/images/icono.png">
     <meta name="description" content="Mis Cursos - Panel de aprendizaje personal con seguimiento de progreso">
     <meta name="keywords" content="cursos, aprendizaje, progreso, IA, educación">
-    <meta name="author" content="Lia IA">
+    <meta name="author" content="Lia">
 </head>
 <body class="courses-page">
-    <!-- Barra de navegación superior -->
-    <nav class="top-nav">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <img src="assets/images/FOTO LIA.png" alt="Lia IA" class="nav-logo">
-            </div>
-            <div class="nav-links"></div>
-        </div>
-    </nav>
+
 
     <!-- Contenido principal -->
     <main class="courses-main">
@@ -33,7 +25,7 @@
             <div class="course-tabs">
                 <button class="tab-button active" data-tab="all-courses">
                     <i class='bx bx-book'></i>
-                    Todos los cursos
+                    Mis cursos
                 </button>
                 <button class="tab-button" data-tab="noticias">
                     <i class='bx bx-news'></i>
@@ -43,12 +35,16 @@
                     <i class='bx bx-group'></i>
                     Comunidad
                 </button>
+                <button class="tab-button profile-tab" onclick="window.location.href='profile.html'">
+                    <i class='bx bx-user'></i>
+                    Perfil
+                </button>
             </div>
 
             <!-- Panel de contenido de cursos -->
             <div class="course-content">
                 <!-- Pestaña: Todos los cursos -->
-                <div id="all-courses" class="tab-content active">
+                <div id="all-courses" class="tab-content">
                     <!-- Tarjeta de racha de aprendizaje -->
                     <div class="learning-streak-card">
                         <div class="streak-content">
@@ -58,10 +54,20 @@
                             </div>
                             <div class="streak-visual">
                                 <div class="streak-ring">
-                                    <svg width="80" height="80" viewBox="0 0 80 80">
-                                        <circle cx="40" cy="40" r="36" stroke="rgba(255,255,255,0.1)" stroke-width="8" fill="none"/>
-                                        <circle cx="40" cy="40" r="36" stroke="var(--accent-primary)" stroke-width="8" fill="none" 
-                                                stroke-dasharray="226" stroke-dashoffset="226" class="progress-circle"/>
+                                    <svg width="100" height="100" viewBox="0 0 100 100">
+                                        <!-- Círculo de fondo -->
+                                        <circle cx="50" cy="50" r="42" stroke="rgba(255,255,255,0.08)" stroke-width="6" fill="none"/>
+                                        <!-- Círculo de progreso -->
+                                        <circle cx="50" cy="50" r="42" stroke="url(#progressGradient)" stroke-width="6" fill="none" 
+                                                stroke-dasharray="264" stroke-dashoffset="264" class="progress-circle"/>
+                                        <!-- Gradiente para el progreso -->
+                                        <defs>
+                                            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" style="stop-color:#44e5ff;stop-opacity:1" />
+                                                <stop offset="50%" style="stop-color:#3dd4eb;stop-opacity:1" />
+                                                <stop offset="100%" style="stop-color:#22c55e;stop-opacity:1" />
+                                            </linearGradient>
+                                        </defs>
                                     </svg>
                                     <div class="streak-number">0</div>
                                 </div>
@@ -103,6 +109,37 @@
                         </div>
                     </div>
 
+                    <!-- Barra de búsqueda de cursos -->
+                    <div class="search-container">
+                        <div class="search-wrapper">
+                            <div class="search-icon">
+                                <i class='bx bx-search'></i>
+                            </div>
+                            <input 
+                                type="text" 
+                                class="search-input" 
+                                id="courseSearchInput"
+                                placeholder="Buscar en mis cursos..."
+                                autocomplete="off"
+                            >
+                            <button class="search-clear" id="searchClearBtn" style="display: none;">
+                                <i class='bx bx-x'></i>
+                            </button>
+                        </div>
+                        <div class="search-results" id="searchResults" style="display: none;">
+                            <div class="search-results-header">
+                                <span class="results-count">0 resultados encontrados</span>
+                                <button class="clear-search-btn" id="clearSearchBtn">
+                                    <i class='bx bx-x'></i>
+                                    Limpiar búsqueda
+                                </button>
+                            </div>
+                            <div class="search-results-list" id="searchResultsList">
+                                <!-- Los resultados se insertarán dinámicamente aquí -->
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Lista de cursos -->
                     <div class="courses-grid">
                         <div class="course-card" id="course-main">
@@ -116,7 +153,7 @@
                             </div>
                             <div class="course-info">
                                 <h3>Dominando ChatGPT y Gemini para la Productividad</h3>
-                                <p class="course-instructor">Instructor: Lia IA</p>
+                                <p class="course-instructor">Instructor: Lia</p>
                                 <div class="course-progress">
                                     <div class="progress-bar">
                                         <div class="progress-fill" style="width: 0%"></div>
@@ -220,10 +257,13 @@
                         </div>
                     </div>
                 </div>
+
+
             </div>
         </div>
     </main>
 
     <script src="scripts/courses.js"></script>
+    <script src="../test-courses-data.js"></script>
 </body>
 </html>

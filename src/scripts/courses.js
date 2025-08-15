@@ -1,28 +1,40 @@
 /**
  * COURSES.JS - Funcionalidad para la página de Mis Cursos
- * Maneja pestañas, progreso, animaciones y datos de cursos
  */
 
-// ===== CONFIGURACIÓN Y DATOS =====
+// Configuración
 const COURSES_CONFIG = {
     animationDuration: 300,
-    progressAnimationDelay: 500,
-    streakUpdateInterval: 24 * 60 * 60 * 1000, // 24 horas
-    autoSaveInterval: 30 * 1000, // 30 segundos
+    searchDebounceDelay: 300,
 };
 
-// Datos de ejemplo de cursos (en producción vendría de una API)
+// Datos de cursos
 const COURSES_DATA = {
     enrolled: [
+        {
+            id: 'chatgpt-gemini-productividad',
+            title: 'Dominando ChatGPT y Gemini para la Productividad',
+            instructor: 'Lia IA',
+            image: 'assets/images/brain-icon.jpg',
+            progress: 0,
+            totalLessons: 10,
+            completedLessons: 0,
+            lastAccessed: null,
+            estimatedTime: '15 horas',
+            category: 'Inteligencia Artificial',
+            difficulty: 'Intermedio',
+            rating: 4.9,
+            isActive: true
+        },
         {
             id: 'curso-ia-completo',
             title: 'Aprende y Aplica IA — Curso Completo',
             instructor: 'Lia IA',
             image: 'assets/images/brain-icon.jpg',
-            progress: 25,
+            progress: 0,
             totalLessons: 8,
-            completedLessons: 2,
-            lastAccessed: '2024-01-15',
+            completedLessons: 0,
+            lastAccessed: null,
             estimatedTime: '12 horas',
             category: 'Inteligencia Artificial',
             difficulty: 'Intermedio',
@@ -50,52 +62,166 @@ const COURSES_DATA = {
     lists: []
 };
 
-// Estado de la aplicación
-let appState = {
-    currentTab: 'all-courses',
-    learningStreak: {
-        currentStreak: 0,
-        weeklyGoal: 30, // minutos
-        weeklyProgress: 0,
-        visits: 1,
-        startDate: new Date().toISOString().split('T')[0]
-    },
-    userPreferences: {
-        remindersEnabled: true,
-        darkMode: true,
-        autoPlay: false
+// Sistema de datos del usuario
+class UserLearningData {
+    constructor() {
+        this.storageKey = 'userLearningData';
+        this.data = this.loadData();
+        this.initializeData();
     }
-};
+
+    loadData() {
+        const saved = localStorage.getItem(this.storageKey);
+        return saved ? JSON.parse(saved) : this.getDefaultData();
+    }
+
+    getDefaultData() {
+        return {
+            streak: {
+                currentStreak: 0,
+                longestStreak: 0,
+                weeklyGoal: 30,
+                weeklyProgress: 0,
+                totalVisits: 0,
+                startDate: new Date().toISOString().split('T')[0],
+                lastVisitDate: null,
+                weeklyStartDate: this.getWeekStartDate()
+            },
+            sessions: [],
+            courseProgress: {},
+            preferences: {
+                remindersEnabled: true,
+                darkMode: true,
+                autoPlay: false,
+                dailyGoal: 30,
+                studyDays: ['1', '2', '3', '4', '5']
+            }
+        };
+    }
+
+    getWeekStartDate() {
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - daysToSubtract);
+        return monday.toISOString().split('T')[0];
+    }
+
+    initializeData() {
+        const today = new Date().toISOString().split('T')[0];
+        
+        if (!this.data.streak.lastVisitDate || this.data.streak.lastVisitDate !== today) {
+            this.recordVisit(today);
+        }
+
+        this.checkWeeklyReset();
+        this.saveData();
+    }
+
+    recordVisit(date) {
+        const today = new Date(date);
+        const lastVisit = this.data.streak.lastVisitDate ? new Date(this.data.streak.lastVisitDate) : null;
+        
+        this.data.streak.totalVisits++;
+        
+        if (!lastVisit) {
+            this.data.streak.currentStreak = 1;
+        } else {
+            const daysDiff = Math.floor((today - lastVisit) / (1000 * 60 * 60 * 24));
+            
+            if (daysDiff === 1) {
+                this.data.streak.currentStreak++;
+            } else if (daysDiff > 1) {
+                this.data.streak.currentStreak = 1;
+            }
+        }
+        
+        if (this.data.streak.currentStreak > this.data.streak.longestStreak) {
+            this.data.streak.longestStreak = this.data.streak.currentStreak;
+        }
+        
+        this.data.streak.lastVisitDate = date;
+    }
+
+    checkWeeklyReset() {
+        const currentWeekStart = this.getWeekStartDate();
+        
+        if (this.data.streak.weeklyStartDate !== currentWeekStart) {
+            this.data.streak.weeklyProgress = 0;
+            this.data.streak.weeklyStartDate = currentWeekStart;
+        }
+    }
+
+    addStudySession(minutes, courseId = null) {
+        const session = {
+            id: Date.now(),
+            date: new Date().toISOString(),
+            minutes: minutes,
+            courseId: courseId
+        };
+        
+        this.data.sessions.push(session);
+        
+        this.data.streak.weeklyProgress = Math.min(
+            this.data.streak.weeklyProgress + minutes,
+            this.data.streak.weeklyGoal
+        );
+        
+        if (courseId) {
+            if (!this.data.courseProgress[courseId]) {
+                this.data.courseProgress[courseId] = {
+                    totalMinutes: 0,
+                    sessions: 0,
+                    lastSession: null
+                };
+            }
+            
+            this.data.courseProgress[courseId].totalMinutes += minutes;
+            this.data.courseProgress[courseId].sessions++;
+            this.data.courseProgress[courseId].lastSession = session.date;
+        }
+        
+        this.saveData();
+    }
+
+    getTotalCourseMinutes() {
+        let totalMinutes = 0;
+        for (const courseId in this.data.courseProgress) {
+            totalMinutes += this.data.courseProgress[courseId].totalMinutes;
+        }
+        return totalMinutes;
+    }
+
+    saveData() {
+        localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+    }
+}
+
+// Instancia global de datos del usuario
+const userData = new UserLearningData();
 
 // ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[COURSES] Inicializando página de cursos...');
-    console.log('[COURSES] URL actual:', window.location.href);
-    console.log('[COURSES] LocalStorage selectedCourse:', localStorage.getItem('selectedCourse'));
     
     try {
         initializeCoursesPage();
         setupEventListeners();
-        loadUserData();
         updateLearningStreak();
-        animatePageLoad();
         
         console.log('[COURSES] Página de cursos inicializada correctamente');
-        console.log('[COURSES] Botones encontrados:', document.querySelectorAll('.btn-course-primary').length);
     } catch (error) {
         console.error('[COURSES] Error al inicializar:', error);
     }
 });
 
 function initializeCoursesPage() {
-    // Configurar tema oscuro por defecto
     document.body.classList.add('dark-theme');
     
-    // Establecer pestaña activa inicial
     const initialTab = getUrlParameter('tab') || 'all-courses';
     switchTab(initialTab);
     
-    // Renderizar contenido inicial
     renderCourses();
     updateProgressBars();
     
@@ -104,17 +230,15 @@ function initializeCoursesPage() {
 
 // ===== MANEJO DE PESTAÑAS =====
 function setupEventListeners() {
-    // Pestañas de navegación
     const tabButtons = document.querySelectorAll('.tab-button');
     tabButtons.forEach(button => {
-        if (button.disabled) return; // ignorar deshabilitados
+        if (button.disabled) return;
         button.addEventListener('click', function() {
             const tabId = this.getAttribute('data-tab');
             switchTab(tabId);
         });
     });
     
-    // Botones de acción
     const getStartedBtn = document.getElementById('getStartedBtn');
     const dismissBtn = document.getElementById('dismissBtn');
     
@@ -126,14 +250,8 @@ function setupEventListeners() {
         dismissBtn.addEventListener('click', dismissReminder);
     }
     
-    // Botones de cursos
     setupCourseButtons();
-    
-    // Menús de cursos
     setupCourseMenus();
-    
-    // Navegación responsive
-    setupResponsiveNavigation();
     
     console.log('[COURSES] Event listeners configurados');
 }
@@ -159,7 +277,6 @@ function switchTab(tabId) {
         activeButton.classList.add('active');
     }
     
-    // Actualizar contenido
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.remove('active');
     });
@@ -167,16 +284,8 @@ function switchTab(tabId) {
     const activeContent = document.getElementById(tabId);
     if (activeContent) {
         activeContent.classList.add('active');
-        
-        // Animar entrada del contenido
         animateTabContent(activeContent);
     }
-    
-    // Actualizar estado
-    appState.currentTab = tabId;
-    
-    // Guardar en URL
-    updateUrlParameter('tab', tabId);
     
     console.log(`[COURSES] Cambiado a pestaña: ${tabId}`);
 }
@@ -192,155 +301,80 @@ function animateTabContent(content) {
     }, 50);
 }
 
-// ===== RENDERIZADO DE CURSOS =====
-function renderCourses() {
-    const coursesGrid = document.querySelector('.courses-grid');
-    if (!coursesGrid) return;
-    
-    // Limpiar contenido existente (mantener los cursos de ejemplo del HTML)
-    // Solo agregamos funcionalidad a los cursos existentes
-    
-    const courseCards = document.querySelectorAll('.course-card');
-    courseCards.forEach((card, index) => {
-        // Agregar datos del curso al card
-        const courseData = COURSES_DATA.enrolled[index];
-        if (courseData) {
-            enhanceCourseCard(card, courseData);
-        }
-        
-        // Animación de entrada escalonada
-        card.style.animationDelay = `${index * 0.1}s`;
-    });
-    
-    console.log('[COURSES] Cursos renderizados');
-}
-
-function enhanceCourseCard(card, courseData) {
-    // Actualizar barra de progreso
-    const progressFill = card.querySelector('.progress-fill');
-    const progressText = card.querySelector('.progress-text');
-    
-    if (progressFill && progressText) {
-        // Animar progreso
-        setTimeout(() => {
-            progressFill.style.width = `${courseData.progress}%`;
-        }, COURSES_CONFIG.progressAnimationDelay);
-        
-        progressText.textContent = `${courseData.progress}% completado`;
-    }
-    
-    // Actualizar solo el texto del botón, manteniendo el ícono
-    const actionButton = card.querySelector('.btn-course-primary');
-    if (actionButton) {
-        const icon = actionButton.querySelector('i');
-        const buttonText = courseData.progress > 0 ? 'Continuar curso' : 'Iniciar curso';
-        
-        if (icon) {
-            // Mantener ícono existente
-            actionButton.innerHTML = `<i class='${icon.className}'></i>${buttonText}`;
-        } else {
-            // Agregar ícono si no existe
-            actionButton.innerHTML = `<i class='bx bx-play-circle'></i>${buttonText}`;
-        }
-        
-        // Agregar el courseId como atributo de datos para usar en setupCourseButtons
-        actionButton.setAttribute('data-course-id', courseData.id);
-    }
-    
-    // Agregar tooltip con información adicional
-    card.title = `${courseData.category} • ${courseData.difficulty} • ${courseData.estimatedTime}`;
-}
-
 // ===== FUNCIONALIDAD DE CURSOS =====
+function setupCourseButtons() {
+    const courseButtons = document.querySelectorAll('.btn-course-primary');
+    
+    courseButtons.forEach((button, index) => {
+        button.addEventListener('click', function(event) {
+            if (this.disabled) return;
+            
+            const card = this.closest('.course-card');
+            const courseTitle = card.querySelector('h3').textContent;
+            
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 150);
+            
+            let courseId = this.getAttribute('data-course-id');
+            
+            if (!courseId) {
+                if (index === 0 || courseTitle.includes('Dominando ChatGPT')) {
+                    courseId = 'chatgpt-gemini-productividad';
+                } else if (index === 1 || courseTitle.includes('Aprende y Aplica IA')) {
+                    courseId = 'curso-ia-completo';
+                } else if (index === 2 || courseTitle.includes('Machine Learning')) {
+                    courseId = 'ml-fundamentos';
+                } else {
+                    courseId = 'chatgpt-gemini-productividad';
+                }
+            }
+            
+            console.log(`[COURSES] Iniciando curso: ${courseTitle} (${courseId})`);
+            continueCourse(courseId, this);
+        });
+    });
+}
+
 function continueCourse(courseId, buttonElement = null) {
     console.log(`[COURSES] Continuando curso: ${courseId}`);
     
-    // Buscar el botón si no se proporciona
     if (!buttonElement) {
         buttonElement = document.querySelector(`[data-course-id="${courseId}"]`) || 
                       document.querySelector('.btn-course-primary');
     }
     
     if (buttonElement) {
-        // Mostrar indicador de carga
         const originalHTML = buttonElement.innerHTML;
         buttonElement.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>Cargando...';
         buttonElement.disabled = true;
         
-        // Simular carga y redirigir al chat
         setTimeout(() => {
             try {
-                // Actualizar progreso de la racha
-                updateStreakProgress();
+                userData.addStudySession(5, courseId);
                 
-                // Guardar el curso seleccionado en localStorage para el chat
                 localStorage.setItem('selectedCourse', JSON.stringify({
                     id: courseId,
                     timestamp: Date.now()
                 }));
                 
                 console.log(`[COURSES] Redirigiendo al chat con curso: ${courseId}`);
-                
-                // Redirigir al chat con el curso seleccionado
                 window.location.href = `chat.html?course=${courseId}`;
             } catch (error) {
                 console.error('[COURSES] Error al procesar el curso:', error);
                 
-                // Restaurar botón en caso de error
                 buttonElement.innerHTML = originalHTML;
                 buttonElement.disabled = false;
-                
-                // Mostrar mensaje de error
                 alert('Error al iniciar el curso. Por favor, inténtalo de nuevo.');
             }
         }, 1000);
     } else {
         console.error('[COURSES] No se encontró el botón del curso');
-        
-        // Redirigir directamente si no hay botón
         setTimeout(() => {
             window.location.href = `chat.html?course=${courseId}`;
         }, 500);
     }
-}
-
-function setupCourseButtons() {
-    const courseButtons = document.querySelectorAll('.btn-course-primary');
-    
-    courseButtons.forEach((button, index) => {
-        button.addEventListener('click', function(event) {
-            // Prevenir múltiples clicks
-            if (this.disabled) return;
-            
-            const card = this.closest('.course-card');
-            const courseTitle = card.querySelector('h3').textContent;
-            
-            // Efecto visual de click
-            this.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                this.style.transform = '';
-            }, 150);
-            
-            // Obtener courseId del atributo de datos o determinar por índice/título
-            let courseId = this.getAttribute('data-course-id');
-            
-            if (!courseId) {
-                // Fallback: determinar por índice o título
-                if (index === 0 || courseTitle.includes('Aprende y Aplica IA')) {
-                    courseId = 'curso-ia-completo';
-                } else if (index === 1 || courseTitle.includes('Machine Learning')) {
-                    courseId = 'ml-fundamentos';
-                } else {
-                    courseId = 'curso-ia-completo'; // Por defecto
-                }
-            }
-            
-            console.log(`[COURSES] Iniciando curso: ${courseTitle} (${courseId})`);
-            
-            // Llamar a la función de continuar curso pasando el botón
-            continueCourse(courseId, this);
-        });
-    });
 }
 
 function setupCourseMenus() {
@@ -355,7 +389,6 @@ function setupCourseMenus() {
 }
 
 function showCourseMenu(button) {
-    // Implementar menú contextual del curso
     const menu = createCourseMenu();
     const rect = button.getBoundingClientRect();
     
@@ -365,7 +398,6 @@ function showCourseMenu(button) {
     
     document.body.appendChild(menu);
     
-    // Remover menú al hacer click fuera
     setTimeout(() => {
         document.addEventListener('click', function removeMenu() {
             menu.remove();
@@ -396,7 +428,6 @@ function createCourseMenu() {
         </button>
     `;
     
-    // Estilos del menú
     Object.assign(menu.style, {
         background: 'var(--course-card-bg)',
         border: '1px solid var(--course-border)',
@@ -413,119 +444,49 @@ function createCourseMenu() {
 
 // ===== RACHA DE APRENDIZAJE =====
 function updateLearningStreak() {
-    const today = new Date().toISOString().split('T')[0];
-    const lastVisit = localStorage.getItem('lastVisitDate');
-    
-    if (lastVisit !== today) {
-        // Nueva visita del día
-        appState.learningStreak.visits += 1;
-        localStorage.setItem('lastVisitDate', today);
-        
-        // Actualizar racha si es consecutiva
-        if (isConsecutiveDay(lastVisit, today)) {
-            appState.learningStreak.currentStreak += 1;
-        } else if (lastVisit && !isConsecutiveDay(lastVisit, today)) {
-            // Racha rota
-            appState.learningStreak.currentStreak = 1;
-        }
-        
-        saveUserData();
-    }
-    
-    // Actualizar UI de la racha
     updateStreakUI();
 }
 
 function updateStreakUI() {
-    const streakNumber = document.querySelector('.streak-number');
-    const progressCircle = document.querySelector('.progress-circle');
-    const statValues = document.querySelectorAll('.stat-value');
+    const streakInfo = userData.data.streak;
+    const weekProgress = userData.data.streak.weeklyProgress;
+    const weekGoal = userData.data.streak.weeklyGoal;
+    const percentage = Math.round((weekProgress / weekGoal) * 100);
     
+    const streakNumber = document.querySelector('.streak-number');
     if (streakNumber) {
-        animateNumber(streakNumber, 0, appState.learningStreak.currentStreak, 1000);
+        animateNumber(streakNumber, 0, streakInfo.currentStreak, 1000);
     }
     
+    const progressCircle = document.querySelector('.progress-circle');
     if (progressCircle) {
-        const progressPercent = (appState.learningStreak.weeklyProgress / appState.learningStreak.weeklyGoal) * 100;
-        const circumference = 2 * Math.PI * 36; // radio = 36
-        const offset = circumference - (progressPercent / 100) * circumference;
+        const circumference = 2 * Math.PI * 42;
+        const offset = circumference - (percentage / 100) * circumference;
         
         setTimeout(() => {
             progressCircle.style.strokeDashoffset = offset;
         }, 500);
     }
     
-    // Actualizar estadísticas
+    const statValues = document.querySelectorAll('.stat-value');
     if (statValues.length >= 3) {
-        statValues[0].textContent = appState.learningStreak.currentStreak;
-        statValues[1].textContent = `${appState.learningStreak.weeklyProgress}/30`;
-        statValues[2].textContent = `${appState.learningStreak.visits}/1`;
+        const weeks = Math.floor(streakInfo.currentStreak / 7);
+        statValues[0].textContent = weeks;
+        
+        const totalCourseMinutes = userData.getTotalCourseMinutes();
+        statValues[1].textContent = `${totalCourseMinutes}/30`;
+        
+        statValues[2].textContent = `${streakInfo.totalVisits}/1`;
     }
 }
 
-function updateStreakProgress() {
-    // Incrementar progreso semanal (simular 5 minutos de estudio)
-    appState.learningStreak.weeklyProgress = Math.min(
-        appState.learningStreak.weeklyProgress + 5,
-        appState.learningStreak.weeklyGoal
-    );
-    
-    saveUserData();
-    updateStreakUI();
-    
-    // Mostrar celebración si se alcanza la meta
-    if (appState.learningStreak.weeklyProgress >= appState.learningStreak.weeklyGoal) {
-        showStreakCelebration();
-    }
-}
-
-function showStreakCelebration() {
-    // Crear modal de celebración
-    const celebration = document.createElement('div');
-    celebration.className = 'streak-celebration';
-    celebration.innerHTML = `
-        <div class="celebration-content">
-            <i class='bx bx-trophy'></i>
-            <h3>¡Meta Semanal Alcanzada!</h3>
-            <p>Has completado tu objetivo de 30 minutos esta semana.</p>
-            <button onclick="this.parentElement.parentElement.remove()">Continuar</button>
-        </div>
-    `;
-    
-    // Estilos
-    Object.assign(celebration.style, {
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        right: '0',
-        bottom: '0',
-        background: 'rgba(0, 0, 0, 0.8)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: '10000',
-        animation: 'fadeIn 0.5s ease-out'
-    });
-    
-    document.body.appendChild(celebration);
-    
-    // Auto-remover después de 5 segundos
-    setTimeout(() => {
-        if (celebration.parentElement) {
-            celebration.remove();
-        }
-    }, 5000);
-}
-
-// ===== RECORDATORIOS Y PROGRAMACIÓN =====
+// ===== PROGRAMADOR DE APRENDIZAJE =====
 function openLearningScheduler() {
     console.log('[COURSES] Abriendo programador de aprendizaje...');
     
-    // Crear modal de programación
     const modal = createSchedulerModal();
     document.body.appendChild(modal);
     
-    // Animar entrada
     setTimeout(() => {
         modal.style.opacity = '1';
         modal.querySelector('.scheduler-content').style.transform = 'scale(1)';
@@ -535,66 +496,180 @@ function openLearningScheduler() {
 function createSchedulerModal() {
     const modal = document.createElement('div');
     modal.className = 'scheduler-modal';
+    
+    const currentPrefs = userData.data.preferences;
+    
     modal.innerHTML = `
         <div class="modal-backdrop" onclick="closeScheduler()"></div>
         <div class="scheduler-content">
             <div class="scheduler-header">
-                <h3>Programa tu tiempo de aprendizaje</h3>
-                <button onclick="closeScheduler()" class="close-btn">×</button>
+                <h3><svg class="header-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12,6 12,12 16,14"></polyline>
+                </svg> Programa tu tiempo de aprendizaje</h3>
+                <button onclick="closeScheduler()" class="close-btn" aria-label="Cerrar">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
             <div class="scheduler-body">
                 <div class="time-selector">
-                    <label>¿Cuánto tiempo quieres estudiar por día?</label>
+                    <label><svg class="label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12,6 12,12 16,14"></polyline>
+                    </svg> ¿Cuánto tiempo quieres estudiar por día?</label>
                     <div class="time-options">
-                        <button class="time-option" data-minutes="15">15 min</button>
-                        <button class="time-option active" data-minutes="30">30 min</button>
-                        <button class="time-option" data-minutes="60">1 hora</button>
-                        <button class="time-option" data-minutes="120">2 horas</button>
+                        <button class="time-option ${currentPrefs.dailyGoal === 15 ? 'active' : ''}" data-minutes="15">
+                            <span class="time-value">15</span>
+                            <span class="time-unit">min</span>
+                        </button>
+                        <button class="time-option ${currentPrefs.dailyGoal === 30 ? 'active' : ''}" data-minutes="30">
+                            <span class="time-value">30</span>
+                            <span class="time-unit">min</span>
+                        </button>
+                        <button class="time-option ${currentPrefs.dailyGoal === 60 ? 'active' : ''}" data-minutes="60">
+                            <span class="time-value">1</span>
+                            <span class="time-unit">hora</span>
+                        </button>
+                        <button class="time-option ${currentPrefs.dailyGoal === 120 ? 'active' : ''}" data-minutes="120">
+                            <span class="time-value">2</span>
+                            <span class="time-unit">horas</span>
+                        </button>
                     </div>
                 </div>
                 <div class="days-selector">
-                    <label>¿Qué días quieres estudiar?</label>
+                    <label><svg class="label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg> ¿Qué días quieres estudiar?</label>
                     <div class="days-grid">
-                        <button class="day-option active" data-day="1">L</button>
-                        <button class="day-option active" data-day="2">M</button>
-                        <button class="day-option active" data-day="3">X</button>
-                        <button class="day-option active" data-day="4">J</button>
-                        <button class="day-option active" data-day="5">V</button>
-                        <button class="day-option" data-day="6">S</button>
-                        <button class="day-option" data-day="0">D</button>
+                        <button class="day-option ${currentPrefs.studyDays.includes('1') ? 'active' : ''}" data-day="1" title="Lunes">L</button>
+                        <button class="day-option ${currentPrefs.studyDays.includes('2') ? 'active' : ''}" data-day="2" title="Martes">M</button>
+                        <button class="day-option ${currentPrefs.studyDays.includes('3') ? 'active' : ''}" data-day="3" title="Miércoles">X</button>
+                        <button class="day-option ${currentPrefs.studyDays.includes('4') ? 'active' : ''}" data-day="4" title="Jueves">J</button>
+                        <button class="day-option ${currentPrefs.studyDays.includes('5') ? 'active' : ''}" data-day="5" title="Viernes">V</button>
+                        <button class="day-option ${currentPrefs.studyDays.includes('6') ? 'active' : ''}" data-day="6" title="Sábado">S</button>
+                        <button class="day-option ${currentPrefs.studyDays.includes('0') ? 'active' : ''}" data-day="0" title="Domingo">D</button>
                     </div>
                 </div>
                 <div class="notification-toggle">
                     <label>
-                        <input type="checkbox" checked>
-                        Enviar recordatorios por notificación
+                        <input type="checkbox" ${currentPrefs.remindersEnabled ? 'checked' : ''}>
+                        <span class="toggle-text"><svg class="label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg> Enviar recordatorios por notificación</span>
                     </label>
+                </div>
+                <div class="schedule-summary">
+                    <h4><svg class="label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14,2 14,8 20,8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10,9 9,9 8,9"></polyline>
+                    </svg> Resumen de tu horario</h4>
+                    <div class="summary-content">
+                        <div class="summary-item">
+                            <span class="summary-label">Tiempo diario:</span>
+                            <span class="summary-value" id="summaryTime">${currentPrefs.dailyGoal} min</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Días por semana:</span>
+                            <span class="summary-value" id="summaryDays">${currentPrefs.studyDays.length}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Tiempo semanal:</span>
+                            <span class="summary-value" id="summaryWeekly">${currentPrefs.dailyGoal * currentPrefs.studyDays.length} min</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="scheduler-footer">
-                <button class="btn-secondary" onclick="closeScheduler()">Cancelar</button>
-                <button class="btn-primary" onclick="saveSchedule()">Guardar horario</button>
+                <button class="btn-primary" onclick="saveSchedule()">
+                    <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17,21 17,13 7,13 7,21"></polyline>
+                        <polyline points="7,3 7,8 15,8"></polyline>
+                    </svg> Guardar horario
+                </button>
             </div>
         </div>
     `;
     
-    // Estilos del modal
-    Object.assign(modal.style, {
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        right: '0',
-        bottom: '0',
-        background: 'rgba(0, 0, 0, 0.8)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: '10000',
-        opacity: '0',
-        transition: 'opacity 0.3s ease'
-    });
+    setupSchedulerEventListeners(modal);
     
     return modal;
+}
+
+function setupSchedulerEventListeners(modal) {
+    const timeOptions = modal.querySelectorAll('.time-option');
+    timeOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            timeOptions.forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+            updateScheduleSummary();
+        });
+    });
+
+    const dayOptions = modal.querySelectorAll('.day-option');
+    dayOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            this.classList.toggle('active');
+            updateScheduleSummary();
+        });
+    });
+
+    const notificationCheckbox = modal.querySelector('.notification-toggle input');
+    notificationCheckbox.addEventListener('change', function() {
+        updateScheduleSummary();
+    });
+
+    console.log('[COURSES] Event listeners del programador configurados');
+}
+
+function updateScheduleSummary() {
+    const modal = document.querySelector('.scheduler-modal');
+    if (!modal) return;
+
+    const selectedTime = parseInt(modal.querySelector('.time-option.active')?.dataset.minutes) || 30;
+    const selectedDays = Array.from(modal.querySelectorAll('.day-option.active')).map(btn => btn.dataset.day);
+    const totalWeeklyMinutes = selectedTime * selectedDays.length;
+
+    const summaryTime = modal.querySelector('#summaryTime');
+    const summaryDays = modal.querySelector('#summaryDays');
+    const summaryWeekly = modal.querySelector('#summaryWeekly');
+
+    if (summaryTime) {
+        summaryTime.textContent = selectedTime >= 60 ? 
+            `${selectedTime / 60} ${selectedTime === 60 ? 'hora' : 'horas'}` : 
+            `${selectedTime} min`;
+    }
+
+    if (summaryDays) {
+        summaryDays.textContent = selectedDays.length;
+    }
+
+    if (summaryWeekly) {
+        summaryWeekly.textContent = totalWeeklyMinutes >= 60 ? 
+            `${totalWeeklyMinutes / 60} ${totalWeeklyMinutes === 60 ? 'hora' : 'horas'}` : 
+            `${totalWeeklyMinutes} min`;
+    }
+
+    [summaryTime, summaryDays, summaryWeekly].forEach(element => {
+        if (element) {
+            element.style.transform = 'scale(1.1)';
+            element.style.color = 'var(--course-accent)';
+            setTimeout(() => {
+                element.style.transform = 'scale(1)';
+                element.style.color = '';
+            }, 200);
+        }
+    });
 }
 
 function dismissReminder() {
@@ -608,39 +683,73 @@ function dismissReminder() {
         }, 300);
     }
     
-    // Guardar preferencia
     localStorage.setItem('reminderDismissed', 'true');
     console.log('[COURSES] Recordatorio descartado');
 }
 
-// ===== NAVEGACIÓN RESPONSIVE =====
-function setupResponsiveNavigation() {
-    const navLinks = document.querySelectorAll('.nav-link');
+// ===== RENDERIZADO DE CURSOS =====
+function renderCourses() {
+    const coursesGrid = document.querySelector('.courses-grid');
+    if (!coursesGrid) return;
     
-    // Agregar indicadores de navegación en móvil
-    navLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            // Efecto de ripple
-            createRippleEffect(this);
-        });
+    const courseCards = document.querySelectorAll('.course-card');
+    courseCards.forEach((card, index) => {
+        const courseData = COURSES_DATA.enrolled[index];
+        if (courseData) {
+            enhanceCourseCard(card, courseData);
+        }
+        
+        card.style.animationDelay = `${index * 0.1}s`;
     });
+    
+    console.log('[COURSES] Cursos renderizados');
 }
 
-function createRippleEffect(element) {
-    const ripple = document.createElement('span');
-    const rect = element.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
+function enhanceCourseCard(card, courseData) {
+    const courseProgress = userData.data.courseProgress[courseData.id];
+    const realProgress = courseProgress ? Math.min(Math.round((courseProgress.totalMinutes / 720) * 100), 100) : 0;
     
-    ripple.style.width = ripple.style.height = size + 'px';
-    ripple.style.left = (event.clientX - rect.left - size / 2) + 'px';
-    ripple.style.top = (event.clientY - rect.top - size / 2) + 'px';
-    ripple.classList.add('ripple');
+    const progressFill = card.querySelector('.progress-fill');
+    const progressText = card.querySelector('.progress-text');
     
-    element.appendChild(ripple);
+    if (progressFill && progressText) {
+        setTimeout(() => {
+            progressFill.style.width = `${realProgress}%`;
+        }, 500);
+        
+        progressText.textContent = `${realProgress}% completado`;
+    }
     
-    setTimeout(() => {
-        ripple.remove();
-    }, 600);
+    const actionButton = card.querySelector('.btn-course-primary');
+    if (actionButton) {
+        const icon = actionButton.querySelector('i');
+        const buttonText = realProgress > 0 ? 'Continuar curso' : 'Iniciar curso';
+        
+        if (icon) {
+            actionButton.innerHTML = `<i class='${icon.className}'></i>${buttonText}`;
+        } else {
+            actionButton.innerHTML = `<i class='bx bx-play-circle'></i>${buttonText}`;
+        }
+        
+        actionButton.setAttribute('data-course-id', courseData.id);
+    }
+    
+    const totalMinutes = courseProgress ? courseProgress.totalMinutes : 0;
+    card.title = `${courseData.category} • ${courseData.difficulty} • ${totalMinutes} min estudiados`;
+}
+
+function updateProgressBars() {
+    const progressBars = document.querySelectorAll('.progress-fill');
+    
+    progressBars.forEach((bar, index) => {
+        const targetWidth = bar.style.width || '0%';
+        bar.style.width = '0%';
+        
+        setTimeout(() => {
+            bar.style.transition = 'width 1s ease-out';
+            bar.style.width = targetWidth;
+        }, index * 200);
+    });
 }
 
 // ===== UTILIDADES =====
@@ -664,70 +773,12 @@ function animateNumber(element, start, end, duration) {
     requestAnimationFrame(updateNumber);
 }
 
-function updateProgressBars() {
-    const progressBars = document.querySelectorAll('.progress-fill');
-    
-    progressBars.forEach((bar, index) => {
-        const targetWidth = bar.style.width || '0%';
-        bar.style.width = '0%';
-        
-        setTimeout(() => {
-            bar.style.transition = 'width 1s ease-out';
-            bar.style.width = targetWidth;
-        }, index * 200);
-    });
-}
-
-function animatePageLoad() {
-    // Animar elementos de la página al cargar
-    const animatedElements = document.querySelectorAll('.learning-streak-card, .learning-reminder-card, .course-card');
-    
-    animatedElements.forEach((element, index) => {
-        element.style.opacity = '0';
-        element.style.transform = 'translateY(30px)';
-        
-        setTimeout(() => {
-            element.style.transition = 'all 0.6s ease-out';
-            element.style.opacity = '1';
-            element.style.transform = 'translateY(0)';
-        }, index * 100);
-    });
-}
-
-function isConsecutiveDay(lastDate, currentDate) {
-    if (!lastDate) return true;
-    
-    const last = new Date(lastDate);
-    const current = new Date(currentDate);
-    const diffTime = current - last;
-    const diffDays = diffTime / (1000 * 60 * 60 * 24);
-    
-    return diffDays === 1;
-}
-
 function getUrlParameter(name) {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(name);
 }
 
-function updateUrlParameter(name, value) {
-    const url = new URL(window.location);
-    url.searchParams.set(name, value);
-    window.history.replaceState({}, '', url);
-}
-
-function saveUserData() {
-    localStorage.setItem('coursesAppState', JSON.stringify(appState));
-}
-
-function loadUserData() {
-    const saved = localStorage.getItem('coursesAppState');
-    if (saved) {
-        appState = { ...appState, ...JSON.parse(saved) };
-    }
-}
-
-// ===== FUNCIONES GLOBALES PARA EVENTOS HTML =====
+// ===== FUNCIONES GLOBALES =====
 window.closeScheduler = function() {
     const modal = document.querySelector('.scheduler-modal');
     if (modal) {
@@ -739,27 +790,102 @@ window.closeScheduler = function() {
 window.saveSchedule = function() {
     console.log('[COURSES] Guardando horario de aprendizaje...');
     
-    // Obtener configuración seleccionada
-    const selectedTime = document.querySelector('.time-option.active')?.dataset.minutes || 30;
-    const selectedDays = Array.from(document.querySelectorAll('.day-option.active')).map(btn => btn.dataset.day);
-    const notificationsEnabled = document.querySelector('.notification-toggle input').checked;
+    const modal = document.querySelector('.scheduler-modal');
+    if (!modal) return;
     
-    // Guardar preferencias
-    appState.userPreferences.dailyGoal = parseInt(selectedTime);
-    appState.userPreferences.studyDays = selectedDays;
-    appState.userPreferences.remindersEnabled = notificationsEnabled;
+    const selectedTime = parseInt(modal.querySelector('.time-option.active')?.dataset.minutes) || 30;
+    const selectedDays = Array.from(modal.querySelectorAll('.day-option.active')).map(btn => btn.dataset.day);
+    const notificationsEnabled = modal.querySelector('.notification-toggle input').checked;
     
-    saveUserData();
+    if (selectedDays.length === 0) {
+        showSchedulerError('Por favor, selecciona al menos un día para estudiar.');
+        return;
+    }
     
-    // Mostrar confirmación
+    userData.data.preferences.dailyGoal = selectedTime;
+    userData.data.preferences.studyDays = selectedDays;
+    userData.data.preferences.remindersEnabled = notificationsEnabled;
+    
+    userData.saveData();
+    
     const button = event.target;
-    button.textContent = '¡Guardado!';
-    button.style.background = 'var(--course-success)';
+    const originalText = button.textContent;
+    const originalBackground = button.style.background;
+    
+    button.innerHTML = '<svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"></polyline></svg> ¡Guardado!';
+    button.style.background = 'linear-gradient(135deg, var(--course-success), #16a34a)';
+    button.style.transform = 'scale(1.05)';
+    button.disabled = true;
+    
+    createConfettiEffect(modal);
     
     setTimeout(() => {
         closeScheduler();
-    }, 1000);
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.style.background = originalBackground;
+            button.style.transform = '';
+            button.disabled = false;
+        }, 500);
+    }, 1500);
 };
+
+function showSchedulerError(message) {
+    const modal = document.querySelector('.scheduler-modal');
+    if (!modal) return;
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'scheduler-error';
+    errorDiv.innerHTML = `
+        <div class="error-content">
+            <span class="error-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg></span>
+            <span class="error-text">${message}</span>
+        </div>
+    `;
+    
+    const header = modal.querySelector('.scheduler-header');
+    header.parentNode.insertBefore(errorDiv, header.nextSibling);
+    
+    setTimeout(() => {
+        if (errorDiv.parentNode) {
+            errorDiv.remove();
+        }
+    }, 3000);
+}
+
+function createConfettiEffect(modal) {
+    const confettiCount = 20;
+    const colors = ['#44e5ff', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6'];
+    
+    for (let i = 0; i < confettiCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti-piece';
+        confetti.style.cssText = `
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: ${colors[Math.floor(Math.random() * colors.length)]};
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10001;
+            left: ${Math.random() * 100}%;
+            top: 50%;
+            animation: confettiFall 2s ease-out forwards;
+        `;
+        
+        modal.appendChild(confetti);
+        
+        setTimeout(() => {
+            if (confetti.parentNode) {
+                confetti.remove();
+            }
+        }, 2000);
+    }
+}
 
 // Funciones del menú contextual
 window.addToWishlist = function() {
@@ -777,5 +903,292 @@ window.archiveCourse = function() {
 window.shareCourse = function() {
     console.log('[COURSES] Compartiendo curso...');
 };
+
+// Clase de búsqueda
+class CourseSearch {
+    constructor() {
+        this.searchInput = document.getElementById('courseSearchInput');
+        this.searchClearBtn = document.getElementById('searchClearBtn');
+        this.searchResults = document.getElementById('searchResults');
+        this.searchResultsList = document.getElementById('searchResultsList');
+        this.clearSearchBtn = document.getElementById('clearSearchBtn');
+        this.resultsCount = document.querySelector('.results-count');
+        this.debounceTimer = null;
+        this.allCourses = [];
+        
+        this.initializeSearch();
+    }
+
+    initializeSearch() {
+        if (!this.searchInput) return;
+        
+        this.allCourses = this.getAllCourses();
+        
+        this.searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
+        this.searchInput.addEventListener('focus', () => this.handleFocus());
+        this.searchInput.addEventListener('blur', () => this.handleBlur());
+        
+        if (this.searchClearBtn) {
+            this.searchClearBtn.addEventListener('click', () => this.clearSearch());
+        }
+        
+        if (this.clearSearchBtn) {
+            this.clearSearchBtn.addEventListener('click', () => this.clearSearch());
+        }
+        
+        this.searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.clearSearch();
+                this.searchInput.blur();
+            }
+        });
+    }
+
+    getAllCourses() {
+        const courses = [
+            ...COURSES_DATA.enrolled.map(course => ({ ...course, type: 'enrolled' })),
+            ...COURSES_DATA.wishlist.map(course => ({ ...course, type: 'wishlist' })),
+            ...COURSES_DATA.archived.map(course => ({ ...course, type: 'archived' }))
+        ];
+        
+        COURSES_DATA.lists.forEach(list => {
+            list.courses.forEach(course => {
+                courses.push({ ...course, type: 'list', listName: list.name });
+            });
+        });
+        
+        return courses;
+    }
+
+    handleSearch(query) {
+        if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
+        }
+        
+        this.toggleClearButton(query.length > 0);
+        
+        this.debounceTimer = setTimeout(() => {
+            this.performSearch(query.trim());
+        }, COURSES_CONFIG.searchDebounceDelay);
+    }
+
+    performSearch(query) {
+        if (!query) {
+            this.hideResults();
+            return;
+        }
+        
+        const results = this.searchCourses(query);
+        this.displayResults(results, query);
+    }
+
+    searchCourses(query) {
+        const searchTerm = query.toLowerCase();
+        const results = [];
+        
+        this.allCourses.forEach(course => {
+            const titleMatch = course.title.toLowerCase().includes(searchTerm);
+            const instructorMatch = course.instructor.toLowerCase().includes(searchTerm);
+            const categoryMatch = course.category.toLowerCase().includes(searchTerm);
+            const difficultyMatch = course.difficulty.toLowerCase().includes(searchTerm);
+            
+            if (titleMatch || instructorMatch || categoryMatch || difficultyMatch) {
+                results.push({
+                    ...course,
+                    relevance: this.calculateRelevance(course, searchTerm)
+                });
+            }
+        });
+        
+        return results.sort((a, b) => b.relevance - a.relevance);
+    }
+
+    calculateRelevance(course, searchTerm) {
+        let relevance = 0;
+        const title = course.title.toLowerCase();
+        const instructor = course.instructor.toLowerCase();
+        const category = course.category.toLowerCase();
+        
+        if (title.includes(searchTerm)) {
+            relevance += 10;
+            if (title.startsWith(searchTerm)) relevance += 5;
+        }
+        
+        if (instructor.includes(searchTerm)) {
+            relevance += 5;
+        }
+        
+        if (category.includes(searchTerm)) {
+            relevance += 3;
+        }
+        
+        if (course.isActive) relevance += 2;
+        
+        return relevance;
+    }
+
+    displayResults(results, query) {
+        if (results.length === 0) {
+            this.showNoResults(query);
+            return;
+        }
+        
+        this.resultsCount.textContent = `${results.length} resultado${results.length !== 1 ? 's' : ''} encontrado${results.length !== 1 ? 's' : ''}`;
+        
+        this.searchResultsList.innerHTML = '';
+        
+        results.forEach(course => {
+            const resultItem = this.createResultItem(course);
+            this.searchResultsList.appendChild(resultItem);
+        });
+        
+        this.showResults();
+    }
+
+    createResultItem(course) {
+        const item = document.createElement('div');
+        item.className = 'search-result-item';
+        item.innerHTML = `
+            <div class="search-result-icon">
+                <i class='bx bx-book-open'></i>
+            </div>
+            <div class="search-result-content">
+                <div class="search-result-title">${this.highlightMatch(course.title)}</div>
+                <div class="search-result-subtitle">${course.instructor} • ${course.category}</div>
+                <div class="search-result-progress">
+                    <div class="progress-mini">
+                        <div class="progress-mini-fill" style="width: ${course.progress}%"></div>
+                    </div>
+                    <span class="progress-text-mini">${course.progress}% completado</span>
+                </div>
+            </div>
+        `;
+        
+        item.addEventListener('click', () => {
+            this.selectCourse(course);
+        });
+        
+        return item;
+    }
+
+    highlightMatch(text) {
+        const searchTerm = this.searchInput.value.toLowerCase();
+        if (!searchTerm) return text;
+        
+        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        return text.replace(regex, '<mark style="background: rgba(68, 229, 255, 0.3); color: var(--course-accent); padding: 0 2px; border-radius: 2px;">$1</mark>');
+    }
+
+    showNoResults(query) {
+        this.resultsCount.textContent = `No se encontraron resultados para "${query}"`;
+        this.searchResultsList.innerHTML = `
+            <div style="padding: 20px; text-align: center; color: var(--course-text-muted);">
+                <i class='bx bx-search' style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
+                <p>No hay cursos que coincidan con tu búsqueda</p>
+                <small>Intenta con otros términos o revisa la ortografía</small>
+            </div>
+        `;
+        this.showResults();
+    }
+
+    showResults() {
+        this.searchResults.style.display = 'block';
+        this.searchResults.style.animation = 'searchResultsSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+    }
+
+    hideResults() {
+        this.searchResults.style.display = 'none';
+    }
+
+    toggleClearButton(show) {
+        if (!this.searchClearBtn) return;
+        
+        if (show) {
+            this.searchClearBtn.style.display = 'flex';
+            setTimeout(() => {
+                this.searchClearBtn.classList.add('visible');
+            }, 10);
+        } else {
+            this.searchClearBtn.classList.remove('visible');
+            setTimeout(() => {
+                this.searchClearBtn.style.display = 'none';
+            }, 300);
+        }
+    }
+
+    handleFocus() {
+        this.searchInput.parentElement.style.transform = 'translateY(-2px)';
+    }
+
+    handleBlur() {
+        setTimeout(() => {
+            this.searchInput.parentElement.style.transform = 'translateY(0)';
+        }, 200);
+    }
+
+    clearSearch() {
+        this.searchInput.value = '';
+        this.hideResultsWithAnimation();
+        this.toggleClearButton(false);
+        this.searchInput.focus();
+    }
+
+    hideResultsWithAnimation() {
+        if (this.searchResults && this.searchResults.style.display === 'block') {
+            this.searchResults.classList.add('sliding-out');
+            
+            setTimeout(() => {
+                this.searchResults.style.display = 'none';
+                this.searchResults.classList.remove('sliding-out');
+            }, 300);
+        } else {
+            this.hideResults();
+        }
+    }
+
+    selectCourse(course) {
+        console.log('[SEARCH] Curso seleccionado:', course);
+        
+        this.hideResultsWithAnimation();
+        this.searchInput.blur();
+        
+        this.showSelectionNotification(course.title);
+    }
+
+    showSelectionNotification(courseTitle) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.95), rgba(68, 229, 255, 0.9));
+            color: #000;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            z-index: 10000;
+            box-shadow: 0 8px 25px rgba(68, 229, 255, 0.3);
+            animation: slideInRight 0.3s ease-out;
+        `;
+        notification.textContent = `Abriendo: ${courseTitle}`;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }, 2000);
+    }
+}
+
+// Inicializar búsqueda cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    new CourseSearch();
+});
 
 console.log('[COURSES] Script de cursos cargado correctamente');
