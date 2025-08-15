@@ -480,10 +480,9 @@ app.post('/api/register', async (req, res) => {
         }
 
         // Validación de type_rol
-        const validTypeRoles = ['desarrollador', 'marketing', 'ventas', 'economista', 'abogado'];
-        if (!type_rol || !validTypeRoles.includes(String(type_rol).toLowerCase())) {
+        if (!type_rol || String(type_rol).trim().length === 0) {
             return res.status(400).json({ 
-                error: 'Tipo de rol requerido. Opciones válidas: ' + validTypeRoles.join(', ') 
+                error: 'Área profesional es requerida' 
             });
         }
 
@@ -527,7 +526,7 @@ app.post('/api/register', async (req, res) => {
         // Asignar type_rol si la columna existe
         if (hasTypeRol) {
             columns.push('type_rol');
-            values.push(String(type_rol).toLowerCase());
+            values.push(String(type_rol).trim().toLowerCase());
         }
 
         const placeholders = values.map((_, index) => `$${index + 1}`).join(',');

@@ -42,10 +42,9 @@ exports.handler = async (event) => {
     }
 
     // Validación de type_rol
-    const validTypeRoles = ['desarrollador', 'marketing', 'ventas', 'economista', 'abogado'];
-    if (!type_rol || !validTypeRoles.includes(String(type_rol).toLowerCase())) {
+    if (!type_rol || String(type_rol).trim().length === 0) {
       return json(400, { 
-        error: 'Tipo de rol requerido. Opciones válidas: ' + validTypeRoles.join(', ') 
+        error: 'Área profesional es requerida' 
       }, event);
     }
 
@@ -87,7 +86,7 @@ exports.handler = async (event) => {
     // Asignar type_rol si la columna existe
     if (hasTypeRol) {
       columns.push('type_rol');
-      values.push(String(type_rol).toLowerCase());
+      values.push(String(type_rol).trim().toLowerCase());
     }
 
     const placeholders = values.map((_, index) => `$${index + 1}`).join(',');

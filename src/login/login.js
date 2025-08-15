@@ -122,7 +122,7 @@ async function handleRegisterSubmit(e) {
     }
 
     if (password.length < 8) {
-        showError('La contraseña debe tener al menos 8 caracteres.');
+        showError(`La contraseña debe tener al menos 8 caracteres (actualmente tiene ${password.length} caracteres).`);
         return;
     }
 
@@ -134,9 +134,8 @@ async function handleRegisterSubmit(e) {
     }
 
     // Validar tipo de rol
-    const validTypeRoles = ['desarrollador', 'marketing', 'ventas', 'economista', 'abogado'];
-    if (!validTypeRoles.includes(type_rol)) {
-        showError('Selecciona un área profesional válida.');
+    if (!type_rol || type_rol.trim().length === 0) {
+        showError('Por favor escribe tu área profesional.');
         return;
     }
 
@@ -187,7 +186,7 @@ async function handleRegisterSubmit(e) {
                 username, 
                 email, 
                 password, 
-                type_rol, 
+                type_rol: type_rol.trim().toLowerCase(), 
                 cargo_rol: 'Usuario' // Asignar automáticamente
             });
             localStorage.setItem('dev_users', JSON.stringify(users));
