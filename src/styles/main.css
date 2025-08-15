@@ -616,6 +616,8 @@ body:not(.left-collapsed):not(.right-collapsed) { --chat-max: 520px; }
 
 .features .features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 24px; }
 .feature { background: rgba(255,255,255,0.04); border: 1px solid rgba(68, 229, 255, 0.12); border-radius: 14px; padding: 16px; }
+.feature-card .feature-icon { display:flex; align-items:center; justify-content:center; height:60px; margin-bottom: 8px; }
+.feature-card .feature-icon img { height: 42px; opacity: .95; }
 
 .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .how-step { background: rgba(255,255,255,0.04); border: 1px solid rgba(68, 229, 255, 0.12); border-radius: 14px; padding: 16px; position: relative; }
