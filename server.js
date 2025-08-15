@@ -467,7 +467,7 @@ app.post('/api/register', async (req, res) => {
         // Validación de contraseña (mínimo 8 caracteres)
         if (String(password).length < 8) {
             return res.status(400).json({ 
-                error: 'La contraseña debe tener al menos 8 caracteres' 
+                error: `La contraseña debe tener al menos 8 caracteres (actualmente tiene ${String(password).length} caracteres)` 
             });
         }
 
