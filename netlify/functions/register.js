@@ -18,8 +18,21 @@ exports.handler = async (event) => {
     if (!process.env.DATABASE_URL) return json(500, { error: 'Base de datos no configurada' }, event);
 
     const { full_name, username, email, password } = JSON.parse(event.body || '{}');
-    if (!full_name || !username || !password) {
-      return json(400, { error: 'full_name, username y password son requeridos' }, event);
+    
+    // Validaciones obligatorias
+    if (!full_name || !username || !email || !password) {
+      return json(400, { error: 'Nombre completo, usuario, email y contraseña son requeridos' }, event);
+    }
+
+    // Validación de contraseña (mínimo 8 caracteres)
+    if (String(password).length < 8) {
+      return json(400, { error: 'La contraseña debe tener al menos 8 caracteres' }, event);
+    }
+
+    // Validación de email básica
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(String(email))) {
+      return json(400, { error: 'El email debe tener un formato válido' }, event);
     }
 
     // Verificar existencia de columna password_hash en users
@@ -34,15 +47,15 @@ exports.handler = async (event) => {
     let query, params;
     if (hasPassword) {
       const hash = await bcrypt.hash(String(password), 10);
-      query = `INSERT INTO users (full_name, username, email, password_hash)
-               VALUES ($1,$2,$3,$4)
-               RETURNING id, username, full_name, email`;
-      params = [full_name, username, email || null, hash];
+      query = `INSERT INTO users (username, email, password_hash, first_name, last_name, display_name) 
+               VALUES ($1,$2,$3, NULL, NULL, $4) 
+               RETURNING id, username, email, display_name`;
+      params = [username, email, hash, full_name];
     } else {
-      query = `INSERT INTO users (full_name, username, email)
-               VALUES ($1,$2,$3)
-               RETURNING id, username, full_name, email`;
-      params = [full_name, username, email || null];
+      query = `INSERT INTO users (username, email, first_name, last_name, display_name) 
+               VALUES ($1,$2, NULL, NULL, $3) 
+               RETURNING id, username, email, display_name`;
+      params = [username, email, full_name];
     }
 
     try {

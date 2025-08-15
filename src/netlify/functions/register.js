@@ -29,7 +29,7 @@ exports.handler = async (event) => {
     // Validación de contraseña (mínimo 8 caracteres)
     if (String(password).length < 8) {
       return json(400, { 
-        error: 'La contraseña debe tener de 8 caracteres en adelante' 
+        error: 'La contraseña debe tener al menos 8 caracteres' 
       }, event);
     }
 
@@ -41,12 +41,9 @@ exports.handler = async (event) => {
       }, event);
     }
 
-    // Validación de type_rol
-    if (!type_rol || String(type_rol).trim().length === 0) {
-      return json(400, { 
-        error: 'Área profesional es requerida' 
-      }, event);
-    }
+    // type_rol ahora es opcional - se configura en el perfil después del registro
+    // Si no se proporciona, asignamos un valor por defecto
+    const userTypeRol = type_rol && String(type_rol).trim().length > 0 ? type_rol : 'estudiante';
 
     // Verificar si existen las columnas necesarias
     let hasPassword = false;
@@ -86,7 +83,7 @@ exports.handler = async (event) => {
     // Asignar type_rol si la columna existe
     if (hasTypeRol) {
       columns.push('type_rol');
-      values.push(String(type_rol).trim().toLowerCase());
+      values.push(String(userTypeRol).trim().toLowerCase());
     }
 
     const placeholders = values.map((_, index) => `$${index + 1}`).join(',');
