@@ -821,12 +821,15 @@ async function validateCredentialsLocal(emailOrUsername, password) {
     // Simular delay de red
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Credenciales de prueba - acepta email o username
+    // Credenciales de prueba - acepta email o username (incluye roles para testing)
     const testCredentials = [
-        { email: 'admin@test.com', username: 'admin', password: 'admin123', name: 'Administrador' },
-        { email: 'user@test.com', username: 'usuario', password: 'user123', name: 'Usuario Test' },
-        { email: 'test@test.com', username: 'test', password: 'test123', name: 'Test User' },
-        { email: 'demo@demo.com', username: 'demo', password: '123456', name: 'Usuario Demo' }
+        { email: 'admin@test.com', username: 'admin', password: 'admin123', name: 'Administrador', cargo_rol: 'Administrador' },
+        { email: 'instructor@test.com', username: 'instructor', password: 'instructor123', name: 'Instructor Test', cargo_rol: 'Instructor' },
+        { email: 'maestro@test.com', username: 'maestro', password: 'maestro123', name: 'Maestro Test', cargo_rol: 'Maestro' },
+        { email: 'user@test.com', username: 'usuario', password: 'user123', name: 'Usuario Test', cargo_rol: 'Usuario' },
+        { email: 'student@test.com', username: 'estudiante', password: 'student123', name: 'Estudiante Test', cargo_rol: 'Estudiante' },
+        { email: 'test@test.com', username: 'test', password: 'test123', name: 'Test User', cargo_rol: 'Usuario' },
+        { email: 'demo@demo.com', username: 'demo', password: '123456', name: 'Usuario Demo', cargo_rol: 'Usuario' }
     ];
     
     const foundUser = testCredentials.find(cred => {
@@ -839,11 +842,12 @@ async function validateCredentialsLocal(emailOrUsername, password) {
     });
     
     if (foundUser) {
-        // Guardar datos del usuario para uso posterior
+        // Guardar datos del usuario para uso posterior (incluye cargo_rol para redirección)
         localStorage.setItem('currentUser', JSON.stringify({
             email: foundUser.email,
             username: foundUser.username,
             name: foundUser.name,
+            cargo_rol: foundUser.cargo_rol,
             loginTime: new Date().toISOString()
         }));
         return true;
@@ -889,6 +893,36 @@ async function registerUserLocal(userData) {
     return newUser;
 }
 
+// Función para determinar la página de destino según el rol del usuario
+function getRedirectPageByRole(userRole) {
+    // Normalizar el rol para comparación (remover espacios y convertir a minúsculas)
+    const normalizedRole = (userRole || '').toLowerCase().trim();
+    
+    devLog('Determinando redirección para rol:', normalizedRole);
+    
+    // Mapeo de roles a páginas
+    switch (normalizedRole) {
+        case 'administrador':
+        case 'admin':
+        case 'administrator':
+            return '../admin/admin.html';
+            
+        case 'instructor':
+        case 'maestro':
+        case 'teacher':
+        case 'profesor':
+            return '../instructors/index.html';
+            
+        case 'usuario':
+        case 'estudiante':
+        case 'student':
+        case 'user':
+        default:
+            // Por defecto, todos los usuarios van a courses.html
+            return '../courses.html';
+    }
+}
+
 // Manejo de autenticación exitosa
 async function handleSuccessfulAuth() {
     devLog('Manejando autenticación exitosa');
@@ -896,8 +930,30 @@ async function handleSuccessfulAuth() {
     // Animar éxito
     await animateSuccess();
     
-    // Redirigir al panel de courses
-    const targetPage = '../courses.html';
+    // Obtener información del usuario desde localStorage
+    let targetPage = '../courses.html'; // Fallback por defecto
+    
+    try {
+        const userDataStr = localStorage.getItem('currentUser');
+        if (userDataStr) {
+            const userData = JSON.parse(userDataStr);
+            devLog('Datos de usuario encontrados:', userData);
+            
+            // Buscar el rol del usuario (prioridad: cargo_rol > type_rol)
+            const userRole = userData.cargo_rol || userData.type_rol || 'usuario';
+            devLog('Rol de usuario detectado:', userRole);
+            
+            // Determinar página de destino basada en el rol
+            targetPage = getRedirectPageByRole(userRole);
+            devLog('Página de destino determinada:', targetPage);
+        } else {
+            devLog('No se encontraron datos de usuario, usando página por defecto');
+        }
+    } catch (error) {
+        devLog('Error al procesar datos de usuario:', error);
+        // En caso de error, mantener el fallback
+    }
+    
     devLog('Redirigiendo a:', targetPage);
     
     setTimeout(() => {
