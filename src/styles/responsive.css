@@ -60,15 +60,6 @@
     gap: var(--spacing-lg);
 }
 
-/* ===== FOOTER RESPONSIVE ===== */
-.footer-content {
-    text-align: center;
-}
-
-.footer-links {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
-}
 
 /* ===== TABLET BREAKPOINT ===== */
 @media (min-width: 768px) {
@@ -113,20 +104,6 @@
         grid-template-columns: repeat(4, 1fr);
     }
 
-    /* Footer */
-    .footer-content {
-        grid-template-columns: 2fr 1fr;
-        text-align: left;
-    }
-    
-    .footer-brand {
-        text-align: left;
-    }
-    
-    .footer-links {
-        grid-template-columns: repeat(2, 1fr);
-        text-align: left;
-    }
 }
 
 /* ===== DESKTOP BREAKPOINT ===== */
@@ -288,14 +265,6 @@
         gap: var(--spacing-lg);
     }
     
-    /* Footer compacto */
-    .footer {
-        padding: var(--spacing-xl) 0 var(--spacing-lg);
-    }
-    
-    .footer-links {
-        gap: var(--spacing-md);
-    }
 }
 
 /* ===== AJUSTES PARA PANTALLAS MUY PEQUEÑAS ===== */
@@ -391,6 +360,41 @@
         border: 1px solid black;
         background: white;
         color: black;
+    }
+}
+
+/* ===== ICONOS RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .feature-icon .icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .rocket-icon {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .btn-icon {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .feature-icon .icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .rocket-icon {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .btn-icon {
+        width: 14px;
+        height: 14px;
     }
 }
 

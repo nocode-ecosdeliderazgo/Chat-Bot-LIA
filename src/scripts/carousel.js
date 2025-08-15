@@ -15,8 +15,8 @@ class TestimonialsCarousel {
         
         this.config = {
             autoPlay: true,
-            autoPlayDelay: 5000,
-            transitionDuration: 500,
+            autoPlayDelay: 4000,
+            transitionDuration: 300,
             swipeThreshold: 50
         };
         
@@ -36,6 +36,12 @@ class TestimonialsCarousel {
     }
 
     createIndicators() {
+        // Verificar si ya existen indicadores para evitar duplicación
+        const existingIndicators = this.container.querySelector('.carousel-indicators');
+        if (existingIndicators) {
+            existingIndicators.remove();
+        }
+        
         // Crear contenedor de indicadores
         this.indicatorsContainer = document.createElement('div');
         this.indicatorsContainer.className = 'carousel-indicators';

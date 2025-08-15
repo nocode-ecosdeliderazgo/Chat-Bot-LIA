@@ -1,7 +1,7 @@
-# PROMPT COMPLETO: Rediseño Total de Página de Bienvenida - Chat-Bot-LIA
+# PROMPT COMPLETO: Panel de Maestros/Instructores - Chat-Bot-LIA
 
 ## 🎯 OBJETIVO PRINCIPAL
-Rediseñar completamente la página de bienvenida (`index.html`) para crear una experiencia visual moderna, atractiva y profesional con animaciones fluidas, transiciones elegantes y efectos visuales avanzados, manteniendo total coherencia con el sistema de diseño existente del proyecto Chat-Bot-LIA.
+Crear una página web exclusiva para maestros/instructores de cursos que permita gestionar completamente los cursos sin necesidad de hardcodear código, siguiendo el diseño y estructura del proyecto Chat-Bot-LIA. La página debe permitir crear, editar y administrar cursos utilizando la base de datos proporcionada, manteniendo total coherencia con el sistema de diseño existente.
 
 ## 🎨 SISTEMA DE DISEÑO ACTUAL (OBLIGATORIO RESPETAR)
 
@@ -39,259 +39,519 @@ Rediseñar completamente la página de bienvenida (`index.html`) para crear una 
 
 ### 1. ESTRUCTURA HTML SEMÁNTICA
 
-#### Header Hero Section:
+#### Header del Panel de Maestros:
 ```html
-<header class="hero-section">
+<header class="instructor-header">
     <!-- Fondo con partículas animadas -->
-    <div class="hero-background">
+    <div class="header-background">
         <div class="particles-container"></div>
         <div class="gradient-overlay"></div>
     </div>
     
     <!-- Navegación -->
-    <nav class="hero-nav">
+    <nav class="instructor-nav">
         <div class="nav-logo">
             <svg class="logo-icon">...</svg>
-            <span class="logo-text">Aprende y Aplica</span>
+            <span class="logo-text">Panel de Maestros</span>
         </div>
         <div class="nav-actions">
-            <button class="btn-secondary">Iniciar Sesión</button>
-            <button class="btn-primary">Registrarse</button>
+            <button class="btn-secondary" id="profileBtn">
+                <svg class="btn-icon">👤</svg>
+                <span>Perfil</span>
+            </button>
+            <button class="btn-primary" id="logoutBtn">
+                <svg class="btn-icon">🚪</svg>
+                <span>Cerrar Sesión</span>
+            </button>
         </div>
     </nav>
     
     <!-- Contenido Principal -->
-    <div class="hero-content">
-        <div class="hero-badge">
-            <svg class="rocket-icon">🚀</svg>
-            <span>Aprende y Aplica IA</span>
+    <div class="header-content">
+        <div class="header-badge">
+            <svg class="instructor-icon">🎓</svg>
+            <span>Gestión de Cursos</span>
         </div>
-        <h1 class="hero-title">Domina la IA que transformará tu futuro</h1>
-        <p class="hero-description">
-            Conviértete en experto aplicado: fundamentos claros, herramientas que importan, 
-            y hábitos de aprendizaje continuo para destacar en la era de la inteligencia artificial.
+        <h1 class="header-title">Panel de Maestros - Chat-Bot-LIA</h1>
+        <p class="header-description">
+            Crea, edita y administra tus cursos de manera profesional. 
+            Gestiona contenido, módulos, actividades y recursos multimedia sin necesidad de programar.
         </p>
-        <div class="hero-actions">
-            <button class="btn-primary btn-large">
-                <span>Iniciar Sesión</span>
-                <svg class="btn-icon">→</svg>
+        <div class="header-actions">
+            <button class="btn-primary btn-large" id="createCourseBtn">
+                <span>Crear Nuevo Curso</span>
+                <svg class="btn-icon">+</svg>
             </button>
-            <button class="btn-secondary btn-large">
-                <span>Ver Demo</span>
-                <svg class="btn-icon">▶</svg>
+            <button class="btn-secondary btn-large" id="viewCoursesBtn">
+                <span>Ver Mis Cursos</span>
+                <svg class="btn-icon">📚</svg>
             </button>
-        </div>
-    </div>
-    
-    <!-- Elemento Visual -->
-    <div class="hero-visual">
-        <div class="floating-card">
-            <div class="card-content">
-                <h3>Lo que aprenderás</h3>
-                <ul class="learning-list">
-                    <li>✓ Fundamentos de IA sin complicarte</li>
-                    <li>✓ Herramientas que realmente importan</li>
-                    <li>✓ Aplicación en proyectos reales</li>
-                    <li>✓ Hábitos de aprendizaje continuo</li>
-                </ul>
-            </div>
         </div>
     </div>
 </header>
 ```
 
-#### Sección de Características:
+#### Sección Principal del Panel:
 ```html
-<section class="features-section">
+<main class="instructor-main">
     <div class="container">
-        <div class="section-header">
-            <h2>¿Por qué elegir nuestra plataforma?</h2>
-            <p>Descubre las ventajas que te harán destacar en el mundo de la IA</p>
-        </div>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg class="icon-brain">🧠</svg>
-                </div>
-                <h3>Fundamentos Sólidos</h3>
-                <p>Aprende los conceptos esenciales de IA sin perderte en teoría innecesaria</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg class="icon-tools">🛠️</svg>
-                </div>
-                <h3>Herramientas Prácticas</h3>
-                <p>Utiliza las herramientas que realmente importan en el mercado laboral</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg class="icon-projects">📊</svg>
-                </div>
-                <h3>Proyectos Reales</h3>
-                <p>Aplica tus conocimientos en proyectos del mundo real</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg class="icon-growth">📈</svg>
-                </div>
-                <h3>Crecimiento Continuo</h3>
-                <p>Desarrolla hábitos de aprendizaje que te mantendrán actualizado</p>
-            </div>
+        <!-- El contenido principal se cargará dinámicamente aquí -->
+        <div id="mainContent">
+            <!-- Contenido principal sin animaciones no deseadas -->
         </div>
     </div>
-</section>
+</main>
 ```
 
-#### Sección de Estadísticas:
-```html
-<section class="stats-section">
-    <div class="container">
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-number" data-target="1000">0</div>
-                <div class="stat-label">Estudiantes Activos</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" data-target="50">0</div>
-                <div class="stat-label">Proyectos Completados</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" data-target="95">0</div>
-                <div class="stat-label">% de Satisfacción</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" data-target="24">0</div>
-                <div class="stat-label">Horas de Contenido</div>
-            </div>
-        </div>
-    </div>
-</section>
-```
-
-#### Sección de Testimonios:
-```html
-<section class="testimonials-section">
-    <div class="container">
-        <div class="section-header">
-            <h2>Lo que dicen nuestros estudiantes</h2>
-        </div>
-        <div class="testimonials-carousel">
-            <div class="testimonial-card active">
-                <div class="testimonial-content">
-                    <p>"Esta plataforma transformó mi carrera. Los proyectos prácticos me dieron la confianza para aplicar IA en mi trabajo."</p>
+        <!-- Formulario de Creación/Edición de Curso -->
+        <section class="course-form-section" id="courseFormSection" style="display: none;">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2 id="formTitle">Crear Nuevo Curso</h2>
+                    <button class="btn-secondary" id="closeFormBtn">
+                        <svg class="btn-icon">✕</svg>
+                    </button>
                 </div>
-                <div class="testimonial-author">
-                    <img src="avatar1.jpg" alt="Ana García">
-                    <div>
-                        <h4>Ana García</h4>
-                        <span>Data Scientist</span>
+                
+                <form id="courseForm" class="course-form">
+                    <!-- Información Básica del Curso -->
+                    <div class="form-section">
+                        <h3>Información Básica</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="courseName">Nombre del Curso *</label>
+                                <input type="text" id="courseName" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="coursePrice">Precio *</label>
+                                <input type="number" id="coursePrice" name="price" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="courseCurrency">Moneda</label>
+                                <select id="courseCurrency" name="currency">
+                                    <option value="USD">USD</option>
+                                    <option value="EUR">EUR</option>
+                                    <option value="MXN">MXN</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="courseModality">Modalidad *</label>
+                                <select id="courseModality" name="modality" required>
+                                    <option value="async">Asíncrona (Solo videos/documentos)</option>
+                                    <option value="sync">Síncrona (Sesiones en vivo)</option>
+                                    <option value="mixed">Mixta (Videos + sesiones en vivo)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="courseShortDescription">Descripción Corta *</label>
+                            <textarea id="courseShortDescription" name="short_description" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="courseLongDescription">Descripción Larga *</label>
+                            <textarea id="courseLongDescription" name="long_description" rows="6" required></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Configuración del Curso -->
+                    <div class="form-section">
+                        <h3>Configuración</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="courseSessions">Número de Sesiones</label>
+                                <input type="number" id="courseSessions" name="session_count" min="1" max="75">
+                            </div>
+                            <div class="form-group">
+                                <label for="courseDuration">Duración Total (minutos)</label>
+                                <input type="number" id="courseDuration" name="total_duration">
+                            </div>
+                            <div class="form-group">
+                                <label for="courseSeries">Serie (opcional)</label>
+                                <select id="courseSeries" name="series_id">
+                                    <option value="">Sin serie</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="courseStatus">Estado</label>
+                                <select id="courseStatus" name="status">
+                                    <option value="draft">Borrador</option>
+                                    <option value="published">Publicado</option>
+                                    <option value="archived">Archivado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- URLs y Enlaces -->
+                    <div class="form-section">
+                        <h3>Enlaces y URLs</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="coursePurchaseUrl">URL de Compra *</label>
+                                <input type="url" id="coursePurchaseUrl" name="purchase_url" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="courseUrl">URL del Curso</label>
+                                <input type="url" id="courseUrl" name="course_url">
+                            </div>
+                            <div class="form-group">
+                                <label for="courseTemarioUrl">URL del Temario</label>
+                                <input type="url" id="courseTemarioUrl" name="temario_url">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bonos y Documentos -->
+                    <div class="form-section">
+                        <h3>Bonos y Documentos</h3>
+                        <div class="form-group">
+                            <label for="courseBonuses">Bonos (JSON)</label>
+                            <textarea id="courseBonuses" name="bonuses" rows="4" placeholder='[{"title": "Bono 1", "description": "Descripción del bono"}]'></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="courseInfoDocs">Documentos Informativos (JSON)</label>
+                            <textarea id="courseInfoDocs" name="info_docs" rows="4" placeholder='[{"title": "Documento 1", "url": "https://..."}]'></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Feedback de IA -->
+                    <div class="form-section">
+                        <h3>Feedback de IA</h3>
+                        <div class="form-group">
+                            <label for="courseAiFeedback">Comentarios de IA</label>
+                            <textarea id="courseAiFeedback" name="ai_feedback" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="cancelCourseBtn">Cancelar</button>
+                        <button type="submit" class="btn-primary">Guardar Curso</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Gestión de Módulos -->
+        <section class="modules-section" id="modulesSection" style="display: none;">
+            <div class="modules-container">
+                <div class="modules-header">
+                    <h2>Gestión de Módulos - <span id="currentCourseName"></span></h2>
+                    <button class="btn-primary" id="addModuleBtn">
+                        <svg class="btn-icon">+</svg>
+                        <span>Agregar Módulo</span>
+                    </button>
+                </div>
+                
+                <div class="modules-list" id="modulesList">
+                    <!-- Los módulos se cargarán dinámicamente aquí -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Gestión de Actividades -->
+        <section class="activities-section" id="activitiesSection" style="display: none;">
+            <div class="activities-container">
+                <div class="activities-header">
+                    <h2>Actividades del Módulo - <span id="currentModuleName"></span></h2>
+                    <button class="btn-primary" id="addActivityBtn">
+                        <svg class="btn-icon">+</svg>
+                        <span>Agregar Actividad</span>
+                    </button>
+                </div>
+                
+                <div class="activities-list" id="activitiesList">
+                    <!-- Las actividades se cargarán dinámicamente aquí -->
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+```
+
+#### Layout de Chat (Similar a chat.html):
+```html
+<!-- Layout de Chat - Solo se muestra para cursos síncronos o mixtos -->
+<div class="chat-layout" id="chatLayout" style="display: none;">
+    <div class="chat-container">
+        <!-- Panel Izquierdo -->
+        <div class="chat-sidebar">
+            <div class="sidebar-header">
+                <h3>Panel de Control</h3>
+            </div>
+            
+            <div class="sidebar-content">
+                <div class="sidebar-section">
+                    <h4>Información del Curso</h4>
+                    <div class="course-info" id="courseInfo">
+                        <!-- Información del curso actual -->
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h4>Estadísticas</h4>
+                    <div class="stats-info">
+                        <div class="stat-item">
+                            <span class="stat-label">Módulos</span>
+                            <span class="stat-value" id="modulesCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Actividades</span>
+                            <span class="stat-value" id="activitiesCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Recursos</span>
+                            <span class="stat-value" id="resourcesCount">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h4>Acciones Rápidas</h4>
+                    <div class="quick-actions">
+                        <button class="btn-secondary" id="previewCourseBtn">
+                            <svg class="btn-icon">👁️</svg>
+                            <span>Vista Previa</span>
+                        </button>
+                        <button class="btn-secondary" id="exportCourseBtn">
+                            <svg class="btn-icon">📤</svg>
+                            <span>Exportar</span>
+                        </button>
+                        <button class="btn-secondary" id="duplicateCourseBtn">
+                            <svg class="btn-icon">📋</svg>
+                            <span>Duplicar</span>
+                        </button>
                     </div>
                 </div>
             </div>
-            <!-- Más testimonios... -->
+        </div>
+
+        <!-- Panel Central -->
+        <div class="chat-main">
+            <div class="chat-header">
+                <div class="header-left">
+                    <button class="btn-secondary" id="backToDashboardBtn">
+                        <svg class="btn-icon">←</svg>
+                        <span>Volver al Dashboard</span>
+                    </button>
+                </div>
+                <div class="header-center">
+                    <h2 id="currentCourseTitle">Nombre del Curso</h2>
+                    <span class="course-status" id="courseStatus">Borrador</span>
+                </div>
+                <div class="header-right">
+                    <button class="btn-primary" id="saveAllBtn">
+                        <svg class="btn-icon">💾</svg>
+                        <span>Guardar Todo</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="chat-content">
+                <!-- Contenido principal del curso se cargará aquí -->
+                <div id="courseContent">
+                    <!-- Secciones del curso -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Derecho - Chat IA -->
+        <div class="chat-ia">
+            <div class="ia-header">
+                <h3>Asistente IA</h3>
+                <button class="btn-secondary" id="toggleIaBtn">
+                    <svg class="btn-icon">🤖</svg>
+                </button>
+            </div>
+            
+            <div class="ia-content">
+                <div class="ia-messages" id="iaMessages">
+                    <div class="ia-message">
+                        <div class="message-content">
+                            <p>¡Hola! Soy tu asistente IA para la creación de cursos. ¿En qué puedo ayudarte hoy?</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="ia-input">
+                    <textarea id="iaInput" placeholder="Escribe tu pregunta..."></textarea>
+                    <button class="btn-primary" id="sendIaBtn">
+                        <svg class="btn-icon">→</svg>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
-</section>
+</div>
 ```
 
-#### Footer:
+#### Footer del Panel:
 ```html
-<footer class="footer">
+<footer class="instructor-footer">
     <div class="container">
         <div class="footer-content">
             <div class="footer-brand">
                 <div class="footer-logo">
                     <svg class="logo-icon">...</svg>
-                    <span>Aprende y Aplica</span>
+                    <span>Panel de Maestros - Chat-Bot-LIA</span>
                 </div>
-                <p>Transformando el futuro con inteligencia artificial</p>
+                <p>Gestiona tus cursos de manera profesional y eficiente</p>
             </div>
             <div class="footer-links">
                 <div class="link-group">
-                    <h4>Plataforma</h4>
+                    <h4>Recursos</h4>
                     <ul>
-                        <li><a href="#">Cursos</a></li>
-                        <li><a href="#">Comunidad</a></li>
-                        <li><a href="#">Recursos</a></li>
+                        <li><a href="#" id="helpLink">Ayuda</a></li>
+                        <li><a href="#" id="docsLink">Documentación</a></li>
+                        <li><a href="#" id="supportLink">Soporte</a></li>
                     </ul>
                 </div>
                 <div class="link-group">
-                    <h4>Soporte</h4>
+                    <h4>Acciones</h4>
                     <ul>
-                        <li><a href="#">Ayuda</a></li>
-                        <li><a href="#">Contacto</a></li>
-                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#" id="backupLink">Respaldo</a></li>
+                        <li><a href="#" id="exportLink">Exportar</a></li>
+                        <li><a href="#" id="settingsLink">Configuración</a></li>
                     </ul>
                 </div>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2024 Aprende y Aplica. Todos los derechos reservados.</p>
+            <p>&copy; 2024 Chat-Bot-LIA. Panel de Maestros. Todos los derechos reservados.</p>
         </div>
     </div>
 </footer>
 ```
 
-### 2. ANIMACIONES Y EFECTOS AVANZADOS
+## 🗄️ ESTRUCTURA DE BASE DE DATOS UTILIZADA
 
-#### Animaciones de Entrada:
-```css
-/* Fade In Animation */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+### Tablas Principales (IGNORAR tablas de usuarios):
+```sql
+-- Tabla principal de cursos
+CREATE TABLE public.ai_courses (
+  id_ai_courses uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  name character varying NOT NULL,
+  purchase_url character varying NOT NULL,
+  long_description character varying NOT NULL,
+  short_description character varying NOT NULL,
+  price character varying NOT NULL,
+  currency character varying NOT NULL,
+  session_count smallint,
+  total_duration bigint,
+  course_url character varying,
+  status character varying,
+  roi character varying,
+  modality character varying,
+  series_id uuid,
+  temario_url text,
+  bonuses jsonb,
+  info_docs jsonb,
+  ai_feedback text
+);
 
-@keyframes fadeInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
+-- Tabla de series de cursos
+CREATE TABLE public.course_series (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL UNIQUE,
+  description text,
+  created_at timestamp with time zone DEFAULT now()
+);
 
-@keyframes fadeInRight {
-    from {
-        opacity: 0;
-        transform: translateX(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
+-- Tabla de módulos del curso
+CREATE TABLE public.course_module (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  course_id uuid NOT NULL,
+  session_id smallint,
+  title text NOT NULL,
+  description text,
+  position smallint DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  ai_feedback text
+);
 
-@keyframes scaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
+-- Tabla de actividades de módulos
+CREATE TABLE public.module_activity (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  module_id uuid NOT NULL,
+  type text CHECK (type = ANY (ARRAY['individual'::text, 'colaborativa'::text])),
+  content_type text CHECK (content_type = ANY (ARRAY['texto'::text, 'documento'::text, 'video'::text, 'cuestionario'::text])),
+  resource_url text,
+  metadata jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  ai_feedback text
+);
 
-/* Stagger Animation */
-.stagger-item {
-    animation: fadeInUp 0.6s ease forwards;
-    opacity: 0;
-}
+-- Tabla de recursos multimedia
+CREATE TABLE public.media_resource (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  owner_type text CHECK (owner_type = ANY (ARRAY['curso'::text, 'modulo'::text, 'actividad'::text, 'comunidad'::text, 'noticia'::text])),
+  owner_id uuid NOT NULL,
+  type text CHECK (type = ANY (ARRAY['video'::text, 'documento'::text, 'audio'::text, 'imagen'::text])),
+  source text CHECK (source = ANY (ARRAY['interno'::text, 'externo'::text])),
+  url text NOT NULL,
+  format text,
+  size bigint,
+  created_at timestamp with time zone DEFAULT now()
+);
 
-.stagger-item:nth-child(1) { animation-delay: 0.1s; }
-.stagger-item:nth-child(2) { animation-delay: 0.2s; }
-.stagger-item:nth-child(3) { animation-delay: 0.3s; }
-.stagger-item:nth-child(4) { animation-delay: 0.4s; }
+-- Tabla de cuestionarios
+CREATE TABLE public.quiz (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  course_id uuid NOT NULL,
+  title text NOT NULL,
+  description text
+);
+
+-- Tabla de preguntas de cuestionarios
+CREATE TABLE public.quiz_question (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  quiz_id uuid NOT NULL,
+  question_text text NOT NULL,
+  options jsonb,
+  correct_answer text
+);
 ```
+
+### 2. FUNCIONALIDADES PRINCIPALES
+
+#### Gestión de Cursos:
+- **Crear nuevo curso** con toda la información básica
+- **Editar cursos existentes** con formulario completo
+- **Eliminar cursos** con confirmación
+- **Duplicar cursos** para crear variaciones
+- **Cambiar estado** (borrador, publicado, archivado)
+- **Vista previa** del curso antes de publicar
+- **SIN animaciones no deseadas** en la interfaz
+
+#### Gestión de Módulos:
+- **Agregar módulos** a cada curso
+- **Editar información** de módulos (título, descripción, posición)
+- **Reordenar módulos** con drag & drop
+- **Eliminar módulos** con confirmación
+- **Asignar sesiones** a módulos
+
+#### Gestión de Actividades:
+- **Crear actividades** individuales o colaborativas
+- **Tipos de contenido**: texto, documento, video, cuestionario
+- **Subir archivos multimedia** (videos, documentos, imágenes)
+- **Integrar recursos externos** (YouTube, Vimeo, etc.)
+- **Configurar metadatos** para cada actividad
+
+#### Recursos Multimedia:
+- **Subir archivos** con drag & drop
+- **Previsualización** de videos e imágenes
+- **Organización** por tipo y curso
+- **Gestión de URLs** externas
+- **Compresión automática** de archivos grandes
+
+#### Chat IA Integrado:
+- **Asistente inteligente** para crear contenido
+- **Sugerencias automáticas** para títulos y descripciones
+- **Validación de contenido** antes de guardar
+- **Ayuda contextual** según el tipo de actividad
+- **Generación de metadatos** automática
 
 #### Efectos Hover Avanzados:
 ```css
@@ -716,40 +976,223 @@ class AnimatedCounters {
 }
 ```
 
-### 9. CARRUSEL DE TESTIMONIOS
+### 9. JAVASCRIPT PARA GESTIÓN DE CURSOS
 
+#### Clase Principal de Gestión:
 ```javascript
-class TestimonialsCarousel {
+class CourseManager {
     constructor() {
-        this.currentSlide = 0;
-        this.slides = document.querySelectorAll('.testimonial-card');
-        this.totalSlides = this.slides.length;
+        this.currentCourse = null;
+        this.currentModule = null;
+        this.courses = [];
         this.init();
     }
 
     init() {
-        this.showSlide(0);
-        this.startAutoPlay();
+        this.bindEvents();
+        this.loadCourses();
+        this.initChatIA();
     }
 
-    showSlide(index) {
-        this.slides.forEach((slide, i) => {
-            slide.classList.remove('active');
-            if (i === index) {
-                slide.classList.add('active');
-            }
+    bindEvents() {
+        // Botones principales
+        document.getElementById('createCourseBtn').addEventListener('click', () => this.showCourseForm());
+        document.getElementById('closeFormBtn').addEventListener('click', () => this.hideCourseForm());
+        
+        // Formulario de curso
+        document.getElementById('courseForm').addEventListener('submit', (e) => this.saveCourse(e));
+        document.getElementById('cancelCourseBtn').addEventListener('click', () => this.hideCourseForm());
+        
+        // Chat IA
+        document.getElementById('sendIaBtn').addEventListener('click', () => this.sendIAMessage());
+        document.getElementById('iaInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.sendIAMessage();
         });
     }
 
-    nextSlide() {
-        this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
-        this.showSlide(this.currentSlide);
+    async loadCourses() {
+        try {
+            const response = await fetch('/api/courses');
+            this.courses = await response.json();
+            // Los cursos se cargarán cuando sea necesario, sin renderizar automáticamente
+        } catch (error) {
+            console.error('Error loading courses:', error);
+            this.showNotification('Error al cargar cursos', 'error');
+        }
     }
 
-    startAutoPlay() {
-        setInterval(() => {
-            this.nextSlide();
-        }, 5000);
+    createCourseCard(course) {
+        const card = document.createElement('div');
+        card.className = 'course-card';
+        card.innerHTML = `
+            <div class="card-header">
+                <h3>${course.name}</h3>
+                <span class="status-badge ${course.status}">${course.status}</span>
+            </div>
+            <div class="card-content">
+                <p>${course.short_description}</p>
+                <div class="course-meta">
+                    <span class="price">${course.currency} ${course.price}</span>
+                    <span class="sessions">${course.session_count || 0} sesiones</span>
+                    <span class="modality">${course.modality}</span>
+                </div>
+            </div>
+            <div class="card-actions">
+                <button class="btn-secondary" onclick="courseManager.editCourse('${course.id_ai_courses}')">
+                    <svg class="btn-icon">✏️</svg>
+                    <span>Editar</span>
+                </button>
+                <button class="btn-secondary" onclick="courseManager.manageModules('${course.id_ai_courses}')">
+                    <svg class="btn-icon">📚</svg>
+                    <span>Módulos</span>
+                </button>
+                <button class="btn-secondary" onclick="courseManager.previewCourse('${course.id_ai_courses}')">
+                    <svg class="btn-icon">👁️</svg>
+                    <span>Vista Previa</span>
+                </button>
+                <button class="btn-secondary" onclick="courseManager.duplicateCourse('${course.id_ai_courses}')">
+                    <svg class="btn-icon">📋</svg>
+                    <span>Duplicar</span>
+                </button>
+                <button class="btn-error" onclick="courseManager.deleteCourse('${course.id_ai_courses}')">
+                    <svg class="btn-icon">🗑️</svg>
+                    <span>Eliminar</span>
+                </button>
+            </div>
+        `;
+        return card;
+    }
+
+    showCourseForm(courseId = null) {
+        const formSection = document.getElementById('courseFormSection');
+        const formTitle = document.getElementById('formTitle');
+        
+        if (courseId) {
+            this.currentCourse = this.courses.find(c => c.id_ai_courses === courseId);
+            formTitle.textContent = 'Editar Curso';
+            this.populateForm(this.currentCourse);
+        } else {
+            this.currentCourse = null;
+            formTitle.textContent = 'Crear Nuevo Curso';
+            this.clearForm();
+        }
+        
+        formSection.style.display = 'block';
+        document.getElementById('courseName').focus();
+    }
+
+    hideCourseForm() {
+        document.getElementById('courseFormSection').style.display = 'none';
+        this.currentCourse = null;
+    }
+
+    async saveCourse(event) {
+        event.preventDefault();
+        
+        const formData = new FormData(event.target);
+        const courseData = Object.fromEntries(formData.entries());
+        
+        try {
+            const url = this.currentCourse 
+                ? `/api/courses/${this.currentCourse.id_ai_courses}`
+                : '/api/courses';
+            
+            const method = this.currentCourse ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(courseData)
+            });
+            
+            if (response.ok) {
+                this.showNotification('Curso guardado exitosamente', 'success');
+                this.hideCourseForm();
+                this.loadCourses();
+            } else {
+                throw new Error('Error al guardar el curso');
+            }
+        } catch (error) {
+            console.error('Error saving course:', error);
+            this.showNotification('Error al guardar el curso', 'error');
+        }
+    }
+
+    async deleteCourse(courseId) {
+        if (!confirm('¿Estás seguro de que quieres eliminar este curso?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/courses/${courseId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                this.showNotification('Curso eliminado exitosamente', 'success');
+                this.loadCourses();
+            } else {
+                throw new Error('Error al eliminar el curso');
+            }
+        } catch (error) {
+            console.error('Error deleting course:', error);
+            this.showNotification('Error al eliminar el curso', 'error');
+        }
+    }
+
+    // Función de búsqueda eliminada para evitar animaciones no deseadas
+
+    showNotification(message, type = 'info') {
+        // Implementar sistema de notificaciones
+        console.log(`${type.toUpperCase()}: ${message}`);
+    }
+
+    initChatIA() {
+        // Inicializar chat IA
+        console.log('Chat IA initialized');
+    }
+
+    async sendIAMessage() {
+        const input = document.getElementById('iaInput');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        // Agregar mensaje del usuario
+        this.addIAMessage(message, 'user');
+        input.value = '';
+        
+        try {
+            // Simular respuesta de IA
+            const response = await this.getIAResponse(message);
+            this.addIAMessage(response, 'ai');
+        } catch (error) {
+            this.addIAMessage('Lo siento, no pude procesar tu mensaje.', 'ai');
+        }
+    }
+
+    addIAMessage(message, sender) {
+        const messagesContainer = document.getElementById('iaMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `ia-message ${sender}`;
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <p>${message}</p>
+            </div>
+        `;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    async getIAResponse(message) {
+        // Simular respuesta de IA
+        return new Promise(resolve => {
+            setTimeout(() => {
+                resolve('Gracias por tu mensaje. Te ayudo con la gestión de cursos.');
+            }, 1000);
+        });
     }
 }
 ```
@@ -852,24 +1295,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
 ## 🎯 RESULTADO FINAL ESPERADO
 
-Una página de bienvenida completamente moderna que:
+Un panel de maestros completamente funcional que:
 
-1. **Captura la atención inmediatamente** con animaciones de entrada impactantes
-2. **Comunica el valor** de manera clara y atractiva
-3. **Proporciona una experiencia excepcional** con interacciones fluidas
+1. **Interfaz limpia y profesional** sin animaciones no deseadas
+2. **Gestión completa de cursos** sin necesidad de programar
+3. **Formularios intuitivos** para crear y editar contenido
 4. **Mantiene coherencia total** con el sistema de diseño existente
 5. **Es completamente responsive** y funciona en todos los dispositivos
 6. **Tiene performance optimizada** y carga rápidamente
 7. **Es accesible** para todos los usuarios
-8. **Incluye efectos visuales avanzados** como partículas, glassmorphism y gradientes animados
+8. **SIN sección "Mis Cursos"** ni elementos que se deslicen hacia arriba
 
 ## 📝 NOTAS IMPORTANTES
 
 - **OBLIGATORIO**: Usar exactamente los colores del sistema existente
 - **OBLIGATORIO**: Mantener la identidad visual del proyecto
-- **OBLIGATORIO**: Implementar todas las animaciones y efectos especificados
 - **OBLIGATORIO**: Código limpio, comentado y bien estructurado
 - **OBLIGATORIO**: Responsive design mobile-first
 - **OBLIGATORIO**: Performance optimizada y accesibilidad completa
+- **OBLIGATORIO**: NO incluir la sección "Mis Cursos" ni sus animaciones
+- **OBLIGATORIO**: NO incluir elementos que se deslicen hacia arriba
 
-**ENTREGA**: Proporcionar todos los archivos HTML, CSS y JavaScript necesarios para implementar completamente esta página de bienvenida moderna y atractiva.
+## ⚠️ CARACTERÍSTICAS ESPECÍFICAS DEL PANEL
+
+### Funcionalidades Clave:
+1. **Gestión completa de cursos** sin necesidad de programar
+2. **Chat IA integrado** para asistencia en la creación
+3. **Layout de chat** solo para cursos síncronos/mixtos
+4. **Sistema de módulos y actividades** completo
+5. **Subida de archivos multimedia** con drag & drop
+6. **SIN sección "Mis Cursos"** ni animaciones no deseadas
+7. **Interfaz limpia** sin elementos que se deslicen hacia arriba
+
+### Validaciones Importantes:
+- **Modalidad del curso** determina si se muestra el chat
+- **Campos obligatorios** en formularios
+- **Confirmaciones** para acciones destructivas
+- **Validación de archivos** antes de subir
+- **NO incluir animaciones** que hagan que elementos se deslicen hacia arriba
+- **Eliminar completamente** la sección "Mis Cursos" y sus elementos relacionados
+
+### Integración con Base de Datos:
+- **API REST** para todas las operaciones CRUD
+- **Manejo de errores** robusto
+- **Actualización en tiempo real** de la interfaz
+- **Persistencia** de datos en PostgreSQL
+
+**ENTREGA**: Proporcionar todos los archivos HTML, CSS y JavaScript necesarios para implementar completamente el panel de maestros/instructores con todas las funcionalidades de gestión de cursos especificadas.
