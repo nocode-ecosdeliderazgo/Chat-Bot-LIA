@@ -29,7 +29,7 @@ exports.handler = async (event) => {
     // Validación de contraseña (mínimo 8 caracteres)
     if (String(password).length < 8) {
       return json(400, { 
-        error: `La contraseña debe tener al menos 8 caracteres (actualmente tiene ${String(password).length} caracteres)` 
+        error: 'La contraseña debe tener de 8 caracteres en adelante' 
       }, event);
     }
 

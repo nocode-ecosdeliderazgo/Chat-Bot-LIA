@@ -122,7 +122,7 @@ async function handleRegisterSubmit(e) {
     }
 
     if (password.length < 8) {
-        showError(`La contraseña debe tener al menos 8 caracteres (actualmente tiene ${password.length} caracteres).`);
+        showError('La contraseña debe tener de 8 caracteres en adelante.');
         return;
     }
 
