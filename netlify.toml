@@ -5,7 +5,7 @@
   NODE_ENV = "production"
 
 [functions]
-  directory = "src/netlify/functions"
+  directory = "netlify/functions"
 
 [[redirects]]
   from = "/api/login"
