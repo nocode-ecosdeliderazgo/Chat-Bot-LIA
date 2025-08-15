@@ -89,7 +89,7 @@ class CourseManager {
             ];
             
             this.renderCoursesTable();
-        } catch (error) {
+            } catch (error) {
             console.error('Error loading courses:', error);
             this.showNotification('Error al cargar cursos', 'error');
         }
@@ -233,7 +233,7 @@ class CourseManager {
             this.currentCourse = this.courses.find(c => c.id_ai_courses === courseId);
             formTitle.textContent = 'Editar Curso';
             this.populateForm(this.currentCourse);
-        } else {
+            } else {
             this.currentCourse = null;
             formTitle.textContent = 'Crear Nuevo Curso';
             this.clearForm();
@@ -283,7 +283,7 @@ class CourseManager {
             
             this.showNotification('Curso eliminado exitosamente', 'success');
             this.loadCourses();
-        } catch (error) {
+                } catch (error) {
             console.error('Error deleting course:', error);
             this.showNotification('Error al eliminar el curso', 'error');
         }
@@ -515,7 +515,7 @@ class AnimatedCounters {
                 if (current < target) {
                     counter.textContent = Math.floor(current);
                     requestAnimationFrame(updateCounter);
-                } else {
+    } else {
                     counter.textContent = target;
                 }
             };

@@ -563,17 +563,14 @@ body {
     color: var(--course-primary);
 }
 
-.feature-icon .icon {
+.feature-icon .icon, .feature-icon img {
     width: 48px;
     height: 48px;
     color: var(--course-primary);
     margin-bottom: var(--spacing-sm);
 }
 
-.feature-icon .icon:hover {
-    transform: scale(1.1);
-    filter: drop-shadow(0 4px 12px rgba(68, 229, 255, 0.4));
-}
+.feature-icon .icon:hover, .feature-icon img:hover { transform: none; filter: none; }
 
 .btn-icon {
     width: 18px;

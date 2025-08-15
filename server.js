@@ -26,6 +26,8 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://unpkg.com', 'https://source.zoom.us'],
             // En desarrollo permitimos inline scripts (onclick) para compatibilidad rápida
             scriptSrc: DEV_MODE ? ["'self'", "'unsafe-inline'", 'https://source.zoom.us'] : ["'self'", 'https://source.zoom.us'],
+            // Permitir carga de módulos ESM externos solo si fuera necesario (actualmente eliminamos supabase-client)
+            // scriptSrcElem: DEV_MODE ? ["'self'", 'https://esm.sh'] : ["'self'"],
             // Permitir atributos inline (onclick) explícitamente en CSP nivel 3 durante desarrollo
             scriptSrcAttr: DEV_MODE ? ["'unsafe-inline'"] : [],
             // Permitir iframes de YouTube/Vimeo para reproducir videos y Google Forms
@@ -215,8 +217,8 @@ app.get('/', (req, res) => {
             res.sendFile(path.join(__dirname, 'src', 'welcome.html'));
         }
     } catch (_) {
-        // Fallback en caso de que no exista la landing: redirigir a login
-        res.redirect('/login/login.html');
+        // Fallback en caso de que no exista la landing: redirigir a nuevo login
+        res.redirect('/login/new-auth.html');
     }
 });
 
@@ -383,6 +385,22 @@ const upload = multer({
     }
 });
 
+// Multer para imágenes/documentos del perfil
+const uploadGeneral = multer({
+    storage,
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowed = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+        if (allowed.includes(file.mimetype)) return cb(null, true);
+        cb(new Error('Tipo de archivo no permitido'));
+    }
+});
+
 // ====== AssemblyAI: transcripción ======
 app.post('/api/transcribe', authenticateRequest, requireUserSession, upload.single('audio'), async (req, res) => {
     try {
@@ -504,41 +522,23 @@ app.post('/api/register', async (req, res) => {
             hasTypeRol = columnNames.includes('type_rol');
         } catch (_) {}
 
-        if (!hasPassword) {
-            return res.status(500).json({ error: 'La tabla users no tiene columna password_hash' });
+        let query, params;
+        if (hasPassword && password) {
+            const bcrypt = require('bcryptjs');
+            const hash = await bcrypt.hash(String(password), 10);
+            query = `INSERT INTO users (username, email, password_hash, first_name, last_name, display_name) 
+                     VALUES ($1,$2,$3, NULL, NULL, $4) 
+                     RETURNING id, username, email, display_name`;
+            params = [username, email || null, hash, full_name || null];
+        } else if (!hasPassword && DEV_MODE) {
+            // Permitir registro sin password_hash en modo desarrollo
+            query = `INSERT INTO users (username, email, first_name, last_name, display_name) 
+                     VALUES ($1,$2, NULL, NULL, $3) 
+                     RETURNING id, username, email, display_name`;
+            params = [username, email || null, full_name || null];
+        } else {
+            return res.status(500).json({ error: 'Registro no disponible: falta password_hash' });
         }
-
-        // Hash de la contraseña
-        const bcrypt = require('bcryptjs');
-        const hash = await bcrypt.hash(String(password), 10);
-
-        // Construir query dinámicamente según columnas disponibles
-        const columns = ['full_name', 'username', 'email', 'password_hash'];
-        const values = [full_name, username, email, hash];
-        let paramIndex = 5;
-
-        // Siempre asignar cargo_rol como 'Usuario'
-        if (hasCargoRol) {
-            columns.push('cargo_rol');
-            values.push('Usuario');
-        }
-
-        // Asignar type_rol si la columna existe
-        if (hasTypeRol) {
-            columns.push('type_rol');
-            values.push(String(type_rol).trim().toLowerCase());
-        }
-
-        const placeholders = values.map((_, index) => `$${index + 1}`).join(',');
-        const returnColumns = hasCargoRol && hasTypeRol ? 
-            'id, username, full_name, email, cargo_rol, type_rol' : 
-            'id, username, full_name, email';
-
-        const query = `
-            INSERT INTO users (${columns.join(', ')}) 
-            VALUES (${placeholders}) 
-            RETURNING ${returnColumns}
-        `;
 
         const result = await pool.query(query, values);
         res.status(201).json({ user: result.rows[0] });
@@ -565,8 +565,9 @@ app.post('/api/register', async (req, res) => {
 // Login de usuario (valida contra BD si está disponible)
 app.post('/api/login', async (req, res) => {
     try {
-        const { username, password } = req.body || {};
-        if (!username || !password) {
+        const { username, identifier, password } = req.body || {};
+        const input = (identifier || username || '').trim();
+        if (!input || !password) {
             return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
         }
 
@@ -591,50 +592,43 @@ app.post('/api/login', async (req, res) => {
             hasTypeRol = names.includes('type_rol');
         } catch (_) {}
 
-        if (!hasPassword) {
-            return res.status(500).json({ error: 'La tabla users no tiene password_hash' });
-        }
-
-        const selectCols = [
-            'id',
-            'username',
-            'full_name',
-            'email',
-            'password_hash',
-            ...(hasCargoRol ? ['cargo_rol'] : []),
-            ...(hasTypeRol ? ['type_rol'] : [])
-        ].join(', ');
-
-        const query = `SELECT ${selectCols} FROM users WHERE LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($1) LIMIT 1`;
-        const result = await pool.query(query, [String(username)]);
+        const query = `SELECT 
+                id, 
+                username, 
+                email,
+                COALESCE(display_name, NULLIF(TRIM(CONCAT(COALESCE(first_name,''),' ',COALESCE(last_name,''))), '')) AS display_name
+                ${hasPassword ? ', password_hash' : ''}
+            FROM users 
+            WHERE LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($1) 
+            LIMIT 1`;
+        const result = await pool.query(query, [String(input)]);
         if (result.rows.length === 0) {
             return res.status(401).json({ error: 'Credenciales inválidas' });
         }
 
         const user = result.rows[0];
-        const bcrypt = require('bcryptjs');
-        let ok = false;
-        try {
-            ok = await bcrypt.compare(String(password), user.password_hash || '');
-        } catch(_) { ok = false; }
-        // Modo desarrollo: permitir coincidencia en texto plano si el hash no es válido
-        if (!ok && DEV_MODE && user.password_hash && !String(user.password_hash).startsWith('$2')) {
-            ok = String(user.password_hash) === String(password);
-        }
-        if (!ok) {
-            return res.status(401).json({ error: 'Credenciales inválidas' });
+
+        if (hasPassword) {
+            const bcrypt = require('bcryptjs');
+            let ok = false;
+            try {
+                ok = await bcrypt.compare(String(password), user.password_hash || '');
+            } catch(_) { ok = false; }
+            // Modo desarrollo: permitir coincidencia en texto plano si el hash no es válido
+            if (!ok && DEV_MODE && user.password_hash && !String(user.password_hash).startsWith('$2')) {
+                ok = String(user.password_hash) === String(password);
+            }
+            if (!ok) {
+                return res.status(401).json({ error: 'Credenciales inválidas' });
+            }
+        } else if (!hasPassword && DEV_MODE) {
+            // Fallback de desarrollo: permitir login si el usuario existe
+            console.warn('[DEV] password_hash no existe, permitiendo login para pruebas');
+        } else {
+            return res.status(500).json({ error: 'Autenticación no disponible: falta password_hash' });
         }
 
-        const payloadUser = {
-            id: user.id,
-            username: user.username,
-            full_name: user.full_name,
-            email: user.email
-        };
-        if (hasCargoRol) payloadUser.cargo_rol = user.cargo_rol || null;
-        if (hasTypeRol) payloadUser.type_rol = user.type_rol || null;
-
-        return res.json({ user: payloadUser });
+        return res.json({ user: { id: user.id, username: user.username, display_name: user.display_name || null, email: user.email } });
     } catch (err) {
         console.error('Error en /api/login:', err);
         return res.status(500).json({ error: 'Error interno en login' });
@@ -652,6 +646,18 @@ app.post('/api/audio/upload', authenticateRequest, requireUserSession, upload.si
     } catch (error) {
         console.error('Error subiendo audio:', error);
         res.status(500).json({ error: 'Error subiendo audio' });
+    }
+});
+
+// Subida de archivos de perfil (avatar/CV)
+app.post('/api/profile/upload', uploadGeneral.single('file'), (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
+        const fileUrl = `/uploads/${req.file.filename}`;
+        res.json({ url: fileUrl, size: req.file.size, mimetype: req.file.mimetype });
+    } catch (error) {
+        console.error('Error subiendo archivo de perfil:', error);
+        res.status(500).json({ error: 'Error subiendo archivo' });
     }
 });
 
@@ -699,6 +705,55 @@ app.get('/api/config', authenticateRequest, (req, res) => {
     } catch (error) {
         console.error('Error obteniendo configuración:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// ====== PERFIL DE USUARIO (lectura/actualización simple) ======
+app.get('/api/profile', async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
+        const { userId, username, email } = req.query || {};
+        if (!userId && !username && !email) {
+            return res.status(400).json({ error: 'userId, username o email requerido' });
+        }
+        const where = userId ? 'id = $1' : (username ? 'LOWER(username) = LOWER($1)' : 'LOWER(email) = LOWER($1)');
+        const value = userId || username || email;
+        const q = `SELECT id, username, email, display_name, first_name, last_name, cargo_rol, type_rol, phone, bio, location, 
+                          profile_picture_url, curriculum_url, linkedin_url, github_url, website_url,
+                          created_at, updated_at, last_login_at 
+                   FROM users WHERE ${where} LIMIT 1`;
+        const r = await pool.query(q, [String(value)]);
+        if (r.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
+        return res.json({ user: r.rows[0] });
+    } catch (err) {
+        console.error('Error en GET /api/profile:', err);
+        return res.status(500).json({ error: 'Error obteniendo perfil' });
+    }
+});
+
+app.put('/api/profile', async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
+        const { id, username } = req.body || {};
+        if (!id && !username) return res.status(400).json({ error: 'id o username requerido' });
+        const allowed = ['email','display_name','first_name','last_name','cargo_rol','type_rol','phone','bio','location',
+                         'linkedin_url','github_url','website_url','profile_picture_url','curriculum_url'];
+        const updates = {};
+        for (const key of allowed) {
+            if (key in (req.body || {})) updates[key] = req.body[key];
+        }
+        if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'Sin campos para actualizar' });
+        const setClauses = Object.keys(updates).map((k, i) => `${k} = $${i+1}`);
+        const params = Object.values(updates);
+        params.push(id || username);
+        const where = id ? `id = $${params.length}` : `LOWER(username) = LOWER($${params.length})`;
+        const q = `UPDATE users SET ${setClauses.join(', ')}, updated_at = NOW() WHERE ${where} RETURNING id, username, email, display_name, first_name, last_name, cargo_rol, type_rol, phone, bio, location, profile_picture_url, curriculum_url`;
+        const r = await pool.query(q, params);
+        if (r.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
+        return res.json({ user: r.rows[0] });
+    } catch (err) {
+        console.error('Error en PUT /api/profile:', err);
+        return res.status(500).json({ error: 'Error actualizando perfil' });
     }
 });
 

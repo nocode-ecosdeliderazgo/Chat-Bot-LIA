@@ -206,7 +206,6 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('[COURSES] Inicializando página de cursos...');
     
     try {
-        hydrateUserHeader();
         initializeCoursesPage();
         setupEventListeners();
         updateLearningStreak();
@@ -227,22 +226,6 @@ function initializeCoursesPage() {
     updateProgressBars();
     
     console.log('[COURSES] Configuración inicial completada');
-}
-
-// Mostrar mensaje de bienvenida con el display_name del usuario
-function hydrateUserHeader() {
-    try {
-        const titleEl = document.getElementById('welcomeTitle');
-        if (!titleEl) return;
-        const raw = localStorage.getItem('currentUser');
-        if (!raw) return;
-        const user = JSON.parse(raw);
-        const name = user.display_name || user.full_name || user.name || user.username || user.email || '';
-        if (!name) return;
-        titleEl.textContent = `Bienvenido ${name}`;
-        titleEl.style.color = 'var(--course-title)';
-        titleEl.style.fontWeight = '800';
-    } catch (_) {}
 }
 
 // ===== MANEJO DE PESTAÑAS =====

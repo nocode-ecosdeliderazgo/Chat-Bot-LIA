@@ -278,9 +278,9 @@ class PerformanceOptimizer {
                     img.src = img.dataset.src;
                     img.classList.add('loaded');
                     imageObserver.unobserve(img);
-                }
+                    }
+                });
             });
-        });
 
         images.forEach(img => imageObserver.observe(img));
     }

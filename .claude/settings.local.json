@@ -5,7 +5,15 @@
       "Bash(npm start)",
       "Bash(npm install)",
       "Bash(npm install:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(start new-auth.html)",
+      "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\login\\new-auth.html\")",
+      "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\test-register.html\")",
+      "Bash(node scripts/extract-supabase-config.js)",
+      "Bash(del \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\test-register.html\")",
+      "Bash(rm:*)",
+      "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\login\\login.html\")",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

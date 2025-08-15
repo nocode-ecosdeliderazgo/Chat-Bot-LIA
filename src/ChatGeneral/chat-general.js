@@ -312,7 +312,7 @@ class ChatGeneral {
         document.getElementById('closeSearch').addEventListener('click', () => this.closeSearchOverlay());
         document.getElementById('clearSearch').addEventListener('click', () => this.clearSearch());
         document.getElementById('searchInput').addEventListener('input', (e) => this.handleSearch(e.target.value));
-
+        
         // Search filters
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -349,9 +349,9 @@ class ChatGeneral {
         const fileUploadArea = document.getElementById('fileUploadArea');
         
         if (fileInput) {
-            fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
-        }
-        
+        fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+    }
+
         if (fileUploadArea) {
             fileUploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
             fileUploadArea.addEventListener('drop', (e) => this.handleFileDrop(e));
@@ -415,14 +415,14 @@ class ChatGeneral {
                 <div class="message-content">
                     ${message.type !== 'system' ? `
                         <div class="message-header">
-                            <span class="message-author">${message.author}</span>
+            <span class="message-author">${message.author}</span>
                             ${this.settings.showTimestamps ? `<span class="message-time">${timeString}</span>` : ''}
                         </div>
                     ` : ''}
                     <div class="message-text">${message.content}</div>
                 </div>
-            </div>
-        `;
+                </div>
+            `;
     }
 
     formatTime(date) {
@@ -435,7 +435,7 @@ class ChatGeneral {
     sendMessage() {
         const messageInput = document.getElementById('messageInput');
         const content = messageInput.value.trim();
-        
+
         if (!content) return;
 
         const message = {
@@ -474,7 +474,7 @@ class ChatGeneral {
     }
 
     autoScrollToBottom() {
-        const messagesContainer = document.getElementById('messagesContainer');
+            const messagesContainer = document.getElementById('messagesContainer');
         if (messagesContainer) {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
@@ -622,7 +622,7 @@ class ChatGeneral {
         
         setTimeout(() => {
             toast.classList.remove('show');
-            setTimeout(() => {
+        setTimeout(() => {
                 toastContainer.removeChild(toast);
             }, 300);
         }, 3000);
