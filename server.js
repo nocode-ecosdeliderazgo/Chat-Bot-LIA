@@ -497,12 +497,9 @@ app.post('/api/register', async (req, res) => {
             });
         }
 
-        // Validación de type_rol
-        if (!type_rol || String(type_rol).trim().length === 0) {
-            return res.status(400).json({ 
-                error: 'Área profesional es requerida' 
-            });
-        }
+        // type_rol ahora es opcional - se configura en el perfil después del registro
+        // Si no se proporciona, asignamos un valor por defecto
+        const userTypeRol = type_rol && String(type_rol).trim().length > 0 ? type_rol : 'estudiante';
 
         // Verificar si existen las columnas necesarias
         let hasPassword = false;
@@ -540,7 +537,7 @@ app.post('/api/register', async (req, res) => {
             return res.status(500).json({ error: 'Registro no disponible: falta password_hash' });
         }
 
-        const result = await pool.query(query, values);
+        const result = await pool.query(query, params);
         res.status(201).json({ user: result.rows[0] });
         
     } catch (error) {
