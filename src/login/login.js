@@ -113,9 +113,30 @@ async function handleRegisterSubmit(e) {
     const username = document.getElementById('reg_username')?.value.trim();
     const email = document.getElementById('reg_email')?.value.trim();
     const password = document.getElementById('reg_password')?.value;
+    const type_rol = document.getElementById('reg_type_rol')?.value;
 
-    if (!full_name || !username || !password) {
-        showError('Completa nombre, usuario y contraseña.');
+    // Validaciones del frontend
+    if (!full_name || !username || !email || !password || !type_rol) {
+        showError('Todos los campos son obligatorios.');
+        return;
+    }
+
+    if (password.length < 8) {
+        showError('La contraseña debe tener al menos 8 caracteres.');
+        return;
+    }
+
+    // Validación básica de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showError('El email debe tener un formato válido.');
+        return;
+    }
+
+    // Validar tipo de rol
+    const validTypeRoles = ['desarrollador', 'marketing', 'ventas', 'economista', 'abogado'];
+    if (!validTypeRoles.includes(type_rol)) {
+        showError('Selecciona un área profesional válida.');
         return;
     }
 
@@ -127,35 +148,57 @@ async function handleRegisterSubmit(e) {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({ full_name, username, email, password })
+            body: JSON.stringify({ full_name, username, email, password, type_rol })
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({ error: `Error HTTP ${res.status}` }));
+            throw new Error(errorData.error || `HTTP ${res.status}`);
+        }
+        
         const data = await res.json();
-        showSuccess('Cuenta creada. Inicia sesión.');
+        showSuccess('Cuenta creada exitosamente. Ahora puedes iniciar sesión.');
         document.getElementById('registerModal')?.classList.add('hidden');
         // Autocompleta usuario en login
         elements.username.value = username;
         elements.password.value = '';
         elements.username.focus();
         return;
-    } catch (_) {
+    } catch (error) {
+        // Si el error viene del servidor, mostrarlo
+        if (error.message && !error.message.includes('HTTP')) {
+            showError(error.message);
+            return;
+        }
+        
         // Modo desarrollo: persistencia local
         try {
             const users = JSON.parse(localStorage.getItem('dev_users') || '[]');
             if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-                showError('Ese usuario ya existe (local).');
+                showError('Ese nombre de usuario ya está en uso.');
                 return;
             }
-            users.push({ full_name, username, email: email || null, password });
+            if (users.some(u => u.email && u.email.toLowerCase() === email.toLowerCase())) {
+                showError('Ese email ya está registrado.');
+                return;
+            }
+            users.push({ 
+                full_name, 
+                username, 
+                email, 
+                password, 
+                type_rol, 
+                cargo_rol: 'Usuario' // Asignar automáticamente
+            });
             localStorage.setItem('dev_users', JSON.stringify(users));
-            showSuccess('Cuenta creada en modo desarrollo. Inicia sesión.');
+            showSuccess('Cuenta creada en modo desarrollo. Ahora puedes iniciar sesión.');
             document.getElementById('registerModal')?.classList.add('hidden');
             elements.username.value = username;
             elements.password.value = '';
             elements.username.focus();
             return;
         } catch (err) {
-            showError('No se pudo registrar.');
+            showError('No se pudo registrar la cuenta.');
         }
     }
 }

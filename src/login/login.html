@@ -89,13 +89,25 @@
                         <div class="input-line"></div>
                     </div>
                     <div class="input-box">
-                        <input type="email" id="reg_email" placeholder="Email (opcional)">
+                        <input type="email" id="reg_email" placeholder="Email" required>
                         <i class='bx bxs-envelope'></i>
                         <div class="input-line"></div>
                     </div>
                     <div class="input-box">
-                        <input type="password" id="reg_password" placeholder="Contraseña" required>
+                        <input type="password" id="reg_password" placeholder="Contraseña (mínimo 8 caracteres)" required minlength="8">
                         <i class='bx bxs-lock-alt'></i>
+                        <div class="input-line"></div>
+                    </div>
+                    <div class="input-box">
+                        <select id="reg_type_rol" required>
+                            <option value="">Selecciona tu área profesional</option>
+                            <option value="desarrollador">Desarrollador</option>
+                            <option value="marketing">Marketing</option>
+                            <option value="ventas">Ventas</option>
+                            <option value="economista">Economista</option>
+                            <option value="abogado">Abogado</option>
+                        </select>
+                        <i class='bx bxs-briefcase'></i>
                         <div class="input-line"></div>
                     </div>
                     <div class="modal-actions">

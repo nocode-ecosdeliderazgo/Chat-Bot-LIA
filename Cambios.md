@@ -273,3 +273,219 @@ Usuario escribe: "¿Qué significa prompt?"
 ---
 
 **Estado**: ✅ **COMPLETADO** - El chatbot ahora debe responder con contenido real de OpenAI enriquecido con contexto de la base de datos.
+
+---
+
+## 🌐 **Corrección de Problemas CORS en Netlify Functions (Enero 2025)**
+
+### **Problema Identificado:**
+El chat funcionaba localmente pero fallaba en producción con errores CORS al hacer requests desde `ecosdeliderazgo.com` a las funciones de Netlify en `bot-lia-ai.netlify.app`:
+
+```
+Access to fetch at 'https://bot-lia-ai.netlify.app/api/context' from origin 'https://ecosdeliderazgo.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+```
+
+**Causa Raíz:** Las funciones de Netlify no aparecían en el deploy porque:
+1. **Path incorrecto**: Netlify buscaba funciones en `src/netlify/functions` pero estaban en `netlify/functions` (raíz)
+2. **Dependencias faltantes**: Las funciones `openai.js` y `context.js` requerían `pg` y `jsonwebtoken` pero no tenían `package.json`
+3. **Validación CORS deficiente**: Aceptaban cualquier origen (`'*'`) sin validación de seguridad
+
+---
+
+### **Soluciones Implementadas:**
+
+#### **1. Corrección de Estructura de Directorios**
+```bash
+# ANTES: Funciones en ubicación incorrecta
+/netlify/functions/openai.js     ❌ No detectado por Netlify
+/netlify/functions/context.js    ❌ No detectado por Netlify
+
+# DESPUÉS: Funciones en ubicación correcta
+/src/netlify/functions/openai.js     ✅ Detectado por Netlify
+/src/netlify/functions/context.js    ✅ Detectado por Netlify
+```
+
+**Configuración en `netlify.toml`:**
+```toml
+[functions]
+  directory = "netlify/functions"  # Buscaba aquí
+
+# Pero el build usa:
+# Build directory: 'src'
+# Functions directory: 'src/netlify/functions'  # Path final real
+```
+
+#### **2. Dependencias para Funciones de Netlify**
+**Creado: `/src/netlify/functions/package.json`**
+```json
+{
+  "name": "netlify-functions",
+  "version": "1.0.0",
+  "dependencies": {
+    "pg": "^8.11.3",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+```
+
+#### **3. Sistema CORS Unificado**
+**Creado: `/src/netlify/functions/cors-utils.js`**
+```javascript
+// Configuración CORS idéntica a server.js
+const allowedOriginsFromEnv = (process.env.ALLOWED_ORIGINS || '')
+    .split(',').map(o => o.trim()).filter(Boolean);
+
+const hostnameWhitelist = [
+    'ecosdeliderazgo.com',
+    'www.ecosdeliderazgo.com'
+];
+
+const tldsWhitelist = [
+    'netlify.app',
+    'netlify.live', 
+    'herokuapp.com'
+];
+
+function isOriginAllowed(origin) {
+    // Si ALLOWED_ORIGINS está configurado, usar eso
+    if (allowedOriginsFromEnv.length > 0) {
+        return allowedOriginsFromEnv.includes(origin);
+    }
+    
+    // Fallback: usar whitelist por hostname
+    try {
+        const host = new URL(origin).hostname;
+        return hostnameWhitelist.includes(host) || 
+               tldsWhitelist.some(tld => host.endsWith(`.${tld}`));
+    } catch {
+        return false;
+    }
+}
+
+function createCorsResponse(status, data, event = null, includeCredentials = false) {
+    const origin = event && (event.headers['origin'] || event.headers['Origin']);
+    const originAllowed = isOriginAllowed(origin);
+    
+    // Rechazar origins no permitidos con 403
+    if (!originAllowed) {
+        return {
+            statusCode: 403,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ error: 'Origin not allowed' })
+        };
+    }
+    
+    return {
+        statusCode: status,
+        headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': origin || '*',
+            'Vary': 'Origin',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With, Authorization, X-User-Id, X-API-Key',
+            'Access-Control-Allow-Methods': 'OPTIONS,POST',
+            ...(includeCredentials && { 'Access-Control-Allow-Credentials': 'true' })
+        },
+        body: JSON.stringify(data)
+    };
+}
+```
+
+#### **4. Actualización de Todas las Funciones**
+**Funciones modificadas para usar CORS unificado:**
+
+- `openai.js` - Función principal del chatbot
+- `context.js` - Búsqueda en base de datos  
+- `auth-issue.js` - Emisión de tokens JWT
+- `login.js` - Autenticación de usuarios
+- `register.js` - Registro de usuarios
+
+**Patrón de actualización:**
+```javascript
+// ANTES: CORS inseguro
+const json = (status, data) => ({
+    statusCode: status,
+    headers: {
+        'Access-Control-Allow-Origin': '*',  // ❌ Inseguro
+        // ...
+    },
+    body: JSON.stringify(data)
+});
+
+// DESPUÉS: CORS validado
+const { createCorsResponse } = require('./cors-utils');
+const json = (status, data, event = null) => createCorsResponse(status, data, event);
+
+exports.handler = async (event) => {
+    if (event.httpMethod === 'OPTIONS') return json(200, { ok: true }, event);
+    // ... resto del código pasa event a todas las respuestas
+    return json(200, result, event);
+};
+```
+
+#### **5. Variables de Entorno Requeridas**
+**Configuración en Netlify:**
+```bash
+ALLOWED_ORIGINS=https://ecosdeliderazgo.com,https://www.ecosdeliderazgo.com
+OPENAI_API_KEY=sk-your-openai-key
+DATABASE_URL=postgresql://your-db-url
+JWT_SECRET=your-jwt-secret
+```
+
+---
+
+### **Verificación del Deploy:**
+
+#### **Build Logs - Antes:**
+```
+Functions bundling from netlify/functions directory:
+ - auth-issue.js
+ - login.js  
+ - register.js
+```
+❌ Solo 3 funciones detectadas
+
+#### **Build Logs - Después:**
+```
+Functions bundling from src/netlify/functions directory:
+ - auth-issue.js
+ - login.js
+ - register.js
+ - context.js      ← ✅ Nueva función
+ - openai.js       ← ✅ Nueva función
+ - test.js         ← ✅ Función de prueba
+```
+✅ 6 funciones detectadas correctamente
+
+---
+
+### **Flujo CORS Corregido:**
+
+```
+1. Frontend (ecosdeliderazgo.com) → Request a bot-lia-ai.netlify.app/api/openai
+2. Browser → Preflight OPTIONS request 
+3. Netlify Function → Valida origin con cors-utils.js
+4. corsUtils → Verifica si 'ecosdeliderazgo.com' está en whitelist ✅
+5. Function → Responde con headers CORS apropiados:
+   Access-Control-Allow-Origin: https://ecosdeliderazgo.com
+   Access-Control-Allow-Headers: Content-Type, Authorization, X-User-Id
+   Access-Control-Allow-Methods: OPTIONS,POST
+6. Browser → Permite el request real
+7. Netlify Function → Procesa request y responde con mismos headers CORS
+8. Frontend → Recibe respuesta exitosamente ✅
+```
+
+---
+
+### **Estado Final:**
+✅ **RESUELTO** - Chat funciona correctamente desde `ecosdeliderazgo.com` con todas las funciones de Netlify desplegadas y validación CORS apropiada.
+
+**Funciones disponibles:**
+- `https://bot-lia-ai.netlify.app/.netlify/functions/openai` - Respuestas de OpenAI
+- `https://bot-lia-ai.netlify.app/.netlify/functions/context` - Contexto de BD  
+- `https://bot-lia-ai.netlify.app/.netlify/functions/auth-issue` - Tokens JWT
+- `https://bot-lia-ai.netlify.app/.netlify/functions/login` - Autenticación
+- `https://bot-lia-ai.netlify.app/.netlify/functions/register` - Registro

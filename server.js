@@ -448,43 +448,117 @@ app.post('/api/transcribe', authenticateRequest, requireUserSession, upload.sing
     }
 });
 
-// Registro de usuarios (simple) — requiere BD
+// Registro de usuarios con validaciones mejoradas
 app.post('/api/register', async (req, res) => {
     try {
         if (!pool) {
             return res.status(500).json({ error: 'Base de datos no configurada' });
         }
-        const { full_name, username, email, password } = req.body || {};
-        if (!full_name || !username) {
-            return res.status(400).json({ error: 'Nombre completo y usuario son requeridos' });
+        
+        const { full_name, username, email, password, type_rol } = req.body || {};
+        
+        // Validaciones obligatorias
+        if (!full_name || !username || !email || !password) {
+            return res.status(400).json({ 
+                error: 'Nombre completo, usuario, email y contraseña son requeridos' 
+            });
         }
-        // Intentar detectar si existe la columna password_hash en users
+
+        // Validación de contraseña (mínimo 8 caracteres)
+        if (String(password).length < 8) {
+            return res.status(400).json({ 
+                error: 'La contraseña debe tener al menos 8 caracteres' 
+            });
+        }
+
+        // Validación de email básica
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(String(email))) {
+            return res.status(400).json({ 
+                error: 'El email debe tener un formato válido' 
+            });
+        }
+
+        // Validación de type_rol
+        const validTypeRoles = ['desarrollador', 'marketing', 'ventas', 'economista', 'abogado'];
+        if (!type_rol || !validTypeRoles.includes(String(type_rol).toLowerCase())) {
+            return res.status(400).json({ 
+                error: 'Tipo de rol requerido. Opciones válidas: ' + validTypeRoles.join(', ') 
+            });
+        }
+
+        // Verificar si existen las columnas necesarias
         let hasPassword = false;
+        let hasCargoRol = false;
+        let hasTypeRol = false;
+        
         try {
-            const col = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'password_hash' LIMIT 1");
-            hasPassword = col.rows.length > 0;
+            const cols = await pool.query(`
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'users' 
+                AND column_name IN ('password_hash', 'cargo_rol', 'type_rol')
+            `);
+            const columnNames = cols.rows.map(row => row.column_name);
+            hasPassword = columnNames.includes('password_hash');
+            hasCargoRol = columnNames.includes('cargo_rol');
+            hasTypeRol = columnNames.includes('type_rol');
         } catch (_) {}
 
-        let query, params;
-        if (hasPassword && password) {
-            // Hash básico (bcryptjs)
-            const bcrypt = require('bcryptjs');
-            const hash = await bcrypt.hash(String(password), 10);
-            query = `INSERT INTO users (full_name, username, email, password_hash) VALUES ($1,$2,$3,$4) RETURNING id, username, full_name, email`;
-            params = [full_name, username, email || null, hash];
-        } else {
-            query = `INSERT INTO users (full_name, username, email) VALUES ($1,$2,$3) RETURNING id, username, full_name, email`;
-            params = [full_name, username, email || null];
+        if (!hasPassword) {
+            return res.status(500).json({ error: 'La tabla users no tiene columna password_hash' });
         }
 
-        const result = await pool.query(query, params);
+        // Hash de la contraseña
+        const bcrypt = require('bcryptjs');
+        const hash = await bcrypt.hash(String(password), 10);
+
+        // Construir query dinámicamente según columnas disponibles
+        const columns = ['full_name', 'username', 'email', 'password_hash'];
+        const values = [full_name, username, email, hash];
+        let paramIndex = 5;
+
+        // Siempre asignar cargo_rol como 'Usuario'
+        if (hasCargoRol) {
+            columns.push('cargo_rol');
+            values.push('Usuario');
+        }
+
+        // Asignar type_rol si la columna existe
+        if (hasTypeRol) {
+            columns.push('type_rol');
+            values.push(String(type_rol).toLowerCase());
+        }
+
+        const placeholders = values.map((_, index) => `$${index + 1}`).join(',');
+        const returnColumns = hasCargoRol && hasTypeRol ? 
+            'id, username, full_name, email, cargo_rol, type_rol' : 
+            'id, username, full_name, email';
+
+        const query = `
+            INSERT INTO users (${columns.join(', ')}) 
+            VALUES (${placeholders}) 
+            RETURNING ${returnColumns}
+        `;
+
+        const result = await pool.query(query, values);
         res.status(201).json({ user: result.rows[0] });
+        
     } catch (error) {
         console.error('Error registrando usuario:', error);
-        // Duplicado de username
-        if (String(error.message||'').includes('duplicate')) {
-            return res.status(409).json({ error: 'El usuario ya existe' });
+        
+        // Manejar errores específicos
+        const errorMsg = String(error.message || '').toLowerCase();
+        if (errorMsg.includes('duplicate') || errorMsg.includes('unique')) {
+            if (errorMsg.includes('username')) {
+                return res.status(409).json({ error: 'El nombre de usuario ya está en uso' });
+            } else if (errorMsg.includes('email')) {
+                return res.status(409).json({ error: 'El email ya está registrado' });
+            } else {
+                return res.status(409).json({ error: 'El usuario ya existe' });
+            }
         }
+        
         res.status(500).json({ error: 'Error registrando usuario' });
     }
 });
