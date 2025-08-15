@@ -50,15 +50,15 @@ class CourseManager {
     async loadCourses() {
         try {
             // Simular carga de cursos desde API
-            this.courses = [
-                {
+        this.courses = [
+            {
                     id_ai_courses: '1',
                     name: 'Curso de JavaScript Avanzado',
                     price: '99.99',
-                    currency: 'USD',
+                currency: 'USD',
                     modality: 'async',
-                    status: 'published',
-                    session_count: 12,
+                status: 'published',
+                session_count: 12,
                     short_description: 'Aprende JavaScript desde cero hasta nivel avanzado',
                     created_at: '2024-01-15'
                 },
@@ -66,9 +66,9 @@ class CourseManager {
                     id_ai_courses: '2',
                     name: 'React para Principiantes',
                     price: '149.99',
-                    currency: 'USD',
+                currency: 'USD',
                     modality: 'mixed',
-                    status: 'draft',
+                status: 'draft',
                     session_count: 8,
                     short_description: 'Introducción completa a React y sus conceptos fundamentales',
                     created_at: '2024-01-20'
@@ -77,8 +77,8 @@ class CourseManager {
                     id_ai_courses: '3',
                     name: 'Node.js Backend Development',
                     price: '199.99',
-                    currency: 'USD',
-                    modality: 'sync',
+                currency: 'USD',
+                modality: 'sync',
                     status: 'published',
                     session_count: 15,
                     short_description: 'Desarrollo de APIs y aplicaciones backend con Node.js',
@@ -153,8 +153,8 @@ class CourseManager {
                                 <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                        </button>
-                    </div>
+                    </button>
+                </div>
                 </td>
             `;
             tbody.appendChild(row);
@@ -256,18 +256,18 @@ class CourseManager {
 
     async saveCourse(event) {
         event.preventDefault();
-        
+
         const formData = new FormData(event.target);
         const courseData = Object.fromEntries(formData.entries());
         
         try {
             // Simular guardado en API
             console.log('Guardando curso:', courseData);
-            
-            if (this.currentCourse) {
-                // Actualizar curso existente
+                
+                if (this.currentCourse) {
+                    // Actualizar curso existente
                 Object.assign(this.currentCourse, courseData);
-            } else {
+                } else {
                 // Crear nuevo curso
                 const newCourse = {
                     id_ai_courses: Date.now().toString(),
@@ -297,7 +297,7 @@ class CourseManager {
             
             this.courses = this.courses.filter(course => course.id_ai_courses !== courseId);
             
-            this.showNotification('Curso eliminado exitosamente', 'success');
+                this.showNotification('Curso eliminado exitosamente', 'success');
             this.renderCoursesTable();
         } catch (error) {
             console.error('Error deleting course:', error);
@@ -507,7 +507,7 @@ class CourseManager {
     async getIAResponse(message) {
         // Simular respuesta de IA
         return new Promise(resolve => {
-            setTimeout(() => {
+        setTimeout(() => {
                 resolve('Gracias por tu mensaje. Te ayudo con la gestión de cursos. ¿En qué puedo asistirte específicamente?');
             }, 1000);
         });
