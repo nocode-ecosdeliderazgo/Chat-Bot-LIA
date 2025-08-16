@@ -544,9 +544,19 @@ async function handleLogin(e) {
 
             const { data: current } = await window.supabase.auth.getUser();
             if (current?.user) {
+                // Obtener el token de Supabase
+                const { data: session } = await window.supabase.auth.getSession();
+                const token = session?.session?.access_token;
+                
                 // Guardar datos con las claves que espera auth-guard
+                if (token) {
+                    localStorage.setItem('userToken', token);
+                    localStorage.setItem('authToken', token); // Mantener compatibilidad
+                    devLog('Token de Supabase guardado:', token.substring(0, 20) + '...');
+                }
                 localStorage.setItem('userData', JSON.stringify(current.user));
                 localStorage.setItem('currentUser', JSON.stringify(current.user)); // Mantener compatibilidad
+                devLog('Datos de usuario guardados:', current.user);
                 
                 // Crear sesión activa
                 const sessionData = {
@@ -555,6 +565,7 @@ async function handleLogin(e) {
                     userId: current.user.id
                 };
                 localStorage.setItem('userSession', JSON.stringify(sessionData));
+                devLog('Sesión creada:', sessionData);
                     // Intentar actualizar último acceso (ignorar errores por RLS)
                     try {
                 await window.supabase
