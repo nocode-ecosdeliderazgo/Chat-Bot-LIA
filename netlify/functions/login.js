@@ -16,7 +16,7 @@ exports.handler = async (event) => {
 
   try {
     const { username, password } = JSON.parse(event.body || '{}');
-    if (!username || !password) return json(400, { error: 'username y password son requeridos' }, event);
+    if (!username || !password) return json(400, { error: 'Email/username y password son requeridos' }, event);
 
     // Detectar columnas opcionales de roles
     let hasCargoRol = false;
@@ -33,15 +33,18 @@ exports.handler = async (event) => {
     const selectCols = [
       'id',
       'username',
+      'email',
+      'display_name',
       'password_hash',
       ...(hasCargoRol ? ['cargo_rol'] : []),
       ...(hasTypeRol ? ['type_rol'] : [])
     ].join(', ');
 
+    // Buscar por email O username
     const { rows } = await pool.query(
       `SELECT ${selectCols}
        FROM users
-       WHERE lower(username) = lower($1)
+       WHERE lower(username) = lower($1) OR lower(email) = lower($1)
        LIMIT 1`,
       [username]
     );
@@ -52,7 +55,12 @@ exports.handler = async (event) => {
     const ok = await bcrypt.compare(password, user.password_hash || '');
     if (!ok) return json(401, { error: 'Credenciales inválidas' }, event);
 
-    const responseUser = { id: user.id, username: user.username };
+    const responseUser = { 
+      id: user.id, 
+      username: user.username,
+      email: user.email,
+      display_name: user.display_name
+    };
     if (hasCargoRol) responseUser.cargo_rol = user.cargo_rol || null;
     if (hasTypeRol) responseUser.type_rol = user.type_rol || null;
 
