@@ -1,4 +1,6 @@
 [build]
+  publish = "."
+  command = "npm install && npm run build"
   node_version = "18"
   
 [build.environment]
@@ -26,5 +28,36 @@
   from = "/api/*"
   to   = "/.netlify/functions/:splat"
   status = 200
+
+# Headers de seguridad para archivos JavaScript ofuscados
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+    Content-Type = "application/javascript"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+    Content-Type = "text/css"
+
+# Headers de seguridad generales
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Headers específicos para funciones de Netlify
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
 
 

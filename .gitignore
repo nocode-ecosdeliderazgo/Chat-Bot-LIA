@@ -152,6 +152,9 @@ coverage/
 *.backup
 *.old
 
+# Obfuscation backups
+**/*.js.backup
+
 # Local development
 .local/
 local/
