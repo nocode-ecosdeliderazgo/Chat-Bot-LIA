@@ -8,11 +8,13 @@ const AUTH_GUARD_CONFIG = {
     tokenKey: 'userToken',
     userDataKey: 'userData',
     sessionKey: 'userSession',
-    loginPath: '/src/login/new-auth.html',
+    loginPath: '/login/new-auth.html',
     publicPaths: [
         '/src/index.html',
         '/src/login/new-auth.html',
         '/src/login/test-credentials.html',
+        '/login/new-auth.html',
+        '/login/test-credentials.html',
         '/index.html',
         '/'
     ],
@@ -100,6 +102,8 @@ function isPublicRoute() {
     const currentPath = window.location.pathname;
     const currentFile = window.location.pathname.split('/').pop();
     
+    console.log('🔍 Verificando ruta:', { currentPath, currentFile });
+    
     // Verificar rutas exactas
     if (AUTH_GUARD_CONFIG.publicPaths.includes(currentPath)) {
         return true;
@@ -115,8 +119,13 @@ function isPublicRoute() {
         return true;
     }
     
-    // Verificar si está en la carpeta de login
-    if (currentPath.includes('/login/')) {
+    // Verificar si está en la carpeta de login (cualquier nivel)
+    if (currentPath.includes('/login/') || currentPath.includes('login.html') || currentPath.includes('new-auth.html')) {
+        return true;
+    }
+    
+    // Verificar si está en src/login/ (desarrollo)
+    if (currentPath.includes('/src/login/')) {
         return true;
     }
     
@@ -137,14 +146,29 @@ function redirectToLogin() {
         // Redirigir después del delay
         setTimeout(() => {
             const baseUrl = window.location.origin;
-            const loginUrl = `${baseUrl}/src/login/new-auth.html`;
+            
+            // Detectar estructura del sitio automáticamente
+            let loginUrl;
+            if (window.location.pathname.includes('/src/')) {
+                // Estructura de desarrollo (con /src/)
+                loginUrl = `${baseUrl}/src/login/new-auth.html`;
+            } else {
+                // Estructura de producción (sin /src/)
+                loginUrl = `${baseUrl}/login/new-auth.html`;
+            }
+            
+            console.log('🔄 Redirigiendo a:', loginUrl);
             window.location.href = loginUrl;
         }, AUTH_GUARD_CONFIG.redirectDelay);
         
     } catch (error) {
         console.error('Error redirecting to login:', error);
-        // Fallback directo
-        window.location.href = '/src/login/new-auth.html';
+        // Fallback directo - intentar primero producción, luego desarrollo
+        try {
+            window.location.href = '/login/new-auth.html';
+        } catch (e) {
+            window.location.href = '/src/login/new-auth.html';
+        }
     }
 }
 
