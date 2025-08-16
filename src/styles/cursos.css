@@ -66,6 +66,24 @@ main.container { padding-top: 220px; }
 .cta .enroll { flex:1; border: 0; border-radius: 10px; background: linear-gradient(135deg, var(--turq), var(--turq-2)); color:#001018; font-weight:800; padding:10px 12px; cursor:pointer; }
 .cta .wishlist { width:40px; border-radius:10px; border:1px solid rgba(68,229,255,.25); background: rgba(255,255,255,.06); color:#fff; cursor:pointer; }
 
+/* Botón Perfil flotante a la derecha del header */
+.header-profile { position: fixed; top: 12px; right: 20px; z-index: 1001; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(68,229,255,.35); padding: 0; background: rgba(7,17,36,.4); cursor:pointer; display: block; }
+.header-profile:hover { filter: brightness(1.05); }
+.header-profile img { width: 100%; height: 100%; object-fit: cover; display:block; }
+
+/* Dropdown del avatar */
+.profile-menu { position: fixed; top: 76px; right: 20px; width: 260px; background: rgba(10,16,28,.96); border:1px solid rgba(68,229,255,.18); border-radius: 14px; box-shadow: 0 18px 46px rgba(0,0,0,.45); backdrop-filter: blur(10px); display:none; z-index: 1002; overflow: hidden; }
+.profile-menu.show { display:block; }
+.profile-menu .pm-header { display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid rgba(68,229,255,.12); }
+.profile-menu .pm-avatar { width:36px; height:36px; border-radius:50%; overflow:hidden; border:1px solid rgba(68,229,255,.25); }
+.profile-menu .pm-avatar img { width:100%; height:100%; object-fit:cover; }
+.profile-menu .pm-name { font-weight:700; font-size:14px; }
+.profile-menu .pm-email { font-size:12px; color:#8fb2bf; }
+.profile-menu .pm-section { border-top:1px solid rgba(68,229,255,.08); }
+.profile-menu .pm-item { display:flex; align-items:center; gap:10px; padding:12px 14px; cursor:pointer; }
+.profile-menu .pm-item:hover { background: rgba(68,229,255,.08); }
+.profile-menu .pm-item i { color: var(--turq); }
+
 @media (max-width: 1100px){ .courses-grid{ grid-template-columns: repeat(3, 1fr);} }
 @media (max-width: 820px){ .courses-grid{ grid-template-columns: repeat(2, 1fr);} .catalog-categories{ overflow:auto; } }
 @media (max-width: 560px){ .courses-grid{ grid-template-columns: 1fr;} }
@@ -244,5 +262,8 @@ main.container { padding-top: 220px; }
 .category-group .meta { font-size: 12px; }
 .category-group .cta .enroll { padding: 8px 10px; font-size: 13px; }
 .category-group .cta .wishlist { width: 36px; }
+
+/* Reducir ancho del navbar (no altura) solo en cursos */
+.catalog-header .course-tabs { width: min(430px, 85vw); margin: 0 auto; }
 
 

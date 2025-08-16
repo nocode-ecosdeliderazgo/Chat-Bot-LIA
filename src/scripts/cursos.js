@@ -83,4 +83,38 @@ search?.addEventListener('keydown', (e) => {
 // Init
 filter('todos');
 
+// Toggle menú de perfil
+(() => {
+  const avatarBtn = document.querySelector('.header-profile');
+  const menu = document.getElementById('profileMenu');
+  if (!avatarBtn || !menu) return;
+  // Rellenar datos del usuario
+  try {
+    const raw = localStorage.getItem('currentUser');
+    if (raw) {
+      const user = JSON.parse(raw);
+      const nameEl = document.getElementById('pmName');
+      const emailEl = document.getElementById('pmEmail');
+      if (nameEl && user.display_name) nameEl.textContent = user.display_name;
+      if (emailEl && user.email) emailEl.textContent = user.email;
+      // avatar
+      if (user.avatar_url) {
+        document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {
+          img.src = user.avatar_url;
+        });
+      }
+    }
+  } catch (e) { /* noop */ }
+
+  avatarBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    menu.classList.toggle('show');
+  });
+  document.addEventListener('click', (e) => {
+    if (!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+      menu.classList.remove('show');
+    }
+  });
+})();
+
 

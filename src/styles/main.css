@@ -132,6 +132,9 @@ body:not(.landing) {
     justify-content: center;
     align-items: center;
 }
+
+/* Ocultar decoraciones de cabecera (líneas/puntos) en páginas internas */
+.grid-header, .header-decor, .top-scan-line { display: none !important; }
 /* Ajustes específicos para layout NotebookLM: ocupar toda la pantalla y acercar a bordes */
 body.layout-notebook { padding: 1px; align-items: stretch; justify-content: stretch; }
 
