@@ -11,12 +11,17 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
 <body>
+    <div class="particles-container"></div>
 
     <!-- Navigation Bar -->
     <div class="course-tabs">
         <button class="tab-button" data-tab="mis-cursos">
             <i class='bx bx-book'></i>
             Mis cursos
+        </button>
+        <button class="tab-button" onclick="location.href='../cursos.html'">
+            <i class='bx bx-collection'></i>
+            Cursos
         </button>
         <button class="tab-button active" data-tab="noticias">
             <i class='bx bx-news'></i>
@@ -226,6 +231,8 @@
     <!-- Toast Notifications -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <script src="../scripts/particles.js"></script>
+    <script src="../scripts/main.js"></script>
     <script src="notices.js"></script>
 </body>
 </html>

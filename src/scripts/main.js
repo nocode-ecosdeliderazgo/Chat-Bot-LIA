@@ -1,3 +1,10 @@
+// Inicializar partículas globales si existe el contenedor
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof window.initializeParticleSystem === 'function') {
+    window.initializeParticleSystem();
+  }
+});
+
 // Configuración del chatbot según PROMPT_CLAUDE.md
 const CHATBOT_CONFIG = {
     name: 'Lia IA',

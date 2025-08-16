@@ -22,12 +22,10 @@
 html, body.courses-page {
     margin: 0;
     padding: 0;
-    background:
-        repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px),
-        repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px),
-        radial-gradient(1200px 800px at 20% 0%, rgba(68, 229, 255, 0.08), transparent 60%),
-        radial-gradient(800px 600px at 80% 100%, rgba(0, 119, 166, 0.12), transparent 60%),
-        linear-gradient(160deg, var(--color-bg-1) 0%, var(--color-bg-2) 100%);
+    /* Colores del degradado específicos para Mis Cursos (más azulados, no negro) */
+    --color-bg-1: #041326; /* azul noche (más oscuro) */
+    --color-bg-2: #070F1D; /* azul profundo (más oscuro) */
+    background: linear-gradient(160deg, var(--color-bg-1) 0%, var(--color-bg-2) 100%);
     color: var(--course-text-primary);
     font-family: var(--font-body);
     min-height: 100vh;

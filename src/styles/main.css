@@ -67,13 +67,30 @@ body {
     padding: 2px;
     line-height: var(--line-height);
     color: var(--text-on-dark);
-    background:
-        /* malla sutil */
-        repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px),
-        repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px),
-        radial-gradient(1200px 800px at 20% 0%, rgba(68, 229, 255, 0.08), transparent 60%),
-        radial-gradient(800px 600px at 80% 100%, rgba(0, 119, 166, 0.12), transparent 60%),
-        linear-gradient(160deg, var(--color-bg-1) 0%, var(--color-bg-2) 100%);
+    background: linear-gradient(160deg, var(--color-bg-1) 0%, var(--color-bg-2) 100%);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Fondo con partículas + glow para todas las páginas */
+.particles-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.bg-glow-global::before {
+    content: '';
+    position: fixed;
+    width: 160vh;
+    height: 160vh;
+    left: -30vh;
+    top: -40vh;
+    background: radial-gradient(circle, rgba(68,229,255,0.18), transparent 60%);
+    filter: blur(60px);
+    z-index: 0;
+    pointer-events: none;
 }
 
 /* Tipografía para títulos según PROMPT_CLAUDE.md */
