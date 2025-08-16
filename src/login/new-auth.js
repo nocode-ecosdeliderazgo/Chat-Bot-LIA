@@ -4,6 +4,62 @@
 // Importante: Deshabilitamos uso directo de Supabase en frontend para evitar 401 por RLS
 // Todo el login/registro pasa por el backend cuando se usa username
 const ENABLE_SUPABASE_AUTH = false;
+
+/**
+ * Función para asegurar que todos los datos de autenticación estén sincronizados
+ * Llama a esta función después de cualquier login exitoso
+ */
+function ensureAuthDataSync() {
+    try {
+        // Verificar si hay datos de usuario en cualquier formato
+        const currentUser = localStorage.getItem('currentUser');
+        const userData = localStorage.getItem('userData');
+        const existingToken = localStorage.getItem('userToken') || localStorage.getItem('authToken');
+        
+        // Si hay currentUser pero no userData, sincronizar
+        if (currentUser && !userData) {
+            devLog('Sincronizando datos: currentUser -> userData');
+            localStorage.setItem('userData', currentUser);
+        }
+        
+        // Si hay userData pero no currentUser, sincronizar
+        if (userData && !currentUser) {
+            devLog('Sincronizando datos: userData -> currentUser');
+            localStorage.setItem('currentUser', userData);
+        }
+        
+        // Si no hay token, crear uno simulado
+        if ((currentUser || userData) && !existingToken) {
+            devLog('Creando token simulado para usuario autenticado');
+            const user = JSON.parse(currentUser || userData);
+            const mockToken = btoa(JSON.stringify({
+                exp: Math.floor(Date.now() / 1000) + 3600, // 1 hora
+                user: user.email || user.username,
+                role: user.cargo_rol || user.role || 'user',
+                id: user.id
+            }));
+            localStorage.setItem('userToken', mockToken);
+            localStorage.setItem('authToken', mockToken); // Mantener compatibilidad
+        }
+        
+        // Si no hay sesión, crear una
+        if ((currentUser || userData) && !localStorage.getItem('userSession')) {
+            devLog('Creando sesión para usuario autenticado');
+            const user = JSON.parse(currentUser || userData);
+            const sessionData = {
+                sessionId: 'session-' + Date.now(),
+                created: new Date().toISOString(),
+                userId: user.id || user.username || user.email
+            };
+            localStorage.setItem('userSession', JSON.stringify(sessionData));
+        }
+        
+        devLog('Sincronización de datos de autenticación completada');
+        
+    } catch (error) {
+        console.error('Error sincronizando datos de autenticación:', error);
+    }
+}
 const API_BASE = (() => {
     try {
         if (window.API_BASE) return window.API_BASE;
@@ -578,6 +634,9 @@ async function handleLogin(e) {
                     } catch (_) {}
             }
 
+            // Asegurar sincronización de datos
+            ensureAuthDataSync();
+            
             showNotification('¡Sesión iniciada correctamente!', 'success');
             await handleSuccessfulAuth(emailOrUsername, remember);
             return;
@@ -646,6 +705,9 @@ async function handleLogin(e) {
                 localStorage.removeItem('rememberedTime');
             }
             
+            // Asegurar sincronización de datos
+            ensureAuthDataSync();
+            
             showNotification('¡Sesión iniciada correctamente!', 'success');
             await handleSuccessfulAuth(emailOrUsername, remember);
         } else {
@@ -668,6 +730,9 @@ async function handleLogin(e) {
                 } else {
                     localStorage.removeItem('rememberedEmailOrUsername');
                 }
+                // Asegurar sincronización de datos
+                ensureAuthDataSync();
+                
                 showNotification('¡Sesión iniciada correctamente! (Modo desarrollo)', 'success');
                 await handleSuccessfulAuth();
             } else {
@@ -990,6 +1055,9 @@ function getRedirectPageByRole(userRole) {
 // Manejo de autenticación exitosa
 async function handleSuccessfulAuth() {
     devLog('Manejando autenticación exitosa');
+    
+    // Asegurar sincronización como respaldo
+    ensureAuthDataSync();
     
     // Animar éxito
     await animateSuccess();

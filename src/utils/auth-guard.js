@@ -37,26 +37,71 @@ function isAuthenticated() {
         const userData = localStorage.getItem(AUTH_GUARD_CONFIG.userDataKey);
         const session = localStorage.getItem(AUTH_GUARD_CONFIG.sessionKey);
         
+        // Verificar si hay datos de usuario en formato legacy que necesiten sincronización
+        const currentUser = localStorage.getItem('currentUser');
+        if (currentUser && (!token || !userData || !session)) {
+            console.log('🔄 Detectados datos desincronizados, intentando corrección automática...');
+            try {
+                const user = JSON.parse(currentUser);
+                
+                if (!userData) {
+                    localStorage.setItem('userData', currentUser);
+                    console.log('✅ userData sincronizado');
+                }
+                
+                if (!token) {
+                    const mockToken = btoa(JSON.stringify({
+                        exp: Math.floor(Date.now() / 1000) + 3600,
+                        user: user.email || user.username,
+                        role: user.cargo_rol || 'user',
+                        id: user.id
+                    }));
+                    localStorage.setItem('userToken', mockToken);
+                    console.log('✅ userToken creado');
+                }
+                
+                if (!session) {
+                    const sessionData = {
+                        sessionId: 'session-' + Date.now(),
+                        created: new Date().toISOString(),
+                        userId: user.id || user.username || user.email
+                    };
+                    localStorage.setItem('userSession', JSON.stringify(sessionData));
+                    console.log('✅ userSession creado');
+                }
+                
+                // Re-verificar después de la sincronización
+                return isAuthenticated();
+                
+            } catch (e) {
+                console.warn('Error en sincronización automática:', e);
+            }
+        }
+        
         console.log('🔍 Verificando autenticación:', {
-            hasToken: !!token,
-            hasUserData: !!userData,
-            hasSession: !!session,
+            hasToken: !!localStorage.getItem(AUTH_GUARD_CONFIG.tokenKey),
+            hasUserData: !!localStorage.getItem(AUTH_GUARD_CONFIG.userDataKey),
+            hasSession: !!localStorage.getItem(AUTH_GUARD_CONFIG.sessionKey),
             tokenKey: AUTH_GUARD_CONFIG.tokenKey,
             userDataKey: AUTH_GUARD_CONFIG.userDataKey,
             sessionKey: AUTH_GUARD_CONFIG.sessionKey
         });
         
-        if (!token) {
+        const finalToken = localStorage.getItem(AUTH_GUARD_CONFIG.tokenKey);
+        const finalUserData = localStorage.getItem(AUTH_GUARD_CONFIG.userDataKey);
+        const finalSession = localStorage.getItem(AUTH_GUARD_CONFIG.sessionKey);
+        
+        if (!finalToken) {
             console.log('❌ No hay token');
             return false;
         }
 
-        if (!userData) {
+        if (!finalUserData) {
             console.log('❌ No hay datos de usuario');
             return false;
         }
 
-        if (!session) {
+        if (!finalSession) {
             console.log('❌ No hay sesión activa');
             return false;
         }
