@@ -70,35 +70,22 @@ exports.handler = async (event) => {
     // Hash de la contraseña
     const hash = await bcrypt.hash(String(password), 10);
 
-    // Construir query dinámicamente según columnas disponibles
-    const columns = ['full_name', 'username', 'email', 'password_hash'];
-    const values = [full_name, username, email, hash];
-
-    // Siempre asignar cargo_rol como 'Usuario'
-    if (hasCargoRol) {
-      columns.push('cargo_rol');
-      values.push('Usuario');
+    // Usar el mismo esquema que server.js
+    let query, params;
+    if (hasPassword) {
+      query = `INSERT INTO users (username, email, password_hash, first_name, last_name, display_name) 
+               VALUES ($1,$2,$3, NULL, NULL, $4) 
+               RETURNING id, username, email, display_name`;
+      params = [username, email, hash, full_name];
+    } else {
+      query = `INSERT INTO users (username, email, first_name, last_name, display_name) 
+               VALUES ($1,$2, NULL, NULL, $3) 
+               RETURNING id, username, email, display_name`;
+      params = [username, email, full_name];
     }
-
-    // Asignar type_rol si la columna existe
-    if (hasTypeRol) {
-      columns.push('type_rol');
-      values.push(String(userTypeRol).trim().toLowerCase());
-    }
-
-    const placeholders = values.map((_, index) => `$${index + 1}`).join(',');
-    const returnColumns = hasCargoRol && hasTypeRol ? 
-      'id, username, full_name, email, cargo_rol, type_rol' : 
-      'id, username, full_name, email';
-
-    const query = `
-      INSERT INTO users (${columns.join(', ')}) 
-      VALUES (${placeholders}) 
-      RETURNING ${returnColumns}
-    `;
 
     try {
-      const result = await pool.query(query, values);
+      const result = await pool.query(query, params);
       return json(201, { user: result.rows[0] }, event);
     } catch (error) {
       console.error('register insert error', error);
