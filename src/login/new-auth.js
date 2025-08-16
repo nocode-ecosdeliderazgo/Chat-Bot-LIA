@@ -544,7 +544,17 @@ async function handleLogin(e) {
 
             const { data: current } = await window.supabase.auth.getUser();
             if (current?.user) {
-                localStorage.setItem('currentUser', JSON.stringify(current.user));
+                // Guardar datos con las claves que espera auth-guard
+                localStorage.setItem('userData', JSON.stringify(current.user));
+                localStorage.setItem('currentUser', JSON.stringify(current.user)); // Mantener compatibilidad
+                
+                // Crear sesión activa
+                const sessionData = {
+                    sessionId: 'session-' + Date.now(),
+                    created: new Date().toISOString(),
+                    userId: current.user.id
+                };
+                localStorage.setItem('userSession', JSON.stringify(sessionData));
                     // Intentar actualizar último acceso (ignorar errores por RLS)
                     try {
                 await window.supabase
@@ -592,8 +602,21 @@ async function handleLogin(e) {
             localStorage.removeItem('loginAttempts');
             localStorage.removeItem('lockoutEndTime');
             
-            if (result.token) localStorage.setItem('authToken', result.token);
-            localStorage.setItem('currentUser', JSON.stringify(result.user));
+            // Guardar datos de autenticación con las claves que espera auth-guard
+            if (result.token) {
+                localStorage.setItem('userToken', result.token);
+                localStorage.setItem('authToken', result.token); // Mantener compatibilidad
+            }
+            localStorage.setItem('userData', JSON.stringify(result.user));
+            localStorage.setItem('currentUser', JSON.stringify(result.user)); // Mantener compatibilidad
+            
+            // Crear sesión activa
+            const sessionData = {
+                sessionId: 'session-' + Date.now(),
+                created: new Date().toISOString(),
+                userId: result.user.id || result.user.username
+            };
+            localStorage.setItem('userSession', JSON.stringify(sessionData));
             
             if (remember) {
                 localStorage.setItem('rememberedEmailOrUsername', emailOrUsername);
@@ -843,13 +866,32 @@ async function validateCredentialsLocal(emailOrUsername, password) {
     
     if (foundUser) {
         // Guardar datos del usuario para uso posterior (incluye cargo_rol para redirección)
-        localStorage.setItem('currentUser', JSON.stringify({
+        const userData = {
             email: foundUser.email,
             username: foundUser.username,
             name: foundUser.name,
             cargo_rol: foundUser.cargo_rol,
             loginTime: new Date().toISOString()
+        };
+        
+        // Guardar con las claves que espera auth-guard
+        localStorage.setItem('userData', JSON.stringify(userData));
+        localStorage.setItem('currentUser', JSON.stringify(userData)); // Mantener compatibilidad
+        
+        // Crear token y sesión simulados para desarrollo
+        const mockToken = btoa(JSON.stringify({
+            exp: Math.floor(Date.now() / 1000) + 3600, // 1 hora
+            user: foundUser.email,
+            role: foundUser.cargo_rol
         }));
+        localStorage.setItem('userToken', mockToken);
+        
+        const sessionData = {
+            sessionId: 'session-' + Date.now(),
+            created: new Date().toISOString(),
+            userId: foundUser.username
+        };
+        localStorage.setItem('userSession', JSON.stringify(sessionData));
         return true;
     }
     

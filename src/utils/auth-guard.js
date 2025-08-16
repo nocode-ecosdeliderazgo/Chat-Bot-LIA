@@ -44,14 +44,28 @@ function isAuthenticated() {
 
         // Verificar que el token no esté expirado (básico)
         try {
-            const parsedToken = JSON.parse(atob(token.split('.')[1]));
-            const currentTime = Math.floor(Date.now() / 1000);
-            if (parsedToken.exp && parsedToken.exp < currentTime) {
-                clearAuthData();
-                return false;
+            // Intentar parsear como JWT estándar
+            if (token.includes('.')) {
+                const parsedToken = JSON.parse(atob(token.split('.')[1]));
+                const currentTime = Math.floor(Date.now() / 1000);
+                if (parsedToken.exp && parsedToken.exp < currentTime) {
+                    console.log('🔒 Token expirado, limpiando datos...');
+                    clearAuthData();
+                    return false;
+                }
+            } else {
+                // Token en formato base64 simple (desarrollo)
+                const parsedToken = JSON.parse(atob(token));
+                const currentTime = Math.floor(Date.now() / 1000);
+                if (parsedToken.exp && parsedToken.exp < currentTime) {
+                    console.log('🔒 Token de desarrollo expirado, limpiando datos...');
+                    clearAuthData();
+                    return false;
+                }
             }
         } catch (e) {
             // Si no se puede parsear el token, considerarlo inválido
+            console.warn('🔒 Token inválido:', e.message);
             clearAuthData();
             return false;
         }
@@ -225,19 +239,30 @@ function showAuthWarning() {
  * Inicializa la protección de autenticación
  */
 function initAuthGuard() {
+    const currentPath = window.location.pathname;
+    console.log('🔒 AuthGuard iniciado para:', currentPath);
+    
     // Verificar si estamos en una ruta pública
     if (isPublicRoute()) {
+        console.log('✅ Ruta pública detectada - Acceso permitido');
         return; // Permitir acceso a rutas públicas
     }
     
+    console.log('🔐 Ruta protegida detectada - Verificando autenticación...');
+    
     // Verificar autenticación para rutas protegidas
     if (!isAuthenticated()) {
+        console.log('❌ Usuario NO autenticado - Redirigiendo al login');
         redirectToLogin();
         return;
     }
     
     // Si llegamos aquí, el usuario está autenticado
-    console.log('✅ Usuario autenticado - Acceso permitido');
+    const user = getCurrentUser();
+    console.log('✅ Usuario autenticado - Acceso permitido', {
+        user: user?.username || user?.email,
+        role: user?.cargo_rol || user?.role
+    });
 }
 
 /**
