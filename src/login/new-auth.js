@@ -518,6 +518,9 @@ async function handleLogin(e) {
     showNotification('Validando credenciales con la base de datos...', 'info');
     
     devLog('Iniciando proceso de login');
+    devLog('ENABLE_SUPABASE_AUTH:', ENABLE_SUPABASE_AUTH);
+    devLog('window.supabase exists:', !!window.supabase);
+    devLog('emailOrUsername includes @:', emailOrUsername.includes('@'));
     
     try {
         // 1) Supabase: opcional, solo con email y si está habilitado
@@ -585,12 +588,15 @@ async function handleLogin(e) {
         }
 
         // 2) Backend propio (fetch) como ruta principal
+        devLog('Intentando login con backend...');
         const loginData = { username: emailOrUsername, password };
         const response = await fetch('/api/login', {
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify(loginData)
         });
+        
+        devLog('Respuesta del backend:', { status: response.status, ok: response.ok });
         
         if (!response.ok) {
             if (response.status === 401) {
@@ -652,8 +658,10 @@ async function handleLogin(e) {
         
         // Si falla la conexión con el backend, usar modo desarrollo
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            devLog('Error de conexión detectado, usando modo desarrollo...');
             showNotification('Servidor no disponible. Usando modo desarrollo...', 'warning');
             const isValid = await validateCredentialsLocal(emailOrUsername, password);
+            devLog('Validación local resultado:', isValid);
             if (isValid) {
                 if (remember) {
                     localStorage.setItem('rememberedEmailOrUsername', emailOrUsername);
