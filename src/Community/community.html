@@ -10,22 +10,45 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
-<body>
+<body class="bg-glow-global">
+    <div class="particles-container"></div>
 
     <!-- Navigation Bar -->
     <div class="course-tabs">
-        <button class="tab-button" data-tab="mis-cursos">
-            <i class='bx bx-book'></i>
-            Mis cursos
+        <button class="tab-button" onclick="location.href='../cursos.html'">
+            <i class='bx bx-collection'></i>
+            Cursos
         </button>
-        <button class="tab-button" data-tab="noticias">
-            <i class='bx bx-news'></i>
-            Noticias
-        </button>
-        <button class="tab-button active" data-tab="comunidad">
+        <button class="tab-button active">
             <i class='bx bx-group'></i>
             Comunidad
         </button>
+        <button class="tab-button" onclick="location.href='../Notices/notices.html'">
+            <i class='bx bx-news'></i>
+            Noticias
+        </button>
+    </div>
+    <button class="header-profile" onclick="toggleProfileMenu(event)">
+        <img src="../assets/images/icono.png" alt="Perfil" />
+    </button>
+    <div id="profileMenu" class="profile-menu">
+        <div class="pm-header">
+            <div class="pm-avatar"><img src="../assets/images/icono.png" alt="Perfil"/></div>
+            <div>
+                <div class="pm-name" id="pmName">Usuario</div>
+                <div class="pm-email" id="pmEmail">user@example.com</div>
+            </div>
+        </div>
+        <div class="pm-section">
+            <div class="pm-item" onclick="location.href='../courses.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
+        </div>
+        <div class="pm-section">
+            <div class="pm-item" onclick="location.href='../profile.html'"><i class='bx bx-cog'></i> Configuración</div>
+            <div class="pm-item" onclick="location.href='../profile.html'"><i class='bx bx-user'></i> Editar perfil</div>
+        </div>
+        <div class="pm-section">
+            <div class="pm-item" onclick="location.href='../login/new-auth.html'"><i class='bx bx-log-out'></i> Cerrar sesión</div>
+        </div>
     </div>
 
     <!-- Main Content -->
@@ -270,6 +293,8 @@
     <!-- Toast Notifications -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <script src="../scripts/particles.js"></script>
+    <script src="../scripts/main.js"></script>
     <script src="community.js"></script>
 </body>
 </html>

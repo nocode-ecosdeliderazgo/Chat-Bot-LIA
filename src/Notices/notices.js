@@ -19,6 +19,7 @@ class NoticesPage {
         this.loadNewsData();
         this.updateStats();
         this.setupAnimations();
+        this.fillUserHeader();
     }
 
     // ===== EVENT LISTENERS =====
@@ -144,6 +145,27 @@ class NoticesPage {
                 }
             });
         });
+    }
+
+    fillUserHeader(){
+        try{
+            const raw = localStorage.getItem('currentUser');
+            if(!raw) return;
+            const user = JSON.parse(raw);
+            const nameEl = document.getElementById('pmName');
+            const emailEl = document.getElementById('pmEmail');
+            if(nameEl && user.display_name) nameEl.textContent = user.display_name;
+            if(emailEl && user.email) emailEl.textContent = user.email;
+            if(user.avatar_url){
+                document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img=>{img.src=user.avatar_url;});
+            }
+        }catch(e){}
+        const avatarBtn = document.querySelector('.header-profile');
+        const menu = document.getElementById('profileMenu');
+        if(avatarBtn && menu){
+            avatarBtn.addEventListener('click', (e)=>{ e.preventDefault(); menu.classList.toggle('show');});
+            document.addEventListener('click', (e)=>{ if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) menu.classList.remove('show');});
+        }
     }
 
     // ===== DATA LOADING =====
@@ -709,8 +731,154 @@ class NoticesPage {
 let noticesPage;
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded - notices page initializing...');
     noticesPage = new NoticesPage();
+    
+    // Configuración inmediata del menú de perfil
+    setupProfileMenuImmediate();
 });
+
+// Función para configurar el menú de perfil
+function setupProfileMenuDirect() {
+    const avatarBtn = document.querySelector('.header-profile');
+    const menu = document.getElementById('profileMenu');
+    
+    if(avatarBtn && menu) {
+        console.log('Setting up profile menu in notices');
+        
+        // Cargar datos del usuario
+        try {
+            const raw = localStorage.getItem('currentUser');
+            if(raw) {
+                const user = JSON.parse(raw);
+                const nameEl = document.getElementById('pmName');
+                const emailEl = document.getElementById('pmEmail');
+                if(nameEl && user.display_name) nameEl.textContent = user.display_name;
+                if(emailEl && user.email) emailEl.textContent = user.email;
+                if(user.avatar_url) {
+                    document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {
+                        img.src = user.avatar_url;
+                    });
+                }
+            }
+        } catch(e) {
+            console.log('Error loading user data:', e);
+        }
+        
+        avatarBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Profile button clicked in notices');
+            menu.classList.toggle('show');
+        };
+        
+        document.onclick = function(e) {
+            if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        };
+    } else {
+        console.log('Profile elements not found in notices');
+    }
+}
+
+// Función inmediata para configurar el menú de perfil
+function setupProfileMenuImmediate() {
+    console.log('Setting up profile menu immediately...');
+    
+    const avatarBtn = document.getElementById('headerProfileBtn');
+    const menu = document.getElementById('profileMenu');
+    
+    console.log('Avatar button found:', avatarBtn);
+    console.log('Profile menu found:', menu);
+    
+    if(avatarBtn && menu) {
+        console.log('Both elements found, setting up click handler...');
+        
+        // Remover eventos previos
+        avatarBtn.onclick = null;
+        
+        // Configurar evento de click
+        avatarBtn.addEventListener('click', function(e) {
+            console.log('Profile button clicked!');
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Método directo - forzar estilos inline
+            if(menu.style.display === 'block') {
+                menu.style.display = 'none';
+                console.log('Menu hidden');
+            } else {
+                menu.style.cssText = `
+                    position: fixed !important;
+                    top: 76px !important;
+                    right: 20px !important;
+                    width: 260px !important;
+                    background: rgba(10,16,28,0.96) !important;
+                    border: 1px solid rgba(68,229,255,0.18) !important;
+                    border-radius: 14px !important;
+                    box-shadow: 0 18px 46px rgba(0,0,0,0.45) !important;
+                    backdrop-filter: blur(10px) !important;
+                    z-index: 99999 !important;
+                    display: block !important;
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                `;
+                console.log('Menu shown with forced styles');
+            }
+        });
+        
+        // Cerrar menú al hacer click fuera
+        document.addEventListener('click', function(e) {
+            if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+        
+        // Cargar datos del usuario
+        loadUserDataIntoMenu();
+        
+        console.log('Profile menu setup completed successfully!');
+    } else {
+        console.error('Profile elements not found!', {avatarBtn, menu});
+    }
+}
+
+// Cargar datos del usuario en el menú
+function loadUserDataIntoMenu() {
+    try {
+        const raw = localStorage.getItem('currentUser');
+        if(raw) {
+            const user = JSON.parse(raw);
+            const nameEl = document.getElementById('pmName');
+            const emailEl = document.getElementById('pmEmail');
+            
+            if(nameEl && user.display_name) nameEl.textContent = user.display_name;
+            if(emailEl && user.email) emailEl.textContent = user.email;
+            
+            if(user.avatar_url) {
+                document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {
+                    img.src = user.avatar_url;
+                });
+            }
+        }
+    } catch(e) {
+        console.log('Error loading user data:', e);
+    }
+}
+
+// Función global para toggle del menú (backup)
+function toggleProfileMenu(event) {
+    console.log('toggleProfileMenu backup called');
+    const menu = document.getElementById('profileMenu');
+    if(menu) {
+        menu.classList.toggle('show');
+    }
+}
 
 // ===== GLOBAL FUNCTIONS =====
 window.noticesPage = noticesPage;
+window.setupProfileMenuDirect = setupProfileMenuDirect;
+window.setupProfileMenuImmediate = setupProfileMenuImmediate;
+window.toggleProfileMenu = toggleProfileMenu;
+window.loadUserDataIntoMenu = loadUserDataIntoMenu;

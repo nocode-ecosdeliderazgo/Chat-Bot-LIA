@@ -529,35 +529,35 @@ async function handleLogin(e) {
             });
 
             if (!error) {
-                // Limpiar intentos fallidos
-                authState.attempts = 0;
-                localStorage.removeItem('loginAttempts');
-                localStorage.removeItem('lockoutEndTime');
+            // Limpiar intentos fallidos
+            authState.attempts = 0;
+            localStorage.removeItem('loginAttempts');
+            localStorage.removeItem('lockoutEndTime');
 
-                if (remember) {
-                    localStorage.setItem('rememberedEmailOrUsername', emailOrUsername);
-                    localStorage.setItem('rememberedTime', Date.now().toString());
-                } else {
-                    localStorage.removeItem('rememberedEmailOrUsername');
-                    localStorage.removeItem('rememberedTime');
-                }
+            if (remember) {
+                localStorage.setItem('rememberedEmailOrUsername', emailOrUsername);
+                localStorage.setItem('rememberedTime', Date.now().toString());
+            } else {
+                localStorage.removeItem('rememberedEmailOrUsername');
+                localStorage.removeItem('rememberedTime');
+            }
 
-                const { data: current } = await window.supabase.auth.getUser();
-                if (current?.user) {
-                    localStorage.setItem('currentUser', JSON.stringify(current.user));
+            const { data: current } = await window.supabase.auth.getUser();
+            if (current?.user) {
+                localStorage.setItem('currentUser', JSON.stringify(current.user));
                     // Intentar actualizar último acceso (ignorar errores por RLS)
                     try {
-                        await window.supabase
-                            .from('users')
-                            .update({ last_login_at: new Date().toISOString() })
-                            .eq('id', current.user.id);
+                await window.supabase
+                    .from('users')
+                    .update({ last_login_at: new Date().toISOString() })
+                    .eq('id', current.user.id);
                     } catch (_) {}
-                }
-
-                showNotification('¡Sesión iniciada correctamente!', 'success');
-                await handleSuccessfulAuth(emailOrUsername, remember);
-                return;
             }
+
+            showNotification('¡Sesión iniciada correctamente!', 'success');
+            await handleSuccessfulAuth(emailOrUsername, remember);
+            return;
+        }
 
             // Si falla con Supabase usando email, continuamos con backend
             devLog('Supabase login falló, intentando backend...', error?.message);

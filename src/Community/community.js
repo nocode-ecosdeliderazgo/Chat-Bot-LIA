@@ -39,6 +39,7 @@ class CommunityPage {
         this.loadCommunityData();
         this.updateStats();
         this.setupAnimations();
+        this.fillUserHeader();
     }
 
     // ===== EVENT LISTENERS =====
@@ -117,6 +118,73 @@ class CommunityPage {
                 }
             });
         });
+    }
+
+    fillUserHeader(){
+        try{
+            const raw = localStorage.getItem('currentUser');
+            if(raw) {
+                const user = JSON.parse(raw);
+                const nameEl = document.getElementById('pmName');
+                const emailEl = document.getElementById('pmEmail');
+                if(nameEl && user.display_name) nameEl.textContent = user.display_name;
+                if(emailEl && user.email) emailEl.textContent = user.email;
+                if(user.avatar_url){
+                    document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img=>{img.src=user.avatar_url;});
+                }
+            }
+        }catch(e){
+            console.log('Error loading user data:', e);
+        }
+        
+        // Setup profile menu functionality
+        this.setupProfileMenu();
+    }
+
+    setupProfileMenu() {
+        // Intentar varias veces para asegurar que los elementos existan
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        const trySetup = () => {
+            const avatarBtn = document.querySelector('.header-profile');
+            const menu = document.getElementById('profileMenu');
+            
+            if(avatarBtn && menu) {
+                console.log('Setting up profile menu');
+                
+                // Remover listeners previos para evitar duplicados
+                avatarBtn.removeEventListener('click', this.handleProfileClick);
+                
+                // Crear función bound para poder removerla después
+                this.handleProfileClick = (e) => { 
+                    e.preventDefault(); 
+                    e.stopPropagation();
+                    console.log('Profile button clicked');
+                    menu.classList.toggle('show');
+                };
+                
+                avatarBtn.addEventListener('click', this.handleProfileClick);
+                
+                // Click fuera para cerrar
+                document.addEventListener('click', (e) => { 
+                    if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+                        menu.classList.remove('show');
+                    }
+                });
+                
+                return true;
+            } else {
+                attempts++;
+                console.log(`Profile elements not found, attempt ${attempts}/${maxAttempts}`);
+                if(attempts < maxAttempts) {
+                    setTimeout(trySetup, 100);
+                }
+                return false;
+            }
+        };
+        
+        trySetup();
     }
 
     // ===== NAVIGATION HANDLING =====
@@ -547,7 +615,59 @@ let communityPage;
 
 document.addEventListener('DOMContentLoaded', () => {
     communityPage = new CommunityPage();
+    
+    // Configuración adicional del perfil como backup
+    setTimeout(() => {
+        setupProfileMenuDirect();
+    }, 500);
+});
+
+// Función directa para configurar el menú de perfil
+function setupProfileMenuDirect() {
+    const avatarBtn = document.querySelector('.header-profile');
+    const menu = document.getElementById('profileMenu');
+    
+    if(avatarBtn && menu) {
+        console.log('Direct profile menu setup');
+        
+        avatarBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Direct profile click handler');
+            menu.classList.toggle('show');
+        };
+        
+        document.onclick = function(e) {
+            if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        };
+    } else {
+        console.log('Profile elements still not found in direct setup');
+    }
+}
+
+// Función global para toggle del menú (inline handler)
+function toggleProfileMenu(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    console.log('Inline toggle profile menu');
+    const menu = document.getElementById('profileMenu');
+    if(menu) {
+        menu.classList.toggle('show');
+    }
+}
+
+// Click fuera para cerrar (configurar una sola vez)
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('profileMenu');
+    const avatarBtn = document.querySelector('.header-profile');
+    if(menu && avatarBtn && !menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+        menu.classList.remove('show');
+    }
 });
 
 // ===== GLOBAL FUNCTIONS =====
 window.communityPage = communityPage;
+window.setupProfileMenuDirect = setupProfileMenuDirect;
+window.toggleProfileMenu = toggleProfileMenu;

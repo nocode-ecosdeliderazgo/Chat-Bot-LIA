@@ -1,20 +1,29 @@
-/* ===== VARIABLES CSS ===== */
+/* ===== VARIABLES CSS (estilo cursos/comunidad) ===== */
 :root {
-    /* Colores principales del proyecto */
-    --primary-color: #44E5FF;
-    --primary-dark: #0077A6;
-    --secondary-color: #0A0A0A;
-    --accent-color: #00D4AA;
-    --background-dark: #0F0F0F;
-    --background-light: #1A1A1A;
+    /* Colors principales */
+    --turq: #44e5ff;
+    --turq-2: #3dd4eb;
+    --bg-1: #06182A;
+    --bg-2: #0B1220;
+    --primary-color: var(--turq);
+    --primary-dark: var(--turq-2);
+    --secondary-color: var(--bg-1);
+    --accent-color: var(--turq);
+    --background-dark: var(--bg-1);
+    --background-light: var(--bg-2);
     --text-primary: #FFFFFF;
     --text-secondary: #F2F2F2;
     --text-muted: rgba(255, 255, 255, 0.7);
-    --border-color: rgba(68, 229, 255, 0.2);
+    --border-color: rgba(68, 229, 255, 0.18);
     --shadow-color: rgba(68, 229, 255, 0.1);
     
+    /* Fonts */
+    --font-body: Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial;
+    --font-heading: Montserrat;
+    
     /* Gradientes */
-    --gradient-primary: linear-gradient(135deg, #44E5FF 0%, #0077A6 100%);
+    --gradient-primary: linear-gradient(135deg, var(--turq), var(--turq-2));
+    --gradient-background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
     --gradient-secondary: linear-gradient(135deg, #00D4AA 0%, #44E5FF 100%);
     --gradient-dark: linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%);
     
@@ -50,18 +59,43 @@
 }
 
 body {
-    font-family: var(--font-secondary);
-    background:
-        repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px),
-        repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px),
-        radial-gradient(1200px 800px at 20% 0%, rgba(68, 229, 255, 0.08), transparent 60%),
-        radial-gradient(800px 600px at 80% 100%, rgba(0, 119, 166, 0.12), transparent 60%),
-        linear-gradient(160deg, var(--background-dark) 0%, var(--background-light) 100%);
+    font-family: var(--font-body);
+    background: var(--gradient-background);
     color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
-    position: relative;
+    margin: 0;
+    padding: 0;
     min-height: 100vh;
+    position: relative;
+}
+
+/* ===== PARTICLES BACKGROUND ===== */
+.particles-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.bg-glow-global {
+    position: relative;
+}
+
+.bg-glow-global::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at top, rgba(68, 229, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(61, 212, 235, 0.1) 0%, transparent 50%);
+    z-index: -1;
+    pointer-events: none;
 }
 
 .container {
@@ -73,25 +107,113 @@ body {
 /* ===== NAVIGATION BAR ===== */
 .course-tabs {
     display: flex;
-    background: linear-gradient(135deg, 
-        rgba(10, 15, 25, 0.98) 0%, 
-        rgba(15, 25, 40, 0.95) 50%, 
-        rgba(20, 30, 45, 0.98) 100%);
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(10px);
     border-radius: 20px;
     padding: 8px;
     gap: 6px;
     overflow-x: auto;
-    border: 1px solid rgba(68, 229, 255, 0.15);
-    box-shadow: 
-        0 12px 40px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(68, 229, 255, 0.1) inset;
-    backdrop-filter: blur(20px);
+    border: 1px solid rgba(68, 229, 255, 0.18);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
     position: relative;
-    margin: 20px;
+    margin: 20px auto;
+    width: min(430px, 85vw);
     
     /* Ocultar scrollbar */
     scrollbar-width: none;
     -ms-overflow-style: none;
+}
+
+/* Avatar + dropdown (igual que cursos) */
+.header-profile { 
+    position: fixed; 
+    top: 12px; 
+    right: 20px; 
+    z-index: 1001; 
+    width: 56px; 
+    height: 56px; 
+    border-radius: 50%; 
+    overflow: hidden; 
+    border: 2px solid rgba(68,229,255,.35); 
+    padding: 0; 
+    background: rgba(7,17,36,.4); 
+    cursor: pointer; 
+    display: block; 
+}
+.header-profile:hover { 
+    filter: brightness(1.05); 
+}
+.header-profile img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    display: block; 
+}
+.profile-menu { 
+    position: fixed; 
+    top: 76px; 
+    right: 20px; 
+    width: 260px; 
+    background: rgba(10,16,28,.96); 
+    border: 1px solid rgba(68,229,255,.18); 
+    border-radius: 14px; 
+    box-shadow: 0 18px 46px rgba(0,0,0,.45); 
+    backdrop-filter: blur(10px); 
+    display: none;
+    z-index: 9999; 
+    overflow: hidden; 
+}
+.profile-menu.show { 
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+.profile-menu .pm-header { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    padding: 12px 14px; 
+    border-bottom: 1px solid rgba(68,229,255,.12); 
+    color: var(--text-primary);
+}
+.profile-menu .pm-avatar { 
+    width: 36px; 
+    height: 36px; 
+    border-radius: 50%; 
+    overflow: hidden; 
+    border: 1px solid rgba(68,229,255,.25); 
+}
+.profile-menu .pm-avatar img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+}
+.profile-menu .pm-name { 
+    font-weight: 700; 
+    font-size: 14px; 
+    color: var(--text-primary);
+}
+.profile-menu .pm-email { 
+    font-size: 12px; 
+    color: #8fb2bf; 
+}
+.profile-menu .pm-section { 
+    border-top: 1px solid rgba(68,229,255,.08); 
+}
+.profile-menu .pm-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    padding: 12px 14px; 
+    cursor: pointer; 
+    color: var(--text-primary);
+    transition: background 0.2s ease;
+}
+.profile-menu .pm-item:hover { 
+    background: rgba(68,229,255,.08); 
+}
+.profile-menu .pm-item i { 
+    color: var(--turq); 
 }
 
 .course-tabs::-webkit-scrollbar {
@@ -100,19 +222,7 @@ body {
     height: 0;
 }
 
-.course-tabs::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        rgba(68, 229, 255, 0.6) 50%, 
-        transparent 100%);
-    animation: tabsShimmer 4s ease-in-out infinite;
-}
+.course-tabs::before { display: none; content: none; }
 
 @keyframes tabsShimmer {
     0%, 100% {
@@ -326,10 +436,12 @@ body {
 
 /* ===== HERO SECTION ===== */
 .hero-section {
-    background: var(--background-dark);
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(5px);
     padding: var(--spacing-xxl) 0;
     position: relative;
     overflow: hidden;
+    border-bottom: 1px solid rgba(68, 229, 255, 0.1);
 }
 
 .hero-container {
@@ -478,18 +590,21 @@ body {
 }
 
 .featured-card {
-    background: var(--background-dark);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(68, 229, 255, 0.18);
     border-radius: var(--border-radius-lg);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
     overflow: hidden;
-    transition: var(--transition-normal);
+    transition: all 0.25s ease;
     position: relative;
 }
 
 .featured-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 60px rgba(68, 229, 255, 0.2);
-    border-color: var(--primary-color);
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+    border-color: var(--turq);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .featured-image {
@@ -585,12 +700,14 @@ body {
 }
 
 .category-card {
-    background: var(--background-dark);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(68, 229, 255, 0.18);
     border-radius: var(--border-radius-lg);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
     padding: var(--spacing-xl);
     text-align: center;
-    transition: var(--transition-normal);
+    transition: all 0.25s ease;
     cursor: pointer;
     position: relative;
     overflow: hidden;
@@ -614,9 +731,10 @@ body {
 }
 
 .category-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(68, 229, 255, 0.2);
-    border-color: var(--primary-color);
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+    border-color: var(--turq);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .category-icon {
@@ -830,7 +948,9 @@ body {
 
 /* ===== NEWSLETTER ===== */
 .newsletter-section {
-    background: var(--gradient-dark);
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(68, 229, 255, 0.12);
     position: relative;
     overflow: hidden;
 }
@@ -1144,9 +1264,10 @@ body {
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
     .course-tabs {
-        margin: 10px;
+        margin: 10px auto;
         padding: 6px;
         gap: 4px;
+        width: min(430px, 92vw);
     }
     
     .tab-button {

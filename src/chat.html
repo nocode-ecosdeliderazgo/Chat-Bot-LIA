@@ -13,8 +13,129 @@
     <meta name="description" content="Lia IA: asistente inteligente para una experiencia educativa interactiva y personalizada">
     <meta name="keywords" content="coach lia ia, asistente, educativo, inteligencia artificial, curso">
     <meta name="author" content="Tu Nombre">
+    <style>
+        /* Degradado azul oscuro específico para el chat de Lia */
+        body.layout-notebook {
+            --color-bg-1: #041326; /* azul noche (oscuro) */
+            --color-bg-2: #070F1D; /* azul profundo (oscuro) */
+        }
+
+        /* ===== Dynamic Island — barra flotante (basado en ChatGeneral) ===== */
+        .message-input-area {
+            background: transparent;
+            border-top: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 10;
+            margin: 0;
+            height: 0; /* no ocupa espacio, la isla es fija */
+        }
+
+        .message-input-wrapper {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Isla flotante */
+        .message-input-area .input-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(20, 30, 45, 0.95);
+            border: 1px solid rgba(68, 229, 255, 0.18);
+            border-radius: 30px;
+            padding: 8px 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            backdrop-filter: blur(20px);
+            width: calc(100% - 80px);
+            max-width: 600px;
+            min-height: 48px;
+            z-index: 1000;
+        }
+
+        .plus-btn {
+            background: rgba(68, 229, 255, 0.1);
+            border: 1px solid rgba(68, 229, 255, 0.18);
+            color: #44e5ff;
+            font-size: 1.3rem;
+            font-weight: 900;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            width: 38px; height: 38px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .plus-btn:hover { background: rgba(68,229,255,0.2); border-color: #44e5ff; transform: scale(1.05); }
+
+        /* Campo de texto */
+        #messageInput {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            color: #fff;
+            font-size: 0.95rem;
+            resize: none;
+            max-height: 100px;
+            min-height: 20px;
+            outline: none;
+            line-height: 1.4;
+            padding: 8px 16px;
+            border-radius: 18px;
+            margin: 0 8px;
+            min-width: 0;
+            box-shadow: none;
+        }
+        #messageInput::placeholder { color: rgba(255,255,255,0.65); }
+
+        /* Botón acción (micrófono/enviar) */
+        .action-button {
+            background: #007AFF;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            width: 38px; height: 38px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .action-button:hover { background: #0056CC; transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,122,255,0.5); }
+        .action-button .send-icon { position: absolute; inset: 0; margin: auto; transform: rotate(-90deg) scale(.6); opacity: 0; transition: transform .18s ease, opacity .18s ease; }
+        .action-button .mic-icon { position: absolute; inset: 0; margin: auto; transform: rotate(0) scale(1); opacity: 1; transition: transform .18s ease, opacity .18s ease; }
+        .input-has-text .action-button .send-icon { transform: rotate(0) scale(1); opacity: 1; }
+        .input-has-text .action-button .mic-icon { transform: rotate(90deg) scale(.6); opacity: 0; }
+
+        /* Dropdown de acciones rápidas */
+        .quick-actions-dropdown {
+            position: absolute;
+            bottom: 100%; left: 50%; transform: translateX(-50%);
+            background: rgba(20,30,45,0.95);
+            border: 1px solid rgba(68,229,255,0.18);
+            border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,.5);
+            padding: 8px; margin-bottom: 8px; min-width: 200px; z-index: 1001; display: none;
+            backdrop-filter: blur(20px);
+        }
+        .quick-actions-dropdown.active { display: block; }
+        .quick-action-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; cursor: pointer; border-radius: 8px; color: #fff; }
+        .quick-action-item:hover { background: rgba(68,229,255,0.1); border: 1px solid rgba(68,229,255,0.18); }
+
+        /* Reubicar menú global al centro bajo la isla (sobre-escribe main.css) */
+        .global-menu { left: auto !important; bottom: 84px !important; transform: none !important; display: none; }
+        .global-menu.show { display: block; }
+    </style>
 </head>
-<body class="layout-notebook">
+<body class="layout-notebook bg-glow-global">
     <div class="layout-3panels">
         <aside class="sidebar-left" id="sidebarLeft">
             <div class="sidebar-header">
@@ -87,46 +208,47 @@
                     <!-- Los mensajes se generarán dinámicamente aquí -->
                 </div>
 
-                <div class="chat-input">
-                    <div class="input-container" id="inputContainer" style="position:relative">
-                        <button id="sessionMenuButton" class="session-menu-button" aria-label="Menú" title="Menú">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 6V18M6 12H18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                        </button>
-                        <!-- Botón de audio removido a petición del usuario -->
-                        <input type="text" id="messageInput" placeholder="Escribe tu mensaje..." maxlength="500">
-                        <button id="actionButton" class="action-button" aria-label="Hablar" title="Hablar / Enviar">
-                            <svg class="mic-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 14a3 3 0 0 0 3-3V7a3 3 0 0 0-6 0v4a3 3 0 0 0 3 3z" fill="currentColor"/>
-                                <path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <path d="M12 18v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                            <svg class="send-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
-                            </svg>
-                        </button>
+                <!-- Dynamic Island flotante -->
+                <div class="message-input-area">
+                    <div class="message-input-wrapper">
+                        <div class="input-container" id="inputContainer">
+                            <button class="plus-btn" id="sessionMenuButton" type="button" title="Más opciones" aria-label="Más opciones" onclick="(function(){var gm=document.getElementById('globalMenu'); if(gm){ gm.classList.toggle('show'); }})();">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                            <textarea id="messageInput" placeholder="Escribe tu mensaje..." rows="1" maxlength="500"></textarea>
+                            <button id="actionButton" class="action-button" aria-label="Hablar / Enviar" title="Hablar / Enviar">
+                                <svg class="mic-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 14a3 3 0 0 0 3-3V7a3 3 0 0 0-6 0v4a3 3 0 0 0 3 3z" fill="currentColor"/>
+                                    <path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M12 18v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <svg class="send-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                    
-                    <!-- Panel de selector de sesiones y módulos -->
-                    <div class="global-menu" id="globalMenu" aria-hidden="true">
-                        <div class="gm-group">
-                            <button class="gm-item" data-toggle="sessions">Sesiones</button>
-                            <div class="gm-submenu" id="gmSessions">
-                                <button class="gm-subitem" data-session="1">Sesión 1</button>
-                                <button class="gm-subitem" data-session="2">Sesión 2</button>
-                                <button class="gm-subitem" data-session="3">Sesión 3</button>
-                                <button class="gm-subitem" data-session="4">Sesión 4</button>
-                            </div>
-                        </div>
-                        <div class="gm-group">
-                            <button class="gm-item" data-toggle="reports">Informes</button>
-                            <div class="gm-submenu" id="gmReports">
-                                <button class="gm-subitem" data-report="docs">Documentos</button>
-                                <button class="gm-subitem" data-report="bonos">Bonos</button>
-                            </div>
-                        </div>
+                </div>
 
+                <!-- Menú global (Sesiones e Informes) -->
+                <div class="global-menu" id="globalMenu" aria-hidden="true" style="position:fixed; bottom:84px; z-index:5000;">
+                    <div class="gm-group">
+                        <button class="gm-item" data-toggle="sessions">Sesiones</button>
+                        <div class="gm-submenu" id="gmSessions">
+                            <button class="gm-subitem" data-session="1">Sesión 1</button>
+                            <button class="gm-subitem" data-session="2">Sesión 2</button>
+                            <button class="gm-subitem" data-session="3">Sesión 3</button>
+                            <button class="gm-subitem" data-session="4">Sesión 4</button>
+                        </div>
+                    </div>
+                    <div class="gm-group">
+                        <button class="gm-item" data-toggle="reports">Informes</button>
+                        <div class="gm-submenu" id="gmReports">
+                            <button class="gm-subitem" data-report="docs">Documentos</button>
+                            <button class="gm-subitem" data-report="bonos">Bonos</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -194,6 +316,44 @@
     <!-- Nota: Se omite 'integrity' porque el CDN puede rotar hashes; esto evitaba que el navegador bloquee la carga -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="scripts/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('messageInput');
+            const container = document.getElementById('inputContainer');
+            const sessionMenuButton = document.getElementById('sessionMenuButton');
+            const globalMenu = document.getElementById('globalMenu');
+
+            function updateState(){
+                if (!input || !container) return;
+                if (input.value.trim().length > 0) container.classList.add('input-has-text');
+                else container.classList.remove('input-has-text');
+            }
+            if (input){
+                ['input','keyup','change'].forEach(ev=> input.addEventListener(ev, updateState));
+                updateState();
+            }
+
+            // Abrir/cerrar menú global (sesiones/reportes)
+            if (sessionMenuButton && globalMenu){
+                sessionMenuButton.addEventListener('click', function(e){
+                    e.preventDefault(); e.stopPropagation();
+                    // Anclar el menú a la izquierda de la isla
+                    const island = document.getElementById('inputContainer');
+                    if (island){
+                        const rect = island.getBoundingClientRect();
+                        // 12px de margen desde el borde izquierdo de la isla
+                        globalMenu.style.left = (rect.left + 12) + 'px';
+                    }
+                    globalMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function(e){
+                    if (!e.target.closest('#globalMenu') && !e.target.closest('#sessionMenuButton')){
+                        globalMenu.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
 
