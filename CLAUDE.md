@@ -1,111 +1,104 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Este archivo proporciona contexto a Claude Code para trabajar eficientemente con este repositorio.
 
-## Common Commands
+## Resumen del Proyecto
 
-### Development
-- `npm start` - Start the server (runs server.js)
-- `npm run dev` - Start development server with nodemon
-- `npm test` - Run Jest tests
-- `npm run lint` - Lint JavaScript files in src/
-- `npm run format` - Format code with Prettier
-- `npm run security-check` - Run npm audit and fix vulnerabilities
-- `npm run setup` - Install dependencies and run security check
+**Aplicación Chatbot Educativo Web** - Sistema full-stack con interfaz de chat interactivo, autenticación segura, integración OpenAI y funcionalidades de chat en tiempo real.
+
+## Comandos Comunes
+
+### Desarrollo
+- `npm start` - Inicia el servidor (ejecuta server.js)
+- `npm run dev` - Inicia servidor de desarrollo con nodemon
+- `npm test` - Ejecuta tests con Jest
+- `npm run lint` - Linter para archivos JavaScript en src/
+- `npm run format` - Formatea código con Prettier
+- `npm run security-check` - Ejecuta npm audit y corrige vulnerabilidades
+- `npm run setup` - Instala dependencias y ejecuta check de seguridad
 
 ### Testing
-- Tests are configured with Jest using jsdom environment
-- Test files: `**/__tests__/**/*.js` or `**/?(*.)+(spec|test).js`
-- Coverage reports generated in `coverage/` directory
-- Setup file: `tests/setup.js`
+- Tests configurados con Jest usando entorno jsdom
+- Archivos de test: `**/__tests__/**/*.js` or `**/?(*.)+(spec|test).js`
+- Reportes de cobertura generados en directorio `coverage/`
+- Archivo de configuración: `tests/setup.js`
 
-## Project Architecture
+## Arquitectura del Proyecto
 
-### Application Structure
-This is a full-stack educational chatbot application with:
+### Estructura de la Aplicación
+Aplicación chatbot educativo full-stack con:
 
 **Backend (server.js):**
-- Express.js server with comprehensive security middleware
-- JWT-based authentication with session fingerprinting
-- PostgreSQL database integration for course content and user data
-- OpenAI API integration for AI responses
-- Rate limiting, CORS, and Helmet security headers
-- File upload support with Multer
-- **Socket.IO integration for real-time livestream chat functionality**
+- Servidor Express.js con middleware de seguridad completo
+- Autenticación JWT con fingerprinting de sesión
+- Integración PostgreSQL para contenido de cursos y datos de usuario
+- Integración API OpenAI para respuestas de IA
+- Rate limiting, CORS, y headers de seguridad Helmet
+- Soporte de carga de archivos con Multer
+- Integración Socket.IO para funcionalidad de chat en tiempo real
 
 **Frontend:**
-- Vanilla JavaScript (ES6+) in `src/scripts/main.js`
-- Modern CSS with responsive design in `src/styles/main.css`
-- Login system in `src/login/`
-- Main chat interface in `src/chat.html`
-- **Real-time livestream chat interface integrated in the sidebar**
+- JavaScript vanilla (ES6+) en `src/scripts/main.js`
+- CSS moderno con diseño responsivo en `src/styles/main.css`
+- Sistema de login en `src/login/`
+- Interfaz principal de chat en `src/chat.html`
+- Interfaz de chat en tiempo real integrada en sidebar
 
-### Key Components
+### Componentes Clave
 
-**Chat System (`src/scripts/main.js`):**
-- Chatbot configuration with OpenAI GPT-4 integration
-- Real-time typing simulation and message handling
-- Audio features with welcome sounds
-- Conversation history and state management
-- Dynamic API key loading from backend
-- **Real-time livestream chat with Socket.IO client integration**
+**Sistema de Chat (`src/scripts/main.js`):**
+- Configuración chatbot con integración OpenAI GPT-4
+- Simulación de escritura en tiempo real y manejo de mensajes
+- Funciones de audio con sonidos de bienvenida
+- Historia de conversación y gestión de estado
+- Carga dinámica de API key desde backend
+- Chat en tiempo real con integración cliente Socket.IO
 
-**Livestream Chat Features:**
-- Real-time messaging between all connected users
-- Automatic username generation
-- Connection status indicators
-- User count display
-- Message history (last 50 messages)
-- Responsive design with custom scrollbars
-- System notifications for user join/leave events
+**Funcionalidades Chat en Tiempo Real:**
+- Mensajería en tiempo real entre todos los usuarios conectados
+- Generación automática de nombres de usuario
+- Indicadores de estado de conexión
+- Mostrar número de usuarios
+- Historia de mensajes (últimos 50 mensajes)
+- Diseño responsivo con scrollbars personalizadas
+- Notificaciones del sistema para eventos de entrada/salida de usuarios
 
-**Security Implementation:**
-- Environment variables for sensitive data (API keys, database URLs)
-- JWT tokens with session fingerprinting
-- API key authentication for all endpoints
-- Content Security Policy and security headers
-- Parameterized SQL queries to prevent injection
+**Implementación de Seguridad:**
+- Variables de entorno para datos sensibles (API keys, URLs de base de datos)
+- Tokens JWT con fingerprinting de sesión
+- Autenticación API key para todos los endpoints
+- Content Security Policy y headers de seguridad
+- Queries SQL parametrizadas para prevenir inyección
 
-**Database Schema:**
-- PostgreSQL with tables for course content, users, conversations, and sessions
-- Content categorization by difficulty and topic
-- User progress tracking and conversation history
+**Esquema de Base de Datos:**
+- PostgreSQL con tablas para contenido de cursos, usuarios, conversaciones y sesiones
+- Categorización de contenido por dificultad y tema
+- Seguimiento de progreso de usuario e historial de conversación
 
-### Configuration Files
-- `jest.config.js` - Jest testing configuration with jsdom environment
-- `package.json` - Dependencies and npm scripts (includes Socket.IO)
-- Environment variables expected in `.env` file (see docs/SECURITY.md)
+### Archivos de Configuración
+- `jest.config.js` - Configuración testing Jest con entorno jsdom
+- `package.json` - Dependencias y scripts npm (incluye Socket.IO)
+- Variables de entorno esperadas en archivo `.env` (ver docs/SECURITY.md)
 
-### Important Notes
-- The application uses a security-first approach with multiple layers of protection
-- Database connections and OpenAI API keys are loaded dynamically from environment variables
-- Frontend does not store sensitive credentials - all API calls go through authenticated backend endpoints
-- The chatbot is configured as "Asistente de Aprende y Aplica IA" (AI Learning Assistant)
-- Audio features are integrated but optional for users
-- **Real-time chat functionality uses Socket.IO with CORS configured for development**
-- **Livestream chat is accessible in the collapsible livestream section of the sidebar**
-- **Chat messages are limited to 200 characters and 50 messages history**
+### Notas Importantes
+- La aplicación usa un enfoque security-first con múltiples capas de protección
+- Conexiones de base de datos y API keys de OpenAI se cargan dinámicamente desde variables de entorno
+- Frontend no almacena credenciales sensibles - todas las llamadas API van a través de endpoints backend autenticados
+- El chatbot está configurado como "Asistente de Aprende y Aplica IA"
+- Funciones de audio están integradas pero son opcionales para usuarios
+- Funcionalidad de chat en tiempo real usa Socket.IO con CORS configurado para desarrollo
+- Chat en tiempo real es accesible en la sección plegable livestream del sidebar
+- Mensajes de chat están limitados a 200 caracteres e historial de 50 mensajes
 
-### Development Workflow
-1. Set up environment variables (see docs/SECURITY.md for required variables)
-2. Run `npm run setup` to install dependencies and check security
-3. Use `npm run dev` for development with auto-restart
-4. Run `npm test` to execute the test suite
-5. Use `npm run lint` and `npm run format` to maintain code quality
+### Flujo de Desarrollo
+1. Configurar variables de entorno (ver docs/SECURITY.md para variables requeridas)
+2. Ejecutar `npm run setup` para instalar dependencias y verificar seguridad
+3. Usar `npm run dev` para desarrollo con auto-restart
+4. Ejecutar `npm test` para correr la suite de tests
+5. Usar `npm run lint` y `npm run format` para mantener calidad de código
 
-### New Features Added
-**Real-time Livestream Chat:**
-- Added Socket.IO dependency for real-time communication
-- Implemented server-side Socket.IO handlers for chat functionality
-- Created responsive chat interface in the livestream section
-- Added comprehensive CSS styling for chat components
-- Integrated automatic username generation and user management
-- Added connection status indicators and user count display
-- Implemented message history with 50-message limit
-- Added system notifications for user join/leave events
-
-### Documentation
-- Comprehensive security documentation in `docs/SECURITY.md`
-- Database structure defined in `docs/DATABASE_STRUCTURE.md`
-- Setup instructions in `PROJECT_SETUP.md`
-- Login implementation details in `LOGIN_IMPLEMENTATION.md`
+### Documentación
+- Documentación de seguridad completa en `docs/SECURITY.md`
+- Estructura de base de datos definida en `docs/DATABASE_STRUCTURE.md`
+- Instrucciones de setup en `PROJECT_SETUP.md`
+- Detalles de implementación de login en `LOGIN_IMPLEMENTATION.md`
