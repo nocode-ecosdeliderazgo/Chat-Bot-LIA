@@ -34,15 +34,32 @@ function isAuthenticated() {
     try {
         // Verificar token en localStorage
         const token = localStorage.getItem(AUTH_GUARD_CONFIG.tokenKey);
-        if (!token) return false;
-
-        // Verificar datos de usuario
         const userData = localStorage.getItem(AUTH_GUARD_CONFIG.userDataKey);
-        if (!userData) return false;
-
-        // Verificar sesión activa
         const session = localStorage.getItem(AUTH_GUARD_CONFIG.sessionKey);
-        if (!session) return false;
+        
+        console.log('🔍 Verificando autenticación:', {
+            hasToken: !!token,
+            hasUserData: !!userData,
+            hasSession: !!session,
+            tokenKey: AUTH_GUARD_CONFIG.tokenKey,
+            userDataKey: AUTH_GUARD_CONFIG.userDataKey,
+            sessionKey: AUTH_GUARD_CONFIG.sessionKey
+        });
+        
+        if (!token) {
+            console.log('❌ No hay token');
+            return false;
+        }
+
+        if (!userData) {
+            console.log('❌ No hay datos de usuario');
+            return false;
+        }
+
+        if (!session) {
+            console.log('❌ No hay sesión activa');
+            return false;
+        }
 
         // Verificar que el token no esté expirado (básico)
         try {

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Debug Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #0A0A0A;
+            color: #FFFFFF;
+        }
+        .debug-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .debug-section {
+            background: rgba(68, 229, 255, 0.1);
+            border: 1px solid #44E5FF;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .btn {
+            background: #44E5FF;
+            color: #0A0A0A;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background: #0077A6;
+            color: #FFFFFF;
+        }
+        .data-display {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background: rgba(0, 255, 0, 0.2); color: #00FF00; }
+        .error { background: rgba(255, 0, 0, 0.2); color: #FF6B6B; }
+        .warning { background: rgba(255, 255, 0, 0.2); color: #FFD700; }
+        .info { background: rgba(68, 229, 255, 0.2); color: #44E5FF; }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔍 Debug de Autenticación</h1>
+        
+        <div class="debug-section">
+            <h2>Estado Actual de localStorage</h2>
+            <button class="btn" onclick="checkAuthData()">Verificar Datos</button>
+            <button class="btn" onclick="clearAllData()">Limpiar Todo</button>
+            <button class="btn" onclick="simulateAuth()">Simular Auth</button>
+            <div id="auth-data-display"></div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Test de AuthGuard</h2>
+            <button class="btn" onclick="testAuthGuard()">Test AuthGuard</button>
+            <div id="authguard-test"></div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Navegación a Páginas Protegidas</h2>
+            <p>Estos enlaces te redirigirán pero mantendrán esta ventana abierta:</p>
+            <button class="btn" onclick="openInNewTab('/admin/admin.html')">Admin Panel</button>
+            <button class="btn" onclick="openInNewTab('/chat.html')">Chat</button>
+            <button class="btn" onclick="openInNewTab('/courses.html')">Cursos</button>
+            <button class="btn" onclick="openInNewTab('/Community/community.html')">Comunidad</button>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Log en Tiempo Real</h2>
+            <div id="realtime-logs"></div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('realtime-logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `status ${type}`;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            logsDiv.insertBefore(logEntry, logsDiv.firstChild);
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function checkAuthData() {
+            const display = document.getElementById('auth-data-display');
+            
+            const allKeys = Object.keys(localStorage);
+            const authKeys = ['userToken', 'userData', 'userSession', 'authToken', 'currentUser'];
+            
+            let result = '=== TODOS LOS DATOS DE localStorage ===\n\n';
+            
+            authKeys.forEach(key => {
+                const value = localStorage.getItem(key);
+                result += `${key}: ${value ? 'EXISTS' : 'NULL'}\n`;
+                if (value) {
+                    try {
+                        if (key.includes('Token')) {
+                            result += `  Contenido: ${value.substring(0, 50)}...\n`;
+                        } else {
+                            const parsed = JSON.parse(value);
+                            result += `  Contenido: ${JSON.stringify(parsed, null, 2)}\n`;
+                        }
+                    } catch (e) {
+                        result += `  Contenido: ${value}\n`;
+                    }
+                }
+                result += '\n';
+            });
+            
+            result += '\n=== OTRAS CLAVES ===\n';
+            allKeys.filter(key => !authKeys.includes(key)).forEach(key => {
+                result += `${key}: ${localStorage.getItem(key) ? 'EXISTS' : 'NULL'}\n`;
+            });
+            
+            display.innerHTML = result;
+            log('Datos verificados', 'info');
+        }
+
+        function clearAllData() {
+            localStorage.clear();
+            sessionStorage.clear();
+            log('Todos los datos limpiados', 'warning');
+            checkAuthData();
+        }
+
+        function simulateAuth() {
+            const mockToken = btoa(JSON.stringify({
+                exp: Math.floor(Date.now() / 1000) + 3600,
+                user: 'test@example.com',
+                role: 'admin'
+            }));
+            
+            const mockUser = {
+                id: 'test-123',
+                email: 'test@example.com',
+                username: 'testuser',
+                name: 'Usuario Test',
+                cargo_rol: 'admin'
+            };
+            
+            const mockSession = {
+                sessionId: 'session-' + Date.now(),
+                created: new Date().toISOString(),
+                userId: 'testuser'
+            };
+            
+            localStorage.setItem('userToken', mockToken);
+            localStorage.setItem('userData', JSON.stringify(mockUser));
+            localStorage.setItem('userSession', JSON.stringify(mockSession));
+            
+            // También guardar compatibilidad
+            localStorage.setItem('authToken', mockToken);
+            localStorage.setItem('currentUser', JSON.stringify(mockUser));
+            
+            log('Autenticación simulada creada', 'success');
+            checkAuthData();
+        }
+
+        function testAuthGuard() {
+            const display = document.getElementById('authguard-test');
+            
+            // Simular las verificaciones del AuthGuard
+            const token = localStorage.getItem('userToken');
+            const userData = localStorage.getItem('userData');
+            const session = localStorage.getItem('userSession');
+            
+            let result = '=== TEST AUTHGUARD ===\n\n';
+            result += `Token exists: ${!!token}\n`;
+            result += `UserData exists: ${!!userData}\n`;
+            result += `Session exists: ${!!session}\n\n`;
+            
+            if (token && userData && session) {
+                result += '✅ AuthGuard debería PERMITIR acceso\n';
+                log('AuthGuard: ACCESO PERMITIDO', 'success');
+            } else {
+                result += '❌ AuthGuard debería DENEGAR acceso\n';
+                log('AuthGuard: ACCESO DENEGADO', 'error');
+            }
+            
+            display.innerHTML = result;
+        }
+
+        function openInNewTab(url) {
+            const fullUrl = window.location.origin + url;
+            log(`Abriendo en nueva pestaña: ${fullUrl}`, 'info');
+            window.open(fullUrl, '_blank');
+        }
+
+        // Auto-verificar al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthData();
+            log('Debug tool iniciado', 'info');
+        });
+
+        // Interceptar logs de consola
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+        const originalError = console.error;
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            if (args[0] && args[0].includes('🔒') || args[0].includes('AuthGuard')) {
+                log(`Console: ${args.join(' ')}`, 'info');
+            }
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            if (args[0] && args[0].includes('🔒') || args[0].includes('AuthGuard')) {
+                log(`Warning: ${args.join(' ')}`, 'warning');
+            }
+        };
+    </script>
+</body>
+</html>

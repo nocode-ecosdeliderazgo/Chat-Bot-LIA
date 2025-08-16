@@ -606,9 +606,11 @@ async function handleLogin(e) {
             if (result.token) {
                 localStorage.setItem('userToken', result.token);
                 localStorage.setItem('authToken', result.token); // Mantener compatibilidad
+                devLog('Token guardado:', result.token.substring(0, 20) + '...');
             }
             localStorage.setItem('userData', JSON.stringify(result.user));
             localStorage.setItem('currentUser', JSON.stringify(result.user)); // Mantener compatibilidad
+            devLog('Datos de usuario guardados:', result.user);
             
             // Crear sesión activa
             const sessionData = {
@@ -617,6 +619,7 @@ async function handleLogin(e) {
                 userId: result.user.id || result.user.username
             };
             localStorage.setItem('userSession', JSON.stringify(sessionData));
+            devLog('Sesión creada:', sessionData);
             
             if (remember) {
                 localStorage.setItem('rememberedEmailOrUsername', emailOrUsername);
@@ -976,7 +979,17 @@ async function handleSuccessfulAuth() {
     let targetPage = '../courses.html'; // Fallback por defecto
     
     try {
-        const userDataStr = localStorage.getItem('currentUser');
+        // Verificar todos los datos de autenticación guardados
+        const userDataStr = localStorage.getItem('userData') || localStorage.getItem('currentUser');
+        const userToken = localStorage.getItem('userToken');
+        const userSession = localStorage.getItem('userSession');
+        
+        devLog('Verificando datos guardados:', {
+            userData: !!userDataStr,
+            userToken: !!userToken,
+            userSession: !!userSession
+        });
+        
         if (userDataStr) {
             const userData = JSON.parse(userDataStr);
             devLog('Datos de usuario encontrados:', userData);
