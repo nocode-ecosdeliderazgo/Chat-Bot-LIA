@@ -39,6 +39,7 @@ const authState = {
 
 // Inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
+    ensureSupabaseConfigCached();
     initializeAuth();
     setupEventListeners();
     setupPasswordStrength();
@@ -94,6 +95,18 @@ function initializeAuth() {
     
     // Animar entrada de elementos
     animateElements();
+}
+
+// Garantiza que las credenciales de Supabase queden en localStorage para otras páginas
+function ensureSupabaseConfigCached(){
+    try {
+        const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
+        const metaKey = document.querySelector('meta[name="supabase-key"]')?.content?.trim();
+        if (metaUrl && metaKey) {
+            localStorage.setItem('supabaseUrl', metaUrl);
+            localStorage.setItem('supabaseAnonKey', metaKey);
+        }
+    } catch (_) {}
 }
 
 // Prefill desde parámetros de URL (para flujos de prueba como en las capturas)
@@ -889,20 +902,52 @@ async function registerUserLocal(userData) {
     return newUser;
 }
 
-// Manejo de autenticación exitosa
+// Manejo de autenticación exitosa con verificación de type_rol
 async function handleSuccessfulAuth() {
     devLog('Manejando autenticación exitosa');
     
-    // Animar éxito
+    // Animación de éxito
     await animateSuccess();
-    
-    // Redirigir al panel de courses
-    const targetPage = '../courses.html';
-    devLog('Redirigiendo a:', targetPage);
-    
-    setTimeout(() => {
-        window.location.href = targetPage;
-    }, AUTH_CONFIG.redirectDelay);
+
+    // Determinar destino según users.type_rol
+    let typeRol = '';
+    try {
+        const raw = localStorage.getItem('currentUser');
+        if (raw) {
+            const u = JSON.parse(raw);
+            typeRol = (u.type_rol || u.typeRol || '').trim();
+            // Si no viene en localStorage, intentar consultarlo al backend
+            if (!typeRol) {
+                const q = u.username ? `username=${encodeURIComponent(u.username)}`
+                                     : (u.email ? `email=${encodeURIComponent(u.email)}` : '');
+                if (q) {
+                    const r = await fetch(`/api/profile?${q}`);
+                    if (r.ok) {
+                        const { user } = await r.json();
+                        typeRol = (user?.type_rol || '').trim();
+                    }
+                }
+            }
+            // Fallback: si existe Supabase en la página, intentar leer desde tabla users
+            if (!typeRol && window.supabase) {
+                try {
+                    const { data: { session } } = await window.supabase.auth.getSession();
+                    if (session?.user?.id) {
+                        const { data } = await window.supabase
+                            .from('users')
+                            .select('type_rol')
+                            .eq('id', session.user.id)
+                            .single();
+                        typeRol = (data?.type_rol || '').trim();
+                    }
+                } catch (_) { /* ignorar */ }
+            }
+        }
+    } catch (_) { /* ignorar */ }
+
+    const targetPage = typeRol ? '../cursos.html' : '../perfil-cuestionario.html';
+    devLog('Redirigiendo a:', targetPage, '| type_rol =', typeRol || '(vacío)');
+    setTimeout(() => { window.location.href = targetPage; }, AUTH_CONFIG.redirectDelay);
 }
 
 // Estado de carga

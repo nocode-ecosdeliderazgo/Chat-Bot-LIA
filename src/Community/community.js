@@ -195,8 +195,8 @@ class CommunityPage {
         // Handle different tabs
         switch(tab) {
             case 'mis-cursos':
-                // Navigate directly to courses page without showing toast
-                window.location.href = '../courses.html';
+                // Navegar a la versión ES de cursos
+                window.location.href = '../cursos.html';
                 break;
             case 'noticias':
                 // Navigate directly to news page without showing toast

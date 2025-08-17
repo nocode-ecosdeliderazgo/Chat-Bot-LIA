@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cuestionario | Aprende y Aplica IA</title>
+    <!-- Supabase config (igual que en login/new-auth.html) -->
+    <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
+    <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY
+">
+    <link rel="icon" type="image/png" href="../assets/images/icono.png" />
+    <link rel="stylesheet" href="../styles/main.css" />
+    <link rel="stylesheet" href="../styles/components.css" />
+    <link rel="stylesheet" href="form.css" />
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+</head>
+<body class="bg-glow-global">
+    <div class="particles-container"></div>
+
+    <header class="quiz-header">
+        <button class="header-profile" onclick="toggleProfileMenu(event)">
+            <img src="../assets/images/icono.png" alt="Perfil" />
+        </button>
+        <div id="profileMenu" class="profile-menu" style="display:none">
+            <div class="pm-section">
+                <div class="pm-item" onclick="location.href='../login/new-auth.html'"><i class='bx bx-log-out'></i> Cerrar sesión</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="quiz-main">
+        <section class="quiz-card animate-on-scroll">
+            <div class="quiz-header-info">
+                <h1 id="quizTitle">Cuestionario</h1>
+                <p id="quizSubtitle">Perfil <span id="perfilText">-</span> • Área <span id="areaText">-</span></p>
+            </div>
+
+            <form id="quizForm" class="quiz-form">
+                <div id="questionList" class="question-list"></div>
+
+                <div class="quiz-actions">
+                    <button id="submitQuiz" class="btn-primary btn-large" type="button">Guardar y finalizar</button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script src="../scripts/supabase-client.js"></script>
+    <script src="form.js"></script>
+</body>
+</html>
+
+

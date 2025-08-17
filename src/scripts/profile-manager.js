@@ -146,7 +146,7 @@ class ProfileManager {
         const backBtn = document.getElementById('backToCoursesBtn');
         if (backBtn) {
             backBtn.addEventListener('click', () => {
-                window.location.href = 'courses.html';
+                window.location.href = 'cursos.html';
             });
         }
 

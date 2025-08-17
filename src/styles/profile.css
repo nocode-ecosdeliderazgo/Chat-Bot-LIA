@@ -31,6 +31,242 @@ body {
     overflow-x: hidden;
 }
 
+
+/* ===== PERFIL CUESTIONARIO (HTML: src/perfil-cuestionario.html) ===== */
+.hero-nav { 
+    position: relative; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 10px 16px; 
+    backdrop-filter: blur(8px); 
+}
+
+.nav-logo { 
+    display: none; 
+}
+
+/* ELIMINADO - estilos duplicados que causan conflicto */
+
+/* ELIMINADO - estilos duplicados del menú */
+
+
+.profile-main { padding: 40px 16px; position: relative; z-index: 1; }
+.profile-main .container { max-width: 1100px; margin: 0 auto; }
+.profile-step { display: none; }
+.profile-step.active { display: block; }
+
+.step-content {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(68,229,255,0.18);
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    padding: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+    backdrop-filter: blur(8px);
+}
+
+.step-header { text-align: center; margin-bottom: 18px; }
+.step-header h1 { margin: 0 0 6px; }
+.step-header p { color: var(--course-light); }
+
+/* Forzar que no aparezca ninguna imagen/visual de hero en esta vista */
+.profile-main .hero-visual,
+.profile-main .hero-image,
+.profile-main .hero-graphic { display: none !important; }
+
+/* Grid del formulario específico */
+.profile-form .form-grid { display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: 16px; }
+@media (max-width: 900px){ .profile-form .form-grid { grid-template-columns: 1fr; } }
+
+/* Campos y selects (corrige contraste y foco) */
+.form-label span { font-weight: 600; color: var(--course-white); }
+
+.form-input,
+.form-select,
+.profile-form input[type="text"],
+.profile-form select,
+.profile-form textarea {
+    appearance: none;
+    -webkit-appearance: none;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: var(--course-white);
+    border-radius: 10px;
+    padding: 12px 14px;
+    min-height: 44px;
+    line-height: 1.2;
+    outline: none;
+    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.profile-form input::placeholder { color: rgba(255,255,255,.55); }
+
+.form-input:focus,
+.form-select:focus,
+.profile-form input:focus,
+.profile-form select:focus,
+.profile-form textarea:focus {
+    border-color: var(--course-primary);
+    box-shadow: 0 0 0 3px rgba(68,229,255,0.12);
+}
+
+/* Mejora visual del desplegable (soporte dark) */
+.form-select,
+.profile-form select { 
+    color-scheme: dark; 
+    /* Apariencia tipo botón/glass */
+    background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)) !important;
+    border-color: rgba(68,229,255,0.35) !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25), 0 0 0 1px rgba(68,229,255,0.06) inset !important;
+    filter: brightness(1.02);
+    /* Flecha */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23A7DFF0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat; 
+    background-position: right 12px center; 
+    padding-right: 40px;
+}
+
+/* Corregir opciones del select para que se vean en modo oscuro */
+.form-select option,
+.profile-form select option {
+    background: linear-gradient(180deg, rgba(20, 30, 45, 0.95), rgba(15, 25, 40, 0.98)) !important;
+    color: #ffffff !important;
+    padding: 8px 12px !important;
+    border: none !important;
+}
+
+.form-select option:hover,
+.profile-form select option:hover {
+    background: rgba(68,229,255,0.22) !important;
+    color: #ffffff !important;
+}
+
+.form-select option:checked,
+.profile-form select option:checked {
+    background: #44E5FF !important;
+    color: #000000 !important;
+}
+
+/* Forzar estilos del desplegable en todos los navegadores */
+.form-select,
+.profile-form select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background-color: rgba(255,255,255,0.08) !important;
+    color: #ffffff !important;
+}
+
+/* Para Firefox específicamente */
+@-moz-document url-prefix() {
+    .form-select,
+    .profile-form select {
+        background-color: rgba(255,255,255,0.08) !important;
+        color: #ffffff !important;
+    }
+    
+    .form-select option,
+    .profile-form select option {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+    }
+}
+
+/* Para WebKit (Chrome, Safari, Edge) */
+.form-select::-webkit-scrollbar,
+.profile-form select::-webkit-scrollbar {
+    width: 8px;
+}
+
+.form-select::-webkit-scrollbar-track,
+.profile-form select::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+.form-select::-webkit-scrollbar-thumb,
+.profile-form select::-webkit-scrollbar-thumb {
+    background: #44E5FF;
+    border-radius: 4px;
+}
+
+/* (restaurado) las animaciones de scroll usarán las clases definidas en styles/animations.css */
+
+/* Acciones del formulario */
+.form-actions { display: flex; justify-content: center; margin-top: 12px; }
+
+/* Botones (arregla bug visual de hover/espaciado) */
+.btn-primary,
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: 'Montserrat', var(--font-secondary), system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    font-weight: 700;
+    border-radius: 12px;
+    padding: 12px 18px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    user-select: none;
+    transition: transform .15s ease, box-shadow .2s ease, filter .2s ease, background .2s ease, border-color .2s ease;
+}
+
+.btn-primary {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(68,229,255,0.35);
+    background: linear-gradient(135deg, var(--course-primary), var(--course-secondary));
+    color: #001018;
+    box-shadow: 0 10px 26px rgba(68,229,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.15);
+    isolation: isolate;
+}
+/* brillo diagonal que pasa sobre el botón */
+.btn-primary::after {
+    content: "";
+    position: absolute;
+    top: 0; left: -30%;
+    width: 30%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+    transform: skewX(-20deg) translateX(0);
+    transition: transform .6s ease;
+    pointer-events: none;
+}
+.btn-primary:hover { filter: brightness(1.05); transform: translateY(-2px); box-shadow: 0 14px 32px rgba(68,229,255,0.35); }
+.btn-primary:hover::after { transform: skewX(-20deg) translateX(260%); }
+.btn-primary:active { transform: translateY(0); box-shadow: 0 8px 18px rgba(68,229,255,0.22); }
+.btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(68,229,255,0.25); }
+
+.btn-secondary { background: rgba(255,255,255,0.06); color: var(--course-white); border: 1px solid rgba(68,229,255,0.35); }
+.btn-secondary:hover { background: rgba(68,229,255,0.12); }
+
+.btn-large { padding: 14px 22px; font-size: 1rem; }
+.btn-icon { display: none; }
+
+/* Resumen y override */
+.summary-card { padding: 16px; border-radius: 14px; border: 1px solid rgba(68,229,255,0.18); background: rgba(255,255,255,0.04); }
+.summary-header { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
+.summary-icon .icon { width: 28px; height: 28px; opacity: .9; }
+.summary-details .detail-row { display: flex; gap: 6px; margin: 4px 0; color: var(--course-light); }
+.detail-label { color: var(--course-white); font-weight: 600; }
+
+.override-section { margin-top: 16px; }
+.override-options { margin-top: 12px; }
+.profile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.profile-option { background: rgba(255,255,255,0.06); border: 1px solid rgba(68,229,255,0.25); color: var(--course-white); border-radius: 10px; padding: 10px 12px; cursor: pointer; transition: all .2s ease; }
+.profile-option:hover { background: rgba(68,229,255,0.14); border-color: rgba(68,229,255,0.45); transform: translateY(-1px); }
+/* Estado activo para que se vea la elección manual */
+.profile-option.selected,
+.profile-option[aria-pressed="true"] {
+    background: rgba(68,229,255,0.22);
+    border-color: rgba(68,229,255,0.8);
+    box-shadow: 0 0 0 3px rgba(68,229,255,0.18);
+}
+
+.summary-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+
 /* Header fijo a ancho completo */
 .header {
     position: fixed;
@@ -528,4 +764,136 @@ body {
     .header-title h1 {
         font-size: 1.5rem;
     }
+}
+
+/* ===== ESTILOS DEL BOTÓN DE PERFIL ELIMINADOS ===== */
+/* Header limpio sin elementos de navegación */
+.hero-nav {
+  padding: 0;
+  min-height: 60px;
+}
+
+/* ===== CORRECCION ADICIONAL PARA SELECTS ===== */
+/* Forzar visibilidad de las opciones en todos los casos */
+select.form-select,
+select#area,
+select#nivel, 
+select#relacion,
+select#tamano {
+    background-color: transparent !important; /* antes era oscuro, causaba el negro */
+    color: #ffffff !important;
+    border: 1px solid rgba(68, 229, 255, 0.3) !important;
+}
+
+select.form-select option,
+select#area option,
+select#nivel option, 
+select#relacion option,
+select#tamano option {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+    padding: 10px !important;
+    font-size: 14px !important;
+}
+
+select.form-select option:hover,
+select#area option:hover,
+select#nivel option:hover, 
+select#relacion option:hover,
+select#tamano option:hover {
+    background-color: #44E5FF !important;
+    color: #000000 !important;
+}
+
+/* Alternativa: usar datalist si los selects siguen fallando */
+.custom-select-wrapper {
+    position: relative;
+}
+
+.custom-select-wrapper::after {
+    content: '▼';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #44E5FF;
+    pointer-events: none;
+}
+
+/* ===== Fix específico: select de Nivel Organizacional con diseño transparente tipo glass ===== */
+select#nivel {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    color-scheme: dark;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)) !important;
+    border: 1.5px solid rgba(68,229,255,0.35) !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25), 0 0 0 1px rgba(68,229,255,0.06) inset !important;
+    filter: brightness(1.02);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23A7DFF0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    padding-right: 40px !important;
+}
+
+select#nivel option {
+    background: #0F141B !important;
+    background-color: #0F141B !important;
+    color: #ffffff !important;
+}
+
+select#nivel option:hover,
+select#nivel option:checked {
+    background: #1B3B45 !important;
+    background-color: #1B3B45 !important;
+    color: #ffffff !important;
+}
+
+/* ===== Fijar SIEMPRE el fondo del popup de opciones (Chromium/Win) ===== */
+.form-select option,
+.profile-form select option,
+.form-select optgroup,
+.profile-form select optgroup,
+select#area option,
+select#nivel option,
+select#relacion option,
+select#tamano option {
+    background: #0F141B !important;
+    background-color: #0F141B !important;
+    color: #FFFFFF !important;
+}
+.form-select option:hover,
+.profile-form select option:hover,
+.form-select option:checked,
+.profile-form select option:checked,
+select#area option:hover,
+select#nivel option:hover,
+select#relacion option:hover,
+select#tamano option:hover,
+select#area option:checked,
+select#nivel option:checked,
+select#relacion option:checked,
+select#tamano option:checked {
+    background: #1B3B45 !important;
+    background-color: #1B3B45 !important;
+    color: #FFFFFF !important;
+}
+
+/* ===== Unificar TODOS los selects de la página al estilo glass ===== */
+select.form-select,
+select#area,
+select#nivel,
+select#relacion,
+select#tamano {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    color-scheme: dark;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)) !important;
+    border: 1.5px solid rgba(68,229,255,0.35) !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25), 0 0 0 1px rgba(68,229,255,0.06) inset !important;
+    color: #FFFFFF !important;
+    padding: 12px 44px 12px 14px !important;
+    border-radius: 10px !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23A7DFF0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
 }
