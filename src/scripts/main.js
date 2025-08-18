@@ -1881,15 +1881,88 @@ async function callOpenAI(prompt, context = '') {
         });
 
         if (!response.ok) {
-            throw new Error(`Error en la API: ${response.status}`);
+            console.log('[OPENAI FALLBACK] Servidor falló, usando respuesta local');
+            // Fallback: respuesta local simulada
+            return generateLocalResponse(prompt, context);
         }
 
         const data = await response.json();
         return data.response;
     } catch (error) {
         console.error('Error llamando a OpenAI:', error);
-        return null;
+        console.log('[OPENAI FALLBACK] Usando respuesta local por error de conexión');
+        return generateLocalResponse(prompt, context);
     }
+}
+
+// Función para generar respuestas locales cuando el servidor no está disponible
+function generateLocalResponse(prompt, context) {
+    const promptLower = prompt.toLowerCase();
+    
+    // Respuestas específicas para conceptos comunes de IA
+    if (promptLower.includes('prompt')) {
+        return `Un **prompt** es una instrucción o pregunta que le das a una inteligencia artificial para obtener una respuesta específica. Es como una conversación donde tú indicas qué quieres que la IA haga o responda.
+
+**Características de un buen prompt:**
+- **Claro y específico**: Define exactamente qué necesitas
+- **Contextual**: Proporciona información relevante
+- **Estructurado**: Organiza tu solicitud de manera lógica
+
+**Ejemplo:**
+- ❌ Prompt vago: "Háblame de marketing"
+- ✅ Prompt específico: "Explica 3 estrategias de marketing digital para una pequeña empresa de ropa"
+
+¿Te gustaría que profundice en algún aspecto específico de los prompts?`;
+    }
+    
+    if (promptLower.includes('ia') || promptLower.includes('inteligencia artificial')) {
+        return `La **Inteligencia Artificial (IA)** es una tecnología que permite a las máquinas realizar tareas que normalmente requieren inteligencia humana, como reconocer patrones, tomar decisiones y resolver problemas.
+
+**Tipos principales de IA:**
+- **IA Narrow**: Especializada en tareas específicas (como ChatGPT, Siri)
+- **IA General**: Hipotética IA con capacidades humanas completas
+- **Machine Learning**: Subcampo que permite a las máquinas aprender de datos
+
+**Aplicaciones cotidianas:**
+- Asistentes virtuales
+- Recomendaciones en streaming
+- Traducción automática
+- Reconocimiento de voz e imagen
+
+¿Hay algún aspecto particular de la IA que te interese explorar?`;
+    }
+    
+    if (promptLower.includes('machine learning') || promptLower.includes('ml')) {
+        return `**Machine Learning (ML)** es una rama de la IA que permite a las computadoras aprender y mejorar automáticamente a partir de datos, sin ser programadas explícitamente para cada tarea.
+
+**Tipos de Machine Learning:**
+- **Supervisado**: Aprende con ejemplos etiquetados
+- **No supervisado**: Encuentra patrones en datos sin etiquetas
+- **Por refuerzo**: Aprende mediante prueba y error
+
+**Aplicaciones prácticas:**
+- Filtros de spam en email
+- Sistemas de recomendación
+- Diagnóstico médico
+- Vehículos autónomos
+
+¿Te interesa algún tipo específico de Machine Learning?`;
+    }
+    
+    // Respuesta general para otras preguntas
+    return `¡Hola! Soy Lia IA, tu asistente de aprendizaje en inteligencia artificial. 
+
+Puedo ayudarte con conceptos sobre:
+- **Fundamentos de IA** y Machine Learning
+- **Prompts** y cómo usarlos efectivamente  
+- **Aplicaciones prácticas** de la IA
+- **Herramientas** y tecnologías de IA
+
+Tu pregunta: "${prompt}"
+
+Como estoy funcionando en modo local, mis respuestas se basan en conocimientos embebidos. Para respuestas más detalladas y actualizadas, el sistema está trabajando en restablecer la conexión con el servidor principal.
+
+¿Sobre qué aspecto específico de la IA te gustaría aprender más?`;
 }
 
 // Función para consultar la base de datos de forma segura
@@ -1938,15 +2011,53 @@ async function getDatabaseContext(userQuestion) {
         });
 
         if (!response.ok) {
-            throw new Error(`Error en la API: ${response.status}`);
+            console.log('[CONTEXT FALLBACK] Servidor falló, usando contexto local');
+            return getLocalContext(userQuestion);
         }
 
         const data = await response.json();
         return data.data;
     } catch (error) {
         console.error('Error obteniendo contexto de BD:', error);
-        return [];
+        console.log('[CONTEXT FALLBACK] Usando contexto local por error');
+        return getLocalContext(userQuestion);
     }
+}
+
+// Función para obtener contexto local cuando el servidor no está disponible
+function getLocalContext(userQuestion) {
+    const questionLower = userQuestion.toLowerCase();
+    const context = [];
+    
+    if (questionLower.includes('prompt')) {
+        context.push({
+            source: 'glossary',
+            term: 'Prompt',
+            definition: 'Instrucción o entrada de texto que se proporciona a un modelo de IA para generar una respuesta específica.',
+            relevance_score: 10
+        });
+    }
+    
+    if (questionLower.includes('ia') || questionLower.includes('inteligencia artificial')) {
+        context.push({
+            source: 'glossary',
+            term: 'Inteligencia Artificial',
+            definition: 'Campo de la informática que se enfoca en crear sistemas capaces de realizar tareas que requieren inteligencia humana.',
+            relevance_score: 10
+        });
+    }
+    
+    if (questionLower.includes('machine learning') || questionLower.includes('ml')) {
+        context.push({
+            source: 'glossary',
+            term: 'Machine Learning',
+            definition: 'Subcampo de la IA que permite a las máquinas aprender patrones de datos sin ser programadas explícitamente.',
+            relevance_score: 10
+        });
+    }
+    
+    console.log('[CONTEXT LOCAL] Contexto generado:', context);
+    return context;
 }
 
 // Función para obtener la API key de forma segura
@@ -1977,10 +2088,28 @@ function getUserAuthHeaders() {
         
         // Logging para debug
         console.log('[AUTH DEBUG] Token found:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+        console.log('[AUTH DEBUG] Token completo:', token);
         console.log('[AUTH DEBUG] UserId:', userId || 'NO USER ID');
         console.log('[AUTH DEBUG] Token source:', localStorage.getItem('userToken') ? 'userToken' : 
                    sessionStorage.getItem('authToken') ? 'authToken(session)' : 
                    localStorage.getItem('authToken') ? 'authToken(local)' : 'none');
+        
+        // Verificar si el token contiene la firma de desarrollo
+        if (token) {
+            console.log('[AUTH DEBUG] Token contiene fake-signature:', token.includes('fake-signature-for-dev-testing-only'));
+            if (token.includes('.')) {
+                const parts = token.split('.');
+                console.log('[AUTH DEBUG] Token parts:', parts.length);
+                if (parts.length >= 2) {
+                    try {
+                        const payload = JSON.parse(atob(parts[1]));
+                        console.log('[AUTH DEBUG] Token payload:', payload);
+                    } catch (e) {
+                        console.log('[AUTH DEBUG] Error decodificando payload:', e.message);
+                    }
+                }
+            }
+        }
         
         const headers = {};
         if (token) headers['Authorization'] = `Bearer ${token}`;
