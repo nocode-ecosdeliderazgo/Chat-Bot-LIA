@@ -1716,6 +1716,100 @@ app.get('/api/users/:userId/enrollments', authenticateRequest, async (req, res) 
     }
 });
 
+// Obtener temario completo de un curso
+app.get('/api/courses/:courseId/syllabus', authenticateRequest, async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
+        
+        const { courseId } = req.params;
+        
+        // Información general del curso y URL del temario
+        const courseQuery = `
+            SELECT 
+                id_ai_courses as id,
+                name,
+                long_description,
+                short_description,
+                temario_url,
+                session_count,
+                total_duration,
+                modality
+            FROM public.ai_courses 
+            WHERE id_ai_courses = $1
+        `;
+        
+        // Estructura modular del temario
+        const modulesQuery = `
+            SELECT 
+                cm.id,
+                cm.title,
+                cm.description,
+                cm.session_id,
+                cm.position,
+                cm.ai_feedback,
+                COUNT(ma.id) as activities_count
+            FROM public.course_module cm
+            LEFT JOIN public.module_activity ma ON cm.id = ma.module_id
+            WHERE cm.course_id = $1
+            GROUP BY cm.id, cm.title, cm.description, cm.session_id, cm.position, cm.ai_feedback
+            ORDER BY cm.position, cm.session_id
+        `;
+        
+        // Actividades por módulo
+        const activitiesQuery = `
+            SELECT 
+                ma.id,
+                ma.module_id,
+                ma.type,
+                ma.content_type,
+                ma.resource_url,
+                ma.metadata,
+                ma.ai_feedback,
+                cm.title as module_title
+            FROM public.module_activity ma
+            JOIN public.course_module cm ON ma.module_id = cm.id
+            WHERE cm.course_id = $1
+            ORDER BY cm.position, ma.created_at
+        `;
+        
+        const [courseResult, modulesResult, activitiesResult] = await Promise.all([
+            pool.query(courseQuery, [courseId]),
+            pool.query(modulesQuery, [courseId]),
+            pool.query(activitiesQuery, [courseId])
+        ]);
+        
+        if (courseResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Curso no encontrado' });
+        }
+        
+        const course = courseResult.rows[0];
+        const modules = modulesResult.rows;
+        const activities = activitiesResult.rows;
+        
+        // Organizar actividades por módulo
+        const modulesWithActivities = modules.map(module => ({
+            ...module,
+            activities: activities.filter(activity => activity.module_id === module.id)
+        }));
+        
+        const syllabus = {
+            course: course,
+            modules: modulesWithActivities,
+            summary: {
+                total_modules: modules.length,
+                total_activities: activities.length,
+                sessions: course.session_count,
+                duration: course.total_duration
+            }
+        };
+        
+        res.json({ syllabus });
+    } catch (error) {
+        console.error('Error obteniendo temario:', error);
+        res.status(500).json({ error: 'Error obteniendo temario del curso' });
+    }
+});
+
 // Almacenar usuarios conectados al chat del livestream
 const livestreamUsers = new Map();
 
