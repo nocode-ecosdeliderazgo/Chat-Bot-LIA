@@ -1973,6 +1973,13 @@ function getUserAuthHeaders() {
             userId = sessionStorage.getItem('userId') || localStorage.getItem('userId') || '';
         }
         
+        // Logging para debug
+        console.log('[AUTH DEBUG] Token found:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+        console.log('[AUTH DEBUG] UserId:', userId || 'NO USER ID');
+        console.log('[AUTH DEBUG] Token source:', localStorage.getItem('userToken') ? 'userToken' : 
+                   sessionStorage.getItem('authToken') ? 'authToken(session)' : 
+                   localStorage.getItem('authToken') ? 'authToken(local)' : 'none');
+        
         const headers = {};
         if (token) headers['Authorization'] = `Bearer ${token}`;
         if (userId) headers['X-User-Id'] = userId;

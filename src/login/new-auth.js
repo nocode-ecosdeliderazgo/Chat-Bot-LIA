@@ -34,6 +34,8 @@ async function ensureAuthDataSync() {
             const user = JSON.parse(currentUser || userData);
             
             try {
+                console.log('[TOKEN DEBUG] Intentando generar token en:', `${API_BASE}/api/auth/issue`);
+                console.log('[TOKEN DEBUG] API_BASE actual:', API_BASE);
                 const tokenResponse = await fetch(`${API_BASE}/api/auth/issue`, {
                     method: 'POST',
                     headers: {
@@ -46,14 +48,19 @@ async function ensureAuthDataSync() {
                 });
 
                 if (tokenResponse.ok) {
-                    const { token } = await tokenResponse.json();
+                    const { token, userId } = await tokenResponse.json();
                     localStorage.setItem('userToken', token);
                     localStorage.setItem('authToken', token);
+                    console.log('[TOKEN DEBUG] Token de sync generado:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+                    console.log('[TOKEN DEBUG] UserId de sync:', userId);
                     devLog('Token válido generado:', token.substring(0, 20) + '...');
                 } else {
-                    throw new Error('Error generando token válido');
+                    const errorText = await tokenResponse.text();
+                    console.error('[TOKEN DEBUG] Error en auth-issue (sync):', tokenResponse.status, errorText);
+                    throw new Error(`Error generando token válido: ${tokenResponse.status}`);
                 }
             } catch (error) {
+                console.error('[TOKEN DEBUG] Excepción en auth-issue (sync):', error);
                 devLog('Error generando token, usando mock:', error.message);
                 // Fallback a token mock solo para desarrollo local
                 const mockToken = btoa(JSON.stringify({
@@ -1020,6 +1027,8 @@ async function validateCredentialsLocal(emailOrUsername, password) {
         
         // Crear token válido usando auth-issue
         try {
+            console.log('[TOKEN DEBUG] Generando token para login en:', `${API_BASE}/api/auth/issue`);
+            console.log('[TOKEN DEBUG] API_BASE para login:', API_BASE);
             const tokenResponse = await fetch(`${API_BASE}/api/auth/issue`, {
                 method: 'POST',
                 headers: {
@@ -1034,6 +1043,8 @@ async function validateCredentialsLocal(emailOrUsername, password) {
             if (tokenResponse.ok) {
                 const { token, userId } = await tokenResponse.json();
                 localStorage.setItem('userToken', token);
+                console.log('[TOKEN DEBUG] Token válido generado:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+                console.log('[TOKEN DEBUG] UserId recibido:', userId);
                 devLog('Token válido generado para:', foundUser.username);
                 
                 // Crear sesión usando userId del token
@@ -1044,9 +1055,12 @@ async function validateCredentialsLocal(emailOrUsername, password) {
                 };
                 localStorage.setItem('userSession', JSON.stringify(sessionData));
             } else {
-                throw new Error('Error generando token válido');
+                const errorText = await tokenResponse.text();
+                console.error('[TOKEN DEBUG] Error en auth-issue:', tokenResponse.status, errorText);
+                throw new Error(`Error generando token válido: ${tokenResponse.status}`);
             }
         } catch (error) {
+            console.error('[TOKEN DEBUG] Excepción en auth-issue:', error);
             devLog('Error generando token, usando mock:', error.message);
             // Fallback a token mock solo para desarrollo local
             const mockToken = btoa(JSON.stringify({
