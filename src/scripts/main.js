@@ -1868,16 +1868,7 @@ async function callOpenAI(prompt, context = '') {
     try {
         const base = (typeof window !== 'undefined' && (window.API_BASE || localStorage.getItem('API_BASE'))) || '';
         
-        // TEMPORAL: Si estamos en Netlify Functions y fallan, intentar con servidor principal
-        let apiUrl = `${base}/api/openai`;
-        if (base.includes('netlify.app')) {
-            // Intentar primero con servidor principal de Heroku si existe
-            const herokuBase = 'https://chat-bot-lia-b8bf3c6d5f87.herokuapp.com';
-            apiUrl = `${herokuBase}/api/openai`;
-            console.log('[API DEBUG] Intentando con servidor principal:', apiUrl);
-        }
-        
-        const response = await fetch(apiUrl, {
+        const response = await fetch(`${base}/api/openai`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1934,16 +1925,7 @@ async function getDatabaseContext(userQuestion) {
     try {
         const base = (typeof window !== 'undefined' && (window.API_BASE || localStorage.getItem('API_BASE'))) || '';
         
-        // TEMPORAL: Si estamos en Netlify Functions y fallan, intentar con servidor principal
-        let apiUrl = `${base}/api/context`;
-        if (base.includes('netlify.app')) {
-            // Intentar primero con servidor principal de Heroku si existe
-            const herokuBase = 'https://chat-bot-lia-b8bf3c6d5f87.herokuapp.com';
-            apiUrl = `${herokuBase}/api/context`;
-            console.log('[API DEBUG] Intentando contexto con servidor principal:', apiUrl);
-        }
-        
-        const response = await fetch(apiUrl, {
+        const response = await fetch(`${base}/api/context`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
