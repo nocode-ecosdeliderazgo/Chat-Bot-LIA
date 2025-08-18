@@ -68,55 +68,62 @@
             <!-- Header de la página -->
             <section class="stats-header-section animate-on-scroll">
                 <div class="stats-header-content">
-                    <h1>Mis Estadísticas</h1>
-                    <p>Analiza tu progreso y resultados del cuestionario de perfil profesional con dashboards interactivos de Grafana</p>
+                    <div class="stats-header-text">
+                        <h1>Mis Estadísticas</h1>
+                        <p>Analiza tu progreso y resultados del cuestionario de perfil profesional con dashboards interactivos de Grafana</p>
+                    </div>
                 </div>
             </section>
 
-            <!-- Contenedores para Grafana -->
+            <!-- Contenedores para Grafana - Diseño Piramidal -->
             <section class="grafana-section animate-on-scroll">
-                <!-- Panel 1: Índice de Competencias -->
-                <div class="grafana-container glass-card">
-                    <div class="grafana-header">
-                        <h3>Índice de Competencias</h3>
-                        <p>Resumen general de tus competencias en IA y tecnologías emergentes</p>
+                <div class="grafana-pyramid">
+                    <!-- Panel superior (más ancho) -->
+                    <div class="grafana-container glass-card top">
+                        <div class="grafana-header">
+                            <h3>Índice de Competencias</h3>
+                            <p>Resumen general de tus competencias en IA y tecnologías emergentes</p>
+                        </div>
+                        <div class="grafana-frame-container">
+                            <iframe id="grafanaIndice" class="grafana-iframe" 
+                                    src="about:blank" 
+                                    frameborder="0"
+                                    title="Panel de Índice de Competencias">
+                            </iframe>
+                        </div>
                     </div>
-                    <div class="grafana-frame-container">
-                        <iframe id="grafanaIndice" class="grafana-iframe" 
-                                src="about:blank" 
-                                frameborder="0"
-                                title="Panel de Índice de Competencias">
-                        </iframe>
-                    </div>
-                </div>
 
-                <!-- Panel 2: Radar de Habilidades -->
-                <div class="grafana-container glass-card">
-                    <div class="grafana-header">
-                        <h3>Radar de Habilidades</h3>
-                        <p>Visualización de tus fortalezas por área funcional y nivel de experiencia</p>
-                    </div>
-                    <div class="grafana-frame-container">
-                        <iframe id="grafanaRadar" class="grafana-iframe" 
-                                src="about:blank" 
-                                frameborder="0"
-                                title="Panel de Radar de Habilidades">
-                        </iframe>
-                    </div>
-                </div>
+                    <!-- Fila inferior con dos paneles -->
+                    <div class="grafana-bottom-row">
+                        <!-- Panel inferior izquierdo -->
+                        <div class="grafana-container glass-card bottom">
+                            <div class="grafana-header">
+                                <h3>Radar de Habilidades</h3>
+                                <p>Visualización de tus fortalezas por área funcional y nivel de experiencia</p>
+                            </div>
+                            <div class="grafana-frame-container">
+                                <iframe id="grafanaRadar" class="grafana-iframe" 
+                                        src="about:blank" 
+                                        frameborder="0"
+                                        title="Panel de Radar de Habilidades">
+                                </iframe>
+                            </div>
+                        </div>
 
-                <!-- Panel 3: Análisis por Subdominios -->
-                <div class="grafana-container glass-card">
-                    <div class="grafana-header">
-                        <h3>Análisis por Subdominios</h3>
-                        <p>Desglose detallado por categorías específicas y oportunidades de mejora</p>
-                    </div>
-                    <div class="grafana-frame-container">
-                        <iframe id="grafanaSubdominios" class="grafana-iframe" 
-                                src="about:blank" 
-                                frameborder="0"
-                                title="Panel de Análisis por Subdominios">
-                        </iframe>
+                        <!-- Panel inferior derecho -->
+                        <div class="grafana-container glass-card bottom">
+                            <div class="grafana-header">
+                                <h3>Análisis por Subdominios</h3>
+                                <p>Desglose detallado por categorías específicas y oportunidades de mejora</p>
+                            </div>
+                            <div class="grafana-frame-container">
+                                <iframe id="grafanaSubdominios" class="grafana-iframe" 
+                                        src="about:blank" 
+                                        frameborder="0"
+                                        title="Panel de Análisis por Subdominios">
+                                </iframe>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
