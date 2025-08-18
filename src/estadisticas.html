@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Estadísticas de tu cuestionario - Aprende y Aplica IA">
+    <title>Mis Estadísticas - Aprende y Aplica IA</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/images/icono.png" />
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/estadisticas.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Boxicons para iconos -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    <!-- Chart.js para gráficas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
+    <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY">
+</head>
+<body class="bg-glow-global">
+    <!-- Fondo con partículas -->
+    <div class="particles-container"></div>
+
+    <!-- Header -->
+    <header class="stats-header">
+        <nav class="hero-nav">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <img src="assets/images/icono.png" alt="LIA" class="nav-logo">
+                    <span class="nav-title">LIA</span>
+                </div>
+                <div class="nav-actions">
+                    <button class="nav-btn" onclick="location.href='cursos.html'">
+                        <i class='bx bx-book-open'></i>
+                        <span>Cursos</span>
+                    </button>
+                    <button class="nav-btn" onclick="location.href='chat.html'">
+                        <i class='bx bx-message-rounded'></i>
+                        <span>Chat</span>
+                    </button>
+                    <button class="nav-btn profile-btn" onclick="toggleProfileMenu(event)">
+                        <img src="assets/images/icono.png" alt="Perfil" class="profile-avatar">
+                    </button>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Menú de perfil -->
+        <div id="profileMenu" class="profile-menu" style="display:none">
+            <div class="pm-section">
+                <div class="pm-item" onclick="location.href='login/new-auth.html'">
+                    <i class='bx bx-log-out'></i> Cerrar sesión
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="stats-main">
+        <div class="container">
+            <!-- Header de la página -->
+            <section class="stats-header-section animate-on-scroll">
+                <div class="stats-header-content">
+                    <h1>Mis Estadísticas</h1>
+                    <p>Analiza tu progreso y resultados del cuestionario de perfil profesional</p>
+                </div>
+                <div class="stats-actions">
+                    <button id="refreshStats" class="btn-secondary">
+                        <i class='bx bx-refresh'></i>
+                        <span>Actualizar</span>
+                    </button>
+                    <button id="exportStats" class="btn-primary">
+                        <i class='bx bx-download'></i>
+                        <span>Exportar</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Información del perfil -->
+            <section class="profile-info-section animate-on-scroll">
+                <div class="profile-info-card glass-card">
+                    <div class="profile-info-header">
+                        <div class="profile-avatar-large">
+                            <img src="assets/images/icono.png" alt="Perfil" class="avatar-img">
+                        </div>
+                        <div class="profile-details">
+                            <h3 id="userProfile">Cargando perfil...</h3>
+                            <p id="userArea">Cargando área...</p>
+                            <div class="profile-meta">
+                                <span class="meta-item">
+                                    <i class='bx bx-calendar'></i>
+                                    <span id="completionDate">Fecha de completado: -</span>
+                                </span>
+                                <span class="meta-item">
+                                    <i class='bx bx-time'></i>
+                                    <span id="completionTime">Tiempo: -</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gráficas principales -->
+            <section class="charts-section animate-on-scroll">
+                <div class="charts-grid">
+                    <!-- Gráfica de distribución de respuestas -->
+                    <div class="chart-card glass-card">
+                        <div class="chart-header">
+                            <h3>Distribución de Respuestas</h3>
+                            <p>Análisis de tus respuestas en escala Likert (1-7)</p>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="likertChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gráfica de áreas de fortaleza -->
+                    <div class="chart-card glass-card">
+                        <div class="chart-header">
+                            <h3>Áreas de Fortaleza</h3>
+                            <p>Puntuaciones más altas por categoría</p>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="strengthChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gráfica de oportunidades de mejora -->
+                    <div class="chart-card glass-card">
+                        <div class="chart-header">
+                            <h3>Oportunidades de Mejora</h3>
+                            <p>Áreas con menor puntuación</p>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="improvementChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gráfica de progreso temporal -->
+                    <div class="chart-card glass-card">
+                        <div class="chart-header">
+                            <h3>Progreso Temporal</h3>
+                            <p>Evolución de tus respuestas</p>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Métricas detalladas -->
+            <section class="metrics-section animate-on-scroll">
+                <h2>Métricas Detalladas</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon">
+                            <i class='bx bx-target-lock'></i>
+                        </div>
+                        <div class="metric-content">
+                            <h4>Puntuación Promedio</h4>
+                            <div class="metric-value" id="avgScore">-</div>
+                            <p class="metric-description">Promedio de todas tus respuestas</p>
+                        </div>
+                    </div>
+
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon">
+                            <i class='bx bx-trending-up'></i>
+                        </div>
+                        <div class="metric-content">
+                            <h4>Nivel de Experiencia</h4>
+                            <div class="metric-value" id="experienceLevel">-</div>
+                            <p class="metric-description">Basado en tus respuestas</p>
+                        </div>
+                    </div>
+
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon">
+                            <i class='bx bx-check-circle'></i>
+                        </div>
+                        <div class="metric-content">
+                            <h4>Preguntas Completadas</h4>
+                            <div class="metric-value" id="completedQuestions">-</div>
+                            <p class="metric-description">Total de respuestas válidas</p>
+                        </div>
+                    </div>
+
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon">
+                            <i class='bx bx-time-five'></i>
+                        </div>
+                        <div class="metric-content">
+                            <h4>Tiempo Promedio</h4>
+                            <div class="metric-value" id="avgTimePerQuestion">-</div>
+                            <p class="metric-description">Tiempo por pregunta</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recomendaciones -->
+            <section class="recommendations-section animate-on-scroll">
+                <h2>Recomendaciones Personalizadas</h2>
+                <div class="recommendations-grid">
+                    <div class="recommendation-card glass-card">
+                        <div class="recommendation-icon">
+                            <i class='bx bx-book-open'></i>
+                        </div>
+                        <div class="recommendation-content">
+                            <h4>Cursos Recomendados</h4>
+                            <div id="recommendedCourses" class="recommendation-list">
+                                <p>Cargando recomendaciones...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recommendation-card glass-card">
+                        <div class="recommendation-icon">
+                            <i class='bx bx-target-lock'></i>
+                        </div>
+                        <div class="recommendation-content">
+                            <h4>Objetivos de Desarrollo</h4>
+                            <div id="developmentGoals" class="recommendation-list">
+                                <p>Cargando objetivos...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="scripts/supabase-client.js"></script>
+    <script src="scripts/particles.js"></script>
+    <script src="scripts/estadisticas.js"></script>
+</body>
+</html>
