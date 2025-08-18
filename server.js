@@ -986,88 +986,115 @@ app.post('/api/context', authenticateRequest, requireUserSession, async (req, re
         
         // Query combinada para obtener contexto relevante de múltiples tablas
         const contextQuery = `
-            -- Términos del glosario que coinciden
+            -- Términos del glosario (mantenido)
             SELECT 
                 'glossary' as source,
-                g.id,
-                null as session_id,
-                null as session_title,
+                g.id::text,
+                null as course_id,
+                null as module_id,
                 g.term,
                 g.definition,
                 null as question,
                 null as answer,
                 null as title,
                 null as description,
-                null as text,
+                null as content,
+                g.category,
                 length(g.term) as relevance_score
             FROM public.glossary_term g
-            WHERE LOWER(g.term) ILIKE $1 
-               OR LOWER(g.definition) ILIKE $1
+            WHERE LOWER(g.term) ILIKE $1 OR LOWER(g.definition) ILIKE $1
             
             UNION ALL
             
-            -- FAQs de sesiones
+            -- FAQs específicas del chatbot (NUEVA TABLA)
             SELECT 
-                'faq' as source,
-                f.id,
-                f.session_id,
-                cs.title as session_title,
+                'chatbot_faq' as source,
+                cf.id::text,
+                null as course_id,
+                null as module_id,
                 null as term,
                 null as definition,
-                f.question,
-                f.answer,
+                cf.question,
+                cf.answer,
                 null as title,
                 null as description,
-                null as text,
-                length(f.question) + length(f.answer) as relevance_score
-            FROM public.session_faq f
-            JOIN public.course_session cs ON f.session_id = cs.id
-            WHERE LOWER(f.question) ILIKE $1 
-               OR LOWER(f.answer) ILIKE $1
+                null as content,
+                cf.category,
+                (length(cf.question) + length(cf.answer)) * cf.priority as relevance_score
+            FROM public.chatbot_faq cf
+            WHERE LOWER(cf.question) ILIKE $1 OR LOWER(cf.answer) ILIKE $1
             
             UNION ALL
             
-            -- Actividades de sesiones
+            -- Información de cursos (NUEVA TABLA)
+            SELECT 
+                'course' as source,
+                ac.id_ai_courses::text,
+                ac.id_ai_courses::text as course_id,
+                null as module_id,
+                null as term,
+                null as definition,
+                null as question,
+                null as answer,
+                ac.name as title,
+                ac.long_description as description,
+                ac.short_description as content,
+                COALESCE(ac.modality, 'general') as category,
+                length(ac.name) + length(ac.long_description) as relevance_score
+            FROM public.ai_courses ac
+            WHERE LOWER(ac.name) ILIKE $1 
+               OR LOWER(ac.long_description) ILIKE $1 
+               OR LOWER(ac.short_description) ILIKE $1
+            
+            UNION ALL
+            
+            -- Módulos del curso (NUEVA TABLA)
+            SELECT 
+                'module' as source,
+                cm.id::text,
+                cm.course_id::text as course_id,
+                cm.id::text as module_id,
+                null as term,
+                null as definition,
+                null as question,
+                null as answer,
+                cm.title,
+                cm.description,
+                cm.ai_feedback as content,
+                'modulo' as category,
+                length(cm.title) + COALESCE(length(cm.description), 0) as relevance_score
+            FROM public.course_module cm
+            JOIN public.ai_courses ac ON cm.course_id = ac.id_ai_courses
+            WHERE LOWER(cm.title) ILIKE $1 
+               OR LOWER(cm.description) ILIKE $1
+               OR LOWER(cm.ai_feedback) ILIKE $1
+            
+            UNION ALL
+            
+            -- Actividades de módulos (NUEVA TABLA)
             SELECT 
                 'activity' as source,
-                a.id,
-                a.session_id,
-                cs.title as session_title,
+                ma.id::text,
+                cm.course_id::text as course_id,
+                ma.module_id::text as module_id,
                 null as term,
                 null as definition,
                 null as question,
                 null as answer,
-                a.title,
-                a.description,
-                null as text,
-                length(a.title) + COALESCE(length(a.description), 0) as relevance_score
-            FROM public.session_activity a
-            JOIN public.course_session cs ON a.session_id = cs.id
-            WHERE LOWER(a.title) ILIKE $1 
-               OR LOWER(a.description) ILIKE $1
-            
-            UNION ALL
-            
-            -- Preguntas de sesiones
-            SELECT 
-                'question' as source,
-                q.id,
-                q.session_id,
-                cs.title as session_title,
-                null as term,
-                null as definition,
-                null as question,
-                null as answer,
-                null as title,
-                null as description,
-                q.text,
-                length(q.text) as relevance_score
-            FROM public.session_question q
-            JOIN public.course_session cs ON q.session_id = cs.id
-            WHERE LOWER(q.text) ILIKE $1
+                CONCAT(ma.type, ' - ', ma.content_type) as title,
+                ma.resource_url as description,
+                ma.ai_feedback as content,
+                COALESCE(ma.type, 'actividad') as category,
+                length(COALESCE(ma.ai_feedback, '')) + length(COALESCE(ma.resource_url, '')) as relevance_score
+            FROM public.module_activity ma
+            JOIN public.course_module cm ON ma.module_id = cm.id
+            WHERE LOWER(ma.ai_feedback) ILIKE $1 
+               OR LOWER(ma.resource_url) ILIKE $1
+               OR LOWER(ma.type) ILIKE $1
+               OR LOWER(ma.content_type) ILIKE $1
             
             ORDER BY relevance_score DESC, source
-            LIMIT 8
+            LIMIT 12
         `;
 
         const result = await pool.query(contextQuery, [searchTerm]);
@@ -1077,8 +1104,9 @@ app.post('/api/context', authenticateRequest, requireUserSession, async (req, re
             const base = {
                 source: row.source,
                 id: row.id,
-                session_id: row.session_id,
-                session_title: row.session_title
+                course_id: row.course_id,
+                module_id: row.module_id,
+                category: row.category
             };
 
             switch (row.source) {
@@ -1088,22 +1116,32 @@ app.post('/api/context', authenticateRequest, requireUserSession, async (req, re
                         term: row.term,
                         definition: row.definition
                     };
-                case 'faq':
+                case 'chatbot_faq':
                     return {
                         ...base,
                         question: row.question,
                         answer: row.answer
                     };
+                case 'course':
+                    return {
+                        ...base,
+                        title: row.title,
+                        description: row.description,
+                        content: row.content
+                    };
+                case 'module':
+                    return {
+                        ...base,
+                        title: row.title,
+                        description: row.description,
+                        content: row.content
+                    };
                 case 'activity':
                     return {
                         ...base,
                         title: row.title,
-                        description: row.description
-                    };
-                case 'question':
-                    return {
-                        ...base,
-                        text: row.text
+                        description: row.description,
+                        content: row.content
                     };
                 default:
                     return base;
@@ -1485,6 +1523,196 @@ const io = new Server(server, {
         }),
         methods: ["GET", "POST"],
         credentials: true
+    }
+});
+
+// ====== NUEVOS ENDPOINTS PARA LAS TABLAS ACTUALIZADAS ======
+
+// Obtener todos los cursos disponibles
+app.get('/api/courses', authenticateRequest, async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
+        
+        const query = `
+            SELECT 
+                id_ai_courses as id,
+                name,
+                short_description,
+                long_description,
+                price,
+                currency,
+                session_count,
+                total_duration,
+                modality,
+                status,
+                roi,
+                purchase_url,
+                course_url,
+                temario_url
+            FROM public.ai_courses 
+            WHERE status = 'activo' OR status IS NULL
+            ORDER BY name
+        `;
+        
+        const result = await pool.query(query);
+        res.json({ courses: result.rows });
+    } catch (error) {
+        console.error('Error obteniendo cursos:', error);
+        res.status(500).json({ error: 'Error obteniendo cursos' });
+    }
+});
+
+// Obtener módulos de un curso específico
+app.get('/api/courses/:courseId/modules', authenticateRequest, async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
+        
+        const { courseId } = req.params;
+        const query = `
+            SELECT 
+                cm.id,
+                cm.title,
+                cm.description,
+                cm.session_id,
+                cm.position,
+                cm.ai_feedback,
+                ac.name as course_name
+            FROM public.course_module cm
+            JOIN public.ai_courses ac ON cm.course_id = ac.id_ai_courses
+            WHERE cm.course_id = $1
+            ORDER BY cm.position, cm.session_id
+        `;
+        
+        const result = await pool.query(query, [courseId]);
+        res.json({ modules: result.rows });
+    } catch (error) {
+        console.error('Error obteniendo módulos:', error);
+        res.status(500).json({ error: 'Error obteniendo módulos del curso' });
+    }
+});
+
+// Obtener actividades de un módulo específico
+app.get('/api/modules/:moduleId/activities', authenticateRequest, async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
+        
+        const { moduleId } = req.params;
+        const query = `
+            SELECT 
+                ma.*,
+                cm.title as module_title,
+                cm.course_id
+            FROM public.module_activity ma
+            JOIN public.course_module cm ON ma.module_id = cm.id
+            WHERE ma.module_id = $1
+            ORDER BY ma.created_at
+        `;
+        
+        const result = await pool.query(query, [moduleId]);
+        res.json({ activities: result.rows });
+    } catch (error) {
+        console.error('Error obteniendo actividades:', error);
+        res.status(500).json({ error: 'Error obteniendo actividades del módulo' });
+    }
+});
+
+// Obtener FAQs específicas del chatbot
+app.get('/api/chatbot/faqs', authenticateRequest, async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
+        
+        const { category } = req.query;
+        let query = `
+            SELECT id, question, answer, category, priority
+            FROM public.chatbot_faq
+            ORDER BY priority DESC, category, question
+        `;
+        let params = [];
+        
+        if (category) {
+            query = `
+                SELECT id, question, answer, category, priority
+                FROM public.chatbot_faq
+                WHERE category = $1
+                ORDER BY priority DESC, question
+            `;
+            params = [category];
+        }
+        
+        const result = await pool.query(query, params);
+        res.json({ faqs: result.rows });
+    } catch (error) {
+        console.error('Error obteniendo FAQs del chatbot:', error);
+        res.status(500).json({ error: 'Error obteniendo FAQs' });
+    }
+});
+
+// Obtener progreso de un usuario en un curso
+app.get('/api/users/:userId/progress', authenticateRequest, async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
+        
+        const { userId } = req.params;
+        const { courseId } = req.query;
+        
+        let query = `
+            SELECT 
+                pt.id,
+                pt.progress_percent,
+                pt.last_access,
+                cm.title as module_title,
+                cm.course_id,
+                ac.name as course_name
+            FROM public.progress_tracking pt
+            JOIN public.course_module cm ON pt.module_id = cm.id
+            JOIN public.ai_courses ac ON cm.course_id = ac.id_ai_courses
+            WHERE pt.user_id = $1
+        `;
+        let params = [userId];
+        
+        if (courseId) {
+            query += ' AND cm.course_id = $2';
+            params.push(courseId);
+        }
+        
+        query += ' ORDER BY pt.last_access DESC';
+        
+        const result = await pool.query(query, params);
+        res.json({ progress: result.rows });
+    } catch (error) {
+        console.error('Error obteniendo progreso:', error);
+        res.status(500).json({ error: 'Error obteniendo progreso del usuario' });
+    }
+});
+
+// Obtener inscripciones de un usuario
+app.get('/api/users/:userId/enrollments', authenticateRequest, async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
+        
+        const { userId } = req.params;
+        const query = `
+            SELECT 
+                e.id,
+                e.status,
+                e.enrolled_at,
+                ac.id_ai_courses as course_id,
+                ac.name as course_name,
+                ac.short_description,
+                ac.modality,
+                ac.session_count,
+                ac.total_duration
+            FROM public.enrollment e
+            JOIN public.ai_courses ac ON e.course_id = ac.id_ai_courses
+            WHERE e.user_id = $1
+            ORDER BY e.enrolled_at DESC
+        `;
+        
+        const result = await pool.query(query, [userId]);
+        res.json({ enrollments: result.rows });
+    } catch (error) {
+        console.error('Error obteniendo inscripciones:', error);
+        res.status(500).json({ error: 'Error obteniendo inscripciones del usuario' });
     }
 });
 
