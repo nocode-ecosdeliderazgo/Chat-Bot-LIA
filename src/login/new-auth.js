@@ -28,18 +28,43 @@ function ensureAuthDataSync() {
             localStorage.setItem('currentUser', userData);
         }
         
-        // Si no hay token, crear uno simulado
+        // Si no hay token, crear uno válido usando auth-issue
         if ((currentUser || userData) && !existingToken) {
-            devLog('Creando token simulado para usuario autenticado');
+            devLog('Creando token válido para usuario autenticado');
             const user = JSON.parse(currentUser || userData);
-            const mockToken = btoa(JSON.stringify({
-                exp: Math.floor(Date.now() / 1000) + 3600, // 1 hora
-                user: user.email || user.username,
-                role: user.cargo_rol || user.role || 'user',
-                id: user.id
-            }));
-            localStorage.setItem('userToken', mockToken);
-            localStorage.setItem('authToken', mockToken); // Mantener compatibilidad
+            
+            try {
+                const tokenResponse = await fetch(`${API_BASE}/api/auth/issue`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'dev-api-key'
+                    },
+                    body: JSON.stringify({
+                        username: user.username || user.email || 'user'
+                    })
+                });
+
+                if (tokenResponse.ok) {
+                    const { token } = await tokenResponse.json();
+                    localStorage.setItem('userToken', token);
+                    localStorage.setItem('authToken', token);
+                    devLog('Token válido generado:', token.substring(0, 20) + '...');
+                } else {
+                    throw new Error('Error generando token válido');
+                }
+            } catch (error) {
+                devLog('Error generando token, usando mock:', error.message);
+                // Fallback a token mock solo para desarrollo local
+                const mockToken = btoa(JSON.stringify({
+                    exp: Math.floor(Date.now() / 1000) + 3600,
+                    user: user.email || user.username,
+                    role: user.cargo_rol || user.role || 'user',
+                    id: user.id
+                }));
+                localStorage.setItem('userToken', mockToken);
+                localStorage.setItem('authToken', mockToken);
+            }
         }
         
         // Si no hay sesión, crear una
@@ -978,20 +1003,51 @@ async function validateCredentialsLocal(emailOrUsername, password) {
         localStorage.setItem('userData', JSON.stringify(userData));
         localStorage.setItem('currentUser', JSON.stringify(userData)); // Mantener compatibilidad
         
-        // Crear token y sesión simulados para desarrollo
-        const mockToken = btoa(JSON.stringify({
-            exp: Math.floor(Date.now() / 1000) + 3600, // 1 hora
-            user: foundUser.email,
-            role: foundUser.cargo_rol
-        }));
-        localStorage.setItem('userToken', mockToken);
-        
-        const sessionData = {
-            sessionId: 'session-' + Date.now(),
-            created: new Date().toISOString(),
-            userId: foundUser.username
-        };
-        localStorage.setItem('userSession', JSON.stringify(sessionData));
+        // Crear token válido usando auth-issue
+        try {
+            const tokenResponse = await fetch(`${API_BASE}/api/auth/issue`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': 'dev-api-key'
+                },
+                body: JSON.stringify({
+                    username: foundUser.username
+                })
+            });
+
+            if (tokenResponse.ok) {
+                const { token, userId } = await tokenResponse.json();
+                localStorage.setItem('userToken', token);
+                devLog('Token válido generado para:', foundUser.username);
+                
+                // Crear sesión usando userId del token
+                const sessionData = {
+                    sessionId: 'session-' + Date.now(),
+                    created: new Date().toISOString(),
+                    userId: userId || foundUser.username
+                };
+                localStorage.setItem('userSession', JSON.stringify(sessionData));
+            } else {
+                throw new Error('Error generando token válido');
+            }
+        } catch (error) {
+            devLog('Error generando token, usando mock:', error.message);
+            // Fallback a token mock solo para desarrollo local
+            const mockToken = btoa(JSON.stringify({
+                exp: Math.floor(Date.now() / 1000) + 3600,
+                user: foundUser.email,
+                role: foundUser.cargo_rol
+            }));
+            localStorage.setItem('userToken', mockToken);
+            
+            const sessionData = {
+                sessionId: 'session-' + Date.now(),
+                created: new Date().toISOString(),
+                userId: foundUser.username
+            };
+            localStorage.setItem('userSession', JSON.stringify(sessionData));
+        }
         return true;
     }
     
