@@ -18,7 +18,8 @@
       "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\cursos.html\")",
       "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\Community\\community.html\")",
       "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\Notices\\notices.html\")",
-      "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\perfil-cuestionario.html\")"
+      "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\perfil-cuestionario.html\")",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

@@ -897,3 +897,13 @@ select#tamano {
     background-repeat: no-repeat !important;
     background-position: right 12px center !important;
 }
+
+/* Estado visual para campos deshabilitados por reglas de negocio */
+.form-select.is-disabled,
+select.is-disabled,
+.form-input.is-disabled,
+input.is-disabled {
+    opacity: .6;
+    cursor: not-allowed;
+    filter: grayscale(10%);
+}
