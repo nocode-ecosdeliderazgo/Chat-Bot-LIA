@@ -1,8 +1,11 @@
 // Inicializar partículas globales si existe el contenedor
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   if (typeof window.initializeParticleSystem === 'function') {
     window.initializeParticleSystem();
   }
+  
+  // Cargar sesiones del curso desde la base de datos
+  await loadCourseSessions();
 });
 
 // Configuración del chatbot según PROMPT_CLAUDE.md
@@ -28,13 +31,61 @@ const CHATBOT_CONFIG = {
     }
 };
 
-// Estructura del curso: solo títulos de sesiones y módulos
-const COURSE_SESSIONS = {
-    '1': { title: 'Sesión 1: Descubriendo la IA para Profesionales' },
-    '2': { title: 'Sesión 2: Fundamentos de Machine Learning' },
-    '3': { title: 'Sesión 3: Deep Learning y Casos Prácticos' },
-    '4': { title: 'Sesión 4: Aplicaciones, Ética y Proyecto Final' }
-};
+// Estructura del curso: se carga dinámicamente desde la base de datos
+let COURSE_SESSIONS = {};
+
+// Cargar sesiones desde la API
+async function loadCourseSessions() {
+    try {
+        const response = await fetch('/api/courses', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'X-User-Id': localStorage.getItem('userId')
+            }
+        });
+        
+        if (response.ok) {
+            const { courses } = await response.json();
+            if (courses && courses.length > 0) {
+                // Tomar el primer curso activo o crear estructura por defecto
+                const activeCourse = courses.find(c => c.status === 'activo') || courses[0];
+                
+                // Cargar módulos del curso
+                const modulesResponse = await fetch(`/api/courses/${activeCourse.id}/modules`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                        'X-User-Id': localStorage.getItem('userId')
+                    }
+                });
+                
+                if (modulesResponse.ok) {
+                    const { modules } = await modulesResponse.json();
+                    COURSE_SESSIONS = {};
+                    
+                    // Organizar módulos por sesión
+                    modules.forEach(module => {
+                        const sessionId = module.session_id || 1;
+                        if (!COURSE_SESSIONS[sessionId]) {
+                            COURSE_SESSIONS[sessionId] = { title: `Sesión ${sessionId}` };
+                        }
+                        if (module.title && sessionId <= 4) {
+                            COURSE_SESSIONS[sessionId].title = module.title;
+                        }
+                    });
+                }
+            }
+        }
+    } catch (error) {
+        console.warn('Error cargando sesiones del curso, usando fallback:', error);
+        // Fallback en caso de error
+        COURSE_SESSIONS = {
+            '1': { title: 'Sesión 1: Descubriendo la IA para Profesionales' },
+            '2': { title: 'Sesión 2: Fundamentos de Machine Learning' },
+            '3': { title: 'Sesión 3: Deep Learning y Casos Prácticos' },
+            '4': { title: 'Sesión 4: Aplicaciones, Ética y Proyecto Final' }
+        };
+    }
+}
 
 // Estado del chatbot
 let chatState = {
