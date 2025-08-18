@@ -55,11 +55,15 @@ function verifyUser(event) {
 }
 
 exports.handler = async (event) => {
+    console.log('[CONTEXT DEBUG] Method:', event.httpMethod);
+    console.log('[CONTEXT DEBUG] Headers:', JSON.stringify(event.headers, null, 2));
+    
     if (event.httpMethod === 'OPTIONS') return json(200, { ok: true }, event);
     if (event.httpMethod !== 'POST') return json(405, { error: 'Method Not Allowed' });
 
     try {
         const user = verifyUser(event);
+        console.log('[CONTEXT DEBUG] User verification result:', user);
         if (!user) return json(401, { error: 'Sesión requerida' }, event);
 
         if (!process.env.DATABASE_URL) return json(200, { data: [] }, event);
