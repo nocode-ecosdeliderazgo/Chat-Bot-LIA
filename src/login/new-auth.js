@@ -1025,44 +1025,37 @@ async function validateCredentialsLocal(emailOrUsername, password) {
         localStorage.setItem('userData', JSON.stringify(userData));
         localStorage.setItem('currentUser', JSON.stringify(userData)); // Mantener compatibilidad
         
-        // Crear token válido usando auth-issue
+        // Generar token compatible directamente para usuarios de prueba
+        // En lugar de depender del endpoint auth-issue que requiere BD
         try {
-            console.log('[TOKEN DEBUG] Generando token para login en:', `${API_BASE}/api/auth/issue`);
-            console.log('[TOKEN DEBUG] API_BASE para login:', API_BASE);
-            const tokenResponse = await fetch(`${API_BASE}/api/auth/issue`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-API-Key': 'dev-api-key'
-                },
-                body: JSON.stringify({
-                    username: foundUser.username
-                })
-            });
-
-            if (tokenResponse.ok) {
-                const { token, userId } = await tokenResponse.json();
-                localStorage.setItem('userToken', token);
-                console.log('[TOKEN DEBUG] Token válido generado:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
-                console.log('[TOKEN DEBUG] UserId recibido:', userId);
-                devLog('Token válido generado para:', foundUser.username);
-                
-                // Crear sesión usando userId del token
-                const sessionData = {
-                    sessionId: 'session-' + Date.now(),
-                    created: new Date().toISOString(),
-                    userId: userId || foundUser.username
-                };
-                localStorage.setItem('userSession', JSON.stringify(sessionData));
-            } else {
-                const errorText = await tokenResponse.text();
-                console.error('[TOKEN DEBUG] Error en auth-issue:', tokenResponse.status, errorText);
-                throw new Error(`Error generando token válido: ${tokenResponse.status}`);
-            }
+            // Generar un token JWT compatible con el formato que espera Netlify Functions
+            const payload = {
+                sub: foundUser.username, // userId
+                username: foundUser.username,
+                iat: Math.floor(Date.now() / 1000),
+                exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 días
+            };
+            
+            // Crear un token JWT simulado (sin firma real, pero con formato correcto)
+            const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+            const payloadEncoded = btoa(JSON.stringify(payload));
+            const signature = 'fake-signature-for-dev-testing-only';
+            const jwtToken = `${header}.${payloadEncoded}.${signature}`;
+            
+            localStorage.setItem('userToken', jwtToken);
+            console.log('[TOKEN DEBUG] Token JWT simulado generado:', jwtToken.substring(0, 30) + '...');
+            console.log('[TOKEN DEBUG] Payload:', payload);
+            
+            const sessionData = {
+                sessionId: 'session-' + Date.now(),
+                created: new Date().toISOString(),
+                userId: foundUser.username
+            };
+            localStorage.setItem('userSession', JSON.stringify(sessionData));
+            
         } catch (error) {
-            console.error('[TOKEN DEBUG] Excepción en auth-issue:', error);
-            devLog('Error generando token, usando mock:', error.message);
-            // Fallback a token mock solo para desarrollo local
+            console.error('[TOKEN DEBUG] Error generando token JWT:', error);
+            // Último fallback: token base64 simple
             const mockToken = btoa(JSON.stringify({
                 exp: Math.floor(Date.now() / 1000) + 3600,
                 user: foundUser.email,
