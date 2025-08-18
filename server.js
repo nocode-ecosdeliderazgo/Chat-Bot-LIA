@@ -91,7 +91,9 @@ app.use('/api/', limiter);
 
 // CORS configurado de forma segura
 app.use(cors({
-    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000'],
+    origin: process.env.ALLOWED_ORIGINS
+        ? process.env.ALLOWED_ORIGINS.split(',')
+        : ['http://localhost:3000', 'http://localhost:5500', 'http://127.0.0.1:5500'],
     credentials: true
 }));
 
@@ -500,7 +502,7 @@ app.post('/api/profile/upload', uploadGeneral.single('file'), (req, res) => {
 });
 
 // Endpoint de salud para verificar configuración
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
     try {
         const health = {
             ok: true,
@@ -510,16 +512,28 @@ app.get('/api/health', (req, res) => {
             env: process.env.NODE_ENV || 'development'
         };
 
-        // Verificar configuración crítica (sin exponer valores)
         const checks = {
             openaiConfigured: !!process.env.OPENAI_API_KEY,
             databaseConfigured: !!process.env.DATABASE_URL,
             secretsConfigured: !!(process.env.API_SECRET_KEY && process.env.USER_JWT_SECRET)
         };
 
-        health.checks = checks;
-        health.allGreen = Object.values(checks).every(Boolean);
+        // Pruebas de base de datos
+        let dbConnectable = false;
+        let usersTableExists = false;
+        if (pool) {
+            try {
+                await pool.query('SELECT 1');
+                dbConnectable = true;
+            } catch (_) { dbConnectable = false; }
+            try {
+                const r = await pool.query("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema='public' AND table_name='users') AS exists");
+                usersTableExists = !!r.rows?.[0]?.exists;
+            } catch (_) { usersTableExists = false; }
+        }
 
+        health.checks = { ...checks, dbConnectable, usersTableExists };
+        health.allGreen = Object.values(health.checks).every(Boolean);
         res.json(health);
     } catch (error) {
         console.error('Error en health check:', error);

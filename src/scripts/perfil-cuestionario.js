@@ -28,30 +28,48 @@ class ProfileQuestionnaire {
 
     async guardByUserRole() {
         try {
-            if (!window.supabase) {
-                console.warn('[Guard] Supabase no disponible; no se puede validar type_rol.');
-                return;
+            // 1) Intentar con Supabase si existe
+            if (window.supabase && window.supabase.auth) {
+                try {
+                    const { data: { session }, error: sessErr } = await window.supabase.auth.getSession();
+                    if (!sessErr && session && session.user) {
+                        const userId = session.user.id;
+                        const { data, error } = await window.supabase
+                            .from('users')
+                            .select('type_rol')
+                            .eq('id', userId)
+                            .single();
+                        if (!error) {
+                            const typeRol = (data && data.type_rol) ? String(data.type_rol).trim() : '';
+                            if (typeRol) { window.location.replace('cursos.html'); return; }
+                        }
+                    }
+                } catch (_) {
+                    // fallback a backend
+                }
             }
-            const { data: { session }, error: sessErr } = await window.supabase.auth.getSession();
-            if (sessErr) { console.warn('[Guard] Error sesión:', sessErr); return; }
-            if (!session || !session.user) { return; }
 
-            const userId = session.user.id;
-            const { data, error } = await window.supabase
-                .from('users')
-                .select('type_rol')
-                .eq('id', userId)
-                .single();
-
-            if (error) { console.warn('[Guard] Error consultando users.type_rol:', error); return; }
-
-            const typeRol = (data && data.type_rol) ? String(data.type_rol).trim() : '';
-            if (typeRol) {
-                // Ya tiene rol -> redirigir a la página principal de cursos (es/)
-                window.location.replace('cursos.html');
+            // 2) Fallback: consultar backend si hay usuario en localStorage
+            const currentUserRaw = localStorage.getItem('currentUser');
+            if (currentUserRaw) {
+                try {
+                    const cu = JSON.parse(currentUserRaw);
+                    const params = new URLSearchParams();
+                    if (cu.id && !String(cu.id).startsWith('dev-')) params.set('userId', cu.id);
+                    else if (cu.username) params.set('username', cu.username);
+                    else if (cu.email) params.set('email', cu.email);
+                    if ([...params.keys()].length) {
+                        const resp = await fetch(`/api/profile?${params.toString()}`);
+                        if (resp.ok) {
+                            const json = await resp.json();
+                            const typeRol = (json?.user?.type_rol || '').trim();
+                            if (typeRol) { window.location.replace('cursos.html'); return; }
+                        }
+                    }
+                } catch (_) {}
             }
         } catch (err) {
-            console.warn('[Guard] Excepción:', err);
+            console.info('[Guard] No se pudo verificar type_rol, se permite mostrar cuestionario. Detalle:', err?.message || err);
         }
     }
 
