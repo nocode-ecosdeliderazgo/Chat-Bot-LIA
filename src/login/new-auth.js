@@ -9,7 +9,7 @@ const ENABLE_SUPABASE_AUTH = false;
  * Función para asegurar que todos los datos de autenticación estén sincronizados
  * Llama a esta función después de cualquier login exitoso
  */
-function ensureAuthDataSync() {
+async function ensureAuthDataSync() {
     try {
         // Verificar si hay datos de usuario en cualquier formato
         const currentUser = localStorage.getItem('currentUser');
@@ -216,6 +216,21 @@ function applyQueryPrefill() {
             setTimeout(() => {
                 document.getElementById('loginSubmit').focus();
             }, 50);
+        }
+
+        // SEGURIDAD: Limpiar parámetros sensibles de la URL después del prefill
+        if (emailOrUsername || password) {
+            const cleanUrl = new URL(window.location);
+            cleanUrl.searchParams.delete('emailOrUsername');
+            cleanUrl.searchParams.delete('email');
+            cleanUrl.searchParams.delete('user');
+            cleanUrl.searchParams.delete('username');
+            cleanUrl.searchParams.delete('password');
+            cleanUrl.searchParams.delete('pass');
+            
+            // Reemplazar la URL sin recargar la página
+            window.history.replaceState({}, document.title, cleanUrl.toString());
+            devLog('Parámetros sensibles eliminados de la URL por seguridad');
         }
     } catch (_) {
         // Ignorar errores silenciosamente
@@ -673,7 +688,7 @@ async function handleLogin(e) {
             }
 
             // Asegurar sincronización de datos
-            ensureAuthDataSync();
+            await ensureAuthDataSync();
             
             showNotification('¡Sesión iniciada correctamente!', 'success');
             await handleSuccessfulAuth(emailOrUsername, remember);
@@ -744,7 +759,7 @@ async function handleLogin(e) {
             }
             
             // Asegurar sincronización de datos
-            ensureAuthDataSync();
+            await ensureAuthDataSync();
             
             showNotification('¡Sesión iniciada correctamente!', 'success');
             await handleSuccessfulAuth(emailOrUsername, remember);
@@ -769,7 +784,7 @@ async function handleLogin(e) {
                     localStorage.removeItem('rememberedEmailOrUsername');
                 }
                 // Asegurar sincronización de datos
-                ensureAuthDataSync();
+                await ensureAuthDataSync();
                 
                 showNotification('¡Sesión iniciada correctamente! (Modo desarrollo)', 'success');
                 await handleSuccessfulAuth();
@@ -1126,7 +1141,7 @@ async function handleSuccessfulAuth() {
     devLog('Manejando autenticación exitosa');
     
     // Asegurar sincronización como respaldo
-    ensureAuthDataSync();
+    await ensureAuthDataSync();
     
     // Animar éxito
     await animateSuccess();
