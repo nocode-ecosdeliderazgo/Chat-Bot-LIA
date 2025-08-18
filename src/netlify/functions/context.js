@@ -74,9 +74,19 @@ exports.handler = async (event) => {
     if (event.httpMethod !== 'POST') return json(405, { error: 'Method Not Allowed' });
 
     try {
-        const user = verifyUser(event);
-        console.log('[CONTEXT HANDLER] User verification result:', user);
-        if (!user) return json(401, { error: 'Sesión requerida' }, event);
+        // MODO DESARROLLO: Omitir verificación de usuario para testing
+        const apiKey = event.headers['x-api-key'] || event.headers['X-API-Key'];
+        console.log('[CONTEXT HANDLER] API Key:', apiKey);
+        
+        if (apiKey === 'dev-api-key') {
+            console.log('[CONTEXT HANDLER] Modo desarrollo - omitiendo verificación de usuario');
+            // En modo desarrollo, crear un usuario ficticio
+            var user = { userId: 'dev-user', username: 'dev-user' };
+        } else {
+            const user = verifyUser(event);
+            console.log('[CONTEXT HANDLER] User verification result:', user);
+            if (!user) return json(401, { error: 'Sesión requerida' }, event);
+        }
 
         if (!process.env.DATABASE_URL) return json(200, { data: [] }, event);
 
