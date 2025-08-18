@@ -1956,14 +1956,29 @@ function getApiKey() {
 // Encabezados de autenticación de usuario
 function getUserAuthHeaders() {
     try {
-        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken') || '';
-        const userId = sessionStorage.getItem('userId') || localStorage.getItem('userId') || '';
+        // Priorizar 'userToken' que es lo que usa el auth-guard
+        const token = localStorage.getItem('userToken') || 
+                     sessionStorage.getItem('authToken') || 
+                     localStorage.getItem('authToken') || '';
+        
+        // Obtener userId del userData o fallback
+        let userId = '';
+        try {
+            const userData = localStorage.getItem('userData');
+            if (userData) {
+                const user = JSON.parse(userData);
+                userId = user.id || user.username || '';
+            }
+        } catch (_) {
+            userId = sessionStorage.getItem('userId') || localStorage.getItem('userId') || '';
+        }
+        
         const headers = {};
         if (token) headers['Authorization'] = `Bearer ${token}`;
         if (userId) headers['X-User-Id'] = userId;
         return headers;
     } catch (_) {
-    return {};
+        return {};
     }
 }
 
@@ -3185,15 +3200,44 @@ function initializeLivestreamChat() {
 
     // Determinar nombre de usuario desde la sesión o fallback aleatorio
     try {
-        const storedName = (chatState && chatState.userName ? String(chatState.userName) : '')
-            || (sessionStorage.getItem('loggedUser') || '')
-            || (localStorage.getItem('rememberedUser') || '');
-        const clean = String(storedName).trim();
-        livestreamChatState.username = clean && clean.length >= 3
+        let username = '';
+        
+        // 1. Intentar obtener desde userData (sistema de auth principal)
+        try {
+            const userData = localStorage.getItem('userData');
+            if (userData) {
+                const user = JSON.parse(userData);
+                username = user.username || user.display_name || user.full_name || user.email || '';
+            }
+        } catch (_) {}
+        
+        // 2. Fallback a currentUser
+        if (!username) {
+            try {
+                const currentUser = localStorage.getItem('currentUser');
+                if (currentUser) {
+                    const user = JSON.parse(currentUser);
+                    username = user.username || user.display_name || user.full_name || user.email || '';
+                }
+            } catch (_) {}
+        }
+        
+        // 3. Fallback a chatState y otras fuentes
+        if (!username) {
+            username = (chatState && chatState.userName ? String(chatState.userName) : '')
+                || (sessionStorage.getItem('loggedUser') || '')
+                || (localStorage.getItem('rememberedUser') || '');
+        }
+        
+        const clean = String(username).trim();
+        livestreamChatState.username = clean && clean.length >= 2
             ? clean
             : `Usuario_${Math.floor(Math.random() * 1000)}`;
+            
+        console.log('[LIVESTREAM] Username configurado:', livestreamChatState.username);
     } catch (_) {
         livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
+        console.log('[LIVESTREAM] Username fallback:', livestreamChatState.username);
     }
 
     // Eventos de conexión
