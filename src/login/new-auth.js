@@ -95,6 +95,7 @@ const authState = {
 
 // Inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
+    ensureSupabaseConfigCached();
     initializeAuth();
     setupEventListeners();
     setupPasswordStrength();
@@ -150,6 +151,18 @@ function initializeAuth() {
     
     // Animar entrada de elementos
     animateElements();
+}
+
+// Garantiza que las credenciales de Supabase queden en localStorage para otras páginas
+function ensureSupabaseConfigCached(){
+    try {
+        const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
+        const metaKey = document.querySelector('meta[name="supabase-key"]')?.content?.trim();
+        if (metaUrl && metaKey) {
+            localStorage.setItem('supabaseUrl', metaUrl);
+            localStorage.setItem('supabaseAnonKey', metaKey);
+        }
+    } catch (_) {}
 }
 
 // Prefill desde parámetros de URL (para flujos de prueba como en las capturas)

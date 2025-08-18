@@ -1,89 +1,111 @@
-Rol
-Eres un(a) Frontend Engineer experto(a) en HTML/CSS/JS con foco en layouts tipo ecommerce (Udemy), carruseles accesibles, y cross‑browser rendering.
 
-Contexto del proyecto
-- Repo: Chat-Bot-LIA
-- Página principal del catálogo: `src/cursos.html`
-- Estilos: `src/styles/cursos.css`
-- Lógica del catálogo: `src/scripts/cursos.js`
-- El modo “Todos” genera secciones por categoría como carruseles. Clases actuales del carrusel: `.ud-row` (sección), `.ud-row-title` (título), `.ud-track` (cinta deslizante), `.ud-card` (tarjeta), `.ud-thumb` (imagen), `.ud-info` (contenido), `.ud-arrow.prev/.next` (flechas).
+Quiero que fijes el botón de perfil de `src/perfil-cuestionario.html` arriba a la derecha, idéntico al de la página de cursos. Deja el menú de perfil desplegable justo debajo. Elimina cualquier texto/logo del header de esta vista.
 
-Problema a resolver (bugs visuales)
-- Los cursos se ven desalineados verticalmente dentro del carrusel; algunas tarjetas quedan “más arriba/abajo” o cortadas.
-- Las primeras/últimas tarjetas pueden verse pegadas a los bordes o truncadas.
-- Flechas no siempre quedan centradas verticalmente o se superponen.
-- Diferencias de altura por títulos largos, badges y variación de imágenes.
+Contexto y archivos:
+- HTML: `src/perfil-cuestionario.html`
+- CSS de esta vista: `styles/profile.css`
+- JS de esta vista: `scripts/perfil-cuestionario.js`
+- Referencia visual: en “Cursos” el botón usa clase `header-profile` fijo top-right.
 
-Objetivo
-Hacer que cada fila de cursos funcione y se vea exactamente como en Udemy:
-- Todas las tarjetas alineadas en la parte superior, con altura uniforme.
-- Imágenes con la misma proporción y altura.
-- Títulos clamp a 2 líneas, precio y rating alineados.
-- Carrusel con scroll suave y flechas izquierda/derecha que habilitan/deshabilitan según posición.
-- Sin barras de scroll visibles en desktop; navegación solo por flechas/drag horizontal.
-- Mantener los títulos ocultos en categorías: `it`, `negocios`, `datos`, `ia`.
+Tareas:
+1) HTML (src/perfil-cuestionario.html)
+- Asegura que exista el botón:
+```html
+<div class="nav-actions">
+  <button class="header-profile" onclick="toggleProfileMenu(event)">
+    <img src="assets/images/icono.png" alt="Perfil" />
+  </button>
+</div>
+<div id="profileMenu" class="profile-menu">
+  <div class="pm-section">
+    <div class="pm-item" onclick="handleLogout()"><i class='bx bx-log-out'></i> Cerrar sesión</div>
+  </div>
+</div>
+```
+- Elimina cualquier texto/logo en el header de ESTA página (deja `nav-logo` vacío o elimínalo):
+```html
+<div class="nav-logo"></div>
+```
 
-Requerimientos técnicos (qué editar)
-1) CSS en `src/styles/cursos.css`
-   - Asegurar un solo renglón sin wrapping:
-     - `.ud-track { display:flex; flex-wrap:nowrap; align-items:stretch; gap:16px; overflow-x:auto; scroll-behavior:smooth; scroll-snap-type:x proximity; padding: 2px 48px; }`
-     - Ocultar scrollbars cross-browser.
-   - Tarjetas con tamaño consistente:
-     - `.ud-card { box-sizing:border-box; min-width:260px; max-width:260px; height:100%; display:flex; flex-direction:column; scroll-snap-align:start; }`
-     - `.ud-thumb { aspect-ratio:16/9; width:100%; object-fit:cover; }` (si no existe soporte, usar altura fija y fallback).
-     - `.ud-info { display:flex; flex-direction:column; gap:6px; margin-top:8px; }`
-     - `.ud-course-title { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.25; min-height: calc(1.25em * 2 + 4px); }`
-     - Alinear precio y rating al fondo de la tarjeta con `margin-top:auto` si es necesario en el bloque inferior.
-   - Flechas:
-     - `.ud-row { position:relative; overflow:hidden; }`
-     - `.ud-arrow { position:absolute; top:50%; transform:translateY(-50%); width:38px; height:38px; display:grid; place-items:center; border-radius:50%; backdrop-filter:blur(6px); box-shadow:0 6px 18px rgba(0,0,0,.35); }`
-     - `.ud-arrow.prev { left:4px; } .ud-arrow.next { right:4px; }`
-     - Estado `.disabled { opacity:.35; pointer-events:none; }`
-   - Evitar que estilos antiguos (grid de `.courses-grid` o `.course-card`) afecten:
-     - Asegurar que reglas de `.course-card` y grid no apliquen dentro de `.ud-row`. Si hay colisión, namespacear reglas o aumentar especificidad en `.ud-row .ud-card ...`.
+2) CSS (styles/profile.css)
+- Al FINAL del archivo, añade/ajusta estas reglas (deben ganar a cualquier estilo previo):
+```css
+/* Botón de perfil fijo arriba-derecha (igual que cursos) */
+.header-profile {
+  position: fixed !important;
+  top: 12px !important;
+  right: 20px !important;
+  left: auto !important;
+  bottom: auto !important;
+  z-index: 5000 !important;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(68,229,255,.35);
+  padding: 0;
+  background: rgba(7,17,36,.4);
+  cursor: pointer;
+  display: inline-flex;
+}
+.header-profile:hover { filter: brightness(1.05); }
+.header-profile img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-2) JS en `src/scripts/cursos.js`
-   - Mantener la generación por categorías pero garantizar que el contenedor por fila sea:
-     ```
-     <section class="ud-row">
-       [título opcional]
-       <button class="ud-arrow prev" ...>‹</button>
-       <div class="ud-track" id="row-<cat>">[.ud-card …]</div>
-       <button class="ud-arrow next" ...>›</button>
-     </section>
-     ```
-   - Scroll por tramo: `const delta = Math.max(300, Math.floor(track.clientWidth * 0.9));`
-   - Habilitar/deshabilitar flechas al cargar, al hacer scroll y en `resize`:
-     ```
-     const update = () => {
-       const max = track.scrollWidth - track.clientWidth - 2;
-       prev.classList.toggle('disabled', track.scrollLeft <= 2);
-       next.classList.toggle('disabled', track.scrollLeft >= max);
-     };
-     ```
-   - Asegurar títulos ocultos en `it`, `negocios`, `datos`, `ia` (no renderizar `<h3>` en esas filas).
-   - Evitar alturas dinámicas por contenido:
-     - Si existe `badge`, que no cambie la altura total (reservar espacio o usar `min-height`).
+/* Menú anclado al botón */
+.profile-menu {
+  position: fixed;
+  top: 72px;
+  right: 16px;
+  background: rgba(12,14,18,0.96);
+  border: 1px solid rgba(68,229,255,0.25);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+  z-index: 5100;
+  min-width: 220px;
+  overflow: hidden;
+  display: none;
+}
+.profile-menu.show { display: block; }
 
-Criterios de aceptación (QA)
-- En cada fila, el borde superior de todas las `.ud-card` queda perfectamente alineado; ningún card aparece “más arriba/abajo”.
-- Las imágenes ocupan la misma altura; no se distorsionan.
-- Títulos largos no empujan el resto del contenido: 2 líneas máximas.
-- Precio, rating y badge se muestran sin romper la altura total; no mueven la tarjeta.
-- Las flechas se ven centradas verticalmente y se desactivan al inicio/fin.
-- No hay barras de scroll visibles en desktop; el drag horizontal sigue funcionando.
-- Responsive:
-  - ≥1280px: 5–6 cards visibles según ancho.
-  - 1024–1279px: 4–5 cards.
-  - 768–1023px: 3–4 cards.
-  - ≤767px: 2–3 cards (flechas mantienen comportamiento).
-- Ningún estilo heredado viejo (grid/`.course-card`) interfiere con `.ud-row`/`.ud-card`.
+/* Ocultar logo/título en esta vista */
+.nav-logo { display: none; }
+```
 
-Entregables
-- Edits en `src/styles/cursos.css` y `src/scripts/cursos.js` aplicando los ajustes.
-- Explicación breve de qué colisiones de estilos se encontraron y cómo se aislaron.
-- Sin cambiar otros layouts del sitio.
+3) JS (scripts/perfil-cuestionario.js)
+- Usa clase `.show` para abrir/cerrar el menú. Asegura este bloque:
+```js
+document.addEventListener('DOMContentLoaded', () => {
+  window.toggleProfileMenu = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const menu = document.getElementById('profileMenu');
+    if (!menu) return;
+    menu.classList.toggle('show');
+  };
 
-Notas
-- Si `aspect-ratio` no es suficiente para mantener consistencia, usar una altura fija para `.ud-thumb` (p. ej., 150–170px) y `object-fit:cover`.
-- Cualquier animación/transición debe ser sutil (<=200ms) y no afectar el layout.
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('profileMenu');
+    const btn = document.querySelector('.header-profile');
+    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+      menu.classList.remove('show');
+    }
+  });
+
+  window.handleLogout = () => {
+    try { localStorage.clear(); } catch (e) {}
+    window.location.href = 'login/new-auth.html';
+  };
+});
+```
+
+Criterios de aceptación:
+- El botón `header-profile` queda fijo en la esquina superior derecha (top: 12px, right: 20px), por encima de cualquier layout (verifica `z-index`).
+- El menú se despliega debajo del botón (top: 72px, right: 16px) y se cierra al hacer clic fuera.
+- En esta página no se muestra texto/logo en el header.
+- Funciona igual en desktop y móvil (≤ 480px) sin moverse de la esquina.
+- No rompe partículas, fondo ni el formulario.
+
+Notas:
+- Si hay estilos de otra hoja que lo sobreescriben, mantén estas reglas al final de `styles/profile.css`. Usa `!important` solo donde sea necesario para garantizar la posición fija.
+
+

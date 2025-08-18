@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunidad - Detalle</title>
+    <link rel="stylesheet" href="community.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-glow-global">
+    <div class="particles-container"></div>
+    <nav class="community-subnav">
+        <div class="subnav-inner">
+            <div class="subnav-tabs">
+                <button class="subnav-link active" data-tab="community">Comunidad</button>
+                <button class="subnav-link" data-tab="members">Miembros</button>
+                <button class="subnav-link" data-tab="about">Acerca de</button>
+            </div>
+            <div class="subnav-search">
+                <i class="fas fa-search"></i>
+                <input class="subnav-input" id="viewSearch" type="text" placeholder="Buscar en esta comunidad...">
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content" style="padding-top:10px">
+        <section id="tab-community" class="feed-section">
+            <div class="container">
+                <div class="feed-main">
+                    <div class="composer-card">
+                        <div class="composer-avatar"><i class="fas fa-user"></i></div>
+                        <input id="composerInput" class="composer-input" type="text" placeholder="Escribe algo para la comunidad...">
+                        <div class="attach-toolbar">
+                            <input type="file" id="attachImage" accept="image/*" hidden>
+                            <button class="attach-btn" id="addImage" title="Imagen"><i class="fas fa-image"></i></button>
+                            <button class="attach-btn" id="addYoutube" title="YouTube"><i class="fab fa-youtube"></i></button>
+                            <input type="file" id="attachPdf" accept="application/pdf" hidden>
+                            <button class="attach-btn" id="addPdf" title="PDF"><i class="fas fa-file-pdf"></i></button>
+                        </div>
+                        <button id="publishPostBtn" class="composer-btn" disabled>Publicar</button>
+                    </div>
+                    <div class="attachments-preview" id="attachmentsPreview"></div>
+                    <div class="feed-filters" id="feedFilters">
+                        <button class="feed-chip active" data-category="all">Todos</button>
+                        <button class="feed-chip" data-category="ia">IA</button>
+                        <button class="feed-chip" data-category="datos">Datos</button>
+                        <button class="feed-chip" data-category="desarrollo">Desarrollo</button>
+                        <button class="feed-chip" data-category="diseno">Diseño</button>
+                        <button class="feed-chip" data-category="it">IT & Software</button>
+                        <button class="feed-chip" data-category="marketing">Marketing</button>
+                        <button class="feed-chip" data-category="negocios">Negocios</button>
+                    </div>
+                    <div id="postsList" class="posts-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-members" class="members-section" style="display:none">
+            <div class="container">
+                <div class="members-filters">
+                    <button class="members-chip active" data-filter="all">Todos</button>
+                    <button class="members-chip" data-filter="online">En línea</button>
+                    <button class="members-chip" data-filter="admins">Admins</button>
+                </div>
+                <div id="membersList"></div>
+            </div>
+        </section>
+
+        <section id="tab-about" class="guidelines-section" style="display:none">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title" id="aboutTitle">Acerca de esta comunidad</h2>
+                    <p class="section-subtitle">Descripción general y recursos.</p>
+                </div>
+                <div class="guidelines-grid">
+                    <div class="guideline-card">
+                        <div class="guideline-icon"><i class="fas fa-play"></i></div>
+                        <h3 class="guideline-title">Comienza aquí</h3>
+                        <p class="guideline-description">Mira el video de introducción y conoce las reglas básicas.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon"><i class="fas fa-bolt"></i></div>
+                        <h3 class="guideline-title">Recursos</h3>
+                        <p class="guideline-description">Plantillas, guías y descuentos para acelerar tu aprendizaje.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon"><i class="fas fa-arrow-trend-up"></i></div>
+                        <h3 class="guideline-title">Mejora</h3>
+                        <p class="guideline-description">Sube de nivel participando y compartiendo aportes de calidad.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <button class="chat-fab" id="openChat">Chat</button>
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-head">
+            <strong>Chat en vivo</strong>
+            <button class="chat-send" id="closeChat">Cerrar</button>
+        </div>
+        <div class="chat-body" id="chatBody"></div>
+        <div class="chat-input-row">
+            <input id="chatInput" class="chat-input" type="text" placeholder="Escribe un mensaje...">
+            <button id="chatSend" class="chat-send">Enviar</button>
+        </div>
+    </div>
+
+    <!-- Modal de publicación -->
+    <div class="post-modal" id="postModal">
+        <div class="post-modal-card">
+            <div class="post-modal-head">
+                <strong id="modalPostUser">Publicación</strong>
+                <button class="chat-send" id="closePostModal">Cerrar</button>
+            </div>
+            <div class="post-modal-body" id="modalPostBody"></div>
+            <div class="post-modal-foot">
+                <input id="modalCommentInput" class="comment-input" type="text" placeholder="Escribe un comentario...">
+                <button id="modalSendComment" class="chat-send">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            try{
+                const rawCommunity = localStorage.getItem('community.view.item');
+                const rawPost = localStorage.getItem('community.view.post');
+                const detail = rawCommunity ? JSON.parse(rawCommunity) : (rawPost ? JSON.parse(rawPost) : null);
+                if(detail){
+                    document.getElementById('detailTitle').textContent = detail.title || detail.user || 'Detalle';
+                    document.getElementById('detailDesc').textContent = detail.desc || detail.content || '';
+                    const metaParts = [];
+                    if(detail.members) metaParts.push(`${detail.members} Members`);
+                    if(detail.price) metaParts.push(detail.price);
+                    if(detail.category) metaParts.push(detail.category);
+                    document.getElementById('detailMeta').textContent = metaParts.join(' • ');
+                    if(detail.icon){ document.getElementById('detailIcon').className = detail.icon; }
+                    document.getElementById('aboutTitle').textContent = detail.title || 'Acerca de';
+                }
+            }catch(e){ console.error(e); }
+            // Tabs
+            document.querySelectorAll('.subnav-link').forEach(btn=>{
+                btn.addEventListener('click', ()=>{
+                    document.querySelectorAll('.subnav-link').forEach(b=>b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const tab = btn.getAttribute('data-tab');
+                    document.querySelectorAll('main > section').forEach(s=>s.style.display='none');
+                    document.getElementById('tab-'+tab).style.display='block';
+                });
+            });
+            // Feed mock
+            const posts = [
+                { id:1, user:'Nate Herk', avatar:'fas fa-user', category:'ia', minutesAgo:60, content:'Nuevo video: cómo construir un agente IA con n8n.', comments:[], reactions:{like:12, heart:3}, attachments:[], reacted: null },
+                { id:2, user:'Ana Martínez', avatar:'fas fa-user', category:'datos', minutesAgo:5, content:'¿Qué herramienta recomiendan para orquestar pipelines?', comments:[], reactions:{like:2, heart:1}, attachments:[], reacted: null },
+                { id:3, user:'Carlos López', avatar:'fas fa-user', category:'desarrollo', minutesAgo:15, content:'Comparto un boilerplate para APIs serverless.', comments:[], reactions:{like:1, heart:0}, attachments:[], reacted: null }
+            ];
+            let pendingAttachments = [];
+            const composerInput = document.getElementById('composerInput');
+            const publishPostBtn = document.getElementById('publishPostBtn');
+            function renderPosts(category='all'){
+                const list = document.getElementById('postsList');
+                const filtered = category==='all' ? posts : posts.filter(p=>p.category===category);
+                list.innerHTML = filtered.map(p=>`
+                    <div class="post-card" data-open-post="${p.id}">
+                        <div class="post-avatar"><i class="${p.avatar}"></i></div>
+                        <div class="post-body">
+                            <div class="post-header">
+                                <span class="post-name">${p.user}</span>
+                                <span class="post-meta">• ${p.minutesAgo} min • ${p.category}</span>
+                            </div>
+                            <div class="post-content">${p.content}</div>
+                            ${renderAttachments(p.attachments)}
+                            <div class="post-actions">
+                                <span class="post-action" data-action="comment" data-id="${p.id}"><i class="fas fa-comment"></i> Comentar</span>
+                                <span class="post-action shares" data-share="${p.id}"><i class="fas fa-share"></i> Compartir</span>
+                                <span class="react-area">
+                                    <button class="react-btn" data-react-toggle="${p.id}" title="Reaccionar">👍</button>
+                                    <div class="reaction-picker" id="picker-${p.id}">
+                                        <div class="reaction-item" data-react="like" data-id="${p.id}">👍</div>
+                                        <div class="reaction-item" data-react="heart" data-id="${p.id}">❤️</div>
+                                        <div class="reaction-item" data-react="wow" data-id="${p.id}">😮</div>
+                                        <div class="reaction-item" data-react="laugh" data-id="${p.id}">😂</div>
+                                        <div class="reaction-item" data-react="sad" data-id="${p.id}">😢</div>
+                                    </div>
+                                    <span class="reaction-summary">${reactionSummary(p.reactions)}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                // abrir modal de post
+                list.querySelectorAll('[data-open-post]').forEach(card=>{
+                    card.addEventListener('click', (e)=>{
+                        // evitar disparar desde botones internos
+                        const target = e.target;
+                        if(target.closest('.react-area') || target.closest('.shares')) return;
+                        const id = Number(card.getAttribute('data-open-post'));
+                        openPostModal(id);
+                    });
+                });
+                // abrir/cerrar picker de reacciones
+                list.querySelectorAll('[data-react-toggle]').forEach(btn=>{
+                    btn.addEventListener('click', ()=>{
+                        const id = btn.getAttribute('data-react-toggle');
+                        const picker = document.getElementById('picker-'+id);
+                        const post = posts.find(p=>p.id===Number(id));
+                        if(post.reacted){
+                            // ya reaccionó: no permitir más
+                            btn.disabled = true;
+                            return;
+                        }
+                        document.querySelectorAll('.reaction-picker').forEach(p=>{ if(p!==picker) p.classList.remove('show'); });
+                        picker.classList.toggle('show');
+                    });
+                });
+                // aplicar reacción
+                list.querySelectorAll('.reaction-item').forEach(el=>{
+                    el.addEventListener('click', ()=>{
+                        const id = Number(el.getAttribute('data-id'));
+                        const type = el.getAttribute('data-react');
+                        const post = posts.find(p=>p.id===id);
+                        if(post.reacted){ return; }
+                        post.reactions[type] = (post.reactions[type]||0) + 1;
+                        post.reacted = type;
+                        renderPosts(category);
+                    });
+                });
+                // compartir
+                list.querySelectorAll('[data-share]').forEach(el=>{
+                    el.addEventListener('click', async ()=>{
+                        const id = Number(el.getAttribute('data-share'));
+                        const post = posts.find(p=>p.id===id);
+                        try{
+                            await navigator.clipboard.writeText(post.content);
+                            alert('Enlace/copete copiado al portapapeles.');
+                        }catch(e){ alert('No se pudo copiar.'); }
+                    });
+                });
+            }
+            document.querySelectorAll('.feed-chip').forEach(chip=>{
+                chip.addEventListener('click', ()=>{
+                    document.querySelectorAll('.feed-chip').forEach(c=>c.classList.remove('active'));
+                    chip.classList.add('active');
+                    renderPosts(chip.dataset.category);
+                });
+            });
+            // Adjuntos
+            function bytesToMB(bytes){ return bytes / (1024*1024); }
+            function addPreviewImage(src){
+                const preview = document.getElementById('attachmentsPreview');
+                const wrap = document.createElement('div');
+                wrap.className = 'preview-item';
+                wrap.innerHTML = `<img src="${src}" class="preview-thumb"><button class="preview-remove">✕</button>`;
+                wrap.querySelector('.preview-remove').onclick = ()=>{ preview.removeChild(wrap); pendingAttachments = pendingAttachments.filter(a=>a.src!==src); };
+                preview.appendChild(wrap);
+            }
+            function addPreviewPdf(name){
+                const preview = document.getElementById('attachmentsPreview');
+                const wrap = document.createElement('div');
+                wrap.className = 'pdf-chip';
+                wrap.innerHTML = `<i class="fas fa-file-pdf"></i> ${name} <button class="preview-remove">✕</button>`;
+                wrap.querySelector('.preview-remove').onclick = ()=>{ preview.removeChild(wrap); pendingAttachments = pendingAttachments.filter(a=>a.name!==name); };
+                preview.appendChild(wrap);
+            }
+
+            document.getElementById('addImage').onclick = ()=> document.getElementById('attachImage').click();
+            document.getElementById('addPdf').onclick = ()=> document.getElementById('attachPdf').click();
+            document.getElementById('addYoutube').onclick = ()=>{
+                const url = prompt('Pega el enlace de YouTube');
+                if(!url) return;
+                const embed = youtubeEmbed(url);
+                if(embed){ pendingAttachments.push({ type:'youtube', embed }); renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all'); }
+            };
+            document.getElementById('attachImage').addEventListener('change', (e)=>{
+                const file = e.target.files?.[0];
+                if(!file) return;
+                if(bytesToMB(file.size) > 10){ alert('Imagen supera 10MB'); return; }
+                const reader = new FileReader();
+                reader.onload = ()=>{ pendingAttachments.push({ type:'image', src: reader.result }); addPreviewImage(reader.result); };
+                reader.readAsDataURL(file);
+                e.target.value='';
+            });
+            document.getElementById('attachPdf').addEventListener('change', (e)=>{
+                const file = e.target.files?.[0];
+                if(!file) return;
+                if(bytesToMB(file.size) > 10){ alert('PDF supera 10MB'); return; }
+                const reader = new FileReader();
+                reader.onload = ()=>{ pendingAttachments.push({ type:'pdf', name: file.name, dataUrl: reader.result }); addPreviewPdf(file.name); };
+                reader.readAsDataURL(file);
+                e.target.value='';
+            });
+
+            function youtubeEmbed(url){
+                const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/);
+                return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+            }
+
+            function renderAttachments(att){
+                if(!att || att.length===0) return '';
+                return `<div class='attachments-preview'>` + att.map(a=>{
+                    if(a.type==='image') return `<img src='${a.src}' class='preview-thumb'>`;
+                    if(a.type==='youtube') return `<iframe width='240' height='135' src='${a.embed}' frameborder='0' allowfullscreen></iframe>`;
+                    if(a.type==='pdf') return `<a href='${a.dataUrl}' target='_blank' class='pdf-chip'><i class='fas fa-file-pdf'></i> ${a.name}</a>`;
+                    return '';
+                }).join('') + `</div>`;
+            }
+
+            // resumen de reacciones
+            function reactionSummary(r){
+                if(!r) return '';
+                const total = Object.values(r).reduce((a,b)=>a+(b||0),0);
+                if(total===0) return '';
+                const icons = [];
+                if(r.like) icons.push('👍');
+                if(r.heart) icons.push('❤️');
+                if(r.wow) icons.push('😮');
+                if(r.laugh) icons.push('😂');
+                if(r.sad) icons.push('😢');
+                return icons.join(' ') + ' ' + total;
+            }
+
+            // Modal de post
+            function openPostModal(id){
+                const modal = document.getElementById('postModal');
+                const body = document.getElementById('modalPostBody');
+                const userEl = document.getElementById('modalPostUser');
+                const post = posts.find(p=>p.id===id);
+                if(!post) return;
+                userEl.textContent = post.user;
+                body.innerHTML = `
+                    <div class="post-card">
+                        <div class="post-avatar"><i class="${post.avatar}"></i></div>
+                        <div class="post-body">
+                            <div class="post-header">
+                                <span class="post-name">${post.user}</span>
+                                <span class="post-meta">${post.minutesAgo} min <span>•</span> ${post.category}</span>
+                            </div>
+                            <div class="post-content">${post.content}</div>
+                            ${renderAttachments(post.attachments)}
+                            <div class="post-modal-actions">
+                                <span class="shares" data-share="${post.id}"><i class="fas fa-share"></i> Compartir</span>
+                                <span>${reactionSummary(post.reactions)}</span>
+                            </div>
+                            <div id="modalComments" class="comment-list">
+                                ${(post.comments||[]).map(c=>commentTemplate(c)).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                // comentar desde modal
+                document.getElementById('modalSendComment').onclick = ()=>{
+                    const input = document.getElementById('modalCommentInput');
+                    const txt = (input.value||'').trim();
+                    if(!txt) return;
+                    post.comments.push({ user:'Tú', time:'ahora', text: txt });
+                    input.value='';
+                    document.getElementById('modalComments').innerHTML = (post.comments||[]).map(c=>commentTemplate(c)).join('');
+                };
+                document.getElementById('closePostModal').onclick = ()=> modal.classList.remove('show');
+                modal.classList.add('show');
+            }
+            function commentTemplate(c){
+                if(typeof c === 'string') return `<div class='comment-item'><div class='comment-avatar'><i class="fas fa-user"></i></div><div class='comment-bubble'><div class='comment-head'><span class='comment-name'>Usuario</span><span class='comment-time'>ahora</span></div><div>${c}</div></div></div>`;
+                return `<div class='comment-item'><div class='comment-avatar'><i class="fas fa-user"></i></div><div class='comment-bubble'><div class='comment-head'><span class='comment-name'>${c.user||'Usuario'}</span><span class='comment-time'>${c.time||''}</span></div><div>${c.text||c}</div></div></div>`;
+            }
+
+            if(composerInput && publishPostBtn){
+                composerInput.addEventListener('input', ()=>{
+                    const ok = composerInput.value.trim().length>0;
+                    publishPostBtn.disabled = !ok;
+                    publishPostBtn.classList.toggle('enabled', ok);
+                });
+                publishPostBtn.addEventListener('click', ()=>{
+                    const txt = composerInput.value.trim();
+                    if(!txt) return;
+                    posts.unshift({ id: Date.now(), user:'Tú', avatar:'fas fa-user', category:(document.querySelector('.feed-chip.active')?.dataset.category||'ia'), minutesAgo:0, content:txt, comments:[], reactions:{like:0, heart:0, wow:0, laugh:0, sad:0}, attachments: pendingAttachments.slice(0), reacted: null });
+                    composerInput.value='';
+                    publishPostBtn.disabled = true;
+                    publishPostBtn.classList.remove('enabled');
+                    pendingAttachments = []; document.getElementById('attachmentsPreview').innerHTML='';
+                    renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all');
+                });
+            }
+            renderPosts('all');
+
+            // Members mock
+            const mockMembers = Array.from({length: 20}).map((_,i)=>({
+                id: i+1,
+                name: ['Titus Blair','Michael W.','Laura F.','Ana Martínez','Carlos López','María González'][i%6] + ' ' + (i+1),
+                online: i%3!==0,
+                admin: i%10===0,
+                location: ['CDMX','Madrid','Buenos Aires','Bogotá'][i%4],
+                joined: '2025-01-1'+(i%9),
+            }));
+            function renderMembers(filter='all', q=''){
+                const list = document.getElementById('membersList');
+                let data = [...mockMembers];
+                if(filter==='online') data = data.filter(m=>m.online);
+                if(filter==='admins') data = data.filter(m=>m.admin);
+                if(q) data = data.filter(m => (m.name+ ' ' + m.location).toLowerCase().includes(q.toLowerCase()));
+                list.innerHTML = data.map(m=>`
+                    <div class="member-card">
+                        <div class="member-avatar">
+                            <i class="fas fa-user"></i>
+                            ${m.online ? '<span class="member-status"></span>' : ''}
+                        </div>
+                        <div>
+                            <div class="member-name">${m.name} ${m.admin ? '<span class="post-tag">admin</span>':''}</div>
+                            <div class="member-meta"><span>${m.online? 'Online now':'Offline'}</span> • <span>${m.location}</span> • <span>Joined ${m.joined}</span></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            document.querySelectorAll('.members-chip').forEach(btn=>{
+                btn.addEventListener('click', ()=>{
+                    document.querySelectorAll('.members-chip').forEach(b=>b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderMembers(btn.dataset.filter, document.getElementById('viewSearch').value);
+                });
+            });
+            const search = document.getElementById('viewSearch');
+            search.addEventListener('input', ()=>{
+                const active = document.querySelector('.members-chip.active');
+                renderMembers(active?active.dataset.filter:'all', search.value);
+            });
+            renderMembers();
+
+            // Chat
+            const chatPanel = document.getElementById('chatPanel');
+            const chatBody = document.getElementById('chatBody');
+            const chatInput = document.getElementById('chatInput');
+            document.getElementById('openChat').addEventListener('click', ()=> chatPanel.classList.add('show'));
+            document.getElementById('closeChat').addEventListener('click', ()=> chatPanel.classList.remove('show'));
+            document.getElementById('chatSend').addEventListener('click', sendChat);
+            chatInput.addEventListener('keypress', (e)=>{ if(e.key==='Enter'){ sendChat(); }});
+            function sendChat(){
+                const text = (chatInput.value||'').trim();
+                if(!text) return;
+                appendChat(text, true);
+                chatInput.value='';
+                setTimeout(()=> appendChat('¡Gracias por tu mensaje! 👋', false), 800);
+            }
+            function appendChat(text, own){
+                const el = document.createElement('div');
+                el.className = 'chat-msg' + (own?' own':'');
+                el.textContent = text;
+                chatBody.appendChild(el);
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+        })();
+    </script>
+</body>
+</html>
+
+

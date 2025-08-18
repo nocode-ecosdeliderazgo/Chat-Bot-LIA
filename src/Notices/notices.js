@@ -682,7 +682,7 @@ class NoticesPage {
         switch(tab) {
             case 'mis-cursos':
                 // Navigate directly to courses page without showing toast
-                window.location.href = '../courses.html';
+                window.location.href = '../cursos.html';
                 break;
             case 'noticias':
                 // Already on news page, just update active state

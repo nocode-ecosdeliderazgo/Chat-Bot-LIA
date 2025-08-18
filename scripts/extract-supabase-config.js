@@ -9,75 +9,89 @@ function extractSupabaseConfig() {
         const envPath = path.join(__dirname, '..', '.env');
         const envContent = fs.readFileSync(envPath, 'utf8');
         
-        // Extraer DATABASE_URL
-        const dbUrlMatch = envContent.match(/DATABASE_URL=["']?([^"'\n]+)["']?/);
-        if (!dbUrlMatch) {
-            console.error('No se encontró DATABASE_URL en .env');
-            return;
+        // Preferir SUPABASE_URL explícito; si no, intentar derivar de DATABASE_URL
+        const explicitUrlMatch = envContent.match(/SUPABASE_URL=["']?([^"'\n]+)["']?/);
+        let supabaseUrl = explicitUrlMatch ? explicitUrlMatch[1] : '';
+        if (!supabaseUrl) {
+            const dbUrlMatch = envContent.match(/DATABASE_URL=["']?([^"'\n]+)["']?/);
+            if (!dbUrlMatch) {
+                console.error('No se encontró SUPABASE_URL ni DATABASE_URL en .env');
+                return;
+            }
+            const dbUrl = dbUrlMatch[1];
+            console.log('DATABASE_URL encontrada:', dbUrl);
+            // Intentar extraer project-ref de hosts tipo db.<ref>.supabase.co
+            const refFromHost = dbUrl.match(/db\.([a-z0-9]{20,})\.supabase\.co/i);
+            if (refFromHost) {
+                supabaseUrl = `https://${refFromHost[1]}.supabase.co`;
+            } else {
+                console.warn('No se pudo derivar el project-ref desde DATABASE_URL. Define SUPABASE_URL en .env');
+            }
         }
         
-        const dbUrl = dbUrlMatch[1];
-        console.log('DATABASE_URL encontrada:', dbUrl);
-        
-        // Extraer el ID del proyecto desde la URL
-        const projectIdMatch = dbUrl.match(/postgres\.([a-zA-Z0-9]+):/);
-        if (!projectIdMatch) {
-            console.error('No se pudo extraer el ID del proyecto de Supabase');
-            return;
-        }
-        
-        const projectId = projectIdMatch[1];
-        const supabaseUrl = `https://${projectId}.supabase.co`;
-        
-        console.log('Proyecto Supabase ID:', projectId);
-        console.log('Supabase URL:', supabaseUrl);
-        
-        // Buscar si existe SUPABASE_ANON_KEY en .env
+        // Leer SUPABASE_ANON_KEY (debe ser un JWT con 3 partes)
         const anonKeyMatch = envContent.match(/SUPABASE_ANON_KEY=["']?([^"'\n]+)["']?/);
-        let anonKey = anonKeyMatch ? anonKeyMatch[1] : 'TU_CLAVE_ANON_AQUI';
-        
-        console.log('\n=== CONFIGURACIÓN EXTRAÍDA ===');
-        console.log('URL:', supabaseUrl);
-        console.log('Anon Key:', anonKey);
-        
-        if (anonKey === 'TU_CLAVE_ANON_AQUI') {
-            console.log('\n⚠️  IMPORTANTE:');
-            console.log('No se encontró SUPABASE_ANON_KEY en .env');
-            console.log('Debes agregar tu clave anon pública al .env:');
-            console.log('SUPABASE_ANON_KEY="tu_clave_anon_aqui"');
-            console.log('\nPuedes encontrar esta clave en:');
-            console.log('https://supabase.com/dashboard/project/' + projectId + '/settings/api');
+        let anonKey = anonKeyMatch ? anonKeyMatch[1] : '';
+        const looksLikeJwt = (k) => k && k.split('.').length === 3 && !/^postgres/i.test(k);
+        if (!looksLikeJwt(anonKey)) {
+            console.error('\n⚠️  SUPABASE_ANON_KEY inválida o ausente en .env. Debe ser la clave ANON (JWT) del dashboard, no la DATABASE_URL.');
+            console.error('Ejemplo: eyJhbGciOiJI... (formato con 3 segmentos separados por puntos).');
         }
-        
-        // Intentar actualizar new-auth.html automáticamente
-        updateNewAuthHtml(supabaseUrl, anonKey);
+
+        console.log('\n=== CONFIGURACIÓN DETECTADA ===');
+        console.log('SUPABASE_URL:', supabaseUrl || '(vacío)');
+        console.log('SUPABASE_ANON_KEY:', looksLikeJwt(anonKey) ? '(formato JWT válido)' : '(inválida)');
+
+        // Actualizar HTMLs si hay URL y KEY válidos
+        if (supabaseUrl && looksLikeJwt(anonKey)) {
+            updateHtmlMeta(path.join(__dirname, '..', 'src', 'login', 'new-auth.html'), supabaseUrl, anonKey);
+            updateHtmlMeta(path.join(__dirname, '..', 'src', 'q', 'form.html'), supabaseUrl, anonKey);
+            updateHtmlMeta(path.join(__dirname, '..', 'src', 'perfil-cuestionario.html'), supabaseUrl, anonKey);
+            console.log('\n✅ Metas actualizadas en archivos HTML clave.');
+        } else {
+            console.log('\nℹ️  No se actualizaron metas porque falta SUPABASE_URL o la ANON KEY es inválida.');
+            console.log('   - Añade SUPABASE_URL="https://<project-ref>.supabase.co"');
+            console.log('   - Añade SUPABASE_ANON_KEY="<tu_anon_key>"');
+        }
         
     } catch (error) {
         console.error('Error:', error.message);
     }
 }
 
-function updateNewAuthHtml(supabaseUrl, anonKey) {
+function updateHtmlMeta(htmlPath, supabaseUrl, anonKey) {
     try {
-        const htmlPath = path.join(__dirname, '..', 'src', 'login', 'new-auth.html');
         let htmlContent = fs.readFileSync(htmlPath, 'utf8');
         
-        // Reemplazar las meta tags
-        htmlContent = htmlContent.replace(
-            /<meta name="supabase-url" content="[^"]*">/,
-            `<meta name="supabase-url" content="${supabaseUrl}">`
-        );
-        
-        htmlContent = htmlContent.replace(
-            /<meta name="supabase-key" content="[^"]*">/,
-            `<meta name="supabase-key" content="${anonKey}">`
-        );
+        // Asegurar existencia de metas; si no existen, insertarlas en <head>
+        if (!/<meta name="supabase-url"/i.test(htmlContent)) {
+            htmlContent = htmlContent.replace(
+                /<head>([\s\S]*?)<\/head>/i,
+                (m, inner) => `<head>${inner}\n    <meta name="supabase-url" content="${supabaseUrl}">\n    <meta name="supabase-key" content="${anonKey}">\n</head>`
+            );
+        } else {
+            htmlContent = htmlContent.replace(
+                /<meta name="supabase-url" content="[^"]*">/,
+                `<meta name="supabase-url" content="${supabaseUrl}">`
+            );
+            if (/<meta name="supabase-key"/i.test(htmlContent)) {
+                htmlContent = htmlContent.replace(
+                    /<meta name="supabase-key" content="[^"]*">/,
+                    `<meta name="supabase-key" content="${anonKey}">`
+                );
+            } else {
+                htmlContent = htmlContent.replace(
+                    /<meta name="supabase-url"[^>]*>\s*/,
+                    (m) => `${m}\n    <meta name="supabase-key" content="${anonKey}">\n`
+                );
+            }
+        }
         
         fs.writeFileSync(htmlPath, htmlContent);
-        console.log('\n✅ new-auth.html actualizado exitosamente');
+        console.log(`✅ Metas actualizadas en ${path.relative(path.join(__dirname, '..'), htmlPath)}`);
         
     } catch (error) {
-        console.error('Error actualizando new-auth.html:', error.message);
+        console.error('Error actualizando HTML:', error.message);
     }
 }
 

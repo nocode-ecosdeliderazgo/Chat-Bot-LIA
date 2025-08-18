@@ -43,7 +43,7 @@
             </div>
         </div>
         <div class="pm-section">
-            <div class="pm-item" onclick="location.href='../courses.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
+            <div class="pm-item" onclick="location.href='../cursos.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
         </div>
         <div class="pm-section">
             <div class="pm-item" onclick="location.href='../profile.html'"><i class='bx bx-cog'></i> Configuración</div>
@@ -68,12 +68,8 @@
                             <span class="stat-label">Miembros</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-number" id="activeChats">3</span>
-                            <span class="stat-label">Chats Activos</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number" id="totalMessages">0</span>
-                            <span class="stat-label">Mensajes</span>
+                            <span class="stat-number" id="totalPosts">0</span>
+                            <span class="stat-label">Publicaciones</span>
                         </div>
                     </div>
                 </div>
@@ -85,91 +81,7 @@
             </div>
         </section>
 
-        <!-- Chat Rooms Section -->
-        <section class="chat-rooms-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title">Salas de Chat</h2>
-                    <p class="section-subtitle">Únete a las conversaciones y conecta con la comunidad</p>
-                </div>
-                <div class="chat-rooms-grid">
-                                         <!-- Chat General -->
-                     <div class="chat-room-card" data-chat="general">
-                         <div class="chat-room-icon">
-                             <img src="../assets/icons/chat-general.svg" alt="Chat General" class="chat-room-svg-icon">
-                         </div>
-                         <div class="chat-room-content">
-                             <h3 class="chat-room-title">Chat General</h3>
-                             <p class="chat-room-description">Discusiones generales sobre IA, tecnología y educación. ¡Todos son bienvenidos!</p>
-                             <div class="chat-room-stats">
-                                 <span class="online-users">
-                                     <i class="fas fa-circle"></i>
-                                     <span id="generalOnline">0</span> en línea
-                                 </span>
-                                 <span class="total-messages">
-                                     <i class="fas fa-message"></i>
-                                     <span id="generalMessages">0</span> mensajes
-                                 </span>
-                             </div>
-                             <button class="join-chat-btn" data-chat="general">
-                                 <i class="fas fa-sign-in-alt"></i>
-                                 Unirse al chat
-                             </button>
-                         </div>
-                     </div>
-
-                     <!-- Chat por Rol -->
-                     <div class="chat-room-card" data-chat="role">
-                         <div class="chat-room-icon">
-                             <img src="../assets/icons/chat-role.svg" alt="Chat por Rol" class="chat-room-svg-icon">
-                         </div>
-                         <div class="chat-room-content">
-                             <h3 class="chat-room-title">Chat por Rol</h3>
-                             <p class="chat-room-description">Conversaciones específicas según tu rol en la plataforma.</p>
-                             <div class="chat-room-stats">
-                                 <span class="online-users">
-                                     <i class="fas fa-circle"></i>
-                                     <span id="roleOnline">0</span> en línea
-                                 </span>
-                                 <span class="total-messages">
-                                     <i class="fas fa-message"></i>
-                                     <span id="roleMessages">0</span> mensajes
-                                 </span>
-                             </div>
-                             <button class="join-chat-btn" data-chat="role">
-                                 <i class="fas fa-sign-in-alt"></i>
-                                 Unirse al chat
-                             </button>
-                         </div>
-                     </div>
-
-                     <!-- Chat de Cursos -->
-                     <div class="chat-room-card" data-chat="courses">
-                         <div class="chat-room-icon">
-                             <img src="../assets/icons/chat-courses.svg" alt="Chat de Cursos" class="chat-room-svg-icon">
-                         </div>
-                         <div class="chat-room-content">
-                             <h3 class="chat-room-title">Chat de Cursos</h3>
-                             <p class="chat-room-description">Discute sobre los cursos que estás tomando con otros estudiantes.</p>
-                             <div class="chat-room-stats">
-                                 <span class="online-users">
-                                     <i class="fas fa-circle"></i>
-                                     <span id="coursesOnline">0</span> en línea
-                                 </span>
-                                 <span class="total-messages">
-                                     <i class="fas fa-message"></i>
-                                     <span id="coursesMessages">0</span> mensajes
-                                 </span>
-                             </div>
-                             <button class="join-chat-btn" data-chat="courses">
-                                 <i class="fas fa-sign-in-alt"></i>
-                                 Unirse al chat
-                             </button>
-                         </div>
-                     </div>
-                </div>
-            </div>
-        </section>
+        <!-- (Se remueven salas de chat para adoptar flujo tipo Skool) -->
 
                  <!-- Community Guidelines Section -->
          <section class="guidelines-section">
@@ -239,51 +151,32 @@
              </div>
          </section>
 
-        <!-- Recent Activity Section -->
-        <section class="activity-section">
+        <!-- Descubrir (tipo Skool) -->
+        <section class="discover-section">
             <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title">Actividad Reciente</h2>
-                    <p class="section-subtitle">Mantente al día con las últimas conversaciones y eventos</p>
+                <div class="discover-search">
+                    <i class="fas fa-search"></i>
+                    <input id="discoverSearch" class="discover-input" type="text" placeholder="Buscar comunidades o contenido...">
+                    <button id="discoverClear" class="discover-clear" title="Limpiar" style="display:none"><i class="fas fa-times"></i></button>
                 </div>
-                <div class="activity-feed" id="activityFeed">
-                    <!-- Activity items will be loaded here -->
+                <div class="discover-filters" id="discoverFilters">
+                    <button class="discover-chip active" data-category="all">Todos</button>
+                    <button class="discover-chip" data-category="ia">IA</button>
+                    <button class="discover-chip" data-category="datos">Datos</button>
+                    <button class="discover-chip" data-category="desarrollo">Desarrollo</button>
+                    <button class="discover-chip" data-category="diseno">Diseño</button>
+                    <button class="discover-chip" data-category="it">IT & Software</button>
+                    <button class="discover-chip" data-category="marketing">Marketing</button>
+                    <button class="discover-chip" data-category="negocios">Negocios</button>
                 </div>
-                <div class="load-more-container">
-                    <button class="load-more-btn" id="loadMoreActivity">
-                        <span>Cargar más actividad</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                </div>
+                <div class="discover-grid" id="discoverGrid"></div>
             </div>
         </section>
+
+        <!-- (Se elimina feed de comunidad a petición: sólo Descubrir + Normas) -->
     </main>
 
-    <!-- Chat Modal -->
-    <div class="chat-modal" id="chatModal">
-        <div class="chat-modal-content">
-            <div class="chat-header">
-                <div class="chat-header-info">
-                    <h3 class="chat-title" id="modalChatTitle">Chat General</h3>
-                    <span class="chat-subtitle" id="modalChatSubtitle">0 miembros en línea</span>
-                </div>
-                <button class="close-chat-btn" id="closeChatBtn">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="chat-messages" id="chatMessages">
-                <!-- Messages will be loaded here -->
-            </div>
-            <div class="chat-input-container">
-                <div class="chat-input-wrapper">
-                    <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." class="chat-input">
-                    <button class="send-message-btn" id="sendMessageBtn">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- (Se elimina modal de chat) -->
 
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
