@@ -13,73 +13,134 @@
     z-index: 1;
 }
 
+/* Reducir el tamaño del glow de fondo */
+.bg-glow-global::before {
+    width: 120vh;
+    height: 120vh;
+    left: -10vh;
+    top: -20vh;
+    background: radial-gradient(circle, rgba(68,229,255,0.12), transparent 50%);
+    filter: blur(40px);
+}
+
 /* Header de la página */
 .stats-header-section {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 3rem;
+    margin-bottom: 4rem;
     text-align: center;
+    position: relative;
+}
+
+.stats-header-content {
+    max-width: 800px;
+    padding: 0 2rem;
 }
 
 .stats-header-content h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
     background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    text-shadow: 0 0 30px rgba(68, 229, 255, 0.3);
 }
 
 .stats-header-content p {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     color: var(--text-muted);
     max-width: 600px;
     margin: 0 auto;
+    line-height: 1.6;
 }
 
 /* Sección de Grafana */
 .grafana-section {
-    margin-bottom: 3rem;
+    margin-bottom: 4rem;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 2rem;
 }
 
 .grafana-container {
-    margin-bottom: 2rem;
-    padding: 2rem;
+    margin-bottom: 3rem;
+    padding: 2.5rem;
     border-radius: var(--radius-lg);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.grafana-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .grafana-container:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(68, 229, 255, 0.1);
+    transform: translateY(-8px);
+    box-shadow: 0 25px 50px rgba(68, 229, 255, 0.15);
+}
+
+.grafana-container:hover::before {
+    opacity: 1;
 }
 
 .grafana-header {
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    position: relative;
 }
 
 .grafana-header h3 {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+    margin-bottom: 0.8rem;
     color: var(--color-primary);
     font-family: var(--font-heading);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.grafana-header h3::before {
+    content: '';
+    width: 4px;
+    height: 24px;
+    background: linear-gradient(180deg, var(--color-primary), var(--color-accent));
+    border-radius: 2px;
 }
 
 .grafana-header p {
     color: var(--text-muted);
-    font-size: 1rem;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin-left: 1.2rem;
 }
 
 /* Contenedor de iframe */
 .grafana-frame-container {
     position: relative;
     width: 100%;
-    height: 500px;
+    height: 600px;
     border-radius: var(--radius-md);
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(68, 229, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(68, 229, 255, 0.15);
+    transition: all 0.3s ease;
+}
+
+.grafana-frame-container:hover {
+    border-color: rgba(68, 229, 255, 0.3);
+    box-shadow: 0 0 30px rgba(68, 229, 255, 0.1);
 }
 
 /* Iframe de Grafana */
@@ -97,8 +158,8 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border: 3px solid var(--color-primary);
     border-top: 3px solid transparent;
     border-radius: 50%;
@@ -108,14 +169,16 @@
 }
 
 .grafana-frame-container.loading::after {
-    content: 'Cargando panel...';
+    content: 'Cargando panel de Grafana...';
     position: absolute;
     top: 60%;
     left: 50%;
     transform: translateX(-50%);
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 1rem;
+    font-weight: 500;
     z-index: 10;
+    white-space: nowrap;
 }
 
 @keyframes spin {
@@ -124,14 +187,62 @@
 }
 
 /* Responsive para iframes */
+@media (max-width: 1200px) {
+    .grafana-frame-container {
+        height: 500px;
+    }
+    
+    .stats-header-content h1 {
+        font-size: 3rem;
+    }
+}
+
 @media (max-width: 768px) {
+    .stats-header-content h1 {
+        font-size: 2.5rem;
+    }
+    
+    .stats-header-content p {
+        font-size: 1.1rem;
+    }
+    
+    .grafana-section {
+        padding: 0 1rem;
+    }
+    
+    .grafana-container {
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .grafana-frame-container {
+        height: 450px;
+    }
+    
+    .grafana-header h3 {
+        font-size: 1.5rem;
+    }
+    
+    .grafana-header p {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-main {
+        padding-top: 1rem;
+    }
+    
     .stats-header-content h1 {
         font-size: 2rem;
     }
     
+    .stats-header-content p {
+        font-size: 1rem;
+    }
+    
     .grafana-container {
         padding: 1.5rem;
-        margin-bottom: 1.5rem;
     }
     
     .grafana-frame-container {
@@ -143,37 +254,31 @@
     }
 }
 
-@media (max-width: 480px) {
-    .stats-main {
-        padding-top: 1rem;
-    }
-    
-    .stats-header-content h1 {
-        font-size: 1.8rem;
-    }
-    
-    .grafana-container {
-        padding: 1rem;
-    }
-    
-    .grafana-frame-container {
-        height: 350px;
-    }
-    
-    .grafana-header h3 {
-        font-size: 1.2rem;
-    }
-}
-
 /* Estilos para diferentes tamaños de pantalla */
-@media (min-width: 1200px) {
-    .grafana-frame-container {
-        height: 600px;
-    }
-}
-
 @media (min-width: 1600px) {
     .grafana-frame-container {
         height: 700px;
+    }
+    
+    .stats-header-content h1 {
+        font-size: 4rem;
+    }
+}
+
+/* Animaciones adicionales */
+.grafana-container {
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.grafana-container:nth-child(1) { animation-delay: 0.1s; }
+.grafana-container:nth-child(2) { animation-delay: 0.2s; }
+.grafana-container:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
