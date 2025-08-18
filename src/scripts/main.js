@@ -1,3 +1,10 @@
+// Inicializar partículas globales si existe el contenedor
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof window.initializeParticleSystem === 'function') {
+    window.initializeParticleSystem();
+  }
+});
+
 // Configuración del chatbot según PROMPT_CLAUDE.md
 const CHATBOT_CONFIG = {
     name: 'Lia IA',
@@ -1860,6 +1867,7 @@ function glossaryBackToMenu() {
 async function callOpenAI(prompt, context = '') {
     try {
         const base = (typeof window !== 'undefined' && (window.API_BASE || localStorage.getItem('API_BASE'))) || '';
+        
         const response = await fetch(`${base}/api/openai`, {
             method: 'POST',
             headers: {
@@ -1916,6 +1924,7 @@ async function queryDatabase(query, params = []) {
 async function getDatabaseContext(userQuestion) {
     try {
         const base = (typeof window !== 'undefined' && (window.API_BASE || localStorage.getItem('API_BASE'))) || '';
+        
         const response = await fetch(`${base}/api/context`, {
             method: 'POST',
             headers: {
@@ -1949,14 +1958,36 @@ function getApiKey() {
 // Encabezados de autenticación de usuario
 function getUserAuthHeaders() {
     try {
-        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken') || '';
-        const userId = sessionStorage.getItem('userId') || localStorage.getItem('userId') || '';
+        // Priorizar 'userToken' que es lo que usa el auth-guard
+        const token = localStorage.getItem('userToken') || 
+                     sessionStorage.getItem('authToken') || 
+                     localStorage.getItem('authToken') || '';
+        
+        // Obtener userId del userData o fallback
+        let userId = '';
+        try {
+            const userData = localStorage.getItem('userData');
+            if (userData) {
+                const user = JSON.parse(userData);
+                userId = user.id || user.username || '';
+            }
+        } catch (_) {
+            userId = sessionStorage.getItem('userId') || localStorage.getItem('userId') || '';
+        }
+        
+        // Logging para debug
+        console.log('[AUTH DEBUG] Token found:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+        console.log('[AUTH DEBUG] UserId:', userId || 'NO USER ID');
+        console.log('[AUTH DEBUG] Token source:', localStorage.getItem('userToken') ? 'userToken' : 
+                   sessionStorage.getItem('authToken') ? 'authToken(session)' : 
+                   localStorage.getItem('authToken') ? 'authToken(local)' : 'none');
+        
         const headers = {};
         if (token) headers['Authorization'] = `Bearer ${token}`;
         if (userId) headers['X-User-Id'] = userId;
         return headers;
     } catch (_) {
-    return {};
+        return {};
     }
 }
 
@@ -3178,15 +3209,44 @@ function initializeLivestreamChat() {
 
     // Determinar nombre de usuario desde la sesión o fallback aleatorio
     try {
-        const storedName = (chatState && chatState.userName ? String(chatState.userName) : '')
-            || (sessionStorage.getItem('loggedUser') || '')
-            || (localStorage.getItem('rememberedUser') || '');
-        const clean = String(storedName).trim();
-        livestreamChatState.username = clean && clean.length >= 3
+        let username = '';
+        
+        // 1. Intentar obtener desde userData (sistema de auth principal)
+        try {
+            const userData = localStorage.getItem('userData');
+            if (userData) {
+                const user = JSON.parse(userData);
+                username = user.username || user.display_name || user.full_name || user.email || '';
+            }
+        } catch (_) {}
+        
+        // 2. Fallback a currentUser
+        if (!username) {
+            try {
+                const currentUser = localStorage.getItem('currentUser');
+                if (currentUser) {
+                    const user = JSON.parse(currentUser);
+                    username = user.username || user.display_name || user.full_name || user.email || '';
+                }
+            } catch (_) {}
+        }
+        
+        // 3. Fallback a chatState y otras fuentes
+        if (!username) {
+            username = (chatState && chatState.userName ? String(chatState.userName) : '')
+                || (sessionStorage.getItem('loggedUser') || '')
+                || (localStorage.getItem('rememberedUser') || '');
+        }
+        
+        const clean = String(username).trim();
+        livestreamChatState.username = clean && clean.length >= 2
             ? clean
             : `Usuario_${Math.floor(Math.random() * 1000)}`;
+            
+        console.log('[LIVESTREAM] Username configurado:', livestreamChatState.username);
     } catch (_) {
         livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
+        console.log('[LIVESTREAM] Username fallback:', livestreamChatState.username);
     }
 
     // Eventos de conexión

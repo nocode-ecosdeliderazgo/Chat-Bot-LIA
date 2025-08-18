@@ -13,7 +13,12 @@
       "Bash(del \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\test-register.html\")",
       "Bash(rm:*)",
       "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\login\\login.html\")",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\test-auth.html\")",
+      "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\cursos.html\")",
+      "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\Community\\community.html\")",
+      "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\Notices\\notices.html\")",
+      "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\perfil-cuestionario.html\")"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

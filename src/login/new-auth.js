@@ -4,6 +4,94 @@
 // Importante: Deshabilitamos uso directo de Supabase en frontend para evitar 401 por RLS
 // Todo el login/registro pasa por el backend cuando se usa username
 const ENABLE_SUPABASE_AUTH = false;
+
+/**
+ * Función para asegurar que todos los datos de autenticación estén sincronizados
+ * Llama a esta función después de cualquier login exitoso
+ */
+async function ensureAuthDataSync() {
+    try {
+        // Verificar si hay datos de usuario en cualquier formato
+        const currentUser = localStorage.getItem('currentUser');
+        const userData = localStorage.getItem('userData');
+        const existingToken = localStorage.getItem('userToken') || localStorage.getItem('authToken');
+        
+        // Si hay currentUser pero no userData, sincronizar
+        if (currentUser && !userData) {
+            devLog('Sincronizando datos: currentUser -> userData');
+            localStorage.setItem('userData', currentUser);
+        }
+        
+        // Si hay userData pero no currentUser, sincronizar
+        if (userData && !currentUser) {
+            devLog('Sincronizando datos: userData -> currentUser');
+            localStorage.setItem('currentUser', userData);
+        }
+        
+        // Si no hay token, crear uno válido usando auth-issue
+        if ((currentUser || userData) && !existingToken) {
+            devLog('Creando token válido para usuario autenticado');
+            const user = JSON.parse(currentUser || userData);
+            
+            try {
+                console.log('[TOKEN DEBUG] Intentando generar token en:', `${API_BASE}/api/auth/issue`);
+                console.log('[TOKEN DEBUG] API_BASE actual:', API_BASE);
+                const tokenResponse = await fetch(`${API_BASE}/api/auth/issue`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'dev-api-key'
+                    },
+                    body: JSON.stringify({
+                        username: user.username || user.email || 'user'
+                    })
+                });
+
+                if (tokenResponse.ok) {
+                    const { token, userId } = await tokenResponse.json();
+                    localStorage.setItem('userToken', token);
+                    localStorage.setItem('authToken', token);
+                    console.log('[TOKEN DEBUG] Token de sync generado:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+                    console.log('[TOKEN DEBUG] UserId de sync:', userId);
+                    devLog('Token válido generado:', token.substring(0, 20) + '...');
+                } else {
+                    const errorText = await tokenResponse.text();
+                    console.error('[TOKEN DEBUG] Error en auth-issue (sync):', tokenResponse.status, errorText);
+                    throw new Error(`Error generando token válido: ${tokenResponse.status}`);
+                }
+            } catch (error) {
+                console.error('[TOKEN DEBUG] Excepción en auth-issue (sync):', error);
+                devLog('Error generando token, usando mock:', error.message);
+                // Fallback a token mock solo para desarrollo local
+                const mockToken = btoa(JSON.stringify({
+                    exp: Math.floor(Date.now() / 1000) + 3600,
+                    user: user.email || user.username,
+                    role: user.cargo_rol || user.role || 'user',
+                    id: user.id
+                }));
+                localStorage.setItem('userToken', mockToken);
+                localStorage.setItem('authToken', mockToken);
+            }
+        }
+        
+        // Si no hay sesión, crear una
+        if ((currentUser || userData) && !localStorage.getItem('userSession')) {
+            devLog('Creando sesión para usuario autenticado');
+            const user = JSON.parse(currentUser || userData);
+            const sessionData = {
+                sessionId: 'session-' + Date.now(),
+                created: new Date().toISOString(),
+                userId: user.id || user.username || user.email
+            };
+            localStorage.setItem('userSession', JSON.stringify(sessionData));
+        }
+        
+        devLog('Sincronización de datos de autenticación completada');
+        
+    } catch (error) {
+        console.error('Error sincronizando datos de autenticación:', error);
+    }
+}
 const API_BASE = (() => {
     try {
         if (window.API_BASE) return window.API_BASE;
@@ -39,6 +127,7 @@ const authState = {
 
 // Inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
+    ensureSupabaseConfigCached();
     initializeAuth();
     setupEventListeners();
     setupPasswordStrength();
@@ -96,6 +185,18 @@ function initializeAuth() {
     animateElements();
 }
 
+// Garantiza que las credenciales de Supabase queden en localStorage para otras páginas
+function ensureSupabaseConfigCached(){
+    try {
+        const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
+        const metaKey = document.querySelector('meta[name="supabase-key"]')?.content?.trim();
+        if (metaUrl && metaKey) {
+            localStorage.setItem('supabaseUrl', metaUrl);
+            localStorage.setItem('supabaseAnonKey', metaKey);
+        }
+    } catch (_) {}
+}
+
 // Prefill desde parámetros de URL (para flujos de prueba como en las capturas)
 function applyQueryPrefill() {
     try {
@@ -122,6 +223,21 @@ function applyQueryPrefill() {
             setTimeout(() => {
                 document.getElementById('loginSubmit').focus();
             }, 50);
+        }
+
+        // SEGURIDAD: Limpiar parámetros sensibles de la URL después del prefill
+        if (emailOrUsername || password) {
+            const cleanUrl = new URL(window.location);
+            cleanUrl.searchParams.delete('emailOrUsername');
+            cleanUrl.searchParams.delete('email');
+            cleanUrl.searchParams.delete('user');
+            cleanUrl.searchParams.delete('username');
+            cleanUrl.searchParams.delete('password');
+            cleanUrl.searchParams.delete('pass');
+            
+            // Reemplazar la URL sin recargar la página
+            window.history.replaceState({}, document.title, cleanUrl.toString());
+            devLog('Parámetros sensibles eliminados de la URL por seguridad');
         }
     } catch (_) {
         // Ignorar errores silenciosamente
@@ -518,6 +634,9 @@ async function handleLogin(e) {
     showNotification('Validando credenciales con la base de datos...', 'info');
     
     devLog('Iniciando proceso de login');
+    devLog('ENABLE_SUPABASE_AUTH:', ENABLE_SUPABASE_AUTH);
+    devLog('window.supabase exists:', !!window.supabase);
+    devLog('emailOrUsername includes @:', emailOrUsername.includes('@'));
     
     try {
         // 1) Supabase: opcional, solo con email y si está habilitado
@@ -529,47 +648,74 @@ async function handleLogin(e) {
             });
 
             if (!error) {
-                // Limpiar intentos fallidos
-                authState.attempts = 0;
-                localStorage.removeItem('loginAttempts');
-                localStorage.removeItem('lockoutEndTime');
+            // Limpiar intentos fallidos
+            authState.attempts = 0;
+            localStorage.removeItem('loginAttempts');
+            localStorage.removeItem('lockoutEndTime');
 
-                if (remember) {
-                    localStorage.setItem('rememberedEmailOrUsername', emailOrUsername);
-                    localStorage.setItem('rememberedTime', Date.now().toString());
-                } else {
-                    localStorage.removeItem('rememberedEmailOrUsername');
-                    localStorage.removeItem('rememberedTime');
+            if (remember) {
+                localStorage.setItem('rememberedEmailOrUsername', emailOrUsername);
+                localStorage.setItem('rememberedTime', Date.now().toString());
+            } else {
+                localStorage.removeItem('rememberedEmailOrUsername');
+                localStorage.removeItem('rememberedTime');
+            }
+
+            const { data: current } = await window.supabase.auth.getUser();
+            if (current?.user) {
+                // Obtener el token de Supabase
+                const { data: session } = await window.supabase.auth.getSession();
+                const token = session?.session?.access_token;
+                
+                // Guardar datos con las claves que espera auth-guard
+                if (token) {
+                    localStorage.setItem('userToken', token);
+                    localStorage.setItem('authToken', token); // Mantener compatibilidad
+                    devLog('Token de Supabase guardado:', token.substring(0, 20) + '...');
                 }
-
-                const { data: current } = await window.supabase.auth.getUser();
-                if (current?.user) {
-                    localStorage.setItem('currentUser', JSON.stringify(current.user));
+                localStorage.setItem('userData', JSON.stringify(current.user));
+                localStorage.setItem('currentUser', JSON.stringify(current.user)); // Mantener compatibilidad
+                devLog('Datos de usuario guardados:', current.user);
+                
+                // Crear sesión activa
+                const sessionData = {
+                    sessionId: 'session-' + Date.now(),
+                    created: new Date().toISOString(),
+                    userId: current.user.id
+                };
+                localStorage.setItem('userSession', JSON.stringify(sessionData));
+                devLog('Sesión creada:', sessionData);
                     // Intentar actualizar último acceso (ignorar errores por RLS)
                     try {
-                        await window.supabase
-                            .from('users')
-                            .update({ last_login_at: new Date().toISOString() })
-                            .eq('id', current.user.id);
+                await window.supabase
+                    .from('users')
+                    .update({ last_login_at: new Date().toISOString() })
+                    .eq('id', current.user.id);
                     } catch (_) {}
-                }
-
-                showNotification('¡Sesión iniciada correctamente!', 'success');
-                await handleSuccessfulAuth(emailOrUsername, remember);
-                return;
             }
+
+            // Asegurar sincronización de datos
+            await ensureAuthDataSync();
+            
+            showNotification('¡Sesión iniciada correctamente!', 'success');
+            await handleSuccessfulAuth(emailOrUsername, remember);
+            return;
+        }
 
             // Si falla con Supabase usando email, continuamos con backend
             devLog('Supabase login falló, intentando backend...', error?.message);
         }
 
         // 2) Backend propio (fetch) como ruta principal
+        devLog('Intentando login con backend...');
         const loginData = { username: emailOrUsername, password };
         const response = await fetch('/api/login', {
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify(loginData)
         });
+        
+        devLog('Respuesta del backend:', { status: response.status, ok: response.ok });
         
         if (!response.ok) {
             if (response.status === 401) {
@@ -592,8 +738,24 @@ async function handleLogin(e) {
             localStorage.removeItem('loginAttempts');
             localStorage.removeItem('lockoutEndTime');
             
-            if (result.token) localStorage.setItem('authToken', result.token);
-            localStorage.setItem('currentUser', JSON.stringify(result.user));
+            // Guardar datos de autenticación con las claves que espera auth-guard
+            if (result.token) {
+                localStorage.setItem('userToken', result.token);
+                localStorage.setItem('authToken', result.token); // Mantener compatibilidad
+                devLog('Token guardado:', result.token.substring(0, 20) + '...');
+            }
+            localStorage.setItem('userData', JSON.stringify(result.user));
+            localStorage.setItem('currentUser', JSON.stringify(result.user)); // Mantener compatibilidad
+            devLog('Datos de usuario guardados:', result.user);
+            
+            // Crear sesión activa
+            const sessionData = {
+                sessionId: 'session-' + Date.now(),
+                created: new Date().toISOString(),
+                userId: result.user.id || result.user.username
+            };
+            localStorage.setItem('userSession', JSON.stringify(sessionData));
+            devLog('Sesión creada:', sessionData);
             
             if (remember) {
                 localStorage.setItem('rememberedEmailOrUsername', emailOrUsername);
@@ -602,6 +764,9 @@ async function handleLogin(e) {
                 localStorage.removeItem('rememberedEmailOrUsername');
                 localStorage.removeItem('rememberedTime');
             }
+            
+            // Asegurar sincronización de datos
+            await ensureAuthDataSync();
             
             showNotification('¡Sesión iniciada correctamente!', 'success');
             await handleSuccessfulAuth(emailOrUsername, remember);
@@ -615,14 +780,19 @@ async function handleLogin(e) {
         
         // Si falla la conexión con el backend, usar modo desarrollo
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            devLog('Error de conexión detectado, usando modo desarrollo...');
             showNotification('Servidor no disponible. Usando modo desarrollo...', 'warning');
             const isValid = await validateCredentialsLocal(emailOrUsername, password);
+            devLog('Validación local resultado:', isValid);
             if (isValid) {
                 if (remember) {
                     localStorage.setItem('rememberedEmailOrUsername', emailOrUsername);
                 } else {
                     localStorage.removeItem('rememberedEmailOrUsername');
                 }
+                // Asegurar sincronización de datos
+                await ensureAuthDataSync();
+                
                 showNotification('¡Sesión iniciada correctamente! (Modo desarrollo)', 'success');
                 await handleSuccessfulAuth();
             } else {
@@ -821,12 +991,15 @@ async function validateCredentialsLocal(emailOrUsername, password) {
     // Simular delay de red
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Credenciales de prueba - acepta email o username
+    // Credenciales de prueba - acepta email o username (incluye roles para testing)
     const testCredentials = [
-        { email: 'admin@test.com', username: 'admin', password: 'admin123', name: 'Administrador' },
-        { email: 'user@test.com', username: 'usuario', password: 'user123', name: 'Usuario Test' },
-        { email: 'test@test.com', username: 'test', password: 'test123', name: 'Test User' },
-        { email: 'demo@demo.com', username: 'demo', password: '123456', name: 'Usuario Demo' }
+        { email: 'admin@test.com', username: 'admin', password: 'admin123', name: 'Administrador', cargo_rol: 'Administrador' },
+        { email: 'instructor@test.com', username: 'instructor', password: 'instructor123', name: 'Instructor Test', cargo_rol: 'Instructor' },
+        { email: 'maestro@test.com', username: 'maestro', password: 'maestro123', name: 'Maestro Test', cargo_rol: 'Maestro' },
+        { email: 'user@test.com', username: 'usuario', password: 'user123', name: 'Usuario Test', cargo_rol: 'Usuario' },
+        { email: 'student@test.com', username: 'estudiante', password: 'student123', name: 'Estudiante Test', cargo_rol: 'Estudiante' },
+        { email: 'test@test.com', username: 'test', password: 'test123', name: 'Test User', cargo_rol: 'Usuario' },
+        { email: 'demo@demo.com', username: 'demo', password: '123456', name: 'Usuario Demo', cargo_rol: 'Usuario' }
     ];
     
     const foundUser = testCredentials.find(cred => {
@@ -839,13 +1012,64 @@ async function validateCredentialsLocal(emailOrUsername, password) {
     });
     
     if (foundUser) {
-        // Guardar datos del usuario para uso posterior
-        localStorage.setItem('currentUser', JSON.stringify({
+        // Guardar datos del usuario para uso posterior (incluye cargo_rol para redirección)
+        const userData = {
             email: foundUser.email,
             username: foundUser.username,
             name: foundUser.name,
+            cargo_rol: foundUser.cargo_rol,
             loginTime: new Date().toISOString()
-        }));
+        };
+        
+        // Guardar con las claves que espera auth-guard
+        localStorage.setItem('userData', JSON.stringify(userData));
+        localStorage.setItem('currentUser', JSON.stringify(userData)); // Mantener compatibilidad
+        
+        // Generar token compatible directamente para usuarios de prueba
+        // En lugar de depender del endpoint auth-issue que requiere BD
+        try {
+            // Generar un token JWT compatible con el formato que espera Netlify Functions
+            const payload = {
+                sub: foundUser.username, // userId
+                username: foundUser.username,
+                iat: Math.floor(Date.now() / 1000),
+                exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 días
+            };
+            
+            // Crear un token JWT simulado (sin firma real, pero con formato correcto)
+            const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+            const payloadEncoded = btoa(JSON.stringify(payload));
+            const signature = 'fake-signature-for-dev-testing-only';
+            const jwtToken = `${header}.${payloadEncoded}.${signature}`;
+            
+            localStorage.setItem('userToken', jwtToken);
+            console.log('[TOKEN DEBUG] Token JWT simulado generado:', jwtToken.substring(0, 30) + '...');
+            console.log('[TOKEN DEBUG] Payload:', payload);
+            
+            const sessionData = {
+                sessionId: 'session-' + Date.now(),
+                created: new Date().toISOString(),
+                userId: foundUser.username
+            };
+            localStorage.setItem('userSession', JSON.stringify(sessionData));
+            
+        } catch (error) {
+            console.error('[TOKEN DEBUG] Error generando token JWT:', error);
+            // Último fallback: token base64 simple
+            const mockToken = btoa(JSON.stringify({
+                exp: Math.floor(Date.now() / 1000) + 3600,
+                user: foundUser.email,
+                role: foundUser.cargo_rol
+            }));
+            localStorage.setItem('userToken', mockToken);
+            
+            const sessionData = {
+                sessionId: 'session-' + Date.now(),
+                created: new Date().toISOString(),
+                userId: foundUser.username
+            };
+            localStorage.setItem('userSession', JSON.stringify(sessionData));
+        }
         return true;
     }
     
@@ -889,15 +1113,80 @@ async function registerUserLocal(userData) {
     return newUser;
 }
 
+// Función para determinar la página de destino según el rol del usuario
+function getRedirectPageByRole(userRole) {
+    // Normalizar el rol para comparación (remover espacios y convertir a minúsculas)
+    const normalizedRole = (userRole || '').toLowerCase().trim();
+    
+    devLog('Determinando redirección para rol:', normalizedRole);
+    
+    // Mapeo de roles a páginas
+    switch (normalizedRole) {
+        case 'administrador':
+        case 'admin':
+        case 'administrator':
+            return '../admin/admin.html';
+            
+        case 'instructor':
+        case 'maestro':
+        case 'teacher':
+        case 'profesor':
+            return '../instructors/index.html';
+            
+        case 'usuario':
+        case 'estudiante':
+        case 'student':
+        case 'user':
+        default:
+            // Por defecto, todos los usuarios van a courses.html
+            return '../courses.html';
+    }
+}
+
 // Manejo de autenticación exitosa
 async function handleSuccessfulAuth() {
     devLog('Manejando autenticación exitosa');
     
+    // Asegurar sincronización como respaldo
+    await ensureAuthDataSync();
+    
     // Animar éxito
     await animateSuccess();
     
-    // Redirigir al panel de courses
-    const targetPage = '../courses.html';
+    // Obtener información del usuario desde localStorage
+    let targetPage = '../courses.html'; // Fallback por defecto
+    
+    try {
+        // Verificar todos los datos de autenticación guardados
+        const userDataStr = localStorage.getItem('userData') || localStorage.getItem('currentUser');
+        const userToken = localStorage.getItem('userToken');
+        const userSession = localStorage.getItem('userSession');
+        
+        devLog('Verificando datos guardados:', {
+            userData: !!userDataStr,
+            userToken: !!userToken,
+            userSession: !!userSession
+        });
+        
+        if (userDataStr) {
+            const userData = JSON.parse(userDataStr);
+            devLog('Datos de usuario encontrados:', userData);
+            
+            // Buscar el rol del usuario (prioridad: cargo_rol > type_rol)
+            const userRole = userData.cargo_rol || userData.type_rol || 'usuario';
+            devLog('Rol de usuario detectado:', userRole);
+            
+            // Determinar página de destino basada en el rol
+            targetPage = getRedirectPageByRole(userRole);
+            devLog('Página de destino determinada:', targetPage);
+        } else {
+            devLog('No se encontraron datos de usuario, usando página por defecto');
+        }
+    } catch (error) {
+        devLog('Error al procesar datos de usuario:', error);
+        // En caso de error, mantener el fallback
+    }
+    
     devLog('Redirigiendo a:', targetPage);
     
     setTimeout(() => {

@@ -1,0 +1,53 @@
+/* Estilos del formulario de cuestionario, consistente con profile.css y main.css */
+
+:root { --course-primary:#44E5FF; --course-white:#fff; --glass: rgba(255,255,255,0.06); }
+
+body { color: var(--course-white); font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
+.quiz-header .header-profile { position: fixed; top: 12px; right: 20px; z-index: 2000; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(68,229,255,.35); background: rgba(7,17,36,.4); display: inline-flex; }
+.quiz-header .header-profile img{ width:100%; height:100%; object-fit:cover; }
+.profile-menu{ position: fixed; top: 72px; right: 16px; background: rgba(12,14,18,0.96); border: 1px solid rgba(68,229,255,0.25); border-radius: 12px; box-shadow: 0 18px 40px rgba(0,0,0,0.45); z-index: 2100; min-width: 220px; overflow: hidden; }
+.pm-section{ padding:8px; }
+.pm-item{ padding:10px 12px; border-radius:10px; cursor:pointer; }
+.pm-item:hover{ background: rgba(68,229,255,0.12); }
+
+.quiz-main{ padding: 90px 16px 40px; }
+.quiz-card{ max-width: 1100px; margin: 0 auto; background: var(--glass); border: 1px solid rgba(68,229,255,0.18); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.35); padding: 24px; backdrop-filter: blur(8px); }
+.quiz-header-info h1{ margin:0 0 6px; font-family: 'Montserrat', sans-serif; }
+.quiz-header-info p{ opacity:.9; }
+
+.scale-help{ margin-top:10px; background: rgba(255,255,255,0.04); border:1px solid rgba(68,229,255,0.18); border-radius:12px; padding:12px; }
+.scale-help .scale-title{ font-weight:700; margin-bottom:6px; }
+.scale-help .scale-subtitle{ font-weight:600; margin-top:8px; }
+.scale-help .scale-intro{ opacity:.95; margin-bottom:6px; }
+.scale-help ul{ margin:6px 0 4px; padding-left:18px; }
+.scale-help li{ margin:2px 0; font-size:.92rem; }
+.scale-help .scale-note{ opacity:.9; font-size:.9rem; margin-top:6px; }
+
+.question-list{ display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 12px; }
+.question{ background: rgba(255,255,255,0.04); border: 1px solid rgba(68,229,255,0.18); border-radius: 12px; padding: 16px; }
+.q-title{ font-weight:600; margin-bottom:10px; }
+/* La guía por pregunta ya no se usa */
+
+.likert{ display:flex; flex-wrap:wrap; gap:8px; }
+.likert label{ display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:8px; border:1px solid rgba(68,229,255,.35); background: rgba(255,255,255,0.05); cursor:pointer; transition: all .2s ease; user-select:none; }
+.likert input{ display:none; }
+.likert input:checked + label{ background: linear-gradient(135deg, var(--course-primary), #0077A6); color:#001018; box-shadow: 0 8px 22px rgba(68,229,255,0.25); border-color: rgba(68,229,255,.8); }
+
+.multicheck{ display:flex; flex-wrap:wrap; gap:8px; }
+.multicheck label{ padding:8px 12px; border:1px solid rgba(68,229,255,.35); border-radius:10px; cursor:pointer; background: rgba(255,255,255,0.05); user-select:none; }
+.multicheck input{ display:none; }
+.multicheck input:checked + label{ background: rgba(68,229,255,0.22); border-color: rgba(68,229,255,0.8); box-shadow: 0 0 0 3px rgba(68,229,255,0.18); }
+
+.boolean{ display:flex; gap:10px; }
+.boolean label{ padding:8px 12px; border:1px solid rgba(68,229,255,.35); border-radius:10px; cursor:pointer; background: rgba(255,255,255,0.05); user-select:none; }
+.boolean input{ display:none; }
+.boolean input:checked + label{ background: rgba(68,229,255,0.22); border-color: rgba(68,229,255,0.8); }
+
+.open-text textarea{ width:100%; min-height:80px; border-radius:10px; border:1px solid rgba(68,229,255,0.35); background: rgba(255,255,255,0.06); color:#fff; padding:10px 12px; }
+
+.quiz-actions{ display:flex; justify-content:center; margin-top: 14px; }
+.btn-primary{ display:inline-flex; align-items:center; justify-content:center; gap:8px; font-family:'Montserrat', var(--font-secondary), system-ui; font-weight:700; border-radius:12px; padding:12px 18px; border:1px solid rgba(68,229,255,0.35); cursor:pointer; background: linear-gradient(135deg, var(--course-primary), #0077A6); color:#001018; box-shadow: 0 10px 26px rgba(68,229,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.15); }
+.btn-large{ padding:14px 22px; }
+
+

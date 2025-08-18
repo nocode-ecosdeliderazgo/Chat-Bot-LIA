@@ -1,229 +1,111 @@
-Necesito que termines de conectar y hacer funcionar mi nueva pantalla de autenticación (login/registro) con Supabase y/o mi API. La UI ya está lista, pero los botones “Crear cuenta” e “Ingresar” no terminan el flujo aunque los formularios sean válidos. Debes corregir el código para que:
 
-1) Priorice Supabase (auth + tabla public.users) y, si no existe, use mi API (compat con login anterior). Si tampoco hay backend, puedes dejar modo dev.
+Quiero que fijes el botón de perfil de `src/perfil-cuestionario.html` arriba a la derecha, idéntico al de la página de cursos. Deja el menú de perfil desplegable justo debajo. Elimina cualquier texto/logo del header de esta vista.
 
-2) Corrijas los errores de consola y de validación que están bloqueando el submit. Este es el log real que obtengo al pulsar “Crear cuenta”:
+Contexto y archivos:
+- HTML: `src/perfil-cuestionario.html`
+- CSS de esta vista: `styles/profile.css`
+- JS de esta vista: `scripts/perfil-cuestionario.js`
+- Referencia visual: en “Cursos” el botón usa clase `header-profile` fijo top-right.
 
-- Uncaught SyntaxError: Unexpected token 'export'
-- new-auth.js:161 [DEBUG] setupFormSubmissions called
-- new-auth.js:162 [DEBUG] loginForm found: true
-- new-auth.js:163 [DEBUG] registerForm found: true
-- new-auth.js:164 [DEBUG] registerBtn found: true
-- new-auth.js:168 [DEBUG] Login form submit listener added
-- new-auth.js:173 [DEBUG] Register form submit listener added
-- new-auth.js:199 [DEBUG] Register button click listener added
-- new-auth.js:178 [DEBUG] Register button clicked!
-- new-auth.js:179 [DEBUG] Auth state loading: false
-- new-auth.js:180 [DEBUG] Form validity: true
-- new-auth.js:195 [DEBUG] Calling handleRegister directly
-- new-auth.js:627 [DEBUG] handleRegister called
-- new-auth.js:635 [DEBUG] Creating FormData from target: <form id="registerFormElement" class="form">…</form>
-- new-auth.js:640 [DEBUG] FormData - first_name: …
-- …
-- new-auth.js:824 [DEBUG] validateRegisterForm called with: …
-- new-auth.js:411 Uncaught (in promise) TypeError: Cannot set properties of undefined (setting 'borderColor')
-    at validateEmail (new-auth.js:411:29)
-    at validateRegisterForm (new-auth.js:852:10)
-    at handleRegister (new-auth.js:657:10)
-    at HTMLButtonElement.<anonymous> (new-auth.js:197:17)
+Tareas:
+1) HTML (src/perfil-cuestionario.html)
+- Asegura que exista el botón:
+```html
+<div class="nav-actions">
+  <button class="header-profile" onclick="toggleProfileMenu(event)">
+    <img src="assets/images/icono.png" alt="Perfil" />
+  </button>
+</div>
+<div id="profileMenu" class="profile-menu">
+  <div class="pm-section">
+    <div class="pm-item" onclick="handleLogout()"><i class='bx bx-log-out'></i> Cerrar sesión</div>
+  </div>
+</div>
+```
+- Elimina cualquier texto/logo en el header de ESTA página (deja `nav-logo` vacío o elimínalo):
+```html
+<div class="nav-logo"></div>
+```
 
-El error de “Cannot set properties of undefined (setting 'borderColor')” indica que está llamándose a validateEmail pasándole un objeto simulado { value } sin ser un input real, y luego se hace input.style.borderColor, lo que rompe. Corrige validateEmail para aceptar tanto un input DOM como un string y no tocar estilos si no es un elemento. Ejemplo: si recibe string → validar y devolver boolean sin tocar estilos.
+2) CSS (styles/profile.css)
+- Al FINAL del archivo, añade/ajusta estas reglas (deben ganar a cualquier estilo previo):
+```css
+/* Botón de perfil fijo arriba-derecha (igual que cursos) */
+.header-profile {
+  position: fixed !important;
+  top: 12px !important;
+  right: 20px !important;
+  left: auto !important;
+  bottom: auto !important;
+  z-index: 5000 !important;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(68,229,255,.35);
+  padding: 0;
+  background: rgba(7,17,36,.4);
+  cursor: pointer;
+  display: inline-flex;
+}
+.header-profile:hover { filter: brightness(1.05); }
+.header-profile img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-3) Implementa el flujo Supabase real:
-- Login:
-  - Permitir email o username. Si se escribe username, resolver email: select email from public.users where username = <username> single.
-  - Luego auth.signInWithPassword({ email, password }).
-  - Guardar currentUser (supabase.auth.getUser()) y “recordarme” (emailOrUsername y timestamp) en localStorage.
-  - Redirigir a ../courses.html.
+/* Menú anclado al botón */
+.profile-menu {
+  position: fixed;
+  top: 72px;
+  right: 16px;
+  background: rgba(12,14,18,0.96);
+  border: 1px solid rgba(68,229,255,0.25);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+  z-index: 5100;
+  min-width: 220px;
+  overflow: hidden;
+  display: none;
+}
+.profile-menu.show { display: block; }
 
-- Registro:
-  - auth.signUp({ email, password, options: { data: { first_name, last_name, username, phone } } }).
-  - Si hay sesión, upsert en public.users (id=auth.user.id) con: first_name, last_name, username, email, phone, cargo_rol='Usuario', type_rol='usuario', updated_at = now().
-  - Cambiar a login y prellenar email. 
+/* Ocultar logo/título en esta vista */
+.nav-logo { display: none; }
+```
 
-4) Backend alternativo (si no hay Supabase):
-- POST /api/auth/login: { identifier, password, remember } → { success, token?, user? }
-- POST /api/auth/register: { firstName, lastName, username, email, phone, password } → { success, user? }
-- En éxito, guarda token y user y redirige.
+3) JS (scripts/perfil-cuestionario.js)
+- Usa clase `.show` para abrir/cerrar el menú. Asegura este bloque:
+```js
+document.addEventListener('DOMContentLoaded', () => {
+  window.toggleProfileMenu = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const menu = document.getElementById('profileMenu');
+    if (!menu) return;
+    menu.classList.toggle('show');
+  };
 
-5) Robustecer los listeners:
-- Asegura que el submit del formulario y el click del botón lleven al mismo flujo (sin doble envío).
-- Si el form es inválido, usar form.reportValidity().
-- En tabs, habilita click y Enter/Espacio para accesibilidad; deep-link ?mode=register o #register.
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('profileMenu');
+    const btn = document.querySelector('.header-profile');
+    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+      menu.classList.remove('show');
+    }
+  });
 
-6) No toques el diseño. Solo corrige JS y la integración. Carga de Supabase:
-- src/login/new-auth.html tiene meta:
-  - <meta name="supabase-url" content="https://TU-PROYECTO.supabase.co">
-  - <meta name="supabase-key" content="TU_ANON_PUBLIC">
-- scripts/supabase-client.js debe leer estas metas y exportar window.supabase (sin usar “export” en archivos que se cargan como script no-module; usa UMD o asignación a window para evitar “Unexpected token 'export'”).
-
-7) Entregables:
-- src/login/new-auth.js: corregido, sin errores, con validaciones y flujos descritos, logs de error/éxito claros.
-- scripts/supabase-client.js: sin “export” ESModule si se usa como <script> clásico; asegurar que no dispare “Unexpected token 'export'” en entornos no module.
-- Confirmar que “Crear cuenta” y “Ingresar” funcionan, registran y loguean realmente en Supabase (public.users) y redirigen a ../courses.html.
+  window.handleLogout = () => {
+    try { localStorage.clear(); } catch (e) {}
+    window.location.href = 'login/new-auth.html';
+  };
+});
+```
 
 Criterios de aceptación:
-- El error “Unexpected token 'export'” desaparece.
-- El error de validateEmail (borderColor) desaparece.
-- Se puede registrar y loguear; en login con username se resuelve email y funciona.
-- En localStorage se guarda currentUser y recordarme (si corresponde).
-- Redirección a ../courses.html tras éxito.
+- El botón `header-profile` queda fijo en la esquina superior derecha (top: 12px, right: 20px), por encima de cualquier layout (verifica `z-index`).
+- El menú se despliega debajo del botón (top: 72px, right: 16px) y se cierra al hacer clic fuera.
+- En esta página no se muestra texto/logo en el header.
+- Funciona igual en desktop y móvil (≤ 480px) sin moverse de la esquina.
+- No rompe partículas, fondo ni el formulario.
+
+Notas:
+- Si hay estilos de otra hoja que lo sobreescriben, mantén estas reglas al final de `styles/profile.css`. Usa `!important` solo donde sea necesario para garantizar la posición fija.
 
 
-LOG COMPLETO
-supabase-client.js:25 Uncaught SyntaxError: Unexpected token 'export'
-new-auth.js:161 [DEBUG] setupFormSubmissions called
-new-auth.js:162 [DEBUG] loginForm found: true
-new-auth.js:163 [DEBUG] registerForm found: true
-new-auth.js:164 [DEBUG] registerBtn found: true
-new-auth.js:168 [DEBUG] Login form submit listener added
-new-auth.js:173 [DEBUG] Register form submit listener added
-new-auth.js:199 [DEBUG] Register button click listener added
-new-auth.js:178 [DEBUG] Register button clicked!
-new-auth.js:179 [DEBUG] Auth state loading: false
-new-auth.js:180 [DEBUG] Form validity: true
-new-auth.js:195 [DEBUG] Calling handleRegister directly
-new-auth.js:627 [DEBUG] handleRegister called
-new-auth.js:635 [DEBUG] Creating FormData from target: <form id=​"registerFormElement" class=​"form">​…​</form>​
-new-auth.js:640 [DEBUG] FormData - first_name: Fernando
-new-auth.js:640 [DEBUG] FormData - last_name: Suarez
-new-auth.js:640 [DEBUG] FormData - username: FernandoSG
-new-auth.js:640 [DEBUG] FormData - phone: +52 55 1234 5678
-new-auth.js:640 [DEBUG] FormData - email: fernando.suarez@ecosdeliderazgo.com
-new-auth.js:640 [DEBUG] FormData - password: 9Re*@7Eq1kJaJPu5!m!u
-new-auth.js:640 [DEBUG] FormData - confirm_password: 9Re*@7Eq1kJaJPu5!m!u
-new-auth.js:640 [DEBUG] FormData - accept_terms: on
-new-auth.js:640 [DEBUG] FormData - accept_privacy: on
-new-auth.js:654 [DEBUG] Parsed userData: Object
-new-auth.js:824 [DEBUG] validateRegisterForm called with: Object
-new-auth.js:411 Uncaught (in promise) TypeError: Cannot set properties of undefined (setting 'borderColor')
-    at validateEmail (new-auth.js:411:29)
-    at validateRegisterForm (new-auth.js:852:10)
-    at handleRegister (new-auth.js:657:10)
-    at HTMLButtonElement.<anonymous> (new-auth.js:197:17)
-new-auth.js:178 [DEBUG] Register button clicked!
-new-auth.js:179 [DEBUG] Auth state loading: false
-new-auth.js:180 [DEBUG] Form validity: true
-new-auth.js:195 [DEBUG] Calling handleRegister directly
-new-auth.js:627 [DEBUG] handleRegister called
-new-auth.js:635 [DEBUG] Creating FormData from target: <form id=​"registerFormElement" class=​"form">​…​</form>​
-new-auth.js:640 [DEBUG] FormData - first_name: Fernando
-new-auth.js:640 [DEBUG] FormData - last_name: Suarez
-new-auth.js:640 [DEBUG] FormData - username: FernandoSG
-new-auth.js:640 [DEBUG] FormData - phone: +52 55 1234 5678
-new-auth.js:640 [DEBUG] FormData - email: fernando.suarez@ecosdeliderazgo.com
-new-auth.js:640 [DEBUG] FormData - password: 9Re*@7Eq1kJaJPu5!m!u
-new-auth.js:640 [DEBUG] FormData - confirm_password: 9Re*@7Eq1kJaJPu5!m!u
-new-auth.js:640 [DEBUG] FormData - accept_terms: on
-new-auth.js:640 [DEBUG] FormData - accept_privacy: on
-new-auth.js:654 [DEBUG] Parsed userData: Object
-new-auth.js:824 [DEBUG] validateRegisterForm called with: Object
-new-auth.js:411 Uncaught (in promise) TypeError: Cannot set properties of undefined (setting 'borderColor')
-    at validateEmail (new-auth.js:411:29)
-    at validateRegisterForm (new-auth.js:852:10)
-    at handleRegister (new-auth.js:657:10)
-    at HTMLButtonElement.<anonymous> (new-auth.js:197:17)
-new-auth.js:178 [DEBUG] Register button clicked!
-new-auth.js:179 [DEBUG] Auth state loading: false
-new-auth.js:180 [DEBUG] Form validity: true
-new-auth.js:195 [DEBUG] Calling handleRegister directly
-new-auth.js:627 [DEBUG] handleRegister called
-new-auth.js:635 [DEBUG] Creating FormData from target: <form id=​"registerFormElement" class=​"form">​…​</form>​
-new-auth.js:640 [DEBUG] FormData - first_name: Fernando
-new-auth.js:640 [DEBUG] FormData - last_name: Suarez
-new-auth.js:640 [DEBUG] FormData - username: FernandoSG
-new-auth.js:640 [DEBUG] FormData - phone: +52 55 1234 5678
-new-auth.js:640 [DEBUG] FormData - email: fernando.suarez@ecosdeliderazgo.com
-new-auth.js:640 [DEBUG] FormData - password: 9Re*@7Eq1kJaJPu5!m!u
-new-auth.js:640 [DEBUG] FormData - confirm_password: 9Re*@7Eq1kJaJPu5!m!u
-new-auth.js:640 [DEBUG] FormData - accept_terms: on
-new-auth.js:640 [DEBUG] FormData - accept_privacy: on
-new-auth.js:654 [DEBUG] Parsed userData: {first_name: 'Fernando', last_name: 'Suarez', username: 'fernandosg', phone: '+52 55 1234 5678', email: 'fernando.suarez@ecosdeliderazgo.com', …}
-new-auth.js:824 [DEBUG] validateRegisterForm called with: {first_name: 'Fernando', last_name: 'Suarez', username: 'fernandosg', phone: '+52 55 1234 5678', email: 'fernando.suarez@ecosdeliderazgo.com', …}
-new-auth.js:411 Uncaught (in promise) TypeError: Cannot set properties of undefined (setting 'borderColor')
-    at validateEmail (new-auth.js:411:29)
-    at validateRegisterForm (new-auth.js:852:10)
-    at handleRegister (new-auth.js:657:10)
-    at HTMLButtonElement.<anonymous> (new-auth.js:197:17)
-validateEmail @ new-auth.js:411
-validateRegisterForm @ new-auth.js:852
-handleRegister @ new-auth.js:657
-(anonymous) @ new-auth.js:197
-new-auth.js:178 [DEBUG] Register button clicked!
-new-auth.js:179 [DEBUG] Auth state loading: false
-new-auth.js:180 [DEBUG] Form validity: true
-new-auth.js:195 [DEBUG] Calling handleRegister directly
-new-auth.js:627 [DEBUG] handleRegister called
-new-auth.js:635 [DEBUG] Creating FormData from target: <form id=​"registerFormElement" class=​"form">​…​</form>​
-new-auth.js:640 [DEBUG] FormData - first_name: Fernando
-new-auth.js:640 [DEBUG] FormData - last_name: Suarez
-new-auth.js:640 [DEBUG] FormData - username: FernandoSG
-new-auth.js:640 [DEBUG] FormData - phone: +52 55 1234 5678
-new-auth.js:640 [DEBUG] FormData - email: fernando.suarez@ecosdeliderazgo.com
-new-auth.js:640 [DEBUG] FormData - password: 9Re*@7Eq1kJaJPu5!m!u
-new-auth.js:640 [DEBUG] FormData - confirm_password: 9Re*@7Eq1kJaJPu5!m!u
-new-auth.js:640 [DEBUG] FormData - accept_terms: on
-new-auth.js:640 [DEBUG] FormData - accept_privacy: on
-new-auth.js:654 [DEBUG] Parsed userData: {first_name: 'Fernando', last_name: 'Suarez', username: 'fernandosg', phone: '+52 55 1234 5678', email: 'fernando.suarez@ecosdeliderazgo.com', …}
-new-auth.js:824 [DEBUG] validateRegisterForm called with: {first_name: 'Fernando', last_name: 'Suarez', username: 'fernandosg', phone: '+52 55 1234 5678', email: 'fernando.suarez@ecosdeliderazgo.com', …}
-new-auth.js:411 Uncaught (in promise) TypeError: Cannot set properties of undefined (setting 'borderColor')
-    at validateEmail (new-auth.js:411:29)
-    at validateRegisterForm (new-auth.js:852:10)
-    at handleRegister (new-auth.js:657:10)
-    at HTMLButtonElement.<anonymous> (new-auth.js:197:17)
-validateEmail @ new-auth.js:411
-validateRegisterForm @ new-auth.js:852
-handleRegister @ new-auth.js:657
-(anonymous) @ new-auth.js:197
-new-auth.js:178 [DEBUG] Register button clicked!
-new-auth.js:179 [DEBUG] Auth state loading: false
-new-auth.js:180 [DEBUG] Form validity: true
-new-auth.js:195 [DEBUG] Calling handleRegister directly
-new-auth.js:627 [DEBUG] handleRegister called
-new-auth.js:635 [DEBUG] Creating FormData from target: <form id=​"registerFormElement" class=​"form">​…​</form>​
-new-auth.js:640 [DEBUG] FormData - first_name: Fernando
-new-auth.js:640 [DEBUG] FormData - last_name: Suarez
-new-auth.js:640 [DEBUG] FormData - username: FernandoSG
-new-auth.js:640 [DEBUG] FormData - phone: +52 55 1234 5678
-new-auth.js:640 [DEBUG] FormData - email: fernando.suarez@ecosdeliderazgo.com
-new-auth.js:640 [DEBUG] FormData - password: 9Re*@7Eq1kJaJPu5!m!u
-new-auth.js:640 [DEBUG] FormData - confirm_password: 9Re*@7Eq1kJaJPu5!m!u
-new-auth.js:640 [DEBUG] FormData - accept_terms: on
-new-auth.js:640 [DEBUG] FormData - accept_privacy: on
-new-auth.js:654 [DEBUG] Parsed userData: {first_name: 'Fernando', last_name: 'Suarez', username: 'fernandosg', phone: '+52 55 1234 5678', email: 'fernando.suarez@ecosdeliderazgo.com', …}
-new-auth.js:824 [DEBUG] validateRegisterForm called with: {first_name: 'Fernando', last_name: 'Suarez', username: 'fernandosg', phone: '+52 55 1234 5678', email: 'fernando.suarez@ecosdeliderazgo.com', …}
-new-auth.js:411 Uncaught (in promise) TypeError: Cannot set properties of undefined (setting 'borderColor')
-    at validateEmail (new-auth.js:411:29)
-    at validateRegisterForm (new-auth.js:852:10)
-    at handleRegister (new-auth.js:657:10)
-    at HTMLButtonElement.<anonymous> (new-auth.js:197:17)
-validateEmail @ new-auth.js:411
-validateRegisterForm @ new-auth.js:852
-handleRegister @ new-auth.js:657
-(anonymous) @ new-auth.js:197
-new-auth.js:178 [DEBUG] Register button clicked!
-new-auth.js:179 [DEBUG] Auth state loading: false
-new-auth.js:180 [DEBUG] Form validity: true
-new-auth.js:195 [DEBUG] Calling handleRegister directly
-new-auth.js:627 [DEBUG] handleRegister called
-new-auth.js:635 [DEBUG] Creating FormData from target: <form id=​"registerFormElement" class=​"form">​…​</form>​
-new-auth.js:640 [DEBUG] FormData - first_name: Fernando
-new-auth.js:640 [DEBUG] FormData - last_name: Suarez
-new-auth.js:640 [DEBUG] FormData - username: FernandoSG
-new-auth.js:640 [DEBUG] FormData - phone: +52 55 1234 5678
-new-auth.js:640 [DEBUG] FormData - email: fernando.suarez@ecosdeliderazgo.com
-new-auth.js:640 [DEBUG] FormData - password: 9Re*@7Eq1kJaJPu5!m!u
-new-auth.js:640 [DEBUG] FormData - confirm_password: 9Re*@7Eq1kJaJPu5!m!u
-new-auth.js:640 [DEBUG] FormData - accept_terms: on
-new-auth.js:640 [DEBUG] FormData - accept_privacy: on
-new-auth.js:654 [DEBUG] Parsed userData: {first_name: 'Fernando', last_name: 'Suarez', username: 'fernandosg', phone: '+52 55 1234 5678', email: 'fernando.suarez@ecosdeliderazgo.com', …}
-new-auth.js:824 [DEBUG] validateRegisterForm called with: {first_name: 'Fernando', last_name: 'Suarez', username: 'fernandosg', phone: '+52 55 1234 5678', email: 'fernando.suarez@ecosdeliderazgo.com', …}
-new-auth.js:411 Uncaught (in promise) TypeError: Cannot set properties of undefined (setting 'borderColor')
-    at validateEmail (new-auth.js:411:29)
-    at validateRegisterForm (new-auth.js:852:10)
-    at handleRegister (new-auth.js:657:10)
-    at HTMLButtonElement.<anonymous> (new-auth.js:197:17)
-validateEmail @ new-auth.js:411
-validateRegisterForm @ new-auth.js:852
-handleRegister @ new-auth.js:657
-(anonymous) @ new-auth.js:197

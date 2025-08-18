@@ -16,14 +16,27 @@
 	const SUPABASE_URL = getMeta('supabase-url') || fallback.url;
 	const SUPABASE_ANON_KEY = getMeta('supabase-key') || fallback.key;
 
-	if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL === 'https://your-project.supabase.co' || SUPABASE_ANON_KEY === 'your-anon-key' || SUPABASE_ANON_KEY === 'TU_CLAVE_ANON_AQUI') {
+	const looksLikePlaceholder = (key) => {
+		if (!key) return true;
+		if (key.includes('your-anon-key') || key.includes('TU_CLAVE_ANON_AQUI')) return true;
+		if (/someGeneratedSignatureHere/i.test(key)) return true;
+		const parts = key.split('.');
+		return parts.length !== 3;
+	};
+
+	if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL === 'https://your-project.supabase.co' || looksLikePlaceholder(SUPABASE_ANON_KEY)) {
 		console.warn('[Supabase] Credenciales no configuradas. Usando modo desarrollo.');
 		window.supabase = null;
 	} else {
 		try {
 			// Importar dinámicamente Supabase
 			const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
-			const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+			if (!window.__supabaseInstance) {
+				window.__supabaseInstance = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+					auth: { storageKey: 'sb-lia' }
+				});
+			}
+			const supabase = window.__supabaseInstance;
 			
 			// Exponer de forma global para scripts no-modulo
 			window.supabase = supabase;

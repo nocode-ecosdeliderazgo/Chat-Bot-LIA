@@ -14,8 +14,12 @@
     <meta name="description" content="Mis Cursos - Panel de aprendizaje personal con seguimiento de progreso">
     <meta name="keywords" content="cursos, aprendizaje, progreso, IA, educación">
     <meta name="author" content="Lia">
+    
+    <!-- Auth Guard - Protección de autenticación -->
+    <script src="utils/auth-guard.js"></script>
 </head>
 <body class="courses-page">
+    <div class="particles-container"></div>
 
 
     <!-- Contenido principal -->
@@ -26,6 +30,10 @@
                 <button class="tab-button active" data-tab="all-courses">
                     <i class='bx bx-book'></i>
                     Mis cursos
+                </button>
+                <button class="tab-button" onclick="location.href='cursos.html'">
+                    <i class='bx bx-collection'></i>
+                    Cursos
                 </button>
                 <button class="tab-button" data-tab="noticias">
                     <i class='bx bx-news'></i>
@@ -263,6 +271,8 @@
         </div>
     </main>
 
+    <script src="scripts/particles.js"></script>
+    <script src="scripts/main.js"></script>
     <script src="scripts/courses.js"></script>
 </body>
 </html>

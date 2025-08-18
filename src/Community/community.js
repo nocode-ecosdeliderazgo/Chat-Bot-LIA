@@ -9,27 +9,11 @@ class CommunityPage {
             role: 'Estudiante',
             avatar: 'fas fa-user'
         };
-        this.chatData = {
-            general: {
-                title: 'Chat General',
-                subtitle: 'Discusiones generales sobre IA y tecnología',
-                messages: [],
-                onlineUsers: 0
-            },
-            role: {
-                title: 'Chat por Rol',
-                subtitle: 'Conversaciones específicas por rol',
-                messages: [],
-                onlineUsers: 0
-            },
-            courses: {
-                title: 'Chat de Cursos',
-                subtitle: 'Discusiones sobre cursos específicos',
-                messages: [],
-                onlineUsers: 0
-            }
-        };
-        this.activityData = [];
+        // Datos de Discover
+        this.communities = [];
+        this.communityStats = { totalMembers: 0, totalPosts: 0 };
+        this.posts = [];
+        this.leaderboard = [];
         
         this.init();
     }
@@ -39,6 +23,7 @@ class CommunityPage {
         this.loadCommunityData();
         this.updateStats();
         this.setupAnimations();
+        this.fillUserHeader();
     }
 
     // ===== EVENT LISTENERS =====
@@ -46,77 +31,114 @@ class CommunityPage {
         // Navigation bar functionality
         const tabButtons = document.querySelectorAll('.tab-button');
         tabButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.handleTabClick(btn);
+            if(btn.dataset && btn.dataset.tab){
+                btn.addEventListener('click', () => { this.handleTabClick(btn); });
+            }
+        });
+
+        // Filtros Discover
+        document.querySelectorAll('.discover-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('.discover-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                this.renderDiscover(chip.dataset.category, (document.getElementById('discoverSearch')?.value || ''));
             });
         });
 
-        // Chat room buttons
-        const joinChatBtns = document.querySelectorAll('.join-chat-btn');
-        joinChatBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const chatType = btn.dataset.chat;
-                if (chatType === 'general') {
-                    window.location.href = '../ChatGeneral/chat-general.html';
-                } else {
-                    this.openChat(chatType);
-                }
-            });
-        });
-
-        // Chat modal functionality
-        const closeChatBtn = document.getElementById('closeChatBtn');
-        const chatModal = document.getElementById('chatModal');
-        const sendMessageBtn = document.getElementById('sendMessageBtn');
-        const chatInput = document.getElementById('chatInput');
-
-        if (closeChatBtn) {
-            closeChatBtn.addEventListener('click', () => {
-                this.closeChat();
+        // Búsqueda Discover
+        const search = document.getElementById('discoverSearch');
+        const clearBtn = document.getElementById('discoverClear');
+        if(search){
+            const trigger = () => {
+                const active = document.querySelector('.discover-chip.active');
+                const cat = active ? active.dataset.category : 'all';
+                const q = search.value.trim();
+                if(clearBtn){ clearBtn.style.display = q ? 'inline-flex' : 'none'; }
+                this.renderDiscover(cat, q);
+            };
+            search.addEventListener('input', trigger);
+            search.addEventListener('keypress', (e)=>{ if(e.key==='Enter'){ trigger(); }});
+        }
+        if(clearBtn){
+            clearBtn.addEventListener('click', ()=>{
+                const searchEl = document.getElementById('discoverSearch');
+                if(searchEl){ searchEl.value=''; }
+                clearBtn.style.display='none';
+                const active = document.querySelector('.discover-chip.active');
+                const cat = active ? active.dataset.category : 'all';
+                this.renderDiscover(cat, '');
+                searchEl?.focus();
             });
         }
 
-        if (chatModal) {
-            chatModal.addEventListener('click', (e) => {
-                if (e.target === chatModal) {
-                    this.closeChat();
+        // (Feed removido)
+    }
+
+    fillUserHeader(){
+        try{
+            const raw = localStorage.getItem('currentUser');
+            if(raw) {
+                const user = JSON.parse(raw);
+                const nameEl = document.getElementById('pmName');
+                const emailEl = document.getElementById('pmEmail');
+                if(nameEl && user.display_name) nameEl.textContent = user.display_name;
+                if(emailEl && user.email) emailEl.textContent = user.email;
+                if(user.avatar_url){
+                    document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img=>{img.src=user.avatar_url;});
                 }
-            });
+            }
+        }catch(e){
+            console.log('Error loading user data:', e);
         }
+        
+        // Setup profile menu functionality
+        this.setupProfileMenu();
+    }
 
-        if (sendMessageBtn && chatInput) {
-            sendMessageBtn.addEventListener('click', () => {
-                this.sendMessage();
-            });
-
-            chatInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.sendMessage();
+    setupProfileMenu() {
+        // Intentar varias veces para asegurar que los elementos existan
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        const trySetup = () => {
+            const avatarBtn = document.querySelector('.header-profile');
+            const menu = document.getElementById('profileMenu');
+            
+            if(avatarBtn && menu) {
+                console.log('Setting up profile menu');
+                
+                // Remover listeners previos para evitar duplicados
+                avatarBtn.removeEventListener('click', this.handleProfileClick);
+                
+                // Crear función bound para poder removerla después
+                this.handleProfileClick = (e) => { 
+                    e.preventDefault(); 
+                    e.stopPropagation();
+                    console.log('Profile button clicked');
+                    menu.classList.toggle('show');
+                };
+                
+                avatarBtn.addEventListener('click', this.handleProfileClick);
+                
+                // Click fuera para cerrar
+                document.addEventListener('click', (e) => { 
+                    if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+                        menu.classList.remove('show');
+                    }
+                });
+                
+                return true;
+            } else {
+                attempts++;
+                console.log(`Profile elements not found, attempt ${attempts}/${maxAttempts}`);
+                if(attempts < maxAttempts) {
+                    setTimeout(trySetup, 100);
                 }
-            });
-        }
-
-        // Load more activity button
-        const loadMoreActivityBtn = document.getElementById('loadMoreActivity');
-        if (loadMoreActivityBtn) {
-            loadMoreActivityBtn.addEventListener('click', () => {
-                this.loadMoreActivity();
-            });
-        }
-
-        // Chat room card clicks
-        const chatRoomCards = document.querySelectorAll('.chat-room-card');
-        chatRoomCards.forEach(card => {
-            card.addEventListener('click', () => {
-                const chatType = card.dataset.chat;
-                if (chatType === 'general') {
-                    window.location.href = '../ChatGeneral/chat-general.html';
-                } else {
-                    this.openChat(chatType);
-                }
-            });
-        });
+                return false;
+            }
+        };
+        
+        trySetup();
     }
 
     // ===== NAVIGATION HANDLING =====
@@ -127,8 +149,8 @@ class CommunityPage {
         // Handle different tabs
         switch(tab) {
             case 'mis-cursos':
-                // Navigate directly to courses page without showing toast
-                window.location.href = '../courses.html';
+                // Navegar a la versión ES de cursos
+                window.location.href = '../cursos.html';
                 break;
             case 'noticias':
                 // Navigate directly to news page without showing toast
@@ -150,227 +172,72 @@ class CommunityPage {
     loadCommunityData() {
         this.showLoading();
         
-        // Simulate API call delay
+        // Simula llamada a API
         setTimeout(() => {
             this.loadMockData();
-            this.renderActivityFeed();
+            this.renderDiscover('all', '');
+            // (Sin feed)
+            this.updateStats();
             this.hideLoading();
         }, 1000);
     }
 
     loadMockData() {
-        // Mock community statistics
-        this.communityStats = {
-            totalMembers: 1247,
-            activeChats: 3,
-            totalMessages: 8923
-        };
+        // Estadísticas
+        this.communityStats = { totalMembers: 1247, totalPosts: 0 };
 
-        // Mock chat data
-        this.chatData.general.messages = [
-            {
-                id: 1,
-                user: 'Ana Martínez',
-                avatar: 'fas fa-user',
-                message: '¡Hola a todos! ¿Alguien está tomando el curso de Machine Learning?',
-                time: '10:30',
-                isOwn: false
-            },
-            {
-                id: 2,
-                user: 'Carlos López',
-                avatar: 'fas fa-user',
-                message: '¡Hola Ana! Sí, yo lo estoy tomando. Es muy interesante.',
-                time: '10:32',
-                isOwn: false
-            },
-            {
-                id: 3,
-                user: this.currentUser.name,
-                avatar: this.currentUser.avatar,
-                message: '¡Hola! Yo también estoy interesado en ese curso.',
-                time: '10:35',
-                isOwn: true
-            }
+        // Grid Discover (categorías solicitadas)
+        this.communities = [
+            { id:1, rank:1, title:'Skoolers', category:'negocios', members:'74.3k', price:'Free', desc:"Private club for skool owners. Let's build communities together.", thumb:'', icon:'fas fa-users' },
+            { id:2, rank:2, title:'AI Automation Agency Hub', category:'ia', members:'225.4k', price:'Free', desc:'Start Your AI Automation Agency — plantillas y recursos.', thumb:'', icon:'fas fa-robot' },
+            { id:3, rank:3, title:'AI Automation (A-Z)', category:'ia', members:'87.4k', price:'Free', desc:'Learn to build and scale your agency.', thumb:'', icon:'fas fa-microchip' },
+            { id:4, rank:4, title:'AI Automation Society', category:'ia', members:'116.8k', price:'Free', desc:'Mastering AI-driven automation and agents.', thumb:'', icon:'fas fa-brain' },
+            { id:5, rank:5, title:'UDNIA', category:'negocios', members:'2.1k', price:'$49/month', desc:'Comunidad hispana para ganar dinero con IA.', thumb:'', icon:'fas fa-briefcase' },
+            { id:6, rank:6, title:'KubeCraft Career Accelerator', category:'it', members:'783', price:'Paid', desc:'Upskill with job‑ready projects.', thumb:'', icon:'fas fa-gear' },
+            { id:7, rank:7, title:'Data Wizards', category:'datos', members:'12.4k', price:'Free', desc:'Ingeniería de datos, analytics y BI.', thumb:'', icon:'fas fa-database' },
+            { id:8, rank:8, title:'Dev Builders', category:'desarrollo', members:'32.1k', price:'Free', desc:'Full‑stack, APIs y automatización.', thumb:'', icon:'fas fa-code' },
+            { id:9, rank:9, title:'Creative Design Hub', category:'diseno', members:'9.8k', price:'Free', desc:'UI/UX, motion y branding.', thumb:'', icon:'fas fa-pen-nib' },
+            { id:10, rank:10, title:'Growth Marketers', category:'marketing', members:'18.6k', price:'Free', desc:'Ads, SEO y growth.', thumb:'', icon:'fas fa-bullhorn' }
         ];
 
-        this.chatData.role.messages = [
-            {
-                id: 1,
-                user: 'María González',
-                avatar: 'fas fa-user',
-                message: '¿Alguien más es estudiante de ingeniería?',
-                time: '09:15',
-                isOwn: false
-            }
-        ];
-
-        this.chatData.courses.messages = [
-            {
-                id: 1,
-                user: 'Roberto Silva',
-                avatar: 'fas fa-user',
-                message: '¿Cómo va el progreso del curso de ChatGPT?',
-                time: '11:20',
-                isOwn: false
-            }
-        ];
-
-        // Mock activity data
-        this.activityData = [
-            {
-                id: 1,
-                user: 'Ana Martínez',
-                avatar: 'fas fa-user',
-                action: 'se unió al chat general',
-                time: 'Hace 5 minutos'
-            },
-            {
-                id: 2,
-                user: 'Carlos López',
-                avatar: 'fas fa-user',
-                action: 'completó el módulo 3 del curso de IA',
-                time: 'Hace 15 minutos'
-            },
-            {
-                id: 3,
-                user: 'María González',
-                avatar: 'fas fa-user',
-                action: 'inició una nueva discusión sobre Machine Learning',
-                time: 'Hace 1 hora'
-            },
-            {
-                id: 4,
-                user: 'Roberto Silva',
-                avatar: 'fas fa-user',
-                action: 'compartió un recurso útil en el chat de cursos',
-                time: 'Hace 2 horas'
-            }
-        ];
-
-        // Update online users
-        this.chatData.general.onlineUsers = 15;
-        this.chatData.role.onlineUsers = 8;
-        this.chatData.courses.onlineUsers = 12;
+        // (sin posts/leaderboard)
     }
 
-    // ===== CHAT FUNCTIONALITY =====
-    openChat(chatType) {
-        this.currentChat = chatType;
-        const chatData = this.chatData[chatType];
-        
-        if (!chatData) return;
-
-        // Update modal content
-        document.getElementById('modalChatTitle').textContent = chatData.title;
-        document.getElementById('modalChatSubtitle').textContent = `${chatData.onlineUsers} miembros en línea`;
-        
-        // Render messages
-        this.renderChatMessages(chatType);
-        
-        // Show modal
-        document.getElementById('chatModal').classList.add('active');
-        
-        // Focus on input
-        setTimeout(() => {
-            document.getElementById('chatInput').focus();
-        }, 100);
-
-        this.showToast(`Te has unido al ${chatData.title}`, 'success');
-    }
-
-    closeChat() {
-        document.getElementById('chatModal').classList.remove('active');
-        this.currentChat = null;
-        
-        // Clear input
-        document.getElementById('chatInput').value = '';
-    }
-
-    sendMessage() {
-        const chatInput = document.getElementById('chatInput');
-        const message = chatInput.value.trim();
-        
-        if (!message || !this.currentChat) return;
-
-        // Create new message
-        const newMessage = {
-            id: Date.now(),
-            user: this.currentUser.name,
-            avatar: this.currentUser.avatar,
-            message: message,
-            time: new Date().toLocaleTimeString('es-ES', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            }),
-            isOwn: true
-        };
-
-        // Add to chat data
-        this.chatData[this.currentChat].messages.push(newMessage);
-        
-        // Render new message
-        this.renderChatMessages(this.currentChat);
-        
-        // Clear input
-        chatInput.value = '';
-        
-        // Simulate response after 2 seconds
-        setTimeout(() => {
-            this.simulateResponse();
-        }, 2000);
-    }
-
-    simulateResponse() {
-        if (!this.currentChat) return;
-
-        const responses = [
-            '¡Excelente punto!',
-            'Gracias por compartir eso.',
-            'Estoy de acuerdo contigo.',
-            '¿Podrías explicar más sobre eso?',
-            '¡Muy interesante!'
-        ];
-
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        const randomUsers = ['Ana Martínez', 'Carlos López', 'María González', 'Roberto Silva'];
-        const randomUser = randomUsers[Math.floor(Math.random() * randomUsers.length)];
-
-        const responseMessage = {
-            id: Date.now(),
-            user: randomUser,
-            avatar: 'fas fa-user',
-            message: randomResponse,
-            time: new Date().toLocaleTimeString('es-ES', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            }),
-            isOwn: false
-        };
-
-        this.chatData[this.currentChat].messages.push(responseMessage);
-        this.renderChatMessages(this.currentChat);
-    }
-
-    renderChatMessages(chatType) {
-        const chatMessages = document.getElementById('chatMessages');
-        const messages = this.chatData[chatType].messages;
-        
-        chatMessages.innerHTML = messages.map(msg => `
-            <div class="message ${msg.isOwn ? 'own' : ''}">
-                <div class="message-avatar">
-                    <i class="${msg.avatar}"></i>
-                </div>
-                <div class="message-content">
-                    <div class="message-text">${msg.message}</div>
-                    <div class="message-time">${msg.time}</div>
+    // ===== DISCOVER GRID =====
+    renderDiscover(category='all', query=''){
+        const grid = document.getElementById('discoverGrid');
+        if(!grid) return;
+        const byCat = category==='all' ? this.communities : this.communities.filter(c=> c.category===category);
+        const q = (query||'').toLowerCase();
+        const list = q ? byCat.filter(c => `${c.title} ${c.desc}`.toLowerCase().includes(q)) : byCat;
+        grid.innerHTML = list.map(c => `
+            <div class="discover-card" data-id="${c.id}">
+                <div class="discover-thumb"></div>
+                <div class="discover-body">
+                    <div class="discover-icon"><i class="${c.icon}"></i></div>
+                    <div class="discover-main">
+                        <div class="discover-title">${c.title}</div>
+                        <div class="discover-desc">${c.desc}</div>
+                        <div class="discover-meta"><span>${c.members} Members</span><span class="dot"></span><span>${c.price}</span></div>
+                    </div>
                 </div>
             </div>
         `).join('');
 
-        // Scroll to bottom
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        // Asignar click -> abrir vista
+        grid.querySelectorAll('.discover-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const id = card.getAttribute('data-id');
+                const item = this.communities.find(x => String(x.id) === String(id));
+                if(item){
+                    localStorage.setItem('community.view.item', JSON.stringify(item));
+                    window.location.href = './community-view.html';
+                }
+            });
+        });
     }
+
+    // (Se elimina el módulo de feed)
 
     // ===== ACTIVITY FEED =====
     renderActivityFeed() {
@@ -422,38 +289,14 @@ class CommunityPage {
 
     // ===== STATISTICS =====
     updateStats() {
-        // Update hero statistics
+        // Estadísticas del hero
         const totalMembersElement = document.getElementById('totalMembers');
-        const totalMessagesElement = document.getElementById('totalMessages');
-        
-        if (totalMembersElement) {
-            this.animateNumber(totalMembersElement, 0, this.communityStats.totalMembers, 2000);
-        }
-        
-        if (totalMessagesElement) {
-            this.animateNumber(totalMessagesElement, 0, this.communityStats.totalMessages, 2000);
-        }
-
-        // Update chat room statistics
-        this.updateChatStats();
+        const totalPostsElement = document.getElementById('totalPosts');
+        if (totalMembersElement) this.animateNumber(totalMembersElement, 0, this.communityStats.totalMembers, 2000);
+        if (totalPostsElement) this.animateNumber(totalPostsElement, 0, (this.communities?.length || this.communityStats.totalPosts), 2000);
     }
 
-    updateChatStats() {
-        // Update online users and message counts for each chat
-        Object.keys(this.chatData).forEach(chatType => {
-            const chatData = this.chatData[chatType];
-            const onlineElement = document.getElementById(`${chatType}Online`);
-            const messagesElement = document.getElementById(`${chatType}Messages`);
-            
-            if (onlineElement) {
-                onlineElement.textContent = chatData.onlineUsers;
-            }
-            
-            if (messagesElement) {
-                messagesElement.textContent = chatData.messages.length;
-            }
-        });
-    }
+    // (Se elimina updateChatStats)
 
     animateNumber(element, start, end, duration) {
         const startTime = performance.now();
@@ -493,7 +336,7 @@ class CommunityPage {
         }, observerOptions);
 
         // Observe elements for animation
-        document.querySelectorAll('.chat-room-card, .guideline-card, .activity-item').forEach(el => {
+        document.querySelectorAll('.guideline-card, .discover-card').forEach(el => {
             el.style.opacity = '0';
             el.style.transform = 'translateY(30px)';
             el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
@@ -547,7 +390,59 @@ let communityPage;
 
 document.addEventListener('DOMContentLoaded', () => {
     communityPage = new CommunityPage();
+    
+    // Configuración adicional del perfil como backup
+    setTimeout(() => {
+        setupProfileMenuDirect();
+    }, 500);
+});
+
+// Función directa para configurar el menú de perfil
+function setupProfileMenuDirect() {
+    const avatarBtn = document.querySelector('.header-profile');
+    const menu = document.getElementById('profileMenu');
+    
+    if(avatarBtn && menu) {
+        console.log('Direct profile menu setup');
+        
+        avatarBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Direct profile click handler');
+            menu.classList.toggle('show');
+        };
+        
+        document.onclick = function(e) {
+            if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        };
+    } else {
+        console.log('Profile elements still not found in direct setup');
+    }
+}
+
+// Función global para toggle del menú (inline handler)
+function toggleProfileMenu(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    console.log('Inline toggle profile menu');
+    const menu = document.getElementById('profileMenu');
+    if(menu) {
+        menu.classList.toggle('show');
+    }
+}
+
+// Click fuera para cerrar (configurar una sola vez)
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('profileMenu');
+    const avatarBtn = document.querySelector('.header-profile');
+    if(menu && avatarBtn && !menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+        menu.classList.remove('show');
+    }
 });
 
 // ===== GLOBAL FUNCTIONS =====
 window.communityPage = communityPage;
+window.setupProfileMenuDirect = setupProfileMenuDirect;
+window.toggleProfileMenu = toggleProfileMenu;
