@@ -155,7 +155,7 @@ class NoticesPage {
             const nameEl = document.getElementById('pmName');
             const emailEl = document.getElementById('pmEmail');
             if(nameEl && user.display_name) nameEl.textContent = user.display_name;
-            if(emailEl && user.email) emailEl.textContent = user.email;
+            if(emailEl) emailEl.textContent = user.email || user.user?.email || user.data?.email || '';
             if(user.avatar_url){
                 document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img=>{img.src=user.avatar_url;});
             }
@@ -754,7 +754,7 @@ function setupProfileMenuDirect() {
                 const nameEl = document.getElementById('pmName');
                 const emailEl = document.getElementById('pmEmail');
                 if(nameEl && user.display_name) nameEl.textContent = user.display_name;
-                if(emailEl && user.email) emailEl.textContent = user.email;
+                if(emailEl) emailEl.textContent = user.email || user.user?.email || user.data?.email || '';
                 if(user.avatar_url) {
                     document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {
                         img.src = user.avatar_url;
@@ -854,7 +854,7 @@ function loadUserDataIntoMenu() {
             const emailEl = document.getElementById('pmEmail');
             
             if(nameEl && user.display_name) nameEl.textContent = user.display_name;
-            if(emailEl && user.email) emailEl.textContent = user.email;
+            if(emailEl) emailEl.textContent = user.email || user.user?.email || user.data?.email || '';
             
             if(user.avatar_url) {
                 document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {

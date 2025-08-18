@@ -570,16 +570,39 @@ app.get('/api/profile', async (req, res) => {
         }
         const where = userId ? 'id = $1' : (username ? 'LOWER(username) = LOWER($1)' : 'LOWER(email) = LOWER($1)');
         const value = userId || username || email;
-        const q = `SELECT id, username, email, display_name, first_name, last_name, cargo_rol, type_rol, phone, bio, location, 
-                          profile_picture_url, curriculum_url, linkedin_url, github_url, website_url,
-                          created_at, updated_at, last_login_at 
-                   FROM users WHERE ${where} LIMIT 1`;
+
+        // Detectar columnas existentes para compatibilidad con distintos esquemas
+        // Detectar esquema que contiene la tabla users (no asumir 'public')
+        const tblInfo = await pool.query(`
+            SELECT schemaname FROM pg_catalog.pg_tables 
+            WHERE tablename = 'users' 
+            ORDER BY (schemaname = 'public') DESC
+            LIMIT 1
+        `);
+        const schema = tblInfo.rows?.[0]?.schemaname || 'public';
+        const qualified = `${schema}.users`;
+
+        const colsRes = await pool.query(`
+            SELECT column_name FROM information_schema.columns
+            WHERE table_schema = $1 AND table_name = 'users'
+        `, [schema]);
+        const cols = new Set(colsRes.rows.map(r => r.column_name));
+        const want = [
+            'id','username','email','display_name','first_name','last_name','cargo_rol','type_rol','phone','bio','location',
+            'profile_picture_url','curriculum_url','linkedin_url','github_url','website_url','created_at','updated_at','last_login_at'
+        ];
+        const selected = want.filter(c => cols.has(c));
+        // Siempre incluir id, username, email si existen
+        if (!selected.includes('id') && cols.has('id')) selected.unshift('id');
+        if (!selected.includes('username') && cols.has('username')) selected.unshift('username');
+        if (!selected.includes('email') && cols.has('email')) selected.unshift('email');
+        const q = `SELECT ${selected.join(', ')} FROM ${qualified} WHERE ${where} LIMIT 1`;
         const r = await pool.query(q, [String(value)]);
         if (r.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
         return res.json({ user: r.rows[0] });
     } catch (err) {
         console.error('Error en GET /api/profile:', err);
-        return res.status(500).json({ error: 'Error obteniendo perfil' });
+        return res.status(500).json({ error: 'Error obteniendo perfil', details: process.env.NODE_ENV !== 'production' ? String(err.message || err) : undefined });
     }
 });
 
@@ -588,24 +611,44 @@ app.put('/api/profile', async (req, res) => {
         if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
         const { id, username } = req.body || {};
         if (!id && !username) return res.status(400).json({ error: 'id o username requerido' });
+        // Filtrar por columnas realmente existentes
+        // Detectar esquema de users
+        const tblInfo = await pool.query(`
+            SELECT schemaname FROM pg_catalog.pg_tables 
+            WHERE tablename = 'users' 
+            ORDER BY (schemaname = 'public') DESC
+            LIMIT 1
+        `);
+        const schema = tblInfo.rows?.[0]?.schemaname || 'public';
+        const qualified = `${schema}.users`;
+
+        const colsRes = await pool.query(`
+            SELECT column_name FROM information_schema.columns
+            WHERE table_schema = $1 AND table_name = 'users'
+        `, [schema]);
+        const existing = new Set(colsRes.rows.map(r => r.column_name));
         const allowed = ['email','display_name','first_name','last_name','cargo_rol','type_rol','phone','bio','location',
                          'linkedin_url','github_url','website_url','profile_picture_url','curriculum_url'];
         const updates = {};
         for (const key of allowed) {
-            if (key in (req.body || {})) updates[key] = req.body[key];
+            if (key in (req.body || {}) && existing.has(key)) updates[key] = req.body[key];
         }
         if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'Sin campos para actualizar' });
         const setClauses = Object.keys(updates).map((k, i) => `${k} = $${i+1}`);
+        if (existing.has('updated_at')) setClauses.push('updated_at = NOW()');
         const params = Object.values(updates);
         params.push(id || username);
         const where = id ? `id = $${params.length}` : `LOWER(username) = LOWER($${params.length})`;
-        const q = `UPDATE users SET ${setClauses.join(', ')}, updated_at = NOW() WHERE ${where} RETURNING id, username, email, display_name, first_name, last_name, cargo_rol, type_rol, phone, bio, location, profile_picture_url, curriculum_url`;
+        // Campos a retornar (solo los que existan)
+        const returnCols = ['id','username','email','display_name','first_name','last_name','cargo_rol','type_rol','phone','bio','location','profile_picture_url','curriculum_url']
+            .filter(c => existing.has(c)).join(', ');
+        const q = `UPDATE ${qualified} SET ${setClauses.join(', ')} WHERE ${where} RETURNING ${returnCols}`;
         const r = await pool.query(q, params);
         if (r.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
         return res.json({ user: r.rows[0] });
     } catch (err) {
         console.error('Error en PUT /api/profile:', err);
-        return res.status(500).json({ error: 'Error actualizando perfil' });
+        return res.status(500).json({ error: 'Error actualizando perfil', details: process.env.NODE_ENV !== 'production' ? String(err.message || err) : undefined });
     }
 });
 

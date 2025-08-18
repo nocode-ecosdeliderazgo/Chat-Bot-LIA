@@ -36,13 +36,28 @@ class ProfileManager {
             // Obtener perfil desde backend por username o email
             const tryFetch = async () => {
                 const attempts = [];
+                if (sessionUser.id && !String(sessionUser.id).startsWith('dev-')) attempts.push(`userId=${encodeURIComponent(sessionUser.id)}`);
                 if (sessionUser.username) attempts.push(`username=${encodeURIComponent(sessionUser.username)}`);
                 if (sessionUser.email) attempts.push(`email=${encodeURIComponent(sessionUser.email)}`);
                 for (const q of attempts) {
-                    const r = await fetch(`/api/profile?${q}`);
-                    if (r.ok) return r.json();
+                    try {
+                        const r = await fetch(`/api/profile?${q}`);
+                        if (r.ok) return r.json();
+                    } catch(_) {}
                 }
-                throw new Error('No se pudo cargar el perfil');
+                // Fallback: construir perfil básico desde localStorage si backend falla
+                return {
+                    user: {
+                        id: sessionUser.id || null,
+                        username: sessionUser.username || 'usuario',
+                        email: sessionUser.email || '',
+                        display_name: sessionUser.display_name || sessionUser.username || '',
+                        first_name: '',
+                        last_name: '',
+                        cargo_rol: 'Usuario',
+                        type_rol: 'usuario'
+                    }
+                };
             };
             const { user: data } = await tryFetch();
 
@@ -250,14 +265,26 @@ class ProfileManager {
     async persistPartial(updates) {
         const body = { ...updates };
         if (this.currentUser?.id) body.id = this.currentUser.id; else body.username = this.currentUser.username;
-        const resp = await fetch('/api/profile', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-        if (!resp.ok) throw new Error('Persist failed');
-        const { user } = await resp.json();
-        Object.assign(this.currentUser, user);
+        try {
+            const resp = await fetch('/api/profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!resp.ok) throw new Error('Persist failed');
+            const { user } = await resp.json();
+            Object.assign(this.currentUser, user);
+        } catch (e) {
+            // Fallback local: guardar en localStorage cuando el backend no está disponible
+            try {
+                const KEY = 'user_profile_local';
+                const store = JSON.parse(localStorage.getItem(KEY) || '{}');
+                const key = this.currentUser?.username || 'usuario';
+                store[key] = { ...(store[key] || {}), ...body };
+                localStorage.setItem(KEY, JSON.stringify(store));
+                Object.assign(this.currentUser, body);
+            } catch (_) { /* ignore */ }
+        }
     }
 
     validateFile(file, type) {
@@ -447,13 +474,28 @@ class ProfileManager {
         const body = { ...updates };
         if (this.currentUser?.id) body.id = this.currentUser.id; else body.username = this.currentUser.username;
 
-        const resp = await fetch('/api/profile', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-        if (!resp.ok) throw new Error('No se pudo actualizar el perfil');
-        const { user } = await resp.json();
+        let user;
+        try {
+            const resp = await fetch('/api/profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!resp.ok) throw new Error('No se pudo actualizar el perfil');
+            ({ user } = await resp.json());
+        } catch (err) {
+            // Fallback local: persistir en localStorage y continuar
+            const KEY = 'user_profile_local';
+            try {
+                const store = JSON.parse(localStorage.getItem(KEY) || '{}');
+                const key = this.currentUser?.username || body.username || 'usuario';
+                store[key] = { ...(store[key] || {}), ...body };
+                localStorage.setItem(KEY, JSON.stringify(store));
+                user = { ...store[key] };
+            } catch (_) {
+                throw err; // si no podemos guardar localmente, re-lanzamos
+            }
+        }
 
         // Refrescar datos locales y UI
         Object.assign(this.profileData, {

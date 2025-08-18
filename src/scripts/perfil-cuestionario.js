@@ -256,6 +256,45 @@ class ProfileQuestionnaire {
         document.getElementById('summaryNivelValue').textContent = this.profileData.nivel;
         document.getElementById('summaryRelacionValue').textContent = this.profileData.relacion;
 
+        // Mostrar correo si hay sesión o en localStorage.currentUser
+        const emailRow = document.getElementById('summaryEmailRow');
+        const emailValue = document.getElementById('summaryEmailValue');
+        const setEmail = (email) => {
+            if (!emailRow || !emailValue) return;
+            if (email) { emailValue.textContent = email; emailRow.style.display = 'flex'; }
+            else { emailRow.style.display = 'none'; }
+        };
+        (async () => {
+            try {
+                if (window.supabase && window.supabase.auth) {
+                    const { data: { session } } = await window.supabase.auth.getSession();
+                    const email = session?.user?.email || '';
+                    if (email) { setEmail(email); return; }
+                }
+            } catch(_) {}
+            try {
+                const raw = localStorage.getItem('currentUser');
+                const u = raw ? JSON.parse(raw) : null;
+                let email = u?.email || u?.user?.email || u?.data?.email || '';
+                if (!email) {
+                    const params = new URLSearchParams();
+                    if (u?.id && !String(u.id).startsWith('dev-')) params.set('userId', u.id);
+                    else if (u?.username) params.set('username', u.username);
+                    else if (u?.email) params.set('email', u.email);
+                    if ([...params.keys()].length) {
+                        try {
+                            const resp = await fetch(`/api/profile?${params.toString()}`);
+                            if (resp.ok) {
+                                const json = await resp.json();
+                                email = json?.user?.email || '';
+                            }
+                        } catch(_) {}
+                    }
+                }
+                setEmail(email);
+            } catch(_) { setEmail(''); }
+        })();
+
         // Actualizar estado de override
         const profileOptions = document.querySelectorAll('.profile-option');
         profileOptions.forEach(option => {
