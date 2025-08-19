@@ -18,7 +18,19 @@
 </head>
 <body>
     <h1>Test - Flujo Usuario Nuevo</h1>
-    <p>Esta página permite probar el flujo completo de registro de un usuario nuevo y verificar que se asigne cargo_rol y se redirija al cuestionario.</p>
+    <p>Esta página permite probar el flujo completo de registro de un usuario nuevo y verificar que se asigne cargo_rol y se redirija al perfil-cuestionario seguido del cuestionario.</p>
+    
+    <div class="info section">
+        <h3>📋 Flujo Esperado para Usuarios Nuevos:</h3>
+        <ol>
+            <li><strong>Registro:</strong> Se asigna automáticamente <code>cargo_rol = 'usuario'</code></li>
+            <li><strong>Primer Login:</strong> Se detecta <code>isNewUser = true</code> (basado en <code>last_login_at = null</code>)</li>
+            <li><strong>Redirección 1:</strong> Va a <code>../perfil-cuestionario.html</code> (formulario de perfil profesional)</li>
+            <li><strong>Completar perfil:</strong> Usuario llena datos profesionales y selecciona perfil</li>
+            <li><strong>Redirección 2:</strong> Va a <code>q/form.html</code> (cuestionario adaptativo)</li>
+            <li><strong>Logins posteriores:</strong> Van directamente a página según rol</li>
+        </ol>
+    </div>
 
     <!-- Registro -->
     <div class="section">
@@ -154,7 +166,7 @@
                         <pre>${JSON.stringify(result.user, null, 2)}</pre>
                         <strong>cargo_rol:</strong> ${result.user.cargo_rol || 'NO ASIGNADO'}<br>
                         <strong>isNewUser:</strong> ${result.user.isNewUser}<br>
-                        <strong>Redirección esperada:</strong> ${result.user.isNewUser ? '../q/form.html (CUESTIONARIO)' : 'Página de rol correspondiente'}
+                        <strong>Redirección esperada:</strong> ${result.user.isNewUser ? '../perfil-cuestionario.html → q/form.html (PERFIL + CUESTIONARIO)' : 'Página de rol correspondiente'}
                     `, 'success');
                     
                     // Auto-fill check form

@@ -1120,10 +1120,10 @@ function getRedirectPageByRole(userRole, isNewUser = false) {
     
     devLog('Determinando redirección para rol:', normalizedRole, 'Usuario nuevo:', isNewUser);
     
-    // Si es un usuario nuevo, siempre ir al cuestionario primero
+    // Si es un usuario nuevo, siempre ir al perfil-cuestionario primero
     if (isNewUser) {
-        devLog('Usuario nuevo detectado, redirigiendo al cuestionario');
-        return '../q/form.html';
+        devLog('Usuario nuevo detectado, redirigiendo al perfil-cuestionario');
+        return '../perfil-cuestionario.html';
     }
     
     // Mapeo de roles a páginas para usuarios existentes
