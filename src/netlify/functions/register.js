@@ -70,23 +70,38 @@ exports.handler = async (event) => {
     // Hash de la contraseña
     const hash = await bcrypt.hash(String(password), 10);
 
-    // Usar el mismo esquema que server.js
+    // Usar el mismo esquema que server.js con cargo_rol por defecto
     let query, params;
     if (hasPassword) {
-      query = `INSERT INTO users (username, email, password_hash, first_name, last_name, display_name) 
-               VALUES ($1,$2,$3, NULL, NULL, $4) 
-               RETURNING id, username, email, display_name`;
-      params = [username, email, hash, full_name];
+      if (hasCargoRol) {
+        query = `INSERT INTO users (username, email, password_hash, first_name, last_name, display_name, cargo_rol) 
+                 VALUES ($1,$2,$3, NULL, NULL, $4, 'Usuario') 
+                 RETURNING id, username, email, display_name, cargo_rol`;
+        params = [username, email, hash, full_name];
+      } else {
+        query = `INSERT INTO users (username, email, password_hash, first_name, last_name, display_name) 
+                 VALUES ($1,$2,$3, NULL, NULL, $4) 
+                 RETURNING id, username, email, display_name`;
+        params = [username, email, hash, full_name];
+      }
     } else {
-      query = `INSERT INTO users (username, email, first_name, last_name, display_name) 
-               VALUES ($1,$2, NULL, NULL, $3) 
-               RETURNING id, username, email, display_name`;
-      params = [username, email, full_name];
+      if (hasCargoRol) {
+        query = `INSERT INTO users (username, email, first_name, last_name, display_name, cargo_rol) 
+                 VALUES ($1,$2, NULL, NULL, $3, 'Usuario') 
+                 RETURNING id, username, email, display_name, cargo_rol`;
+        params = [username, email, full_name];
+      } else {
+        query = `INSERT INTO users (username, email, first_name, last_name, display_name) 
+                 VALUES ($1,$2, NULL, NULL, $3) 
+                 RETURNING id, username, email, display_name`;
+        params = [username, email, full_name];
+      }
     }
 
     try {
       const result = await pool.query(query, params);
-      return json(201, { user: result.rows[0] }, event);
+      const userData = { ...result.rows[0], isNewUser: true };
+      return json(201, { user: userData }, event);
     } catch (error) {
       console.error('register insert error', error);
       
