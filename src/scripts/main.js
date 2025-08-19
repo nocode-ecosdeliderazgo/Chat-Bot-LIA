@@ -1,8 +1,11 @@
 // Inicializar partículas globales si existe el contenedor
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   if (typeof window.initializeParticleSystem === 'function') {
     window.initializeParticleSystem();
   }
+  
+  // Cargar estructura del curso desde la base de datos
+  await loadCourseSessions();
 });
 
 // Configuración del chatbot según PROMPT_CLAUDE.md
@@ -28,13 +31,29 @@ const CHATBOT_CONFIG = {
     }
 };
 
-// Estructura del curso: se obtiene directamente de course_module
-const COURSE_SESSIONS = {
-    '1': { title: 'Sesión 1: Descubriendo la IA para Profesionales' },
-    '2': { title: 'Sesión 2: Fundamentos de Machine Learning' },
-    '3': { title: 'Sesión 3: Deep Learning y Casos Prácticos' },
-    '4': { title: 'Sesión 4: Aplicaciones, Ética y Proyecto Final' }
-};
+// Estructura del curso: se carga dinámicamente desde course_module
+let COURSE_SESSIONS = {};
+
+// Cargar sesiones desde course_module
+async function loadCourseSessions() {
+    try {
+        const response = await fetch('/api/course-sessions');
+        if (response.ok) {
+            const data = await response.json();
+            COURSE_SESSIONS = data.sessions || {};
+            console.log('Sesiones cargadas desde course_module:', COURSE_SESSIONS);
+        }
+    } catch (error) {
+        console.error('Error cargando sesiones:', error);
+        // Fallback básico
+        COURSE_SESSIONS = {
+            '1': { title: 'Sesión 1' },
+            '2': { title: 'Sesión 2' },
+            '3': { title: 'Sesión 3' },
+            '4': { title: 'Sesión 4' }
+        };
+    }
+}
 
 // Estado del chatbot
 let chatState = {

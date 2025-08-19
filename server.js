@@ -1716,6 +1716,62 @@ app.get('/api/users/:userId/enrollments', authenticateRequest, async (req, res) 
     }
 });
 
+// Obtener estructura de sesiones desde course_module
+app.get('/api/course-sessions', async (req, res) => {
+    try {
+        if (!pool) {
+            return res.json({ 
+                sessions: {
+                    '1': { title: 'Sesión 1: Descubriendo la IA para Profesionales' },
+                    '2': { title: 'Sesión 2: Fundamentos de Machine Learning' },
+                    '3': { title: 'Sesión 3: Deep Learning y Casos Prácticos' },
+                    '4': { title: 'Sesión 4: Aplicaciones, Ética y Proyecto Final' }
+                }
+            });
+        }
+        
+        const query = `
+            SELECT 
+                session_id,
+                title,
+                description
+            FROM public.course_module 
+            WHERE session_id IS NOT NULL
+            ORDER BY session_id, position
+        `;
+        
+        const result = await pool.query(query);
+        const sessions = {};
+        
+        if (result.rows.length > 0) {
+            result.rows.forEach(row => {
+                const sessionId = String(row.session_id);
+                if (!sessions[sessionId]) {
+                    sessions[sessionId] = { title: row.title || `Sesión ${sessionId}` };
+                }
+            });
+        } else {
+            // Fallback si no hay datos
+            sessions['1'] = { title: 'Sesión 1: Descubriendo la IA para Profesionales' };
+            sessions['2'] = { title: 'Sesión 2: Dominando la Comunicación con IA (Agentes y Gemas)' };
+            sessions['3'] = { title: 'Sesión 3: IMPULSO con ChatGPT para PYMES' };
+            sessions['4'] = { title: 'Sesión 4: Estrategia y Proyecto Integrador' };
+        }
+        
+        res.json({ sessions });
+    } catch (error) {
+        console.error('Error obteniendo sesiones:', error);
+        res.json({ 
+            sessions: {
+                '1': { title: 'Sesión 1: Descubriendo la IA para Profesionales' },
+                '2': { title: 'Sesión 2: Dominando la Comunicación con IA (Agentes y Gemas)' },
+                '3': { title: 'Sesión 3: IMPULSO con ChatGPT para PYMES' },
+                '4': { title: 'Sesión 4: Estrategia y Proyecto Integrador' }
+            }
+        });
+    }
+});
+
 // Obtener temario completo de un curso
 app.get('/api/courses/:courseId/syllabus', authenticateRequest, async (req, res) => {
     try {
