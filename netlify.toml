@@ -23,6 +23,16 @@
   status = 200
 
 [[redirects]]
+  from = "/grafana/health"
+  to   = "/.netlify/functions/grafana-health"
+  status = 200
+
+[[redirects]]
+  from = "/grafana/panel/*.png"
+  to   = "/.netlify/functions/grafana-panel"
+  status = 200
+
+[[redirects]]
   from = "/api/*"
   to   = "/.netlify/functions/:splat"
   status = 200
