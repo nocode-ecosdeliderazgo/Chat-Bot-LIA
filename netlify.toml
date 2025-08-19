@@ -7,6 +7,23 @@
 [functions]
   directory = "netlify/functions"
 
+# Grafana redirects (higher priority)
+[[redirects]]
+  from = "/grafana/health"
+  to   = "/.netlify/functions/grafana-health"
+  status = 200
+
+[[redirects]]
+  from = "/grafana/panel/*.png"
+  to   = "/.netlify/functions/grafana-panel"
+  status = 200
+
+# Specific API redirects
+[[redirects]]
+  from = "/api/user/session"
+  to   = "/.netlify/functions/get-user-session"
+  status = 200
+
 [[redirects]]
   from = "/api/login"
   to   = "/.netlify/functions/login"
@@ -22,21 +39,7 @@
   to   = "/.netlify/functions/register"
   status = 200
 
-[[redirects]]
-  from = "/grafana/health"
-  to   = "/.netlify/functions/grafana-health"
-  status = 200
-
-[[redirects]]
-  from = "/grafana/panel/*.png"
-  to   = "/.netlify/functions/grafana-panel"
-  status = 200
-
-[[redirects]]
-  from = "/api/user/session"
-  to   = "/.netlify/functions/get-user-session"
-  status = 200
-
+# General API redirect (lowest priority)
 [[redirects]]
   from = "/api/*"
   to   = "/.netlify/functions/:splat"
