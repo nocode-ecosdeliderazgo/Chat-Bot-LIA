@@ -14,7 +14,7 @@ const { Server } = require('socket.io');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT || 3000);
 const DEV_MODE = process.env.NODE_ENV !== 'production';
 
 // Configuración de seguridad
@@ -89,13 +89,111 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// CORS configurado de forma segura
-app.use(cors({
-    origin: process.env.ALLOWED_ORIGINS
-        ? process.env.ALLOWED_ORIGINS.split(',')
-        : ['http://localhost:3000', 'http://localhost:5500', 'http://127.0.0.1:5500'],
-    credentials: true
-}));
+// CORS configurado de forma segura (habilitar preflight con cabeceras personalizadas)
+const allowedOriginsFromEnv = (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+
+// Whitelist por hostname cuando no hay ALLOWED_ORIGINS configurado
+const hostnameWhitelist = [
+    'ecosdeliderazgo.com',
+    'www.ecosdeliderazgo.com'
+];
+
+const tldsWhitelist = [
+    'netlify.app',
+    'netlify.live',
+    'herokuapp.com'
+];
+
+function isHostAllowed(hostname) {
+    if (!hostname) return false;
+    if (hostnameWhitelist.includes(hostname)) return true;
+    return tldsWhitelist.some(tld => hostname.endsWith(`.${tld}`));
+}
+
+const resolveCorsOrigin = (origin, callback) => {
+    // Permitir solicitudes sin cabecera Origin (cURL, same-origin)
+    if (!origin) return callback(null, true);
+
+    // Si se configuró ALLOWED_ORIGINS, aceptar coincidencia exacta o por hostname
+    if (allowedOriginsFromEnv.length > 0) {
+        if (allowedOriginsFromEnv.includes(origin)) return callback(null, true);
+        try {
+            const host = new URL(origin).hostname;
+            const allowedByHost = allowedOriginsFromEnv.some(value => {
+                try {
+                    const valHost = new URL(value).hostname;
+                    return valHost === host;
+                } catch { return false; }
+            });
+            return callback(null, allowedByHost);
+        } catch {
+            return callback(null, false);
+        }
+    }
+
+    // Sin ALLOWED_ORIGINS, usar whitelist por hostname/TLD
+    try {
+        const host = new URL(origin).hostname;
+        return callback(null, isHostAllowed(host));
+    } catch {
+        return callback(null, false);
+    }
+};
+
+const corsOptions = {
+    origin: resolveCorsOrigin,
+    credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'X-Requested-With', 'X-API-Key', 'Authorization', 'Accept', 'Origin'],
+    optionsSuccessStatus: 204,
+    maxAge: 86400
+};
+
+app.use(cors(corsOptions));
+// Responder explícitamente preflight para rutas de API
+app.options('/api/*', cors(corsOptions));
+
+// Salvaguarda: establecer encabezados CORS manualmente para todos los orígenes permitidos
+app.use((req, res, next) => {
+    try {
+        const origin = req.headers.origin;
+        let allow = false;
+        if (!origin) {
+            allow = true;
+        } else if (allowedOriginsFromEnv.length > 0) {
+            allow = allowedOriginsFromEnv.includes(origin);
+            if (!allow) {
+                try {
+                    const host = new URL(origin).hostname;
+                    allow = allowedOriginsFromEnv.some(v => {
+                        try { return new URL(v).hostname === host; } catch { return false; }
+                    });
+                } catch {}
+            }
+        } else {
+            try {
+                const host = new URL(origin).hostname;
+                allow = isHostAllowed(host);
+            } catch {}
+        }
+
+        if (allow) {
+            res.setHeader('Access-Control-Allow-Origin', origin || '*');
+            res.setHeader('Vary', 'Origin');
+            res.setHeader('Access-Control-Allow-Credentials', 'true');
+            res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, X-API-Key, Authorization, Accept, Origin');
+            res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+        }
+
+        if (req.method === 'OPTIONS') {
+            return res.sendStatus(204);
+        }
+    } catch (_) {}
+    next();
+});
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static('src'));
@@ -167,12 +265,20 @@ function authenticateRequest(req, res, next) {
 // Verificación de origen/Referer para reducir CSRF cuando se usen cookies (defensa adicional)
 function verifyOrigin(req, res, next) {
     try {
-        const allowed = (process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000']).map(o => o.trim());
         const origin = req.headers.origin || '';
         const referer = req.headers.referer || '';
-        if (origin && !allowed.includes(origin)) return res.status(403).json({ error: 'Origen no permitido' });
-        if (referer && !allowed.some(a => referer.startsWith(a))) return res.status(403).json({ error: 'Referer no permitido' });
-        next();
+
+        const isAllowedOrigin = (cb) => resolveCorsOrigin(origin, (err, ok) => cb(ok));
+        const isAllowedReferer = () => {
+            if (!referer) return true;
+            try { return isHostAllowed(new URL(referer).hostname); } catch { return false; }
+        };
+
+        return isAllowedOrigin((ok) => {
+            if (!ok) return res.status(403).json({ error: 'Origen no permitido' });
+            if (!isAllowedReferer()) return res.status(403).json({ error: 'Referer no permitido' });
+            next();
+        });
     } catch (_) { next(); }
 }
 if (!DEV_MODE) app.use('/api/', verifyOrigin);
@@ -361,21 +467,57 @@ app.post('/api/transcribe', authenticateRequest, requireUserSession, upload.sing
     }
 });
 
-// Registro de usuarios (simple) — requiere BD
+// Registro de usuarios con validaciones mejoradas
 app.post('/api/register', async (req, res) => {
     try {
         if (!pool) {
             return res.status(500).json({ error: 'Base de datos no configurada' });
         }
-        const { full_name, username, email, password } = req.body || {};
-        if (!full_name || !username) {
-            return res.status(400).json({ error: 'Nombre completo y usuario son requeridos' });
+        
+        const { full_name, username, email, password, type_rol } = req.body || {};
+        
+        // Validaciones obligatorias
+        if (!full_name || !username || !email || !password) {
+            return res.status(400).json({ 
+                error: 'Nombre completo, usuario, email y contraseña son requeridos' 
+            });
         }
-        // Intentar detectar si existe la columna password_hash en users
+
+        // Validación de contraseña (mínimo 8 caracteres)
+        if (String(password).length < 8) {
+            return res.status(400).json({ 
+                error: 'La contraseña debe tener de 8 caracteres en adelante' 
+            });
+        }
+
+        // Validación de email básica
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(String(email))) {
+            return res.status(400).json({ 
+                error: 'El email debe tener un formato válido' 
+            });
+        }
+
+        // type_rol ahora es opcional - se configura en el perfil después del registro
+        // Si no se proporciona, asignamos un valor por defecto
+        const userTypeRol = type_rol && String(type_rol).trim().length > 0 ? type_rol : 'estudiante';
+
+        // Verificar si existen las columnas necesarias
         let hasPassword = false;
+        let hasCargoRol = false;
+        let hasTypeRol = false;
+        
         try {
-            const col = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'password_hash' LIMIT 1");
-            hasPassword = col.rows.length > 0;
+            const cols = await pool.query(`
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'users' 
+                AND column_name IN ('password_hash', 'cargo_rol', 'type_rol')
+            `);
+            const columnNames = cols.rows.map(row => row.column_name);
+            hasPassword = columnNames.includes('password_hash');
+            hasCargoRol = columnNames.includes('cargo_rol');
+            hasTypeRol = columnNames.includes('type_rol');
         } catch (_) {}
 
         let query, params;
@@ -398,12 +540,22 @@ app.post('/api/register', async (req, res) => {
 
         const result = await pool.query(query, params);
         res.status(201).json({ user: result.rows[0] });
+        
     } catch (error) {
         console.error('Error registrando usuario:', error);
-        // Duplicado de username
-        if (String(error.message||'').includes('duplicate')) {
-            return res.status(409).json({ error: 'El usuario ya existe' });
+        
+        // Manejar errores específicos
+        const errorMsg = String(error.message || '').toLowerCase();
+        if (errorMsg.includes('duplicate') || errorMsg.includes('unique')) {
+            if (errorMsg.includes('username')) {
+                return res.status(409).json({ error: 'El nombre de usuario ya está en uso' });
+            } else if (errorMsg.includes('email')) {
+                return res.status(409).json({ error: 'El email ya está registrado' });
+            } else {
+                return res.status(409).json({ error: 'El usuario ya existe' });
+            }
         }
+        
         res.status(500).json({ error: 'Error registrando usuario' });
     }
 });
@@ -427,9 +579,19 @@ app.post('/api/login', async (req, res) => {
 
         // Verificar si existe la columna password_hash
         let hasPassword = false;
+        let hasCargoRol = false;
+        let hasTypeRol = false;
         try {
             const col = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'password_hash' LIMIT 1");
             hasPassword = col.rows.length > 0;
+        } catch (_) {}
+
+        // Detectar columnas opcionales de roles
+        try {
+            const cols = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND column_name IN ('cargo_rol','type_rol')");
+            const names = (cols.rows || []).map(r => String(r.column_name || '').toLowerCase());
+            hasCargoRol = names.includes('cargo_rol');
+            hasTypeRol = names.includes('type_rol');
         } catch (_) {}
 
         const query = `SELECT 
@@ -1346,10 +1508,26 @@ app.use((req, res) => {
 
 // Crear servidor HTTP y configurar Socket.IO
 const server = createServer(app);
+// Permitir orígenes específicos en producción para Socket.IO (tomados de ALLOWED_ORIGINS)
+const allowedSocketOrigins = (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+
 const io = new Server(server, {
     cors: {
-        origin: DEV_MODE ? "*" : false,
-        methods: ["GET", "POST"]
+        origin: DEV_MODE ? "*" : (allowedSocketOrigins.length > 0 ? allowedSocketOrigins : function(origin, callback) {
+            try {
+                if (!origin) return callback(null, true);
+                const host = new URL(origin).hostname;
+                const ok = isHostAllowed(host);
+                return callback(null, ok);
+            } catch (_) {
+                return callback(null, false);
+            }
+        }),
+        methods: ["GET", "POST"],
+        credentials: true
     }
 });
 

@@ -21,11 +21,18 @@
     <div class="particles-container"></div>
 
     <header class="quiz-header">
-        <button class="header-profile" onclick="toggleProfileMenu(event)">
-            <img src="../assets/images/icono.png" alt="Perfil" />
-        </button>
+        <div class="quiz-header-left">
+            <button class="header-profile" onclick="toggleProfileMenu(event)">
+                <img src="../assets/images/icono.png" alt="Perfil" />
+            </button>
+            <button class="header-stats" onclick="location.href='../estadisticas.html'">
+                <i class='bx bx-bar-chart-alt-2'></i>
+                <span>Mis Estadísticas</span>
+            </button>
+        </div>
         <div id="profileMenu" class="profile-menu" style="display:none">
             <div class="pm-section">
+                <div class="pm-item" onclick="location.href='../estadisticas.html'"><i class='bx bx-bar-chart-alt-2'></i> Mis Estadísticas</div>
                 <div class="pm-item" onclick="location.href='../login/new-auth.html'"><i class='bx bx-log-out'></i> Cerrar sesión</div>
             </div>
         </div>

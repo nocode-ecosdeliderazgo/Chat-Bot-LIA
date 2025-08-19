@@ -13,6 +13,9 @@
     <meta name="description" content="Lia IA: asistente inteligente para una experiencia educativa interactiva y personalizada">
     <meta name="keywords" content="coach lia ia, asistente, educativo, inteligencia artificial, curso">
     <meta name="author" content="Tu Nombre">
+    
+    <!-- Auth Guard - Protección de autenticación -->
+    <script src="utils/auth-guard.js"></script>
     <style>
         /* Degradado azul oscuro específico para el chat de Lia */
         body.layout-notebook {
@@ -271,7 +274,50 @@
         <button id="avatarLightboxClose" class="avatar-close" aria-label="Cerrar">×</button>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Socket.IO client: autodetecta origen del servidor en producción y permite override por localStorage -->
+    <script>
+        (function() {
+            try {
+                var current = localStorage.getItem('SOCKET_IO_ORIGIN');
+                var heroku = 'https://lia-ia-live-1da7d26ba883.herokuapp.com';
+                var host = (window.location && window.location.hostname) ? window.location.hostname : '';
+
+                // Si no hay configuración previa, elegir origen según dominio público
+                if (!current) {
+                    if (host.includes('ecosdeliderazgo.com')) {
+                        // Producción: API en Netlify, WebSocket en Heroku
+                        var netlify = 'https://bot-lia-ai.netlify.app';
+                        var heroku = 'https://lia-ia-live-1da7d26ba883.herokuapp.com';
+                        window.API_BASE = netlify;
+                        window.SOCKET_IO_ORIGIN = heroku;
+                        try { localStorage.setItem('API_BASE', netlify); } catch(_) {}
+                        try { localStorage.setItem('SOCKET_IO_ORIGIN', heroku); } catch(_) {}
+                    } else if (host.endsWith('.netlify.app')) {
+                        // Cuando se sirve desde el mismo sitio de Netlify
+                        window.SOCKET_IO_ORIGIN = '';
+                        window.API_BASE = '';
+                    } else {
+                        window.SOCKET_IO_ORIGIN = heroku;
+                        window.API_BASE = heroku;
+                    }
+                } else {
+                    if (host.includes('ecosdeliderazgo.com')) {
+                        var n = 'https://bot-lia-ai.netlify.app';
+                        var h = 'https://lia-ia-live-1da7d26ba883.herokuapp.com';
+                        window.API_BASE = n;
+                        window.SOCKET_IO_ORIGIN = h;
+                        try { localStorage.setItem('API_BASE', n); } catch(_) {}
+                        try { localStorage.setItem('SOCKET_IO_ORIGIN', h); } catch(_) {}
+                    } else {
+                        window.SOCKET_IO_ORIGIN = current;
+                        window.API_BASE = current;
+                    }
+                }
+            } catch (_) { window.SOCKET_IO_ORIGIN = window.SOCKET_IO_ORIGIN || ''; }
+        })();
+    </script>
+    <!-- Nota: Se omite 'integrity' porque el CDN puede rotar hashes; esto evitaba que el navegador bloquee la carga -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="scripts/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

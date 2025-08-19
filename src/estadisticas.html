@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Estadísticas de tu cuestionario - Aprende y Aplica IA">
+    <title>Mis Estadísticas - Aprende y Aplica IA</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/images/icono.png" />
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/estadisticas.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Boxicons para iconos -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body class="bg-glow-global">
+    <!-- Fondo con partículas -->
+    <div class="particles-container"></div>
+
+    <!-- Header -->
+    <header class="stats-header">
+        <nav class="hero-nav">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <img src="assets/images/icono.png" alt="LIA" class="nav-logo">
+                    <span class="nav-title">LIA</span>
+                </div>
+                <div class="nav-actions">
+                    <button class="nav-btn" onclick="location.href='cursos.html'">
+                        <i class='bx bx-book-open'></i>
+                        <span>Cursos</span>
+                    </button>
+                    <button class="nav-btn" onclick="location.href='chat.html'">
+                        <i class='bx bx-message-rounded'></i>
+                        <span>Chat</span>
+                    </button>
+                    <button class="nav-btn profile-btn" onclick="toggleProfileMenu(event)">
+                        <img src="assets/images/icono.png" alt="Perfil" class="profile-avatar">
+                    </button>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Menú de perfil -->
+        <div id="profileMenu" class="profile-menu" style="display:none">
+            <div class="pm-section">
+                <div class="pm-item" onclick="location.href='login/new-auth.html'">
+                    <i class='bx bx-log-out'></i> Cerrar sesión
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="stats-main">
+        <div class="container">
+            <!-- Header de la página -->
+            <section class="stats-header-section animate-on-scroll">
+                <div class="stats-header-content">
+                    <div class="stats-header-text">
+                        <h1>Mis Estadísticas</h1>
+                        <p>Analiza tu progreso y resultados del cuestionario de perfil profesional con dashboards interactivos de Grafana</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contenedores para Grafana - Diseño Piramidal -->
+            <section class="grafana-section animate-on-scroll">
+                <div class="grafana-pyramid">
+                    <!-- Panel superior (más ancho) -->
+                    <div class="grafana-container glass-card top">
+                        <div class="grafana-header">
+                            <h3>Índice de Competencias</h3>
+                            <p>Resumen general de tus competencias en IA y tecnologías emergentes</p>
+                        </div>
+                        <div class="grafana-frame-container">
+                            <iframe id="grafanaIndice" class="grafana-iframe" 
+                                    src="about:blank" 
+                                    frameborder="0"
+                                    title="Panel de Índice de Competencias">
+                            </iframe>
+                        </div>
+                    </div>
+
+                    <!-- Fila inferior con dos paneles -->
+                    <div class="grafana-bottom-row">
+                        <!-- Panel inferior izquierdo -->
+                        <div class="grafana-container glass-card bottom">
+                            <div class="grafana-header">
+                                <h3>Radar de Habilidades</h3>
+                                <p>Visualización de tus fortalezas por área funcional y nivel de experiencia</p>
+                            </div>
+                            <div class="grafana-frame-container">
+                                <iframe id="grafanaRadar" class="grafana-iframe" 
+                                        src="about:blank" 
+                                        frameborder="0"
+                                        title="Panel de Radar de Habilidades">
+                                </iframe>
+                            </div>
+                        </div>
+
+                        <!-- Panel inferior derecho -->
+                        <div class="grafana-container glass-card bottom">
+                            <div class="grafana-header">
+                                <h3>Análisis por Subdominios</h3>
+                                <p>Desglose detallado por categorías específicas y oportunidades de mejora</p>
+                            </div>
+                            <div class="grafana-frame-container">
+                                <iframe id="grafanaSubdominios" class="grafana-iframe" 
+                                        src="about:blank" 
+                                        frameborder="0"
+                                        title="Panel de Análisis por Subdominios">
+                                </iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="scripts/particles.js"></script>
+    <script src="scripts/estadisticas.js"></script>
+</body>
+</html>

@@ -1876,7 +1876,9 @@ function glossaryBackToMenu() {
 // Función para hacer llamadas a OpenAI de forma segura
 async function callOpenAI(prompt, context = '') {
     try {
-        const response = await fetch('/api/openai', {
+        const base = (typeof window !== 'undefined' && (window.API_BASE || localStorage.getItem('API_BASE'))) || '';
+        
+        const response = await fetch(`${base}/api/openai`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1903,7 +1905,8 @@ async function callOpenAI(prompt, context = '') {
 // Función para consultar la base de datos de forma segura
 async function queryDatabase(query, params = []) {
     try {
-        const response = await fetch('/api/database', {
+        const base = (typeof window !== 'undefined' && (window.API_BASE || localStorage.getItem('API_BASE'))) || '';
+        const response = await fetch(`${base}/api/database`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1930,7 +1933,9 @@ async function queryDatabase(query, params = []) {
 // Función para obtener contexto de la base de datos de forma segura
 async function getDatabaseContext(userQuestion) {
     try {
-        const response = await fetch('/api/context', {
+        const base = (typeof window !== 'undefined' && (window.API_BASE || localStorage.getItem('API_BASE'))) || '';
+        
+        const response = await fetch(`${base}/api/context`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1960,17 +1965,40 @@ function getApiKey() {
     return 'dev-api-key';
 }
 
-// Función para generar una clave de sesión temporal
-function generateSessionKey() {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2);
-    return btoa(`${timestamp}-${random}`).replace(/[^a-zA-Z0-9]/g, '');
-}
-
 // Encabezados de autenticación de usuario
 function getUserAuthHeaders() {
-    // Para desarrollo, retorna headers vacíos ya que la autenticación está deshabilitada en el servidor
-    return {};
+    try {
+        // Priorizar 'userToken' que es lo que usa el auth-guard
+        const token = localStorage.getItem('userToken') || 
+                     sessionStorage.getItem('authToken') || 
+                     localStorage.getItem('authToken') || '';
+        
+        // Obtener userId del userData o fallback
+        let userId = '';
+        try {
+            const userData = localStorage.getItem('userData');
+            if (userData) {
+                const user = JSON.parse(userData);
+                userId = user.id || user.username || '';
+            }
+        } catch (_) {
+            userId = sessionStorage.getItem('userId') || localStorage.getItem('userId') || '';
+        }
+        
+        // Logging para debug
+        console.log('[AUTH DEBUG] Token found:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+        console.log('[AUTH DEBUG] UserId:', userId || 'NO USER ID');
+        console.log('[AUTH DEBUG] Token source:', localStorage.getItem('userToken') ? 'userToken' : 
+                   sessionStorage.getItem('authToken') ? 'authToken(session)' : 
+                   localStorage.getItem('authToken') ? 'authToken(local)' : 'none');
+        
+        const headers = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        if (userId) headers['X-User-Id'] = userId;
+        return headers;
+    } catch (_) {
+        return {};
+    }
 }
 
 // Cargar datos del curso hardcodeados
@@ -2297,11 +2325,14 @@ function sendMessage() {
         console.log('[CHAT] Mensaje vacío, cancelando envío');
         return;
     }
-    
-    if (chatState.isTyping) {
-        console.log('[CHAT] Chat está escribiendo, cancelando envío');
-        return;
-    }
+
+    // Cancelar cualquier escritura del bot en curso para no bloquear el primer envío
+    try {
+        chatState.typingToken++;
+        hideTypingIndicator();
+        setHeaderTyping(false);
+        chatState.isTyping = false;
+    } catch (_) {}
 
     console.log('[CHAT] Enviando mensaje:', message);
     addUserMessage(message);
@@ -2331,7 +2362,8 @@ async function handleUserMessage(message) {
     if (chatState.currentState === 'start' && !chatState.userName) {
         // Ya no se requiere capturar nombre; ir directo al procesamiento IA
         chatState.currentState = 'main_menu';
-        showMainMenu();
+        // Evitar error si showMainMenu fue eliminado
+        try { if (typeof showMainMenu === 'function') { showMainMenu(); } } catch (_) {}
         const response = await processUserMessageWithAI(message);
         await sendBotMessage(response, null, false, false);
     } else {
@@ -3177,13 +3209,56 @@ function initializeLivestreamChat() {
     }
 
     // Inicializar conexión Socket.IO
-    livestreamSocket = io({
+    // Si el HTML se sirve fuera del servidor Node (p.ej. Netlify estático),
+    // define window.SOCKET_IO_ORIGIN = 'https://TU_DOMINIO_NODE' para conectar.
+    const ioOrigin = (typeof window !== 'undefined' && window.SOCKET_IO_ORIGIN) ? window.SOCKET_IO_ORIGIN : '';
+    livestreamSocket = io(ioOrigin || undefined, {
         transports: ['websocket', 'polling'],
-        timeout: 10000
+        timeout: 10000,
+        withCredentials: false
     });
 
-    // Generar nombre de usuario automáticamente
-    livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
+    // Determinar nombre de usuario desde la sesión o fallback aleatorio
+    try {
+        let username = '';
+        
+        // 1. Intentar obtener desde userData (sistema de auth principal)
+        try {
+            const userData = localStorage.getItem('userData');
+            if (userData) {
+                const user = JSON.parse(userData);
+                username = user.username || user.display_name || user.full_name || user.email || '';
+            }
+        } catch (_) {}
+        
+        // 2. Fallback a currentUser
+        if (!username) {
+            try {
+                const currentUser = localStorage.getItem('currentUser');
+                if (currentUser) {
+                    const user = JSON.parse(currentUser);
+                    username = user.username || user.display_name || user.full_name || user.email || '';
+                }
+            } catch (_) {}
+        }
+        
+        // 3. Fallback a chatState y otras fuentes
+        if (!username) {
+            username = (chatState && chatState.userName ? String(chatState.userName) : '')
+                || (sessionStorage.getItem('loggedUser') || '')
+                || (localStorage.getItem('rememberedUser') || '');
+        }
+        
+        const clean = String(username).trim();
+        livestreamChatState.username = clean && clean.length >= 2
+            ? clean
+            : `Usuario_${Math.floor(Math.random() * 1000)}`;
+            
+        console.log('[LIVESTREAM] Username configurado:', livestreamChatState.username);
+    } catch (_) {
+        livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
+        console.log('[LIVESTREAM] Username fallback:', livestreamChatState.username);
+    }
 
     // Eventos de conexión
     livestreamSocket.on('connect', () => {
@@ -3275,6 +3350,11 @@ function initializeLivestreamChat() {
     livestreamSocket.on('users-list', (users) => {
         livestreamChatState.connectedUsers = users;
         updateUsersCount(users.length);
+        try {
+            if (usersCount) {
+                usersCount.title = users && users.length ? users.join(', ') : 'Sin usuarios conectados';
+            }
+        } catch (_) {}
     });
 
     // Eventos de la interfaz con guardas null-safe
