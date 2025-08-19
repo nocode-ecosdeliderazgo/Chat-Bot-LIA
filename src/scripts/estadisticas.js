@@ -1,7 +1,12 @@
-// ===== SISTEMA DE ESTADÍSTICAS - PREPARADO PARA GRAFANA =====
+// ===== SISTEMA DE ESTADÍSTICAS - INTEGRACIÓN CON GRAFANA SNAPSHOTS =====
 
 class GrafanaStatisticsManager {
     constructor() {
+        this.iframes = {
+            grafanaIndice: null,
+            grafanaRadar: null,
+            grafanaSubdominios: null
+        };
         this.init();
     }
 
@@ -10,6 +15,7 @@ class GrafanaStatisticsManager {
         this.setupAnimations();
         this.bindEvents();
         this.prepareGrafanaContainers();
+        this.setupIframeLoading();
     }
 
     initializeParticles() {
@@ -53,7 +59,9 @@ class GrafanaStatisticsManager {
             ev.preventDefault();
             ev.stopPropagation();
             const menu = document.getElementById('profileMenu');
-            menu.style.display = (menu.style.display === 'block' ? 'none' : 'block');
+            if (menu) {
+                menu.style.display = (menu.style.display === 'block' ? 'none' : 'block');
+            }
         };
 
         document.addEventListener('click', (e) => {
@@ -66,32 +74,84 @@ class GrafanaStatisticsManager {
     }
 
     prepareGrafanaContainers() {
-        // TODO: Preparar contenedores para iframes de Grafana
-        // - Configurar URLs de Grafana
-        // - Manejar autenticación
-        // - Configurar variables de usuario
-        // - Implementar carga dinámica de paneles
-        
         // Añadir orbes decorativos a cada panel
         document.querySelectorAll('.grafana-container').forEach(panel => {
-            for (let i=0;i<3;i++){
+            for (let i = 0; i < 3; i++) {
                 const orb = document.createElement('div');
-                orb.className = 'orb' + (i===0 ? ' large' : (i===1 ? '' : ' small'));
-                orb.style.left = `${10 + Math.random()*70}%`;
-                orb.style.top = `${10 + Math.random()*70}%`;
+                orb.className = 'orb' + (i === 0 ? ' large' : (i === 1 ? '' : ' small'));
+                orb.style.left = `${10 + Math.random() * 70}%`;
+                orb.style.top = `${10 + Math.random() * 70}%`;
                 panel.appendChild(orb);
             }
         });
 
-        console.log('Contenedores de Grafana preparados');
-        console.log('IDs disponibles: grafanaIndice, grafanaRadar, grafanaSubdominios');
+        console.log('Contenedores de Grafana preparados con snapshots');
     }
 
-    // TODO: Implementar métodos para Grafana
-    // - loadGrafanaPanel(panelId, url, variables)
-    // - updateGrafanaVariables(userId, profile)
-    // - handleGrafanaAuthentication()
-    // - refreshGrafanaPanels()
+    setupIframeLoading() {
+        // Configurar cada iframe con manejo de carga
+        Object.keys(this.iframes).forEach(iframeId => {
+            const iframe = document.getElementById(iframeId);
+            const container = iframe?.closest('.grafana-frame-container');
+            
+            if (iframe && container) {
+                this.iframes[iframeId] = iframe;
+                
+                // Añadir clase de carga
+                container.classList.add('loading');
+                
+                // Manejar evento de carga exitosa
+                iframe.addEventListener('load', () => {
+                    container.classList.remove('loading');
+                    console.log(`Panel ${iframeId} cargado exitosamente`);
+                });
+                
+                // Manejar errores de carga
+                iframe.addEventListener('error', () => {
+                    container.classList.remove('loading');
+                    this.showErrorMessage(container, `Error al cargar ${iframeId}`);
+                    console.error(`Error al cargar panel ${iframeId}`);
+                });
+                
+                // Timeout para detectar carga lenta
+                setTimeout(() => {
+                    if (container.classList.contains('loading')) {
+                        console.warn(`Panel ${iframeId} está tardando en cargar`);
+                    }
+                }, 10000); // 10 segundos
+            }
+        });
+    }
+
+    showErrorMessage(container, message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'grafana-error';
+        errorDiv.innerHTML = `
+            <div class="error-content">
+                <i class='bx bx-error-circle'></i>
+                <p>${message}</p>
+                <button onclick="location.reload()" class="retry-btn">Intentar de nuevo</button>
+            </div>
+        `;
+        container.appendChild(errorDiv);
+    }
+
+    // Método para recargar un panel específico
+    reloadPanel(iframeId) {
+        const iframe = this.iframes[iframeId];
+        if (iframe) {
+            const container = iframe.closest('.grafana-frame-container');
+            container.classList.add('loading');
+            iframe.src = iframe.src; // Forzar recarga
+        }
+    }
+
+    // Método para recargar todos los paneles
+    reloadAllPanels() {
+        Object.keys(this.iframes).forEach(iframeId => {
+            this.reloadPanel(iframeId);
+        });
+    }
 }
 
 // ===== INICIALIZACIÓN =====
