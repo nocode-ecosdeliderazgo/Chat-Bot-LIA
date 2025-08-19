@@ -73,11 +73,11 @@
                             <p>Resumen general de tus competencias en IA y tecnologías emergentes</p>
                         </div>
                         <div class="grafana-frame-container">
-                            <iframe id="grafanaIndice" class="grafana-iframe" 
-                                    src="about:blank" 
-                                    frameborder="0"
-                                    title="Panel de Índice de Competencias">
-                            </iframe>
+                            <img src="/grafana/panel/1.png" 
+                                 style="width:100%;min-height:420px;border-radius:16px" 
+                                 alt="Índice de Competencias"
+                                 class="grafana-image"
+                                 loading="lazy" />
                         </div>
                     </div>
 
@@ -90,11 +90,11 @@
                                 <p>Visualización de tus fortalezas por área funcional y nivel de experiencia</p>
                             </div>
                             <div class="grafana-frame-container">
-                                <iframe id="grafanaRadar" class="grafana-iframe" 
-                                        src="about:blank" 
-                                        frameborder="0"
-                                        title="Panel de Radar de Habilidades">
-                                </iframe>
+                                <img src="/grafana/panel/2.png" 
+                                     style="width:100%;min-height:420px;border-radius:16px" 
+                                     alt="Radar de Habilidades"
+                                     class="grafana-image"
+                                     loading="lazy" />
                             </div>
                         </div>
 
@@ -105,11 +105,11 @@
                                 <p>Desglose detallado por categorías específicas y oportunidades de mejora</p>
                             </div>
                             <div class="grafana-frame-container">
-                                <iframe id="grafanaSubdominios" class="grafana-iframe" 
-                                        src="about:blank" 
-                                        frameborder="0"
-                                        title="Panel de Análisis por Subdominios">
-                                </iframe>
+                                <img src="/grafana/panel/3.png" 
+                                     style="width:100%;min-height:420px;border-radius:16px" 
+                                     alt="Análisis por Subdominios"
+                                     class="grafana-image"
+                                     loading="lazy" />
                             </div>
                         </div>
                     </div>
@@ -121,5 +121,116 @@
     <!-- Scripts -->
     <script src="scripts/particles.js"></script>
     <script src="scripts/estadisticas.js"></script>
+    
+    <script>
+        // Cargar session_id y actualizar URLs de Grafana
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Inicializando estadísticas con session_id dinámico...');
+            
+            // Obtener token del localStorage
+            const token = localStorage.getItem('userToken') || localStorage.getItem('authToken');
+            
+            if (!token) {
+                console.warn('No hay token de autenticación - usando imágenes por defecto');
+                // Agregar manejo de errores para todas las imágenes
+                const grafanaImages = document.querySelectorAll('img[src*="/grafana/panel/"]');
+                grafanaImages.forEach(img => {
+                    img.onerror = function() {
+                        console.warn(`Error cargando imagen sin token: ${this.alt}`);
+                        showGrafanaPlaceholder(this);
+                    };
+                });
+                return;
+            }
+            
+            try {
+                // Temporalmente skip session_id para testing
+                console.log('⚠️ Modo testing: sin session_id dinámico');
+                
+                // Solo agregar manejo de errores sin modificar URLs
+                const grafanaImages = document.querySelectorAll('img[src*="/grafana/panel/"]');
+                grafanaImages.forEach(img => {
+                    img.onerror = function() {
+                        console.warn(`Error cargando imagen: ${this.alt}`);
+                        showGrafanaPlaceholder(this);
+                    };
+                    
+                    img.onload = function() {
+                        console.log(`✅ Imagen cargada correctamente: ${this.alt}`);
+                    };
+                });
+                
+                console.log(`🖼️ ${grafanaImages.length} imágenes configuradas para testing`);
+                
+                // Comentado temporalmente:
+                // const response = await fetch('/api/session-info', {
+                //     headers: {
+                //         'Authorization': `Bearer ${token}`
+                //     }
+                // });
+                // 
+                // if (!response.ok) {
+                //     console.warn('Error obteniendo session info:', response.status);
+                //     return;
+                // }
+                // 
+                // const sessionInfo = await response.json();
+                // console.log('Session info obtenida:', sessionInfo);
+                // 
+                // // Actualizar URLs de las imágenes con session_id
+                // updateGrafanaImages(sessionInfo.session_id);
+                
+            } catch (error) {
+                console.error('Error en modo testing:', error);
+            }
+        });
+        
+        function updateGrafanaImages(sessionId) {
+            // Encontrar todas las imágenes de Grafana
+            const grafanaImages = document.querySelectorAll('img[src*="/grafana/panel/"]');
+            
+            grafanaImages.forEach(img => {
+                const currentSrc = img.src;
+                const url = new URL(currentSrc);
+                
+                // Añadir session_id como parámetro
+                url.searchParams.set('session_id', sessionId);
+                
+                // Agregar manejo de errores para la imagen
+                img.onerror = function() {
+                    console.warn(`Error cargando imagen: ${this.alt}`);
+                    showGrafanaPlaceholder(this);
+                };
+                
+                img.onload = function() {
+                    console.log(`✅ Imagen cargada correctamente: ${this.alt}`);
+                };
+                
+                // Actualizar la imagen
+                img.src = url.toString();
+                console.log(`Imagen actualizada: ${img.alt} -> ${url.toString()}`);
+            });
+            
+            console.log(`✅ ${grafanaImages.length} imágenes actualizadas con session_id: ${sessionId}`);
+        }
+        
+        function showGrafanaPlaceholder(imgElement) {
+            // Ocultar imagen rota
+            imgElement.style.display = 'none';
+            
+            // Crear placeholder personalizado
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'grafana-placeholder';
+            errorDiv.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 420px; background: rgba(68, 229, 255, 0.1); border-radius: 16px; border: 2px dashed #44e5ff;">
+                    <i class='bx bx-bar-chart-alt-2' style="font-size: 48px; color: #44e5ff; margin-bottom: 16px;"></i>
+                    <h4 style="color: #44e5ff; margin: 0 0 8px 0;">Dashboard de ${imgElement.alt}</h4>
+                    <p style="color: #888; margin: 0 0 8px 0; text-align: center;">Panel en construcción</p>
+                    <p style="color: #666; margin: 0; font-size: 12px; text-align: center;">Configura GRAFANA_SA_TOKEN para ver datos reales</p>
+                </div>
+            `;
+            imgElement.parentNode.appendChild(errorDiv);
+        }
+    </script>
 </body>
 </html>

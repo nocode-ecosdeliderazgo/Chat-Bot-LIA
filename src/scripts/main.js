@@ -1,8 +1,11 @@
 // Inicializar partículas globales si existe el contenedor
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   if (typeof window.initializeParticleSystem === 'function') {
     window.initializeParticleSystem();
   }
+  
+  // Cargar estructura del curso desde la base de datos
+  await loadCourseSessions();
 });
 
 // Configuración del chatbot según PROMPT_CLAUDE.md
@@ -28,13 +31,29 @@ const CHATBOT_CONFIG = {
     }
 };
 
-// Estructura del curso: solo títulos de sesiones y módulos
-const COURSE_SESSIONS = {
-    '1': { title: 'Sesión 1: Descubriendo la IA para Profesionales' },
-    '2': { title: 'Sesión 2: Fundamentos de Machine Learning' },
-    '3': { title: 'Sesión 3: Deep Learning y Casos Prácticos' },
-    '4': { title: 'Sesión 4: Aplicaciones, Ética y Proyecto Final' }
-};
+// Estructura del curso: se carga dinámicamente desde course_module
+let COURSE_SESSIONS = {};
+
+// Cargar sesiones desde course_module
+async function loadCourseSessions() {
+    try {
+        const response = await fetch('/api/course-sessions');
+        if (response.ok) {
+            const data = await response.json();
+            COURSE_SESSIONS = data.sessions || {};
+            console.log('Sesiones cargadas desde course_module:', COURSE_SESSIONS);
+        }
+    } catch (error) {
+        console.error('Error cargando sesiones:', error);
+        // Fallback básico
+        COURSE_SESSIONS = {
+            '1': { title: 'Sesión 1' },
+            '2': { title: 'Sesión 2' },
+            '3': { title: 'Sesión 3' },
+            '4': { title: 'Sesión 4' }
+        };
+    }
+}
 
 // Estado del chatbot
 let chatState = {
@@ -1902,6 +1921,7 @@ async function callOpenAI(prompt, context = '') {
     }
 }
 
+
 // Función para consultar la base de datos de forma segura
 async function queryDatabase(query, params = []) {
     try {
@@ -1987,10 +2007,28 @@ function getUserAuthHeaders() {
         
         // Logging para debug
         console.log('[AUTH DEBUG] Token found:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+        console.log('[AUTH DEBUG] Token completo:', token);
         console.log('[AUTH DEBUG] UserId:', userId || 'NO USER ID');
         console.log('[AUTH DEBUG] Token source:', localStorage.getItem('userToken') ? 'userToken' : 
                    sessionStorage.getItem('authToken') ? 'authToken(session)' : 
                    localStorage.getItem('authToken') ? 'authToken(local)' : 'none');
+        
+        // Verificar si el token contiene la firma de desarrollo
+        if (token) {
+            console.log('[AUTH DEBUG] Token contiene fake-signature:', token.includes('fake-signature-for-dev-testing-only'));
+            if (token.includes('.')) {
+                const parts = token.split('.');
+                console.log('[AUTH DEBUG] Token parts:', parts.length);
+                if (parts.length >= 2) {
+                    try {
+                        const payload = JSON.parse(atob(parts[1]));
+                        console.log('[AUTH DEBUG] Token payload:', payload);
+                    } catch (e) {
+                        console.log('[AUTH DEBUG] Error decodificando payload:', e.message);
+                    }
+                }
+            }
+        }
         
         const headers = {};
         if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -2208,33 +2246,19 @@ Rol y alcance
 - Límite estricto: céntrate en contenidos del curso de IA, ejercicios, glosario y actividades. Si algo está fuera de alcance, redirige amablemente con 2–4 opciones del temario.
 
 CURSO "APRENDE Y APLICA IA" - CONTENIDO DISPONIBLE:
-- 8 Sesiones completas: desde fundamentos hasta implementación en producción
-- Sesión 1: Introducción a la IA (conceptos básicos, historia, tipos de IA)
-- Sesión 2: Fundamentos de Machine Learning (supervisado, no supervisado, algoritmos)
-- Sesión 3: Redes Neuronales y Deep Learning (CNN, RNN, backpropagation)
-- Sesión 4: Procesamiento de Lenguaje Natural (tokenización, transformers, LLMs)
-- Sesión 5: Visión por Computadora (CNN, detección de objetos, transfer learning)
-- Sesión 6: IA Generativa y Modelos de Lenguaje (prompt engineering, fine-tuning)
-- Sesión 7: Ética y Responsabilidad en IA (sesgo algorítmico, explicabilidad)
-- Sesión 8: Implementación y Despliegue (MLOps, producción, monitoreo)
+- Sesiones estructuradas con contenido práctico y aplicado
+- Temas principales: Fundamentos de IA, comunicación con IA, aplicaciones prácticas, estrategias empresariales
 
-GLOSARIO COMPLETO: +50 términos con definiciones (desde conceptos básicos hasta avanzados)
-EJERCICIOS PRÁCTICOS: 5 proyectos hands-on (clasificación, redes neuronales, NLP, visión, chatbots)
+GLOSARIO COMPLETO: Términos especializados con definiciones precisas
+EJERCICIOS PRÁCTICOS: Proyectos hands-on y actividades aplicadas
 RECURSOS: Libros recomendados, cursos online, herramientas, datasets
 
 CURSO "APRENDE Y APLICA IA" - CONTENIDO DISPONIBLE:
-- 8 Sesiones completas: desde fundamentos hasta implementación en producción
-- Sesión 1: Introducción a la IA (conceptos básicos, historia, tipos de IA)
-- Sesión 2: Fundamentos de Machine Learning (supervisado, no supervisado, algoritmos)
-- Sesión 3: Redes Neuronales y Deep Learning (CNN, RNN, backpropagation)
-- Sesión 4: Procesamiento de Lenguaje Natural (tokenización, transformers, LLMs)
-- Sesión 5: Visión por Computadora (CNN, detección de objetos, transfer learning)
-- Sesión 6: IA Generativa y Modelos de Lenguaje (prompt engineering, fine-tuning)
-- Sesión 7: Ética y Responsabilidad en IA (sesgo algorítmico, explicabilidad)
-- Sesión 8: Implementación y Despliegue (MLOps, producción, monitoreo)
+- Sesiones estructuradas con contenido práctico y aplicado
+- Temas principales: Fundamentos de IA, comunicación con IA, aplicaciones prácticas, estrategias empresariales
 
-GLOSARIO COMPLETO: +50 términos con definiciones (desde conceptos básicos hasta avanzados)
-EJERCICIOS PRÁCTICOS: 5 proyectos hands-on (clasificación, redes neuronales, NLP, visión, chatbots)
+GLOSARIO COMPLETO: Términos especializados con definiciones precisas
+EJERCICIOS PRÁCTICOS: Proyectos hands-on y actividades aplicadas
 RECURSOS: Libros recomendados, cursos online, herramientas, datasets
 
 Objetivo general

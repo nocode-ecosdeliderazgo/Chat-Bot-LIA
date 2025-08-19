@@ -7,6 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Development
 - `npm start` - Start the server (runs server.js)
 - `npm run dev` - Start development server with nodemon
+- `npm run dev:force` - Force kill port 3000 and start with dev environment variables
+- `npm run dev:win` - Windows-specific development command with environment setup
+- `npm run port:kill` - Kill any process running on port 3000
 - `npm test` - Run Jest tests
 - `npm run lint` - Lint JavaScript files in src/
 - `npm run format` - Format code with Prettier
@@ -18,11 +21,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Test files: `**/__tests__/**/*.js` or `**/?(*.)+(spec|test).js`
 - Coverage reports generated in `coverage/` directory
 - Setup file: `tests/setup.js`
+- Babel transformation configured for ES6+ syntax
+
+### Debugging and Utilities
+- `scripts/extract-supabase-config.js` - Extract Supabase configuration
+- `scripts/kill-port-3000.cjs` - Utility to kill processes on port 3000
+- `test-*.html` files - Various testing pages for authentication and roles
+- Environment-specific test files for debugging auth flows
 
 ## Project Architecture
 
 ### Application Structure
-This is a full-stack educational chatbot application with:
+This is a full-stack educational platform with multiple interfaces and user roles:
 
 **Backend (server.js):**
 - Express.js server with comprehensive security middleware
@@ -41,20 +51,33 @@ This is a full-stack educational chatbot application with:
 - Dual deployment strategy for redundancy
 
 **Frontend:**
-- Vanilla JavaScript (ES6+) in `src/scripts/main.js`
-- Modern CSS with responsive design in `src/styles/main.css`
-- Login system in `src/login/`
-- Main chat interface in `src/chat.html`
+- Multiple specialized interfaces with role-based access
+- Main chat interface in `src/chat.html` with AI assistant
+- Course management system in `src/cursos.html` and `src/courses.html`
+- Statistics dashboard with Grafana integration in `src/estadisticas.html`
+- Community features in `src/Community/community.html`
+- General chat functionality in `src/ChatGeneral/chat-general.html`
+- Instructor panel in `src/instructors/` with course management tools
+- Profile and questionnaire system in `src/perfil-cuestionario.html`
+- Admin panel in `src/admin/` for system administration
+- Notice board in `src/Notices/notices.html`
 - **Real-time livestream chat interface integrated in the sidebar**
 
 ### Key Components
 
-**Chat System (`src/scripts/main.js`):**
-- Chatbot configuration with OpenAI GPT-4 integration
+**Multi-Interface System:**
+- **Main Chat (`src/scripts/main.js`)**: AI assistant with OpenAI GPT-4 integration
+- **Course Management (`src/scripts/courses.js`, `src/scripts/cursos.js`)**: Course catalog and enrollment
+- **Statistics Dashboard (`src/scripts/estadisticas.js`)**: Analytics with chart fallback system
+- **Community System (`src/Community/community.js`)**: User interaction and forums
+- **Instructor Tools (`src/instructors/scripts/`)**: Course creation and management
+- **Profile System (`src/scripts/profile-manager.js`)**: User profiles and questionnaires
+
+**Core Chat Features:**
+- OpenAI GPT-4 integration with secure API key handling
 - Real-time typing simulation and message handling
-- Audio features with welcome sounds
+- Audio features with welcome sounds (`src/assets/audio/`)
 - Conversation history and state management
-- Dynamic API key loading from backend
 - **Real-time livestream chat with Socket.IO client integration**
 
 **Livestream Chat Features:**
@@ -87,10 +110,18 @@ This is a full-stack educational chatbot application with:
 - User progress tracking and conversation history
 
 ### Configuration Files
-- `jest.config.js` - Jest testing configuration with jsdom environment
-- `package.json` - Dependencies and npm scripts (includes Socket.IO)
-- `netlify.toml` - Netlify deployment configuration and function routing
+- `jest.config.js` - Jest testing configuration with jsdom environment and Babel transforms
+- `package.json` - Dependencies and npm scripts (includes Socket.IO, OpenAI, PostgreSQL)
+- `netlify.toml` - Netlify deployment configuration with API redirects
+- `webpack.config.js` - Webpack configuration for bundling
+- `Procfile` - Heroku deployment configuration
 - Environment variables expected in `.env` file (see docs/SECURITY.md)
+
+### Content Management System
+- **Course Data (`src/data/course-data.js`)**: Structured course content with sessions and modules
+- **Prompts System (`prompts/`)**: AI assistant prompts in Spanish with examples and safety guidelines
+- **Static Assets (`src/assets/`)**: Images, icons, and audio files for the platform
+- **Database Migration (`migration_supabase.sql`)**: Supabase database schema and initial data
 
 ### Netlify Functions Architecture
 
@@ -115,23 +146,34 @@ This is a full-stack educational chatbot application with:
 - **Schema Flexibility**: Dynamic column detection for database compatibility
 
 ### Important Notes
-- The application uses a security-first approach with multiple layers of protection
-- Database connections and OpenAI API keys are loaded dynamically from environment variables
-- Frontend does not store sensitive credentials - all API calls go through authenticated backend endpoints
-- The chatbot is configured as "Asistente de Aprende y Aplica IA" (AI Learning Assistant)
-- Audio features are integrated but optional for users
-- **Real-time chat functionality uses Socket.IO with CORS configured for development**
-- **Livestream chat is accessible in the collapsible livestream section of the sidebar**
-- **Chat messages are limited to 200 characters and 50 messages history**
+- **Multi-role Platform**: Supports students, instructors, and administrators with different access levels
+- **Spanish Language**: Primary interface and content are in Spanish (prompts, UI, documentation)
+- **Security-first Architecture**: Multiple layers of protection with environment-based configuration
+- **Grafana Integration**: Statistics dashboard connects to external Grafana instance for analytics
+- **Audio-enabled Interface**: Optional welcome sounds and audio feedback
+- **Database Flexibility**: Supports both PostgreSQL (primary) and Supabase (cloud option)
+- **Real-time Features**: Socket.IO for live chat, typing indicators, and user presence
+- **Responsive Design**: Mobile-first approach with particle animations and modern CSS
+- **Content Security Policy**: Strict CSP with development/production environment differences
 
 ### Development Workflow
 
 **Local Development:**
 1. Set up environment variables (see docs/SECURITY.md for required variables)
 2. Run `npm run setup` to install dependencies and check security
-3. Use `npm run dev` for development with auto-restart
-4. Run `npm test` to execute the test suite
-5. Use `npm run lint` and `npm run format` to maintain code quality
+3. Use `npm run dev` for development with auto-restart (or `npm run dev:force` for Windows)
+4. Access the application at `http://localhost:3000`
+5. Use specific test pages: `test-auth-debug.html`, `test-roles-redirect.html` for debugging
+6. Run `npm test` to execute the test suite
+7. Use `npm run lint` and `npm run format` to maintain code quality
+
+**Working with Multiple Interfaces:**
+- Main chat: `http://localhost:3000/src/chat.html`
+- Course management: `http://localhost:3000/src/cursos.html`
+- Statistics: `http://localhost:3000/src/estadisticas.html`
+- Community: `http://localhost:3000/src/Community/community.html`
+- Instructor panel: `http://localhost:3000/src/instructors/index.html`
+- Admin panel: `http://localhost:3000/src/admin/admin.html`
 
 **Production Deployment:**
 1. Ensure both function directories are synchronized
@@ -229,13 +271,37 @@ users (
 )
 ```
 
-**Required Environment Variables:**
+**Critical Environment Variables:**
 - `DATABASE_URL` - PostgreSQL connection string
+- `OPENAI_API_KEY` - OpenAI API key for chat functionality
+- `API_SECRET_KEY` - Backend API authentication key
+- `USER_JWT_SECRET` - JWT token signing secret
+- `SESSION_SECRET` - Session management secret
 - `ALLOWED_ORIGINS` - Comma-separated list of allowed origins
-- Other variables as documented in `docs/SECURITY.md`
+- Complete list documented in `docs/SECURITY.md`
+
+### Development Best Practices
+
+**File Organization:**
+- Main scripts in `src/scripts/` with `.backup` versions for safety
+- Styles organized by component in `src/styles/`
+- Shared utilities in `src/utils/` (auth-guard.js, helpers.js)
+- Role-specific interfaces in dedicated folders (Community/, admin/, instructors/)
+
+**Security Considerations:**
+- Never commit `.env` files or API keys
+- Use backup files before major changes (`.backup` pattern throughout codebase)
+- Test authentication flows with provided test pages
+- Validate all user inputs on both client and server side
+
+**Grafana Integration:**
+- Statistics page connects to external Grafana instance
+- Fallback chart system in `src/scripts/chart-fallback.js`
+- Grafana proxy server in `server/grafana-proxy.js`
 
 ### Documentation
 - Comprehensive security documentation in `docs/SECURITY.md`
 - Database structure defined in `docs/DATABASE_STRUCTURE.md`
 - Setup instructions in `PROJECT_SETUP.md`
-- Login implementation details in `LOGIN_IMPLEMENTATION.md`
+- Additional docs: `CHANGELOG.md`, `CONTRIBUTING.md`, `USAGE_INSTRUCTIONS.md`
+- Spanish prompt engineering guides in `prompts/` directory

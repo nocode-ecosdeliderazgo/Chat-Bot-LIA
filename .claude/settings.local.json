@@ -19,7 +19,13 @@
       "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\Community\\community.html\")",
       "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\Notices\\notices.html\")",
       "Bash(start \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\perfil-cuestionario.html\")",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npm run port:kill:*)",
+      "Bash(npm run dev:*)",
+      "Bash(tasklist:*)",
+      "Bash(set PORT=3001)",
+      "Bash(start:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

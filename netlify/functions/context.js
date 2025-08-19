@@ -55,11 +55,15 @@ function verifyUser(event) {
 }
 
 exports.handler = async (event) => {
+    console.log('[CONTEXT DEBUG] Method:', event.httpMethod);
+    console.log('[CONTEXT DEBUG] Headers:', JSON.stringify(event.headers, null, 2));
+    
     if (event.httpMethod === 'OPTIONS') return json(200, { ok: true }, event);
     if (event.httpMethod !== 'POST') return json(405, { error: 'Method Not Allowed' });
 
     try {
         const user = verifyUser(event);
+        console.log('[CONTEXT DEBUG] User verification result:', user);
         if (!user) return json(401, { error: 'Sesión requerida' }, event);
 
         if (!process.env.DATABASE_URL) return json(200, { data: [] }, event);
@@ -71,48 +75,105 @@ exports.handler = async (event) => {
 
         const searchTerm = `%${userQuestion.toLowerCase().trim()}%`;
         const contextQuery = `
-            SELECT 'glossary' as source, g.id, null as session_id, null as session_title,
+            -- Términos del glosario (mantenido)
+            SELECT 'glossary' as source, g.id::text, null as course_id, null as module_id,
                    g.term, g.definition, null as question, null as answer,
-                   null as title, null as description, null as text,
+                   null as title, null as description, null as content, g.category,
                    length(g.term) as relevance_score
             FROM public.glossary_term g
             WHERE LOWER(g.term) ILIKE $1 OR LOWER(g.definition) ILIKE $1
+            
             UNION ALL
-            SELECT 'faq' as source, f.id, f.session_id, cs.title as session_title,
-                   null, null, f.question, f.answer, null, null, null,
-                   length(f.question) + length(f.answer) as relevance_score
-            FROM public.session_faq f
-            JOIN public.course_session cs ON f.session_id = cs.id
-            WHERE LOWER(f.question) ILIKE $1 OR LOWER(f.answer) ILIKE $1
+            
+            -- FAQs específicas del chatbot (NUEVA TABLA)
+            SELECT 'chatbot_faq' as source, cf.id::text, null as course_id, null as module_id,
+                   null as term, null as definition, cf.question, cf.answer,
+                   null as title, null as description, null as content, cf.category,
+                   (length(cf.question) + length(cf.answer)) * cf.priority as relevance_score
+            FROM public.chatbot_faq cf
+            WHERE LOWER(cf.question) ILIKE $1 OR LOWER(cf.answer) ILIKE $1
+            
             UNION ALL
-            SELECT 'activity' as source, a.id, a.session_id, cs.title, null, null,
-                   null, null, a.title, a.description, null,
-                   length(a.title) + COALESCE(length(a.description), 0) as relevance_score
-            FROM public.session_activity a
-            JOIN public.course_session cs ON a.session_id = cs.id
-            WHERE LOWER(a.title) ILIKE $1 OR LOWER(a.description) ILIKE $1
+            
+            -- Información de cursos (NUEVA TABLA)
+            SELECT 'course' as source, ac.id_ai_courses::text, ac.id_ai_courses::text, null as module_id,
+                   null as term, null as definition, null as question, null as answer,
+                   ac.name as title, ac.long_description as description, ac.short_description as content, 
+                   COALESCE(ac.modality, 'general') as category,
+                   length(ac.name) + length(ac.long_description) as relevance_score
+            FROM public.ai_courses ac
+            WHERE LOWER(ac.name) ILIKE $1 
+               OR LOWER(ac.long_description) ILIKE $1 
+               OR LOWER(ac.short_description) ILIKE $1
+            
             UNION ALL
-            SELECT 'question' as source, q.id, q.session_id, cs.title, null, null,
-                   null, null, null, null, q.text, length(q.text) as relevance_score
-            FROM public.session_question q
-            JOIN public.course_session cs ON q.session_id = cs.id
-            WHERE LOWER(q.text) ILIKE $1
+            
+            -- Módulos del curso (NUEVA TABLA)
+            SELECT 'module' as source, cm.id::text, cm.course_id::text, cm.id::text,
+                   null as term, null as definition, null as question, null as answer,
+                   cm.title, cm.description, cm.ai_feedback as content, 'modulo' as category,
+                   length(cm.title) + COALESCE(length(cm.description), 0) as relevance_score
+            FROM public.course_module cm
+            JOIN public.ai_courses ac ON cm.course_id = ac.id_ai_courses
+            WHERE LOWER(cm.title) ILIKE $1 
+               OR LOWER(cm.description) ILIKE $1
+               OR LOWER(cm.ai_feedback) ILIKE $1
+            
+            UNION ALL
+            
+            -- Actividades de módulos (NUEVA TABLA)
+            SELECT 'activity' as source, ma.id::text, cm.course_id::text, ma.module_id::text,
+                   null as term, null as definition, null as question, null as answer,
+                   CONCAT(ma.type, ' - ', ma.content_type) as title, 
+                   ma.resource_url as description, ma.ai_feedback as content, 
+                   COALESCE(ma.type, 'actividad') as category,
+                   length(COALESCE(ma.ai_feedback, '')) + length(COALESCE(ma.resource_url, '')) as relevance_score
+            FROM public.module_activity ma
+            JOIN public.course_module cm ON ma.module_id = cm.id
+            WHERE LOWER(ma.ai_feedback) ILIKE $1 
+               OR LOWER(ma.resource_url) ILIKE $1
+               OR LOWER(ma.type) ILIKE $1
+               OR LOWER(ma.content_type) ILIKE $1
+            
+            UNION ALL
+            
+            -- Preguntas de cuestionarios (NUEVA TABLA)
+            SELECT 'quiz_question' as source, qq.id::text, q.course_id::text, null as module_id,
+                   null as term, null as definition, qq.question_text as question, qq.correct_answer as answer,
+                   q.title, q.description, qq.options::text as content, 'cuestionario' as category,
+                   length(qq.question_text) + COALESCE(length(qq.correct_answer), 0) as relevance_score
+            FROM public.quiz_question qq
+            JOIN public.quiz q ON qq.quiz_id = q.id
+            WHERE LOWER(qq.question_text) ILIKE $1 
+               OR LOWER(qq.correct_answer) ILIKE $1
+               OR LOWER(qq.options::text) ILIKE $1
+            
             ORDER BY relevance_score DESC, source
-            LIMIT 8
+            LIMIT 12
         `;
 
         const { rows } = await pool.query(contextQuery, [searchTerm]);
         const formatted = rows.map(row => {
-            const base = { source: row.source, id: row.id, session_id: row.session_id, session_title: row.session_title };
+            const base = { 
+                source: row.source, 
+                id: row.id, 
+                course_id: row.course_id, 
+                module_id: row.module_id,
+                category: row.category 
+            };
             switch (row.source) {
                 case 'glossary':
                     return { ...base, term: row.term, definition: row.definition };
-                case 'faq':
+                case 'chatbot_faq':
                     return { ...base, question: row.question, answer: row.answer };
+                case 'course':
+                    return { ...base, title: row.title, description: row.description, content: row.content };
+                case 'module':
+                    return { ...base, title: row.title, description: row.description, content: row.content };
                 case 'activity':
-                    return { ...base, title: row.title, description: row.description };
-                case 'question':
-                    return { ...base, text: row.text };
+                    return { ...base, title: row.title, description: row.description, content: row.content };
+                case 'quiz_question':
+                    return { ...base, question: row.question, answer: row.answer, title: row.title, content: row.content };
                 default:
                     return base;
             }
