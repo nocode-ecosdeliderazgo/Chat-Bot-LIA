@@ -36,6 +36,8 @@ exports.handler = async (event) => {
       'email',
       'display_name',
       'password_hash',
+      'created_at',
+      'last_login_at',
       ...(hasCargoRol ? ['cargo_rol'] : []),
       ...(hasTypeRol ? ['type_rol'] : [])
     ].join(', ');
@@ -55,13 +57,27 @@ exports.handler = async (event) => {
     const ok = await bcrypt.compare(password, user.password_hash || '');
     if (!ok) return json(401, { error: 'Credenciales inválidas' }, event);
 
+    // Detectar si es un usuario nuevo (primer login)
+    const isNewUser = !user.last_login_at;
+    
+    // Actualizar last_login_at
+    try {
+      await pool.query(
+        'UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = $1',
+        [user.id]
+      );
+    } catch (updateError) {
+      console.log('Error actualizando last_login_at:', updateError.message);
+    }
+
     const responseUser = { 
       id: user.id, 
       username: user.username,
       email: user.email,
-      display_name: user.display_name
+      display_name: user.display_name,
+      isNewUser: isNewUser
     };
-    if (hasCargoRol) responseUser.cargo_rol = user.cargo_rol || null;
+    if (hasCargoRol) responseUser.cargo_rol = user.cargo_rol || 'usuario';
     if (hasTypeRol) responseUser.type_rol = user.type_rol || null;
 
     return json(200, { ok: true, user: responseUser }, event);

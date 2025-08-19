@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Flujo Usuario Nuevo</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section { border: 1px solid #ccc; margin: 20px 0; padding: 20px; border-radius: 8px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+        .result { margin-top: 10px; padding: 10px; border-radius: 4px; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Test - Flujo Usuario Nuevo</h1>
+    <p>Esta página permite probar el flujo completo de registro de un usuario nuevo y verificar que se asigne cargo_rol y se redirija al cuestionario.</p>
+
+    <!-- Registro -->
+    <div class="section">
+        <h2>1. Registro de Usuario Nuevo</h2>
+        <input type="text" id="regFullName" placeholder="Nombre completo" value="Usuario Prueba">
+        <input type="text" id="regUsername" placeholder="Username" value="userprueba">
+        <input type="email" id="regEmail" placeholder="Email" value="userprueba@test.com">
+        <input type="password" id="regPassword" placeholder="Password" value="password123">
+        <br>
+        <button onclick="testRegister()">Registrar Usuario</button>
+        <div id="registerResult" class="result"></div>
+    </div>
+
+    <!-- Login -->
+    <div class="section">
+        <h2>2. Primer Login (Debería detectar usuario nuevo)</h2>
+        <input type="text" id="loginUsername" placeholder="Email o Username" value="userprueba@test.com">
+        <input type="password" id="loginPassword" placeholder="Password" value="password123">
+        <br>
+        <button onclick="testLogin()">Hacer Login</button>
+        <div id="loginResult" class="result"></div>
+    </div>
+
+    <!-- Verificar BD -->
+    <div class="section">
+        <h2>3. Verificar Estado del Usuario en BD</h2>
+        <input type="text" id="checkUsername" placeholder="Username para verificar" value="userprueba">
+        <br>
+        <button onclick="checkUserInDB()">Verificar en BD</button>
+        <div id="checkResult" class="result"></div>
+    </div>
+
+    <!-- Limpiar -->
+    <div class="section">
+        <h2>4. Limpiar Datos de Prueba</h2>
+        <button onclick="clearTestData()">Limpiar localStorage</button>
+        <div id="clearResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = `result ${type}`;
+        }
+
+        async function testRegister() {
+            const fullName = document.getElementById('regFullName').value;
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+
+            if (!fullName || !username || !email || !password) {
+                showResult('registerResult', 'Por favor completa todos los campos', 'error');
+                return;
+            }
+
+            try {
+                showResult('registerResult', 'Registrando usuario...', 'info');
+                
+                const response = await fetch(`${API_BASE}/api/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        full_name: fullName,
+                        username: username,
+                        email: email,
+                        password: password
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('registerResult', `
+                        <strong>✅ REGISTRO EXITOSO</strong><br>
+                        <strong>Estado HTTP:</strong> ${response.status}<br>
+                        <strong>Usuario creado:</strong><br>
+                        <pre>${JSON.stringify(result.user, null, 2)}</pre>
+                        <strong>cargo_rol asignado:</strong> ${result.user.cargo_rol || 'NO ASIGNADO'}<br>
+                        <strong>isNewUser:</strong> ${result.user.isNewUser}
+                    `, 'success');
+                    
+                    // Auto-fill login form
+                    document.getElementById('loginUsername').value = email;
+                    document.getElementById('loginPassword').value = password;
+                } else {
+                    showResult('registerResult', `
+                        <strong>❌ ERROR EN REGISTRO</strong><br>
+                        <strong>Estado HTTP:</strong> ${response.status}<br>
+                        <strong>Error:</strong> ${result.error}<br>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `, 'error');
+                }
+            } catch (error) {
+                showResult('registerResult', `
+                    <strong>❌ ERROR DE CONEXIÓN</strong><br>
+                    ${error.message}
+                `, 'error');
+            }
+        }
+
+        async function testLogin() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                showResult('loginResult', 'Por favor completa todos los campos', 'error');
+                return;
+            }
+
+            try {
+                showResult('loginResult', 'Iniciando sesión...', 'info');
+                
+                const response = await fetch(`${API_BASE}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('loginResult', `
+                        <strong>✅ LOGIN EXITOSO</strong><br>
+                        <strong>Estado HTTP:</strong> ${response.status}<br>
+                        <strong>Datos del usuario:</strong><br>
+                        <pre>${JSON.stringify(result.user, null, 2)}</pre>
+                        <strong>cargo_rol:</strong> ${result.user.cargo_rol || 'NO ASIGNADO'}<br>
+                        <strong>isNewUser:</strong> ${result.user.isNewUser}<br>
+                        <strong>Redirección esperada:</strong> ${result.user.isNewUser ? '../q/form.html (CUESTIONARIO)' : 'Página de rol correspondiente'}
+                    `, 'success');
+                    
+                    // Auto-fill check form
+                    document.getElementById('checkUsername').value = result.user.username;
+                } else {
+                    showResult('loginResult', `
+                        <strong>❌ ERROR EN LOGIN</strong><br>
+                        <strong>Estado HTTP:</strong> ${response.status}<br>
+                        <strong>Error:</strong> ${result.error}<br>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `, 'error');
+                }
+            } catch (error) {
+                showResult('loginResult', `
+                    <strong>❌ ERROR DE CONEXIÓN</strong><br>
+                    ${error.message}
+                `, 'error');
+            }
+        }
+
+        async function checkUserInDB() {
+            const username = document.getElementById('checkUsername').value;
+            
+            if (!username) {
+                showResult('checkResult', 'Por favor ingresa un username para verificar', 'error');
+                return;
+            }
+
+            try {
+                showResult('checkResult', 'Verificando usuario en BD...', 'info');
+                
+                // Intentar hacer login para ver los datos actuales
+                const response = await fetch(`${API_BASE}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: username,
+                        password: document.getElementById('loginPassword').value || 'password123'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('checkResult', `
+                        <strong>✅ USUARIO ENCONTRADO EN BD</strong><br>
+                        <strong>Datos actuales:</strong><br>
+                        <pre>${JSON.stringify(result.user, null, 2)}</pre>
+                        <strong>cargo_rol en BD:</strong> ${result.user.cargo_rol || 'NULL/NO ASIGNADO'}<br>
+                        <strong>last_login_at actualizado:</strong> ${result.user.isNewUser ? 'NO (primer login)' : 'SÍ (login previo)'}<br>
+                        <strong>isNewUser:</strong> ${result.user.isNewUser}
+                    `, 'success');
+                } else {
+                    showResult('checkResult', `
+                        <strong>❌ NO SE PUDO VERIFICAR</strong><br>
+                        ${result.error}
+                    `, 'error');
+                }
+            } catch (error) {
+                showResult('checkResult', `
+                    <strong>❌ ERROR DE CONEXIÓN</strong><br>
+                    ${error.message}
+                `, 'error');
+            }
+        }
+
+        function clearTestData() {
+            localStorage.clear();
+            showResult('clearResult', '✅ localStorage limpiado', 'success');
+        }
+
+        // Auto-generar datos únicos cada vez
+        window.addEventListener('load', () => {
+            const timestamp = Date.now();
+            document.getElementById('regUsername').value = `testuser${timestamp}`;
+            document.getElementById('regEmail').value = `testuser${timestamp}@test.com`;
+            document.getElementById('loginUsername').value = `testuser${timestamp}@test.com`;
+            document.getElementById('checkUsername').value = `testuser${timestamp}`;
+        });
+    </script>
+</body>
+</html>

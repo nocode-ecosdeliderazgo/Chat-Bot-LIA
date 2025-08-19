@@ -70,37 +70,38 @@ exports.handler = async (event) => {
     // Hash de la contraseña
     const hash = await bcrypt.hash(String(password), 10);
 
-    // Usar el mismo esquema que server.js con cargo_rol por defecto
+    // Usar el mismo esquema que server.js con cargo_rol por defecto como 'Usuario'
     let query, params;
-    if (hasPassword) {
-      if (hasCargoRol) {
-        query = `INSERT INTO users (username, email, password_hash, first_name, last_name, display_name, cargo_rol) 
-                 VALUES ($1,$2,$3, NULL, NULL, $4, 'Usuario') 
-                 RETURNING id, username, email, display_name, cargo_rol`;
-        params = [username, email, hash, full_name];
-      } else {
-        query = `INSERT INTO users (username, email, password_hash, first_name, last_name, display_name) 
-                 VALUES ($1,$2,$3, NULL, NULL, $4) 
-                 RETURNING id, username, email, display_name`;
-        params = [username, email, hash, full_name];
-      }
-    } else {
-      if (hasCargoRol) {
-        query = `INSERT INTO users (username, email, first_name, last_name, display_name, cargo_rol) 
-                 VALUES ($1,$2, NULL, NULL, $3, 'Usuario') 
-                 RETURNING id, username, email, display_name, cargo_rol`;
-        params = [username, email, full_name];
-      } else {
-        query = `INSERT INTO users (username, email, first_name, last_name, display_name) 
-                 VALUES ($1,$2, NULL, NULL, $3) 
-                 RETURNING id, username, email, display_name`;
-        params = [username, email, full_name];
-      }
+    
+    // Intentar siempre incluir cargo_rol, si falla caerá al catch y lo intentaremos sin él
+    try {
+      query = `INSERT INTO users (username, email, password_hash, first_name, last_name, display_name, cargo_rol) 
+               VALUES ($1,$2,$3, NULL, NULL, $4, 'usuario') 
+               RETURNING id, username, email, display_name, cargo_rol`;
+      params = [username, email, hash, full_name];
+      
+      const result = await pool.query(query, params);
+      const userData = { ...result.rows[0], isNewUser: true };
+      return json(201, { user: userData }, event);
+      
+    } catch (cargoError) {
+      console.log('Error con cargo_rol, intentando sin él:', cargoError.message);
+      
+      // Si falla, intentar sin cargo_rol
+      query = `INSERT INTO users (username, email, password_hash, first_name, last_name, display_name) 
+               VALUES ($1,$2,$3, NULL, NULL, $4) 
+               RETURNING id, username, email, display_name`;
+      params = [username, email, hash, full_name];
     }
 
     try {
       const result = await pool.query(query, params);
-      const userData = { ...result.rows[0], isNewUser: true };
+      // Asignar cargo_rol manualmente si no se pudo en la BD
+      const userData = { 
+        ...result.rows[0], 
+        cargo_rol: result.rows[0].cargo_rol || 'usuario',
+        isNewUser: true 
+      };
       return json(201, { user: userData }, event);
     } catch (error) {
       console.error('register insert error', error);
