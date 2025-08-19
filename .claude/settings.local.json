@@ -22,7 +22,10 @@
       "Bash(cat:*)",
       "Bash(npm run port:kill:*)",
       "Bash(npm run dev:*)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "Bash(set PORT=3001)",
+      "Bash(start:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

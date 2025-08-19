@@ -288,14 +288,14 @@ app.get('/grafana/panel/:panelId.png', async (req, res) => {
         const fetch = (await import('node-fetch')).default;
         console.log(`Solicitando panel de Grafana ${req.params.panelId}`);
 
-        // Por ahora usar un session_id fijo para testing
-        const sessionId = "test-session-123";
+        // Temporalmente deshabilitar session_id para testing
+        // const sessionId = "test-session-123";
 
-        // Configurar URL de renderizado de Grafana
+        // Configurar URL de renderizado de Grafana (sin session_id por ahora)
         const url = new URL(`${GRAFANA_URL}/render/d-solo/${DASH_UID}/${DASH_SLUG}`);
         url.searchParams.set("orgId", "1");
         url.searchParams.set("panelId", panelId);
-        url.searchParams.set("var-session_id", sessionId);
+        // url.searchParams.set("var-session_id", sessionId); // Comentado temporalmente
         url.searchParams.set("from", "now-30d");
         url.searchParams.set("to", "now");
         url.searchParams.set("theme", "dark");
@@ -339,8 +339,8 @@ app.get('/grafana/panel/:panelId.png', async (req, res) => {
 function generatePlaceholderImage(res, panelId) {
     const titles = {
         '1': 'Índice de Competencias',
-        '6': 'Radar de Habilidades', 
-        '8': 'Análisis por Subdominios'
+        '2': 'Radar de Habilidades', 
+        '3': 'Análisis por Subdominios'
     };
     
     const title = titles[panelId] || `Panel ${panelId}`;

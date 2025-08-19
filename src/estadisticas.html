@@ -90,7 +90,7 @@
                                 <p>Visualización de tus fortalezas por área funcional y nivel de experiencia</p>
                             </div>
                             <div class="grafana-frame-container">
-                                <img src="/grafana/panel/6.png" 
+                                <img src="/grafana/panel/2.png" 
                                      style="width:100%;min-height:420px;border-radius:16px" 
                                      alt="Radar de Habilidades"
                                      class="grafana-image"
@@ -105,7 +105,7 @@
                                 <p>Desglose detallado por categorías específicas y oportunidades de mejora</p>
                             </div>
                             <div class="grafana-frame-container">
-                                <img src="/grafana/panel/8.png" 
+                                <img src="/grafana/panel/3.png" 
                                      style="width:100%;min-height:420px;border-radius:16px" 
                                      alt="Análisis por Subdominios"
                                      class="grafana-image"
@@ -144,26 +144,44 @@
             }
             
             try {
-                // Obtener información de la sesión
-                const response = await fetch('/api/session-info', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                // Temporalmente skip session_id para testing
+                console.log('⚠️ Modo testing: sin session_id dinámico');
+                
+                // Solo agregar manejo de errores sin modificar URLs
+                const grafanaImages = document.querySelectorAll('img[src*="/grafana/panel/"]');
+                grafanaImages.forEach(img => {
+                    img.onerror = function() {
+                        console.warn(`Error cargando imagen: ${this.alt}`);
+                        showGrafanaPlaceholder(this);
+                    };
+                    
+                    img.onload = function() {
+                        console.log(`✅ Imagen cargada correctamente: ${this.alt}`);
+                    };
                 });
                 
-                if (!response.ok) {
-                    console.warn('Error obteniendo session info:', response.status);
-                    return;
-                }
+                console.log(`🖼️ ${grafanaImages.length} imágenes configuradas para testing`);
                 
-                const sessionInfo = await response.json();
-                console.log('Session info obtenida:', sessionInfo);
-                
-                // Actualizar URLs de las imágenes con session_id
-                updateGrafanaImages(sessionInfo.session_id);
+                // Comentado temporalmente:
+                // const response = await fetch('/api/session-info', {
+                //     headers: {
+                //         'Authorization': `Bearer ${token}`
+                //     }
+                // });
+                // 
+                // if (!response.ok) {
+                //     console.warn('Error obteniendo session info:', response.status);
+                //     return;
+                // }
+                // 
+                // const sessionInfo = await response.json();
+                // console.log('Session info obtenida:', sessionInfo);
+                // 
+                // // Actualizar URLs de las imágenes con session_id
+                // updateGrafanaImages(sessionInfo.session_id);
                 
             } catch (error) {
-                console.error('Error cargando session info:', error);
+                console.error('Error en modo testing:', error);
             }
         });
         
