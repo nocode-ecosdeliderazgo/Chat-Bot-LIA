@@ -25,7 +25,7 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://unpkg.com', 'https://source.zoom.us'],
             // En desarrollo permitimos inline scripts (onclick) para compatibilidad rápida
-            scriptSrc: DEV_MODE ? ["'self'", "'unsafe-inline'", 'https://source.zoom.us', 'https://esm.sh'] : ["'self'", 'https://source.zoom.us', 'https://esm.sh'],
+            scriptSrc: DEV_MODE ? ["'self'", "'unsafe-inline'", 'https://source.zoom.us', 'https://esm.sh', 'https://unpkg.com', 'https://cdn.jsdelivr.net'] : ["'self'", 'https://source.zoom.us', 'https://esm.sh', 'https://unpkg.com', 'https://cdn.jsdelivr.net'],
             // Permitir carga de módulos ESM externos solo si fuera necesario (actualmente eliminamos supabase-client)
             // scriptSrcElem: DEV_MODE ? ["'self'", 'https://esm.sh'] : ["'self'"],
             // Permitir atributos inline (onclick) explícitamente en CSP nivel 3 durante desarrollo
@@ -61,7 +61,7 @@ app.use(helmet({
                 'https://nocode1.grafana.net',
                 'https://*.grafana.net'
             ],
-            imgSrc: ["'self'", 'data:', 'https:'],
+            imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
             connectSrc: [
                 "'self'",
                 'ws:', 'wss:',
@@ -363,7 +363,7 @@ function generatePlaceholderImage(res, panelId) {
         <circle cx="600" cy="300" r="25" fill="none" stroke="#44e5ff" stroke-width="2" opacity="0.6"/>
     </svg>`;
     
-    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=3600');
     res.send(svg);
 }
