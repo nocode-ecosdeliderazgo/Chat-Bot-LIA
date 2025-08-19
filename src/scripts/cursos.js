@@ -32,7 +32,7 @@ function renderCards(list, grouped=false){
         <div class="instructor">${c.instructor}</div>
         <div class="meta"><span>⭐ ${c.rating.toFixed(1)}</span><span class="price">${formatPrice(c.price)}</span></div>
         <div class="cta">
-          <button class="enroll" onclick="location.href='cursos.html'">Inscribirme</button>
+          <button class="enroll acquired" onclick="location.href='courses.html'">Adquirido</button>
           <button class="wishlist"><i class='bx bx-heart'></i></button>
         </div>
       </div>

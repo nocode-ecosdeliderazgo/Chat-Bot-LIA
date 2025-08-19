@@ -207,6 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     try {
         hydrateUserHeader();
+        setupProfileMenu();
         initializeCoursesPage();
         setupEventListeners();
         updateLearningStreak();
@@ -271,6 +272,37 @@ function setupEventListeners() {
     setupCourseMenus();
     
     console.log('[COURSES] Event listeners configurados');
+}
+
+// Menú de perfil en el header (avatar)
+function setupProfileMenu() {
+    const avatarBtn = document.querySelector('.header-profile');
+    const menu = document.getElementById('profileMenu');
+    if (!avatarBtn || !menu) return;
+    
+    // Rellenar datos del usuario si existen en localStorage
+    try {
+        const raw = localStorage.getItem('currentUser');
+        if (raw) {
+            const user = JSON.parse(raw);
+            const nameEl = document.getElementById('pmName');
+            const emailEl = document.getElementById('pmEmail');
+            if (nameEl) nameEl.textContent = user.display_name || user.username || 'Usuario';
+            if (emailEl) emailEl.textContent = user.email || user.user?.email || '';
+        }
+    } catch (_) {}
+    
+    avatarBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        menu.classList.toggle('show');
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+            menu.classList.remove('show');
+        }
+    });
 }
 
 function switchTab(tabId) {

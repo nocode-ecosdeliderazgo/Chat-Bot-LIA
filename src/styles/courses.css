@@ -36,8 +36,22 @@ html, body.courses-page {
 .catalog-header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: transparent; backdrop-filter: none; border-bottom: 0; }
 .catalog-header .container { display:flex; align-items:center; justify-content:center; gap:12px; padding: 10px 16px; min-height: 60px; position: relative; }
 .catalog-header .course-tabs { margin: 0; width: auto; background: rgba(20,30,45,0.95); border: 1px solid rgba(68,229,255,0.15); box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(68,229,255,0.1) inset; backdrop-filter: blur(20px); border-radius: 20px; }
-.catalog-header .header-profile { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); width: 40px; height: 40px; border: 0; background: transparent; box-shadow: none; }
-.profile-menu { position: fixed; top: 64px; right: 16px; width: 240px; background: rgba(10,16,28,.96); border:1px solid rgba(68,229,255,.18); border-radius: 12px; box-shadow: 0 18px 46px rgba(0,0,0,.45); backdrop-filter: blur(10px); display:none; z-index: 1002; overflow: hidden; }
+.catalog-header .header-profile {
+    position: fixed;
+    top: 12px;
+    right: 20px;
+    transform: none;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(68,229,255,.55);
+    background: rgba(7,17,36,.5);
+    box-shadow: 0 0 0 3px rgba(68,229,255,.22), 0 10px 24px rgba(0,0,0,.45);
+    z-index: 1002;
+}
+.catalog-header .header-profile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.profile-menu { position: fixed; top: 72px; right: 20px; width: 240px; background: rgba(10,16,28,.96); border:1px solid rgba(68,229,255,.18); border-radius: 12px; box-shadow: 0 18px 46px rgba(0,0,0,.45); backdrop-filter: blur(10px); display:none; z-index: 1002; overflow: hidden; }
 .profile-menu.show { display:block; }
 .profile-menu .pm-header { display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid rgba(68,229,255,.12); }
 .profile-menu .pm-avatar { width:36px; height:36px; border-radius:50%; overflow:hidden; border:1px solid rgba(68,229,255,.25); }
