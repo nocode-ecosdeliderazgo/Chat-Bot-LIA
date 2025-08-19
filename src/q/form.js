@@ -609,8 +609,8 @@
         .update({ completed_at: new Date().toISOString() })
         .eq('id', sessionId);
     }
-    // ir a resultados (cursos por ahora)
-    location.href = '../cursos.html';
+    // Iniciar sesión automáticamente después del cuestionario
+    await initiateAutoLogin();
   });
 
   // UI: menú perfil
@@ -624,6 +624,123 @@
     const btn = document.querySelector('.header-profile');
     if(menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) menu.style.display='none';
   });
+
+  // Función para iniciar sesión automáticamente después del cuestionario
+  async function initiateAutoLogin() {
+    try {
+      console.log('[AutoLogin] Iniciando proceso de login automático...');
+      
+      // Verificar si hay datos de usuario en localStorage
+      const currentUserRaw = localStorage.getItem('currentUser') || localStorage.getItem('userData');
+      if (!currentUserRaw) {
+        console.warn('[AutoLogin] No se encontraron datos de usuario, redirigiendo a login');
+        location.href = '../login/new-auth.html';
+        return;
+      }
+
+      const currentUser = JSON.parse(currentUserRaw);
+      console.log('[AutoLogin] Usuario encontrado:', currentUser);
+
+      // Si ya tiene token válido, ir directamente a la página correspondiente
+      const token = localStorage.getItem('userToken') || localStorage.getItem('authToken');
+      if (token && currentUser.cargo_rol) {
+        console.log('[AutoLogin] Usuario ya autenticado, redirigiendo según rol:', currentUser.cargo_rol);
+        redirectToRolePage(currentUser.cargo_rol);
+        return;
+      }
+
+      // Si no tiene token o rol, mostrar mensaje y redirigir a login
+      if (!token) {
+        console.log('[AutoLogin] No hay token, redirigiendo a login');
+        showAutoLoginMessage('Completaste el cuestionario. Ahora inicia sesión para acceder a la plataforma.');
+        setTimeout(() => {
+          location.href = '../login/new-auth.html';
+        }, 3000);
+        return;
+      }
+
+      // Si tiene token pero no rol, ir a courses por defecto
+      console.log('[AutoLogin] Token disponible pero sin rol específico, yendo a courses');
+      location.href = '../courses.html';
+
+    } catch (error) {
+      console.error('[AutoLogin] Error en proceso de login automático:', error);
+      location.href = '../login/new-auth.html';
+    }
+  }
+
+  // Función para mostrar mensaje de auto-login
+  function showAutoLoginMessage(message) {
+    try {
+      // Crear overlay de mensaje
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        color: white;
+        font-family: Inter, sans-serif;
+      `;
+
+      const messageBox = document.createElement('div');
+      messageBox.style.cssText = `
+        background: linear-gradient(135deg, #44E5FF, #0077A6);
+        padding: 30px 40px;
+        border-radius: 12px;
+        text-align: center;
+        max-width: 400px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      `;
+
+      messageBox.innerHTML = `
+        <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 15px;">
+          ✅ ¡Cuestionario Completado!
+        </div>
+        <div style="font-size: 1rem; line-height: 1.5;">
+          ${message}
+        </div>
+        <div style="margin-top: 20px; font-size: 0.9rem; opacity: 0.9;">
+          Redirigiendo en 3 segundos...
+        </div>
+      `;
+
+      overlay.appendChild(messageBox);
+      document.body.appendChild(overlay);
+
+    } catch (error) {
+      console.warn('[AutoLogin] Error mostrando mensaje:', error);
+    }
+  }
+
+  // Función para redirigir según el rol
+  function redirectToRolePage(role) {
+    const normalizedRole = (role || '').toLowerCase().trim();
+    
+    switch (normalizedRole) {
+      case 'administrador':
+      case 'admin':
+        location.href = '../admin/admin.html';
+        break;
+      case 'instructor':
+      case 'maestro':
+        location.href = '../instructors/index.html';
+        break;
+      case 'usuario':
+      case 'estudiante':
+      case 'user':
+      default:
+        location.href = '../courses.html';
+        break;
+    }
+  }
+
 })();
 
 

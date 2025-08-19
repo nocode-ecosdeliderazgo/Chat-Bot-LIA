@@ -28,6 +28,8 @@
             <li><strong>Redirección 1:</strong> Va a <code>../perfil-cuestionario.html</code> (formulario de perfil profesional)</li>
             <li><strong>Completar perfil:</strong> Usuario llena datos profesionales y selecciona perfil</li>
             <li><strong>Redirección 2:</strong> Va a <code>q/form.html</code> (cuestionario adaptativo)</li>
+            <li><strong>Completar cuestionario:</strong> Se actualiza <code>type_rol</code> en BD y se guardan respuestas</li>
+            <li><strong>Auto-login:</strong> Inicia sesión automáticamente y redirige según rol</li>
             <li><strong>Logins posteriores:</strong> Van directamente a página según rol</li>
         </ol>
     </div>
@@ -63,9 +65,27 @@
         <div id="checkResult" class="result"></div>
     </div>
 
+    <!-- Probar actualización de perfil -->
+    <div class="section">
+        <h2>4. Probar Actualización de type_rol</h2>
+        <input type="text" id="updateUsername" placeholder="Username" value="">
+        <select id="updateTypeRol">
+            <option value="">Seleccionar type_rol</option>
+            <option value="CEO (personal)">CEO (personal)</option>
+            <option value="CTO/CIO">CTO/CIO</option>
+            <option value="Dirección de Ventas">Dirección de Ventas</option>
+            <option value="Miembros de Ventas">Miembros de Ventas</option>
+            <option value="Dirección de Marketing">Dirección de Marketing</option>
+            <option value="Miembros de Marketing">Miembros de Marketing</option>
+        </select>
+        <br>
+        <button onclick="testUpdateProfile()">Actualizar Perfil</button>
+        <div id="updateResult" class="result"></div>
+    </div>
+
     <!-- Limpiar -->
     <div class="section">
-        <h2>4. Limpiar Datos de Prueba</h2>
+        <h2>5. Limpiar Datos de Prueba</h2>
         <button onclick="clearTestData()">Limpiar localStorage</button>
         <div id="clearResult" class="result"></div>
     </div>
@@ -169,8 +189,9 @@
                         <strong>Redirección esperada:</strong> ${result.user.isNewUser ? '../perfil-cuestionario.html → q/form.html (PERFIL + CUESTIONARIO)' : 'Página de rol correspondiente'}
                     `, 'success');
                     
-                    // Auto-fill check form
+                    // Auto-fill check form and update form
                     document.getElementById('checkUsername').value = result.user.username;
+                    document.getElementById('updateUsername').value = result.user.username;
                 } else {
                     showResult('loginResult', `
                         <strong>❌ ERROR EN LOGIN</strong><br>
@@ -233,6 +254,57 @@
             }
         }
 
+        async function testUpdateProfile() {
+            const username = document.getElementById('updateUsername').value;
+            const typeRol = document.getElementById('updateTypeRol').value;
+
+            if (!username || !typeRol) {
+                showResult('updateResult', 'Por favor completa username y type_rol', 'error');
+                return;
+            }
+
+            try {
+                showResult('updateResult', 'Actualizando perfil...', 'info');
+                
+                const response = await fetch(`${API_BASE}/api/update-profile`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'dev-api-key'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        type_rol: typeRol
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('updateResult', `
+                        <strong>✅ PERFIL ACTUALIZADO</strong><br>
+                        <strong>Estado HTTP:</strong> ${response.status}<br>
+                        <strong>Usuario actualizado:</strong><br>
+                        <pre>${JSON.stringify(result.user, null, 2)}</pre>
+                        <strong>type_rol nuevo:</strong> ${result.user.type_rol}<br>
+                        <strong>cargo_rol:</strong> ${result.user.cargo_rol}
+                    `, 'success');
+                } else {
+                    showResult('updateResult', `
+                        <strong>❌ ERROR ACTUALIZANDO PERFIL</strong><br>
+                        <strong>Estado HTTP:</strong> ${response.status}<br>
+                        <strong>Error:</strong> ${result.error}<br>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `, 'error');
+                }
+            } catch (error) {
+                showResult('updateResult', `
+                    <strong>❌ ERROR DE CONEXIÓN</strong><br>
+                    ${error.message}
+                `, 'error');
+            }
+        }
+
         function clearTestData() {
             localStorage.clear();
             showResult('clearResult', '✅ localStorage limpiado', 'success');
@@ -245,6 +317,7 @@
             document.getElementById('regEmail').value = `testuser${timestamp}@test.com`;
             document.getElementById('loginUsername').value = `testuser${timestamp}@test.com`;
             document.getElementById('checkUsername').value = `testuser${timestamp}`;
+            document.getElementById('updateUsername').value = `testuser${timestamp}`;
         });
     </script>
 </body>
