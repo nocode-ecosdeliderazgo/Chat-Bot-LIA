@@ -28,8 +28,22 @@ class GrafanaStatisticsManager {
             });
         }, { threshold: 0.1 });
 
-        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+        document.querySelectorAll('.animate-on-scroll, .grafana-container').forEach(el => {
             observer.observe(el);
+        });
+
+        // Pequeño tilt interactivo sobre los paneles
+        document.querySelectorAll('.grafana-container').forEach(panel => {
+            panel.classList.add('tilt');
+            const handleMove = (e) => {
+                const rect = panel.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+                panel.style.transform = `rotateX(${(-y*6).toFixed(2)}deg) rotateY(${(x*8).toFixed(2)}deg) translateY(-6px)`;
+            };
+            const reset = () => { panel.style.transform = ''; };
+            panel.addEventListener('mousemove', handleMove);
+            panel.addEventListener('mouseleave', reset);
         });
     }
 
@@ -58,6 +72,17 @@ class GrafanaStatisticsManager {
         // - Configurar variables de usuario
         // - Implementar carga dinámica de paneles
         
+        // Añadir orbes decorativos a cada panel
+        document.querySelectorAll('.grafana-container').forEach(panel => {
+            for (let i=0;i<3;i++){
+                const orb = document.createElement('div');
+                orb.className = 'orb' + (i===0 ? ' large' : (i===1 ? '' : ' small'));
+                orb.style.left = `${10 + Math.random()*70}%`;
+                orb.style.top = `${10 + Math.random()*70}%`;
+                panel.appendChild(orb);
+            }
+        });
+
         console.log('Contenedores de Grafana preparados');
         console.log('IDs disponibles: grafanaIndice, grafanaRadar, grafanaSubdominios');
     }

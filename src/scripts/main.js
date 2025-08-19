@@ -1997,7 +1997,7 @@ function getUserAuthHeaders() {
         if (userId) headers['X-User-Id'] = userId;
         return headers;
     } catch (_) {
-        return {};
+    return {};
     }
 }
 
@@ -2325,7 +2325,7 @@ function sendMessage() {
         console.log('[CHAT] Mensaje vacío, cancelando envío');
         return;
     }
-
+    
     // Cancelar cualquier escritura del bot en curso para no bloquear el primer envío
     try {
         chatState.typingToken++;
@@ -3256,7 +3256,7 @@ function initializeLivestreamChat() {
             
         console.log('[LIVESTREAM] Username configurado:', livestreamChatState.username);
     } catch (_) {
-        livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
+    livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
         console.log('[LIVESTREAM] Username fallback:', livestreamChatState.username);
     }
 

@@ -277,7 +277,7 @@ function verifyOrigin(req, res, next) {
         return isAllowedOrigin((ok) => {
             if (!ok) return res.status(403).json({ error: 'Origen no permitido' });
             if (!isAllowedReferer()) return res.status(403).json({ error: 'Referer no permitido' });
-            next();
+        next();
         });
     } catch (_) { next(); }
 }
@@ -552,8 +552,8 @@ app.post('/api/register', async (req, res) => {
             } else if (errorMsg.includes('email')) {
                 return res.status(409).json({ error: 'El email ya está registrado' });
             } else {
-                return res.status(409).json({ error: 'El usuario ya existe' });
-            }
+            return res.status(409).json({ error: 'El usuario ya existe' });
+        }
         }
         
         res.status(500).json({ error: 'Error registrando usuario' });
