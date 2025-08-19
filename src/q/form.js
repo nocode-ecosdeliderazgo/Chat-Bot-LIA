@@ -27,10 +27,11 @@
   }
   if (!area) area = 'Otra';
 
-  const perfilText = document.getElementById('perfilText');
-  const areaText = document.getElementById('areaText');
-  if (perfilText) perfilText.textContent = perfil || '-';
-  if (areaText) areaText.textContent = area || '-';
+  // Ocultar subtítulo de perfil/área (solicitado)
+  try {
+    const sub = document.getElementById('quizSubtitle');
+    if (sub) sub.style.display = 'none';
+  } catch(_) {}
 
   function injectScaleHelpOnce(){
     try{

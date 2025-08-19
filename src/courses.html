@@ -18,33 +18,51 @@
 <body class="courses-page">
     <div class="particles-container"></div>
 
+    <!-- Header con navbar como en cursos.html -->
+    <header class="catalog-header">
+        <div class="container">
+            <div class="course-tabs">
+                <button class="tab-button active" onclick="location.href='cursos.html'">
+                    <i class='bx bx-collection'></i>
+                    Cursos
+                </button>
+                <button class="tab-button" onclick="location.href='Community/community.html'">
+                    <i class='bx bx-group'></i>
+                    Comunidad
+                </button>
+                <button class="tab-button" onclick="location.href='Notices/notices.html'">
+                    <i class='bx bx-news'></i>
+                    Noticias
+                </button>
+            </div>
+            <button class="header-profile">
+                <img src="assets/images/icono.png" alt="Perfil" />
+            </button>
+            <div id="profileMenu" class="profile-menu">
+                <div class="pm-header">
+                    
+                    <div>
+                        <div class="pm-name" id="pmName">Usuario</div>
+                        <div class="pm-email" id="pmEmail"></div>
+                    </div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" onclick="location.href='courses.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" onclick="location.href='profile.html'"><i class='bx bx-cog'></i> Configuración</div>
+                    <div class="pm-item" onclick="location.href='profile.html'"><i class='bx bx-user'></i> Editar perfil</div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" onclick="location.href='login/new-auth.html'"><i class='bx bx-log-out'></i> Cerrar sesión</div>
+                </div>
+            </div>
+        </div>
+    </header>
 
     <!-- Contenido principal -->
     <main class="courses-main">
         <div class="courses-container">
-            <!-- Pestañas de navegación -->
-            <div class="course-tabs">
-                <button class="tab-button active" data-tab="all-courses">
-                    <i class='bx bx-book'></i>
-                    Mis cursos
-                </button>
-                <button class="tab-button" onclick="location.href='cursos.html'">
-                    <i class='bx bx-collection'></i>
-                    Cursos
-                </button>
-                <button class="tab-button" data-tab="noticias">
-                    <i class='bx bx-news'></i>
-                    Noticias
-                </button>
-                <button class="tab-button" data-tab="comunidad">
-                    <i class='bx bx-group'></i>
-                    Comunidad
-                </button>
-                <button class="tab-button profile-tab" onclick="window.location.href='profile.html'">
-                    <i class='bx bx-user'></i>
-                    Perfil
-                </button>
-            </div>
 
             <!-- Panel de contenido de cursos -->
             <div class="course-content">
