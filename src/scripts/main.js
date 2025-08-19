@@ -2236,33 +2236,19 @@ Rol y alcance
 - Límite estricto: céntrate en contenidos del curso de IA, ejercicios, glosario y actividades. Si algo está fuera de alcance, redirige amablemente con 2–4 opciones del temario.
 
 CURSO "APRENDE Y APLICA IA" - CONTENIDO DISPONIBLE:
-- 8 Sesiones completas: desde fundamentos hasta implementación en producción
-- Sesión 1: Introducción a la IA (conceptos básicos, historia, tipos de IA)
-- Sesión 2: Fundamentos de Machine Learning (supervisado, no supervisado, algoritmos)
-- Sesión 3: Redes Neuronales y Deep Learning (CNN, RNN, backpropagation)
-- Sesión 4: Procesamiento de Lenguaje Natural (tokenización, transformers, LLMs)
-- Sesión 5: Visión por Computadora (CNN, detección de objetos, transfer learning)
-- Sesión 6: IA Generativa y Modelos de Lenguaje (prompt engineering, fine-tuning)
-- Sesión 7: Ética y Responsabilidad en IA (sesgo algorítmico, explicabilidad)
-- Sesión 8: Implementación y Despliegue (MLOps, producción, monitoreo)
+- Sesiones estructuradas con contenido práctico y aplicado
+- Temas principales: Fundamentos de IA, comunicación con IA, aplicaciones prácticas, estrategias empresariales
 
-GLOSARIO COMPLETO: +50 términos con definiciones (desde conceptos básicos hasta avanzados)
-EJERCICIOS PRÁCTICOS: 5 proyectos hands-on (clasificación, redes neuronales, NLP, visión, chatbots)
+GLOSARIO COMPLETO: Términos especializados con definiciones precisas
+EJERCICIOS PRÁCTICOS: Proyectos hands-on y actividades aplicadas
 RECURSOS: Libros recomendados, cursos online, herramientas, datasets
 
 CURSO "APRENDE Y APLICA IA" - CONTENIDO DISPONIBLE:
-- 8 Sesiones completas: desde fundamentos hasta implementación en producción
-- Sesión 1: Introducción a la IA (conceptos básicos, historia, tipos de IA)
-- Sesión 2: Fundamentos de Machine Learning (supervisado, no supervisado, algoritmos)
-- Sesión 3: Redes Neuronales y Deep Learning (CNN, RNN, backpropagation)
-- Sesión 4: Procesamiento de Lenguaje Natural (tokenización, transformers, LLMs)
-- Sesión 5: Visión por Computadora (CNN, detección de objetos, transfer learning)
-- Sesión 6: IA Generativa y Modelos de Lenguaje (prompt engineering, fine-tuning)
-- Sesión 7: Ética y Responsabilidad en IA (sesgo algorítmico, explicabilidad)
-- Sesión 8: Implementación y Despliegue (MLOps, producción, monitoreo)
+- Sesiones estructuradas con contenido práctico y aplicado
+- Temas principales: Fundamentos de IA, comunicación con IA, aplicaciones prácticas, estrategias empresariales
 
-GLOSARIO COMPLETO: +50 términos con definiciones (desde conceptos básicos hasta avanzados)
-EJERCICIOS PRÁCTICOS: 5 proyectos hands-on (clasificación, redes neuronales, NLP, visión, chatbots)
+GLOSARIO COMPLETO: Términos especializados con definiciones precisas
+EJERCICIOS PRÁCTICOS: Proyectos hands-on y actividades aplicadas
 RECURSOS: Libros recomendados, cursos online, herramientas, datasets
 
 Objetivo general
