@@ -42,8 +42,8 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // Verificar cache (válido por 5 minutos)
-        const cacheKey = `panel_${panelId}`;
+        // Verificar cache (válido por 5 minutos) - incluir session_id en la clave
+        const cacheKey = `panel_${panelId}_${sessionId || 'general'}`;
         const cached = grafanaCache.get(cacheKey);
         if (cached && Date.now() - cached.timestamp < 300000) {
             console.log(`💾 Cache hit for panel ${panelId}: ${cached.buffer.length} bytes`);
@@ -60,6 +60,9 @@ exports.handler = async (event, context) => {
             };
         }
 
+        // Obtener session_id del query parameter (para personalización por usuario)
+        const sessionId = event.queryStringParameters?.session_id;
+        
         // Configurar URL de Grafana
         const url = new URL(`${GRAFANA_URL}/render/d-solo/${DASH_UID}/${DASH_SLUG}`);
         url.searchParams.set("orgId", "1");
@@ -69,6 +72,14 @@ exports.handler = async (event, context) => {
         url.searchParams.set("theme", "dark");
         url.searchParams.set("width", "800");
         url.searchParams.set("height", "400");
+        
+        // Si se proporciona session_id, agregarlo como variable de Grafana
+        if (sessionId) {
+            url.searchParams.set("var-session_id", sessionId);
+            console.log(`👤 Usando session_id personalizado: ${sessionId}`);
+        } else {
+            console.log(`⚠️ No se proporcionó session_id, usando datos generales`);
+        }
 
         console.log(`🌐 Fetching: ${url.toString()}`);
 

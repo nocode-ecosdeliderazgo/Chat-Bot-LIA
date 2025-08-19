@@ -269,7 +269,8 @@ app.get('/grafana/health', (req, res) => {
 // Ruta para servir imágenes de Grafana con cache y mejoras de conectividad
 app.get('/grafana/panel/:panelId.png', async (req, res) => {
     const panelId = req.params.panelId;
-    const cacheKey = `panel_${panelId}`;
+    const sessionId = req.query.session_id; // Obtener session_id del query parameter
+    const cacheKey = `panel_${panelId}_${sessionId || 'general'}`; // Incluir session_id en cache
     
     // Función para servir imagen estática como fallback
     const serveStaticFallback = () => {
@@ -318,7 +319,7 @@ app.get('/grafana/panel/:panelId.png', async (req, res) => {
             const fetch = (await import('node-fetch')).default;
             console.log(`🖼️ Solicitando panel de Grafana ${panelId}`);
 
-            // Configurar URL de renderizado de Grafana (sin session_id por ahora)
+            // Configurar URL de renderizado de Grafana
             const url = new URL(`${GRAFANA_URL}/render/d-solo/${DASH_UID}/${DASH_SLUG}`);
             url.searchParams.set("orgId", "1");
             url.searchParams.set("panelId", panelId);
@@ -327,6 +328,14 @@ app.get('/grafana/panel/:panelId.png', async (req, res) => {
             url.searchParams.set("theme", "dark");
             url.searchParams.set("width", "800");
             url.searchParams.set("height", "400");
+            
+            // Si se proporciona session_id, agregarlo como variable de Grafana
+            if (sessionId) {
+                url.searchParams.set("var-session_id", sessionId);
+                console.log(`👤 Usando session_id personalizado: ${sessionId}`);
+            } else {
+                console.log(`⚠️ No se proporcionó session_id, usando datos generales`);
+            }
 
             console.log(`🌐 Fetching: ${url.toString()}`);
 
@@ -994,6 +1003,89 @@ app.get('/api/prompts', authenticateRequest, (req, res) => {
     } catch (error) {
         console.error('Error obteniendo prompts:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Endpoint para obtener session_id del usuario para personalización de Grafana
+app.get('/api/user/session', async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
+        
+        // Obtener user_id de los query parameters o headers
+        const userId = req.query.user_id || req.headers['x-user-id'] || req.headers['authorization']?.replace('Bearer ', '');
+
+        if (!userId) {
+            return res.status(400).json({ 
+                error: 'user_id requerido',
+                message: 'Proporciona user_id como query parameter o en el header x-user-id'
+            });
+        }
+
+        console.log(`🔍 Buscando session_id para usuario: ${userId}`);
+
+        // Buscar la sesión de cuestionario más reciente del usuario
+        const query = `
+            SELECT 
+                uqs.id as session_id,
+                uqs.user_id,
+                uqs.perfil,
+                uqs.area,
+                uqs.started_at,
+                uqs.completed_at,
+                COUNT(uqr.id) as responses_count
+            FROM user_questionnaire_sessions uqs
+            LEFT JOIN user_question_responses uqr ON uqs.id = uqr.session_id
+            WHERE uqs.user_id = $1
+            GROUP BY uqs.id, uqs.user_id, uqs.perfil, uqs.area, uqs.started_at, uqs.completed_at
+            ORDER BY uqs.started_at DESC
+            LIMIT 1
+        `;
+
+        const result = await pool.query(query, [userId]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ 
+                error: 'No se encontró cuestionario para este usuario',
+                user_id: userId,
+                suggestion: 'El usuario debe completar el cuestionario primero'
+            });
+        }
+
+        const sessionData = result.rows[0];
+
+        // Verificar si el cuestionario está completo
+        const isCompleted = sessionData.completed_at !== null;
+        const hasResponses = parseInt(sessionData.responses_count) > 0;
+
+        console.log(`✅ Sesión encontrada: ${sessionData.session_id}`);
+        console.log(`📊 Cuestionario completo: ${isCompleted ? 'Sí' : 'No'}`);
+        console.log(`📝 Respuestas: ${sessionData.responses_count}`);
+
+        return res.json({
+            session_id: sessionData.session_id,
+            user_id: sessionData.user_id,
+            perfil: sessionData.perfil,
+            area: sessionData.area,
+            started_at: sessionData.started_at,
+            completed_at: sessionData.completed_at,
+            is_completed: isCompleted,
+            responses_count: parseInt(sessionData.responses_count),
+            has_data: hasResponses,
+            grafana_ready: isCompleted && hasResponses,
+            debug: {
+                query_executed: true,
+                timestamp: new Date().toISOString()
+            }
+        });
+
+    } catch (error) {
+        console.error('💥 Error obteniendo session_id:', error);
+        
+        return res.status(500).json({ 
+            error: 'Error interno del servidor',
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
     }
 });
 
