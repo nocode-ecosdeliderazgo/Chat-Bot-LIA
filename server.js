@@ -251,6 +251,10 @@ const DASH_UID = "057abaf9-2e0f-4aa4-99b0-3b0e2990c5aa";
 const DASH_SLUG = "cuestionario-ia2";
 const GRAFANA_TOKEN = process.env.GRAFANA_SA_TOKEN;
 
+// Cache para evitar múltiples requests simultáneos
+const grafanaCache = new Map();
+const grafanaPendingRequests = new Map();
+
 // Health check para Grafana
 app.get('/grafana/health', (req, res) => {
     res.json({
@@ -262,15 +266,16 @@ app.get('/grafana/health', (req, res) => {
     });
 });
 
-// Ruta para servir imágenes de Grafana
+// Ruta para servir imágenes de Grafana con cache y mejoras de conectividad
 app.get('/grafana/panel/:panelId.png', async (req, res) => {
     const panelId = req.params.panelId;
+    const cacheKey = `panel_${panelId}`;
     
     // Función para servir imagen estática como fallback
     const serveStaticFallback = () => {
         const staticImagePath = path.join(__dirname, 'src', 'assets', 'grafana', `panel-${panelId}.png`);
         if (fs.existsSync(staticImagePath)) {
-            console.log(`Serving static fallback for panel ${panelId}`);
+            console.log(`📁 Serving static fallback for panel ${panelId}`);
             return res.sendFile(staticImagePath);
         } else {
             // Generar imagen placeholder dinámicamente
@@ -280,56 +285,96 @@ app.get('/grafana/panel/:panelId.png', async (req, res) => {
 
     // Si no hay token de Grafana, usar fallback inmediatamente
     if (!GRAFANA_TOKEN) {
-        console.warn('GRAFANA_SA_TOKEN no configurado, usando imagen estática');
+        console.warn('❌ GRAFANA_SA_TOKEN no configurado, usando imagen estática');
         return serveStaticFallback();
     }
 
-    try {
-        const fetch = (await import('node-fetch')).default;
-        console.log(`Solicitando panel de Grafana ${req.params.panelId}`);
-
-        // Temporalmente deshabilitar session_id para testing
-        // const sessionId = "test-session-123";
-
-        // Configurar URL de renderizado de Grafana (sin session_id por ahora)
-        const url = new URL(`${GRAFANA_URL}/render/d-solo/${DASH_UID}/${DASH_SLUG}`);
-        url.searchParams.set("orgId", "1");
-        url.searchParams.set("panelId", panelId);
-        // url.searchParams.set("var-session_id", sessionId); // Comentado temporalmente
-        url.searchParams.set("from", "now-30d");
-        url.searchParams.set("to", "now");
-        url.searchParams.set("theme", "dark");
-        url.searchParams.set("width", "800");
-        url.searchParams.set("height", "400");
-
-        console.log(`Fetching: ${url.toString()}`);
-
-        const r = await fetch(url.toString(), {
-            headers: { 
-                'Authorization': `Bearer ${GRAFANA_TOKEN}`,
-                'User-Agent': 'Chat-Bot-LIA/1.0'
-            },
-            timeout: 10000 // 10 segundos timeout
-        });
-
-        console.log(`Grafana response: ${r.status} ${r.statusText}`);
-
-        if (!r.ok) {
-            const errorText = await r.text();
-            console.error(`Grafana error (${r.status}):`, errorText);
-            // En caso de error, usar fallback
-            return serveStaticFallback();
-        }
-
+    // Verificar cache (válido por 5 minutos)
+    const cached = grafanaCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < 300000) {
+        console.log(`💾 Cache hit for panel ${panelId}: ${cached.buffer.length} bytes`);
         res.setHeader("Content-Type", "image/png");
         res.setHeader("Cache-Control", "private, max-age=300");
-        
-        const buffer = Buffer.from(await r.arrayBuffer());
-        console.log(`Serving Grafana panel ${panelId}: ${buffer.length} bytes`);
-        res.send(buffer);
+        return res.send(cached.buffer);
+    }
 
+    // Verificar si ya hay un request pendiente para este panel
+    if (grafanaPendingRequests.has(cacheKey)) {
+        console.log(`⏳ Request ya pendiente para panel ${panelId}, esperando...`);
+        try {
+            const result = await grafanaPendingRequests.get(cacheKey);
+            res.setHeader("Content-Type", "image/png");
+            res.setHeader("Cache-Control", "private, max-age=300");
+            return res.send(result);
+        } catch (error) {
+            console.error(`❌ Error en request pendiente: ${error.message}`);
+            return serveStaticFallback();
+        }
+    }
+
+    // Crear nueva promesa para el request
+    const requestPromise = (async () => {
+        try {
+            const fetch = (await import('node-fetch')).default;
+            console.log(`🖼️ Solicitando panel de Grafana ${panelId}`);
+
+            // Configurar URL de renderizado de Grafana (sin session_id por ahora)
+            const url = new URL(`${GRAFANA_URL}/render/d-solo/${DASH_UID}/${DASH_SLUG}`);
+            url.searchParams.set("orgId", "1");
+            url.searchParams.set("panelId", panelId);
+            url.searchParams.set("from", "now-30d");
+            url.searchParams.set("to", "now");
+            url.searchParams.set("theme", "dark");
+            url.searchParams.set("width", "800");
+            url.searchParams.set("height", "400");
+
+            console.log(`🌐 Fetching: ${url.toString()}`);
+
+            const r = await fetch(url.toString(), {
+                headers: { 
+                    'Authorization': `Bearer ${GRAFANA_TOKEN}`,
+                    'User-Agent': 'Chat-Bot-LIA/1.0'
+                },
+                timeout: 15000 // 15 segundos timeout (como debug server)
+            });
+
+            console.log(`📡 Grafana response: ${r.status} ${r.statusText}`);
+
+            if (!r.ok) {
+                const errorText = await r.text();
+                console.error(`❌ Grafana error (${r.status}):`, errorText);
+                throw new Error(`Grafana error: ${r.status}`);
+            }
+
+            const buffer = Buffer.from(await r.arrayBuffer());
+            console.log(`✅ Serving Grafana panel ${panelId}: ${buffer.length} bytes`);
+            
+            // Guardar en cache
+            grafanaCache.set(cacheKey, {
+                buffer: buffer,
+                timestamp: Date.now()
+            });
+
+            return buffer;
+
+        } catch (error) {
+            console.error('💥 Error connecting to Grafana:', error.message);
+            throw error;
+        } finally {
+            // Limpiar request pendiente
+            grafanaPendingRequests.delete(cacheKey);
+        }
+    })();
+
+    // Guardar la promesa para otros requests simultáneos
+    grafanaPendingRequests.set(cacheKey, requestPromise);
+
+    try {
+        const buffer = await requestPromise;
+        res.setHeader("Content-Type", "image/png");
+        res.setHeader("Cache-Control", "private, max-age=300");
+        res.send(buffer);
     } catch (error) {
-        console.error('Error connecting to Grafana:', error.message);
         // En caso de error, usar fallback
         return serveStaticFallback();
     }
