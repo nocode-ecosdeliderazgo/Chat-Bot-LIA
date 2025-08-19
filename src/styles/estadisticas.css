@@ -1,0 +1,622 @@
+/* ===== ESTILOS PARA PÁGINA DE ESTADÍSTICAS - PREPARADA PARA GRAFANA ===== */
+
+/* Header específico para estadísticas */
+.stats-header {
+    position: relative;
+    z-index: 100;
+}
+
+.stats-main {
+    padding-top: 2rem;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+}
+
+/* Fondo dinámico sutil (beams + partículas suaves) */
+.stats-main::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(1000px 400px at 10% 10%, rgba(68,229,255,0.06), transparent 60%),
+      radial-gradient(900px 300px at 90% 90%, rgba(0,119,166,0.06), transparent 60%),
+      linear-gradient(120deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+    pointer-events: none;
+    z-index: 0;
+    animation: bgFloat 24s linear infinite;
+}
+
+@keyframes bgFloat {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+    100% { transform: translateY(0); }
+}
+
+/* Reducir el tamaño del glow de fondo */
+.bg-glow-global::before {
+    width: 120vh;
+    height: 120vh;
+    left: -10vh;
+    top: -20vh;
+    background: radial-gradient(circle, rgba(68,229,255,0.12), transparent 50%);
+    filter: blur(40px);
+}
+
+/* Header de la página */
+.stats-header-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 4rem;
+    text-align: center;
+    position: relative;
+}
+
+.stats-header-content {
+    max-width: 800px;
+    padding: 0 2rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+/* Iconos decorativos junto al título */
+.stats-header-content::before,
+.stats-header-content::after {
+    content: '';
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    border-radius: 50%;
+    opacity: 0.3;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.stats-header-content::before {
+    background: linear-gradient(135deg, var(--color-primary), transparent);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.stats-header-content::after {
+    background: linear-gradient(135deg, transparent, var(--color-accent));
+    animation: pulse 2s ease-in-out infinite 1s;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(1.1); opacity: 0.5; }
+}
+
+.stats-header-text {
+    flex: 1;
+}
+
+.stats-header-text h1 {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 30px rgba(68, 229, 255, 0.3);
+}
+
+.stats-header-text p {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Sección de Grafana - Diseño Piramidal */
+.grafana-section {
+    margin-bottom: 4rem;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+/* Contenedor principal - Pirámide */
+.grafana-pyramid {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+/* Panel superior (más ancho) */
+.grafana-container.top {
+    width: 100%;
+    max-width: 1200px;
+    margin-bottom: 0;
+}
+
+/* Contenedor para los dos paneles inferiores */
+.grafana-bottom-row {
+    display: flex;
+    gap: 2rem;
+    width: 100%;
+    max-width: 1200px;
+    justify-content: center;
+}
+
+/* Paneles inferiores (más pequeños) */
+.grafana-container.bottom {
+    flex: 1;
+    max-width: 580px;
+    margin-bottom: 0;
+}
+
+.grafana-container {
+    padding: 2.5rem;
+    border-radius: var(--radius-lg);
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(68,229,255,0.18);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(68,229,255,0.08) inset;
+}
+
+.grafana-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Glow diagonal animado */
+.grafana-container::after {
+    content: '';
+    position: absolute;
+    inset: -40%;
+    background: conic-gradient(from 180deg at 50% 50%, transparent 0deg, rgba(68,229,255,0.12) 60deg, transparent 120deg);
+    filter: blur(40px);
+    opacity: .15;
+    transition: opacity .35s ease;
+}
+
+.grafana-container:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 25px 50px rgba(68, 229, 255, 0.15);
+}
+
+.grafana-container:hover::before {
+    opacity: 1;
+}
+.grafana-container:hover::after { opacity: .25; }
+
+/* Orbes decorativos flotantes dentro de cada panel */
+.grafana-container .orb {
+    position: absolute;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(68,229,255,0.85), rgba(68,229,255,0.2));
+    box-shadow: 0 0 18px rgba(68,229,255,0.35);
+    filter: blur(.2px);
+    animation: orbFloat 8s ease-in-out infinite;
+    pointer-events: none;
+}
+.grafana-container .orb.small { width: 12px; height: 12px; animation-duration: 10s; opacity: .75; }
+.grafana-container .orb.large { width: 26px; height: 26px; animation-duration: 12s; opacity: .6; }
+@keyframes orbFloat { 0%{ transform: translate(0,0);} 50% { transform: translate(14px,-10px);} 100% { transform: translate(0,0);} }
+
+.grafana-header {
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.grafana-header h3 {
+    font-size: 1.8rem;
+    margin-bottom: 0.8rem;
+    color: var(--color-primary);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+.grafana-header h3 i { filter: drop-shadow(0 0 10px rgba(68,229,255,0.4)); }
+
+.grafana-header h3::before {
+    content: '';
+    width: 4px;
+    height: 24px;
+    background: linear-gradient(180deg, var(--color-primary), var(--color-accent));
+    border-radius: 2px;
+}
+
+.grafana-header p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin-left: 1.2rem;
+}
+
+/* Contenedor de iframe */
+.grafana-frame-container {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(68, 229, 255, 0.15);
+    transition: all 0.3s ease;
+}
+.grafana-frame-container::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(600px 200px at 10% 0%, rgba(68,229,255,0.06), transparent 60%),
+                radial-gradient(600px 200px at 90% 100%, rgba(0,119,166,0.06), transparent 60%);
+    pointer-events: none;
+}
+
+/* Tilt suave controlado por JS */
+.tilt { will-change: transform; transition: transform .2s ease, box-shadow .25s ease; }
+.tilt:hover { box-shadow: 0 28px 60px rgba(68,229,255,.18); }
+
+.grafana-frame-container:hover {
+    border-color: rgba(68, 229, 255, 0.3);
+    box-shadow: 0 0 30px rgba(68, 229, 255, 0.1);
+}
+
+/* Iframe de Grafana */
+.grafana-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    transition: opacity 0.3s ease;
+}
+
+/* Imágenes de Grafana */
+.grafana-image {
+    width: 100%;
+    min-height: 420px;
+    object-fit: cover;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(68,229,255,0.05), rgba(0,119,166,0.05));
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.grafana-image:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 30px rgba(68,229,255,0.15);
+}
+
+.grafana-image:loading {
+    background: linear-gradient(135deg, rgba(68,229,255,0.1), rgba(0,119,166,0.1));
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+
+/* Estado de carga para imágenes */
+.grafana-image[src*="/grafana/panel/"] {
+    background: linear-gradient(
+        90deg,
+        rgba(68,229,255,0.05) 25%,
+        rgba(68,229,255,0.1) 50%,
+        rgba(68,229,255,0.05) 75%
+    );
+    background-size: 200% 100%;
+    animation: loading-gradient 2s infinite;
+}
+
+@keyframes loading-gradient {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Preview de Grafana (alternativa a iframes) */
+.grafana-preview {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(68,229,255,0.05), rgba(0,119,166,0.05));
+    border-radius: var(--radius-md);
+    position: relative;
+    overflow: hidden;
+}
+
+.grafana-preview::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+        radial-gradient(600px 200px at 30% 20%, rgba(68,229,255,0.1), transparent 50%),
+        radial-gradient(400px 300px at 70% 80%, rgba(0,119,166,0.08), transparent 50%);
+    pointer-events: none;
+}
+
+.preview-content {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    padding: 3rem 2rem;
+    max-width: 400px;
+}
+
+.preview-icon {
+    margin-bottom: 1.5rem;
+}
+
+.preview-icon i {
+    font-size: 4rem;
+    color: var(--color-primary);
+    filter: drop-shadow(0 0 20px rgba(68,229,255,0.3));
+    animation: iconPulse 3s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+}
+
+.preview-content h4 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--color-primary);
+    font-family: var(--font-heading);
+}
+
+.preview-content p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+}
+
+.view-dashboard-btn {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: var(--radius-md);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    box-shadow: 0 8px 25px rgba(68,229,255,0.2);
+}
+
+.view-dashboard-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(68,229,255,0.3);
+    background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
+}
+
+.view-dashboard-btn:active {
+    transform: translateY(-1px);
+}
+
+.view-dashboard-btn i {
+    font-size: 1.2rem;
+}
+
+/* Estados de carga para iframes */
+.grafana-frame-container.loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    border: 3px solid var(--color-primary);
+    border-top: 3px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+
+.grafana-frame-container.loading::after {
+    content: 'Cargando panel de Grafana...';
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--text-muted);
+    font-size: 1rem;
+    font-weight: 500;
+    z-index: 10;
+    white-space: nowrap;
+}
+
+/* Mensajes de error para iframes */
+.grafana-error {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 15;
+    border-radius: var(--radius-md);
+}
+
+.grafana-error .error-content {
+    text-align: center;
+    color: white;
+    padding: 2rem;
+}
+
+.grafana-error .error-content i {
+    font-size: 3rem;
+    color: #ff6b6b;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.grafana-error .error-content p {
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+}
+
+.grafana-error .retry-btn {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.grafana-error .retry-btn:hover {
+    background: var(--color-accent);
+    transform: translateY(-2px);
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Responsive para iframes */
+@media (max-width: 1200px) {
+    .grafana-frame-container {
+        height: 500px;
+    }
+    
+    .stats-header-text h1 {
+        font-size: 3rem;
+    }
+    
+    .grafana-bottom-row {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .grafana-container.bottom {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-header-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .stats-header-content::before,
+    .stats-header-content::after {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .stats-header-text h1 {
+        font-size: 2.5rem;
+    }
+    
+    .stats-header-text p {
+        font-size: 1.1rem;
+    }
+    
+    .grafana-section {
+        padding: 0 1rem;
+    }
+    
+    .grafana-container {
+        padding: 2rem;
+    }
+    
+    .grafana-frame-container {
+        height: 450px;
+    }
+    
+    .grafana-header h3 {
+        font-size: 1.5rem;
+    }
+    
+    .grafana-header p {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-main {
+        padding-top: 1rem;
+    }
+    
+    .stats-header-text h1 {
+        font-size: 2rem;
+    }
+    
+    .stats-header-text p {
+        font-size: 1rem;
+    }
+    
+    .grafana-container {
+        padding: 1.5rem;
+    }
+    
+    .grafana-frame-container {
+        height: 400px;
+    }
+    
+    .grafana-header h3 {
+        font-size: 1.3rem;
+    }
+}
+
+/* Estilos para diferentes tamaños de pantalla */
+@media (min-width: 1600px) {
+    .grafana-frame-container {
+        height: 700px;
+    }
+    
+    .stats-header-text h1 {
+        font-size: 4rem;
+    }
+}
+
+/* Animaciones adicionales */
+.grafana-container {
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.grafana-container.top { animation-delay: 0.1s; }
+.grafana-container.bottom:nth-child(1) { animation-delay: 0.2s; }
+.grafana-container.bottom:nth-child(2) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -25,12 +25,12 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://unpkg.com', 'https://source.zoom.us'],
             // En desarrollo permitimos inline scripts (onclick) para compatibilidad rápida
-            scriptSrc: DEV_MODE ? ["'self'", "'unsafe-inline'", 'https://source.zoom.us', 'https://esm.sh'] : ["'self'", 'https://source.zoom.us', 'https://esm.sh'],
+            scriptSrc: DEV_MODE ? ["'self'", "'unsafe-inline'", 'https://source.zoom.us', 'https://esm.sh', 'https://unpkg.com', 'https://cdn.jsdelivr.net'] : ["'self'", 'https://source.zoom.us', 'https://esm.sh', 'https://unpkg.com', 'https://cdn.jsdelivr.net'],
             // Permitir carga de módulos ESM externos solo si fuera necesario (actualmente eliminamos supabase-client)
             // scriptSrcElem: DEV_MODE ? ["'self'", 'https://esm.sh'] : ["'self'"],
             // Permitir atributos inline (onclick) explícitamente en CSP nivel 3 durante desarrollo
             scriptSrcAttr: DEV_MODE ? ["'unsafe-inline'"] : [],
-            // Permitir iframes de YouTube/Vimeo para reproducir videos y Google Forms
+            // Permitir iframes de YouTube/Vimeo para reproducir videos, Google Forms y Grafana
             frameSrc: [
                 "'self'",
                 'https://www.youtube.com',
@@ -42,7 +42,9 @@ app.use(helmet({
                 'https://*.zoom.us',
                 'https://source.zoom.us',
                 'https://forms.gle',
-                'https://docs.google.com'
+                'https://docs.google.com',
+                'https://nocode1.grafana.net',
+                'https://*.grafana.net'
             ],
             childSrc: [
                 "'self'",
@@ -55,9 +57,11 @@ app.use(helmet({
                 'https://*.zoom.us',
                 'https://source.zoom.us',
                 'https://forms.gle',
-                'https://docs.google.com'
+                'https://docs.google.com',
+                'https://nocode1.grafana.net',
+                'https://*.grafana.net'
             ],
-            imgSrc: ["'self'", 'data:', 'https:'],
+            imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
             connectSrc: [
                 "'self'",
                 'ws:', 'wss:',
@@ -241,6 +245,129 @@ app.get('/chat-general', (req, res) => {
     res.sendFile(path.join(__dirname, 'src', 'ChatGeneral', 'chat-general.html'));
 });
 
+// Configuración de Grafana
+const GRAFANA_URL = "https://nocode1.grafana.net";
+const DASH_UID = "057abaf9-2e0f-4aa4-99b0-3b0e2990c5aa";
+const DASH_SLUG = "cuestionario-ia2";
+const GRAFANA_TOKEN = process.env.GRAFANA_SA_TOKEN;
+
+// Health check para Grafana
+app.get('/grafana/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        grafana_configured: !!GRAFANA_TOKEN,
+        grafana_url: GRAFANA_URL,
+        dashboard_uid: DASH_UID
+    });
+});
+
+// Ruta para servir imágenes de Grafana
+app.get('/grafana/panel/:panelId.png', async (req, res) => {
+    const panelId = req.params.panelId;
+    
+    // Función para servir imagen estática como fallback
+    const serveStaticFallback = () => {
+        const staticImagePath = path.join(__dirname, 'src', 'assets', 'grafana', `panel-${panelId}.png`);
+        if (fs.existsSync(staticImagePath)) {
+            console.log(`Serving static fallback for panel ${panelId}`);
+            return res.sendFile(staticImagePath);
+        } else {
+            // Generar imagen placeholder dinámicamente
+            return generatePlaceholderImage(res, panelId);
+        }
+    };
+
+    // Si no hay token de Grafana, usar fallback inmediatamente
+    if (!GRAFANA_TOKEN) {
+        console.warn('GRAFANA_SA_TOKEN no configurado, usando imagen estática');
+        return serveStaticFallback();
+    }
+
+    try {
+        const fetch = (await import('node-fetch')).default;
+        console.log(`Solicitando panel de Grafana ${req.params.panelId}`);
+
+        // Temporalmente deshabilitar session_id para testing
+        // const sessionId = "test-session-123";
+
+        // Configurar URL de renderizado de Grafana (sin session_id por ahora)
+        const url = new URL(`${GRAFANA_URL}/render/d-solo/${DASH_UID}/${DASH_SLUG}`);
+        url.searchParams.set("orgId", "1");
+        url.searchParams.set("panelId", panelId);
+        // url.searchParams.set("var-session_id", sessionId); // Comentado temporalmente
+        url.searchParams.set("from", "now-30d");
+        url.searchParams.set("to", "now");
+        url.searchParams.set("theme", "dark");
+        url.searchParams.set("width", "800");
+        url.searchParams.set("height", "400");
+
+        console.log(`Fetching: ${url.toString()}`);
+
+        const r = await fetch(url.toString(), {
+            headers: { 
+                'Authorization': `Bearer ${GRAFANA_TOKEN}`,
+                'User-Agent': 'Chat-Bot-LIA/1.0'
+            },
+            timeout: 10000 // 10 segundos timeout
+        });
+
+        console.log(`Grafana response: ${r.status} ${r.statusText}`);
+
+        if (!r.ok) {
+            const errorText = await r.text();
+            console.error(`Grafana error (${r.status}):`, errorText);
+            // En caso de error, usar fallback
+            return serveStaticFallback();
+        }
+
+        res.setHeader("Content-Type", "image/png");
+        res.setHeader("Cache-Control", "private, max-age=300");
+        
+        const buffer = Buffer.from(await r.arrayBuffer());
+        console.log(`Serving Grafana panel ${panelId}: ${buffer.length} bytes`);
+        res.send(buffer);
+
+    } catch (error) {
+        console.error('Error connecting to Grafana:', error.message);
+        // En caso de error, usar fallback
+        return serveStaticFallback();
+    }
+});
+
+// Función para generar imagen placeholder
+function generatePlaceholderImage(res, panelId) {
+    const titles = {
+        '1': 'Índice de Competencias',
+        '2': 'Radar de Habilidades', 
+        '3': 'Análisis por Subdominios'
+    };
+    
+    const title = titles[panelId] || `Panel ${panelId}`;
+    
+    // SVG placeholder
+    const svg = `
+    <svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#44e5ff;stop-opacity:0.1" />
+                <stop offset="100%" style="stop-color:#0077a6;stop-opacity:0.1" />
+            </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grad1)" stroke="#44e5ff" stroke-width="2" rx="16"/>
+        <text x="400" y="180" font-family="Arial, sans-serif" font-size="24" fill="#44e5ff" text-anchor="middle" font-weight="bold">${title}</text>
+        <text x="400" y="220" font-family="Arial, sans-serif" font-size="16" fill="#888" text-anchor="middle">Dashboard en construcción</text>
+        <text x="400" y="250" font-family="Arial, sans-serif" font-size="14" fill="#666" text-anchor="middle">Configura GRAFANA_SA_TOKEN para ver datos reales</text>
+        <circle cx="200" cy="300" r="30" fill="none" stroke="#44e5ff" stroke-width="2" opacity="0.5"/>
+        <circle cx="400" cy="300" r="20" fill="none" stroke="#44e5ff" stroke-width="2" opacity="0.7"/>
+        <circle cx="600" cy="300" r="25" fill="none" stroke="#44e5ff" stroke-width="2" opacity="0.6"/>
+    </svg>`;
+    
+    res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(svg);
+}
+
 // Pool de conexiones a PostgreSQL
 let pool;
 if (process.env.DATABASE_URL) {
@@ -277,7 +404,7 @@ function verifyOrigin(req, res, next) {
         return isAllowedOrigin((ok) => {
             if (!ok) return res.status(403).json({ error: 'Origen no permitido' });
             if (!isAllowedReferer()) return res.status(403).json({ error: 'Referer no permitido' });
-            next();
+        next();
         });
     } catch (_) { next(); }
 }
@@ -552,8 +679,8 @@ app.post('/api/register', async (req, res) => {
             } else if (errorMsg.includes('email')) {
                 return res.status(409).json({ error: 'El email ya está registrado' });
             } else {
-                return res.status(409).json({ error: 'El usuario ya existe' });
-            }
+            return res.status(409).json({ error: 'El usuario ya existe' });
+        }
         }
         
         res.status(500).json({ error: 'Error registrando usuario' });
@@ -732,16 +859,39 @@ app.get('/api/profile', async (req, res) => {
         }
         const where = userId ? 'id = $1' : (username ? 'LOWER(username) = LOWER($1)' : 'LOWER(email) = LOWER($1)');
         const value = userId || username || email;
-        const q = `SELECT id, username, email, display_name, first_name, last_name, cargo_rol, type_rol, phone, bio, location, 
-                          profile_picture_url, curriculum_url, linkedin_url, github_url, website_url,
-                          created_at, updated_at, last_login_at 
-                   FROM users WHERE ${where} LIMIT 1`;
+
+        // Detectar columnas existentes para compatibilidad con distintos esquemas
+        // Detectar esquema que contiene la tabla users (no asumir 'public')
+        const tblInfo = await pool.query(`
+            SELECT schemaname FROM pg_catalog.pg_tables 
+            WHERE tablename = 'users' 
+            ORDER BY (schemaname = 'public') DESC
+            LIMIT 1
+        `);
+        const schema = tblInfo.rows?.[0]?.schemaname || 'public';
+        const qualified = `${schema}.users`;
+
+        const colsRes = await pool.query(`
+            SELECT column_name FROM information_schema.columns
+            WHERE table_schema = $1 AND table_name = 'users'
+        `, [schema]);
+        const cols = new Set(colsRes.rows.map(r => r.column_name));
+        const want = [
+            'id','username','email','display_name','first_name','last_name','cargo_rol','type_rol','phone','bio','location',
+            'profile_picture_url','curriculum_url','linkedin_url','github_url','website_url','created_at','updated_at','last_login_at'
+        ];
+        const selected = want.filter(c => cols.has(c));
+        // Siempre incluir id, username, email si existen
+        if (!selected.includes('id') && cols.has('id')) selected.unshift('id');
+        if (!selected.includes('username') && cols.has('username')) selected.unshift('username');
+        if (!selected.includes('email') && cols.has('email')) selected.unshift('email');
+        const q = `SELECT ${selected.join(', ')} FROM ${qualified} WHERE ${where} LIMIT 1`;
         const r = await pool.query(q, [String(value)]);
         if (r.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
         return res.json({ user: r.rows[0] });
     } catch (err) {
         console.error('Error en GET /api/profile:', err);
-        return res.status(500).json({ error: 'Error obteniendo perfil' });
+        return res.status(500).json({ error: 'Error obteniendo perfil', details: process.env.NODE_ENV !== 'production' ? String(err.message || err) : undefined });
     }
 });
 
@@ -750,24 +900,44 @@ app.put('/api/profile', async (req, res) => {
         if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
         const { id, username } = req.body || {};
         if (!id && !username) return res.status(400).json({ error: 'id o username requerido' });
+        // Filtrar por columnas realmente existentes
+        // Detectar esquema de users
+        const tblInfo = await pool.query(`
+            SELECT schemaname FROM pg_catalog.pg_tables 
+            WHERE tablename = 'users' 
+            ORDER BY (schemaname = 'public') DESC
+            LIMIT 1
+        `);
+        const schema = tblInfo.rows?.[0]?.schemaname || 'public';
+        const qualified = `${schema}.users`;
+
+        const colsRes = await pool.query(`
+            SELECT column_name FROM information_schema.columns
+            WHERE table_schema = $1 AND table_name = 'users'
+        `, [schema]);
+        const existing = new Set(colsRes.rows.map(r => r.column_name));
         const allowed = ['email','display_name','first_name','last_name','cargo_rol','type_rol','phone','bio','location',
                          'linkedin_url','github_url','website_url','profile_picture_url','curriculum_url'];
         const updates = {};
         for (const key of allowed) {
-            if (key in (req.body || {})) updates[key] = req.body[key];
+            if (key in (req.body || {}) && existing.has(key)) updates[key] = req.body[key];
         }
         if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'Sin campos para actualizar' });
         const setClauses = Object.keys(updates).map((k, i) => `${k} = $${i+1}`);
+        if (existing.has('updated_at')) setClauses.push('updated_at = NOW()');
         const params = Object.values(updates);
         params.push(id || username);
         const where = id ? `id = $${params.length}` : `LOWER(username) = LOWER($${params.length})`;
-        const q = `UPDATE users SET ${setClauses.join(', ')}, updated_at = NOW() WHERE ${where} RETURNING id, username, email, display_name, first_name, last_name, cargo_rol, type_rol, phone, bio, location, profile_picture_url, curriculum_url`;
+        // Campos a retornar (solo los que existan)
+        const returnCols = ['id','username','email','display_name','first_name','last_name','cargo_rol','type_rol','phone','bio','location','profile_picture_url','curriculum_url']
+            .filter(c => existing.has(c)).join(', ');
+        const q = `UPDATE ${qualified} SET ${setClauses.join(', ')} WHERE ${where} RETURNING ${returnCols}`;
         const r = await pool.query(q, params);
         if (r.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
         return res.json({ user: r.rows[0] });
     } catch (err) {
         console.error('Error en PUT /api/profile:', err);
-        return res.status(500).json({ error: 'Error actualizando perfil' });
+        return res.status(500).json({ error: 'Error actualizando perfil', details: process.env.NODE_ENV !== 'production' ? String(err.message || err) : undefined });
     }
 });
 

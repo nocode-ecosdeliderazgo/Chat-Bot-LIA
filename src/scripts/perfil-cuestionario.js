@@ -80,6 +80,29 @@ class ProfileQuestionnaire {
             profileForm.addEventListener('submit', (e) => this.handleProfileSubmit(e));
         }
 
+        // Reglas de UI dependientes del nivel organizacional
+        const nivelSel = document.getElementById('nivel');
+        const areaSel = document.getElementById('area');
+        const relSel = document.getElementById('relacion');
+        const applyNivelRules = () => {
+            const value = nivelSel ? nivelSel.value : '';
+            const isCEO = value === 'Dirección General';
+            if (areaSel) {
+                areaSel.disabled = isCEO;
+                areaSel.classList.toggle('is-disabled', isCEO);
+            }
+            if (relSel) {
+                relSel.disabled = isCEO;
+                relSel.classList.toggle('is-disabled', isCEO);
+                if (isCEO) relSel.value = 'Empleado(a)';
+            }
+        };
+        if (nivelSel) {
+            nivelSel.addEventListener('change', applyNivelRules);
+            // aplicar reglas iniciales
+            applyNivelRules();
+        }
+
         // Botón de override
         const toggleOverride = document.getElementById('toggleOverride');
         if (toggleOverride) {
@@ -124,7 +147,7 @@ class ProfileQuestionnaire {
         
         // Recopilar datos del formulario
         const formData = new FormData(e.target);
-        this.profileData = {
+        const rawData = {
             cargo: formData.get('cargo'),
             area: formData.get('area'),
             nivel: formData.get('nivel'),
@@ -132,6 +155,9 @@ class ProfileQuestionnaire {
             sector: formData.get('sector') || '',
             tamano: formData.get('tamano') || ''
         };
+        // Regla: si es Dirección General, forzar relación Empleado(a) y mantener área sin relevancia
+        if (rawData.nivel === 'Dirección General') rawData.relacion = 'Empleado(a)';
+        this.profileData = rawData;
 
         // Calcular perfil seleccionado
         this.selectedProfile = this.calculateProfile(this.profileData);
@@ -143,6 +169,9 @@ class ProfileQuestionnaire {
     calculateProfile(data) {
         const { cargo, area, nivel, relacion } = data;
         const cargoLower = (cargo || '').toLowerCase();
+
+        // 0) Regla explícita: Dirección General => CEO
+        if (nivel === 'Dirección General') return 'CEO';
 
         // 1) Prioridad por tipo de relación (prioridad absoluta)
         if (relacion === 'Freelancer / Independiente') return 'Freelancer';
@@ -226,6 +255,45 @@ class ProfileQuestionnaire {
         document.getElementById('summaryAreaValue').textContent = this.profileData.area;
         document.getElementById('summaryNivelValue').textContent = this.profileData.nivel;
         document.getElementById('summaryRelacionValue').textContent = this.profileData.relacion;
+
+        // Mostrar correo si hay sesión o en localStorage.currentUser
+        const emailRow = document.getElementById('summaryEmailRow');
+        const emailValue = document.getElementById('summaryEmailValue');
+        const setEmail = (email) => {
+            if (!emailRow || !emailValue) return;
+            if (email) { emailValue.textContent = email; emailRow.style.display = 'flex'; }
+            else { emailRow.style.display = 'none'; }
+        };
+        (async () => {
+            try {
+                if (window.supabase && window.supabase.auth) {
+                    const { data: { session } } = await window.supabase.auth.getSession();
+                    const email = session?.user?.email || '';
+                    if (email) { setEmail(email); return; }
+                }
+            } catch(_) {}
+            try {
+                const raw = localStorage.getItem('currentUser');
+                const u = raw ? JSON.parse(raw) : null;
+                let email = u?.email || u?.user?.email || u?.data?.email || '';
+                if (!email) {
+                    const params = new URLSearchParams();
+                    if (u?.id && !String(u.id).startsWith('dev-')) params.set('userId', u.id);
+                    else if (u?.username) params.set('username', u.username);
+                    else if (u?.email) params.set('email', u.email);
+                    if ([...params.keys()].length) {
+                        try {
+                            const resp = await fetch(`/api/profile?${params.toString()}`);
+                            if (resp.ok) {
+                                const json = await resp.json();
+                                email = json?.user?.email || '';
+                            }
+                        } catch(_) {}
+                    }
+                }
+                setEmail(email);
+            } catch(_) { setEmail(''); }
+        })();
 
         // Actualizar estado de override
         const profileOptions = document.querySelectorAll('.profile-option');

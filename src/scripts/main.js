@@ -212,7 +212,14 @@ function init() {
 }
 
 // Inicialización principal
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  const hasChat = document.getElementById('chatMessages') || document.querySelector('.telegram-container');
+  if (!hasChat) {
+    console.log('[CHAT_INIT] Página sin chat; se omite inicialización de main.js');
+    return;
+  }
+  init();
+});
 
 // Función para manejar la llegada desde cursos
 function handleCourseRedirect() {
@@ -1342,6 +1349,7 @@ async function sendBotMessage(text, keyboard = null, needsUserInput = false, pla
 
 // Agregar mensaje del bot
 function addBotMessage(text, keyboard = null, needsUserInput = false, playAudio = false) {
+    if (!chatMessages) return;
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message bot-message';
 
@@ -1378,6 +1386,7 @@ function addBotMessage(text, keyboard = null, needsUserInput = false, playAudio 
 
 // Reemplazar el último mensaje del bot para no saturar el chat
 function replaceLastBotMessage(text, keyboard = null) {
+    if (!chatMessages) return;
     // Mantener glosario abierto si está visible
     const hasGlossary = document.getElementById('glossaryOverlay')?.classList.contains('open');
     const botMessages = Array.from(chatMessages.querySelectorAll('.message.bot-message'))
@@ -1407,6 +1416,7 @@ function replaceLastBotMessage(text, keyboard = null) {
 
 // Agregar mensaje del usuario
 function addUserMessage(text) {
+    if (!chatMessages) return;
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message user-message';
     const avatarHTML = getUserAvatarHTML();
@@ -2025,7 +2035,7 @@ function getUserAuthHeaders() {
         if (userId) headers['X-User-Id'] = userId;
         return headers;
     } catch (_) {
-        return {};
+    return {};
     }
 }
 
@@ -2339,7 +2349,7 @@ function sendMessage() {
         console.log('[CHAT] Mensaje vacío, cancelando envío');
         return;
     }
-
+    
     // Cancelar cualquier escritura del bot en curso para no bloquear el primer envío
     try {
         chatState.typingToken++;
@@ -2461,6 +2471,7 @@ function setAudioVolume(volume) {
 
 // Mostrar indicador de escritura
 function showTypingIndicator() {
+    if (!chatMessages) return;
     if (chatState.isTyping) return;
     
     chatState.isTyping = true;
@@ -3269,7 +3280,7 @@ function initializeLivestreamChat() {
             
         console.log('[LIVESTREAM] Username configurado:', livestreamChatState.username);
     } catch (_) {
-        livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
+    livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
         console.log('[LIVESTREAM] Username fallback:', livestreamChatState.username);
     }
 

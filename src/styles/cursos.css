@@ -21,10 +21,10 @@ body { background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%); co
   box-shadow: none;
   backdrop-filter: none;
 }
-.catalog-header .container { max-width: none; width: 100%; padding: 12px 20px 10px; display:grid; grid-template-columns: 1fr; grid-auto-rows: max-content; align-items:center; gap:12px 16px; }
+.catalog-header .container { max-width: none; width: 100%; padding: 8px 16px; display:flex; align-items:center; justify-content: space-between; gap:12px; }
 .brand { display:none; }
 .brand-logo { display:none; }
-.search { grid-column: 1 / -1; display:flex; align-items:center; gap:8px; border:1px solid rgba(68,229,255,.25); background: rgba(7,17,36,.85); padding: 14px 16px; border-radius: 16px; width: min(920px, 92vw); margin: 0 auto; }
+.search { display:none; }
 .search i { color: var(--turq); }
 .search input { flex:1; background: transparent; color:#fff; font-size:14px; border: none !important; outline: none !important; box-shadow: none !important; -webkit-appearance: none; -moz-appearance: none; appearance: none; }
 .search input:focus { border: none !important; outline: none !important; box-shadow: none !important; }
@@ -38,7 +38,7 @@ body { background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%); co
 .catalog-categories { grid-column: 1 / -1; display:flex; flex-wrap: wrap; justify-content: center; gap:8px; padding:8px 0 0; overflow:auto; }
 
 /* Header no fijo - espacio normal */
-main.container { padding-top: 220px; }
+main.container { padding-top: 120px; }
 .cat-tab { border:1px solid rgba(68,229,255,.18); background: rgba(255,255,255,.04); color:#cfe9ee; padding:10px 14px; border-radius: 999px; cursor:pointer; transition:.25s ease; font-weight:600; }
 .cat-tab:hover { background: rgba(68,229,255,.12); color:#fff; transform: translateY(-1px); }
 .cat-tab.active { background: linear-gradient(135deg, var(--turq), var(--turq-2)); color:#001018; box-shadow: 0 8px 18px rgba(68,229,255,.25); }
@@ -67,12 +67,12 @@ main.container { padding-top: 220px; }
 .cta .wishlist { width:40px; border-radius:10px; border:1px solid rgba(68,229,255,.25); background: rgba(255,255,255,.06); color:#fff; cursor:pointer; }
 
 /* Botón Perfil flotante a la derecha del header */
-.header-profile { position: fixed; top: 12px; right: 20px; z-index: 1001; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(68,229,255,.35); padding: 0; background: rgba(7,17,36,.4); cursor:pointer; display: block; }
+.header-profile { position: fixed; top: 10px; right: 16px; z-index: 1001; width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 1px solid rgba(68,229,255,.35); padding: 0; background: rgba(7,17,36,.4); cursor:pointer; display: block; }
 .header-profile:hover { filter: brightness(1.05); }
 .header-profile img { width: 100%; height: 100%; object-fit: cover; display:block; }
 
 /* Dropdown del avatar */
-.profile-menu { position: fixed; top: 76px; right: 20px; width: 260px; background: rgba(10,16,28,.96); border:1px solid rgba(68,229,255,.18); border-radius: 14px; box-shadow: 0 18px 46px rgba(0,0,0,.45); backdrop-filter: blur(10px); display:none; z-index: 1002; overflow: hidden; }
+.profile-menu { position: fixed; top: 58px; right: 16px; width: 240px; background: rgba(10,16,28,.96); border:1px solid rgba(68,229,255,.18); border-radius: 12px; box-shadow: 0 18px 46px rgba(0,0,0,.45); backdrop-filter: blur(10px); display:none; z-index: 1002; overflow: hidden; }
 .profile-menu.show { display:block; }
 .profile-menu .pm-header { display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid rgba(68,229,255,.12); }
 .profile-menu .pm-avatar { width:36px; height:36px; border-radius:50%; overflow:hidden; border:1px solid rgba(68,229,255,.25); }
