@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Avatar de Perfil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            padding: 20px;
+        }
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #44e5ff;
+        }
+        .debug-info {
+            background: #333;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .btn {
+            background: #44e5ff;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #22c55e;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Test - Avatar de Perfil</h1>
+    
+    <div class="test-section">
+        <h2>📊 Información del Usuario</h2>
+        <div id="userInfo" class="debug-info">Cargando...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>🖼️ Vista Previa del Avatar</h2>
+        <img id="avatarPreview" class="avatar-preview" src="assets/images/icono.png" alt="Avatar">
+        <p id="avatarStatus">Estado: Verificando...</p>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Acciones de Prueba</h2>
+        <button class="btn" onclick="refreshAvatar()">🔄 Actualizar Avatar</button>
+        <button class="btn" onclick="clearLocalStorage()">🗑️ Limpiar localStorage</button>
+        <button class="btn" onclick="loadUserData()">📥 Recargar Datos</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 Logs de Debug</h2>
+        <div id="debugLogs" class="debug-info"></div>
+    </div>
+
+    <script>
+        // Función para agregar logs
+        function addLog(message) {
+            const logsDiv = document.getElementById('debugLogs');
+            const timestamp = new Date().toLocaleTimeString();
+            logsDiv.textContent += `[${timestamp}] ${message}\n`;
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        // Función para cargar información del usuario
+        function loadUserData() {
+            addLog('🔄 Cargando datos del usuario...');
+            
+            const raw = localStorage.getItem('currentUser');
+            if (!raw) {
+                addLog('❌ No hay datos de usuario en localStorage');
+                document.getElementById('userInfo').textContent = 'No hay datos de usuario';
+                return;
+            }
+
+            try {
+                const currentUser = JSON.parse(raw);
+                const userInfoText = JSON.stringify(currentUser, null, 2);
+                document.getElementById('userInfo').textContent = userInfoText;
+                
+                addLog('✅ Datos de usuario cargados correctamente');
+                addLog(`👤 Usuario: ${currentUser.username || 'N/A'}`);
+                addLog(`📧 Email: ${currentUser.email || 'N/A'}`);
+                addLog(`🖼️ Foto de perfil: ${currentUser.profile_picture_url || 'No disponible'}`);
+                
+                // Actualizar vista previa
+                const avatarPreview = document.getElementById('avatarPreview');
+                const avatarStatus = document.getElementById('avatarStatus');
+                
+                if (currentUser.profile_picture_url) {
+                    avatarPreview.src = currentUser.profile_picture_url;
+                    avatarStatus.textContent = `Estado: ✅ Foto personalizada cargada`;
+                    avatarStatus.style.color = '#22c55e';
+                } else {
+                    avatarPreview.src = 'assets/images/icono.png';
+                    avatarStatus.textContent = `Estado: ℹ️ Usando imagen por defecto`;
+                    avatarStatus.style.color = '#fbbf24';
+                }
+                
+            } catch (error) {
+                addLog(`❌ Error parseando datos: ${error.message}`);
+                document.getElementById('userInfo').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Función para actualizar avatar
+        function refreshAvatar() {
+            addLog('🔄 Actualizando avatar...');
+            if (window.updateProfileAvatars) {
+                window.updateProfileAvatars();
+                addLog('✅ Función updateProfileAvatars ejecutada');
+            } else {
+                addLog('⚠️ Función updateProfileAvatars no disponible');
+            }
+        }
+
+        // Función para limpiar localStorage
+        function clearLocalStorage() {
+            addLog('🗑️ Limpiando localStorage...');
+            localStorage.removeItem('currentUser');
+            addLog('✅ localStorage limpiado');
+            loadUserData();
+        }
+
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            addLog('🚀 Página de prueba cargada');
+            loadUserData();
+        });
+
+        // Escuchar cambios en localStorage
+        window.addEventListener('storage', (e) => {
+            addLog(`📝 Cambio en localStorage: ${e.key} = ${e.newValue}`);
+            if (e.key === 'currentUser') {
+                loadUserData();
+            }
+        });
+    </script>
+</body>
+</html>

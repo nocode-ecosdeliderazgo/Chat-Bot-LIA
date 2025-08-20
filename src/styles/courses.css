@@ -22,10 +22,11 @@
 html, body.courses-page {
     margin: 0;
     padding: 0;
-    /* Colores del degradado específicos para Mis Cursos (más azulados, no negro) */
-    --color-bg-1: #041326; /* azul noche (más oscuro) */
-    --color-bg-2: #070F1D; /* azul profundo (más oscuro) */
-    background: linear-gradient(160deg, var(--color-bg-1) 0%, var(--color-bg-2) 100%);
+    /* Usar el mismo fondo que el login con partículas */
+    background: 
+        radial-gradient(1200px 800px at 20% 0%, rgba(68, 229, 255, 0.08), transparent 60%),
+        radial-gradient(800px 600px at 80% 100%, rgba(0, 119, 166, 0.12), transparent 60%),
+        linear-gradient(160deg, #0A0A0A 0%, #0A0A0A 100%);
     color: var(--course-text-primary);
     font-family: var(--font-body);
     min-height: 100vh;
@@ -187,13 +188,13 @@ html, body.courses-page {
     height: 100%;
     background: linear-gradient(90deg, 
         transparent, 
-        rgba(68, 229, 255, 0.15), 
+        rgba(68, 229, 255, 0.2), 
         transparent);
-    transition: left 0.6s ease;
+    transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .tab-button:hover::before {
-    left: 100%;
+    left: 0;
 }
 
 .tab-button:hover {
@@ -432,19 +433,36 @@ html, body.courses-page {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: rgba(68, 229, 255, 0.1);
-    border: 1px solid rgba(68, 229, 255, 0.2);
+    background: transparent;
+    border: 2px solid rgba(68, 229, 255, 0.2);
     border-radius: 8px;
     padding: 8px 12px;
     color: var(--course-accent);
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+}
+
+.clear-search-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(68, 229, 255, 0.2);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.clear-search-btn:hover::before {
+    left: 0;
 }
 
 .clear-search-btn:hover {
-    background: rgba(68, 229, 255, 0.2);
     border-color: var(--course-accent);
     transform: translateY(-1px);
 }
@@ -781,18 +799,38 @@ html, body.courses-page {
 
 /* ===== BOTONES ===== */
 .btn-primary {
-    background: linear-gradient(135deg, var(--course-accent), #3dd4eb);
-    color: #000;
-    border: none;
+    background: transparent;
+    color: var(--course-accent);
+    border: 2px solid var(--course-accent);
     padding: 12px 24px;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     box-shadow: 0 4px 16px rgba(68, 229, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--course-accent), #3dd4eb);
+    transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.btn-primary:hover::before {
+    left: 0;
 }
 
 .btn-primary:hover {
+    color: #000;
+    border-color: transparent;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(68, 229, 255, 0.3);
 }
@@ -800,39 +838,75 @@ html, body.courses-page {
 .btn-secondary {
     background: transparent;
     color: var(--course-text-secondary);
-    border: 1px solid var(--course-border);
+    border: 2px solid var(--course-border);
     padding: 12px 24px;
     border-radius: 8px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-secondary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(68, 229, 255, 0.1);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.btn-secondary:hover::before {
+    left: 0;
 }
 
 .btn-secondary:hover {
-    background: rgba(68, 229, 255, 0.1);
     color: var(--course-accent);
     border-color: var(--course-accent);
     transform: translateY(-1px);
 }
 
 .btn-course-primary {
-    background: var(--course-accent);
-    color: #000;
-    border: none;
+    background: transparent;
+    color: var(--course-accent);
+    border: 2px solid var(--course-accent);
     padding: 10px 20px;
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-course-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--course-accent);
+    transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.btn-course-primary:hover::before {
+    left: 0;
 }
 
 .btn-course-primary:hover {
-    background: var(--course-accent-hover);
+    color: #000;
+    border-color: transparent;
     transform: translateY(-1px);
 }
 
@@ -895,8 +969,8 @@ html, body.courses-page {
 }
 
 .menu-btn {
-    background: rgba(0, 0, 0, 0.7);
-    border: none;
+    background: transparent;
+    border: 2px solid rgba(68, 229, 255, 0.3);
     color: white;
     width: 32px;
     height: 32px;
@@ -905,13 +979,33 @@ html, body.courses-page {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+.menu-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(68, 229, 255, 0.8);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+    border-radius: 50%;
+}
+
+.menu-btn:hover::before {
+    left: 0;
 }
 
 .menu-btn:hover {
-    background: rgba(68, 229, 255, 0.8);
     color: #000;
+    border-color: rgba(68, 229, 255, 0.8);
+    transform: scale(1.05);
 }
 
 .course-info {
@@ -1753,18 +1847,35 @@ html, body.courses-page {
 
 
 .scheduler-footer .btn-primary {
+    background: transparent;
+    color: var(--course-accent);
+    border: 2px solid var(--course-accent);
+    box-shadow: 0 4px 15px rgba(68, 229, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.scheduler-footer .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
     background: linear-gradient(135deg, 
         var(--course-accent) 0%, 
         var(--course-accent-hover) 100%);
-    color: #000;
-    border: 1px solid rgba(68, 229, 255, 0.3);
-    box-shadow: 0 4px 15px rgba(68, 229, 255, 0.3);
+    transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.scheduler-footer .btn-primary:hover::before {
+    left: 0;
 }
 
 .scheduler-footer .btn-primary:hover {
-    background: linear-gradient(135deg, 
-        var(--course-accent-hover) 0%, 
-        var(--course-accent) 100%);
+    color: #000;
+    border-color: transparent;
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(68, 229, 255, 0.4);
 }
@@ -1772,6 +1883,30 @@ html, body.courses-page {
 .scheduler-footer .btn-primary:active {
     transform: translateY(0);
     box-shadow: 0 4px 15px rgba(68, 229, 255, 0.3);
+}
+
+/* Efecto de clic para todos los botones */
+.btn-primary:active,
+.btn-secondary:active,
+.btn-course-primary:active,
+.menu-btn:active,
+.clear-search-btn:active,
+.scheduler-footer .btn-primary:active {
+    transform: translateY(-1px) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* Efecto de focus para accesibilidad */
+.btn-primary:focus,
+.btn-secondary:focus,
+.btn-course-primary:focus,
+.menu-btn:focus,
+.clear-search-btn:focus,
+.scheduler-footer .btn-primary:focus {
+    outline: none;
+    box-shadow: 
+        0 0 0 3px rgba(68, 229, 255, 0.3),
+        0 8px 25px rgba(68, 229, 255, 0.4);
 }
 
 /* Responsive para el modal */

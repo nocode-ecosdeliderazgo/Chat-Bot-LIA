@@ -6,6 +6,8 @@
     <title>Mis Talleres — Lia</title>
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/courses.css">
+    <!-- Estilos específicos para las partículas -->
+    <link rel="stylesheet" href="styles/particles-background.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
@@ -19,7 +21,24 @@
     <script src="utils/auth-guard.js"></script>
 </head>
 <body class="courses-page">
-    <div class="particles-container"></div>
+    <!-- Partículas de fondo estáticas CSS -->
+    <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Contenedor principal con fondo dinámico -->
+    <div class="auth-container">
+        <div class="auth-bg">
+            <div class="bg-glow"></div>
+            <canvas id="bgParticles"></canvas>
+        </div>
 
     <!-- Header con navbar como en cursos.html -->
     <header class="catalog-header">
@@ -287,9 +306,11 @@
             </div>
         </div>
     </main>
+    </div> <!-- Cierre del auth-container -->
 
-    <script src="scripts/particles.js"></script>
     <script src="scripts/main.js"></script>
     <script src="scripts/courses.js"></script>
+    <script src="scripts/profile-avatar-manager.js"></script>
+    <script src="scripts/courses-particles-direct.js"></script>
 </body>
 </html>

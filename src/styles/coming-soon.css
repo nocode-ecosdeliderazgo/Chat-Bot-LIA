@@ -42,11 +42,88 @@ body { min-height: 100vh; }
 }
 .coming-subtitle { color: var(--text-muted, #9fb1bf); font-size: 1.1rem; margin-bottom: 28px; }
 .coming-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-.btn-primary, .btn-secondary { border: none; border-radius: 12px; padding: 12px 18px; font-weight: 700; cursor: pointer; transition: all .25s ease; }
-.btn-primary { background: linear-gradient(135deg, #44e5ff, #22c55e); color: #001018; box-shadow: 0 10px 26px rgba(68,229,255,.25); }
-.btn-primary:hover { transform: translateY(-2px); filter: brightness(1.05); }
-.btn-secondary { background: rgba(255,255,255,0.06); color: #fff; border: 1px solid rgba(68,229,255,0.25); }
-.btn-secondary:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+.btn-primary, .btn-secondary { 
+    border-radius: 12px; 
+    padding: 12px 18px; 
+    font-weight: 700; 
+    cursor: pointer; 
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary { 
+    background: transparent;
+    color: #44e5ff;
+    border: 2px solid #44e5ff;
+    box-shadow: 0 10px 26px rgba(68,229,255,.25);
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #44e5ff, #22c55e);
+    transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.btn-primary:hover::before {
+    left: 0;
+}
+
+.btn-primary:hover { 
+    color: #001018;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(68,229,255,.35);
+}
+
+.btn-secondary { 
+    background: transparent;
+    color: #fff; 
+    border: 2px solid rgba(68,229,255,0.25);
+}
+
+.btn-secondary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.1);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.btn-secondary:hover::before {
+    left: 0;
+}
+
+.btn-secondary:hover { 
+    border-color: rgba(68,229,255,0.4);
+    transform: translateY(-2px);
+}
+
+/* Efecto de clic para todos los botones */
+.btn-primary:active,
+.btn-secondary:active {
+    transform: translateY(-1px) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* Efecto de focus para accesibilidad */
+.btn-primary:focus,
+.btn-secondary:focus {
+    outline: none;
+    box-shadow: 
+        0 0 0 3px rgba(68, 229, 255, 0.3),
+        0 8px 25px rgba(68, 229, 255, 0.4);
+}
 .particles-container { position: fixed; inset: 0; z-index: -1; }
 
 @keyframes rocketFloat {

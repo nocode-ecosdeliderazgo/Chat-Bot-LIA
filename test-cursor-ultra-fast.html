@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Cursor Ultra Rápido</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="src/styles/welcome.css">
+    <link rel="stylesheet" href="src/styles/animations.css">
+    <link rel="stylesheet" href="src/styles/components.css">
+    <link rel="stylesheet" href="src/styles/responsive.css">
+    <link rel="stylesheet" href="src/styles/cursor.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="hero-section">
+        <div class="hero-background">
+            <div class="particles-container"></div>
+            <div class="gradient-overlay"></div>
+        </div>
+        
+        <nav class="hero-nav">
+            <div class="nav-logo">
+                <div class="logo-icon">
+                    <img src="src/assets/images/icono.png" alt="Aprende y Aplica" class="logo-img">
+                </div>
+                <span class="logo-text">Aprende y Aplica</span>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle-btn" id="themeToggle" aria-label="Cambiar modo claro/oscuro">
+                    <svg class="theme-icon sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+                        <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
+                        <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2"/>
+                        <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2"/>
+                        <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <svg class="theme-icon moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </button>
+                <button class="btn-secondary">Iniciar Sesión</button>
+                <button class="btn-primary">Registrarse</button>
+            </div>
+        </nav>
+        
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">Test de Cursor Ultra Rápido</h1>
+                <p class="hero-description">
+                    Prueba la velocidad máxima del cursor optimizado
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sección de Test de Velocidad -->
+    <section class="features-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Test de Velocidad Ultra</h2>
+                <p>Mueve el mouse lo más rápido posible para probar la responsividad máxima</p>
+            </div>
+            
+            <div class="features-grid">
+                <!-- Área de Test de Velocidad -->
+                <div class="feature-card">
+                    <h3>Área de Test Ultra</h3>
+                    <p>Mueve el mouse lo más rápido posible</p>
+                    <div id="speedTestArea" style="height: 300px; background: var(--bg-tertiary); border: 2px dashed var(--course-primary); border-radius: 12px; margin: 20px 0; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 10px; left: 10px; font-size: 12px; color: var(--text-muted);">
+                            Mueve el mouse aquí lo más rápido posible
+                        </div>
+                        <div id="mouseTrail" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
+                    </div>
+                    <div id="speedStats" style="font-size: 14px; color: var(--text-muted);">
+                        <div>FPS: <span id="fps">0</span></div>
+                        <div>Posiciones por segundo: <span id="positionsPerSecond">0</span></div>
+                        <div>Latencia: <span id="latency">-</span></div>
+                        <div>Velocidad máxima: <span id="maxSpeed">-</span></div>
+                    </div>
+                </div>
+
+                <!-- Botones de Test -->
+                <div class="feature-card">
+                    <h3>Botones de Test</h3>
+                    <p>Prueba los efectos en botones</p>
+                    <div style="margin-top: 20px;">
+                        <button class="btn-primary" style="margin: 5px;">Botón 1</button>
+                        <button class="btn-secondary" style="margin: 5px;">Botón 2</button>
+                        <button class="btn-primary" style="margin: 5px;">Botón 3</button>
+                        <button class="btn-secondary" style="margin: 5px;">Botón 4</button>
+                        <button class="btn-primary" style="margin: 5px;">Botón 5</button>
+                        <button class="btn-secondary" style="margin: 5px;">Botón 6</button>
+                    </div>
+                </div>
+
+                <!-- Enlaces de Test -->
+                <div class="feature-card">
+                    <h3>Enlaces de Test</h3>
+                    <p>Prueba los efectos en enlaces</p>
+                    <div style="margin-top: 20px;">
+                        <a href="#" style="color: var(--course-primary); margin: 5px; display: inline-block;">Enlace 1</a>
+                        <a href="#" style="color: var(--course-primary); margin: 5px; display: inline-block;">Enlace 2</a>
+                        <a href="#" style="color: var(--course-primary); margin: 5px; display: inline-block;">Enlace 3</a>
+                        <a href="#" style="color: var(--course-primary); margin: 5px; display: inline-block;">Enlace 4</a>
+                        <a href="#" style="color: var(--course-primary); margin: 5px; display: inline-block;">Enlace 5</a>
+                        <a href="#" style="color: var(--course-primary); margin: 5px; display: inline-block;">Enlace 6</a>
+                    </div>
+                </div>
+
+                <!-- Elementos de Texto -->
+                <div class="feature-card">
+                    <h3>Elementos de Texto</h3>
+                    <p>Prueba el cursor de texto</p>
+                    <div style="margin-top: 20px;">
+                        <input type="text" placeholder="Campo de texto 1" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid var(--course-primary); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary);">
+                        <input type="text" placeholder="Campo de texto 2" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid var(--course-primary); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary);">
+                        <textarea placeholder="Área de texto" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid var(--course-primary); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary); height: 60px; resize: none;"></textarea>
+                    </div>
+                </div>
+
+                <!-- Controles del Cursor -->
+                <div class="feature-card">
+                    <h3>Controles del Cursor</h3>
+                    <p>Activa/desactiva efectos</p>
+                    <div style="margin-top: 20px;">
+                        <button onclick="window.customCursor.enableParticleEffect()" class="btn-secondary" style="margin: 5px;">Efecto Partículas</button>
+                        <button onclick="window.customCursor.disableParticleEffect()" class="btn-secondary" style="margin: 5px;">Desactivar</button>
+                        <br>
+                        <button onclick="window.customCursor.enableTrailEffect()" class="btn-secondary" style="margin: 5px;">Efecto Trail</button>
+                        <button onclick="window.customCursor.disableTrailEffect()" class="btn-secondary" style="margin: 5px;">Desactivar</button>
+                        <br>
+                        <button onclick="window.customCursor.setSize(15)" class="btn-secondary" style="margin: 5px;">Cursor Pequeño</button>
+                        <button onclick="window.customCursor.setSize(20)" class="btn-secondary" style="margin: 5px;">Cursor Normal</button>
+                        <button onclick="window.customCursor.setSize(30)" class="btn-secondary" style="margin: 5px;">Cursor Grande</button>
+                    </div>
+                </div>
+
+                <!-- Información de Performance -->
+                <div class="feature-card">
+                    <h3>Información de Performance</h3>
+                    <p>Métricas en tiempo real</p>
+                    <div id="performanceInfo" style="margin-top: 20px; font-size: 14px; color: var(--text-muted);">
+                        <div>Estado del cursor: <span id="cursorStatus">Inicializando...</span></div>
+                        <div>Última actualización: <span id="lastUpdate">-</span></div>
+                        <div>Tiempo de respuesta: <span id="responseTime">-</span></div>
+                        <div>Promedio FPS: <span id="avgFPS">-</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Información de Optimizaciones -->
+    <div style="padding: 50px 20px; text-align: center; background: var(--bg-tertiary);">
+        <h2>Optimizaciones Ultra Implementadas</h2>
+        <div style="max-width: 800px; margin: 0 auto; text-align: left;">
+            <h3>Mejoras de Velocidad Ultra:</h3>
+            <ul>
+                <li><strong>Sin transiciones CSS:</strong> Eliminadas todas las transiciones para máxima velocidad</li>
+                <li><strong>Transform3D:</strong> Uso de translate3d para aceleración por hardware</li>
+                <li><strong>Throttling optimizado:</strong> 144 FPS máximo para movimiento del mouse</li>
+                <li><strong>Delegación de eventos mejorada:</strong> Throttling en eventos de hover</li>
+                <li><strong>className en lugar de classList:</strong> Más rápido para cambiar clases</li>
+                <li><strong>Sin delay en punto interno:</strong> Actualización inmediata</li>
+                <li><strong>Efectos reducidos:</strong> Menos escala y sombras</li>
+                <li><strong>backface-visibility y perspective:</strong> Optimización de capas</li>
+            </ul>
+            
+            <h3>Resultados Esperados:</h3>
+            <ul>
+                <li>✅ Cursor súper responsivo y fluido</li>
+                <li>✅ Latencia mínima en el seguimiento del mouse</li>
+                <li>✅ Efectos instantáneos</li>
+                <li>✅ Performance máxima en todos los dispositivos</li>
+                <li>✅ Uso mínimo de CPU</li>
+                <li>✅ 144 FPS en movimiento</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="src/scripts/particles.js"></script>
+    <script src="src/scripts/animations.js"></script>
+    <script src="src/scripts/theme-manager.js"></script>
+    <script src="src/scripts/cursor-manager.js"></script>
+    
+    <script>
+        // Inicializar partículas
+        document.addEventListener('DOMContentLoaded', function() {
+            const particlesContainer = document.querySelector('.particles-container');
+            if (particlesContainer) {
+                new ParticleSystem(particlesContainer);
+            }
+
+            // Test de velocidad ultra del cursor
+            let frameCount = 0;
+            let lastTime = performance.now();
+            let mousePositions = [];
+            let lastMouseMove = 0;
+            let maxSpeed = 0;
+            let avgFPS = 0;
+            let fpsHistory = [];
+
+            const speedTestArea = document.getElementById('speedTestArea');
+            const mouseTrail = document.getElementById('mouseTrail');
+            const fpsElement = document.getElementById('fps');
+            const positionsElement = document.getElementById('positionsPerSecond');
+            const latencyElement = document.getElementById('latency');
+            const maxSpeedElement = document.getElementById('maxSpeed');
+            const cursorStatus = document.getElementById('cursorStatus');
+            const lastUpdate = document.getElementById('lastUpdate');
+            const responseTime = document.getElementById('responseTime');
+            const avgFPSElement = document.getElementById('avgFPS');
+
+            // Contador de FPS ultra optimizado
+            function updateFPS() {
+                frameCount++;
+                const currentTime = performance.now();
+                
+                if (currentTime - lastTime >= 1000) {
+                    const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                    fpsElement.textContent = fps;
+                    
+                    // Calcular promedio FPS
+                    fpsHistory.push(fps);
+                    if (fpsHistory.length > 10) fpsHistory.shift();
+                    avgFPS = Math.round(fpsHistory.reduce((a, b) => a + b, 0) / fpsHistory.length);
+                    avgFPSElement.textContent = avgFPS;
+                    
+                    // Calcular posiciones por segundo
+                    const positionsInLastSecond = mousePositions.filter(pos => pos.time > currentTime - 1000).length;
+                    positionsElement.textContent = positionsInLastSecond;
+                    
+                    frameCount = 0;
+                    lastTime = currentTime;
+                }
+                
+                requestAnimationFrame(updateFPS);
+            }
+
+            // Rastrear movimiento del mouse ultra optimizado
+            speedTestArea.addEventListener('mousemove', (e) => {
+                const currentTime = performance.now();
+                const rect = speedTestArea.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                mousePositions.push({ x, y, time: currentTime });
+                
+                // Mantener solo las últimas 50 posiciones para mejor performance
+                if (mousePositions.length > 50) {
+                    mousePositions.shift();
+                }
+                
+                // Crear trail visual optimizado
+                const trailDot = document.createElement('div');
+                trailDot.style.position = 'absolute';
+                trailDot.style.left = x + 'px';
+                trailDot.style.top = y + 'px';
+                trailDot.style.width = '3px';
+                trailDot.style.height = '3px';
+                trailDot.style.background = 'var(--course-primary)';
+                trailDot.style.borderRadius = '50%';
+                trailDot.style.opacity = '0.4';
+                trailDot.style.pointerEvents = 'none';
+                trailDot.style.transform = 'translate3d(0,0,0)';
+                mouseTrail.appendChild(trailDot);
+                
+                // Remover trail después de 300ms (más rápido)
+                setTimeout(() => {
+                    if (trailDot.parentNode) {
+                        trailDot.parentNode.removeChild(trailDot);
+                    }
+                }, 300);
+                
+                // Calcular velocidad
+                if (mousePositions.length > 1) {
+                    const lastPos = mousePositions[mousePositions.length - 2];
+                    const distance = Math.sqrt(Math.pow(x - lastPos.x, 2) + Math.pow(y - lastPos.y, 2));
+                    const timeDiff = currentTime - lastPos.time;
+                    const speed = distance / timeDiff;
+                    
+                    if (speed > maxSpeed) {
+                        maxSpeed = speed;
+                        maxSpeedElement.textContent = speed.toFixed(2) + ' px/ms';
+                    }
+                }
+                
+                // Actualizar información de performance
+                const responseTimeValue = currentTime - lastMouseMove;
+                latencyElement.textContent = responseTimeValue.toFixed(2) + 'ms';
+                responseTime.textContent = responseTimeValue.toFixed(2) + 'ms';
+                lastMouseMove = currentTime;
+                lastUpdate.textContent = new Date().toLocaleTimeString();
+                
+                // Verificar estado del cursor
+                if (window.customCursor && window.customCursor.isVisible) {
+                    cursorStatus.textContent = 'Activo';
+                    cursorStatus.style.color = 'var(--course-success)';
+                } else {
+                    cursorStatus.textContent = 'Inactivo';
+                    cursorStatus.style.color = 'var(--course-error)';
+                }
+            });
+
+            // Iniciar contador de FPS
+            updateFPS();
+        });
+    </script>
+</body>
+</html>

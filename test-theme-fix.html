@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Corrección de Tema</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="src/styles/welcome.css">
+    <link rel="stylesheet" href="src/styles/animations.css">
+    <link rel="stylesheet" href="src/styles/components.css">
+    <link rel="stylesheet" href="src/styles/responsive.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header Hero Section -->
+    <header class="hero-section">
+        <!-- Fondo con partículas animadas -->
+        <div class="hero-background">
+            <div class="particles-container"></div>
+            <div class="gradient-overlay"></div>
+        </div>
+        
+        <!-- Navegación -->
+        <nav class="hero-nav">
+            <div class="nav-logo">
+                <div class="logo-icon">
+                    <img src="src/assets/images/icono.png" alt="Aprende y Aplica" class="logo-img">
+                </div>
+                <span class="logo-text">Aprende y Aplica</span>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle-btn" id="themeToggle" aria-label="Cambiar modo claro/oscuro">
+                    <svg class="theme-icon sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+                        <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
+                        <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2"/>
+                        <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2"/>
+                        <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <svg class="theme-icon moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </button>
+                <button class="btn-secondary">Iniciar Sesión</button>
+                <button class="btn-primary">Registrarse</button>
+            </div>
+        </nav>
+        
+        <!-- Contenido Principal -->
+        <div class="hero-content">
+            <div class="hero-text">
+                <div class="hero-badge animate-on-scroll">
+                    <img src="src/assets/icons/rocket.svg" alt="Rocket" class="icon rocket-icon">
+                    <span>Aprende y Aplica IA</span>
+                </div>
+                <h1 class="hero-title animate-on-scroll">Domina la IA que transformará tu futuro</h1>
+                <p class="hero-description animate-on-scroll">
+                    Conviértete en experto aplicado: fundamentos claros, herramientas que importan, 
+                    y hábitos de aprendizaje continuo para destacar en la era de la inteligencia artificial.
+                </p>
+                <div class="hero-actions animate-on-scroll">
+                    <button class="btn-primary btn-large">
+                        <span>Iniciar Sesión</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Elemento Visual -->
+            <div class="hero-visual animate-on-scroll">
+                <div class="floating-card glass-card floating">
+                    <div class="card-content">
+                        <h3>Lo que aprenderás</h3>
+                        <ul class="learning-list">
+                            <li class="stagger-item">✓ Fundamentos de IA sin complicarte</li>
+                            <li class="stagger-item">✓ Herramientas que realmente importan</li>
+                            <li class="stagger-item">✓ Aplicación en proyectos reales</li>
+                            <li class="stagger-item">✓ Hábitos de aprendizaje continuo</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sección de Características -->
+    <section class="features-section">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <h2>¿Por qué elegir nuestra plataforma?</h2>
+                <p>Descubre las ventajas que te harán destacar en el mundo de la IA</p>
+            </div>
+            <div class="features-grid stagger-container">
+                <div class="feature-card animate-on-scroll lift-hover">
+                    <div class="feature-icon">
+                        <img src="src/assets/icons/learn.svg" alt="Fundamentos" class="icon icon-brain">
+                    </div>
+                    <h3>Fundamentos Sólidos</h3>
+                    <p>Aprende los conceptos esenciales de IA sin perderte en teoría innecesaria</p>
+                </div>
+                <div class="feature-card animate-on-scroll lift-hover">
+                    <div class="feature-icon">
+                        <img src="src/assets/icons/tools.svg" alt="Herramientas" class="icon icon-tools">
+                    </div>
+                    <h3>Herramientas Prácticas</h3>
+                    <p>Utiliza las herramientas que realmente importan en el mercado laboral</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div style="padding: 50px 20px; text-align: center;">
+        <h2>Test de Corrección de Tema</h2>
+        <p>Verifica que:</p>
+        <ul style="text-align: left; max-width: 600px; margin: 0 auto;">
+            <li>✅ El botón "Iniciar Sesión" sea visible en ambos temas</li>
+            <li>✅ Las partículas se vean claramente en modo claro</li>
+            <li>✅ El glassmorphism tenga buen contraste</li>
+            <li>✅ Los botones tengan buen contraste y visibilidad</li>
+            <li>✅ Las tarjetas se vean bien en ambos temas</li>
+        </ul>
+    </div>
+
+    <!-- Scripts -->
+    <script src="src/scripts/particles.js"></script>
+    <script src="src/scripts/animations.js"></script>
+    <script src="src/scripts/theme-manager.js"></script>
+    
+    <script>
+        // Inicializar partículas
+        document.addEventListener('DOMContentLoaded', function() {
+            const particlesContainer = document.querySelector('.particles-container');
+            if (particlesContainer) {
+                new ParticleSystem(particlesContainer);
+            }
+        });
+    </script>
+</body>
+</html>

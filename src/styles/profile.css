@@ -25,7 +25,10 @@
 
 body {
     font-family: var(--font-secondary);
-    background: var(--gradient-dark);
+    background: 
+        radial-gradient(1200px 800px at 20% 0%, rgba(68, 229, 255, 0.08), transparent 60%),
+        radial-gradient(800px 600px at 80% 100%, rgba(0, 119, 166, 0.12), transparent 60%),
+        linear-gradient(160deg, #0A0A0A 0%, #0A0A0A 100%);
     color: var(--course-white);
     min-height: 100vh;
     overflow-x: hidden;
@@ -274,14 +277,15 @@ body {
     left: 0;
     right: 0;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(10, 10, 10, 0.4);
+    border-bottom: 1px solid rgba(68, 229, 255, 0.2);
     padding: 16px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(20px) saturate(120%);
     height: var(--header-height);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .header-container {
@@ -295,20 +299,39 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: var(--course-white);
+    background: transparent;
+    border: 2px solid var(--course-primary);
+    color: var(--course-primary);
     padding: 8px 12px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     font-family: var(--font-secondary);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Efecto de relleno deslizante para back-btn */
+.back-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--course-primary);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.back-btn:hover::before {
+    left: 0;
 }
 
 .back-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
+    color: #0A0A0A;
     border-color: var(--course-primary);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
 }
 
 .header-title h1 {
@@ -327,20 +350,40 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: linear-gradient(135deg, var(--course-primary), var(--course-secondary));
-    border: none;
-    color: var(--course-dark);
+    background: transparent;
+    border: 2px solid var(--course-primary);
+    color: var(--course-primary);
     padding: 12px 20px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     font-family: var(--font-secondary);
     font-weight: 600;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Efecto de relleno deslizante para save-btn */
+.save-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--course-primary), var(--course-secondary));
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.save-btn:hover::before {
+    left: 0;
 }
 
 .save-btn:hover {
+    color: #0A0A0A;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(68, 229, 255, 0.3);
+    box-shadow: 0 8px 25px rgba(68, 229, 255, 0.4);
 }
 
 /* Contenido principal */
@@ -365,12 +408,16 @@ body {
     position: sticky;
     top: calc(var(--header-height) + 16px);
     width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 20px;
-    backdrop-filter: blur(10px);
+    background: rgba(10, 10, 10, 0.3);
+    border: 1px solid rgba(68, 229, 255, 0.2);
+    border-radius: 20px;
+    padding: 24px;
+    backdrop-filter: blur(20px) saturate(120%);
     margin-left: 0;
+    box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(68, 229, 255, 0.1) inset;
+    transition: all 0.3s ease;
 }
 
 /* Avatar section */
@@ -537,12 +584,23 @@ body {
 }
 
 .form-section {
-    margin-bottom: 20px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 16px;
-    backdrop-filter: blur(10px);
+    margin-bottom: 24px;
+    background: rgba(10, 10, 10, 0.25);
+    border: 1px solid rgba(68, 229, 255, 0.15);
+    border-radius: 16px;
+    padding: 24px;
+    backdrop-filter: blur(20px) saturate(120%);
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(68, 229, 255, 0.08) inset;
+    transition: all 0.3s ease;
+}
+
+.form-section:hover {
+    border-color: rgba(68, 229, 255, 0.25);
+    box-shadow: 
+        0 16px 50px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(68, 229, 255, 0.12) inset;
 }
 
 .section-title {

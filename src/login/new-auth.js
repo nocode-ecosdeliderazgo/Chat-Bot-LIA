@@ -444,13 +444,28 @@ function togglePasswordVisibility(button) {
     const showIcon = button.querySelector('.eye-icon.show');
     const hideIcon = button.querySelector('.eye-icon.hide');
     
-    if (!input || !showIcon || !hideIcon) return;
+    if (!input || !showIcon || !hideIcon) {
+        console.warn('Elementos de toggle de contraseña no encontrados:', { targetId, input: !!input, showIcon: !!showIcon, hideIcon: !!hideIcon });
+        return;
+    }
     
     const isPassword = input.type === 'password';
     input.type = isPassword ? 'text' : 'password';
     
-    showIcon.style.display = isPassword ? 'none' : 'block';
-    hideIcon.style.display = isPassword ? 'block' : 'none';
+    // Cambiar visibilidad de iconos con transición suave
+    if (isPassword) {
+        showIcon.style.display = 'none';
+        hideIcon.style.display = 'block';
+        button.setAttribute('aria-label', 'Ocultar contraseña');
+    } else {
+        showIcon.style.display = 'block';
+        hideIcon.style.display = 'none';
+        button.setAttribute('aria-label', 'Mostrar contraseña');
+    }
+    
+    // Agregar efecto visual de feedback
+    button.classList.add('clicked');
+    setTimeout(() => button.classList.remove('clicked'), 200);
 }
 
 // Configurar medidor de fuerza de contraseña
@@ -1159,8 +1174,8 @@ function getRedirectPageByRole(userRole) {
         case 'student':
         case 'user':
         default:
-            // Por defecto, todos los usuarios van a courses.html
-            return '../courses.html';
+            // Por defecto, todos los usuarios van a cursos.html
+            return '../cursos.html';
     }
 }
 
@@ -1175,7 +1190,7 @@ async function handleSuccessfulAuth() {
     await animateSuccess();
     
     // Obtener información del usuario desde localStorage
-    let targetPage = '../courses.html'; // Fallback por defecto
+    let targetPage = '../cursos.html'; // Fallback por defecto
     
     try {
         // Verificar todos los datos de autenticación guardados
@@ -1820,5 +1835,254 @@ async function animateError() {
         authCard.style.animation = '';
     }
 }
+
+// ===== FUNCIONES PARA LA TARJETA INFORMATIVA DE TÉRMINOS Y CONDICIONES =====
+
+/**
+ * Abre la tarjeta informativa de términos y condiciones
+ * @param {string} tab - La pestaña a mostrar ('terms' o 'privacy')
+ */
+function openTermsCard(tab = 'terms') {
+    const termsCard = document.getElementById('termsCard');
+    if (termsCard) {
+        termsCard.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Si se especifica una pestaña, mostrarla
+        if (tab === 'privacy') {
+            showTermsTab('privacy');
+        }
+    }
+}
+
+/**
+ * Cierra la tarjeta informativa
+ */
+function closeTermsCard() {
+    const termsCard = document.getElementById('termsCard');
+    if (termsCard) {
+        termsCard.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+/**
+ * Cambia entre las pestañas de términos y privacidad
+ * @param {string} tabName - Nombre de la pestaña ('terms' o 'privacy')
+ */
+function showTermsTab(tabName) {
+    // Ocultar todos los contenidos
+    const contents = document.querySelectorAll('.terms-content');
+    contents.forEach(content => {
+        content.classList.remove('active');
+        content.style.animation = 'none';
+    });
+
+    // Remover clase active de todos los tabs
+    const tabs = document.querySelectorAll('.terms-tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+
+    // Mostrar contenido seleccionado
+    const selectedContent = document.getElementById(tabName + 'Content');
+    if (selectedContent) {
+        selectedContent.classList.add('active');
+        selectedContent.style.animation = 'fadeIn 0.3s ease';
+    }
+
+    // Agregar clase active al tab clickeado
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
+}
+
+/**
+ * Acepta los términos y cierra la tarjeta
+ */
+function acceptTermsAndClose() {
+    // Marcar los checkboxes como aceptados
+    const acceptTermsCheckbox = document.getElementById('acceptTerms');
+    const acceptPrivacyCheckbox = document.getElementById('acceptPrivacy');
+    
+    if (acceptTermsCheckbox) {
+        acceptTermsCheckbox.checked = true;
+    }
+    
+    if (acceptPrivacyCheckbox) {
+        acceptPrivacyCheckbox.checked = true;
+    }
+    
+    // Guardar la aceptación en localStorage
+    localStorage.setItem('termsAccepted', 'true');
+    localStorage.setItem('termsAcceptedDate', new Date().toISOString());
+    
+    // Cerrar la tarjeta
+    closeTermsCard();
+    
+    // Mostrar mensaje de confirmación
+    showNotification('Documentos legales aceptados correctamente', 'success');
+}
+
+/**
+ * Muestra una notificación
+ * @param {string} message - Mensaje a mostrar
+ * @param {string} type - Tipo de notificación ('success', 'error', 'info')
+ */
+function showNotification(message, type = 'info') {
+    // Crear elemento de notificación
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-message">${message}</span>
+            <button class="notification-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
+        </div>
+    `;
+    
+    // Agregar estilos si no existen
+    if (!document.querySelector('#notification-styles')) {
+        const styles = document.createElement('style');
+        styles.id = 'notification-styles';
+        styles.textContent = `
+            .notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--glass-strong);
+                border: 1px solid var(--border-light);
+                border-radius: var(--radius-md);
+                padding: var(--spacing-md);
+                z-index: 10000;
+                animation: slideInRight 0.3s ease;
+                backdrop-filter: blur(10px);
+            }
+            
+            .notification-success {
+                border-color: rgba(40, 167, 69, 0.3);
+                background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+            }
+            
+            .notification-error {
+                border-color: rgba(220, 53, 69, 0.3);
+                background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
+            }
+            
+            .notification-info {
+                border-color: rgba(68, 229, 255, 0.3);
+                background: linear-gradient(135deg, rgba(68, 229, 255, 0.1), rgba(68, 229, 255, 0.05));
+            }
+            
+            .notification-content {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-sm);
+            }
+            
+            .notification-message {
+                color: var(--text-on-dark);
+                font-size: var(--font-size-sm);
+            }
+            
+            .notification-close {
+                background: none;
+                border: none;
+                color: var(--text-muted);
+                cursor: pointer;
+                font-size: 18px;
+                padding: 0;
+                width: 20px;
+                height: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: all 0.3s ease;
+            }
+            
+            .notification-close:hover {
+                background: rgba(255, 255, 255, 0.1);
+                color: var(--text-on-dark);
+            }
+            
+            @keyframes slideInRight {
+                from {
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+        `;
+        document.head.appendChild(styles);
+    }
+    
+    // Agregar al DOM
+    document.body.appendChild(notification);
+    
+    // Remover automáticamente después de 5 segundos
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Configurar event listeners para los enlaces de términos
+document.addEventListener('DOMContentLoaded', function() {
+    // Enlaces de términos y condiciones
+    const termsLinks = document.querySelectorAll('a[href="#"]');
+    termsLinks.forEach(link => {
+        if (link.textContent.includes('Términos y Condiciones')) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                openTermsCard('terms');
+            });
+        } else if (link.textContent.includes('Políticas de Privacidad')) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                openTermsCard('privacy');
+            });
+        }
+    });
+    
+    // Cerrar tarjeta al hacer clic fuera de ella
+    const termsCardOverlay = document.getElementById('termsCard');
+    if (termsCardOverlay) {
+        termsCardOverlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeTermsCard();
+            }
+        });
+    }
+    
+    // Cerrar tarjeta con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeTermsCard();
+        }
+    });
+    
+    // Verificar si ya se aceptaron los términos al cargar la página
+    const termsAccepted = localStorage.getItem('termsAccepted');
+    if (termsAccepted) {
+        const acceptTermsCheckbox = document.getElementById('acceptTerms');
+        const acceptPrivacyCheckbox = document.getElementById('acceptPrivacy');
+        
+        if (acceptTermsCheckbox) {
+            acceptTermsCheckbox.checked = true;
+        }
+        
+        if (acceptPrivacyCheckbox) {
+            acceptPrivacyCheckbox.checked = true;
+        }
+    }
+});
+
+// Exportar funciones para uso global
+window.openTermsCard = openTermsCard;
+window.closeTermsCard = closeTermsCard;
+window.showTermsTab = showTermsTab;
+window.acceptTermsAndClose = acceptTermsAndClose;
 
 

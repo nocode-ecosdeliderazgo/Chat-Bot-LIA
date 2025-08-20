@@ -2,12 +2,21 @@
 
 /* ===== EFECTOS GLASSMORPHISM ===== */
 .glass-card {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-tertiary);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(68, 229, 255, 0.2);
     border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
+}
+
+/* Mejorar glassmorphism en modo claro */
+[data-theme="light"] .glass-card {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(68, 229, 255, 0.3);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.2) inset;
 }
 
 .glass-button {
@@ -85,29 +94,7 @@
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* ===== PARTÍCULAS MEJORADAS ===== */
-.particle {
-    border-radius: 50%;
-    pointer-events: none;
-}
-
-.particle:nth-child(odd) {
-    background: var(--course-primary);
-    animation-duration: 12s;
-}
-
-.particle:nth-child(even) {
-    background: var(--course-secondary);
-    animation-duration: 18s;
-    animation-delay: -5s;
-}
-
-.particle:nth-child(3n) {
-    width: 2px;
-    height: 2px;
-    background: rgba(68, 229, 255, 0.5);
-    animation-duration: 25s;
-}
+/* ===== INDICADORES DE SCROLL ===== */
 
 /* ===== INDICADORES DE SCROLL ===== */
 .scroll-indicator {
