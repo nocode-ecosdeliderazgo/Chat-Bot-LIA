@@ -641,11 +641,11 @@
       const currentUser = JSON.parse(currentUserRaw);
       console.log('[AutoLogin] Usuario encontrado:', currentUser);
 
-      // Si ya tiene token válido, ir directamente a courses.html
+      // Si ya tiene token válido, ir directamente a cursos.html
       const token = localStorage.getItem('userToken') || localStorage.getItem('authToken');
       if (token) {
-        console.log('[AutoLogin] Usuario ya autenticado, redirigiendo a courses.html');
-        location.href = '../courses.html';
+        console.log('[AutoLogin] Usuario ya autenticado, redirigiendo a cursos.html');
+        location.href = '../cursos.html';
         return;
       }
 
@@ -659,9 +659,9 @@
         return;
       }
 
-      // Si tiene token pero no rol, ir a courses por defecto
-      console.log('[AutoLogin] Token disponible pero sin rol específico, yendo a courses');
-      location.href = '../courses.html';
+      // Si tiene token pero no rol, ir a cursos por defecto
+      console.log('[AutoLogin] Token disponible pero sin rol específico, yendo a cursos');
+      location.href = '../cursos.html';
 
     } catch (error) {
       console.error('[AutoLogin] Error en proceso de login automático:', error);
@@ -736,8 +736,8 @@
       case 'estudiante':
       case 'user':
       default:
-        // TODOS los usuarios normales van a courses.html
-        location.href = '../courses.html';
+        // TODOS los usuarios normales van a cursos.html
+        location.href = '../cursos.html';
         break;
     }
   }

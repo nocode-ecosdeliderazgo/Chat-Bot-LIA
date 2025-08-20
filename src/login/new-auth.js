@@ -1144,8 +1144,8 @@ function getRedirectPageByRole(userRole, isNewUser = false) {
         case 'student':
         case 'user':
         default:
-            // TODOS los usuarios normales van a courses.html
-            return '../courses.html';
+            // TODOS los usuarios normales van a cursos.html
+            return '../cursos.html';
     }
 }
 
