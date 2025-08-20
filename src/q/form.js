@@ -641,11 +641,11 @@
       const currentUser = JSON.parse(currentUserRaw);
       console.log('[AutoLogin] Usuario encontrado:', currentUser);
 
-      // Si ya tiene token válido, ir directamente a la página correspondiente
+      // Si ya tiene token válido, ir directamente a courses.html
       const token = localStorage.getItem('userToken') || localStorage.getItem('authToken');
-      if (token && currentUser.cargo_rol) {
-        console.log('[AutoLogin] Usuario ya autenticado, redirigiendo según rol:', currentUser.cargo_rol);
-        redirectToRolePage(currentUser.cargo_rol);
+      if (token) {
+        console.log('[AutoLogin] Usuario ya autenticado, redirigiendo a courses.html');
+        location.href = '../courses.html';
         return;
       }
 
@@ -719,7 +719,7 @@
     }
   }
 
-  // Función para redirigir según el rol
+  // Función para redirigir según el rol (ahora siempre a courses.html para usuarios normales)
   function redirectToRolePage(role) {
     const normalizedRole = (role || '').toLowerCase().trim();
     
@@ -736,6 +736,7 @@
       case 'estudiante':
       case 'user':
       default:
+        // TODOS los usuarios normales van a courses.html
         location.href = '../courses.html';
         break;
     }

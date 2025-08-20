@@ -29,8 +29,8 @@
             <li><strong>Completar perfil:</strong> Usuario llena datos profesionales y selecciona perfil</li>
             <li><strong>Redirección 2:</strong> Va a <code>q/form.html</code> (cuestionario adaptativo)</li>
             <li><strong>Completar cuestionario:</strong> Se actualiza <code>type_rol</code> en BD y se guardan respuestas</li>
-            <li><strong>Auto-login:</strong> Inicia sesión automáticamente y redirige según rol</li>
-            <li><strong>Logins posteriores:</strong> Van directamente a página según rol</li>
+            <li><strong>Auto-login:</strong> Inicia sesión automáticamente y redirige a <code>courses.html</code></li>
+            <li><strong>Logins posteriores:</strong> Van a <code>courses.html</code> (excepto admin → admin.html, instructor → instructors/)</li>
         </ol>
     </div>
 
@@ -186,7 +186,7 @@
                         <pre>${JSON.stringify(result.user, null, 2)}</pre>
                         <strong>cargo_rol:</strong> ${result.user.cargo_rol || 'NO ASIGNADO'}<br>
                         <strong>isNewUser:</strong> ${result.user.isNewUser}<br>
-                        <strong>Redirección esperada:</strong> ${result.user.isNewUser ? '../perfil-cuestionario.html → q/form.html (PERFIL + CUESTIONARIO)' : 'Página de rol correspondiente'}
+                        <strong>Redirección esperada:</strong> ${result.user.isNewUser ? '../perfil-cuestionario.html → q/form.html → courses.html' : 'courses.html (o admin/instructors según rol)'}
                     `, 'success');
                     
                     // Auto-fill check form and update form
