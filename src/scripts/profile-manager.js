@@ -140,20 +140,75 @@ class ProfileManager {
         }
     }
 
-    updateStats() {
-        const stats = {
-            courses: 2,
-            progress: 35,
-            streak: 5
-        };
-
+    async updateStats() {
         const coursesElement = document.getElementById('coursesCount');
         const progressElement = document.getElementById('progressValue');
         const streakElement = document.getElementById('streakValue');
 
-        if (coursesElement) coursesElement.textContent = stats.courses;
-        if (progressElement) progressElement.textContent = stats.progress + '%';
-        if (streakElement) streakElement.textContent = stats.streak;
+        // Inicial por defecto
+        if (coursesElement) coursesElement.textContent = '0';
+        if (progressElement) progressElement.textContent = '0%';
+        if (streakElement) streakElement.textContent = '0';
+
+        try {
+            const supabaseUrl = localStorage.getItem('supabaseUrl');
+            const supabaseKey = localStorage.getItem('supabaseAnonKey');
+            const userId = this.currentUser?.id;
+            if (!supabaseUrl || !supabaseKey || !userId) return;
+
+            // 1) Minutos de la semana actual (lunes-domingo)
+            const monday = new Date();
+            const day = monday.getDay();
+            const diff = (day === 0 ? -6 : 1) - day; // ir al lunes
+            monday.setDate(monday.getDate() + diff);
+            const from = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate());
+
+            const minutesResp = await fetch(`${supabaseUrl}/rest/v1/study_session?user_id=eq.${userId}&started_at=gte.${from.toISOString()}&select=duration_minutes`, {
+                headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+            });
+            let minutes = 0;
+            if (minutesResp.ok) {
+                const rows = await minutesResp.json();
+                minutes = rows.reduce((sum, r) => sum + (r.duration_minutes || 0), 0);
+            }
+
+            // 2) Visitas del día (para racha diaria)
+            const today = new Date().toISOString().slice(0,10);
+            const visitResp = await fetch(`${supabaseUrl}/rest/v1/course_visit?user_id=eq.${userId}&visited_on=eq.${today}&select=visits`, {
+                headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+            });
+            let todayVisits = 0;
+            if (visitResp.ok) {
+                const rows = await visitResp.json();
+                todayVisits = rows.reduce((sum, r) => sum + (r.visits || 0), 0);
+            }
+
+            // 3) Racha: contar días consecutivos hacia atrás con al menos 1 minuto o 1 visita
+            let streak = 0;
+            for (let i = 0; i < 30; i++) { // mirar hasta 30 días hacia atrás
+                const d = new Date(); d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().slice(0,10);
+
+                const dayVisitsResp = await fetch(`${supabaseUrl}/rest/v1/course_visit?user_id=eq.${userId}&visited_on=eq.${dateStr}&select=visits`, {
+                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                });
+                const dayMinutesResp = await fetch(`${supabaseUrl}/rest/v1/study_session?user_id=eq.${userId}&started_at=gte.${dateStr}T00:00:00Z&started_at=lte.${dateStr}T23:59:59Z&select=duration_minutes`, {
+                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                });
+                const v = dayVisitsResp.ok ? (await dayVisitsResp.json()).reduce((s,r)=>s+(r.visits||0),0) : 0;
+                const m = dayMinutesResp.ok ? (await dayMinutesResp.json()).reduce((s,r)=>s+(r.duration_minutes||0),0) : 0;
+                if (v > 0 || m > 0) streak += 1; else break;
+            }
+
+            // 4) Cursos (placeholder: si tienes tabla de inscripciones, cámbialo a real)
+            const courses = 2;
+
+            if (coursesElement) coursesElement.textContent = String(courses);
+            if (progressElement) progressElement.textContent = `${Math.min(100, Math.round((minutes/30)*100))}%`;
+            if (streakElement) streakElement.textContent = String(streak);
+        } catch (err) {
+            console.warn('[PROFILE] No se pudieron cargar estadísticas reales', err);
+        }
     }
 
     setupEventListeners() {

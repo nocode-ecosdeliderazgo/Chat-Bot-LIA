@@ -601,6 +601,17 @@ function normalizeUsername(username) {
     return username.toLowerCase().trim().replace(/\s+/g, '');
 }
 
+// Normaliza teléfono MX: conserva solo dígitos y recorta a 10
+function normalizeMxPhone(input) {
+    if (!input) return '';
+    const digits = String(input).replace(/\D/g, '');
+    // Quitar prefijos comunes: 52, +52, 521, 044, 045
+    let cleaned = digits.replace(/^52(1)?/, '');
+    cleaned = cleaned.replace(/^(044|045)/, '');
+    if (cleaned.length > 10) cleaned = cleaned.slice(-10);
+    return cleaned;
+}
+
 // Validar coincidencia de contraseñas
 function validatePasswordMatch(password, confirmPassword, input) {
     const isMatch = password === confirmPassword && confirmPassword.length > 0;
@@ -828,7 +839,7 @@ async function handleRegister(e) {
         first_name: formData.get('first_name')?.trim(),
         last_name: formData.get('last_name')?.trim(),
         username: normalizeUsername(formData.get('username')?.trim() || ''),
-        phone: formData.get('phone')?.trim(),
+        phone: normalizeMxPhone(formData.get('phone')?.trim()),
         email: formData.get('email')?.trim(),
         password: formData.get('password'),
         confirm_password: formData.get('confirm_password'),
@@ -954,6 +965,16 @@ function validateRegisterForm(userData) {
     if (!validateEmail(email)) {
         showNotification('Por favor ingresa un email válido', 'error');
         return false;
+    }
+
+    // Validación teléfono MX (10 dígitos opcional)
+    const phoneRaw = document.getElementById('phone')?.value || '';
+    if (phoneRaw) {
+        const normalized = normalizeMxPhone(phoneRaw);
+        if (!/^[0-9]{10}$/.test(normalized)) {
+            showNotification('El teléfono debe tener 10 dígitos (México).', 'error');
+            return false;
+        }
     }
     
     // Validación de contraseña según Supabase (mínimo 8 caracteres)

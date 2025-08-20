@@ -399,16 +399,17 @@ function continueCourse(courseId, buttonElement = null) {
         buttonElement.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>Cargando...';
         buttonElement.disabled = true;
         
-        setTimeout(() => {
+        setTimeout(async () => {
             try {
-                userData.addStudySession(5, courseId);
-                
+                // Quitar incremento artificial: el cómputo real lo hace el tracking por minuto
                 localStorage.setItem('selectedCourse', JSON.stringify({
                     id: courseId,
                     timestamp: Date.now()
                 }));
                 
                 console.log(`[COURSES] Redirigiendo al chat con curso: ${courseId}`);
+                // Iniciar tracking en background (contador por minuto)
+                try { await startMinuteTracking(courseId); } catch (e) { console.warn('Minute tracking init failed', e); }
                 window.location.href = `chat.html?course=${courseId}`;
             } catch (error) {
                 console.error('[COURSES] Error al procesar el curso:', error);
@@ -423,6 +424,58 @@ function continueCourse(courseId, buttonElement = null) {
         setTimeout(() => {
             window.location.href = `chat.html?course=${courseId}`;
         }, 500);
+    }
+}
+
+// ===== Tracking por minuto (Supabase)
+async function startMinuteTracking(courseId) {
+    try {
+        const supabaseUrl = localStorage.getItem('supabaseUrl');
+        const supabaseKey = localStorage.getItem('supabaseAnonKey');
+        const token = localStorage.getItem('userToken') || localStorage.getItem('authToken');
+        const userDataStr = localStorage.getItem('userData') || localStorage.getItem('currentUser');
+        if (!supabaseUrl || !supabaseKey || !userDataStr) return;
+        const user = JSON.parse(userDataStr);
+        const userId = user.id || user.user?.id || user.sub || user.user_id;
+        if (!userId) return;
+
+        // Registrar visita (upsert del día actual)
+        try {
+            await fetch(`${supabaseUrl}/rest/v1/course_visit?on_conflict=unique`, {
+                method: 'POST',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'resolution=merge-duplicates'
+                },
+                body: JSON.stringify({ user_id: userId, course_id: courseId, visited_on: new Date().toISOString().slice(0,10), visits: 1 })
+            });
+        } catch (_) {}
+
+        // Contador por minuto (max 60 min por sesión)
+        let minutes = 0;
+        const maxMinutes = 180; // seguridad
+        const intervalId = setInterval(async () => {
+            minutes += 1;
+            try {
+                await fetch(`${supabaseUrl}/rest/v1/study_session`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: userId, course_id: courseId, duration_minutes: 1 })
+                });
+            } catch (e) { console.warn('Failed to insert minute', e); }
+            if (minutes >= maxMinutes) clearInterval(intervalId);
+        }, 60 * 1000);
+
+        // Guardar para cancelar si sale del curso
+        window.addEventListener('beforeunload', () => clearInterval(intervalId));
+    } catch (error) {
+        console.error('[TRACKING] Error iniciando tracking minuto a minuto:', error);
     }
 }
 
@@ -498,8 +551,12 @@ function updateLearningStreak() {
 
 function updateStreakUI() {
     const streakInfo = userData.data.streak;
-    const weekProgress = userData.data.streak.weeklyProgress;
-    const weekGoal = userData.data.streak.weeklyGoal;
+    // Evitar valores basura al inicio de perfil
+    if (!streakInfo || streakInfo.totalVisits == null) {
+        return;
+    }
+    const weekProgress = Math.max(0, userData.data.streak.weeklyProgress || 0);
+    const weekGoal = Math.max(1, userData.data.streak.weeklyGoal || 30);
     const percentage = Math.round((weekProgress / weekGoal) * 100);
     
     const streakNumber = document.querySelector('.streak-number');
@@ -519,12 +576,15 @@ function updateStreakUI() {
     
     const statValues = document.querySelectorAll('.stat-value');
     if (statValues.length >= 3) {
-        const weeks = Math.floor(streakInfo.currentStreak / 7);
+        // Semanas reales de racha (currentStreak representa días continuos)
+        const weeks = Math.max(0, Math.floor(streakInfo.currentStreak / 7));
         statValues[0].textContent = weeks;
-        
+
+        // Minuto a minuto acumulado real
         const totalCourseMinutes = userData.getTotalCourseMinutes();
         statValues[1].textContent = `${totalCourseMinutes}/30`;
-        
+
+        // Visitas reales (al menos 1 por día si hubo sesión)
         statValues[2].textContent = `${streakInfo.totalVisits}/1`;
     }
 }
