@@ -25,10 +25,54 @@
     
     <!-- Boxicons para iconos -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <!-- Global theme setup - Configuración global del tema -->
+    <script src="scripts/global-theme-setup.js"></script>
 </head>
 <body class="bg-glow-global">
-    <!-- Fondo con partículas -->
-    <div class="particles-container"></div>
+    <!-- Botón de cambio de tema -->
+    <button class="theme-toggle-btn" title="Cambiar tema">
+        <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <!-- Fondo avanzado como en new-auth -->
+    <div class="auth-bg">
+        <div class="bg-glow"></div>
+        <canvas id="bgParticles"></canvas>
+    </div>
+    
+    <!-- Partículas flotantes mejoradas -->
+    <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
 
     <!-- Header simple con navbar por defecto (sin perfil) -->
     <header class="catalog-header">
@@ -121,6 +165,107 @@
     <!-- Scripts -->
     <script src="scripts/particles.js"></script>
     <script src="scripts/estadisticas.js"></script>
+    
+    <!-- Script de partículas de fondo (como new-auth) -->
+    <script>
+        // Sistema de partículas del canvas (como new-auth)
+        const canvas = document.getElementById('bgParticles');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            function createParticle() {
+                return {
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 3 + 1,
+                    speedX: (Math.random() - 0.5) * 0.5,
+                    speedY: (Math.random() - 0.5) * 0.5,
+                    opacity: Math.random() * 0.5 + 0.2,
+                    color: Math.random() > 0.5 ? '#44E5FF' : '#0077A6'
+                };
+            }
+            
+            function initParticles() {
+                particles = [];
+                for (let i = 0; i < 50; i++) {
+                    particles.push(createParticle());
+                }
+            }
+            
+            function updateParticles() {
+                particles.forEach(particle => {
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+                    
+                    if (particle.x < 0 || particle.x > canvas.width) particle.speedX *= -1;
+                    if (particle.y < 0 || particle.y > canvas.height) particle.speedY *= -1;
+                    
+                    particle.opacity += (Math.random() - 0.5) * 0.01;
+                    particle.opacity = Math.max(0.1, Math.min(0.7, particle.opacity));
+                });
+            }
+            
+            function drawParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach(particle => {
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fillStyle = particle.color;
+                    ctx.globalAlpha = particle.opacity;
+                    ctx.fill();
+                    
+                    // Agregar glow
+                    ctx.shadowColor = particle.color;
+                    ctx.shadowBlur = 10;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                });
+            }
+            
+            function connectParticles() {
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 120) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = '#44E5FF';
+                            ctx.globalAlpha = (120 - distance) / 120 * 0.2;
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+            
+            function animate() {
+                updateParticles();
+                drawParticles();
+                connectParticles();
+                requestAnimationFrame(animate);
+            }
+            
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                initParticles();
+            });
+            
+            resizeCanvas();
+            initParticles();
+            animate();
+        }
+    </script>
     
     <script>
         // Cargar session_id y actualizar URLs de Grafana
@@ -231,6 +376,64 @@
             `;
             imgElement.parentNode.appendChild(errorDiv);
         }
+    </script>
+    <script src="scripts/theme-toggle.js"></script>
+    
+    <!-- Script de prueba para el botón de tema -->
+    <script>
+        // Función simple para cambiar tema
+        function toggleTheme() {
+            console.log('🔄 Cambiando tema...');
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            // Aplicar el nuevo tema
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            console.log('✅ Tema cambiado a:', newTheme);
+        }
+        
+        // Hacer la función disponible globalmente
+        window.toggleTheme = toggleTheme;
+        
+        // Inicializar tema al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Aplicar tema guardado o usar dark por defecto
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            console.log('🎨 Tema inicial aplicado:', savedTheme);
+            
+            // Agregar evento de click al botón
+            const themeBtn = document.querySelector('.theme-toggle-btn');
+            if (themeBtn) {
+                // Remover onclick del HTML y usar addEventListener
+                themeBtn.removeAttribute('onclick');
+                themeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🖱️ Botón de tema clickeado');
+                    toggleTheme();
+                });
+                console.log('✅ Evento de click agregado al botón de tema');
+            } else {
+                console.error('❌ No se encontró el botón de tema');
+            }
+        });
+        
+        // Script adicional de prueba
+        console.log('🔧 Script de tema cargado');
+        
+        // Verificar que el botón existe
+        setTimeout(() => {
+            const btn = document.querySelector('.theme-toggle-btn');
+            if (btn) {
+                console.log('✅ Botón encontrado:', btn);
+                console.log('✅ Función toggleTheme disponible:', typeof toggleTheme);
+            } else {
+                console.error('❌ Botón no encontrado');
+            }
+        }, 1000);
     </script>
 </body>
 </html>

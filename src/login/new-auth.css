@@ -1632,3 +1632,372 @@ a:focus-visible {
         width: 100%;
     }
 }
+
+/* ===== ESTILOS PARA MODO CLARO ===== */
+
+/* Fondo del body en modo claro */
+[data-theme="light"] body {
+    background:
+        radial-gradient(1200px 800px at 20% 0%, rgba(0, 102, 204, 0.08), transparent 60%),
+        radial-gradient(800px 600px at 80% 100%, rgba(0, 102, 204, 0.12), transparent 60%),
+        linear-gradient(160deg, #E8F2F8 0%, #D1E7DD 100%) !important;
+}
+
+/* Partículas en modo claro */
+[data-theme="light"] .particle {
+    background: #0066CC !important;
+    opacity: 0.4 !important;
+}
+
+/* Contenedor de autenticación en modo claro */
+[data-theme="light"] .auth-container {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="light"] .auth-bg {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Tarjeta de autenticación en modo claro */
+[data-theme="light"] .auth-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1) !important;
+    backdrop-filter: blur(20px) !important;
+}
+
+/* Header de autenticación en modo claro */
+[data-theme="light"] .auth-header {
+    border-bottom: 1px solid rgba(0, 102, 204, 0.1) !important;
+}
+
+[data-theme="light"] .brand-text {
+    color: #2D3748 !important;
+    font-weight: 700 !important;
+}
+
+/* Tabs en modo claro */
+[data-theme="light"] .auth-tabs {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.15) !important;
+}
+
+[data-theme="light"] .tab-btn {
+    color: #4A5568 !important;
+    background: transparent !important;
+}
+
+[data-theme="light"] .tab-btn:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .tab-btn.active {
+    background: #0066CC !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
+}
+
+/* Contenido de formularios en modo claro */
+[data-theme="light"] .auth-content {
+    background: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Títulos y textos en modo claro */
+[data-theme="light"] .auth-form h2 {
+    color: #2D3748 !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .form-subtitle {
+    color: #4A5568 !important;
+}
+
+/* Labels en modo claro */
+[data-theme="light"] .form-group label {
+    color: #2D3748 !important;
+    font-weight: 500 !important;
+}
+
+/* Inputs en modo claro */
+[data-theme="light"] .input-wrapper {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .input-wrapper:focus-within {
+    border-color: #0066CC !important;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .input-wrapper input {
+    color: #2D3748 !important;
+    background: transparent !important;
+}
+
+[data-theme="light"] .input-wrapper input::placeholder {
+    color: #718096 !important;
+}
+
+[data-theme="light"] .input-icon {
+    color: #0066CC !important;
+}
+
+/* Botón de mostrar/ocultar contraseña en modo claro */
+[data-theme="light"] .toggle-password {
+    color: #0066CC !important;
+    background: rgba(0, 102, 204, 0.1) !important;
+}
+
+[data-theme="light"] .toggle-password:hover {
+    background: rgba(0, 102, 204, 0.2) !important;
+}
+
+/* Checkbox en modo claro */
+[data-theme="light"] .checkbox-wrapper {
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .checkmark {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+}
+
+[data-theme="light"] .checkbox-wrapper input:checked ~ .checkmark {
+    background: #0066CC !important;
+    border-color: #0066CC !important;
+}
+
+[data-theme="light"] .checkbox-wrapper input:checked ~ .checkmark::after {
+    border-color: white !important;
+}
+
+/* Links en modo claro */
+[data-theme="light"] .forgot-link {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .forgot-link:hover {
+    color: #0052A3 !important;
+}
+
+/* Botón primario en modo claro */
+[data-theme="light"] .btn-primary {
+    background: #0066CC !important;
+    color: white !important;
+    border: 2px solid #0066CC !important;
+    box-shadow: 0 8px 20px rgba(0, 102, 204, 0.3) !important;
+}
+
+[data-theme="light"] .btn-primary:hover {
+    background: #0052A3 !important;
+    border-color: #0052A3 !important;
+    box-shadow: 0 12px 30px rgba(0, 102, 204, 0.4) !important;
+}
+
+[data-theme="light"] .btn-primary:active {
+    background: #004080 !important;
+    border-color: #004080 !important;
+}
+
+/* Botón secundario en modo claro */
+[data-theme="light"] .btn-secondary {
+    background: transparent !important;
+    color: #0066CC !important;
+    border: 2px solid #0066CC !important;
+}
+
+[data-theme="light"] .btn-secondary:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+    box-shadow: 0 8px 20px rgba(0, 102, 204, 0.2) !important;
+}
+
+/* Separador en modo claro */
+[data-theme="light"] .auth-separator {
+    background: rgba(0, 102, 204, 0.2) !important;
+}
+
+[data-theme="light"] .auth-separator span {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #4A5568 !important;
+}
+
+/* Botones sociales en modo claro */
+[data-theme="light"] .social-btn {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .social-btn:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+    border-color: #0066CC !important;
+    color: #0066CC !important;
+}
+
+/* Footer en modo claro */
+[data-theme="light"] .auth-footer {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] .auth-footer a {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .auth-footer a:hover {
+    color: #0052A3 !important;
+}
+
+/* Modal de términos en modo claro */
+[data-theme="light"] .terms-overlay {
+    background: rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="light"] .terms-card {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme="light"] .terms-card-header {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.1) !important;
+}
+
+[data-theme="light"] .terms-card-header h3 {
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .terms-tabs {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.1) !important;
+}
+
+[data-theme="light"] .terms-tab {
+    color: #4A5568 !important;
+    background: transparent !important;
+    border-right: 1px solid rgba(0, 102, 204, 0.1) !important;
+}
+
+[data-theme="light"] .terms-tab.active {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="light"] .terms-content {
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .terms-section h4 {
+    color: #2D3748 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="light"] .terms-section p,
+[data-theme="light"] .terms-section li {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] .terms-card-footer {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-top: 1px solid rgba(0, 102, 204, 0.1) !important;
+}
+
+[data-theme="light"] .btn-terms-accept {
+    background: #0066CC !important;
+    color: white !important;
+    border: 1px solid #0066CC !important;
+}
+
+[data-theme="light"] .btn-terms-accept:hover {
+    background: #0052A3 !important;
+    border-color: #0052A3 !important;
+}
+
+[data-theme="light"] .btn-terms-close {
+    background: transparent !important;
+    color: #4A5568 !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+}
+
+[data-theme="light"] .btn-terms-close:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+}
+
+/* ===== BOTÓN DE CAMBIO DE TEMA ===== */
+
+.theme-toggle-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(68, 229, 255, 0.1);
+    border: 1px solid rgba(68, 229, 255, 0.25);
+    color: #44e5ff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(68, 229, 255, 0.2);
+    border-color: #44e5ff;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(68, 229, 255, 0.3);
+}
+
+.theme-toggle-btn:active {
+    transform: scale(0.95);
+}
+
+.theme-toggle-btn svg {
+    position: absolute;
+    transition: all 0.3s ease;
+}
+
+.theme-icon-sun {
+    opacity: 1;
+    transform: rotate(0deg);
+}
+
+.theme-icon-moon {
+    opacity: 0;
+    transform: rotate(-90deg);
+}
+
+[data-theme="light"] .theme-toggle-btn {
+    background: rgba(0, 102, 204, 0.1);
+    border: 1px solid rgba(0, 102, 204, 0.25);
+    color: #0066CC;
+}
+
+[data-theme="light"] .theme-toggle-btn:hover {
+    background: rgba(0, 102, 204, 0.2);
+    border-color: #0066CC;
+    box-shadow: 0 0 20px rgba(0, 102, 204, 0.3);
+}
+
+[data-theme="light"] .theme-icon-sun {
+    opacity: 0;
+    transform: rotate(90deg);
+}
+
+[data-theme="light"] .theme-icon-moon {
+    opacity: 1;
+    transform: rotate(0deg);
+}
+
+/* Transiciones suaves */
+[data-theme="light"] *,
+[data-theme="dark"] * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}

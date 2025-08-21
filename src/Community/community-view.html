@@ -5,10 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comunidad - Detalle</title>
     <link rel="stylesheet" href="community.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- Global theme setup - Configuración global del tema -->
+    <script src="../scripts/global-theme-setup.js"></script>
+    
+
 </head>
 <body class="bg-glow-global">
     <div class="particles-container"></div>
+
+    <!-- Botón de regreso -->
+    <button class="back-btn" onclick="window.location.href='community.html'" title="Volver a Comunidad">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        <span>Volver</span>
+    </button>
+
+    <!-- Botón de cambio de tema -->
+    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">
+        <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
     <nav class="community-subnav">
         <div class="subnav-inner">
             <div class="subnav-tabs">
@@ -28,16 +60,20 @@
             <div class="container">
                 <div class="feed-main">
                     <div class="composer-card">
-                        <div class="composer-avatar"><i class="fas fa-user"></i></div>
-                        <input id="composerInput" class="composer-input" type="text" placeholder="Escribe algo para la comunidad...">
-                        <div class="attach-toolbar">
-                            <input type="file" id="attachImage" accept="image/*" hidden>
-                            <button class="attach-btn" id="addImage" title="Imagen"><i class="fas fa-image"></i></button>
-                            <button class="attach-btn" id="addYoutube" title="YouTube"><i class="fab fa-youtube"></i></button>
-                            <input type="file" id="attachPdf" accept="application/pdf" hidden>
-                            <button class="attach-btn" id="addPdf" title="PDF"><i class="fas fa-file-pdf"></i></button>
+                        <div class="composer-avatar" id="composerAvatar">
+                            <img id="composerAvatarImg" src="" alt="Tu foto de perfil" style="display: none;">
+                            <i class="fas fa-user" id="composerAvatarIcon"></i>
                         </div>
+                        <div class="composer-content">
+                        <input id="composerInput" class="composer-input" type="text" placeholder="Escribe algo para la comunidad...">
+                            <div class="composer-actions">
+                                <button class="attach-menu-btn" id="attachMenuBtn" title="Agregar adjunto">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Adjuntar</span>
+                                </button>
                         <button id="publishPostBtn" class="composer-btn" disabled>Publicar</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="attachments-preview" id="attachmentsPreview"></div>
                     <div class="feed-filters" id="feedFilters">
@@ -120,9 +156,231 @@
         </div>
     </div>
 
+    <!-- Modal de adjuntos -->
+    <div class="attach-modal" id="attachModal">
+        <div class="attach-modal-card">
+            <div class="attach-modal-head">
+                <strong>Agregar adjunto</strong>
+                <button class="attach-modal-close" id="closeAttachModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="attach-modal-body">
+                <div class="attach-options-grid">
+                    <div class="attach-option" data-type="image">
+                        <div class="attach-option-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21,15 16,10 5,21"></polyline>
+                            </svg>
+                        </div>
+                        <div class="attach-option-content">
+                            <h3>Foto/Video</h3>
+                            <p>Sube una imagen o video</p>
+                        </div>
+                        <input type="file" id="attachImage" accept="image/*,video/*" hidden>
+                    </div>
+                    <div class="attach-option" data-type="document">
+                        <div class="attach-option-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14,2 14,8 20,8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10,9 9,9 8,9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="attach-option-content">
+                            <h3>Documento</h3>
+                            <p>PDF, Word, PowerPoint, etc.</p>
+                        </div>
+                        <input type="file" id="attachDocument" accept=".pdf,.doc,.docx,.txt,.ppt,.pptx" hidden>
+                    </div>
+                    <div class="attach-option" data-type="link">
+                        <div class="attach-option-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                            </svg>
+                        </div>
+                        <div class="attach-option-content">
+                            <h3>Enlace</h3>
+                            <p>Comparte un enlace web</p>
+                        </div>
+                    </div>
+                    <div class="attach-option" data-type="youtube">
+                        <div class="attach-option-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                            </svg>
+                        </div>
+                        <div class="attach-option-content">
+                            <h3>YouTube</h3>
+                            <p>Vincular video de YouTube</p>
+                        </div>
+                    </div>
+                    <div class="attach-option" data-type="location">
+                        <div class="attach-option-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                        </div>
+                        <div class="attach-option-content">
+                            <h3>Ubicación</h3>
+                            <p>Compartir ubicación</p>
+                        </div>
+                    </div>
+                    <div class="attach-option" data-type="poll">
+                        <div class="attach-option-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6"></line>
+                                <line x1="8" y1="12" x2="21" y2="12"></line>
+                                <line x1="8" y1="18" x2="21" y2="18"></line>
+                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                            </svg>
+                        </div>
+                        <div class="attach-option-content">
+                            <h3>Encuesta</h3>
+                            <p>Crear una encuesta</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para enlace -->
+    <div class="input-modal" id="linkModal">
+        <div class="input-modal-card">
+            <div class="input-modal-head">
+                <strong>Agregar enlace</strong>
+                <button class="input-modal-close" id="closeLinkModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="input-modal-body">
+                <div class="input-group">
+                    <label for="linkInput">URL del enlace:</label>
+                    <input type="url" id="linkInput" placeholder="https://ejemplo.com" class="input-field">
+                </div>
+                <div class="input-modal-actions">
+                    <button class="input-modal-btn cancel" id="cancelLink">Cancelar</button>
+                    <button class="input-modal-btn confirm" id="confirmLink">Agregar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para YouTube -->
+    <div class="input-modal" id="youtubeModal">
+        <div class="input-modal-card">
+            <div class="input-modal-head">
+                <strong>Agregar video de YouTube</strong>
+                <button class="input-modal-close" id="closeYoutubeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="input-modal-body">
+                <div class="input-group">
+                    <label for="youtubeInput">URL de YouTube:</label>
+                    <input type="url" id="youtubeInput" placeholder="https://youtube.com/watch?v=..." class="input-field">
+                </div>
+                <div class="input-modal-actions">
+                    <button class="input-modal-btn cancel" id="cancelYoutube">Cancelar</button>
+                    <button class="input-modal-btn confirm" id="confirmYoutube">Agregar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para ubicación -->
+    <div class="input-modal" id="locationModal">
+        <div class="input-modal-card">
+            <div class="input-modal-head">
+                <strong>Agregar ubicación</strong>
+                <button class="input-modal-close" id="closeLocationModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="input-modal-body">
+                <div class="input-group">
+                    <label for="locationInput">¿Dónde estás?</label>
+                    <input type="text" id="locationInput" placeholder="Madrid, España" class="input-field">
+                </div>
+                <div class="input-modal-actions">
+                    <button class="input-modal-btn cancel" id="cancelLocation">Cancelar</button>
+                    <button class="input-modal-btn confirm" id="confirmLocation">Agregar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para encuesta -->
+    <div class="input-modal" id="pollModal">
+        <div class="input-modal-card">
+            <div class="input-modal-head">
+                <strong>Crear encuesta</strong>
+                <button class="input-modal-close" id="closePollModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="input-modal-body">
+                <div class="input-group">
+                    <label for="pollQuestion">Pregunta:</label>
+                    <input type="text" id="pollQuestion" placeholder="¿Cuál es tu opinión?" class="input-field">
+                </div>
+                <div class="input-group">
+                    <label for="pollOptions">Opciones (separadas por comas):</label>
+                    <input type="text" id="pollOptions" placeholder="Opción 1, Opción 2, Opción 3" class="input-field">
+                </div>
+                <div class="input-modal-actions">
+                    <button class="input-modal-btn cancel" id="cancelPoll">Cancelar</button>
+                    <button class="input-modal-btn confirm" id="confirmPoll">Crear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         (function(){
             try{
+                // Cargar foto de perfil del usuario
+                function loadUserProfilePicture() {
+                    const composerAvatarImg = document.getElementById('composerAvatarImg');
+                    const composerAvatarIcon = document.getElementById('composerAvatarIcon');
+                    
+                    // Intentar obtener la foto de perfil del localStorage
+                    const userProfile = localStorage.getItem('userProfile');
+                    const avatarData = localStorage.getItem('avatarData');
+                    
+                    if (avatarData) {
+                        try {
+                            const avatar = JSON.parse(avatarData);
+                            if (avatar && avatar.dataUrl) {
+                                composerAvatarImg.src = avatar.dataUrl;
+                                composerAvatarImg.style.display = 'block';
+                                composerAvatarIcon.style.display = 'none';
+                                return;
+                            }
+                        } catch (e) {
+                            console.log('Error parsing avatar data:', e);
+                        }
+                    }
+                    
+                    // Si no hay foto, mostrar el icono por defecto
+                    composerAvatarImg.style.display = 'none';
+                    composerAvatarIcon.style.display = 'block';
+                }
+                
+                // Cargar la foto de perfil al iniciar
+                loadUserProfilePicture();
+                
                 const rawCommunity = localStorage.getItem('community.view.item');
                 const rawPost = localStorage.getItem('community.view.post');
                 const detail = rawCommunity ? JSON.parse(rawCommunity) : (rawPost ? JSON.parse(rawPost) : null);
@@ -263,14 +521,135 @@
                 preview.appendChild(wrap);
             }
 
-            document.getElementById('addImage').onclick = ()=> document.getElementById('attachImage').click();
-            document.getElementById('addPdf').onclick = ()=> document.getElementById('attachPdf').click();
-            document.getElementById('addYoutube').onclick = ()=>{
-                const url = prompt('Pega el enlace de YouTube');
-                if(!url) return;
-                const embed = youtubeEmbed(url);
-                if(embed){ pendingAttachments.push({ type:'youtube', embed }); renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all'); }
-            };
+            function addPreviewDocument(name){
+                const preview = document.getElementById('attachmentsPreview');
+                const wrap = document.createElement('div');
+                wrap.className = 'document-chip';
+                const icon = getDocumentIcon(name);
+                wrap.innerHTML = `<i class="${icon}"></i> ${name} <button class="preview-remove">✕</button>`;
+                wrap.querySelector('.preview-remove').onclick = ()=>{ preview.removeChild(wrap); pendingAttachments = pendingAttachments.filter(a=>a.name!==name); };
+                preview.appendChild(wrap);
+            }
+            
+            function getDocumentIcon(filename) {
+                const ext = filename.split('.').pop().toLowerCase();
+                switch(ext) {
+                    case 'pdf': return 'fas fa-file-pdf';
+                    case 'doc':
+                    case 'docx': return 'fas fa-file-word';
+                    case 'xls':
+                    case 'xlsx': return 'fas fa-file-excel';
+                    case 'ppt':
+                    case 'pptx': return 'fas fa-file-powerpoint';
+                    case 'txt': return 'fas fa-file-alt';
+                    default: return 'fas fa-file';
+                }
+            }
+            
+            function addPreviewLink(url){
+                const preview = document.getElementById('attachmentsPreview');
+                const wrap = document.createElement('div');
+                wrap.className = 'link-chip';
+                const domain = new URL(url).hostname.replace('www.', '');
+                wrap.innerHTML = `<i class="fas fa-link"></i> ${domain} <button class="preview-remove">✕</button>`;
+                wrap.querySelector('.preview-remove').onclick = ()=>{ preview.removeChild(wrap); pendingAttachments = pendingAttachments.filter(a=>a.url!==url); };
+                preview.appendChild(wrap);
+            }
+            
+            function addPreviewYoutube(embed){
+                const preview = document.getElementById('attachmentsPreview');
+                const wrap = document.createElement('div');
+                wrap.className = 'youtube-chip';
+                wrap.innerHTML = `<i class="fab fa-youtube"></i> Video de YouTube <button class="preview-remove">✕</button>`;
+                wrap.querySelector('.preview-remove').onclick = ()=>{ preview.removeChild(wrap); pendingAttachments = pendingAttachments.filter(a=>a.embed!==embed); };
+                preview.appendChild(wrap);
+            }
+            
+            function addPreviewLocation(location){
+                const preview = document.getElementById('attachmentsPreview');
+                const wrap = document.createElement('div');
+                wrap.className = 'location-chip';
+                wrap.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${location} <button class="preview-remove">✕</button>`;
+                wrap.querySelector('.preview-remove').onclick = ()=>{ preview.removeChild(wrap); pendingAttachments = pendingAttachments.filter(a=>a.text!==location); };
+                preview.appendChild(wrap);
+            }
+            
+            function addPreviewPoll(question, options){
+                const preview = document.getElementById('attachmentsPreview');
+                const wrap = document.createElement('div');
+                wrap.className = 'poll-chip';
+                wrap.innerHTML = `
+                    <div class="poll-preview">
+                        <i class="fas fa-poll"></i>
+                        <div class="poll-content">
+                            <div class="poll-question">${question}</div>
+                            <div class="poll-options">${options.map(opt => `<div class="poll-option">${opt}</div>`).join('')}</div>
+                        </div>
+                        <button class="preview-remove">✕</button>
+                    </div>
+                `;
+                wrap.querySelector('.preview-remove').onclick = ()=>{ 
+                    preview.removeChild(wrap); 
+                    pendingAttachments = pendingAttachments.filter(a=>a.question!==question); 
+                };
+                preview.appendChild(wrap);
+            }
+
+            // Manejo del modal de adjuntos
+            const attachMenuBtn = document.getElementById('attachMenuBtn');
+            const attachModal = document.getElementById('attachModal');
+            const closeAttachModal = document.getElementById('closeAttachModal');
+            
+            // Abrir modal
+            attachMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                attachModal.classList.add('show');
+            });
+            
+            // Cerrar modal
+            closeAttachModal.addEventListener('click', () => {
+                attachModal.classList.remove('show');
+            });
+            
+            // Cerrar modal al hacer clic fuera
+            attachModal.addEventListener('click', (e) => {
+                if (e.target === attachModal) {
+                    attachModal.classList.remove('show');
+                }
+            });
+            
+            // Manejo de opciones del modal
+            document.querySelectorAll('.attach-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const type = option.getAttribute('data-type');
+                    handleAttachmentType(type);
+                    attachModal.classList.remove('show');
+                });
+            });
+            
+            function handleAttachmentType(type) {
+                switch(type) {
+                    case 'image':
+                        document.getElementById('attachImage').click();
+                        break;
+                    case 'document':
+                        document.getElementById('attachDocument').click();
+                        break;
+                    case 'link':
+                        document.getElementById('linkModal').classList.add('show');
+                        break;
+                    case 'youtube':
+                        document.getElementById('youtubeModal').classList.add('show');
+                        break;
+                    case 'location':
+                        document.getElementById('locationModal').classList.add('show');
+                        break;
+                    case 'poll':
+                        document.getElementById('pollModal').classList.add('show');
+                        break;
+                }
+            }
             document.getElementById('attachImage').addEventListener('change', (e)=>{
                 const file = e.target.files?.[0];
                 if(!file) return;
@@ -289,6 +668,16 @@
                 reader.readAsDataURL(file);
                 e.target.value='';
             });
+            
+            document.getElementById('attachDocument').addEventListener('change', (e)=>{
+                const file = e.target.files?.[0];
+                if(!file) return;
+                if(bytesToMB(file.size) > 10){ alert('Documento supera 10MB'); return; }
+                const reader = new FileReader();
+                reader.onload = ()=>{ pendingAttachments.push({ type:'document', name: file.name, dataUrl: reader.result }); addPreviewDocument(file.name); };
+                reader.readAsDataURL(file);
+                e.target.value='';
+            });
 
             function youtubeEmbed(url){
                 const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/);
@@ -301,6 +690,10 @@
                     if(a.type==='image') return `<img src='${a.src}' class='preview-thumb'>`;
                     if(a.type==='youtube') return `<iframe width='240' height='135' src='${a.embed}' frameborder='0' allowfullscreen></iframe>`;
                     if(a.type==='pdf') return `<a href='${a.dataUrl}' target='_blank' class='pdf-chip'><i class='fas fa-file-pdf'></i> ${a.name}</a>`;
+                    if(a.type==='document') return `<a href='${a.dataUrl}' target='_blank' class='document-chip'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a>`;
+                    if(a.type==='link') return `<a href='${a.url}' target='_blank' class='link-chip'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a>`;
+                    if(a.type==='location') return `<div class='location-chip'><i class='fas fa-map-marker-alt'></i> ${a.text}</div>`;
+                    if(a.type==='poll') return `<div class='poll-chip'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div>`;
                     return '';
                 }).join('') + `</div>`;
             }
@@ -326,7 +719,10 @@
                 const userEl = document.getElementById('modalPostUser');
                 const post = posts.find(p=>p.id===id);
                 if(!post) return;
-                userEl.textContent = post.user;
+                
+                // Mostrar el título de la publicación (contenido truncado) en lugar del nombre del usuario
+                const title = post.content.length > 50 ? post.content.substring(0, 50) + '...' : post.content;
+                userEl.textContent = title;
                 body.innerHTML = `
                     <div class="post-card">
                         <div class="post-avatar"><i class="${post.avatar}"></i></div>
@@ -447,8 +843,156 @@
                 chatBody.appendChild(el);
                 chatBody.scrollTop = chatBody.scrollHeight;
             }
+
+            // Manejo de modales de entrada personalizados
+            function setupInputModals() {
+                // Modal de enlace
+                const linkModal = document.getElementById('linkModal');
+                const linkInput = document.getElementById('linkInput');
+                const confirmLink = document.getElementById('confirmLink');
+                const cancelLink = document.getElementById('cancelLink');
+                const closeLinkModal = document.getElementById('closeLinkModal');
+
+                function closeLinkModalFunc() {
+                    linkModal.classList.remove('show');
+                    linkInput.value = '';
+                }
+
+                confirmLink.addEventListener('click', () => {
+                    const url = linkInput.value.trim();
+                    if (url) {
+                        pendingAttachments.push({ type: 'link', url });
+                        addPreviewLink(url);
+                        closeLinkModalFunc();
+                    }
+                });
+
+                cancelLink.addEventListener('click', closeLinkModalFunc);
+                closeLinkModal.addEventListener('click', closeLinkModalFunc);
+                linkModal.addEventListener('click', (e) => {
+                    if (e.target === linkModal) closeLinkModalFunc();
+                });
+
+                // Modal de YouTube
+                const youtubeModal = document.getElementById('youtubeModal');
+                const youtubeInput = document.getElementById('youtubeInput');
+                const confirmYoutube = document.getElementById('confirmYoutube');
+                const cancelYoutube = document.getElementById('cancelYoutube');
+                const closeYoutubeModal = document.getElementById('closeYoutubeModal');
+
+                function closeYoutubeModalFunc() {
+                    youtubeModal.classList.remove('show');
+                    youtubeInput.value = '';
+                }
+
+                confirmYoutube.addEventListener('click', () => {
+                    const ytUrl = youtubeInput.value.trim();
+                    if (ytUrl) {
+                        const embed = youtubeEmbed(ytUrl);
+                        if (embed) {
+                            pendingAttachments.push({ type: 'youtube', embed });
+                            addPreviewYoutube(embed);
+                            closeYoutubeModalFunc();
+                        } else {
+                            alert('Enlace de YouTube inválido');
+                        }
+                    }
+                });
+
+                cancelYoutube.addEventListener('click', closeYoutubeModalFunc);
+                closeYoutubeModal.addEventListener('click', closeYoutubeModalFunc);
+                youtubeModal.addEventListener('click', (e) => {
+                    if (e.target === youtubeModal) closeYoutubeModalFunc();
+                });
+
+                // Modal de ubicación
+                const locationModal = document.getElementById('locationModal');
+                const locationInput = document.getElementById('locationInput');
+                const confirmLocation = document.getElementById('confirmLocation');
+                const cancelLocation = document.getElementById('cancelLocation');
+                const closeLocationModal = document.getElementById('closeLocationModal');
+
+                function closeLocationModalFunc() {
+                    locationModal.classList.remove('show');
+                    locationInput.value = '';
+                }
+
+                confirmLocation.addEventListener('click', () => {
+                    const location = locationInput.value.trim();
+                    if (location) {
+                        pendingAttachments.push({ type: 'location', text: location });
+                        addPreviewLocation(location);
+                        closeLocationModalFunc();
+                    }
+                });
+
+                cancelLocation.addEventListener('click', closeLocationModalFunc);
+                closeLocationModal.addEventListener('click', closeLocationModalFunc);
+                locationModal.addEventListener('click', (e) => {
+                    if (e.target === locationModal) closeLocationModalFunc();
+                });
+
+                // Modal de encuesta
+                const pollModal = document.getElementById('pollModal');
+                const pollQuestion = document.getElementById('pollQuestion');
+                const pollOptions = document.getElementById('pollOptions');
+                const confirmPoll = document.getElementById('confirmPoll');
+                const cancelPoll = document.getElementById('cancelPoll');
+                const closePollModal = document.getElementById('closePollModal');
+
+                function closePollModalFunc() {
+                    pollModal.classList.remove('show');
+                    pollQuestion.value = '';
+                    pollOptions.value = '';
+                }
+
+                confirmPoll.addEventListener('click', () => {
+                    const question = pollQuestion.value.trim();
+                    const options = pollOptions.value.trim();
+                    if (question && options) {
+                        const pollOptionsArray = options.split(',').map(opt => opt.trim()).filter(opt => opt);
+                        if (pollOptionsArray.length >= 2) {
+                            pendingAttachments.push({ 
+                                type: 'poll', 
+                                question, 
+                                options: pollOptionsArray 
+                            });
+                            addPreviewPoll(question, pollOptionsArray);
+                            closePollModalFunc();
+                        } else {
+                            alert('Necesitas al menos 2 opciones para la encuesta');
+                        }
+                    }
+                });
+
+                cancelPoll.addEventListener('click', closePollModalFunc);
+                closePollModal.addEventListener('click', closePollModalFunc);
+                pollModal.addEventListener('click', (e) => {
+                    if (e.target === pollModal) closePollModalFunc();
+                });
+            }
+
+            // Inicializar modales de entrada
+            setupInputModals();
+            
+            // Escuchar cambios en el localStorage para actualizar la foto de perfil
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'avatarData' || e.key === 'userProfile') {
+                    loadUserProfilePicture();
+                }
+            });
+            
+            // También escuchar cambios locales (misma pestaña)
+            const originalSetItem = localStorage.setItem;
+            localStorage.setItem = function(key, value) {
+                originalSetItem.apply(this, arguments);
+                if (key === 'avatarData' || key === 'userProfile') {
+                    loadUserProfilePicture();
+                }
+            };
         })();
     </script>
+    <script src="../scripts/theme-toggle.js"></script>
 </body>
 </html>
 
