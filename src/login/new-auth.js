@@ -1027,15 +1027,18 @@ async function validateCredentialsLocal(emailOrUsername, password) {
     // Simular delay de red
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Credenciales de prueba - acepta email o username (incluye roles para testing)
+    // Credenciales de prueba con type_rol para testing del nuevo flujo
     const testCredentials = [
-        { email: 'admin@test.com', username: 'admin', password: 'admin123', name: 'Administrador', cargo_rol: 'Administrador' },
-        { email: 'instructor@test.com', username: 'instructor', password: 'instructor123', name: 'Instructor Test', cargo_rol: 'Instructor' },
-        { email: 'maestro@test.com', username: 'maestro', password: 'maestro123', name: 'Maestro Test', cargo_rol: 'Maestro' },
-        { email: 'user@test.com', username: 'usuario', password: 'user123', name: 'Usuario Test', cargo_rol: 'Usuario' },
-        { email: 'student@test.com', username: 'estudiante', password: 'student123', name: 'Estudiante Test', cargo_rol: 'Estudiante' },
-        { email: 'test@test.com', username: 'test', password: 'test123', name: 'Test User', cargo_rol: 'Usuario' },
-        { email: 'demo@demo.com', username: 'demo', password: '123456', name: 'Usuario Demo', cargo_rol: 'Usuario' }
+        // Usuarios con type_rol NULL (deben ir a perfil-cuestionario)
+        { email: 'nuevo@test.com', username: 'nuevo', password: 'nuevo123', name: 'Usuario Nuevo', cargo_rol: 'Usuario', type_rol: null },
+        { email: 'demo@demo.com', username: 'demo', password: '123456', name: 'Usuario Demo', cargo_rol: 'Usuario', type_rol: null },
+        
+        // Usuarios con type_rol definido (deben ir a cursos)
+        { email: 'admin@test.com', username: 'admin', password: 'admin123', name: 'Administrador', cargo_rol: 'Administrador', type_rol: 'administrador' },
+        { email: 'instructor@test.com', username: 'instructor', password: 'instructor123', name: 'Instructor Test', cargo_rol: 'Instructor', type_rol: 'instructor' },
+        { email: 'user@test.com', username: 'usuario', password: 'user123', name: 'Usuario Test', cargo_rol: 'Usuario', type_rol: 'estudiante' },
+        { email: 'student@test.com', username: 'estudiante', password: 'student123', name: 'Estudiante Test', cargo_rol: 'Estudiante', type_rol: 'estudiante' },
+        { email: 'test@test.com', username: 'test', password: 'test123', name: 'Test User', cargo_rol: 'Usuario', type_rol: 'usuario' }
     ];
     
     const foundUser = testCredentials.find(cred => {
@@ -1048,12 +1051,13 @@ async function validateCredentialsLocal(emailOrUsername, password) {
     });
     
     if (foundUser) {
-        // Guardar datos del usuario para uso posterior (incluye cargo_rol para redirección)
+        // Guardar datos del usuario para uso posterior (incluye type_rol para redirección)
         const userData = {
             email: foundUser.email,
             username: foundUser.username,
             name: foundUser.name,
             cargo_rol: foundUser.cargo_rol,
+            type_rol: foundUser.type_rol, // CRUCIAL: incluir type_rol para la lógica de redirección
             loginTime: new Date().toISOString()
         };
         
@@ -1149,40 +1153,27 @@ async function registerUserLocal(userData) {
     return newUser;
 }
 
-// Función para determinar la página de destino según el rol del usuario y si es nuevo
-function getRedirectPageByRole(userRole, isNewUser = false) {
-    // Normalizar el rol para comparación (remover espacios y convertir a minúsculas)
-    const normalizedRole = (userRole || '').toLowerCase().trim();
+// Función para determinar la página de destino según type_rol del usuario
+function getRedirectPageByTypeRol(userData) {
+    const typeRol = userData.type_rol;
+    const isNewUser = userData.isNewUser;
     
-    devLog('Determinando redirección para rol:', normalizedRole, 'Usuario nuevo:', isNewUser);
+    devLog('Determinando redirección basada en type_rol:', typeRol);
+    devLog('Usuario es nuevo:', isNewUser);
+    devLog('Datos completos del usuario:', userData);
     
-    // Si es un usuario nuevo, siempre ir al perfil-cuestionario primero
-    if (isNewUser) {
-        devLog('Usuario nuevo detectado, redirigiendo al perfil-cuestionario');
+    // REGLA PRINCIPAL: Si type_rol es NULL -> perfil-cuestionario.html
+    if (typeRol === null || typeRol === undefined) {
+        devLog('type_rol es NULL, redirigiendo al perfil-cuestionario');
         return '../perfil-cuestionario.html';
     }
     
-    // Mapeo de roles a páginas para usuarios existentes
-    switch (normalizedRole) {
-        case 'administrador':
-        case 'admin':
-        case 'administrator':
-            return '../admin/admin.html';
-            
-        case 'instructor':
-        case 'maestro':
-        case 'teacher':
-        case 'profesor':
-            return '../instructors/index.html';
-            
-        case 'usuario':
-        case 'estudiante':
-        case 'student':
-        case 'user':
-        default:
-            // TODOS los usuarios normales van a cursos.html
-            return '../cursos.html';
-    }
+    // REGLA SECUNDARIA: Si type_rol tiene algún valor -> cursos.html
+    devLog('type_rol tiene valor:', typeRol, ', redirigiendo a cursos');
+    return '../cursos.html';
+    
+    // NOTA: La lógica anterior basada en cargo_rol se mantiene comentada para referencia
+    // pero ahora la decisión se basa únicamente en type_rol según el requerimiento
 }
 
 // Manejo de autenticación exitosa
@@ -1215,12 +1206,8 @@ async function handleSuccessfulAuth(emailOrUsername, remember, isNewUser = false
             const userData = JSON.parse(userDataStr);
             devLog('Datos de usuario encontrados:', userData);
             
-            // Buscar el rol del usuario (prioridad: cargo_rol > type_rol)
-            const userRole = userData.cargo_rol || userData.type_rol || 'usuario';
-            devLog('Rol de usuario detectado:', userRole);
-            
-            // Determinar página de destino basada en el rol y si es usuario nuevo
-            targetPage = getRedirectPageByRole(userRole, isNewUser || userData.isNewUser);
+            // NUEVA LÓGICA: Determinar página basándose únicamente en type_rol
+            targetPage = getRedirectPageByTypeRol(userData);
             devLog('Página de destino determinada:', targetPage);
         } else {
             devLog('No se encontraron datos de usuario, usando página por defecto');

@@ -1,8 +1,52 @@
 /* Estilos del formulario de cuestionario, consistente con profile.css y main.css */
 
-:root { --course-primary:#44E5FF; --course-white:#fff; --glass: rgba(255,255,255,0.06); }
+:root { 
+    --course-primary:#44E5FF; 
+    --course-white:#fff; 
+    --glass: rgba(255,255,255,0.06);
+    
+    /* Variables para modo claro/oscuro */
+    --bg-primary: #0A0A0A;
+    --bg-secondary: #1A1A1A;
+    --text-primary: #FFFFFF;
+    --text-secondary: #E5E5E5;
+    --text-muted: #A0A0A0;
+    --card-bg: rgba(255,255,255,0.04);
+    --card-border: rgba(68,229,255,0.18);
+    --shadow-card: 0 20px 50px rgba(0,0,0,0.35);
+    --shadow-card-hover: 0 25px 60px rgba(0,0,0,0.45);
+    --turq: #44E5FF;
+    --turq-2: #0077A6;
+    --course-accent: #44E5FF;
+    --course-accent-hover: #22C55E;
+}
 
-body { color: var(--course-white); font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+/* Variables para modo claro */
+[data-theme="light"] {
+    --bg-primary: #E8F2F8;
+    --bg-secondary: #D1E7DD;
+    --text-primary: #2D3748;
+    --text-secondary: #4A5568;
+    --text-muted: #718096;
+    --card-bg: rgba(255,255,255,0.95);
+    --card-border: rgba(68,229,255,0.15);
+    --shadow-card: 0 4px 12px rgba(0,0,0,0.03);
+    --shadow-card-hover: 0 8px 24px rgba(0,0,0,0.06);
+    --turq: #0066CC;
+    --turq-2: #0052A3;
+    --course-accent: #0066CC;
+    --course-accent-hover: #0052A3;
+}
+
+body { 
+    color: var(--course-white); 
+    font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: 
+        radial-gradient(1200px 800px at 20% 0%, rgba(68, 229, 255, 0.08), transparent 60%),
+        radial-gradient(800px 600px at 80% 100%, rgba(0, 119, 166, 0.12), transparent 60%),
+        linear-gradient(160deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    transition: background 0.3s ease, color 0.3s ease;
+}
 
 .quiz-header { position: fixed; top: 0; left: 0; right: 0; z-index: 2000; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
 
@@ -63,5 +107,310 @@ body { color: var(--course-white); font-family: 'Inter', system-ui, -apple-syste
 .quiz-actions{ display:flex; justify-content:center; margin-top: 14px; }
 .btn-primary{ display:inline-flex; align-items:center; justify-content:center; gap:8px; font-family:'Montserrat', var(--font-secondary), system-ui; font-weight:700; border-radius:12px; padding:12px 18px; border:1px solid rgba(68,229,255,0.35); cursor:pointer; background: linear-gradient(135deg, var(--course-primary), #0077A6); color:#001018; box-shadow: 0 10px 26px rgba(68,229,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.15); }
 .btn-large{ padding:14px 22px; }
+
+/* ===== ESTILOS DEL BOTÓN DE TEMA ===== */
+.theme-toggle-btn {
+    position: fixed;
+    top: 15px;
+    right: 25px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(68, 229, 255, 0.3);
+    color: var(--course-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(68, 229, 255, 0.2);
+    border-color: rgba(68, 229, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(68, 229, 255, 0.3);
+}
+
+.theme-toggle-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(68, 229, 255, 0.2);
+}
+
+.theme-toggle-btn svg {
+    width: 22px;
+    height: 22px;
+    transition: all 0.3s ease;
+}
+
+/* Mostrar/ocultar iconos según el tema */
+.theme-icon-sun {
+    display: none;
+}
+
+.theme-icon-moon {
+    display: block;
+}
+
+[data-theme="light"] .theme-icon-sun {
+    display: block;
+}
+
+[data-theme="light"] .theme-icon-moon {
+    display: none;
+}
+
+/* Estilos del botón de tema en modo claro */
+[data-theme="light"] .theme-toggle-btn {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    color: #0066CC !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .theme-toggle-btn:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+    border-color: rgba(0, 102, 204, 0.5) !important;
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.2) !important;
+}
+
+/* Ajuste de posición para pantallas pequeñas */
+@media (max-width: 768px) {
+    .theme-toggle-btn {
+        top: 10px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+    }
+    
+    .theme-toggle-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* Ajuste para pantallas muy pequeñas */
+@media (max-width: 480px) {
+    .theme-toggle-btn {
+        top: 8px;
+        right: 12px;
+        width: 42px;
+        height: 42px;
+    }
+    
+    .theme-toggle-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+/* ===== ESTILOS PARA MODO CLARO ===== */
+
+/* Fondo del body en modo claro */
+[data-theme="light"] body {
+    background: 
+        radial-gradient(1200px 800px at 20% 0%, rgba(0, 102, 204, 0.08), transparent 60%),
+        radial-gradient(800px 600px at 80% 100%, rgba(0, 82, 163, 0.12), transparent 60%),
+        linear-gradient(160deg, var(--bg-primary) 0%, var(--bg-secondary) 100%) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Header en modo claro */
+[data-theme="light"] .quiz-header {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.1) !important;
+}
+
+[data-theme="light"] .quiz-header .header-stats {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+}
+
+[data-theme="light"] .quiz-header .header-stats:hover {
+    background: rgba(0, 102, 204, 0.2) !important;
+    box-shadow: 0 8px 20px rgba(0, 102, 204, 0.2) !important;
+}
+
+/* Tarjeta principal en modo claro */
+[data-theme="light"] .quiz-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 102, 204, 0.15) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Textos en modo claro */
+[data-theme="light"] .quiz-header-info h1 {
+    color: #2D3748 !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .quiz-header-info p {
+    color: #4A5568 !important;
+    font-weight: 500 !important;
+}
+
+/* Preguntas en modo claro */
+[data-theme="light"] .question {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.15) !important;
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .q-title {
+    color: #2D3748 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="light"] .q-section-title {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #2D3748 !important;
+    border-left: 3px solid #0066CC !important;
+}
+
+[data-theme="light"] .q-subtitle {
+    color: #4A5568 !important;
+    font-weight: 600 !important;
+}
+
+/* Botones de escala en modo claro */
+[data-theme="light"] .likert label {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .likert input:checked + label {
+    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
+    color: #FFFFFF !important;
+    border-color: rgba(0, 102, 204, 0.8) !important;
+}
+
+/* Botones de selección múltiple en modo claro */
+[data-theme="light"] .multicheck label {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .multicheck input:checked + label {
+    background: rgba(0, 102, 204, 0.2) !important;
+    border-color: rgba(0, 102, 204, 0.8) !important;
+    color: #0066CC !important;
+}
+
+/* Botones booleanos en modo claro */
+[data-theme="light"] .boolean label {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .boolean input:checked + label {
+    background: rgba(0, 102, 204, 0.2) !important;
+    border-color: rgba(0, 102, 204, 0.8) !important;
+    color: #0066CC !important;
+}
+
+/* Área de texto en modo claro */
+[data-theme="light"] .open-text textarea {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .open-text textarea:focus {
+    border-color: #0066CC !important;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1) !important;
+}
+
+/* Ayuda de escala en modo claro */
+[data-theme="light"] .scale-help {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.15) !important;
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .scale-help .scale-title {
+    color: #2D3748 !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .scale-help .scale-subtitle {
+    color: #4A5568 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="light"] .scale-help .scale-intro {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] .scale-help li {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] .scale-help .scale-note {
+    color: #718096 !important;
+}
+
+/* Botón principal en modo claro */
+[data-theme="light"] .btn-primary {
+    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(0, 102, 204, 0.35) !important;
+    box-shadow: 0 10px 26px rgba(0, 102, 204, 0.28), inset 0 0 0 1px rgba(255,255,255,0.15) !important;
+}
+
+[data-theme="light"] .btn-primary:hover {
+    filter: brightness(1.05) !important;
+    box-shadow: 0 14px 32px rgba(0, 102, 204, 0.35) !important;
+}
+
+/* Menú de perfil en modo claro */
+[data-theme="light"] .profile-menu {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 102, 204, 0.15) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .pm-item {
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .pm-item:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+}
+
+/* Asegurar que todos los textos sean visibles en modo claro */
+[data-theme="light"] * {
+    color: inherit;
+}
+
+[data-theme="light"] h1, 
+[data-theme="light"] h2, 
+[data-theme="light"] h3, 
+[data-theme="light"] h4, 
+[data-theme="light"] h5, 
+[data-theme="light"] h6 {
+    color: #2D3748 !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] p, 
+[data-theme="light"] span, 
+[data-theme="light"] div {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] label {
+    color: #2D3748 !important;
+    font-weight: 600 !important;
+}
 
 
