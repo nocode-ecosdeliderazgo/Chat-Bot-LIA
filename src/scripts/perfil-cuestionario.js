@@ -407,8 +407,9 @@ class ProfileQuestionnaire {
         // Guardar en localStorage
         localStorage.setItem('profileQuestionnaireData', JSON.stringify(telemetryData));
         
-        // Persistir en BD
-        this.persistRoleIfMissing().catch(err => console.warn('[PersistRole] Error:', err));
+        // Persistir en BD - Intentar ambos métodos
+        this.persistRoleIfMissing().catch(err => console.warn('[PersistRole Supabase] Error:', err));
+        this.persistRoleWithBackend().catch(err => console.warn('[PersistRole Backend] Error:', err));
         this.persistQuestionnaireAnswers().catch(err => console.warn('[PersistAnswers] Error:', err));
 
         console.log('Datos de perfil guardados:', telemetryData);
@@ -436,6 +437,52 @@ class ProfileQuestionnaire {
             .from('users')
             .update({ type_rol: roleToSave })
             .eq('id', userId);
+    }
+
+    async persistRoleWithBackend() {
+        // Función para actualizar type_rol vía backend para usuarios autenticados por nuestro sistema
+        try {
+            const currentUserRaw = localStorage.getItem('currentUser') || localStorage.getItem('userData');
+            if (!currentUserRaw) return;
+
+            const currentUser = JSON.parse(currentUserRaw);
+            if (!currentUser.id && !currentUser.username && !currentUser.email) return;
+
+            const roleToSave = this.overrideProfile || this.selectedProfile || '';
+            if (!roleToSave) return;
+
+            console.log('[PersistRole Backend] Actualizando type_rol a:', roleToSave);
+
+            const response = await fetch('/api/update-profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': 'dev-api-key',
+                    'Authorization': `Bearer ${localStorage.getItem('userToken') || localStorage.getItem('authToken')}`
+                },
+                body: JSON.stringify({
+                    user_id: currentUser.id,
+                    username: currentUser.username,
+                    email: currentUser.email,
+                    type_rol: roleToSave
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('[PersistRole Backend] type_rol actualizado correctamente:', result);
+                
+                // Actualizar datos en localStorage
+                const updatedUser = { ...currentUser, type_rol: roleToSave };
+                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                localStorage.setItem('userData', JSON.stringify(updatedUser));
+            } else {
+                const error = await response.text();
+                console.warn('[PersistRole Backend] Error actualizando type_rol:', response.status, error);
+            }
+        } catch (error) {
+            console.warn('[PersistRole Backend] Error en persistRoleWithBackend:', error);
+        }
     }
 
     async persistQuestionnaireAnswers() {

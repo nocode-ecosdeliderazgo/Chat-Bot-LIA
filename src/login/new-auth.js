@@ -724,7 +724,7 @@ async function handleLogin(e) {
             await ensureAuthDataSync();
             
             showNotification('¡Sesión iniciada correctamente!', 'success');
-            await handleSuccessfulAuth(emailOrUsername, remember);
+            await handleSuccessfulAuth(emailOrUsername, remember, false);
             return;
         }
 
@@ -795,7 +795,7 @@ async function handleLogin(e) {
             await ensureAuthDataSync();
             
             showNotification('¡Sesión iniciada correctamente!', 'success');
-            await handleSuccessfulAuth(emailOrUsername, remember);
+            await handleSuccessfulAuth(emailOrUsername, remember, result.user.isNewUser);
         } else {
             const errorMessage = result.message || 'Credenciales incorrectas';
             showNotification(errorMessage, 'error');
@@ -820,7 +820,7 @@ async function handleLogin(e) {
                 await ensureAuthDataSync();
                 
                 showNotification('¡Sesión iniciada correctamente! (Modo desarrollo)', 'success');
-                await handleSuccessfulAuth();
+                await handleSuccessfulAuth(emailOrUsername, remember, false);
             } else {
                 await handleFailedLogin();
             }
@@ -1149,14 +1149,20 @@ async function registerUserLocal(userData) {
     return newUser;
 }
 
-// Función para determinar la página de destino según el rol del usuario
-function getRedirectPageByRole(userRole) {
+// Función para determinar la página de destino según el rol del usuario y si es nuevo
+function getRedirectPageByRole(userRole, isNewUser = false) {
     // Normalizar el rol para comparación (remover espacios y convertir a minúsculas)
     const normalizedRole = (userRole || '').toLowerCase().trim();
     
-    devLog('Determinando redirección para rol:', normalizedRole);
+    devLog('Determinando redirección para rol:', normalizedRole, 'Usuario nuevo:', isNewUser);
     
-    // Mapeo de roles a páginas
+    // Si es un usuario nuevo, siempre ir al perfil-cuestionario primero
+    if (isNewUser) {
+        devLog('Usuario nuevo detectado, redirigiendo al perfil-cuestionario');
+        return '../perfil-cuestionario.html';
+    }
+    
+    // Mapeo de roles a páginas para usuarios existentes
     switch (normalizedRole) {
         case 'administrador':
         case 'admin':
@@ -1174,13 +1180,13 @@ function getRedirectPageByRole(userRole) {
         case 'student':
         case 'user':
         default:
-            // Por defecto, todos los usuarios van a cursos.html
+            // TODOS los usuarios normales van a cursos.html
             return '../cursos.html';
     }
 }
 
 // Manejo de autenticación exitosa
-async function handleSuccessfulAuth() {
+async function handleSuccessfulAuth(emailOrUsername, remember, isNewUser = false) {
     devLog('Manejando autenticación exitosa');
     
     // Asegurar sincronización como respaldo
@@ -1201,7 +1207,8 @@ async function handleSuccessfulAuth() {
         devLog('Verificando datos guardados:', {
             userData: !!userDataStr,
             userToken: !!userToken,
-            userSession: !!userSession
+            userSession: !!userSession,
+            isNewUser: isNewUser
         });
         
         if (userDataStr) {
@@ -1212,8 +1219,8 @@ async function handleSuccessfulAuth() {
             const userRole = userData.cargo_rol || userData.type_rol || 'usuario';
             devLog('Rol de usuario detectado:', userRole);
             
-            // Determinar página de destino basada en el rol
-            targetPage = getRedirectPageByRole(userRole);
+            // Determinar página de destino basada en el rol y si es usuario nuevo
+            targetPage = getRedirectPageByRole(userRole, isNewUser || userData.isNewUser);
             devLog('Página de destino determinada:', targetPage);
         } else {
             devLog('No se encontraron datos de usuario, usando página por defecto');
