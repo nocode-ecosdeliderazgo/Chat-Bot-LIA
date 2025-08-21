@@ -15,6 +15,38 @@
     --gradient-dark: linear-gradient(135deg, #0F0F0F 0%, #1A1A1A 50%, #0F0F0F 100%);
     --font-primary: 'Poppins', sans-serif;
     --font-secondary: 'Inter', sans-serif;
+    
+    /* Variables para modo claro/oscuro */
+    --bg-primary: #0A0A0A;
+    --bg-secondary: #1A1A1A;
+    --text-primary: #FFFFFF;
+    --text-secondary: #E5E5E5;
+    --text-muted: #A0A0A0;
+    --card-bg: rgba(255,255,255,0.04);
+    --card-border: rgba(68,229,255,0.18);
+    --shadow-card: 0 20px 50px rgba(0,0,0,0.35);
+    --shadow-card-hover: 0 25px 60px rgba(0,0,0,0.45);
+    --turq: #44E5FF;
+    --turq-2: #0077A6;
+    --course-accent: #44E5FF;
+    --course-accent-hover: #22C55E;
+}
+
+/* Variables para modo claro */
+[data-theme="light"] {
+    --bg-primary: #E8F2F8;
+    --bg-secondary: #D1E7DD;
+    --text-primary: #2D3748;
+    --text-secondary: #4A5568;
+    --text-muted: #718096;
+    --card-bg: rgba(255,255,255,0.95);
+    --card-border: rgba(68,229,255,0.15);
+    --shadow-card: 0 4px 12px rgba(0,0,0,0.03);
+    --shadow-card-hover: 0 8px 24px rgba(0,0,0,0.06);
+    --turq: #0066CC;
+    --turq-2: #0052A3;
+    --course-accent: #0066CC;
+    --course-accent-hover: #0052A3;
 }
 
 * {
@@ -28,10 +60,11 @@ body {
     background: 
         radial-gradient(1200px 800px at 20% 0%, rgba(68, 229, 255, 0.08), transparent 60%),
         radial-gradient(800px 600px at 80% 100%, rgba(0, 119, 166, 0.12), transparent 60%),
-        linear-gradient(160deg, #0A0A0A 0%, #0A0A0A 100%);
-    color: var(--course-white);
+        linear-gradient(160deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    color: var(--text-primary);
     min-height: 100vh;
     overflow-x: hidden;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 
@@ -969,4 +1002,439 @@ input.is-disabled {
     opacity: .6;
     cursor: not-allowed;
     filter: grayscale(10%);
+}
+
+/* ===== ESTILOS PARA MODO CLARO ===== */
+
+/* Fondo del body en modo claro */
+[data-theme="light"] body {
+    background: 
+        radial-gradient(1200px 800px at 20% 0%, rgba(0, 102, 204, 0.08), transparent 60%),
+        radial-gradient(800px 600px at 80% 100%, rgba(0, 82, 163, 0.12), transparent 60%),
+        linear-gradient(160deg, var(--bg-primary) 0%, var(--bg-secondary) 100%) !important;
+}
+
+/* Header en modo claro */
+[data-theme="light"] .header {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.1) !important;
+}
+
+[data-theme="light"] .header-title h1 {
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .header-title p {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] .back-btn,
+[data-theme="light"] .save-btn {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+}
+
+[data-theme="light"] .back-btn:hover,
+[data-theme="light"] .save-btn:hover {
+    background: #0066CC !important;
+    color: white !important;
+}
+
+
+
+/* Tarjetas en modo claro */
+[data-theme="light"] .profile-card,
+[data-theme="light"] .form-card {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    box-shadow: var(--shadow-card) !important;
+}
+
+[data-theme="light"] .profile-card:hover,
+[data-theme="light"] .form-card:hover {
+    box-shadow: var(--shadow-card-hover) !important;
+}
+
+/* Textos en modo claro */
+[data-theme="light"] .profile-header h2 {
+    color: #2D3748 !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .profile-header p {
+    color: #4A5568 !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] .section-title h3 {
+    color: #2D3748 !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .section-title p {
+    color: #4A5568 !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] .form-label {
+    color: #2D3748 !important;
+    font-weight: 600 !important;
+}
+
+/* Información del usuario en modo claro */
+[data-theme="light"] .user-info h2 {
+    color: #2D3748 !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .user-info p {
+    color: #4A5568 !important;
+    font-weight: 500 !important;
+}
+
+/* Badge de usuario en modo claro */
+[data-theme="light"] .user-badges .badge {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    font-weight: 600 !important;
+}
+
+/* Campos de formulario en modo claro */
+[data-theme="light"] .form-input,
+[data-theme="light"] .form-select,
+[data-theme="light"] input[type="text"],
+[data-theme="light"] input[type="email"],
+[data-theme="light"] input[type="password"],
+[data-theme="light"] input[type="url"],
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    color: #2D3748 !important;
+    font-weight: 500 !important;
+}
+
+/* Valores de los campos en modo claro */
+[data-theme="light"] .form-input:not(:placeholder-shown),
+[data-theme="light"] input[type="text"]:not(:placeholder-shown),
+[data-theme="light"] input[type="email"]:not(:placeholder-shown),
+[data-theme="light"] input[type="password"]:not(:placeholder-shown),
+[data-theme="light"] input[type="url"]:not(:placeholder-shown),
+[data-theme="light"] select:not([value=""]),
+[data-theme="light"] textarea:not(:placeholder-shown) {
+    color: #1A202C !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="light"] .form-input:focus,
+[data-theme="light"] .form-select:focus,
+[data-theme="light"] input:focus,
+[data-theme="light"] select:focus,
+[data-theme="light"] textarea:focus {
+    border-color: #0066CC !important;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1) !important;
+}
+
+/* Placeholders en modo claro */
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+    color: #718096 !important;
+    font-weight: 400 !important;
+}
+
+/* Asegurar que todos los textos sean visibles en modo claro */
+[data-theme="light"] * {
+    color: inherit;
+}
+
+[data-theme="light"] h1, 
+[data-theme="light"] h2, 
+[data-theme="light"] h3, 
+[data-theme="light"] h4, 
+[data-theme="light"] h5, 
+[data-theme="light"] h6 {
+    color: #2D3748 !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] p, 
+[data-theme="light"] span, 
+[data-theme="light"] div {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] label {
+    color: #2D3748 !important;
+    font-weight: 600 !important;
+}
+
+/* Forzar visibilidad de elementos específicos */
+[data-theme="light"] .profile-header,
+[data-theme="light"] .user-info,
+[data-theme="light"] .stats-section,
+[data-theme="light"] .form-section {
+    color: #2D3748 !important;
+}
+
+/* Forzar visibilidad de todos los elementos del formulario */
+[data-theme="light"] .form-group {
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .form-group label {
+    color: #2D3748 !important;
+    font-weight: 600 !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+[data-theme="light"] .form-group input,
+[data-theme="light"] .form-group textarea,
+[data-theme="light"] .form-group select {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    color: #2D3748 !important;
+    font-weight: 500 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+}
+
+/* Elementos de archivo específicos */
+[data-theme="light"] .file-upload,
+[data-theme="light"] .upload-btn,
+[data-theme="light"] .file-name,
+[data-theme="light"] .download-cv-btn {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+}
+
+/* Asegurar que no haya elementos ocultos */
+[data-theme="light"] * {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+[data-theme="light"] input[type="hidden"] {
+    display: none !important;
+}
+
+/* Badges en modo claro */
+[data-theme="light"] .badge.primary {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+}
+
+/* Estadísticas del usuario en modo claro */
+[data-theme="light"] .stats-section {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border: 1px solid rgba(0, 102, 204, 0.1) !important;
+}
+
+[data-theme="light"] .stat-item {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.15) !important;
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .stat-item:hover {
+    background: rgba(0, 102, 204, 0.05) !important;
+    border-color: rgba(0, 102, 204, 0.3) !important;
+}
+
+[data-theme="light"] .stat-icon {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .stat-value {
+    color: #1A202C !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .stat-label {
+    color: #4A5568 !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] .stat-content {
+    color: #2D3748 !important;
+}
+
+/* Botones en modo claro */
+[data-theme="light"] .btn-primary {
+    background: #0066CC !important;
+    color: white !important;
+    border: 1px solid #0066CC !important;
+}
+
+[data-theme="light"] .btn-primary:hover {
+    background: #0052A3 !important;
+    border-color: #0052A3 !important;
+}
+
+[data-theme="light"] .btn-secondary {
+    background: transparent !important;
+    color: #4A5568 !important;
+    border: 1px solid #4A5568 !important;
+}
+
+[data-theme="light"] .btn-secondary:hover {
+    background: #4A5568 !important;
+    color: white !important;
+}
+
+/* Botón cambiar foto en modo claro */
+[data-theme="light"] .change-photo-btn {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] .change-photo-btn:hover {
+    background: #0066CC !important;
+    color: white !important;
+}
+
+/* Avatar en modo claro */
+[data-theme="light"] .avatar {
+    border: 3px solid rgba(0, 102, 204, 0.3) !important;
+}
+
+[data-theme="light"] .avatar-overlay {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+}
+
+/* Tarjeta de perfil en modo claro */
+[data-theme="light"] .profile-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 102, 204, 0.15) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Contenedor de formulario en modo claro */
+[data-theme="light"] .form-container {
+    background: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Secciones de formulario en modo claro */
+[data-theme="light"] .form-section {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Campos específicos en modo claro */
+[data-theme="light"] input[type="tel"],
+[data-theme="light"] #phone,
+[data-theme="light"] input[name="phone"] {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    color: #2D3748 !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] input[type="tel"]:not(:placeholder-shown),
+[data-theme="light"] #phone:not(:placeholder-shown),
+[data-theme="light"] input[name="phone"]:not(:placeholder-shown) {
+    color: #1A202C !important;
+    font-weight: 600 !important;
+}
+
+/* Campo de CV en modo claro */
+[data-theme="light"] .file-upload {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    border-radius: 10px !important;
+}
+
+[data-theme="light"] .upload-btn {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] .upload-btn:hover {
+    background: #0066CC !important;
+    color: white !important;
+}
+
+[data-theme="light"] .file-name {
+    color: #4A5568 !important;
+    font-weight: 500 !important;
+}
+
+/* Botón de descargar CV */
+[data-theme="light"] .download-cv-btn,
+[data-theme="light"] .cv-download-btn {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] .download-cv-btn:hover,
+[data-theme="light"] .cv-download-btn:hover {
+    background: #0066CC !important;
+    color: white !important;
+}
+
+/* Asegurar que todos los inputs sean visibles */
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    color: #2D3748 !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] input:not(:placeholder-shown),
+[data-theme="light"] textarea:not(:placeholder-shown),
+[data-theme="light"] select:not([value=""]) {
+    color: #1A202C !important;
+    font-weight: 600 !important;
+}
+
+/* Modal en modo claro */
+[data-theme="light"] .modal-content {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    box-shadow: var(--shadow-card) !important;
+}
+
+[data-theme="light"] .modal-header h3 {
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .modal-body p {
+    color: #4A5568 !important;
+}
+
+/* Partículas en modo claro */
+[data-theme="light"] .particles-container .particle {
+    background: rgba(0, 102, 204, 0.1) !important;
+    box-shadow: 0 0 20px rgba(0, 102, 204, 0.2) !important;
+}
+
+/* Contenedor de autenticación en modo claro */
+[data-theme="light"] .auth-container,
+[data-theme="light"] .auth-bg {
+    background: var(--bg-primary) !important;
+}
+
+[data-theme="light"] .bg-glow {
+    background: radial-gradient(circle at 50% 50%, rgba(0, 102, 204, 0.1), transparent 70%) !important;
+}
+
+[data-theme="light"] #bgParticles {
+    mix-blend-mode: multiply !important;
 }

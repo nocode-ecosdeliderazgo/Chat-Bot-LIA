@@ -211,6 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeCoursesPage();
         setupEventListeners();
         updateLearningStreak();
+        setupThemeObserver();
         
         console.log('[COURSES] Página de cursos inicializada correctamente');
     } catch (error) {
@@ -241,17 +242,29 @@ function hydrateUserHeader() {
         const name = user.display_name || user.full_name || user.name || user.username || user.email || '';
         if (!name) return;
         titleEl.textContent = `Bienvenido ${name}`;
-        // Solo aplicar estilos inline si no está en modo claro
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        if (currentTheme !== 'light') {
+        
+        // Aplicar estilos según el tema actual
+        applyWelcomeStyles(titleEl);
+    } catch (_) {}
+}
+
+// Función separada para aplicar estilos del texto de bienvenida
+function applyWelcomeStyles(titleEl) {
+    if (!titleEl) return;
+    
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    
+    if (currentTheme === 'light') {
+        // En modo claro, aplicar color azul directamente
+        titleEl.style.color = '#0066CC';
+        titleEl.style.fontWeight = '700';
+        titleEl.style.textShadow = 'none';
+    } else {
+        // En modo oscuro, aplicar estilos inline originales
         titleEl.style.color = 'var(--course-title)';
         titleEl.style.fontWeight = '800';
-        } else {
-            // En modo claro, remover estilos inline para que funcionen los CSS
-            titleEl.style.removeProperty('color');
-            titleEl.style.removeProperty('font-weight');
-        }
-    } catch (_) {}
+        titleEl.style.textShadow = '';
+    }
 }
 
 // ===== MANEJO DE PESTAÑAS =====
@@ -1301,6 +1314,28 @@ class CourseSearch {
             }, 300);
         }, 2000);
     }
+}
+
+// Función para observar cambios de tema y actualizar el título de bienvenida
+function setupThemeObserver() {
+    // Observer para cambios en el atributo data-theme del html
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                const titleEl = document.getElementById('welcomeTitle');
+                if (titleEl) {
+                    // Re-aplicar estilos cuando cambie el tema
+                    setTimeout(() => applyWelcomeStyles(titleEl), 10);
+                }
+            }
+        });
+    });
+    
+    // Comenzar a observar cambios en el elemento html
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme']
+    });
 }
 
 // Inicializar búsqueda cuando el DOM esté listo

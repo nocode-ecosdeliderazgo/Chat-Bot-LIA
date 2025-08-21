@@ -2474,6 +2474,7 @@ html, body.courses-page {
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
+    padding-left: 40px !important;
 }
 
 [data-theme="light"] .pm-item#themeToggle:hover {
@@ -2487,25 +2488,58 @@ html, body.courses-page {
 
 [data-theme="light"] .theme-icon-sun,
 [data-theme="light"] .theme-icon-moon {
-    margin-right: 4px;
+    margin-right: 0;
     transition: all 0.3s ease;
     font-size: 14px;
     width: 16px;
     text-align: center;
     display: inline-block;
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 [data-theme="light"] .theme-icon-sun {
-    opacity: 0;
-    transform: rotate(90deg);
-    position: absolute;
-    left: 12px;
+    opacity: 1;
+    transform: translateY(-50%);
 }
 
 [data-theme="light"] .theme-icon-moon {
+    opacity: 0;
+    transform: translateY(-50%);
+}
+
+/* Estilos para modo oscuro */
+[data-theme="dark"] .pm-item#themeToggle {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    padding-left: 40px !important;
+}
+
+[data-theme="dark"] .theme-icon-sun,
+[data-theme="dark"] .theme-icon-moon {
+    margin-right: 0;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
+    display: inline-block;
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+[data-theme="dark"] .theme-icon-sun {
+    opacity: 0;
+    transform: translateY(-50%);
+}
+
+[data-theme="dark"] .theme-icon-moon {
     opacity: 1;
-    transform: rotate(0deg);
-    position: static;
+    transform: translateY(-50%);
 }
 
 /* Estilos para las tarjetas de cursos en modo claro */
@@ -2747,6 +2781,11 @@ html, body.courses-page {
     color: #0066CC !important;
     font-weight: 700 !important;
     text-shadow: none !important;
+    /* DESHABILITAR EL GRADIENTE DE TEXTO */
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+    background-clip: unset !important;
+    background: none !important;
 }
 
 /* Estilos para el modo claro que sobrescriban todo */
@@ -2758,6 +2797,11 @@ html, body.courses-page {
     font-weight: 700 !important;
     text-shadow: none !important;
     background: transparent !important;
+    /* DESHABILITAR EL GRADIENTE DE TEXTO */
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+    background-clip: unset !important;
+    background: none !important;
 }
 
 /* Estilos para botones en modo claro */
