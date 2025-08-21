@@ -19,6 +19,10 @@ class ThemeManager {
 
         // Detectar preferencia del sistema
         this.detectSystemPreference();
+        
+        // Debug: verificar que el tema se aplicó correctamente
+        console.log('🎨 ThemeManager inicializado con tema:', this.currentTheme);
+        console.log('🎨 data-theme en html:', document.documentElement.getAttribute('data-theme'));
     }
 
     getStoredTheme() {

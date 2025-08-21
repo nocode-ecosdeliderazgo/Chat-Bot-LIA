@@ -75,6 +75,13 @@
                     <div class="pm-item" onclick="location.href='profile.html'"><i class='bx bx-user'></i> Editar perfil</div>
                 </div>
                 <div class="pm-section">
+                    <div class="pm-item" id="themeToggle" onclick="toggleTheme()">
+                        <i class='bx bx-sun theme-icon-sun'></i>
+                        <i class='bx bx-moon theme-icon-moon'></i>
+                        Cambiar tema
+                    </div>
+                </div>
+                <div class="pm-section">
                     <div class="pm-item" onclick="location.href='login/new-auth.html'"><i class='bx bx-log-out'></i> Cerrar sesión</div>
                 </div>
             </div>
@@ -312,5 +319,8 @@
     <script src="scripts/courses.js"></script>
     <script src="scripts/profile-avatar-manager.js"></script>
     <script src="scripts/courses-particles-direct.js"></script>
+    <script src="scripts/force-theme-init.js"></script>
+    <script src="scripts/theme-manager.js"></script>
+    <script src="scripts/theme-toggle.js"></script>
 </body>
 </html>

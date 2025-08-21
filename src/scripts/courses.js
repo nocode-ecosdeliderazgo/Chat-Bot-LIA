@@ -241,8 +241,16 @@ function hydrateUserHeader() {
         const name = user.display_name || user.full_name || user.name || user.username || user.email || '';
         if (!name) return;
         titleEl.textContent = `Bienvenido ${name}`;
+        // Solo aplicar estilos inline si no está en modo claro
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        if (currentTheme !== 'light') {
         titleEl.style.color = 'var(--course-title)';
         titleEl.style.fontWeight = '800';
+        } else {
+            // En modo claro, remover estilos inline para que funcionen los CSS
+            titleEl.style.removeProperty('color');
+            titleEl.style.removeProperty('font-weight');
+        }
     } catch (_) {}
 }
 
