@@ -28,7 +28,7 @@ class ProfileManager {
             const raw = localStorage.getItem('currentUser');
             if (!raw) {
                 this.showError('Inicia sesión para ver tu perfil');
-                window.location.href = 'login/new-auth.html';
+                window.location.href = 'index.html';
                 return;
             }
             const sessionUser = JSON.parse(raw);

@@ -222,8 +222,8 @@ app.get('/', (req, res) => {
             res.sendFile(path.join(__dirname, 'src', 'welcome.html'));
         }
     } catch (_) {
-        // Fallback en caso de que no exista la landing: redirigir a nuevo login
-        res.redirect('/login/new-auth.html');
+        // Fallback en caso de que no exista la landing: redirigir a index
+        res.redirect('/index.html');
     }
 });
 
