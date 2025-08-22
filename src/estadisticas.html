@@ -26,8 +26,164 @@
     <!-- Boxicons para iconos -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     
+    <!-- Chart.js para radar chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <!-- Global theme setup - Configuración global del tema -->
     <script src="scripts/global-theme-setup.js"></script>
+    
+    <!-- Estilos específicos para radar chart -->
+    <style>
+        /* Contenedor principal del radar */
+        .radar-section {
+            margin: 2rem 0;
+        }
+        
+        .radar-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .radar-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .radar-header h3 {
+            color: #44e5ff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .radar-header p {
+            color: #888;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .radar-chart-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            margin: 2rem 0;
+        }
+        
+        #radarChart {
+            max-width: 100%;
+            height: 400px;
+        }
+        
+        .radar-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            background: rgba(68, 229, 255, 0.1);
+            border-radius: 16px;
+            border: 2px dashed #44e5ff;
+        }
+        
+        .placeholder-content {
+            text-align: center;
+            max-width: 300px;
+        }
+        
+        .radar-info {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #44e5ff, #0077a6);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #44e5ff;
+            padding: 0.5rem 1rem;
+            border: 1px solid #44e5ff;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(68, 229, 255, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .radar-card {
+                padding: 1.5rem;
+                margin: 0 1rem;
+            }
+            
+            .radar-chart-container {
+                height: 300px;
+            }
+            
+            #radarChart {
+                height: 300px;
+            }
+            
+            .radar-placeholder {
+                height: 300px;
+            }
+            
+            .radar-header h3 {
+                font-size: 1.25rem;
+            }
+            
+            .radar-header p {
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Tema claro */
+        [data-theme="light"] .radar-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="light"] .radar-header h3 {
+            color: #0077a6;
+        }
+        
+        [data-theme="light"] .radar-header p {
+            color: #666;
+        }
+        
+        [data-theme="light"] .radar-placeholder {
+            background: rgba(0, 119, 166, 0.1);
+            border-color: #0077a6;
+        }
+        
+        [data-theme="light"] .radar-info {
+            border-top-color: rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body class="bg-glow-global">
     <!-- Botón de cambio de tema -->
@@ -107,53 +263,57 @@
                 </div>
             </section>
 
-            <!-- Contenedores para Grafana - Diseño Piramidal -->
-            <section class="grafana-section animate-on-scroll">
-                <div class="grafana-pyramid">
-                    <!-- Panel superior (más ancho) -->
-                    <div class="grafana-container glass-card top">
-                        <div class="grafana-header">
-                            <h3><i class='bx bx-line-chart'></i> Índice de Competencias</h3>
-                            <p>Resumen general de tus competencias en IA y tecnologías emergentes</p>
+            <!-- Contenedor para Radar Chart -->
+            <section class="radar-section animate-on-scroll">
+                <div class="radar-container">
+                    <!-- Panel principal - Radar Chart -->
+                    <div class="radar-card glass-card">
+                        <div class="radar-header">
+                            <h3><i class='bx bx-bullseye'></i> Radar de Competencias en IA</h3>
+                            <p>Visualización de tus fortalezas por área funcional basada en tu cuestionario</p>
                         </div>
-                        <div class="grafana-frame-container">
-                            <img src="/grafana/panel/1.png" 
-                                 style="width:100%;min-height:420px;border-radius:16px" 
-                                 alt="Índice de Competencias"
-                                 class="grafana-image"
-                                 loading="lazy" />
-                        </div>
-                    </div>
-
-                    <!-- Fila inferior con dos paneles -->
-                    <div class="grafana-bottom-row">
-                        <!-- Panel inferior izquierdo -->
-                        <div class="grafana-container glass-card bottom">
-                            <div class="grafana-header">
-                                <h3><i class='bx bx-bullseye'></i> Radar de Habilidades</h3>
-                                <p>Visualización de tus fortalezas por área funcional y nivel de experiencia</p>
-                            </div>
-                            <div class="grafana-frame-container">
-                                <img src="/grafana/panel/2.png" 
-                                     style="width:100%;min-height:420px;border-radius:16px" 
-                                     alt="Radar de Habilidades"
-                                     class="grafana-image"
-                                     loading="lazy" />
+                        <div class="radar-chart-container">
+                            <canvas id="radarChart" width="400" height="400"></canvas>
+                            <div id="radarPlaceholder" class="radar-placeholder" style="display: none;">
+                                <div class="placeholder-content">
+                                    <i class='bx bx-radar' style="font-size: 48px; color: #44e5ff; margin-bottom: 16px;"></i>
+                                    <h4 style="color: #44e5ff; margin: 0 0 8px 0;">Sin datos aún</h4>
+                                    <p style="color: #888; margin: 0 0 8px 0; text-align: center;">Completa tu cuestionario para ver tu radar de competencias</p>
+                                    <button onclick="goToQuestionnaire()" class="btn-primary" style="margin-top: 16px;">
+                                        Completar Cuestionario
+                                    </button>
+                                </div>
                             </div>
                         </div>
-
-                        <!-- Panel inferior derecho -->
-                        <div class="grafana-container glass-card bottom">
-                            <div class="grafana-header">
-                                <h3><i class='bx bx-category-alt'></i> Análisis por Subdominios</h3>
-                                <p>Desglose detallado por categorías específicas y oportunidades de mejora</p>
-                            </div>
-                            <div class="grafana-frame-container">
-                                <img src="/grafana/panel/3.png" 
-                                     style="width:100%;min-height:420px;border-radius:16px" 
-                                     alt="Análisis por Subdominios"
-                                     class="grafana-image"
-                                     loading="lazy" />
+                        <div class="radar-info">
+                            <p id="sessionInfo" style="color: #888; font-size: 14px; margin: 0;"></p>
+                            <!-- Botones de prueba solo en desarrollo -->
+                            <div id="testButtons" style="margin-top: 16px; display: none;">
+                                <div style="margin-bottom: 8px;">
+                                    <button onclick="testUserWithData()" class="btn-secondary" style="margin-right: 8px;">
+                                        Test: Usuario con datos
+                                    </button>
+                                    <button onclick="testUserWithoutData()" class="btn-secondary" style="margin-right: 8px;">
+                                        Test: Usuario sin datos
+                                    </button>
+                                    <button onclick="testBackendConnection()" class="btn-secondary">
+                                        Test: Backend
+                                    </button>
+                                </div>
+                                <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
+                                    Setup de base de datos:
+                                </div>
+                                <div>
+                                    <button onclick="createRadarViews()" class="btn-secondary" style="margin-right: 8px; font-size: 12px; padding: 0.4rem 0.8rem;">
+                                        Crear Vistas
+                                    </button>
+                                    <button onclick="createTestData()" class="btn-secondary" style="margin-right: 8px; font-size: 12px; padding: 0.4rem 0.8rem;">
+                                        Crear Datos
+                                    </button>
+                                    <button onclick="testRealBackend()" class="btn-secondary" style="font-size: 12px; padding: 0.4rem 0.8rem;">
+                                        Test Real
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -268,113 +428,433 @@
     </script>
     
     <script>
-        // Cargar session_id y actualizar URLs de Grafana
+        // Variables globales para el radar chart
+        let radarChart = null;
+        let currentUserData = null;
+        
+        // Inicializar la página de estadísticas
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('Inicializando estadísticas con session_id dinámico...');
+            console.log('🎯 Inicializando página de estadísticas con radar chart...');
             
-            // Obtener token del localStorage
+            // Mostrar botones de prueba si estamos en localhost
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                const testButtons = document.getElementById('testButtons');
+                if (testButtons) {
+                    testButtons.style.display = 'block';
+                    console.log('🧪 Botones de testing habilitados (modo desarrollo)');
+                }
+            }
+            
+            // Obtener información del usuario logueado
+            await loadUserRadarData();
+        });
+        
+        // Función para obtener el userId del usuario actual
+        function getCurrentUserId() {
+            // Método 1: Desde localStorage
+            const userData = localStorage.getItem('userData');
+            if (userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    if (user.id) return user.id;
+                } catch (e) {
+                    console.warn('Error parsing userData from localStorage:', e);
+                }
+            }
+            
+            // Método 2: Desde token JWT decodificado (sin verificar firma)
             const token = localStorage.getItem('userToken') || localStorage.getItem('authToken');
+            if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    if (payload.sub) return payload.sub;
+                } catch (e) {
+                    console.warn('Error decoding token:', e);
+                }
+            }
             
-            if (!token) {
-                console.warn('No hay token de autenticación - usando imágenes por defecto');
-                // Agregar manejo de errores para todas las imágenes
-                const grafanaImages = document.querySelectorAll('img[src*="/grafana/panel/"]');
-                grafanaImages.forEach(img => {
-                    img.onerror = function() {
-                        console.warn(`Error cargando imagen sin token: ${this.alt}`);
-                        showGrafanaPlaceholder(this);
-                    };
+            // Método 3: Usuario de prueba para desarrollo
+            console.warn('⚠️ No se encontró userId, usando userId de prueba');
+            return 'dev-user-id';
+        }
+        
+        // Cargar datos del radar del usuario
+        async function loadUserRadarData() {
+            try {
+                const userId = getCurrentUserId();
+                console.log('👤 Cargando datos para userId:', userId);
+                
+                // Mostrar información del usuario en la página
+                const sessionInfo = document.getElementById('sessionInfo');
+                if (sessionInfo) {
+                    sessionInfo.innerHTML = `Debugging: userId = ${userId}`;
+                }
+                
+                // Hacer fetch al endpoint del backend
+                const response = await fetch(`/api/radar/user/${userId}`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // En development mode, no se requiere API key
+                    }
                 });
+                
+                if (!response.ok) {
+                    console.error('❌ Error en response:', response.status, response.statusText);
+                    showRadarPlaceholder();
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('📊 Datos del radar recibidos:', data);
+                
+                currentUserData = data;
+                
+                if (data.hasData && (data.conocimiento > 0 || data.aplicacion > 0 || data.productividad > 0 || data.estrategia > 0 || data.inversion > 0)) {
+                    createRadarChart(data);
+                    showSessionInfo(data.session_id);
+                } else {
+                    console.log('📭 Usuario sin datos de cuestionario');
+                    showRadarPlaceholder();
+                }
+                
+            } catch (error) {
+                console.error('💥 Error cargando datos del radar:', error);
+                showRadarPlaceholder();
+            }
+        }
+        
+        // Crear el radar chart con Chart.js
+        function createRadarChart(data) {
+            const canvas = document.getElementById('radarChart');
+            if (!canvas) {
+                console.error('❌ Canvas radarChart no encontrado');
                 return;
             }
             
-            try {
-                // Temporalmente skip session_id para testing
-                console.log('⚠️ Modo testing: sin session_id dinámico');
-                
-                // Solo agregar manejo de errores sin modificar URLs
-                const grafanaImages = document.querySelectorAll('img[src*="/grafana/panel/"]');
-                grafanaImages.forEach(img => {
-                    img.onerror = function() {
-                        console.warn(`Error cargando imagen: ${this.alt}`);
-                        showGrafanaPlaceholder(this);
-                    };
-                    
-                    img.onload = function() {
-                        console.log(`✅ Imagen cargada correctamente: ${this.alt}`);
-                    };
-                });
-                
-                console.log(`🖼️ ${grafanaImages.length} imágenes configuradas para testing`);
-                
-                // Comentado temporalmente:
-                // const response = await fetch('/api/session-info', {
-                //     headers: {
-                //         'Authorization': `Bearer ${token}`
-                //     }
-                // });
-                // 
-                // if (!response.ok) {
-                //     console.warn('Error obteniendo session info:', response.status);
-                //     return;
-                // }
-                // 
-                // const sessionInfo = await response.json();
-                // console.log('Session info obtenida:', sessionInfo);
-                // 
-                // // Actualizar URLs de las imágenes con session_id
-                // updateGrafanaImages(sessionInfo.session_id);
-                
-            } catch (error) {
-                console.error('Error en modo testing:', error);
+            // Destruir chart existente si existe
+            if (radarChart) {
+                radarChart.destroy();
             }
-        });
-        
-        function updateGrafanaImages(sessionId) {
-            // Encontrar todas las imágenes de Grafana
-            const grafanaImages = document.querySelectorAll('img[src*="/grafana/panel/"]');
             
-            grafanaImages.forEach(img => {
-                const currentSrc = img.src;
-                const url = new URL(currentSrc);
-                
-                // Añadir session_id como parámetro
-                url.searchParams.set('session_id', sessionId);
-                
-                // Agregar manejo de errores para la imagen
-                img.onerror = function() {
-                    console.warn(`Error cargando imagen: ${this.alt}`);
-                    showGrafanaPlaceholder(this);
-                };
-                
-                img.onload = function() {
-                    console.log(`✅ Imagen cargada correctamente: ${this.alt}`);
-                };
-                
-                // Actualizar la imagen
-                img.src = url.toString();
-                console.log(`Imagen actualizada: ${img.alt} -> ${url.toString()}`);
-            });
+            const ctx = canvas.getContext('2d');
             
-            console.log(`✅ ${grafanaImages.length} imágenes actualizadas con session_id: ${sessionId}`);
+            // Configuración del dataset
+            const radarData = {
+                labels: ['Conocimiento', 'Aplicación', 'Productividad', 'Estrategia', 'Inversión'],
+                datasets: [{
+                    label: 'Competencias en IA',
+                    data: [
+                        data.conocimiento || 0,
+                        data.aplicacion || 0,
+                        data.productividad || 0,
+                        data.estrategia || 0,
+                        data.inversion || 0
+                    ],
+                    backgroundColor: 'rgba(68, 229, 255, 0.2)',
+                    borderColor: '#44E5FF',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#44E5FF',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            };
+            
+            // Configuración del chart
+            const config = {
+                type: 'radar',
+                data: radarData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#fff',
+                                font: {
+                                    family: 'Inter, sans-serif',
+                                    size: 14
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                color: '#888',
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            angleLines: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            pointLabels: {
+                                color: '#fff',
+                                font: {
+                                    family: 'Inter, sans-serif',
+                                    size: 14,
+                                    weight: '500'
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            
+            // Crear el chart
+            radarChart = new Chart(ctx, config);
+            
+            // Ocultar placeholder y mostrar chart
+            document.getElementById('radarPlaceholder').style.display = 'none';
+            canvas.style.display = 'block';
+            
+            console.log('✅ Radar chart creado exitosamente');
         }
         
-        function showGrafanaPlaceholder(imgElement) {
-            // Ocultar imagen rota
-            imgElement.style.display = 'none';
+        // Mostrar placeholder cuando no hay datos
+        function showRadarPlaceholder() {
+            const canvas = document.getElementById('radarChart');
+            const placeholder = document.getElementById('radarPlaceholder');
             
-            // Crear placeholder personalizado
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'grafana-placeholder';
-            errorDiv.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 420px; background: rgba(68, 229, 255, 0.1); border-radius: 16px; border: 2px dashed #44e5ff;">
-                    <i class='bx bx-bar-chart-alt-2' style="font-size: 48px; color: #44e5ff; margin-bottom: 16px;"></i>
-                    <h4 style="color: #44e5ff; margin: 0 0 8px 0;">Dashboard de ${imgElement.alt}</h4>
-                    <p style="color: #888; margin: 0 0 8px 0; text-align: center;">Panel en construcción</p>
-                    <p style="color: #666; margin: 0; font-size: 12px; text-align: center;">Configura GRAFANA_SA_TOKEN para ver datos reales</p>
-                </div>
-            `;
-            imgElement.parentNode.appendChild(errorDiv);
+            if (canvas) canvas.style.display = 'none';
+            if (placeholder) placeholder.style.display = 'flex';
+            
+            console.log('📋 Mostrando placeholder para radar chart');
+        }
+        
+        // Mostrar información de la sesión
+        function showSessionInfo(sessionId) {
+            const sessionInfo = document.getElementById('sessionInfo');
+            if (sessionInfo && sessionId) {
+                // Mostrar solo los primeros 8 caracteres del session_id
+                const shortSessionId = sessionId.toString().substring(0, 8);
+                sessionInfo.textContent = `Última sesión: ${shortSessionId}...`;
+                sessionInfo.style.display = 'block';
+            }
+        }
+        
+        // Funciones de utilidad para manejo de errores de red
+        function handleNetworkError() {
+            console.error('🌐 Error de red detectado');
+            const placeholder = document.getElementById('radarPlaceholder');
+            if (placeholder) {
+                const content = placeholder.querySelector('.placeholder-content');
+                if (content) {
+                    content.innerHTML = `
+                        <i class='bx bx-wifi-off' style="font-size: 48px; color: #ff6b6b; margin-bottom: 16px;"></i>
+                        <h4 style="color: #ff6b6b; margin: 0 0 8px 0;">Error de conexión</h4>
+                        <p style="color: #888; margin: 0 0 8px 0; text-align: center;">No se pudo cargar tu radar de competencias</p>
+                        <button onclick="location.reload()" class="btn-primary" style="margin-top: 16px;">
+                            Reintentar
+                        </button>
+                    `;
+                }
+                placeholder.style.display = 'flex';
+            }
+        }
+        
+        // ======= FUNCIONES DE NAVEGACIÓN =======
+        
+        // Función para ir al cuestionario evitando la redirección automática
+        function goToQuestionnaire() {
+            console.log('📝 Navegando al cuestionario...');
+            
+            // Usar parámetro force para evitar la redirección automática
+            window.location.href = 'perfil-cuestionario.html?force=true';
+        }
+        
+        // ======= FUNCIONES DE TESTING PARA DESARROLLO =======
+        
+        // Test con usuario que tiene datos
+        async function testUserWithData() {
+            console.log('🧪 Testing usuario con datos...');
+            
+            // Simular datos de prueba
+            const testData = {
+                session_id: 'test-session-123',
+                user_id: 'test-user',
+                conocimiento: 75,
+                aplicacion: 80,
+                productividad: 65,
+                estrategia: 70,
+                inversion: 85,
+                hasData: true,
+                dataSource: 'test'
+            };
+            
+            currentUserData = testData;
+            createRadarChart(testData);
+            showSessionInfo(testData.session_id);
+            
+            console.log('✅ Test completado - usuario con datos');
+        }
+        
+        // Test con usuario sin datos
+        async function testUserWithoutData() {
+            console.log('🧪 Testing usuario sin datos...');
+            
+            // Simular usuario sin datos
+            const testData = {
+                session_id: null,
+                user_id: 'user-without-data',
+                conocimiento: 0,
+                aplicacion: 0,
+                productividad: 0,
+                estrategia: 0,
+                inversion: 0,
+                hasData: false,
+                dataSource: 'test'
+            };
+            
+            currentUserData = testData;
+            showRadarPlaceholder();
+            
+            console.log('✅ Test completado - usuario sin datos');
+        }
+        
+        // Test de carga desde el backend real
+        async function testBackendConnection() {
+            console.log('🧪 Testing conexión al backend...');
+            
+            try {
+                const response = await fetch('/api/radar/user/test-user', {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Backend response:', data);
+                    
+                    currentUserData = data;
+                    
+                    if (data.hasData) {
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                    } else {
+                        showRadarPlaceholder();
+                    }
+                } else {
+                    console.error('❌ Backend error:', response.status);
+                    handleNetworkError();
+                }
+                
+            } catch (error) {
+                console.error('💥 Error testing backend:', error);
+                handleNetworkError();
+            }
+        }
+        
+        // ======= FUNCIONES DE SETUP DE BASE DE DATOS =======
+        
+        // Crear las vistas de radar en la base de datos
+        async function createRadarViews() {
+            console.log('🔧 Creando vistas de radar...');
+            
+            try {
+                const response = await fetch('/api/radar/create-views', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Vistas creadas:', data);
+                    alert(`✅ Vistas creadas exitosamente:\n${data.views.join(', ')}`);
+                } else {
+                    const error = await response.json();
+                    console.error('❌ Error creando vistas:', error);
+                    alert(`❌ Error creando vistas: ${error.error}`);
+                }
+                
+            } catch (error) {
+                console.error('💥 Error:', error);
+                alert(`💥 Error de conexión: ${error.message}`);
+            }
+        }
+        
+        // Crear datos de prueba en la base de datos
+        async function createTestData() {
+            console.log('🔧 Creando datos de prueba...');
+            
+            try {
+                const response = await fetch('/api/radar/create-test-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Datos de prueba creados:', data);
+                    alert(`✅ Datos de prueba creados exitosamente!\nUsuario: ${data.testUserId}\nSesión: ${data.sessionId}`);
+                } else {
+                    const error = await response.json();
+                    console.error('❌ Error creando datos:', error);
+                    alert(`❌ Error creando datos: ${error.error}`);
+                }
+                
+            } catch (error) {
+                console.error('💥 Error:', error);
+                alert(`💥 Error de conexión: ${error.message}`);
+            }
+        }
+        
+        // Test con el backend real usando datos de la base de datos
+        async function testRealBackend() {
+            console.log('🔍 Testing backend con datos reales...');
+            
+            try {
+                // Probar con el usuario de prueba que debería tener datos reales
+                const response = await fetch('/api/radar/user/test-user-uuid', {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Backend real response:', data);
+                    
+                    if (data.hasData && data.dataSource === 'database') {
+                        currentUserData = data;
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                        alert('✅ ¡Datos reales cargados desde la base de datos!');
+                    } else if (data.hasData && data.dataSource === 'test') {
+                        currentUserData = data;
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                        alert('⚠️ Cargando datos de prueba (vistas no existen aún)');
+                    } else {
+                        showRadarPlaceholder();
+                        alert('📭 No hay datos en la base de datos para este usuario');
+                    }
+                } else {
+                    console.error('❌ Backend error:', response.status);
+                    alert(`❌ Error del backend: ${response.status}`);
+                    handleNetworkError();
+                }
+                
+            } catch (error) {
+                console.error('💥 Error testing real backend:', error);
+                alert(`💥 Error: ${error.message}`);
+                handleNetworkError();
+            }
         }
     </script>
     <script src="scripts/theme-toggle.js"></script>

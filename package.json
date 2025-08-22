@@ -7,6 +7,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "port:kill": "node scripts/kill-port-3000.cjs",
+    "port:kill:3001": "node scripts/kill-port-3001.cjs",
     "dev:force": "npm run port:kill && set PORT=3000&& set NODE_ENV=development&& set API_SECRET_KEY=dev&& set USER_JWT_SECRET=dev&& npm run dev",
     "dev:win": "cmd /c \"set PORT=3000&& set NODE_ENV=development&& set API_SECRET_KEY=dev&& set USER_JWT_SECRET=dev&& npm run dev\"",
     "test": "jest",

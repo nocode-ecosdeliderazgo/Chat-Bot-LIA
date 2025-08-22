@@ -2081,6 +2081,353 @@ app.get('/api/courses/:courseId/syllabus', authenticateRequest, async (req, res)
     }
 });
 
+// ====== ENDPOINTS PARA RADAR CHARTS ======
+
+// Obtener datos de radar del usuario (última sesión completada)
+app.get('/api/radar/user/:userId', authenticateRequest, async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        const { userId } = req.params;
+        
+        if (!userId) {
+            return res.status(400).json({ error: 'userId es requerido' });
+        }
+        
+        // Primero verificar si las vistas existen
+        const viewCheckQuery = `
+            SELECT EXISTS (
+                SELECT FROM information_schema.views 
+                WHERE table_schema = 'public' 
+                AND table_name = 'v_radar_latest_by_user'
+            ) as view_exists
+        `;
+        
+        const viewCheck = await pool.query(viewCheckQuery);
+        
+        if (!viewCheck.rows[0].view_exists) {
+            console.warn('⚠️ Vista v_radar_latest_by_user no existe, usando datos de prueba');
+            
+            // Para testing, devolver datos de prueba si el userId es específico
+            if (userId === 'test-user' || userId === 'dev-user-id' || userId === 'test-user-uuid') {
+                return res.json({
+                    session_id: 'test-session-123',
+                    user_id: userId,
+                    conocimiento: 75,
+                    aplicacion: 80,
+                    productividad: 65,
+                    estrategia: 70,
+                    inversion: 85,
+                    hasData: true,
+                    dataSource: 'test'
+                });
+            }
+            
+            // Usuario sin datos
+            return res.json({
+                session_id: null,
+                user_id: userId,
+                conocimiento: 0,
+                aplicacion: 0,
+                productividad: 0,
+                estrategia: 0,
+                inversion: 0,
+                hasData: false,
+                dataSource: 'no_view'
+            });
+        }
+        
+        // Consultar la vista v_radar_latest_by_user
+        const query = `
+            SELECT 
+                session_id,
+                user_id,
+                COALESCE(conocimiento, 0) as conocimiento,
+                COALESCE(aplicacion, 0) as aplicacion,
+                COALESCE(productividad, 0) as productividad,
+                COALESCE(estrategia, 0) as estrategia,
+                COALESCE(inversion, 0) as inversion
+            FROM public.v_radar_latest_by_user 
+            WHERE user_id = $1
+            LIMIT 1
+        `;
+        
+        const result = await pool.query(query, [userId]);
+        
+        if (result.rows.length === 0) {
+            // No hay datos para este usuario
+            return res.json({
+                session_id: null,
+                user_id: userId,
+                conocimiento: 0,
+                aplicacion: 0,
+                productividad: 0,
+                estrategia: 0,
+                inversion: 0,
+                hasData: false,
+                dataSource: 'database'
+            });
+        }
+        
+        const radarData = result.rows[0];
+        
+        res.json({
+            session_id: radarData.session_id,
+            user_id: radarData.user_id,
+            conocimiento: radarData.conocimiento,
+            aplicacion: radarData.aplicacion,
+            productividad: radarData.productividad,
+            estrategia: radarData.estrategia,
+            inversion: radarData.inversion,
+            hasData: true,
+            dataSource: 'database'
+        });
+        
+    } catch (error) {
+        console.error('Error obteniendo datos de radar por usuario:', error);
+        
+        // En caso de error, proporcionar datos de prueba para desarrollo
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('🔧 Modo desarrollo: proporcionando datos de prueba');
+            return res.json({
+                session_id: 'fallback-session',
+                user_id: userId,
+                conocimiento: 60,
+                aplicacion: 70,
+                productividad: 55,
+                estrategia: 65,
+                inversion: 75,
+                hasData: true,
+                dataSource: 'fallback'
+            });
+        }
+        
+        res.status(500).json({ 
+            error: 'Error obteniendo datos de radar',
+            details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+        });
+    }
+});
+
+// Obtener datos de radar por sesión específica (opcional)
+app.get('/api/radar/session/:sessionId', authenticateRequest, async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        const { sessionId } = req.params;
+        
+        if (!sessionId) {
+            return res.status(400).json({ error: 'sessionId es requerido' });
+        }
+        
+        // Consultar la vista v_radar_by_session
+        const query = `
+            SELECT 
+                session_id,
+                user_id,
+                COALESCE(conocimiento, 0) as conocimiento,
+                COALESCE(aplicacion, 0) as aplicacion,
+                COALESCE(productividad, 0) as productividad,
+                COALESCE(estrategia, 0) as estrategia,
+                COALESCE(inversion, 0) as inversion
+            FROM public.v_radar_by_session 
+            WHERE session_id = $1
+            LIMIT 1
+        `;
+        
+        const result = await pool.query(query, [sessionId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ 
+                error: 'No se encontraron datos para esta sesión' 
+            });
+        }
+        
+        const radarData = result.rows[0];
+        
+        res.json({
+            session_id: radarData.session_id,
+            user_id: radarData.user_id,
+            conocimiento: radarData.conocimiento,
+            aplicacion: radarData.aplicacion,
+            productividad: radarData.productividad,
+            estrategia: radarData.estrategia,
+            inversion: radarData.inversion,
+            hasData: true
+        });
+        
+    } catch (error) {
+        console.error('Error obteniendo datos de radar por sesión:', error);
+        res.status(500).json({ 
+            error: 'Error obteniendo datos de radar',
+            details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+        });
+    }
+});
+
+// Endpoint para crear las vistas de radar (solo desarrollo)
+app.post('/api/radar/create-views', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ error: 'No disponible en producción' });
+    }
+    
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        // Leer el archivo SQL
+        const fs = require('fs');
+        const path = require('path');
+        const sqlPath = path.join(__dirname, 'create_radar_views.sql');
+        
+        if (!fs.existsSync(sqlPath)) {
+            return res.status(404).json({ error: 'Archivo create_radar_views.sql no encontrado' });
+        }
+        
+        const sqlContent = fs.readFileSync(sqlPath, 'utf8');
+        
+        // Ejecutar el SQL
+        await pool.query(sqlContent);
+        
+        console.log('✅ Vistas de radar creadas exitosamente');
+        
+        res.json({
+            success: true,
+            message: 'Vistas de radar creadas exitosamente',
+            views: ['v_radar_latest_by_user', 'v_radar_by_session']
+        });
+        
+    } catch (error) {
+        console.error('Error creando vistas de radar:', error);
+        res.status(500).json({ 
+            error: 'Error creando vistas de radar',
+            details: error.message
+        });
+    }
+});
+
+// Endpoint para verificar si existen datos de prueba y crearlos si es necesario
+app.post('/api/radar/create-test-data', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ error: 'No disponible en producción' });
+    }
+    
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        // Crear usuario de prueba si no existe
+        const testUserId = 'test-user-uuid';
+        const sessionId = 'test-session-uuid';
+        
+        // Verificar si ya existe el usuario
+        const userCheck = await pool.query('SELECT id FROM public.users WHERE id = $1', [testUserId]);
+        
+        if (userCheck.rows.length === 0) {
+            // Crear usuario de prueba
+            await pool.query(`
+                INSERT INTO public.users (id, username, email, password_hash, first_name, last_name)
+                VALUES ($1, 'testuser', 'test@example.com', 'hash123', 'Usuario', 'Prueba')
+                ON CONFLICT (id) DO NOTHING
+            `, [testUserId]);
+        }
+        
+        // Crear sesión de cuestionario de prueba
+        await pool.query(`
+            INSERT INTO public.user_questionnaire_sessions (id, user_id, perfil, area, completed_at)
+            VALUES ($1, $2, 'Gerente de Operaciones', 'Tecnología', NOW())
+            ON CONFLICT (id) DO NOTHING
+        `, [sessionId, testUserId]);
+        
+        // Crear puntajes de radar de prueba
+        const testScores = [
+            { subdominio: 'Fundamentos de IA', puntaje: 75 },
+            { subdominio: 'Herramientas de IA', puntaje: 80 },
+            { subdominio: 'Implementación Práctica', puntaje: 65 },
+            { subdominio: 'Eficiencia Operacional', puntaje: 70 },
+            { subdominio: 'Estrategia Organizacional', puntaje: 85 }
+        ];
+        
+        for (const score of testScores) {
+            await pool.query(`
+                INSERT INTO public.radar_scores (session_id, subdominio, puntaje)
+                VALUES ($1, $2, $3)
+                ON CONFLICT DO NOTHING
+            `, [sessionId, score.subdominio, score.puntaje]);
+        }
+        
+        console.log('✅ Datos de prueba creados exitosamente');
+        
+        res.json({
+            success: true,
+            message: 'Datos de prueba creados exitosamente',
+            testUserId: testUserId,
+            sessionId: sessionId
+        });
+        
+    } catch (error) {
+        console.error('Error creando datos de prueba:', error);
+        res.status(500).json({ 
+            error: 'Error creando datos de prueba',
+            details: error.message
+        });
+    }
+});
+
+// Endpoint para obtener información de sesión (para mostrar session_id corto)
+app.get('/api/session-info', authenticateRequest, requireUserSession, async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        const { userId } = req.user;
+        
+        // Obtener la última sesión del usuario
+        const query = `
+            SELECT 
+                session_id,
+                user_id,
+                created_at
+            FROM public.v_radar_latest_by_user 
+            WHERE user_id = $1
+            LIMIT 1
+        `;
+        
+        const result = await pool.query(query, [userId]);
+        
+        if (result.rows.length === 0) {
+            return res.json({
+                session_id: null,
+                user_id: userId,
+                hasSession: false
+            });
+        }
+        
+        const sessionInfo = result.rows[0];
+        
+        res.json({
+            session_id: sessionInfo.session_id,
+            user_id: sessionInfo.user_id,
+            created_at: sessionInfo.created_at,
+            hasSession: true
+        });
+        
+    } catch (error) {
+        console.error('Error obteniendo información de sesión:', error);
+        res.status(500).json({ 
+            error: 'Error obteniendo información de sesión',
+            details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+        });
+    }
+});
+
 // Almacenar usuarios conectados al chat del livestream
 const livestreamUsers = new Map();
 
