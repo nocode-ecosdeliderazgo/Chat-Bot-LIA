@@ -647,34 +647,8 @@
         function goToQuestionnaire() {
             console.log('📝 Navegando al cuestionario...');
             
-            // Temporalmente limpiar el type_rol para evitar la redirección
-            const currentUser = localStorage.getItem('currentUser');
-            if (currentUser) {
-                try {
-                    const user = JSON.parse(currentUser);
-                    const backupUser = {...user};
-                    
-                    // Remover temporalmente el type_rol
-                    delete user.type_rol;
-                    localStorage.setItem('currentUser', JSON.stringify(user));
-                    
-                    // Ir al cuestionario
-                    window.location.href = 'perfil-cuestionario.html';
-                    
-                    // Restaurar el usuario después de un delay (por si falla la navegación)
-                    setTimeout(() => {
-                        localStorage.setItem('currentUser', JSON.stringify(backupUser));
-                    }, 2000);
-                    
-                } catch (e) {
-                    console.warn('Error manipulando currentUser:', e);
-                    // Fallback: ir directo
-                    window.location.href = 'perfil-cuestionario.html';
-                }
-            } else {
-                // No hay usuario, ir directo
-                window.location.href = 'perfil-cuestionario.html';
-            }
+            // Usar parámetro force para evitar la redirección automática
+            window.location.href = 'perfil-cuestionario.html?force=true';
         }
         
         // ======= FUNCIONES DE TESTING PARA DESARROLLO =======

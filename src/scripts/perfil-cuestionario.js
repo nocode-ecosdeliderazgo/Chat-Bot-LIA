@@ -28,6 +28,13 @@ class ProfileQuestionnaire {
 
     async guardByUserRole() {
         try {
+            // Verificar si hay un parámetro especial para forzar el acceso
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('force') === 'true' || urlParams.get('force-questionnaire') === 'true') {
+                console.log('🔓 Acceso forzado al cuestionario');
+                return; // Salir sin hacer ninguna verificación
+            }
+            
             // 1) Intentar con Supabase si existe
             if (window.supabase && window.supabase.auth) {
                 try {
