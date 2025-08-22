@@ -499,11 +499,11 @@
                     connectionStatus.innerHTML = `Conectando...`;
                 }
                 
-                // Hacer fetch al endpoint del backend (puerto 3000 - configuración estándar del equipo)
+                // Hacer fetch al endpoint GenAI del backend (puerto 3000 - configuración estándar del equipo)
                 const baseURL = 'http://localhost:3000';
-                console.log(`🔗 Haciendo fetch a: ${baseURL}/api/radar/user/${userId}`);
+                console.log(`🔗 Haciendo fetch a: ${baseURL}/api/genai-radar/${userId}`);
                 
-                const response = await fetch(`${baseURL}/api/radar/user/${userId}`, {
+                const response = await fetch(`${baseURL}/api/genai-radar/${userId}`, {
                     headers: {
                         'Content-Type': 'application/json'
                     }

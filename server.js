@@ -1705,6 +1705,138 @@ app.post('/api/admin/auth/logout', (req, res) => {
 
 // ====== ENDPOINTS PARA RADAR CHARTS ======
 
+// Nuevo endpoint para GenAI Radar (cuestionario GenAI MultiArea)
+app.get('/api/genai-radar/:userId', async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        const { userId } = req.params;
+        
+        if (!userId) {
+            return res.status(400).json({ error: 'userId es requerido' });
+        }
+        
+        console.log(`🎯 Obteniendo datos GenAI radar para userId: ${userId}`);
+        
+        // Query para obtener los últimos datos del radar por usuario desde las nuevas tablas GenAI
+        const query = `
+            SELECT 
+                gqs.id as session_id,
+                gqs.user_id,
+                gqs.genai_area,
+                gqs.total_score,
+                gqs.adoption_score,
+                gqs.knowledge_score,
+                gqs.classification,
+                gqs.completed_at,
+                u.username,
+                u.email,
+                -- Scores por dimensión desde genai_radar_scores
+                COALESCE(
+                    (SELECT score FROM genai_radar_scores 
+                     WHERE session_id = gqs.id AND dimension = 'Adopción' 
+                     ORDER BY created_at DESC LIMIT 1), 0
+                ) as adopcion_score,
+                COALESCE(
+                    (SELECT score FROM genai_radar_scores 
+                     WHERE session_id = gqs.id AND dimension = 'Conocimiento' 
+                     ORDER BY created_at DESC LIMIT 1), 0
+                ) as conocimiento_score
+            FROM genai_questionnaire_sessions gqs
+            LEFT JOIN users u ON u.id = gqs.user_id
+            WHERE gqs.user_id = $1 
+                AND gqs.completed_at IS NOT NULL
+            ORDER BY gqs.completed_at DESC
+            LIMIT 1
+        `;
+        
+        const result = await pool.query(query, [userId]);
+        
+        if (result.rows.length === 0) {
+            console.log(`📭 No se encontraron datos GenAI para userId: ${userId}`);
+            
+            // Para desarrollo/testing, devolver datos de prueba
+            if (userId.includes('dev-') || userId === 'test-user') {
+                return res.json({
+                    hasData: true,
+                    session_id: 'test-session-' + Date.now(),
+                    userId: userId,
+                    username: 'usuario_prueba',
+                    email: 'test@example.com',
+                    genaiArea: 'CEO/Alta Dirección',
+                    totalScore: 65,
+                    adoptionScore: 70,
+                    knowledgeScore: 60,
+                    classification: 'Intermedio',
+                    completedAt: new Date().toISOString(),
+                    // Datos para radar chart
+                    conocimiento: 60,
+                    aplicacion: 70,
+                    productividad: 68,
+                    estrategia: 65,
+                    inversion: 55,
+                    dataSource: 'test_data'
+                });
+            }
+            
+            return res.json({
+                hasData: false,
+                message: 'No hay datos de cuestionario GenAI completado',
+                userId: userId,
+                dataSource: 'genai_questionnaire_sessions'
+            });
+        }
+        
+        const row = result.rows[0];
+        
+        // Formatear datos para el radar chart
+        const radarData = {
+            hasData: true,
+            session_id: row.session_id,
+            userId: row.user_id,
+            username: row.username,
+            email: row.email,
+            genaiArea: row.genai_area,
+            
+            // Scores principales
+            totalScore: parseFloat(row.total_score) || 0,
+            adoptionScore: parseFloat(row.adoption_score) || 0,
+            knowledgeScore: parseFloat(row.knowledge_score) || 0,
+            classification: row.classification,
+            completedAt: row.completed_at,
+            
+            // Datos para radar chart (5 dimensiones)
+            // Mapear los 2 scores GenAI a 5 dimensiones del radar original
+            conocimiento: parseFloat(row.conocimiento_score) || parseFloat(row.knowledge_score) || 0,
+            aplicacion: parseFloat(row.adopcion_score) || parseFloat(row.adoption_score) || 0,
+            productividad: parseFloat(row.adopcion_score) || parseFloat(row.adoption_score) || 0, // Usar adopción como proxy
+            estrategia: parseFloat(row.total_score) || 0, // Usar score total como estrategia
+            inversion: Math.min(parseFloat(row.total_score) || 0, 80), // Cap a 80 para ser realista
+            
+            dataSource: 'genai_questionnaire_sessions'
+        };
+        
+        console.log('📊 Datos GenAI radar obtenidos:', {
+            userId: radarData.userId,
+            genaiArea: radarData.genaiArea,
+            totalScore: radarData.totalScore,
+            classification: radarData.classification
+        });
+        
+        res.json(radarData);
+        
+    } catch (error) {
+        console.error('❌ Error obteniendo datos GenAI radar:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            message: error.message,
+            hasData: false
+        });
+    }
+});
+
 // Obtener datos de radar del usuario (última sesión completada)
 app.get('/api/radar/user/:userId', async (req, res) => {
     try {
