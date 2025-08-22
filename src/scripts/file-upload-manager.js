@@ -39,9 +39,176 @@ class FileUploadManager {
             }
 
             console.log('Supabase inicializado correctamente');
+            
+            // Verificar autenticación del usuario en Supabase
+            await this.verifySupabaseAuth();
         } catch (error) {
             console.error('Error inicializando Supabase:', error);
             throw error;
+        }
+    }
+
+    async verifySupabaseAuth() {
+        try {
+            if (!this.supabase) {
+                console.warn('⚠️ Supabase no inicializado, saltando verificación de auth');
+                return;
+            }
+            
+            const { data: { session }, error } = await this.supabase.auth.getSession();
+            
+            if (error) {
+                console.error('❌ Error verificando sesión Supabase:', error);
+                return;
+            }
+            
+            if (session && session.user) {
+                console.log('✅ Usuario autenticado en Supabase:', {
+                    id: session.user.id,
+                    email: session.user.email,
+                    expires_at: session.expires_at
+                });
+                this.supabaseUser = session.user;
+            } else {
+                console.warn('⚠️ Usuario NO autenticado en Supabase - Storage puede fallar');
+                this.supabaseUser = null;
+            }
+        } catch (error) {
+            console.error('❌ Error en verificación de autenticación:', error);
+        }
+    }
+
+    async tryAuthenticateUser() {
+        try {
+            if (!this.supabase || !this.currentUser) {
+                return false;
+            }
+            
+            console.log('🔑 Intentando autenticar usuario en Supabase...');
+            
+            // 1. Verificar si hay un token guardado
+            const tokenKeys = [
+                'supabase.auth.token',
+                'sb-lia.auth.token', // storageKey configurado
+                'sb-lia-auth-token'
+            ];
+            
+            let tokenFound = false;
+            for (const key of tokenKeys) {
+                const token = localStorage.getItem(key);
+                if (token) {
+                    console.log('🔑 Token encontrado en:', key);
+                    tokenFound = true;
+                    break;
+                }
+            }
+            
+            if (tokenFound) {
+                console.log('🔑 Intentando restaurar sesión con token existente...');
+                
+                // Intentar refrescar la sesión
+                const { data, error } = await this.supabase.auth.refreshSession();
+                
+                if (!error && data.session) {
+                    console.log('✅ Sesión restaurada exitosamente');
+                    this.supabaseUser = data.session.user;
+                    return true;
+                } else {
+                    console.log('⚠️ Token expirado o inválido, intentando nuevo login...');
+                }
+            }
+            
+            // 2. Si no hay token válido, intentar autenticar con credenciales
+            if (this.currentUser.email) {
+                console.log('🔑 Intentando autenticar con email:', this.currentUser.email);
+                
+                // Intentar login primero
+                if (this.currentUser.password) {
+                    const { data, error } = await this.supabase.auth.signInWithPassword({
+                        email: this.currentUser.email,
+                        password: this.currentUser.password
+                    });
+                    
+                    if (!error && data.session) {
+                        console.log('✅ Autenticación exitosa con credenciales existentes');
+                        this.supabaseUser = data.session.user;
+                        return true;
+                    } else {
+                        console.warn('⚠️ Login falló, intentando crear usuario:', error?.message);
+                        
+                        // Si el usuario no existe, intentar crearlo
+                        if (error?.message?.includes('Invalid login credentials') || 
+                            error?.message?.includes('User not found')) {
+                            
+                            console.log('🔑 Usuario no existe, intentando crear en Supabase...');
+                            
+                            const { data: signUpData, error: signUpError } = await this.supabase.auth.signUp({
+                                email: this.currentUser.email,
+                                password: this.currentUser.password || 'defaultPassword123!',
+                                options: {
+                                    data: {
+                                        username: this.currentUser.username || 'user',
+                                        full_name: this.currentUser.display_name || this.currentUser.full_name || 'Usuario'
+                                    }
+                                }
+                            });
+                            
+                            if (!signUpError && signUpData.session) {
+                                console.log('✅ Usuario creado y autenticado exitosamente');
+                                this.supabaseUser = signUpData.session.user;
+                                return true;
+                            } else {
+                                console.warn('⚠️ Error creando usuario:', signUpError?.message);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 3. Si no tiene email, usar autenticación alternativa
+            if (!this.currentUser.email && this.currentUser.username) {
+                console.log('🔑 Usuario sin email, creando email temporal para Supabase...');
+                
+                // Crear email temporal basado en username
+                const tempEmail = `${this.currentUser.username}@tempuser.local`;
+                const tempPassword = 'TempPassword123!';
+                
+                console.log('🔑 Intentando crear usuario temporal:', tempEmail);
+                
+                const { data: tempData, error: tempError } = await this.supabase.auth.signUp({
+                    email: tempEmail,
+                    password: tempPassword,
+                    options: {
+                        data: {
+                            username: this.currentUser.username,
+                            full_name: this.currentUser.display_name || this.currentUser.username,
+                            is_temp_user: true
+                        }
+                    }
+                });
+                
+                if (!tempError && tempData.session) {
+                    console.log('✅ Usuario temporal creado exitosamente');
+                    this.supabaseUser = tempData.session.user;
+                    return true;
+                }
+            }
+            
+            console.error('❌ No se pudo autenticar en Supabase de ninguna forma');
+            console.log('📝 Estado del usuario local:', {
+                hasEmail: !!this.currentUser.email,
+                email: this.currentUser.email || 'NO EMAIL',
+                hasPassword: !!this.currentUser.password,
+                hasUsername: !!this.currentUser.username,
+                username: this.currentUser.username || 'NO USERNAME'
+            });
+            console.log('🚨 SOLUCIÓN: El usuario debe tener email y password para usar Supabase Storage');
+            
+            return false;
+            
+        } catch (error) {
+            console.error('❌ Error intentando autenticar:', error);
+            return false;
         }
     }
 
@@ -151,7 +318,14 @@ class FileUploadManager {
             // Intentar subir a Supabase Storage primero
             const fileUrl = await this.uploadToStorage(file, 'curriculum');
             
-            if (fileUrl) {
+            if (fileUrl === 'DOCX_FALLBACK') {
+                // Manejo especial para archivos .docx
+                console.log('📄 Procesando archivo .docx con fallback especial');
+                const base64Data = await this.convertToBase64(file);
+                await this.updateUserCurriculumWithBase64(file.name, base64Data);
+                this.updateCurriculumDisplayWithBase64(file.name);
+                this.showSuccess('Curriculum .docx guardado en base de datos');
+            } else if (fileUrl) {
                 // Si funciona Storage, usar URL de Supabase
                 await this.updateUserCurriculum(fileUrl);
                 this.updateCurriculumDisplay(file.name, fileUrl);
@@ -222,14 +396,39 @@ class FileUploadManager {
                 console.log('Supabase no inicializado, usando fallback');
                 return null;
             }
+            
+            // VERIFICAR AUTENTICACIÓN ANTES DE SUBIR
+            await this.verifySupabaseAuth();
+            
+            if (!this.supabaseUser) {
+                console.error('❌ Usuario no autenticado en Supabase - Storage fallará');
+                console.log('🔄 Intentando autenticar con token local...');
+                
+                // Intentar autenticar con datos locales si están disponibles
+                if (this.currentUser && this.currentUser.email) {
+                    console.log('🔑 Usuario local encontrado, intentando autenticar en Supabase...');
+                    await this.tryAuthenticateUser();
+                    
+                    // Verificar de nuevo después del intento de autenticación
+                    if (!this.supabaseUser) {
+                        console.warn('⚠️ No se pudo autenticar en Supabase - usando fallback');
+                        return null;
+                    }
+                }
+                
+                // Continuar con fallback
+                return null;
+            }
+            
+            console.log('✅ Usuario autenticado, procediendo con Storage');
 
-            // Determinar bucket y configuración según tipo
+            // Determinar bucket y configuración según tipo (NOMBRES EN MAYÚSCULAS)
             const config = type === 'profile' ? {
-                bucket: 'avatars',
+                bucket: 'AVATARS', // bucket correcto en MAYÚSCULAS
                 prefix: 'avatar',
-                allowedTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'] // Incluir image/jpeg
+                allowedTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif']
             } : {
-                bucket: 'curriculums',
+                bucket: 'CURRICULUMS', // bucket correcto en MAYÚSCULAS
                 prefix: 'cv', 
                 allowedTypes: [
                     'application/pdf',
@@ -244,7 +443,15 @@ class FileUploadManager {
 
             // Verificar si el tipo de archivo es soportado por Storage
             if (!config.allowedTypes.includes(file.type)) {
-                console.log('Tipo MIME no soportado por Storage:', file.type);
+                console.warn('Tipo MIME no soportado por Storage:', file.type);
+                console.log('🔄 Intentando convertir o usar fallback para:', file.name);
+                
+                // Para archivos .docx, intentar convertir a base64 y guardar en BD
+                if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                    console.log('📄 Archivo .docx detectado, guardando en BD como base64');
+                    return 'DOCX_FALLBACK'; // Señal especial para manejo posterior
+                }
+                
                 return null;
             }
 
@@ -264,15 +471,50 @@ class FileUploadManager {
                 });
 
             if (error) {
-                console.log('Error de Storage:', error.message);
+                console.error('❌ Error de Storage:', error.message);
+                console.error('❌ Error completo:', error);
+                
+                // DIAGNÓSTICO DETALLADO
+                console.error('🔍 DIAGNÓSTICO COMPLETO:', {
+                    bucket: config.bucket,
+                    fileName: fileName,
+                    fileType: file.type,
+                    fileSize: file.size,
+                    error: error.message,
+                    statusCode: error.statusCode || error.status || 'N/A',
+                    supabaseUserAuth: !!this.supabaseUser,
+                    localUserAuth: !!this.currentUser
+                });
                 
                 // Log específico para diferentes tipos de error
                 if (error.message.includes('mime type')) {
-                    console.log('Error de MIME type - usando fallback');
-                } else if (error.message.includes('row-level security')) {
-                    console.log('Error de RLS - usando fallback');
-                } else if (error.message.includes('bucket')) {
-                    console.log('Error de bucket - usando fallback');
+                    console.log('🗺 Error de MIME type - usando fallback');
+                } else if (error.message.includes('row-level security') || error.message.includes('RLS')) {
+                    console.log('🔒 Error de RLS - posible problema de autenticación');
+                    console.log('🔑 Usuario Supabase:', this.supabaseUser ? 'Autenticado' : 'NO autenticado');
+                } else if (error.message.includes('bucket') || error.message.includes('Bucket')) {
+                    console.error('🚨 ERROR DE BUCKET:', {
+                        bucket: config.bucket,
+                        fileName: fileName,
+                        error: error.message,
+                        statusCode: error.statusCode || 'N/A',
+                        suggestion: 'Verificar que el bucket existe y tiene permisos correctos'
+                    });
+                    console.log('🚨 Bucket "' + config.bucket + '" no encontrado o sin permisos');
+                } else if (error.message.includes('400') || error.status === 400) {
+                    console.error('🚨 ERROR 400 BAD REQUEST - Posible problema de autenticación o permisos:', {
+                        bucket: config.bucket,
+                        fileName: fileName,
+                        fileType: file.type,
+                        error: error.message,
+                        authStatus: this.supabaseUser ? 'Autenticado' : 'NO autenticado'
+                    });
+                } else if (error.message.includes('401') || error.status === 401) {
+                    console.error('🔑 ERROR 401 UNAUTHORIZED - Usuario no autenticado correctamente');
+                } else if (error.message.includes('403') || error.status === 403) {
+                    console.error('🚫 ERROR 403 FORBIDDEN - Sin permisos para este bucket');
+                } else if (error.message.includes('404') || error.status === 404) {
+                    console.error('🔍 ERROR 404 NOT FOUND - Bucket no existe o URL incorrecta');
                 }
                 
                 return null;
@@ -402,14 +644,31 @@ class FileUploadManager {
 
     async updateUserCurriculum(curriculumUrl) {
         try {
-            // Actualizar en la base de datos
-            const { error } = await this.supabase
-                .from('users')
-                .update({ curriculum_url: curriculumUrl })
-                .eq('id', this.currentUser.id);
+            // IDENTIFICACIÓN ROBUSTA: usar ID válido, username o email
+            let query = this.supabase.from('users').update({ curriculum_url: curriculumUrl });
+            
+            if (this.currentUser.id && 
+                !String(this.currentUser.id).startsWith('dev-') && 
+                !String(this.currentUser.id).includes('test')) {
+                // Usar ID si es válido y real de BD
+                query = query.eq('id', this.currentUser.id);
+                console.log('Actualizando curriculum_url por ID:', this.currentUser.id);
+            } else if (this.currentUser.username) {
+                // Usar username como fallback
+                query = query.eq('username', this.currentUser.username);
+                console.log('Actualizando curriculum_url por username:', this.currentUser.username);
+            } else if (this.currentUser.email) {
+                // Usar email como último recurso
+                query = query.eq('email', this.currentUser.email);
+                console.log('Actualizando curriculum_url por email:', this.currentUser.email);
+            } else {
+                throw new Error('No se puede identificar al usuario para actualizar curriculum');
+            }
+
+            const { error } = await query;
 
             if (error) {
-                console.error('Error actualizando curriculum_url:', error);
+                console.error('Error actualizando curriculum_url en BD:', error);
                 throw error;
             }
 
@@ -418,9 +677,61 @@ class FileUploadManager {
             localStorage.setItem('currentUser', JSON.stringify(updatedUser));
             this.currentUser = updatedUser;
 
-            console.log('Curriculum URL actualizada en BD y localStorage');
+            console.log('✅ Curriculum URL actualizada en BD y localStorage');
         } catch (error) {
-            console.error('Error actualizando curriculum en BD:', error);
+            console.error('❌ Error actualizando curriculum en BD:', error);
+            throw error;
+        }
+    }
+
+    // Nueva función para manejar archivos .docx con base64 en BD
+    async updateUserCurriculumWithBase64(fileName, base64Data) {
+        try {
+            // IDENTIFICACIÓN ROBUSTA: usar ID válido, username o email
+            let query = this.supabase.from('users').update({ 
+                curriculum_name: fileName,
+                curriculum_data: base64Data,
+                curriculum_type: 'docx_base64'
+            });
+            
+            if (this.currentUser.id && 
+                !String(this.currentUser.id).startsWith('dev-') && 
+                !String(this.currentUser.id).includes('test')) {
+                // Usar ID si es válido y real de BD
+                query = query.eq('id', this.currentUser.id);
+                console.log('Actualizando curriculum base64 por ID:', this.currentUser.id);
+            } else if (this.currentUser.username) {
+                // Usar username como fallback
+                query = query.eq('username', this.currentUser.username);
+                console.log('Actualizando curriculum base64 por username:', this.currentUser.username);
+            } else if (this.currentUser.email) {
+                // Usar email como último recurso
+                query = query.eq('email', this.currentUser.email);
+                console.log('Actualizando curriculum base64 por email:', this.currentUser.email);
+            } else {
+                throw new Error('No se puede identificar al usuario para actualizar curriculum');
+            }
+
+            const { error } = await query;
+
+            if (error) {
+                console.error('Error actualizando curriculum base64 en BD:', error);
+                throw error;
+            }
+
+            // Actualizar en localStorage
+            const updatedUser = { 
+                ...this.currentUser, 
+                curriculum_name: fileName,
+                curriculum_data: base64Data,
+                curriculum_type: 'docx_base64'
+            };
+            localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+            this.currentUser = updatedUser;
+
+            console.log('✅ Curriculum .docx guardado como base64 en BD y localStorage');
+        } catch (error) {
+            console.error('❌ Error guardando curriculum base64 en BD:', error);
             throw error;
         }
     }
@@ -430,6 +741,12 @@ class FileUploadManager {
         if (avatarImage) {
             avatarImage.src = imageUrl;
             avatarImage.style.display = 'block';
+            
+            // MARCAR COMO FOTO REAL PROTEGIDA
+            avatarImage.setAttribute('data-real-photo', 'true');
+            avatarImage.setAttribute('data-protected', 'true');
+            
+            console.log('✅ Avatar marcado como PROTEGIDO contra sobrescritura');
         }
 
         // Actualizar también en el header si existe
@@ -458,6 +775,67 @@ class FileUploadManager {
                 <span>Descargar CV</span>
             `;
             curriculumBtn.onclick = () => window.open(fileUrl, '_blank');
+        }
+    }
+
+    // Nueva función para mostrar CV guardado como base64
+    updateCurriculumDisplayWithBase64(fileName) {
+        const curriculumName = document.getElementById('curriculumName');
+        if (curriculumName) {
+            curriculumName.textContent = fileName;
+            curriculumName.style.color = 'var(--color-primary)';
+        }
+
+        // Botón especial para archivos base64
+        const curriculumBtn = document.getElementById('curriculumBtn');
+        if (curriculumBtn) {
+            curriculumBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>${fileName} (BD)</span>
+            `;
+            curriculumBtn.onclick = () => this.downloadBase64Curriculum();
+        }
+    }
+
+    // Función para descargar curriculum desde base64
+    downloadBase64Curriculum() {
+        try {
+            const currentUser = this.currentUser;
+            if (currentUser.curriculum_data && currentUser.curriculum_name) {
+                // Crear blob desde base64
+                const base64Data = currentUser.curriculum_data.split(',')[1]; // Remover prefijo data:...
+                const byteCharacters = atob(base64Data);
+                const byteNumbers = new Array(byteCharacters.length);
+                
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { 
+                    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+                });
+                
+                // Crear URL y descargar
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = currentUser.curriculum_name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                console.log('✅ Curriculum descargado desde base64');
+            } else {
+                this.showError('No hay curriculum disponible para descargar');
+            }
+        } catch (error) {
+            console.error('❌ Error descargando curriculum:', error);
+            this.showError('Error al descargar curriculum');
         }
     }
 
@@ -620,9 +998,61 @@ class FileUploadManager {
     }
 }
 
+// Función global para asegurar autenticación en Supabase
+window.ensureSupabaseAuth = async function() {
+    try {
+        if (window.fileUploadManager) {
+            await window.fileUploadManager.verifySupabaseAuth();
+            
+            if (!window.fileUploadManager.supabaseUser) {
+                console.log('🔑 Usuario no autenticado, intentando autenticar...');
+                const success = await window.fileUploadManager.tryAuthenticateUser();
+                
+                if (success) {
+                    console.log('✅ Autenticación automática exitosa');
+                    return true;
+                } else {
+                    console.warn('⚠️ No se pudo autenticar automáticamente');
+                    return false;
+                }
+            } else {
+                console.log('✅ Usuario ya autenticado en Supabase');
+                return true;
+            }
+        }
+        return false;
+    } catch (error) {
+        console.error('❌ Error en ensureSupabaseAuth:', error);
+        return false;
+    }
+};
+
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     window.fileUploadManager = new FileUploadManager();
+    
+    // Intentar autenticación automática después de un breve retraso
+    setTimeout(async () => {
+        console.log('🔑 Verificando autenticación automática en Supabase...');
+        await window.ensureSupabaseAuth();
+    }, 2000);
+    
+    // Escuchar cambios en localStorage para autenticar cuando el usuario haga login
+    window.addEventListener('storage', async (e) => {
+        if (e.key === 'currentUser' && e.newValue) {
+            console.log('🔑 Nuevo login detectado, autenticando en Supabase...');
+            await window.ensureSupabaseAuth();
+        }
+    });
+    
+    // También verificar periódicamente la autenticación
+    setInterval(async () => {
+        const currentUser = localStorage.getItem('currentUser');
+        if (currentUser && window.fileUploadManager && !window.fileUploadManager.supabaseUser) {
+            console.log('🔑 Verificación periódica - reintentando autenticación...');
+            await window.ensureSupabaseAuth();
+        }
+    }, 30000); // Cada 30 segundos
 });
 
 // Exportar para uso global

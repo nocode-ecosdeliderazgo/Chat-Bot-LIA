@@ -45,14 +45,40 @@ function createAvatar() {
     }
 }
 
-// Función para aplicar avatar
+// Función para aplicar avatar SOLO SI NO HAY FOTO EXISTENTE
 function applyAvatar() {
+    console.log('📍 Verificando si ya hay foto de perfil...');
+    
+    // VERIFICAR SI YA HAY UNA FOTO DE PERFIL VÁLIDA
+    try {
+        const currentUser = localStorage.getItem('currentUser');
+        if (currentUser) {
+            const userData = JSON.parse(currentUser);
+            if (userData.profile_picture_url && 
+                userData.profile_picture_url !== '' && 
+                !userData.profile_picture_url.includes('createAvatar') &&
+                !userData.profile_picture_url.includes('F') && 
+                userData.profile_picture_url.length > 50) { // URLs de fotos reales son más largas
+                console.log('✅ Ya existe una foto de perfil válida, NO sobrescribiendo');
+                return false;
+            }
+        }
+    } catch (error) {
+        console.error('❌ Error verificando foto existente:', error);
+    }
+    
     console.log('📍 Buscando elemento avatar...');
     
     const avatarImage = document.getElementById('avatarImage');
     
     if (avatarImage) {
         console.log('✅ Elemento avatar encontrado');
+        
+        // VERIFICAR SI ESTÁ PROTEGIDO POR FOTO REAL
+        if (avatarImage.hasAttribute('data-real-photo') || avatarImage.hasAttribute('data-protected')) {
+            console.log('⚠️ AVATAR PROTEGIDO DETECTADO, NO APLICANDO PLACEHOLDER');
+            return false;
+        }
         
         const avatarDataURL = createAvatar();
         if (avatarDataURL) {

@@ -292,8 +292,20 @@ class ProfileManager {
         const curriculumName = document.getElementById('curriculumName');
 
         if (curriculumInput && curriculumBtn) {
-            curriculumBtn.addEventListener('click', () => {
-                curriculumInput.click();
+            curriculumBtn.addEventListener('click', (event) => {
+                // VERIFICAR QUE ES UNA ACTIVACIÓN DEL USUARIO
+                if (!event.isTrusted) {
+                    console.error('❌ Error: File chooser requiere activación del usuario');
+                    return;
+                }
+                
+                try {
+                    console.log('📝 Abriendo selector de archivos para CV...');
+                    curriculumInput.click();
+                } catch (error) {
+                    console.error('❌ Error abriendo file chooser:', error);
+                    alert('Error al abrir el selector de archivos. Por favor, intenta de nuevo.');
+                }
             });
 
             curriculumInput.addEventListener('change', async (e) => {

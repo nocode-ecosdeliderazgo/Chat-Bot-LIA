@@ -36,8 +36,28 @@ function createSimpleAvatar() {
     return dataURL;
 }
 
-// Función para aplicar el avatar
+// Función para aplicar el avatar SOLO SI NO HAY FOTO VÁLIDA
 function applyAvatarToPage() {
+    console.log('📍 Verificando si ya hay foto válida...');
+    
+    // VERIFICAR SI YA HAY UNA FOTO DE PERFIL VÁLIDA
+    try {
+        const currentUser = localStorage.getItem('currentUser');
+        if (currentUser) {
+            const userData = JSON.parse(currentUser);
+            if (userData.profile_picture_url && 
+                userData.profile_picture_url !== '' && 
+                !userData.profile_picture_url.includes('createSimpleAvatar') &&
+                !userData.profile_picture_url.includes('F') && 
+                userData.profile_picture_url.length > 100) { // URLs de fotos reales son más largas
+                console.log('✅ YA EXISTE FOTO VÁLIDA, NO SOBRESCRIBIENDO:', userData.profile_picture_url.substring(0, 50) + '...');
+                return false;
+            }
+        }
+    } catch (error) {
+        console.error('❌ Error verificando foto existente:', error);
+    }
+    
     console.log('📍 Buscando elemento avatar...');
     
     // Buscar el elemento avatar
@@ -47,14 +67,30 @@ function applyAvatarToPage() {
         console.log('✅ Elemento avatar encontrado');
         console.log('📍 Src actual:', avatarImage.src);
         
-        // Crear y aplicar avatar
+        // VERIFICAR SI ESTÁ PROTEGIDO POR FOTO REAL
+        if (avatarImage.hasAttribute('data-real-photo') || avatarImage.hasAttribute('data-protected')) {
+            console.log('⚠️ AVATAR PROTEGIDO DETECTADO, NO SOBRESCRIBIENDO');
+            return false;
+        }
+        
+        // VERIFICAR TAMBIÉN EL SRC ACTUAL DEL ELEMENTO
+        if (avatarImage.src && 
+            avatarImage.src !== '' && 
+            avatarImage.src !== window.location.href && // No es la URL de la página
+            !avatarImage.src.includes('icono.png') && // No es la imagen por defecto
+            avatarImage.src.length > 100) { // Es una URL larga (foto real)
+            console.log('✅ ELEMENTO YA TIENE FOTO VÁLIDA, NO SOBRESCRIBIENDO:', avatarImage.src.substring(0, 50) + '...');
+            return false;
+        }
+        
+        // Solo crear avatar si NO hay foto válida
         const avatarDataURL = createSimpleAvatar();
         avatarImage.src = avatarDataURL;
         avatarImage.style.display = 'block';
         avatarImage.style.visibility = 'visible';
         avatarImage.style.opacity = '1';
         
-        console.log('✅ Avatar aplicado correctamente');
+        console.log('✅ Avatar placeholder aplicado (no había foto válida)');
         
         // Guardar en localStorage
         try {
@@ -63,7 +99,7 @@ function applyAvatarToPage() {
                 const userData = JSON.parse(currentUser);
                 userData.profile_picture_url = avatarDataURL;
                 localStorage.setItem('currentUser', JSON.stringify(userData));
-                console.log('✅ Avatar guardado en localStorage');
+                console.log('✅ Avatar placeholder guardado en localStorage');
             }
         } catch (error) {
             console.error('❌ Error guardando en localStorage:', error);
