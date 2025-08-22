@@ -128,16 +128,130 @@
             </div>
         </section>
     </main>
-    <button class="chat-fab" id="openChat">Chat</button>
+    <button class="chat-fab" id="openChat">
+        <i class="fas fa-comments"></i>
+        <span class="chat-fab-text">Chat</span>
+        <span class="chat-notification" id="chatNotification" style="display: none;">0</span>
+    </button>
+    
     <div class="chat-panel" id="chatPanel">
         <div class="chat-head">
-            <strong>Chat en vivo</strong>
-            <button class="chat-send" id="closeChat">Cerrar</button>
+            <div class="chat-head-info">
+                <div class="chat-avatar">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="chat-info">
+                    <strong class="chat-title">Chat en vivo</strong>
+                    <span class="chat-status" id="chatStatus">Conectado</span>
+                </div>
+            </div>
+            <div class="chat-head-actions">
+                <button class="chat-action-btn" id="chatSettings" title="Configuración">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button class="chat-action-btn" id="closeChat" title="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
-        <div class="chat-body" id="chatBody"></div>
-        <div class="chat-input-row">
-            <input id="chatInput" class="chat-input" type="text" placeholder="Escribe un mensaje...">
-            <button id="chatSend" class="chat-send">Enviar</button>
+        
+        <div class="chat-body" id="chatBody">
+            <div class="chat-welcome" id="chatWelcome">
+                <div class="welcome-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h3>¡Bienvenido al chat!</h3>
+                <p>Conecta con otros miembros de la comunidad</p>
+            </div>
+            <div class="chat-messages" id="chatMessages" style="display: none;"></div>
+            <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span class="typing-text">Alguien está escribiendo...</span>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <div class="chat-input-row">
+                <button class="chat-attach-btn" id="chatAttachBtn" title="Adjuntar archivo">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <button class="chat-emoji-btn" id="chatEmojiBtn" title="Emojis">
+                    <i class="fas fa-smile"></i>
+                </button>
+                <div class="chat-input-wrapper">
+                    <input id="chatInput" class="chat-input" type="text" placeholder="Escribe un mensaje..." maxlength="500">
+                    <div class="chat-input-counter" id="chatInputCounter">0/500</div>
+                </div>
+                <button id="chatSend" class="chat-send" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <div class="chat-attachments" id="chatAttachments"></div>
+        </div>
+    </div>
+
+    <!-- Emoji Picker Modal -->
+    <div class="emoji-picker" id="emojiPicker">
+        <div class="emoji-picker-header">
+            <span>Emojis</span>
+            <button class="emoji-picker-close" id="closeEmojiPicker">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="emoji-categories">
+            <button class="emoji-category active" data-category="recent">🕒</button>
+            <button class="emoji-category" data-category="smileys">😊</button>
+            <button class="emoji-category" data-category="animals">🐱</button>
+            <button class="emoji-category" data-category="food">🍕</button>
+            <button class="emoji-category" data-category="activities">⚽</button>
+            <button class="emoji-category" data-category="travel">✈️</button>
+            <button class="emoji-category" data-category="objects">💡</button>
+            <button class="emoji-category" data-category="symbols">❤️</button>
+        </div>
+        <div class="emoji-grid" id="emojiGrid">
+            <!-- Emojis will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Chat Settings Modal -->
+    <div class="chat-settings-modal" id="chatSettingsModal">
+        <div class="chat-settings-card">
+            <div class="chat-settings-header">
+                <h3>Configuración del Chat</h3>
+                <button class="chat-settings-close" id="closeChatSettings">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="chat-settings-body">
+                <div class="setting-group">
+                    <label class="setting-label">
+                        <input type="checkbox" id="chatNotifications" checked>
+                        <span class="setting-text">Notificaciones de mensajes</span>
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">
+                        <input type="checkbox" id="chatSounds" checked>
+                        <span class="setting-text">Sonidos de chat</span>
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">
+                        <input type="checkbox" id="chatTypingIndicator" checked>
+                        <span class="setting-text">Indicador de escritura</span>
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">
+                        <input type="checkbox" id="chatAutoScroll" checked>
+                        <span class="setting-text">Auto-scroll a nuevos mensajes</span>
+                    </label>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -821,28 +935,451 @@
             });
             renderMembers();
 
-            // Chat
-            const chatPanel = document.getElementById('chatPanel');
-            const chatBody = document.getElementById('chatBody');
-            const chatInput = document.getElementById('chatInput');
-            document.getElementById('openChat').addEventListener('click', ()=> chatPanel.classList.add('show'));
-            document.getElementById('closeChat').addEventListener('click', ()=> chatPanel.classList.remove('show'));
-            document.getElementById('chatSend').addEventListener('click', sendChat);
-            chatInput.addEventListener('keypress', (e)=>{ if(e.key==='Enter'){ sendChat(); }});
-            function sendChat(){
-                const text = (chatInput.value||'').trim();
-                if(!text) return;
-                appendChat(text, true);
-                chatInput.value='';
-                setTimeout(()=> appendChat('¡Gracias por tu mensaje! 👋', false), 800);
+            // Enhanced Chat System
+            class ChatSystem {
+                constructor() {
+                    this.messages = [];
+                    this.isTyping = false;
+                    this.typingTimeout = null;
+                    this.settings = {
+                        notifications: true,
+                        sounds: true,
+                        typingIndicator: true,
+                        autoScroll: true
+                    };
+                    this.currentUser = this.getCurrentUser();
+                    this.init();
+                }
+
+                init() {
+                    this.loadSettings();
+                    this.setupEventListeners();
+                    this.loadMessages();
+                    this.setupEmojiPicker();
+                    this.startTypingSimulation();
+                }
+
+                getCurrentUser() {
+                    try {
+                        const userProfile = localStorage.getItem('userProfile');
+                        const avatarData = localStorage.getItem('avatarData');
+                        
+                        let avatar = null;
+                        if (avatarData) {
+                            const avatarObj = JSON.parse(avatarData);
+                            if (avatarObj && avatarObj.dataUrl) {
+                                avatar = avatarObj.dataUrl;
+                            }
+                        }
+
+                        return {
+                            id: Date.now(),
+                            name: userProfile ? JSON.parse(userProfile).display_name || 'Usuario' : 'Usuario',
+                            avatar: avatar,
+                            isOnline: true
+                        };
+                    } catch (e) {
+                        return {
+                            id: Date.now(),
+                            name: 'Usuario',
+                            avatar: null,
+                            isOnline: true
+                        };
+                    }
+                }
+
+                loadSettings() {
+                    const saved = localStorage.getItem('chatSettings');
+                    if (saved) {
+                        this.settings = { ...this.settings, ...JSON.parse(saved) };
+                    }
+                    this.applySettings();
+                }
+
+                applySettings() {
+                    document.getElementById('chatNotifications').checked = this.settings.notifications;
+                    document.getElementById('chatSounds').checked = this.settings.sounds;
+                    document.getElementById('chatTypingIndicator').checked = this.settings.typingIndicator;
+                    document.getElementById('chatAutoScroll').checked = this.settings.autoScroll;
+                }
+
+                setupEventListeners() {
+                    // Chat panel controls
+                    document.getElementById('openChat').addEventListener('click', () => this.openChat());
+                    document.getElementById('closeChat').addEventListener('click', () => this.closeChat());
+                    document.getElementById('chatSettings').addEventListener('click', () => this.openSettings());
+                    document.getElementById('closeChatSettings').addEventListener('click', () => this.closeSettings());
+
+                    // Message input
+                    const chatInput = document.getElementById('chatInput');
+                    const chatSend = document.getElementById('chatSend');
+                    
+                    chatInput.addEventListener('input', (e) => {
+                        this.updateInputCounter(e.target.value.length);
+                        this.toggleSendButton(e.target.value.trim().length > 0);
+                        this.handleTyping();
+                    });
+
+                    chatInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            this.sendMessage();
+                        }
+                    });
+
+                    chatSend.addEventListener('click', () => this.sendMessage());
+
+                    // Emoji picker
+                    document.getElementById('chatEmojiBtn').addEventListener('click', () => this.toggleEmojiPicker());
+                    document.getElementById('closeEmojiPicker').addEventListener('click', () => this.closeEmojiPicker());
+
+                    // Settings
+                    document.getElementById('chatNotifications').addEventListener('change', (e) => {
+                        this.settings.notifications = e.target.checked;
+                        this.saveSettings();
+                    });
+
+                    document.getElementById('chatSounds').addEventListener('change', (e) => {
+                        this.settings.sounds = e.target.checked;
+                        this.saveSettings();
+                    });
+
+                    document.getElementById('chatTypingIndicator').addEventListener('change', (e) => {
+                        this.settings.typingIndicator = e.target.checked;
+                        this.saveSettings();
+                    });
+
+                    document.getElementById('chatAutoScroll').addEventListener('change', (e) => {
+                        this.settings.autoScroll = e.target.checked;
+                        this.saveSettings();
+                    });
+
+                    // Close modals when clicking outside
+                    document.addEventListener('click', (e) => {
+                        if (!e.target.closest('#emojiPicker') && !e.target.closest('#chatEmojiBtn')) {
+                            this.closeEmojiPicker();
+                        }
+                        if (!e.target.closest('#chatSettingsModal') && !e.target.closest('#chatSettings')) {
+                            this.closeSettings();
+                        }
+                    });
+                }
+
+                openChat() {
+                    const chatPanel = document.getElementById('chatPanel');
+                    chatPanel.classList.add('show');
+                    document.getElementById('chatInput').focus();
+                    this.hideNotification();
+                }
+
+                closeChat() {
+                    document.getElementById('chatPanel').classList.remove('show');
+                }
+
+                openSettings() {
+                    document.getElementById('chatSettingsModal').classList.add('show');
+                }
+
+                closeSettings() {
+                    document.getElementById('chatSettingsModal').classList.remove('show');
+                }
+
+                updateInputCounter(length) {
+                    document.getElementById('chatInputCounter').textContent = `${length}/500`;
+                }
+
+                toggleSendButton(enabled) {
+                    const sendBtn = document.getElementById('chatSend');
+                    sendBtn.disabled = !enabled;
+                    sendBtn.classList.toggle('enabled', enabled);
+                }
+
+                handleTyping() {
+                    if (!this.settings.typingIndicator) return;
+                    
+                    if (this.typingTimeout) {
+                        clearTimeout(this.typingTimeout);
+                    }
+                    
+                    this.typingTimeout = setTimeout(() => {
+                        this.stopTyping();
+                    }, 3000);
+                }
+
+                startTyping() {
+                    if (!this.settings.typingIndicator) return;
+                    this.isTyping = true;
+                    document.getElementById('typingIndicator').style.display = 'flex';
+                }
+
+                stopTyping() {
+                    this.isTyping = false;
+                    document.getElementById('typingIndicator').style.display = 'none';
+                }
+
+                sendMessage() {
+                    const input = document.getElementById('chatInput');
+                    const text = input.value.trim();
+                    
+                    if (!text) return;
+
+                    const message = {
+                        id: Date.now(),
+                        text: text,
+                        user: this.currentUser,
+                        timestamp: new Date(),
+                        type: 'text'
+                    };
+
+                    this.addMessage(message);
+                    input.value = '';
+                    this.updateInputCounter(0);
+                    this.toggleSendButton(false);
+                    this.stopTyping();
+
+                    // Simulate response
+                    setTimeout(() => {
+                        this.simulateResponse();
+                    }, 1000 + Math.random() * 2000);
+                }
+
+                addMessage(message) {
+                    this.messages.push(message);
+                    this.renderMessage(message);
+                    this.saveMessages();
+                    
+                    if (this.settings.autoScroll) {
+                        this.scrollToBottom();
+                    }
+
+                    if (this.settings.sounds) {
+                        this.playMessageSound();
+                    }
+                }
+
+                renderMessage(message) {
+                    const messagesContainer = document.getElementById('chatMessages');
+                    const welcome = document.getElementById('chatWelcome');
+                    
+                    if (welcome.style.display !== 'none') {
+                        welcome.style.display = 'none';
+                        messagesContainer.style.display = 'block';
+                    }
+
+                    const messageEl = document.createElement('div');
+                    messageEl.className = `chat-msg ${message.user.id === this.currentUser.id ? 'own' : ''}`;
+                    messageEl.dataset.messageId = message.id;
+
+                    const time = this.formatTime(message.timestamp);
+                    const avatar = message.user.avatar ? 
+                        `<img src="${message.user.avatar}" alt="${message.user.name}" class="chat-user-avatar">` :
+                        `<i class="fas fa-user chat-user-avatar-icon"></i>`;
+
+                    messageEl.innerHTML = `
+                        <div class="chat-msg-header">
+                            <div class="chat-msg-avatar">${avatar}</div>
+                            <div class="chat-msg-info">
+                                <span class="chat-msg-user">${message.user.name}</span>
+                                <span class="chat-msg-time">${time}</span>
+                            </div>
+                        </div>
+                        <div class="chat-msg-content">${this.formatMessage(message.text)}</div>
+                    `;
+
+                    messagesContainer.appendChild(messageEl);
+                }
+
+                formatMessage(text) {
+                    // Convert URLs to links
+                    text = text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="chat-link">$1</a>');
+                    
+                    // Convert emojis (basic support)
+                    text = text.replace(/:\)/g, '😊')
+                               .replace(/:\(/g, '😢')
+                               .replace(/;\)/g, '😉')
+                               .replace(/:D/g, '😄')
+                               .replace(/:P/g, '😛');
+                    
+                    return text;
+                }
+
+                formatTime(date) {
+                    const now = new Date();
+                    const diff = now - date;
+                    const minutes = Math.floor(diff / 60000);
+                    
+                    if (minutes < 1) return 'Ahora';
+                    if (minutes < 60) return `Hace ${minutes} min`;
+                    
+                    return date.toLocaleTimeString('es-ES', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                }
+
+                scrollToBottom() {
+                    const chatBody = document.getElementById('chatBody');
+                    setTimeout(() => {
+                        chatBody.scrollTop = chatBody.scrollHeight;
+                    }, 100);
+                }
+
+                playMessageSound() {
+                    // Simple beep sound using Web Audio API
+                    try {
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                        
+                        oscillator.start(audioContext.currentTime);
+                        oscillator.stop(audioContext.currentTime + 0.1);
+                    } catch (e) {
+                        console.log('Audio not supported');
+                    }
+                }
+
+                showNotification() {
+                    if (!this.settings.notifications) return;
+                    
+                    const notification = document.getElementById('chatNotification');
+                    const currentCount = parseInt(notification.textContent) || 0;
+                    notification.textContent = currentCount + 1;
+                    notification.style.display = 'inline-block';
+                }
+
+                hideNotification() {
+                    document.getElementById('chatNotification').style.display = 'none';
+                }
+
+                simulateResponse() {
+                    const responses = [
+                        '¡Excelente punto! 👍',
+                        'Gracias por compartir eso',
+                        'Interesante perspectiva',
+                        '¿Alguien más tiene experiencia con esto?',
+                        '¡Muy útil!',
+                        'Completamente de acuerdo',
+                        '¿Podrías explicar más sobre eso?',
+                        '¡Genial idea!'
+                    ];
+
+                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                    
+                    const message = {
+                        id: Date.now(),
+                        text: randomResponse,
+                        user: {
+                            id: 'other',
+                            name: ['Ana', 'Carlos', 'María', 'Luis', 'Sofia'][Math.floor(Math.random() * 5)],
+                            avatar: null,
+                            isOnline: true
+                        },
+                        timestamp: new Date(),
+                        type: 'text'
+                    };
+
+                    this.addMessage(message);
+                }
+
+                startTypingSimulation() {
+                    setInterval(() => {
+                        if (Math.random() < 0.1 && this.messages.length > 0) {
+                            this.startTyping();
+                            setTimeout(() => {
+                                this.stopTyping();
+                                this.simulateResponse();
+                            }, 2000 + Math.random() * 3000);
+                        }
+                    }, 10000);
+                }
+
+                setupEmojiPicker() {
+                    const emojis = {
+                        recent: ['😊', '👍', '❤️', '😂', '🎉'],
+                        smileys: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚'],
+                        animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵'],
+                        food: ['🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝'],
+                        activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑'],
+                        travel: ['✈️', '🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🛴'],
+                        objects: ['💡', '🔦', '🕯️', '🪔', '🧯', '🛢️', '💸', '💵', '💴', '💶', '💷', '🪙', '💰', '💳', '💎'],
+                        symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗']
+                    };
+
+                    const emojiGrid = document.getElementById('emojiGrid');
+                    let currentCategory = 'recent';
+
+                    // Populate emoji grid
+                    function showEmojis(category) {
+                        emojiGrid.innerHTML = emojis[category].map(emoji => 
+                            `<button class="emoji-item" data-emoji="${emoji}">${emoji}</button>`
+                        ).join('');
+                    }
+
+                    // Category switching
+                    document.querySelectorAll('.emoji-category').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            document.querySelectorAll('.emoji-category').forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+                            currentCategory = btn.dataset.category;
+                            showEmojis(currentCategory);
+                        });
+                    });
+
+                    // Emoji selection
+                    emojiGrid.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('emoji-item')) {
+                            const emoji = e.target.dataset.emoji;
+                            const input = document.getElementById('chatInput');
+                            input.value += emoji;
+                            input.focus();
+                            this.closeEmojiPicker();
+                            this.updateInputCounter(input.value.length);
+                            this.toggleSendButton(input.value.trim().length > 0);
+                        }
+                    });
+
+                    showEmojis('recent');
+                }
+
+                toggleEmojiPicker() {
+                    const picker = document.getElementById('emojiPicker');
+                    picker.classList.toggle('show');
+                }
+
+                closeEmojiPicker() {
+                    document.getElementById('emojiPicker').classList.remove('show');
+                }
+
+                loadMessages() {
+                    const saved = localStorage.getItem('communityChatMessages');
+                    if (saved) {
+                        try {
+                            this.messages = JSON.parse(saved);
+                            this.messages.forEach(msg => this.renderMessage(msg));
+                        } catch (e) {
+                            console.log('Error loading messages:', e);
+                        }
+                    }
+                }
+
+                saveMessages() {
+                    localStorage.setItem('communityChatMessages', JSON.stringify(this.messages));
+                }
+
+                saveSettings() {
+                    localStorage.setItem('chatSettings', JSON.stringify(this.settings));
+                }
             }
-            function appendChat(text, own){
-                const el = document.createElement('div');
-                el.className = 'chat-msg' + (own?' own':'');
-                el.textContent = text;
-                chatBody.appendChild(el);
-                chatBody.scrollTop = chatBody.scrollHeight;
-            }
+
+            // Initialize chat system
+            const chatSystem = new ChatSystem();
 
             // Manejo de modales de entrada personalizados
             function setupInputModals() {
