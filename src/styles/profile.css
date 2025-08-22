@@ -1438,3 +1438,379 @@ input.is-disabled {
 [data-theme="light"] #bgParticles {
     mix-blend-mode: multiply !important;
 }
+
+/* ===== ESTILOS DEL BOTÓN DE TEMA ===== */
+.theme-toggle-btn {
+    position: fixed;
+    top: 15px;
+    right: 25px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(68, 229, 255, 0.3);
+    color: var(--course-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(68, 229, 255, 0.2);
+    border-color: rgba(68, 229, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(68, 229, 255, 0.3);
+}
+
+.theme-toggle-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(68, 229, 255, 0.2);
+}
+
+.theme-toggle-btn svg {
+    width: 22px;
+    height: 22px;
+    transition: all 0.3s ease;
+}
+
+/* Mostrar/ocultar iconos según el tema */
+.theme-icon-sun {
+    display: none;
+}
+
+.theme-icon-moon {
+    display: block;
+}
+
+[data-theme="light"] .theme-icon-sun {
+    display: block;
+}
+
+[data-theme="light"] .theme-icon-moon {
+    display: none;
+}
+
+/* Estilos del botón de tema en modo claro */
+[data-theme="light"] .theme-toggle-btn {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    color: #0066CC !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .theme-toggle-btn:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+    border-color: rgba(0, 102, 204, 0.5) !important;
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.2) !important;
+}
+
+/* Ajuste de posición para pantallas pequeñas */
+@media (max-width: 768px) {
+    .theme-toggle-btn {
+        top: 10px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+    }
+    
+    .theme-toggle-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* Ajuste para pantallas muy pequeñas */
+@media (max-width: 480px) {
+    .theme-toggle-btn {
+        top: 8px;
+        right: 12px;
+        width: 42px;
+        height: 42px;
+    }
+    
+    .theme-toggle-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+/* ===== CORRECCIÓN DE COMBOBOXES EN MODO CLARO ===== */
+[data-theme="light"] .form-select,
+[data-theme="light"] select,
+[data-theme="light"] .form-select option,
+[data-theme="light"] select option {
+    background: #FFFFFF !important;
+    color: #2D3748 !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] .form-select option,
+[data-theme="light"] select option {
+    background: #FFFFFF !important;
+    color: #2D3748 !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] .form-select option:hover,
+[data-theme="light"] select option:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .form-select option:checked,
+[data-theme="light"] select option:checked {
+    background: #0066CC !important;
+    color: #FFFFFF !important;
+}
+
+/* Forzar estilos específicos para todos los selects en modo claro */
+[data-theme="light"] select#area,
+[data-theme="light"] select#nivel,
+[data-theme="light"] select#relacion,
+[data-theme="light"] select#tamano {
+    background: #FFFFFF !important;
+    color: #2D3748 !important;
+    font-weight: 500 !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+}
+
+[data-theme="light"] select#area option,
+[data-theme="light"] select#nivel option,
+[data-theme="light"] select#relacion option,
+[data-theme="light"] select#tamano option {
+    background: #FFFFFF !important;
+    color: #2D3748 !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] select#area option:hover,
+[data-theme="light"] select#nivel option:hover,
+[data-theme="light"] select#relacion option:hover,
+[data-theme="light"] select#tamano option:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+}
+
+[data-theme="light"] select#area option:checked,
+[data-theme="light"] select#nivel option:checked,
+[data-theme="light"] select#relacion option:checked,
+[data-theme="light"] select#tamano option:checked {
+    background: #0066CC !important;
+    color: #FFFFFF !important;
+}
+
+/* Asegurar que el texto seleccionado sea visible */
+[data-theme="light"] select:not([value=""]) {
+    color: #1A202C !important;
+    font-weight: 600 !important;
+}
+
+/* Estilos para el placeholder de los selects */
+[data-theme="light"] select option[value=""] {
+    color: #718096 !important;
+    font-weight: 400 !important;
+}
+
+/* ===== MEJORA DEL BOTÓN "ANALIZAR PERFIL" ===== */
+.btn-primary {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(68,229,255,0.35);
+    background: linear-gradient(135deg, var(--course-primary), var(--course-secondary));
+    color: #001018;
+    box-shadow: 0 10px 26px rgba(68,229,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.15);
+    isolation: isolate;
+    font-family: 'Montserrat', var(--font-secondary), system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 14px 22px;
+    border-radius: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    user-select: none;
+    transition: transform .15s ease, box-shadow .2s ease, filter .2s ease, background .2s ease, border-color .2s ease;
+}
+
+/* brillo diagonal que pasa sobre el botón */
+.btn-primary::after {
+    content: "";
+    position: absolute;
+    top: 0; left: -30%;
+    width: 30%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+    transform: skewX(-20deg) translateX(0);
+    transition: transform .6s ease;
+    pointer-events: none;
+}
+
+.btn-primary:hover { 
+    filter: brightness(1.05); 
+    transform: translateY(-2px); 
+    box-shadow: 0 14px 32px rgba(68,229,255,0.35); 
+}
+
+.btn-primary:hover::after { 
+    transform: skewX(-20deg) translateX(260%); 
+}
+
+.btn-primary:active { 
+    transform: translateY(0); 
+    box-shadow: 0 8px 18px rgba(68,229,255,0.22); 
+}
+
+.btn-primary:focus-visible { 
+    outline: none; 
+    box-shadow: 0 0 0 4px rgba(68,229,255,0.25); 
+}
+
+/* Botón en modo claro */
+[data-theme="light"] .btn-primary {
+    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(0, 102, 204, 0.35) !important;
+    box-shadow: 0 10px 26px rgba(0, 102, 204, 0.28), inset 0 0 0 1px rgba(255,255,255,0.15) !important;
+}
+
+[data-theme="light"] .btn-primary:hover {
+    filter: brightness(1.05) !important;
+    box-shadow: 0 14px 32px rgba(0, 102, 204, 0.35) !important;
+}
+
+[data-theme="light"] .btn-primary:active {
+    box-shadow: 0 8px 18px rgba(0, 102, 204, 0.22) !important;
+}
+
+[data-theme="light"] .btn-primary:focus-visible {
+    box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.25) !important;
+}
+
+/* ===== ESTILOS ESPECÍFICOS PARA EL CONTENIDO DE PERFIL-CUESTIONARIO EN MODO CLARO ===== */
+[data-theme="light"] .step-content {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 102, 204, 0.15) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .step-header h1 {
+    color: #2D3748 !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .step-header p {
+    color: #4A5568 !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] .form-label span {
+    color: #2D3748 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="light"] .form-input,
+[data-theme="light"] .form-select {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    color: #2D3748 !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] .form-input:focus,
+[data-theme="light"] .form-select:focus {
+    border-color: #0066CC !important;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1) !important;
+}
+
+[data-theme="light"] .form-input::placeholder {
+    color: #718096 !important;
+}
+
+[data-theme="light"] .summary-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 102, 204, 0.15) !important;
+}
+
+[data-theme="light"] .summary-header h3 {
+    color: #2D3748 !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .summary-header p {
+    color: #4A5568 !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] .detail-label {
+    color: #2D3748 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="light"] .detail-row {
+    color: #4A5568 !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] .profile-option {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    color: #2D3748 !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] .profile-option:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+    border-color: rgba(0, 102, 204, 0.4) !important;
+}
+
+[data-theme="light"] .profile-option.selected,
+[data-theme="light"] .profile-option[aria-pressed="true"] {
+    background: rgba(0, 102, 204, 0.2) !important;
+    border-color: rgba(0, 102, 204, 0.8) !important;
+    color: #0066CC !important;
+    font-weight: 600 !important;
+}
+
+/* Asegurar que todos los elementos del cuestionario sean visibles en modo claro */
+[data-theme="light"] .profile-main {
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .profile-main * {
+    color: inherit;
+}
+
+[data-theme="light"] .profile-main h1,
+[data-theme="light"] .profile-main h2,
+[data-theme="light"] .profile-main h3,
+[data-theme="light"] .profile-main h4,
+[data-theme="light"] .profile-main h5,
+[data-theme="light"] .profile-main h6 {
+    color: #2D3748 !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .profile-main p,
+[data-theme="light"] .profile-main span,
+[data-theme="light"] .profile-main div {
+    color: #4A5568 !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="light"] .profile-main label {
+    color: #2D3748 !important;
+    font-weight: 600 !important;
+}
+
+/* Forzar visibilidad de elementos específicos del cuestionario */
+[data-theme="light"] .profile-main .form-group,
+[data-theme="light"] .profile-main .step-content,
+[data-theme="light"] .profile-main .summary-card,
+[data-theme="light"] .profile-main .override-section {
+    color: #2D3748 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}

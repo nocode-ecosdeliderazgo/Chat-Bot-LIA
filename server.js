@@ -1733,7 +1733,7 @@ app.get('/api/radar/user/:userId', async (req, res) => {
             console.warn('⚠️ Vista v_radar_latest_by_user no existe, usando datos de prueba');
             
             // Para testing, devolver datos de prueba si el userId es específico
-            if (userId === 'test-user' || userId === 'dev-user-id' || userId === 'test-user-uuid') {
+            if (userId === 'test-user' || userId === 'dev-user-id' || userId === 'test-user-uuid' || userId === '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0') {
                 return res.json({
                     session_id: 'test-session-123',
                     user_id: userId,
@@ -2211,135 +2211,7 @@ app.get('/api/courses/:courseId/syllabus', authenticateRequest, async (req, res)
     }
 });
 
-// ====== ENDPOINTS PARA RADAR CHARTS ======
 
-// Obtener datos de radar del usuario (última sesión completada)
-app.get('/api/radar/user/:userId', async (req, res) => {
-    try {
-        if (!pool) {
-            return res.status(500).json({ error: 'Base de datos no configurada' });
-        }
-        
-        const { userId } = req.params;
-        
-        if (!userId) {
-            return res.status(400).json({ error: 'userId es requerido' });
-        }
-        
-        // Primero verificar si las vistas existen
-        const viewCheckQuery = `
-            SELECT EXISTS (
-                SELECT FROM information_schema.views 
-                WHERE table_schema = 'public' 
-                AND table_name = 'v_radar_latest_by_user'
-            ) as view_exists
-        `;
-        
-        const viewCheck = await pool.query(viewCheckQuery);
-        
-        if (!viewCheck.rows[0].view_exists) {
-            console.warn('⚠️ Vista v_radar_latest_by_user no existe, usando datos de prueba');
-            
-            // Para testing, devolver datos de prueba si el userId es específico
-            if (userId === 'test-user' || userId === 'dev-user-id' || userId === 'test-user-uuid') {
-                return res.json({
-                    session_id: 'test-session-123',
-                    user_id: userId,
-                    conocimiento: 75,
-                    aplicacion: 80,
-                    productividad: 65,
-                    estrategia: 70,
-                    inversion: 85,
-                    hasData: true,
-                    dataSource: 'test'
-                });
-            }
-            
-            // Usuario sin datos
-            return res.json({
-                session_id: null,
-                user_id: userId,
-                conocimiento: 0,
-                aplicacion: 0,
-                productividad: 0,
-                estrategia: 0,
-                inversion: 0,
-                hasData: false,
-                dataSource: 'no_view'
-            });
-        }
-        
-        // Consultar la vista v_radar_latest_by_user
-        const query = `
-            SELECT 
-                session_id,
-                user_id,
-                COALESCE(conocimiento, 0) as conocimiento,
-                COALESCE(aplicacion, 0) as aplicacion,
-                COALESCE(productividad, 0) as productividad,
-                COALESCE(estrategia, 0) as estrategia,
-                COALESCE(inversion, 0) as inversion
-            FROM public.v_radar_latest_by_user 
-            WHERE user_id = $1
-            LIMIT 1
-        `;
-        
-        const result = await pool.query(query, [userId]);
-        
-        if (result.rows.length === 0) {
-            // No hay datos para este usuario
-            return res.json({
-                session_id: null,
-                user_id: userId,
-                conocimiento: 0,
-                aplicacion: 0,
-                productividad: 0,
-                estrategia: 0,
-                inversion: 0,
-                hasData: false,
-                dataSource: 'database'
-            });
-        }
-        
-        const radarData = result.rows[0];
-        
-        res.json({
-            session_id: radarData.session_id,
-            user_id: radarData.user_id,
-            conocimiento: radarData.conocimiento,
-            aplicacion: radarData.aplicacion,
-            productividad: radarData.productividad,
-            estrategia: radarData.estrategia,
-            inversion: radarData.inversion,
-            hasData: true,
-            dataSource: 'database'
-        });
-        
-    } catch (error) {
-        console.error('Error obteniendo datos de radar por usuario:', error);
-        
-        // En caso de error, proporcionar datos de prueba para desarrollo
-        if (process.env.NODE_ENV !== 'production') {
-            console.log('🔧 Modo desarrollo: proporcionando datos de prueba');
-            return res.json({
-                session_id: 'fallback-session',
-                user_id: userId,
-                conocimiento: 60,
-                aplicacion: 70,
-                productividad: 55,
-                estrategia: 65,
-                inversion: 75,
-                hasData: true,
-                dataSource: 'fallback'
-            });
-        }
-        
-        res.status(500).json({ 
-            error: 'Error obteniendo datos de radar',
-            details: process.env.NODE_ENV !== 'production' ? error.message : undefined
-        });
-    }
-});
 
 // Obtener datos de radar por sesión específica (opcional)
 app.get('/api/radar/session/:sessionId', async (req, res) => {
@@ -2399,6 +2271,82 @@ app.get('/api/radar/session/:sessionId', async (req, res) => {
     }
 });
 
+// Endpoint para verificar datos de un usuario específico (debugging)
+app.get('/api/radar/debug/:userId', authenticateRequest, async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        const { userId } = req.params;
+        
+        if (!userId) {
+            return res.status(400).json({ error: 'userId es requerido' });
+        }
+        
+        console.log('🔍 Debug - Verificando datos para userId:', userId);
+        
+        // Verificar si el usuario existe
+        const userCheck = await pool.query('SELECT id, username, email FROM public.users WHERE id = $1', [userId]);
+        
+        // Verificar sesiones de cuestionario
+        const sessionsCheck = await pool.query(`
+            SELECT id, user_id, perfil, area, started_at, completed_at 
+            FROM public.user_questionnaire_sessions 
+            WHERE user_id = $1 
+            ORDER BY completed_at DESC
+        `, [userId]);
+        
+        // Verificar respuestas de cuestionario
+        const responsesCheck = await pool.query(`
+            SELECT COUNT(*) as total_responses
+            FROM public.user_question_responses 
+            WHERE user_id = $1
+        `, [userId]);
+        
+        // Verificar si las vistas existen
+        const viewCheck = await pool.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.views 
+                WHERE table_schema = 'public' 
+                AND table_name = 'v_radar_latest_by_user'
+            ) as view_exists
+        `);
+        
+        // Si las vistas existen, verificar datos en la vista
+        let radarData = null;
+        if (viewCheck.rows[0].view_exists) {
+            const radarCheck = await pool.query(`
+                SELECT * FROM public.v_radar_latest_by_user 
+                WHERE user_id = $1
+            `, [userId]);
+            
+            if (radarCheck.rows.length > 0) {
+                radarData = radarCheck.rows[0];
+            }
+        }
+        
+        res.json({
+            userId: userId,
+            userExists: userCheck.rows.length > 0,
+            userData: userCheck.rows[0] || null,
+            sessionsCount: sessionsCheck.rows.length,
+            sessions: sessionsCheck.rows,
+            responsesCount: responsesCheck.rows[0].total_responses,
+            viewExists: viewCheck.rows[0].view_exists,
+            radarData: radarData,
+            hasCompletedSessions: sessionsCheck.rows.some(s => s.completed_at !== null)
+        });
+        
+    } catch (error) {
+        console.error('Error en debug endpoint:', error);
+        res.status(500).json({ 
+            error: 'Error en debug endpoint',
+            details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+        });
+    }
+});
+
 // Endpoint para crear las vistas de radar (solo desarrollo)
 app.post('/api/radar/create-views', async (req, res) => {
     if (process.env.NODE_ENV === 'production') {
@@ -2441,62 +2389,74 @@ app.post('/api/radar/create-views', async (req, res) => {
     }
 });
 
-// Endpoint para verificar si existen datos de prueba y crearlos si es necesario
-app.post('/api/radar/create-test-data', async (req, res) => {
-    if (process.env.NODE_ENV === 'production') {
-        return res.status(403).json({ error: 'No disponible en producción' });
-    }
-    
-    try {
-        if (!pool) {
-            return res.status(500).json({ error: 'Base de datos no configurada' });
-        }
-        
-        // Crear usuario de prueba si no existe
-        const testUserId = 'test-user-uuid';
-        const sessionId = 'test-session-uuid';
-        
-        // Verificar si ya existe el usuario
-        const userCheck = await pool.query('SELECT id FROM public.users WHERE id = $1', [testUserId]);
-        
-        if (userCheck.rows.length === 0) {
-            // Crear usuario de prueba
-            await pool.query(`
-                INSERT INTO public.users (id, username, email, password_hash, first_name, last_name)
-                VALUES ($1, 'testuser', 'test@example.com', 'hash123', 'Usuario', 'Prueba')
-                ON CONFLICT (id) DO NOTHING
-            `, [testUserId]);
-        }
-        
-        // Crear sesión de cuestionario de prueba
-        await pool.query(`
-            INSERT INTO public.user_questionnaire_sessions (id, user_id, perfil, area, completed_at)
-            VALUES ($1, $2, 'Gerente de Operaciones', 'Tecnología', NOW())
-            ON CONFLICT (id) DO NOTHING
-        `, [sessionId, testUserId]);
-        
-        // Crear puntajes de radar de prueba
-        const testScores = [
-            { subdominio: 'Fundamentos de IA', puntaje: 75 },
-            { subdominio: 'Herramientas de IA', puntaje: 80 },
-            { subdominio: 'Implementación Práctica', puntaje: 65 },
-            { subdominio: 'Eficiencia Operacional', puntaje: 70 },
-            { subdominio: 'Estrategia Organizacional', puntaje: 85 }
-        ];
-        
-        for (const score of testScores) {
-            await pool.query(`
-                INSERT INTO public.radar_scores (session_id, subdominio, puntaje)
-                VALUES ($1, $2, $3)
-                ON CONFLICT DO NOTHING
-            `, [sessionId, score.subdominio, score.puntaje]);
-        }
-        
-        console.log('✅ Datos de prueba creados exitosamente');
-        
-        res.json({
-            success: true,
-            message: 'Datos de prueba creados exitosamente',
+        // Endpoint para verificar si existen datos de prueba y crearlos si es necesario
+        app.post('/api/radar/create-test-data', async (req, res) => {
+            if (process.env.NODE_ENV === 'production') {
+                return res.status(403).json({ error: 'No disponible en producción' });
+            }
+            
+            try {
+                if (!pool) {
+                    return res.status(500).json({ error: 'Base de datos no configurada' });
+                }
+                
+                // Crear usuario de prueba si no existe
+                const testUserId = 'test-user-uuid';
+                const sessionId = 'test-session-uuid';
+                
+                // Verificar si ya existe el usuario
+                const userCheck = await pool.query('SELECT id FROM public.users WHERE id = $1', [testUserId]);
+                
+                if (userCheck.rows.length === 0) {
+                    // Crear usuario de prueba
+                    await pool.query(`
+                        INSERT INTO public.users (id, username, email, password_hash, first_name, last_name)
+                        VALUES ($1, 'testuser', 'test@example.com', 'hash123', 'Usuario', 'Prueba')
+                        ON CONFLICT (id) DO NOTHING
+                    `, [testUserId]);
+                }
+                
+                // Crear sesión de cuestionario de prueba
+                await pool.query(`
+                    INSERT INTO public.user_questionnaire_sessions (id, user_id, perfil, area, completed_at)
+                    VALUES ($1, $2, 'Gerente de Operaciones', 'Tecnología', NOW())
+                    ON CONFLICT (id) DO NOTHING
+                `, [sessionId, testUserId]);
+                
+                // Crear respuestas de cuestionario de prueba
+                const testQuestions = await pool.query(`
+                    SELECT id, code, dimension 
+                    FROM public.questions_catalog 
+                    WHERE perfil = 'Gerente de Operaciones' 
+                    LIMIT 10
+                `);
+                
+                for (const question of testQuestions.rows) {
+                    let answerValue;
+                    if (question.dimension === 'Conocimiento') {
+                        answerValue = Math.floor(Math.random() * 7) + 1; // 1-7
+                    } else if (question.dimension === 'Aplicación') {
+                        answerValue = Math.floor(Math.random() * 7) + 1; // 1-7
+                    } else if (question.dimension === 'Productividad') {
+                        answerValue = Math.floor(Math.random() * 7) + 1; // 1-7
+                    } else if (question.dimension === 'Estrategia') {
+                        answerValue = Math.floor(Math.random() * 7) + 1; // 1-7
+                    } else if (question.dimension === 'Inversión') {
+                        answerValue = Math.floor(Math.random() * 7) + 1; // 1-7
+                    }
+                    
+                    await pool.query(`
+                        INSERT INTO public.user_question_responses (session_id, user_id, question_id, answer_likert)
+                        VALUES ($1, $2, $3, $4)
+                        ON CONFLICT DO NOTHING
+                    `, [sessionId, testUserId, question.id, answerValue]);
+                }
+                
+                console.log('✅ Datos de prueba creados exitosamente');
+                
+                res.json({
+                    success: true,
+                    message: 'Datos de prueba creados exitosamente',
             testUserId: testUserId,
             sessionId: sessionId
         });

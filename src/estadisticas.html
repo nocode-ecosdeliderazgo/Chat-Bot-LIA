@@ -541,10 +541,18 @@
                 currentUserData = data;
                 
                 if (data.hasData && (data.conocimiento > 0 || data.aplicacion > 0 || data.productividad > 0 || data.estrategia > 0 || data.inversion > 0)) {
+                    console.log('✅ Datos válidos encontrados, creando radar chart');
                     createRadarChart(data);
                     showSessionInfo(data.session_id);
                 } else {
                     console.log('📭 Usuario sin datos de cuestionario');
+                    console.log('📊 Valores de dimensiones:', {
+                        conocimiento: data.conocimiento,
+                        aplicacion: data.aplicacion,
+                        productividad: data.productividad,
+                        estrategia: data.estrategia,
+                        inversion: data.inversion
+                    });
                     showRadarPlaceholder();
                 }
                 

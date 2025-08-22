@@ -11,16 +11,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const userData = JSON.parse(currentUser);
         console.log('🖼️ URL de imagen de perfil:', userData.profile_picture_url);
         
-        // Si no hay imagen de perfil, crear una de prueba
-        if (!userData.profile_picture_url) {
-            console.log('⚠️ No hay imagen de perfil, creando una de prueba...');
-            
-            // Usar una imagen de prueba más confiable (Gravatar o imagen local)
-            userData.profile_picture_url = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y&s=100';
-            
-            // Guardar de vuelta en localStorage
-            localStorage.setItem('currentUser', JSON.stringify(userData));
-            console.log('✅ Imagen de prueba guardada en localStorage');
+        // NO SOBRESCRIBIR - solo crear si realmente no hay nada
+        if (!userData.profile_picture_url || 
+            userData.profile_picture_url === '' ||
+            userData.profile_picture_url.includes('00000000000000')) { // Solo si es placeholder vacío
+            console.log('⚠️ No hay imagen de perfil válida, PERO NO SOBRESCRIBIENDO automáticamente');
+            console.log('ℹ️ Para crear una foto de prueba, usar testAvatar() manualmente');
+            // NO crear automáticamente
+        } else {
+            console.log('✅ Ya hay imagen de perfil válida, respetando:', userData.profile_picture_url.substring(0, 50) + '...');
         }
     }
     

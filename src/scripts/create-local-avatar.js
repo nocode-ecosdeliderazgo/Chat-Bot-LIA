@@ -38,6 +38,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyAvatar(dataURL) {
         const avatarImage = document.getElementById('avatarImage');
         if (avatarImage) {
+            // VERIFICAR SI ESTÁ PROTEGIDO POR FOTO REAL
+            if (avatarImage.hasAttribute('data-real-photo') || avatarImage.hasAttribute('data-protected')) {
+                console.log('⚠️ AVATAR PROTEGIDO DETECTADO, NO APLICANDO INICIALES');
+                return false;
+            }
             avatarImage.src = dataURL;
             avatarImage.style.display = 'block';
             avatarImage.style.visibility = 'visible';
@@ -61,13 +66,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Verificar si ya hay una imagen de perfil
+    // Verificar si ya hay una imagen de perfil VÁLIDA
     const currentUser = localStorage.getItem('currentUser');
     if (currentUser) {
         const userData = JSON.parse(currentUser);
         
-        if (!userData.profile_picture_url) {
-            console.log('⚠️ No hay imagen de perfil, creando una local...');
+        // VERIFICACIÓN ESTRICTA: NO sobrescribir fotos reales
+        if (!userData.profile_picture_url || 
+            userData.profile_picture_url === '' ||
+            userData.profile_picture_url.includes('createAvatar') ||
+            (userData.profile_picture_url.includes('F') && userData.profile_picture_url.length < 100)) {
+            
+            console.log('⚠️ No hay imagen de perfil válida, creando una local...');
             
             // Obtener iniciales del nombre del usuario
             let initials = 'F'; // Por defecto
@@ -82,17 +92,10 @@ document.addEventListener('DOMContentLoaded', function() {
             applyAvatar(avatarDataURL);
             
         } else {
-            console.log('ℹ️ Ya existe una imagen de perfil:', userData.profile_picture_url);
+            console.log('✅ Ya existe una imagen de perfil válida, NO sobrescribiendo:', userData.profile_picture_url);
             
-            // Verificar si la imagen actual funciona
-            const avatarImage = document.getElementById('avatarImage');
-            if (avatarImage) {
-                avatarImage.onerror = function() {
-                    console.log('❌ Error cargando imagen existente, creando una nueva...');
-                    const newAvatarDataURL = createAvatarWithInitials('F');
-                    applyAvatar(newAvatarDataURL);
-                };
-            }
+            // NO verificar errores de carga para evitar sobrescribir fotos reales
+            console.log('ℹ️ Respetando foto de perfil existente');
         }
     } else {
         console.log('ℹ️ No hay datos de usuario, creando avatar por defecto...');

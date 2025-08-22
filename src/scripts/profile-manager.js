@@ -292,8 +292,38 @@ class ProfileManager {
         const curriculumName = document.getElementById('curriculumName');
 
         if (curriculumInput && curriculumBtn) {
-            curriculumBtn.addEventListener('click', () => {
-                curriculumInput.click();
+            curriculumBtn.addEventListener('click', (event) => {
+                // VERIFICAR QUE ES UNA ACTIVACIÓN DEL USUARIO
+                if (!event.isTrusted) {
+                    console.error('❌ Error: File chooser requiere activación del usuario');
+                    return;
+                }
+                
+                // Verificar que no haya otros diálogos abiertos
+                if (document.querySelector('.password-required-notification')) {
+                    console.log('⚠️ Diálogo de notificación abierto, esperando...');
+                    return;
+                }
+                
+                try {
+                    console.log('📝 Abriendo selector de archivos para CV...');
+                    
+                    // Usar setTimeout para asegurar que se ejecute en el contexto correcto
+                    setTimeout(() => {
+                        try {
+                            curriculumInput.click();
+                        } catch (error) {
+                            console.error('❌ Error en setTimeout click:', error);
+                        }
+                    }, 0);
+                    
+                } catch (error) {
+                    console.error('❌ Error abriendo file chooser:', error);
+                    // No mostrar alert inmediatamente, puede interferir
+                    setTimeout(() => {
+                        alert('Error al abrir el selector de archivos. Por favor, intenta de nuevo.');
+                    }, 100);
+                }
             });
 
             curriculumInput.addEventListener('change', async (e) => {
@@ -553,12 +583,26 @@ class ProfileManager {
                 supabase = window.supabase;
             }
 
-            // Actualizar en Supabase
-            const { data, error } = await supabase
-                .from('users')
-                .update(updates)
-                .eq('id', this.currentUser.id)
-                .select();
+            // Actualizar en Supabase con identificación robusta
+            let query = supabase.from('users').update(updates);
+            
+            // CRUCIAL: Usar identificación robusta para evitar mezclar cuentas
+            if (this.currentUser.id && 
+                !String(this.currentUser.id).startsWith('dev-') && 
+                !String(this.currentUser.id).includes('test')) {
+                // Usar ID si es válido y real de BD
+                query = query.eq('id', this.currentUser.id);
+            } else if (this.currentUser.username) {
+                // Usar username como fallback
+                query = query.eq('username', this.currentUser.username);
+            } else if (this.currentUser.email) {
+                // Usar email como último recurso
+                query = query.eq('email', this.currentUser.email);
+            } else {
+                throw new Error('No se puede identificar al usuario actual');
+            }
+            
+            const { data, error } = await query.select();
 
             if (error) {
                 throw error;
@@ -697,7 +741,30 @@ class ProfileManager {
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    new ProfileManager();
+    window.profileManager = new ProfileManager();
+    
+    // Función global de debug disponible en consola
+    window.debugProfile = () => {
+        if (window.profileManager) {
+            console.log('=== DEBUG PROFILE STATE ===');
+            console.log('Current User:', window.profileManager.currentUser);
+            console.log('Profile Data:', window.profileManager.profileData);
+            console.log('LocalStorage currentUser:', localStorage.getItem('currentUser'));
+            
+            // Mostrar todas las claves de perfil en localStorage
+            const profileKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('profile_')) {
+                    profileKeys.push(key);
+                }
+            }
+            console.log('Profile keys in localStorage:', profileKeys);
+            console.log('=== END DEBUG ===');
+        } else {
+            console.log('ProfileManager no está inicializado');
+        }
+    };
 });
 
 // ===== FUNCIONES UTILITARIAS =====

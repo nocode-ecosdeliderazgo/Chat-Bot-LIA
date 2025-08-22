@@ -48,33 +48,48 @@ class ProfileAvatarManager {
             const userData = JSON.parse(currentUser);
             const profilePictureUrl = userData.profile_picture_url;
             
-            console.log('🔍 Datos del avatar en profile.html:', {
+            console.log('🔍 Datos del avatar en profile.html (PRIORITARIO):', {
                 hasProfilePicture: !!profilePictureUrl,
-                profilePictureUrl: profilePictureUrl,
-                currentSrc: avatarImage.src
+                profilePictureUrl: profilePictureUrl ? profilePictureUrl.substring(0, 50) + '...' : 'ninguna',
+                currentSrc: avatarImage.src ? avatarImage.src.substring(0, 50) + '...' : 'ninguna'
             });
             
-            if (profilePictureUrl) {
-                console.log('🔄 Actualizando avatar en profile.html con:', profilePictureUrl);
+            // VERIFICACIÓN ESTRICTA: Solo usar fotos reales, no placeholders
+            if (profilePictureUrl && 
+                profilePictureUrl !== '' &&
+                !profilePictureUrl.includes('createSimpleAvatar') &&
+                !profilePictureUrl.includes('createAvatar') &&
+                profilePictureUrl.length > 100) { // Fotos reales son URLs largas
+                
+                console.log('✅ FOTO REAL DETECTADA, aplicando con PRIORIDAD ALTA');
                 avatarImage.src = profilePictureUrl;
                 avatarImage.style.display = 'block';
                 avatarImage.style.visibility = 'visible';
                 
+                // MARCAR COMO PROTEGIDO para evitar sobrescritura
+                avatarImage.setAttribute('data-real-photo', 'true');
+                avatarImage.setAttribute('data-protected', 'true');
+                
                 // Verificar que la imagen se cargue correctamente
                 avatarImage.onload = () => {
-                    console.log('✅ Avatar cargado correctamente en profile.html');
+                    console.log('✅ FOTO REAL cargada correctamente en profile.html');
+                    // Reconfirmar protección
+                    avatarImage.setAttribute('data-real-photo', 'true');
                 };
                 
                 avatarImage.onerror = () => {
-                    console.error('❌ Error cargando avatar en profile.html:', profilePictureUrl);
-                    // Fallback a imagen por defecto
+                    console.error('❌ Error cargando foto real:', profilePictureUrl.substring(0, 50) + '...');
+                    // Solo usar fallback si realmente no se puede cargar
                     avatarImage.src = 'assets/images/icono.png';
+                    avatarImage.removeAttribute('data-real-photo');
                 };
             } else {
-                console.log('ℹ️ Usando imagen por defecto en profile.html');
+                console.log('ℹ️ No hay foto real válida, usando imagen por defecto');
                 avatarImage.src = 'assets/images/icono.png';
                 avatarImage.style.display = 'block';
                 avatarImage.style.visibility = 'visible';
+                avatarImage.removeAttribute('data-real-photo');
+                avatarImage.removeAttribute('data-protected');
             }
         } catch (error) {
             console.error('❌ Error en updateProfileAvatarImmediately:', error);

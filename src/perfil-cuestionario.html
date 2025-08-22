@@ -27,6 +27,9 @@
     <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
     <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY
 ">
+
+    <!-- Global Theme Setup -->
+    <script src="scripts/global-theme-setup.js"></script>
 </head>
 <body class="bg-glow-global">
     <!-- Fondo con partículas -->
@@ -35,6 +38,23 @@
     <!-- Header limpio sin botón de perfil -->
     <header class="profile-header">
         <nav class="hero-nav">
+            <!-- Botón de cambio de tema -->
+            <button class="theme-toggle-btn" title="Cambiar tema">
+                <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
         </nav>
     </header>
 
@@ -244,5 +264,46 @@
     <script src="scripts/supabase-client.js"></script>
     <script src="scripts/particles.js"></script>
     <script src="scripts/perfil-cuestionario.js"></script>
+
+    <!-- Script de funcionalidad del botón de tema -->
+    <script>
+        function toggleTheme() {
+            console.log('🔄 Cambiando tema...');
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            console.log('✅ Tema cambiado a:', newTheme);
+        }
+        window.toggleTheme = toggleTheme; // Make it globally available
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            console.log('🎨 Tema inicial aplicado:', savedTheme);
+            const themeBtn = document.querySelector('.theme-toggle-btn');
+            if (themeBtn) {
+                themeBtn.removeAttribute('onclick'); // Remove inline onclick
+                themeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🖱️ Botón de tema clickeado');
+                    toggleTheme();
+                });
+                console.log('✅ Evento de click agregado al botón de tema');
+            } else {
+                console.error('❌ No se encontró el botón de tema');
+            }
+        });
+        console.log('🔧 Script de tema cargado');
+        setTimeout(() => {
+            const btn = document.querySelector('.theme-toggle-btn');
+            if (btn) {
+                console.log('✅ Botón encontrado:', btn);
+                console.log('✅ Función toggleTheme disponible:', typeof toggleTheme);
+            } else {
+                console.error('❌ Botón no encontrado');
+            }
+        }, 1000);
+    </script>
 </body>
 </html>

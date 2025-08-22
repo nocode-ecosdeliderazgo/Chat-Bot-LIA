@@ -70,36 +70,58 @@ exports.handler = async (event) => {
     // Hash de la contraseña
     const hash = await bcrypt.hash(String(password), 10);
 
-    // Usar el mismo esquema que server.js con cargo_rol por defecto como 'Usuario'
+    // NUEVO FLUJO: type_rol se mantiene NULL para usuarios nuevos
+    // Solo se llenará cuando el usuario complete el perfil-cuestionario
     let query, params;
     
-    // Intentar siempre incluir cargo_rol, si falla caerá al catch y lo intentaremos sin él
+    // Construir query dinámicamente según columnas disponibles
+    const selectCols = ['id', 'username', 'email', 'display_name'];
+    const insertCols = ['username', 'email', 'password_hash', 'display_name'];
+    const insertValues = ['$1', '$2', '$3', '$4'];
+    
+    if (hasCargoRol) {
+      insertCols.push('cargo_rol');
+      insertValues.push("'usuario'"); // Solo cargo_rol tiene valor por defecto
+      selectCols.push('cargo_rol');
+    }
+    
+    if (hasTypeRol) {
+      insertCols.push('type_rol');
+      insertValues.push('NULL'); // type_rol debe estar NULL para usuarios nuevos
+      selectCols.push('type_rol');
+    }
+    
+    query = `INSERT INTO users (${insertCols.join(', ')}) 
+             VALUES (${insertValues.join(', ')}) 
+             RETURNING ${selectCols.join(', ')}`;
+    params = [username, email, hash, full_name];
+    
     try {
-      query = `INSERT INTO users (username, email, password_hash, first_name, last_name, display_name, cargo_rol) 
-               VALUES ($1,$2,$3, NULL, NULL, $4, 'usuario') 
-               RETURNING id, username, email, display_name, cargo_rol`;
-      params = [username, email, hash, full_name];
-      
       const result = await pool.query(query, params);
-      const userData = { ...result.rows[0], isNewUser: true };
+      const userData = { 
+        ...result.rows[0], 
+        isNewUser: true,
+        // Asegurar que type_rol esté explícitamente como null para usuarios nuevos
+        type_rol: null
+      };
       return json(201, { user: userData }, event);
+    } catch (insertError) {
+      console.log('Error en insert principal, intentando fallback:', insertError.message);
       
-    } catch (cargoError) {
-      console.log('Error con cargo_rol, intentando sin él:', cargoError.message);
-      
-      // Si falla, intentar sin cargo_rol
-      query = `INSERT INTO users (username, email, password_hash, first_name, last_name, display_name) 
-               VALUES ($1,$2,$3, NULL, NULL, $4) 
+      // Fallback: insertar solo campos básicos
+      query = `INSERT INTO users (username, email, password_hash, display_name) 
+               VALUES ($1, $2, $3, $4) 
                RETURNING id, username, email, display_name`;
       params = [username, email, hash, full_name];
     }
 
     try {
       const result = await pool.query(query, params);
-      // Asignar cargo_rol manualmente si no se pudo en la BD
+      // Asignar valores por defecto para fallback
       const userData = { 
         ...result.rows[0], 
         cargo_rol: result.rows[0].cargo_rol || 'usuario',
+        type_rol: null, // CRUCIAL: type_rol debe ser null para usuarios nuevos
         isNewUser: true 
       };
       return json(201, { user: userData }, event);
