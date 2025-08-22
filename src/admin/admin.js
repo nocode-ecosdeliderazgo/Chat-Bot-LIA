@@ -13,6 +13,69 @@ class AdminPanel {
         this.setupNotifications();
     }
 
+    // ===== HELPER METHODS =====
+    
+    /**
+     * Makes an authenticated API request
+     * @param {string} url - API endpoint URL
+     * @param {object} options - Fetch options
+     * @returns {Promise<Response>} - Fetch response
+     */
+    async makeAuthenticatedRequest(url, options = {}) {
+        // Get authentication data from localStorage
+        const token = localStorage.getItem('userToken');
+        const userData = localStorage.getItem('userData');
+        
+        if (!token || !userData) {
+            console.error('No authentication data found');
+            throw new Error('Usuario no autenticado');
+        }
+
+        // Parse user data to get user ID if needed
+        let userId = null;
+        try {
+            const user = JSON.parse(userData);
+            userId = user.id || user.userId;
+        } catch (e) {
+            console.warn('Error parsing user data:', e);
+        }
+
+        // Prepare headers
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Requested-With': 'XMLHttpRequest',
+            ...options.headers
+        };
+
+        // Add user ID header if available
+        if (userId) {
+            headers['X-User-Id'] = userId;
+        }
+
+        // Make the request
+        return fetch(url, {
+            ...options,
+            headers
+        });
+    }
+
+    /**
+     * Shows loading state for a container
+     * @param {string} containerId - ID of container to show loading state
+     */
+    showLoading(containerId) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Cargando...</p>
+                </div>
+            `;
+        }
+    }
+
     // ===== EVENT LISTENERS =====
     setupEventListeners() {
         // Navegación
@@ -156,7 +219,7 @@ class AdminPanel {
 
     async updateDashboardStats() {
         try {
-            const response = await fetch('/api/admin/dashboard/stats');
+            const response = await this.makeAuthenticatedRequest('/api/admin/dashboard/stats');
             if (!response.ok) {
                 throw new Error('Error obteniendo estadísticas');
             }
@@ -355,15 +418,38 @@ class AdminPanel {
     }
 
     async loadUsersData() {
+        const usersTableBody = document.getElementById('usersTableBody');
+        if (!usersTableBody) return;
+
         try {
-            const response = await fetch('/api/admin/users');
+            // Show loading state
+            this.showLoading('usersTableBody');
+            
+            console.log('Cargando datos de usuarios...');
+            const response = await this.makeAuthenticatedRequest('/api/admin/users');
+            
             if (!response.ok) {
-                throw new Error('Error obteniendo usuarios');
+                const errorText = await response.text();
+                console.error('Error response:', response.status, errorText);
+                throw new Error(`Error ${response.status}: ${errorText || 'Error obteniendo usuarios'}`);
             }
             
             const users = await response.json();
-            const usersTableBody = document.getElementById('usersTableBody');
-            if (!usersTableBody) return;
+            console.log('Usuarios cargados:', users.length);
+
+            if (!Array.isArray(users) || users.length === 0) {
+                usersTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="no-data">
+                            <div class="no-data-message">
+                                <i class="fas fa-users"></i>
+                                <p>No hay usuarios registrados</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
 
             usersTableBody.innerHTML = users.map(user => {
                 const lastLogin = user.last_login_at ? 
@@ -374,23 +460,28 @@ class AdminPanel {
                     new Date(user.last_login_at) > new Date(Date.now() - 24 * 60 * 60 * 1000) ? 
                     'Activo' : 'Inactivo';
 
+                // Ensure safe values for HTML
+                const fullName = (user.full_name || 'Sin nombre').replace(/[<>]/g, '');
+                const email = (user.email || 'Sin email').replace(/[<>]/g, '');
+                const role = (user.cargo_rol || 'Usuario').replace(/[<>]/g, '');
+
                 return `
                     <tr>
                         <td>
                             <div class="user-info">
-                                <strong>${user.full_name || 'Sin nombre'}</strong>
+                                <strong>${fullName}</strong>
                             </div>
                         </td>
-                        <td>${user.email}</td>
-                        <td><span class="role-badge ${(user.cargo_rol || 'Usuario').toLowerCase()}">${user.cargo_rol || 'Usuario'}</span></td>
+                        <td>${email}</td>
+                        <td><span class="role-badge ${role.toLowerCase()}">${role}</span></td>
                         <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
                         <td>${lastLogin}</td>
                         <td>
                             <div class="action-buttons">
-                                <button class="btn-icon" onclick="adminPanel.editUser(${user.id})">
+                                <button class="btn-icon" onclick="adminPanel.editUser(${user.id})" title="Editar usuario">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn-icon" onclick="adminPanel.deleteUser(${user.id})">
+                                <button class="btn-icon" onclick="adminPanel.deleteUser(${user.id})" title="Eliminar usuario">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -398,9 +489,27 @@ class AdminPanel {
                     </tr>
                 `;
             }).join('');
+            
+            this.showToast(`${users.length} usuarios cargados correctamente`, 'success');
         } catch (error) {
             console.error('Error cargando usuarios:', error);
-            this.showToast('Error cargando usuarios', 'error');
+            
+            usersTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="error-state">
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error cargando usuarios</p>
+                            <small>${error.message}</small>
+                            <button class="btn-retry" onclick="adminPanel.loadUsersData()">
+                                <i class="fas fa-retry"></i> Reintentar
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            
+            this.showToast(`Error cargando usuarios: ${error.message}`, 'error');
         }
     }
 
@@ -920,12 +1029,8 @@ class AdminPanel {
             console.log('Cerrando sesión...');
             
             // Llamar al endpoint de logout
-            const response = await fetch('/api/admin/auth/logout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+            const response = await this.makeAuthenticatedRequest('/api/admin/auth/logout', {
+                method: 'POST'
             });
 
             if (response.ok) {
@@ -953,7 +1058,7 @@ class AdminPanel {
     // ===== CARGA DE INFORMACIÓN DEL ADMINISTRADOR =====
     async loadAdminInfo() {
         try {
-            const response = await fetch('/api/admin/auth/check');
+            const response = await this.makeAuthenticatedRequest('/api/admin/auth/check');
             if (!response.ok) {
                 throw new Error('Error obteniendo información del administrador');
             }
@@ -983,12 +1088,87 @@ class AdminPanel {
 let adminPanel;
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Apply additional styles
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = additionalStyles;
+    document.head.appendChild(styleSheet);
+    
     adminPanel = new AdminPanel();
     await adminPanel.init();
 });
 
 // ===== ESTILOS ADICIONALES PARA COMPONENTES =====
 const additionalStyles = `
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .loading-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid rgba(68, 229, 255, 0.2);
+        border-top: 3px solid #44E5FF;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .no-data, .error-state {
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .no-data-message, .error-message {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .no-data-message i, .error-message i {
+        font-size: 2rem;
+        color: rgba(68, 229, 255, 0.5);
+    }
+    
+    .error-message i {
+        color: rgba(255, 71, 87, 0.7);
+    }
+    
+    .error-message small {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.8rem;
+    }
+    
+    .btn-retry {
+        background: rgba(68, 229, 255, 0.1);
+        border: 1px solid rgba(68, 229, 255, 0.3);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        color: #44E5FF;
+        cursor: pointer;
+        transition: 0.2s ease;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-retry:hover {
+        background: rgba(68, 229, 255, 0.2);
+        transform: translateY(-1px);
+    }
+
     .course-card, .news-card {
         background: rgba(68, 229, 255, 0.05);
         border: 1px solid rgba(68, 229, 255, 0.1);
