@@ -1,169 +1,133 @@
-# PROMPT PARA SOLUCIONAR PROBLEMAS DE PERFIL
+# PROMPT PARA SOLUCIONAR PROBLEMA DE AUTENTICACIÓN - CV NO SE GUARDA
 
-## Contexto del Problema
+## PROBLEMA CRÍTICO IDENTIFICADO
 
-El usuario está experimentando varios problemas relacionados con el sistema de perfil en `profile.html`:
+### ERROR DE AUTENTICACIÓN EN SUPABASE
+**Síntoma:** El CV no se guarda porque el usuario NO está autenticado en Supabase.
 
-1. **Problema de carga/cambio de foto de perfil**: La foto de perfil no se carga correctamente o no se puede cambiar
-2. **Problema de carga de CV**: El CV no se carga correctamente
-3. **Problema de guardado de enlaces**: La información de los enlaces no se guarda
-4. **Problema de vinculación entre cuentas**: Aparece la foto de perfil de una cuenta anterior en la cuenta actual, sugiriendo un problema de vinculación de datos o recuperación incorrecta
-
-## Archivos Relevantes
-
-- `src/profile.html` - Página principal del perfil
-- `src/scripts/profile-manager.js` - Gestión del perfil
-- `src/scripts/profile-avatar-manager.js` - Gestión específica del avatar
-- `src/scripts/supabase-client.js` - Cliente de Supabase para base de datos
-- `src/styles/profile.css` - Estilos del perfil
-
-## Análisis Requerido
-
-### 1. Problema de Avatar/Foto de Perfil
-
-**Investigar:**
-- Cómo se está cargando la foto de perfil actualmente
-- Si hay problemas en la lógica de `profile-avatar-manager.js`
-- Si hay conflictos entre localStorage y la base de datos
-- Si hay problemas en la función de cambio de avatar
-- Si hay problemas de permisos o rutas de archivos
-
-**Verificar:**
-- Función `loadUserProfilePicture()` en `profile-avatar-manager.js`
-- Función `updateProfilePicture()` en `profile-avatar-manager.js`
-- Manejo de eventos de cambio de archivo
-- Almacenamiento en localStorage vs base de datos
-
-### 2. Problema de Carga de CV
-
-**Investigar:**
-- Cómo se está cargando el CV actualmente
-- Si hay problemas en la lógica de carga de archivos
-- Si hay problemas de permisos o rutas
-- Si hay problemas en la función de guardado del CV
-
-**Verificar:**
-- Función de carga de CV en `profile-manager.js`
-- Manejo de archivos PDF
-- Almacenamiento y recuperación del CV
-
-### 3. Problema de Guardado de Enlaces
-
-**Investigar:**
-- Cómo se están guardando los enlaces actualmente
-- Si hay problemas en la lógica de guardado
-- Si hay problemas en la validación de enlaces
-- Si hay problemas en la comunicación con la base de datos
-
-**Verificar:**
-- Función `saveProfile()` en `profile-manager.js`
-- Validación de enlaces
-- Guardado en base de datos vs localStorage
-
-### 4. Problema de Vinculación Entre Cuentas
-
-**Investigar:**
-- Cómo se está identificando al usuario actual
-- Si hay problemas en la lógica de autenticación
-- Si hay problemas en la recuperación de datos específicos del usuario
-- Si hay problemas de cache o localStorage compartido
-
-**Verificar:**
-- Función de autenticación en `supabase-client.js`
-- Identificación única del usuario
-- Limpieza de datos al cambiar de cuenta
-- Manejo de sesiones
-
-## Soluciones Propuestas
-
-### Para el Avatar:
-1. **Verificar identificación única del usuario** antes de cargar/guardar avatar
-2. **Implementar limpieza de cache** al cambiar de cuenta
-3. **Mejorar manejo de errores** en carga de archivos
-4. **Verificar permisos** de archivos y rutas
-
-### Para el CV:
-1. **Verificar función de carga** de archivos PDF
-2. **Implementar validación** de tipo de archivo
-3. **Mejorar manejo de errores** en carga
-4. **Verificar almacenamiento** en base de datos
-
-### Para los Enlaces:
-1. **Verificar función de guardado** en `saveProfile()`
-2. **Implementar validación** de URLs
-3. **Verificar comunicación** con base de datos
-4. **Mejorar manejo de errores**
-
-### Para la Vinculación Entre Cuentas:
-1. **Implementar limpieza de localStorage** al hacer logout
-2. **Verificar identificación única** del usuario en todas las operaciones
-3. **Implementar validación** de sesión antes de cargar datos
-4. **Mejorar manejo de autenticación**
-
-## Código a Revisar
-
-### En profile-manager.js:
-```javascript
-// Verificar estas funciones:
-- loadUserProfile()
-- saveProfile()
-- loadUserCV()
-- saveUserCV()
+**Evidencia en consola:**
+```
+❌ ⚠️ Usuario NO autenticado en Supabase - Storage puede fallar
+❌ ❌ Usuario no autenticado en Supabase - Storage fallará
+❌ 🔄 Intentando autenticar con token local...
+❌ 🔑 Usuario local encontrado, intentando autenticar en Supabase...
+❌ ⚠️ No se pudo autenticar - el usuario debe hacer login en Supabase
+❌ ⚠️ No se pudo autenticar en Supabase - usando fallback
+❌ Storage falló, guardando información local del CV
 ```
 
-### En profile-avatar-manager.js:
-```javascript
-// Verificar estas funciones:
-- loadUserProfilePicture()
-- updateProfilePicture()
-- handleFileSelect()
-```
+**PROBLEMA IDENTIFICADO:**
+- El usuario está logueado localmente pero NO en Supabase
+- El sistema intenta autenticar automáticamente pero falla
+- Como resultado, el CV se guarda localmente en lugar de en Supabase
+
+## POSIBLES CAUSAS
+
+### 1. **Problema de sincronización de autenticación:**
+- El usuario se loguea en la aplicación local pero no en Supabase
+- El token de Supabase puede estar expirado
+- La sesión de Supabase puede haberse perdido
+
+### 2. **Problema en el flujo de login:**
+- El login no está configurado para autenticar en Supabase
+- Falta la integración entre el login local y Supabase
+
+### 3. **Problema de configuración de Supabase:**
+- Las credenciales de Supabase pueden estar mal configuradas
+- La URL o clave de API pueden ser incorrectas
+
+### 4. **Problema de manejo de sesión:**
+- La sesión de Supabase no se mantiene entre páginas
+- El token no se está guardando o recuperando correctamente
+
+## ARCHIVOS A REVISAR
+
+### En file-upload-manager.js:
+**Líneas críticas:**
+- Línea 73: `verifySupabaseAuth()` - Verificar autenticación
+- Línea 87: `tryAuthenticateUser()` - Intentar autenticar
+- Línea 106: Manejo de error de autenticación
+- Línea 235: Fallback a localStorage
 
 ### En supabase-client.js:
+**Verificar configuración:**
+- Configuración de Supabase
+- Manejo de autenticación
+- Gestión de tokens
+
+### En profile-manager.js:
+**Línea 304:** Error de "File chooser dialog can only be shown with a user activation"
+- Este error puede estar relacionado con la autenticación
+
+### En el sistema de login:
+**Verificar:**
+- `new-auth.html` o archivo de login principal
+- Scripts de autenticación
+- Integración con Supabase
+
+## SOLUCIONES ESPECÍFICAS
+
+### 1. **Corregir el flujo de autenticación:**
 ```javascript
-// Verificar estas funciones:
-- getCurrentUser()
-- getUserProfile()
-- updateUserProfile()
+// Asegurar que cuando el usuario se loguee, también se autentique en Supabase
+// Verificar que el token de Supabase se guarde y recupere correctamente
 ```
 
-## Pasos de Implementación
+### 2. **Implementar autenticación automática:**
+```javascript
+// Cuando se detecte que el usuario no está autenticado en Supabase
+// pero sí está logueado localmente, autenticarlo automáticamente
+```
 
-1. **Revisar y corregir** la identificación única del usuario
-2. **Implementar limpieza de datos** al cambiar de cuenta
-3. **Mejorar manejo de errores** en todas las funciones
-4. **Verificar y corregir** la comunicación con la base de datos
-5. **Implementar validaciones** adicionales
-6. **Probar** con múltiples cuentas para verificar aislamiento
+### 3. **Mejorar manejo de sesión:**
+```javascript
+// Verificar que la sesión de Supabase se mantenga
+// Implementar refresh de token si es necesario
+```
 
-## Resultado Esperado
+### 4. **Corregir error de File Chooser:**
+```javascript
+// El error en profile-manager.js:304 indica un problema con el diálogo de archivo
+// Esto debe corregirse para que funcione correctamente
+```
 
-- La foto de perfil se carga y cambia correctamente para cada usuario
-- El CV se carga correctamente
-- Los enlaces se guardan y recuperan correctamente
-- No hay vinculación de datos entre diferentes cuentas
-- Cada usuario ve solo sus propios datos
+## PASOS DE IMPLEMENTACIÓN
 
-## Notas Importantes
+1. **Verificar configuración de Supabase:**
+   - Revisar `supabase-client.js`
+   - Verificar URL y clave de API
+   - Asegurar que la configuración sea correcta
 
-- **Priorizar la seguridad** de datos entre usuarios
-- **Mantener la consistencia** con el sistema de autenticación existente
-- **Preservar la funcionalidad** de modo claro/oscuro implementada
-- **Documentar cambios** para futuras referencias
+2. **Corregir flujo de login:**
+   - Verificar que el login autentique en Supabase
+   - Asegurar que el token se guarde correctamente
+   - Implementar refresh de token si es necesario
 
-Codigos de error en la consola
-miwbzotcuaywpdbidpwo…1755817741498.jpg:1 
- Failed to load resource: the server responded with a status of 400 ()
-file-upload-manager.js:124 Error subiendo imagen: StorageApiError: mime type image/jpeg is not supported
-    at index.js:1:1
-handleProfilePictureUpload	@	file-upload-manager.js:124
-file-upload-manager.js:179 Subiendo curriculum: 
-{fileName: 'cv_9562a449-4ade-4d4b-a3e4-b66dddb7e6f0_1755818022890.pdf', fileType: 'application/pdf', fileSize: 129653, bucket: 'Curriculums'}
-index.js:1 
+3. **Mejorar manejo de autenticación:**
+   - Revisar `file-upload-manager.js` líneas 73-106
+   - Implementar autenticación automática
+   - Mejorar el manejo de errores
 
- POST https://miwbzotcuaywpdbidpwo.supabase.co/storage/v1/object/Curriculums/cv_9562a449-4ade-4d4b-a3e4-b66dddb7e6f0_1755818022890.pdf 400 (Bad Request)
-file-upload-manager.js:195 Error subiendo curriculum: StorageApiError: new row violates row-level security policy
-    at index.js:1:1
-handleCurriculumUpload	@	file-upload-manager.js:195
-await in handleCurriculumUpload		
-(anonymous)	@	file-upload-manager.js:87
+4. **Corregir error de File Chooser:**
+   - Revisar línea 304 en `profile-manager.js`
+   - Asegurar que el diálogo de archivo funcione correctamente
+
+5. **Probar la subida:**
+   - Hacer login correctamente
+   - Verificar que el usuario esté autenticado en Supabase
+   - Intentar subir un archivo CV
+   - Confirmar que se guarde en Supabase, no en localStorage
+
+## RESULTADO ESPERADO
+
+- **Autenticación:** Usuario autenticado correctamente en Supabase
+- **CV:** Se guarda correctamente en bucket "CURRICULUMS" sin fallback a localStorage
+- **Consola:** Sin errores de autenticación o "File chooser"
+- **Funcionalidad:** Subida de CV funciona correctamente en Supabase
+
+## NOTAS IMPORTANTES
+
+- **El problema principal es la autenticación, no el bucket**
+- **Asegurar que el login integre correctamente con Supabase**
+- **Verificar que los tokens se manejen correctamente**
+- **Implementar autenticación automática cuando sea posible**

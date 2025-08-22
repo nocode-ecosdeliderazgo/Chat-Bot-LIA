@@ -665,6 +665,9 @@ async function handleLogin(e) {
     devLog('emailOrUsername includes @:', emailOrUsername.includes('@'));
     
     try {
+        // LIMPIEZA AUTOMÁTICA DE DATOS PREVIOS
+        clearPreviousAccountData();
+        
         // 1) Supabase: opcional, solo con email y si está habilitado
         if (ENABLE_SUPABASE_AUTH && window.supabase && emailOrUsername.includes('@')) {
             devLog('Login con Supabase usando email directo');
@@ -841,6 +844,9 @@ async function handleRegister(e) {
         devLog('Already loading, returning');
         return;
     }
+    
+    // LIMPIEZA AUTOMÁTICA DE DATOS PREVIOS PARA NUEVO REGISTRO
+    clearPreviousAccountData();
     
     devLog('Creating FormData from target:', e.target);
     const formData = new FormData(e.target);
@@ -2073,10 +2079,68 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Función para limpiar datos de cuenta anterior
+function clearPreviousAccountData() {
+    const keysToRemove = [
+        'currentUser',
+        'userData', 
+        'userSession',
+        'userToken',
+        'authToken',
+        'userId',
+        'user_profile_local'
+    ];
+    
+    // Remover claves específicas
+    keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+    });
+    
+    // Buscar y remover claves de perfil específicas del usuario
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('profile_') || key.startsWith('avatar_') || key.startsWith('cv_'))) {
+            localStorage.removeItem(key);
+        }
+    }
+    
+    console.log('✅ Datos de cuenta anterior limpiados');
+}
+
+// Función mejorada para login que limpia datos previos
+async function loginWithCleanup(emailOrUsername, password, remember = false) {
+    try {
+        // PASO 1: Limpiar datos de cuenta anterior
+        clearPreviousAccountData();
+        
+        // PASO 2: Proceder con login normal
+        let result;
+        if (isLocalMode()) {
+            result = await validateCredentialsLocal(emailOrUsername, password);
+        } else {
+            result = await validateCredentialsRemote(emailOrUsername, password);
+        }
+        
+        if (result.success) {
+            // PASO 3: Manejar autenticación exitosa
+            await handleSuccessfulAuth(emailOrUsername, remember, result.isNewUser);
+            return { success: true, isNewUser: result.isNewUser };
+        } else {
+            return { success: false, error: result.error };
+        }
+    } catch (error) {
+        console.error('Error en loginWithCleanup:', error);
+        return { success: false, error: 'Error interno de login' };
+    }
+}
+
 // Exportar funciones para uso global
 window.openTermsCard = openTermsCard;
 window.closeTermsCard = closeTermsCard;
 window.showTermsTab = showTermsTab;
 window.acceptTermsAndClose = acceptTermsAndClose;
+window.clearPreviousAccountData = clearPreviousAccountData;
+window.loginWithCleanup = loginWithCleanup;
 
 

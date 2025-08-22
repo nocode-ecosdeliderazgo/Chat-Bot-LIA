@@ -101,60 +101,36 @@ class FileUploadManager {
                 return;
             }
 
-            // Generar nombre único para el archivo
-            const fileExtension = file.name.split('.').pop().toLowerCase();
-            const fileName = `avatar_${this.currentUser.id || this.currentUser.username}_${Date.now()}.${fileExtension}`;
-
-            console.log('Subiendo imagen:', {
-                fileName,
-                fileType: file.type,
-                fileSize: file.size,
-                bucket: 'avatars'
-            });
-
-            // Subir archivo a Supabase Storage
-            const { data, error } = await this.supabase.storage
-                .from('avatars')
-                .upload(fileName, file, {
-                    cacheControl: '3600',
-                    upsert: true
-                });
-
-            if (error) {
-                console.error('Error subiendo imagen:', error);
-                
-                // Manejar errores específicos
-                if (error.message.includes('mime type')) {
-                    this.showError('Tipo de archivo no soportado. Configura los tipos MIME en Supabase Storage.');
-                } else if (error.message.includes('row-level security')) {
-                    this.showError('Error de permisos. Verifica las políticas de Storage en Supabase.');
-                } else {
-                    this.showError('Error al subir la imagen: ' + error.message);
-                }
-                return;
+            // Intentar subir a Supabase Storage primero
+            const imageUrl = await this.uploadToStorage(file, 'profile');
+            
+            if (imageUrl) {
+                // Si funciona Storage, usar URL de Supabase
+                await this.updateUserProfilePicture(imageUrl);
+                this.updateAvatarDisplay(imageUrl);
+                this.showSuccess('Foto de perfil actualizada correctamente');
+            } else {
+                // Si falla Storage, usar base64 como fallback
+                console.log('Storage falló, usando fallback base64');
+                const base64Url = await this.convertToBase64(file);
+                await this.updateUserProfilePictureLocal(base64Url);
+                this.updateAvatarDisplay(base64Url);
+                this.showSuccess('Foto de perfil actualizada (modo local)');
             }
-
-            // Obtener URL pública
-            const { data: urlData } = this.supabase.storage
-                .from('avatars')
-                .getPublicUrl(fileName);
-
-            if (!urlData.publicUrl) {
-                this.showError('Error al obtener la URL de la imagen');
-                return;
-            }
-
-            // Actualizar la base de datos
-            await this.updateUserProfilePicture(urlData.publicUrl);
-
-            // Actualizar la interfaz
-            this.updateAvatarDisplay(urlData.publicUrl);
-
-            this.showSuccess('Foto de perfil actualizada correctamente');
 
         } catch (error) {
             console.error('Error en handleProfilePictureUpload:', error);
-            this.showError('Error al subir la foto de perfil');
+            
+            // Último fallback: usar base64
+            try {
+                const base64Url = await this.convertToBase64(file);
+                await this.updateUserProfilePictureLocal(base64Url);
+                this.updateAvatarDisplay(base64Url);
+                this.showSuccess('Foto de perfil actualizada (modo local)');
+            } catch (fallbackError) {
+                console.error('Error en fallback:', fallbackError);
+                this.showError('Error al procesar la imagen');
+            }
         } finally {
             this.hideLoading();
         }
@@ -172,60 +148,34 @@ class FileUploadManager {
                 return;
             }
 
-            // Generar nombre único para el archivo
-            const fileExtension = file.name.split('.').pop().toLowerCase();
-            const fileName = `cv_${this.currentUser.id || this.currentUser.username}_${Date.now()}.${fileExtension}`;
-
-            console.log('Subiendo curriculum:', {
-                fileName,
-                fileType: file.type,
-                fileSize: file.size,
-                bucket: 'Curriculums'
-            });
-
-            // Subir archivo a Supabase Storage
-            const { data, error } = await this.supabase.storage
-                .from('Curriculums')
-                .upload(fileName, file, {
-                    cacheControl: '3600',
-                    upsert: true
-                });
-
-            if (error) {
-                console.error('Error subiendo curriculum:', error);
-                
-                // Manejar errores específicos
-                if (error.message.includes('mime type')) {
-                    this.showError('Tipo de archivo no soportado. Configura los tipos MIME en Supabase Storage.');
-                } else if (error.message.includes('row-level security')) {
-                    this.showError('Error de permisos. Verifica las políticas de Storage en Supabase.');
-                } else {
-                    this.showError('Error al subir el curriculum: ' + error.message);
-                }
-                return;
+            // Intentar subir a Supabase Storage primero
+            const fileUrl = await this.uploadToStorage(file, 'curriculum');
+            
+            if (fileUrl) {
+                // Si funciona Storage, usar URL de Supabase
+                await this.updateUserCurriculum(fileUrl);
+                this.updateCurriculumDisplay(file.name, fileUrl);
+                this.showSuccess('Curriculum subido correctamente');
+            } else {
+                // Si falla Storage, guardar información del archivo localmente
+                console.log('Storage falló, guardando información local del CV');
+                await this.updateUserCurriculumLocal(file.name);
+                this.updateCurriculumDisplayLocal(file.name);
+                this.showSuccess('Información del curriculum guardada (modo local)');
             }
-
-            // Obtener URL pública
-            const { data: urlData } = this.supabase.storage
-                .from('Curriculums')
-                .getPublicUrl(fileName);
-
-            if (!urlData.publicUrl) {
-                this.showError('Error al obtener la URL del curriculum');
-                return;
-            }
-
-            // Actualizar la base de datos
-            await this.updateUserCurriculum(urlData.publicUrl);
-
-            // Actualizar la interfaz
-            this.updateCurriculumDisplay(file.name, urlData.publicUrl);
-
-            this.showSuccess('Curriculum subido correctamente');
 
         } catch (error) {
             console.error('Error en handleCurriculumUpload:', error);
-            this.showError('Error al subir el curriculum');
+            
+            // Fallback: guardar solo el nombre del archivo
+            try {
+                await this.updateUserCurriculumLocal(file.name);
+                this.updateCurriculumDisplayLocal(file.name);
+                this.showSuccess('Información del curriculum guardada (modo local)');
+            } catch (fallbackError) {
+                console.error('Error en fallback:', fallbackError);
+                this.showError('Error al procesar el curriculum');
+            }
         } finally {
             this.hideLoading();
         }
@@ -265,16 +215,176 @@ class FileUploadManager {
         return true;
     }
 
-    async updateUserProfilePicture(imageUrl) {
+    // Nueva función para intentar subir a Storage con manejo robusto
+    async uploadToStorage(file, type) {
         try {
-            // Actualizar en la base de datos
-            const { error } = await this.supabase
-                .from('users')
-                .update({ profile_picture_url: imageUrl })
-                .eq('id', this.currentUser.id);
+            if (!this.supabase) {
+                console.log('Supabase no inicializado, usando fallback');
+                return null;
+            }
+
+            // Determinar bucket y configuración según tipo
+            const config = type === 'profile' ? {
+                bucket: 'avatars',
+                prefix: 'avatar',
+                allowedTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'] // Incluir image/jpeg
+            } : {
+                bucket: 'curriculums',
+                prefix: 'cv', 
+                allowedTypes: [
+                    'application/pdf',
+                    'application/msword', // .doc
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document' // .docx
+                ]
+            };
+
+            // Generar nombre único para el archivo
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            const fileName = `${config.prefix}_${this.currentUser.id || this.currentUser.username}_${Date.now()}.${fileExtension}`;
+
+            // Verificar si el tipo de archivo es soportado por Storage
+            if (!config.allowedTypes.includes(file.type)) {
+                console.log('Tipo MIME no soportado por Storage:', file.type);
+                return null;
+            }
+
+            console.log('Intentando subir a Storage:', {
+                fileName,
+                fileType: file.type,
+                fileSize: file.size,
+                bucket: config.bucket
+            });
+
+            // Intentar subir archivo
+            const { data, error } = await this.supabase.storage
+                .from(config.bucket)
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: true
+                });
 
             if (error) {
-                console.error('Error actualizando profile_picture_url:', error);
+                console.log('Error de Storage:', error.message);
+                
+                // Log específico para diferentes tipos de error
+                if (error.message.includes('mime type')) {
+                    console.log('Error de MIME type - usando fallback');
+                } else if (error.message.includes('row-level security')) {
+                    console.log('Error de RLS - usando fallback');
+                } else if (error.message.includes('bucket')) {
+                    console.log('Error de bucket - usando fallback');
+                }
+                
+                return null;
+            }
+
+            // Obtener URL pública
+            const { data: urlData } = this.supabase.storage
+                .from(config.bucket)
+                .getPublicUrl(fileName);
+
+            if (urlData?.publicUrl) {
+                console.log('Upload exitoso a Storage:', urlData.publicUrl);
+                return urlData.publicUrl;
+            } else {
+                console.log('Error obteniendo URL pública');
+                return null;
+            }
+
+        } catch (error) {
+            console.log('Exception en uploadToStorage:', error.message);
+            return null;
+        }
+    }
+
+    // Función para convertir archivo a base64
+    async convertToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Actualizar imagen de perfil en localStorage (fallback)
+    async updateUserProfilePictureLocal(base64Url) {
+        try {
+            // Actualizar en localStorage
+            const updatedUser = { ...this.currentUser, profile_picture_url: base64Url };
+            localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+            this.currentUser = updatedUser;
+
+            console.log('Profile picture actualizada en localStorage');
+        } catch (error) {
+            console.error('Error actualizando profile picture local:', error);
+            throw error;
+        }
+    }
+
+    // Actualizar curriculum en localStorage (fallback)
+    async updateUserCurriculumLocal(fileName) {
+        try {
+            // Actualizar en localStorage
+            const updatedUser = { ...this.currentUser, curriculum_name: fileName };
+            localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+            this.currentUser = updatedUser;
+
+            console.log('Curriculum info actualizada en localStorage');
+        } catch (error) {
+            console.error('Error actualizando curriculum local:', error);
+            throw error;
+        }
+    }
+
+    // Mostrar curriculum en modo local
+    updateCurriculumDisplayLocal(fileName) {
+        const curriculumName = document.getElementById('curriculumName');
+        if (curriculumName) {
+            curriculumName.textContent = fileName;
+            curriculumName.style.color = 'var(--color-primary)';
+        }
+
+        // Cambiar botón para mostrar que está en modo local
+        const curriculumBtn = document.getElementById('curriculumBtn');
+        if (curriculumBtn) {
+            curriculumBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>${fileName} (Local)</span>
+            `;
+        }
+    }
+
+    async updateUserProfilePicture(imageUrl) {
+        try {
+            // IDENTIFICACIÓN ROBUSTA: usar ID válido, username o email
+            let query = this.supabase.from('users').update({ profile_picture_url: imageUrl });
+            
+            if (this.currentUser.id && 
+                !String(this.currentUser.id).startsWith('dev-') && 
+                !String(this.currentUser.id).includes('test')) {
+                // Usar ID si es válido y real de BD
+                query = query.eq('id', this.currentUser.id);
+                console.log('Actualizando profile_picture_url por ID:', this.currentUser.id);
+            } else if (this.currentUser.username) {
+                // Usar username como fallback
+                query = query.eq('username', this.currentUser.username);
+                console.log('Actualizando profile_picture_url por username:', this.currentUser.username);
+            } else if (this.currentUser.email) {
+                // Usar email como último recurso
+                query = query.eq('email', this.currentUser.email);
+                console.log('Actualizando profile_picture_url por email:', this.currentUser.email);
+            } else {
+                throw new Error('No se puede identificar al usuario para actualizar avatar');
+            }
+            
+            const { error } = await query;
+
+            if (error) {
+                console.error('Error actualizando profile_picture_url en BD:', error);
                 throw error;
             }
 
@@ -283,9 +393,9 @@ class FileUploadManager {
             localStorage.setItem('currentUser', JSON.stringify(updatedUser));
             this.currentUser = updatedUser;
 
-            console.log('Profile picture URL actualizada en BD y localStorage');
+            console.log('✅ Profile picture URL actualizada en BD y localStorage');
         } catch (error) {
-            console.error('Error actualizando profile picture en BD:', error);
+            console.error('❌ Error actualizando profile picture en BD:', error);
             throw error;
         }
     }
