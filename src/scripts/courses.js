@@ -1,5 +1,5 @@
 /**
- * COURSES.JS - Funcionalidad para la página de Mis Cursos
+ * COURSES.JS - Funcionalidad para la página de Mis Talleres
  */
 
 // Configuración
@@ -8,7 +8,7 @@ const COURSES_CONFIG = {
     searchDebounceDelay: 300,
 };
 
-// Datos de cursos
+// Datos de talleres
 const COURSES_DATA = {
     enrolled: [
         {
@@ -371,7 +371,7 @@ function animateTabContent(content) {
     }, 50);
 }
 
-// ===== FUNCIONALIDAD DE CURSOS =====
+// ===== FUNCIONALIDAD DE TALLERES =====
 function setupCourseButtons() {
     const courseButtons = document.querySelectorAll('.btn-course-primary');
     
@@ -401,14 +401,14 @@ function setupCourseButtons() {
                 }
             }
             
-            console.log(`[COURSES] Iniciando curso: ${courseTitle} (${courseId})`);
+            console.log(`[COURSES] Iniciando taller: ${courseTitle} (${courseId})`);
             continueCourse(courseId, this);
         });
     });
 }
 
 function continueCourse(courseId, buttonElement = null) {
-    console.log(`[COURSES] Continuando curso: ${courseId}`);
+    console.log(`[COURSES] Continuando taller: ${courseId}`);
     
     if (!buttonElement) {
         buttonElement = document.querySelector(`[data-course-id="${courseId}"]`) || 
@@ -428,22 +428,22 @@ function continueCourse(courseId, buttonElement = null) {
                     timestamp: Date.now()
                 }));
                 
-                console.log(`[COURSES] Redirigiendo al chat con curso: ${courseId}`);
+                console.log(`[COURSES] Redirigiendo a la información del taller: ${courseId}`);
                 // Iniciar tracking en background (contador por minuto)
                 try { await startMinuteTracking(courseId); } catch (e) { console.warn('Minute tracking init failed', e); }
-                window.location.href = `chat.html?course=${courseId}`;
+                window.location.href = `taller-info.html?taller=${courseId}`;
             } catch (error) {
-                console.error('[COURSES] Error al procesar el curso:', error);
+                console.error('[COURSES] Error al procesar el taller:', error);
                 
                 buttonElement.innerHTML = originalHTML;
                 buttonElement.disabled = false;
-                alert('Error al iniciar el curso. Por favor, inténtalo de nuevo.');
+                alert('Error al iniciar el taller. Por favor, inténtalo de nuevo.');
             }
         }, 1000);
     } else {
-        console.error('[COURSES] No se encontró el botón del curso');
+        console.error('[COURSES] No se encontró el botón del taller');
         setTimeout(() => {
-            window.location.href = `chat.html?course=${courseId}`;
+            window.location.href = `taller-info.html?taller=${courseId}`;
         }, 500);
     }
 }
