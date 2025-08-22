@@ -27,7 +27,10 @@
       "Bash(start:*)",
       "Bash(node:*)",
       "Bash(PORT=3001 node server.js)",
-      "Bash(PORT=3002 node server.js)"
+      "Bash(PORT=3002 node server.js)",
+      "Bash(PORT=3003 node server.js)",
+      "Bash(PORT=3004 node server.js)",
+      "Bash(PORT=3005 node server.js)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

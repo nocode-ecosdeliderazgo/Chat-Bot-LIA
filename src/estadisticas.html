@@ -287,39 +287,10 @@
                         </div>
                         <div class="radar-info">
                             <p id="sessionInfo" style="color: #888; font-size: 14px; margin: 0;"></p>
-                            <!-- Botones de prueba solo en desarrollo -->
-                            <div id="testButtons" style="margin-top: 16px; display: none;">
-                                <div style="margin-bottom: 8px;">
-                                    <button onclick="testUserWithData()" class="btn-secondary" style="margin-right: 8px;">
-                                        Test: Usuario con datos
-                                    </button>
-                                    <button onclick="testUserWithoutData()" class="btn-secondary" style="margin-right: 8px;">
-                                        Test: Usuario sin datos
-                                    </button>
-                                    <button onclick="testBackendConnection()" class="btn-secondary">
-                                        Test: Backend
-                                    </button>
-                                </div>
-                                <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
-                                    Setup de base de datos:
-                                </div>
-                                <div>
-                                    <button onclick="createRadarViews()" class="btn-secondary" style="margin-right: 8px; font-size: 12px; padding: 0.4rem 0.8rem;">
-                                        Crear Vistas
-                                    </button>
-                                    <button onclick="createTestData()" class="btn-secondary" style="margin-right: 8px; font-size: 12px; padding: 0.4rem 0.8rem;">
-                                        Crear Datos
-                                    </button>
-                                    <button onclick="testRealBackend()" class="btn-secondary" style="margin-right: 8px; font-size: 12px; padding: 0.4rem 0.8rem;">
-                                        Test Real
-                                    </button>
-                                    <button onclick="testLinearIssueUser()" class="btn-secondary" style="margin-right: 8px; font-size: 12px; padding: 0.4rem 0.8rem;">
-                                        Test Linear User
-                                    </button>
-                                    <button onclick="testDebugEndpoint()" class="btn-secondary" style="font-size: 12px; padding: 0.4rem 0.8rem;">
-                                        Debug User
-                                    </button>
-                                </div>
+                            <!-- Información de debugging -->
+                            <div id="debugInfo" style="margin-top: 16px; font-size: 12px; color: #666;">
+                                <div id="userIdInfo"></div>
+                                <div id="connectionStatus"></div>
                             </div>
                         </div>
                     </div>
@@ -442,14 +413,8 @@
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🎯 Inicializando página de estadísticas con radar chart...');
             
-            // Mostrar botones de prueba si estamos en localhost
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                const testButtons = document.getElementById('testButtons');
-                if (testButtons) {
-                    testButtons.style.display = 'block';
-                    console.log('🧪 Botones de testing habilitados (modo desarrollo)');
-                }
-            }
+                // Mostrar información de debugging
+            console.log('🔧 Modo desarrollo - debugging habilitado');
             
             // Obtener información del usuario logueado
             await loadUserRadarData();
@@ -457,13 +422,34 @@
         
         // Función para obtener el userId del usuario actual
         function getCurrentUserId() {
-            // Método 1: Desde localStorage
+            console.log('🔍 Buscando userId en localStorage...');
+            
+            // Mostrar todo el localStorage para debugging
+            console.log('📦 localStorage completo:', localStorage);
+            
+            // Método 1: Desde currentUser (más común en esta app)
+            const currentUser = localStorage.getItem('currentUser');
+            if (currentUser) {
+                try {
+                    const user = JSON.parse(currentUser);
+                    console.log('👤 currentUser encontrado:', user);
+                    if (user.id) {
+                        console.log('✅ userId desde currentUser:', user.id);
+                        return user.id;
+                    }
+                } catch (e) {
+                    console.warn('Error parsing currentUser from localStorage:', e);
+                }
+            }
+            
+            // Método 2: Desde userData
             const userData = localStorage.getItem('userData');
             if (userData) {
                 try {
                     const user = JSON.parse(userData);
+                    console.log('👤 userData encontrado:', user);
                     if (user.id) {
-                        console.log('✅ UserId encontrado en userData:', user.id);
+                        console.log('✅ userId desde userData:', user.id);
                         return user.id;
                     }
                 } catch (e) {
@@ -471,31 +457,28 @@
                 }
             }
             
-            // Método 2: Desde token JWT decodificado (sin verificar firma)
+            // Método 3: Desde token JWT decodificado
             const token = localStorage.getItem('userToken') || localStorage.getItem('authToken');
             if (token) {
                 try {
                     const payload = JSON.parse(atob(token.split('.')[1]));
+                    console.log('🎫 Token payload:', payload);
                     if (payload.sub) {
-                        console.log('✅ UserId encontrado en token JWT:', payload.sub);
+                        console.log('✅ userId desde token:', payload.sub);
                         return payload.sub;
+                    }
+                    if (payload.userId) {
+                        console.log('✅ userId desde token.userId:', payload.userId);
+                        return payload.userId;
                     }
                 } catch (e) {
                     console.warn('Error decoding token:', e);
                 }
             }
             
-            // Método 3: Verificar si hay un userId específico en la URL (para testing)
-            const urlParams = new URLSearchParams(window.location.search);
-            const testUserId = urlParams.get('userId');
-            if (testUserId) {
-                console.log('✅ UserId encontrado en URL params:', testUserId);
-                return testUserId;
-            }
-            
-            // Método 4: Usuario específico mencionado en el issue Linear
-            console.warn('⚠️ No se encontró userId, usando userId del issue Linear');
-            return '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0';
+            // Método 4: Usuario de prueba para desarrollo
+            console.warn('⚠️ No se encontró userId, usando userId de prueba');
+            return 'dev-user-id';
         }
         
         // Cargar datos del radar del usuario
@@ -505,34 +488,55 @@
                 console.log('👤 Cargando datos para userId:', userId);
                 
                 // Mostrar información del usuario en la página
-                const sessionInfo = document.getElementById('sessionInfo');
-                if (sessionInfo) {
-                    sessionInfo.innerHTML = `Debugging: userId = ${userId}`;
+                const userIdInfo = document.getElementById('userIdInfo');
+                const connectionStatus = document.getElementById('connectionStatus');
+                
+                if (userIdInfo) {
+                    userIdInfo.innerHTML = `Usuario: ${userId}`;
                 }
                 
-                // Hacer fetch al endpoint del backend
-                console.log('🌐 Haciendo request a:', `/api/radar/user/${userId}`);
-                const response = await fetch(`/api/radar/user/${userId}`, {
+                if (connectionStatus) {
+                    connectionStatus.innerHTML = `Conectando...`;
+                }
+                
+                // Hacer fetch al endpoint del backend (puerto 3000 - configuración estándar del equipo)
+                const baseURL = 'http://localhost:3000';
+                console.log(`🔗 Haciendo fetch a: ${baseURL}/api/radar/user/${userId}`);
+                
+                const response = await fetch(`${baseURL}/api/radar/user/${userId}`, {
                     headers: {
                         'Content-Type': 'application/json'
-                        // En development mode, no se requiere API key
                     }
                 });
                 
-                console.log('📡 Response status:', response.status, response.statusText);
+                console.log('📡 Response status:', response.status);
+                console.log('📡 Response headers:', [...response.headers.entries()]);
                 
                 if (!response.ok) {
                     console.error('❌ Error en response:', response.status, response.statusText);
-                    const errorText = await response.text();
-                    console.error('❌ Error details:', errorText);
+                    
+                    if (connectionStatus) {
+                        connectionStatus.innerHTML = `❌ Error ${response.status}: ${response.statusText}`;
+                    }
+                    
+                    // Intentar leer el error del backend
+                    try {
+                        const errorData = await response.text();
+                        console.error('📄 Error del backend:', errorData);
+                    } catch (e) {
+                        console.error('💥 No se pudo leer el error del backend');
+                    }
+                    
                     showRadarPlaceholder();
                     return;
                 }
                 
                 const data = await response.json();
                 console.log('📊 Datos del radar recibidos:', data);
-                console.log('📊 DataSource:', data.dataSource);
-                console.log('📊 HasData:', data.hasData);
+                
+                if (connectionStatus) {
+                    connectionStatus.innerHTML = `✅ Conectado - Fuente: ${data.dataSource || 'unknown'}`;
+                }
                 
                 currentUserData = data;
                 
@@ -554,7 +558,12 @@
                 
             } catch (error) {
                 console.error('💥 Error cargando datos del radar:', error);
-                console.error('💥 Error stack:', error.stack);
+                
+                const connectionStatus = document.getElementById('connectionStatus');
+                if (connectionStatus) {
+                    connectionStatus.innerHTML = `💥 Error de conexión: ${error.message}`;
+                }
+                
                 showRadarPlaceholder();
             }
         }
@@ -709,277 +718,7 @@
             window.location.href = 'perfil-cuestionario.html?force=true';
         }
         
-        // ======= FUNCIONES DE TESTING PARA DESARROLLO =======
-        
-        // Test con usuario que tiene datos
-        async function testUserWithData() {
-            console.log('🧪 Testing usuario con datos...');
-            
-            // Simular datos de prueba
-            const testData = {
-                session_id: 'test-session-123',
-                user_id: 'test-user',
-                conocimiento: 75,
-                aplicacion: 80,
-                productividad: 65,
-                estrategia: 70,
-                inversion: 85,
-                hasData: true,
-                dataSource: 'test'
-            };
-            
-            currentUserData = testData;
-            createRadarChart(testData);
-            showSessionInfo(testData.session_id);
-            
-            console.log('✅ Test completado - usuario con datos');
-        }
-        
-        // Test con usuario sin datos
-        async function testUserWithoutData() {
-            console.log('🧪 Testing usuario sin datos...');
-            
-            // Simular usuario sin datos
-            const testData = {
-                session_id: null,
-                user_id: 'user-without-data',
-                conocimiento: 0,
-                aplicacion: 0,
-                productividad: 0,
-                estrategia: 0,
-                inversion: 0,
-                hasData: false,
-                dataSource: 'test'
-            };
-            
-            currentUserData = testData;
-            showRadarPlaceholder();
-            
-            console.log('✅ Test completado - usuario sin datos');
-        }
-        
-        // Test de carga desde el backend real
-        async function testBackendConnection() {
-            console.log('🧪 Testing conexión al backend...');
-            
-            try {
-                const response = await fetch('/api/radar/user/test-user', {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ Backend response:', data);
-                    
-                    currentUserData = data;
-                    
-                    if (data.hasData) {
-                        createRadarChart(data);
-                        showSessionInfo(data.session_id);
-                    } else {
-                        showRadarPlaceholder();
-                    }
-                } else {
-                    console.error('❌ Backend error:', response.status);
-                    handleNetworkError();
-                }
-                
-            } catch (error) {
-                console.error('💥 Error testing backend:', error);
-                handleNetworkError();
-            }
-        }
-        
-        // ======= FUNCIONES DE SETUP DE BASE DE DATOS =======
-        
-        // Crear las vistas de radar en la base de datos
-        async function createRadarViews() {
-            console.log('🔧 Creando vistas de radar...');
-            
-            try {
-                const response = await fetch('/api/radar/create-views', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ Vistas creadas:', data);
-                    alert(`✅ Vistas creadas exitosamente:\n${data.views.join(', ')}`);
-                } else {
-                    const error = await response.json();
-                    console.error('❌ Error creando vistas:', error);
-                    alert(`❌ Error creando vistas: ${error.error}`);
-                }
-                
-            } catch (error) {
-                console.error('💥 Error:', error);
-                alert(`💥 Error de conexión: ${error.message}`);
-            }
-        }
-        
-        // Crear datos de prueba en la base de datos
-        async function createTestData() {
-            console.log('🔧 Creando datos de prueba...');
-            
-            try {
-                const response = await fetch('/api/radar/create-test-data', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ Datos de prueba creados:', data);
-                    alert(`✅ Datos de prueba creados exitosamente!\nUsuario: ${data.testUserId}\nSesión: ${data.sessionId}`);
-                } else {
-                    const error = await response.json();
-                    console.error('❌ Error creando datos:', error);
-                    alert(`❌ Error creando datos: ${error.error}`);
-                }
-                
-            } catch (error) {
-                console.error('💥 Error:', error);
-                alert(`💥 Error de conexión: ${error.message}`);
-            }
-        }
-        
-        // Test con el backend real usando datos de la base de datos
-        async function testRealBackend() {
-            console.log('🔍 Testing backend con datos reales...');
-            
-            try {
-                // Probar con el usuario de prueba que debería tener datos reales
-                const response = await fetch('/api/radar/user/test-user-uuid', {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ Backend real response:', data);
-                    
-                    if (data.hasData && data.dataSource === 'database') {
-                        currentUserData = data;
-                        createRadarChart(data);
-                        showSessionInfo(data.session_id);
-                        alert('✅ ¡Datos reales cargados desde la base de datos!');
-                    } else if (data.hasData && data.dataSource === 'test') {
-                        currentUserData = data;
-                        createRadarChart(data);
-                        showSessionInfo(data.session_id);
-                        alert('⚠️ Cargando datos de prueba (vistas no existen aún)');
-                    } else {
-                        showRadarPlaceholder();
-                        alert('📭 No hay datos en la base de datos para este usuario');
-                    }
-                } else {
-                    console.error('❌ Backend error:', response.status);
-                    alert(`❌ Error del backend: ${response.status}`);
-                    handleNetworkError();
-                }
-                
-            } catch (error) {
-                console.error('💥 Error testing real backend:', error);
-                alert(`💥 Error: ${error.message}`);
-                handleNetworkError();
-            }
-        }
-        
-        // Test con el usuario específico del issue Linear
-        async function testLinearIssueUser() {
-            console.log('🔍 Testing usuario del issue Linear...');
-            
-            try {
-                const userId = '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0';
-                const response = await fetch(`/api/radar/user/${userId}`, {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ Linear issue user response:', data);
-                    
-                    if (data.hasData && data.dataSource === 'database') {
-                        currentUserData = data;
-                        createRadarChart(data);
-                        showSessionInfo(data.session_id);
-                        alert('✅ ¡Usuario del issue Linear tiene datos en la base de datos!');
-                    } else if (data.hasData && data.dataSource === 'test') {
-                        currentUserData = data;
-                        createRadarChart(data);
-                        showSessionInfo(data.session_id);
-                        alert('⚠️ Usuario del issue Linear cargando datos de prueba');
-                    } else {
-                        showRadarPlaceholder();
-                        alert('📭 Usuario del issue Linear no tiene datos en la base de datos');
-                    }
-                } else {
-                    console.error('❌ Backend error:', response.status);
-                    alert(`❌ Error del backend: ${response.status}`);
-                    handleNetworkError();
-                }
-                
-            } catch (error) {
-                console.error('💥 Error testing Linear issue user:', error);
-                alert(`💥 Error: ${error.message}`);
-                handleNetworkError();
-            }
-        }
-        
-        // Test del endpoint de debug
-        async function testDebugEndpoint() {
-            console.log('🔍 Testing endpoint de debug...');
-            
-            try {
-                const userId = getCurrentUserId();
-                const response = await fetch(`/api/radar/debug/${userId}`, {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ Debug endpoint response:', data);
-                    
-                    // Mostrar información detallada
-                    let debugInfo = `🔍 Debug Info para ${userId}:\n\n`;
-                    debugInfo += `👤 Usuario existe: ${data.userExists}\n`;
-                    debugInfo += `📝 Sesiones: ${data.sessionsCount}\n`;
-                    debugInfo += `💬 Respuestas: ${data.responsesCount}\n`;
-                    debugInfo += `👁️ Vista existe: ${data.viewExists}\n`;
-                    debugInfo += `✅ Sesiones completadas: ${data.hasCompletedSessions}\n`;
-                    
-                    if (data.radarData) {
-                        debugInfo += `\n📊 Datos de radar:\n`;
-                        debugInfo += `- Conocimiento: ${data.radarData.conocimiento}\n`;
-                        debugInfo += `- Aplicación: ${data.radarData.aplicacion}\n`;
-                        debugInfo += `- Productividad: ${data.radarData.productividad}\n`;
-                        debugInfo += `- Estrategia: ${data.radarData.estrategia}\n`;
-                        debugInfo += `- Inversión: ${data.radarData.inversion}\n`;
-                    }
-                    
-                    alert(debugInfo);
-                } else {
-                    console.error('❌ Debug endpoint error:', response.status);
-                    alert(`❌ Error del debug endpoint: ${response.status}`);
-                }
-                
-            } catch (error) {
-                console.error('💥 Error testing debug endpoint:', error);
-                alert(`💥 Error: ${error.message}`);
-            }
-        }
+        // ======= FUNCIONES ADICIONALES =======
     </script>
     <script src="scripts/theme-toggle.js"></script>
     
