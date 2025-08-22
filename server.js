@@ -2084,7 +2084,7 @@ app.get('/api/courses/:courseId/syllabus', authenticateRequest, async (req, res)
 // ====== ENDPOINTS PARA RADAR CHARTS ======
 
 // Obtener datos de radar del usuario (última sesión completada)
-app.get('/api/radar/user/:userId', authenticateRequest, async (req, res) => {
+app.get('/api/radar/user/:userId', async (req, res) => {
     try {
         if (!pool) {
             return res.status(500).json({ error: 'Base de datos no configurada' });
@@ -2212,7 +2212,7 @@ app.get('/api/radar/user/:userId', authenticateRequest, async (req, res) => {
 });
 
 // Obtener datos de radar por sesión específica (opcional)
-app.get('/api/radar/session/:sessionId', authenticateRequest, async (req, res) => {
+app.get('/api/radar/session/:sessionId', async (req, res) => {
     try {
         if (!pool) {
             return res.status(500).json({ error: 'Base de datos no configurada' });
