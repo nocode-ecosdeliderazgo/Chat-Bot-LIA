@@ -2111,7 +2111,7 @@ app.get('/api/radar/user/:userId', authenticateRequest, async (req, res) => {
             console.warn('⚠️ Vista v_radar_latest_by_user no existe, usando datos de prueba');
             
             // Para testing, devolver datos de prueba si el userId es específico
-            if (userId === 'test-user' || userId === 'dev-user-id') {
+            if (userId === 'test-user' || userId === 'dev-user-id' || userId === 'test-user-uuid') {
                 return res.json({
                     session_id: 'test-session-123',
                     user_id: userId,
@@ -2265,6 +2265,117 @@ app.get('/api/radar/session/:sessionId', authenticateRequest, async (req, res) =
         res.status(500).json({ 
             error: 'Error obteniendo datos de radar',
             details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+        });
+    }
+});
+
+// Endpoint para crear las vistas de radar (solo desarrollo)
+app.post('/api/radar/create-views', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ error: 'No disponible en producción' });
+    }
+    
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        // Leer el archivo SQL
+        const fs = require('fs');
+        const path = require('path');
+        const sqlPath = path.join(__dirname, 'create_radar_views.sql');
+        
+        if (!fs.existsSync(sqlPath)) {
+            return res.status(404).json({ error: 'Archivo create_radar_views.sql no encontrado' });
+        }
+        
+        const sqlContent = fs.readFileSync(sqlPath, 'utf8');
+        
+        // Ejecutar el SQL
+        await pool.query(sqlContent);
+        
+        console.log('✅ Vistas de radar creadas exitosamente');
+        
+        res.json({
+            success: true,
+            message: 'Vistas de radar creadas exitosamente',
+            views: ['v_radar_latest_by_user', 'v_radar_by_session']
+        });
+        
+    } catch (error) {
+        console.error('Error creando vistas de radar:', error);
+        res.status(500).json({ 
+            error: 'Error creando vistas de radar',
+            details: error.message
+        });
+    }
+});
+
+// Endpoint para verificar si existen datos de prueba y crearlos si es necesario
+app.post('/api/radar/create-test-data', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ error: 'No disponible en producción' });
+    }
+    
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        // Crear usuario de prueba si no existe
+        const testUserId = 'test-user-uuid';
+        const sessionId = 'test-session-uuid';
+        
+        // Verificar si ya existe el usuario
+        const userCheck = await pool.query('SELECT id FROM public.users WHERE id = $1', [testUserId]);
+        
+        if (userCheck.rows.length === 0) {
+            // Crear usuario de prueba
+            await pool.query(`
+                INSERT INTO public.users (id, username, email, password_hash, first_name, last_name)
+                VALUES ($1, 'testuser', 'test@example.com', 'hash123', 'Usuario', 'Prueba')
+                ON CONFLICT (id) DO NOTHING
+            `, [testUserId]);
+        }
+        
+        // Crear sesión de cuestionario de prueba
+        await pool.query(`
+            INSERT INTO public.user_questionnaire_sessions (id, user_id, perfil, area, completed_at)
+            VALUES ($1, $2, 'Gerente de Operaciones', 'Tecnología', NOW())
+            ON CONFLICT (id) DO NOTHING
+        `, [sessionId, testUserId]);
+        
+        // Crear puntajes de radar de prueba
+        const testScores = [
+            { subdominio: 'Fundamentos de IA', puntaje: 75 },
+            { subdominio: 'Herramientas de IA', puntaje: 80 },
+            { subdominio: 'Implementación Práctica', puntaje: 65 },
+            { subdominio: 'Eficiencia Operacional', puntaje: 70 },
+            { subdominio: 'Estrategia Organizacional', puntaje: 85 }
+        ];
+        
+        for (const score of testScores) {
+            await pool.query(`
+                INSERT INTO public.radar_scores (session_id, subdominio, puntaje)
+                VALUES ($1, $2, $3)
+                ON CONFLICT DO NOTHING
+            `, [sessionId, score.subdominio, score.puntaje]);
+        }
+        
+        console.log('✅ Datos de prueba creados exitosamente');
+        
+        res.json({
+            success: true,
+            message: 'Datos de prueba creados exitosamente',
+            testUserId: testUserId,
+            sessionId: sessionId
+        });
+        
+    } catch (error) {
+        console.error('Error creando datos de prueba:', error);
+        res.status(500).json({ 
+            error: 'Error creando datos de prueba',
+            details: error.message
         });
     }
 });

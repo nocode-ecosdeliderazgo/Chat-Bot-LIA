@@ -289,15 +289,31 @@
                             <p id="sessionInfo" style="color: #888; font-size: 14px; margin: 0;"></p>
                             <!-- Botones de prueba solo en desarrollo -->
                             <div id="testButtons" style="margin-top: 16px; display: none;">
-                                <button onclick="testUserWithData()" class="btn-secondary" style="margin-right: 8px;">
-                                    Test: Usuario con datos
-                                </button>
-                                <button onclick="testUserWithoutData()" class="btn-secondary" style="margin-right: 8px;">
-                                    Test: Usuario sin datos
-                                </button>
-                                <button onclick="testBackendConnection()" class="btn-secondary">
-                                    Test: Backend
-                                </button>
+                                <div style="margin-bottom: 8px;">
+                                    <button onclick="testUserWithData()" class="btn-secondary" style="margin-right: 8px;">
+                                        Test: Usuario con datos
+                                    </button>
+                                    <button onclick="testUserWithoutData()" class="btn-secondary" style="margin-right: 8px;">
+                                        Test: Usuario sin datos
+                                    </button>
+                                    <button onclick="testBackendConnection()" class="btn-secondary">
+                                        Test: Backend
+                                    </button>
+                                </div>
+                                <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
+                                    Setup de base de datos:
+                                </div>
+                                <div>
+                                    <button onclick="createRadarViews()" class="btn-secondary" style="margin-right: 8px; font-size: 12px; padding: 0.4rem 0.8rem;">
+                                        Crear Vistas
+                                    </button>
+                                    <button onclick="createTestData()" class="btn-secondary" style="margin-right: 8px; font-size: 12px; padding: 0.4rem 0.8rem;">
+                                        Crear Datos
+                                    </button>
+                                    <button onclick="testRealBackend()" class="btn-secondary" style="font-size: 12px; padding: 0.4rem 0.8rem;">
+                                        Test Real
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -467,6 +483,12 @@
             try {
                 const userId = getCurrentUserId();
                 console.log('👤 Cargando datos para userId:', userId);
+                
+                // Mostrar información del usuario en la página
+                const sessionInfo = document.getElementById('sessionInfo');
+                if (sessionInfo) {
+                    sessionInfo.innerHTML = `Debugging: userId = ${userId}`;
+                }
                 
                 // Hacer fetch al endpoint del backend
                 const response = await fetch(`/api/radar/user/${userId}`, {
@@ -730,6 +752,107 @@
                 
             } catch (error) {
                 console.error('💥 Error testing backend:', error);
+                handleNetworkError();
+            }
+        }
+        
+        // ======= FUNCIONES DE SETUP DE BASE DE DATOS =======
+        
+        // Crear las vistas de radar en la base de datos
+        async function createRadarViews() {
+            console.log('🔧 Creando vistas de radar...');
+            
+            try {
+                const response = await fetch('/api/radar/create-views', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Vistas creadas:', data);
+                    alert(`✅ Vistas creadas exitosamente:\n${data.views.join(', ')}`);
+                } else {
+                    const error = await response.json();
+                    console.error('❌ Error creando vistas:', error);
+                    alert(`❌ Error creando vistas: ${error.error}`);
+                }
+                
+            } catch (error) {
+                console.error('💥 Error:', error);
+                alert(`💥 Error de conexión: ${error.message}`);
+            }
+        }
+        
+        // Crear datos de prueba en la base de datos
+        async function createTestData() {
+            console.log('🔧 Creando datos de prueba...');
+            
+            try {
+                const response = await fetch('/api/radar/create-test-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Datos de prueba creados:', data);
+                    alert(`✅ Datos de prueba creados exitosamente!\nUsuario: ${data.testUserId}\nSesión: ${data.sessionId}`);
+                } else {
+                    const error = await response.json();
+                    console.error('❌ Error creando datos:', error);
+                    alert(`❌ Error creando datos: ${error.error}`);
+                }
+                
+            } catch (error) {
+                console.error('💥 Error:', error);
+                alert(`💥 Error de conexión: ${error.message}`);
+            }
+        }
+        
+        // Test con el backend real usando datos de la base de datos
+        async function testRealBackend() {
+            console.log('🔍 Testing backend con datos reales...');
+            
+            try {
+                // Probar con el usuario de prueba que debería tener datos reales
+                const response = await fetch('/api/radar/user/test-user-uuid', {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Backend real response:', data);
+                    
+                    if (data.hasData && data.dataSource === 'database') {
+                        currentUserData = data;
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                        alert('✅ ¡Datos reales cargados desde la base de datos!');
+                    } else if (data.hasData && data.dataSource === 'test') {
+                        currentUserData = data;
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                        alert('⚠️ Cargando datos de prueba (vistas no existen aún)');
+                    } else {
+                        showRadarPlaceholder();
+                        alert('📭 No hay datos en la base de datos para este usuario');
+                    }
+                } else {
+                    console.error('❌ Backend error:', response.status);
+                    alert(`❌ Error del backend: ${response.status}`);
+                    handleNetworkError();
+                }
+                
+            } catch (error) {
+                console.error('💥 Error testing real backend:', error);
+                alert(`💥 Error: ${error.message}`);
                 handleNetworkError();
             }
         }
