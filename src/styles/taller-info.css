@@ -1,0 +1,476 @@
+/* ESTILOS PARA LA PÁGINA DE INFORMACIÓN DEL TALLER */
+
+/* Variables específicas para el taller */
+:root {
+    --taller-card-bg: rgba(255, 255, 255, 0.05);
+    --taller-card-border: rgba(255, 255, 255, 0.1);
+    --taller-card-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --taller-hover-bg: rgba(255, 255, 255, 0.08);
+    --video-border-radius: 16px;
+    --step-number-size: 40px;
+}
+
+/* Contenedor principal */
+.taller-info-main {
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 100px;
+}
+
+.taller-info-container {
+    max-width: 1200px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+/* Botón de regreso */
+.back-button-container {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: var(--taller-card-bg);
+    border: 1px solid var(--taller-card-border);
+    border-radius: 12px;
+    color: var(--text-on-dark);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.back-button:hover {
+    background: var(--taller-hover-bg);
+    transform: translateY(-2px);
+    box-shadow: var(--taller-card-shadow);
+}
+
+.back-button i {
+    font-size: 18px;
+    color: var(--color-primary);
+}
+
+/* Tarjeta principal del taller */
+.taller-info-card {
+    background: var(--taller-card-bg);
+    border: 1px solid var(--taller-card-border);
+    border-radius: 20px;
+    padding: 40px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: var(--taller-card-shadow);
+    transition: all 0.3s ease;
+}
+
+.taller-info-card:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Header del taller */
+.taller-header {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 40px;
+    align-items: flex-start;
+}
+
+.taller-image {
+    flex-shrink: 0;
+    width: 200px;
+    height: 200px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 2px solid var(--taller-card-border);
+}
+
+.taller-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.taller-title-section {
+    flex: 1;
+}
+
+.taller-title-section h1 {
+    font-family: var(--font-heading);
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text-on-dark);
+    margin-bottom: 16px;
+    line-height: 1.2;
+}
+
+.taller-subtitle {
+    font-size: 18px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.taller-meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.meta-item i {
+    color: var(--color-primary);
+    font-size: 16px;
+}
+
+/* Sección de video */
+.video-section {
+    margin-bottom: 40px;
+}
+
+.video-section h2 {
+    font-family: var(--font-heading);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-on-dark);
+    margin-bottom: 20px;
+}
+
+.video-container {
+    position: relative;
+    border-radius: var(--video-border-radius);
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.video-container iframe {
+    border-radius: var(--video-border-radius);
+}
+
+/* Descripción del taller */
+.taller-description {
+    margin-bottom: 40px;
+}
+
+.taller-description h2 {
+    font-family: var(--font-heading);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-on-dark);
+    margin-bottom: 24px;
+}
+
+.learning-objectives {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.objective-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.objective-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateX(4px);
+}
+
+.objective-item i {
+    color: var(--color-primary);
+    font-size: 20px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.objective-item span {
+    color: var(--text-on-dark);
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* Contenido del taller */
+.taller-content {
+    margin-bottom: 40px;
+}
+
+.taller-content h2 {
+    font-family: var(--font-heading);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-on-dark);
+    margin-bottom: 24px;
+}
+
+.content-modules {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.module-item {
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.module-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.module-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.module-header i {
+    color: var(--color-primary);
+    font-size: 24px;
+}
+
+.module-header h3 {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-on-dark);
+    flex: 1;
+}
+
+.module-duration {
+    background: var(--color-primary);
+    color: var(--color-bg-dark);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.module-item p {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-left: 36px;
+}
+
+/* Botones de acción */
+.taller-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    padding-top: 32px;
+    border-top: 1px solid var(--taller-card-border);
+}
+
+.btn-start-taller {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #3dd4eb 100%);
+    color: var(--color-bg-dark);
+    border: none;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(68, 229, 255, 0.3);
+}
+
+.btn-start-taller:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(68, 229, 255, 0.4);
+}
+
+.btn-preview {
+    background: transparent;
+    color: var(--text-on-dark);
+    border: 1px solid var(--taller-card-border);
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-preview:hover {
+    background: var(--taller-hover-bg);
+    border-color: var(--color-primary);
+}
+
+/* Sección "¿Qué hago después?" */
+.what-next-section {
+    background: var(--taller-card-bg);
+    border: 1px solid var(--taller-card-border);
+    border-radius: 20px;
+    padding: 40px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: var(--taller-card-shadow);
+}
+
+.what-next-section h2 {
+    font-family: var(--font-heading);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-on-dark);
+    margin-bottom: 32px;
+    text-align: center;
+}
+
+.next-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.step-item {
+    display: flex;
+    gap: 20px;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.step-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.step-number {
+    width: var(--step-number-size);
+    height: var(--step-number-size);
+    background: linear-gradient(135deg, var(--color-primary) 0%, #3dd4eb 100%);
+    color: var(--color-bg-dark);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.step-content h3 {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-on-dark);
+    margin-bottom: 8px;
+}
+
+.step-content p {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .taller-info-main {
+        padding: 16px;
+        padding-top: 80px;
+    }
+    
+    .taller-info-card {
+        padding: 24px;
+    }
+    
+    .taller-header {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .taller-image {
+        width: 150px;
+        height: 150px;
+        align-self: center;
+    }
+    
+    .taller-title-section h1 {
+        font-size: 24px;
+        text-align: center;
+    }
+    
+    .taller-meta {
+        justify-content: center;
+    }
+    
+    .taller-actions {
+        flex-direction: column;
+    }
+    
+    .next-steps {
+        grid-template-columns: 1fr;
+    }
+    
+    .step-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .step-number {
+        align-self: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .taller-info-container {
+        gap: 20px;
+    }
+    
+    .taller-info-card {
+        padding: 20px;
+    }
+    
+    .what-next-section {
+        padding: 24px;
+    }
+    
+    .taller-title-section h1 {
+        font-size: 20px;
+    }
+    
+    .taller-subtitle {
+        font-size: 16px;
+    }
+}

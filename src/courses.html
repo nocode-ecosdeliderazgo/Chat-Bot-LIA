@@ -43,7 +43,7 @@
             <canvas id="bgParticles"></canvas>
         </div>
 
-    <!-- Header con navbar como en cursos.html -->
+    <!-- Header con navbar como en talleres.html -->
     <header class="catalog-header">
         <div class="container">
             <div class="course-tabs">
@@ -95,16 +95,16 @@
     <main class="courses-main">
         <div class="courses-container">
 
-            <!-- Panel de contenido de cursos -->
+            <!-- Panel de contenido de talleres -->
             <div class="course-content">
-                <!-- Pestaña: Todos los cursos -->
+                <!-- Pestaña: Todos los talleres -->
                 <div id="all-courses" class="tab-content">
                     <!-- Tarjeta de racha de aprendizaje -->
                     <div class="learning-streak-card">
                         <div class="streak-content">
                             <div class="streak-info">
                                 <h2 id="welcomeTitle">Bienvenido</h2>
-                                <p>¡Un anillo menos! Ahora, mira tu(s) curso(s).</p>
+                                <p>¡Un anillo menos! Ahora, mira tu(s) taller(es).</p>
                             </div>
                             <div class="streak-visual">
                                 <div class="streak-ring">
@@ -132,7 +132,7 @@
                                     </div>
                                     <div class="stat-item">
                                         <span class="stat-value">0/30</span>
-                                        <span class="stat-label">min curso</span>
+                                        <span class="stat-label">min taller</span>
                                     </div>
                                     <div class="stat-item">
                                         <span class="stat-value">1/1</span>
@@ -163,7 +163,7 @@
                         </div>
                     </div>
 
-                    <!-- Barra de búsqueda de cursos -->
+                    <!-- Barra de búsqueda de talleres -->
                     <div class="search-container">
                         <div class="search-wrapper">
                             <div class="search-icon">
@@ -173,7 +173,7 @@
                                 type="text" 
                                 class="search-input" 
                                 id="courseSearchInput"
-                                placeholder="Buscar en mis cursos..."
+                                placeholder="Buscar en mis talleres..."
                                 autocomplete="off"
                             >
                             <button class="search-clear" id="searchClearBtn" style="display: none;">
@@ -194,11 +194,11 @@
                         </div>
                     </div>
 
-                    <!-- Lista de cursos -->
+                    <!-- Lista de talleres -->
                     <div class="courses-grid">
                         <div class="course-card" id="course-main">
                             <div class="course-image">
-                                <img src="assets/images/brain-icon.jpg" alt="Curso de IA">
+                                <img src="assets/images/brain-icon.jpg" alt="Taller de IA">
                                 <div class="course-menu">
                                     <button class="menu-btn">
                                         <i class='bx bx-dots-vertical-rounded'></i>
@@ -215,15 +215,15 @@
                                     <span class="progress-text">0% completado</span>
                                 </div>
                                 <div class="course-actions">
-                                    <button class="btn-course-primary">
+                                    <button class="btn-course-primary" onclick="window.location.href='taller-info.html'">
                                         <i class='bx bx-play-circle'></i>
-                                        Continuar curso
+                                        Continuar taller
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Curso de ejemplo adicional -->
+                        <!-- Taller de ejemplo adicional -->
                         <div class="course-card disabled" id="course-upcoming">
                             <div class="course-image">
                                 <img src="assets/images/brain-icon.jpg" alt="Fundamentos de Machine Learning">
@@ -258,7 +258,7 @@
                     <div class="empty-state">
                         <i class='bx bx-list-ul'></i>
                         <h3>No tienes listas creadas</h3>
-                        <p>Crea listas personalizadas para organizar tus cursos por tema o objetivo.</p>
+                        <p>Crea listas personalizadas para organizar tus talleres por tema o objetivo.</p>
                         <button class="btn-primary">Crear mi primera lista</button>
                     </div>
                 </div>
@@ -268,8 +268,8 @@
                     <div class="empty-state">
                         <i class='bx bx-heart'></i>
                         <h3>Tu lista de deseos está vacía</h3>
-                        <p>Marca los cursos que te interesan para guardarlos en tu lista de deseos.</p>
-                        <button class="btn-primary">Explorar cursos</button>
+                        <p>Marca los talleres que te interesan para guardarlos en tu lista de deseos.</p>
+                        <button class="btn-primary">Explorar talleres</button>
                     </div>
                 </div>
 
@@ -277,8 +277,8 @@
                 <div id="archived" class="tab-content">
                     <div class="empty-state">
                         <i class='bx bx-archive'></i>
-                        <h3>No hay cursos archivados</h3>
-                        <p>Los cursos que archives aparecerán aquí para mantener organizado tu aprendizaje.</p>
+                        <h3>No hay talleres archivados</h3>
+                        <p>Los talleres que archives aparecerán aquí para mantener organizado tu aprendizaje.</p>
                     </div>
                 </div>
 
@@ -289,8 +289,8 @@
                             <div class="tool-icon">
                                 <i class='bx bx-note'></i>
                             </div>
-                            <h3>Notas de curso</h3>
-                            <p>Toma notas mientras estudias y organízalas por curso.</p>
+                            <h3>Notas de taller</h3>
+                            <p>Toma notas mientras estudias y organízalas por taller.</p>
                             <button class="btn-secondary">Abrir notas</button>
                         </div>
                         <div class="tool-card">

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Información del Taller — Lia</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/courses.css">
+    <!-- Estilos específicos para las partículas -->
+    <link rel="stylesheet" href="styles/particles-background.css" />
+    <!-- Estilos del login para glassmorphism -->
+    <link rel="stylesheet" href="login/new-auth.css" />
+    <!-- Estilos específicos para la página de información del taller -->
+    <link rel="stylesheet" href="styles/taller-info.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="icon" type="image/png" href="assets/images/icono.png">
+    <meta name="description" content="Información del Taller - Conoce los detalles y comienza tu aprendizaje">
+    <meta name="keywords" content="taller, información, aprendizaje, IA, educación">
+    <meta name="author" content="Lia">
+    
+    <!-- Auth Guard - Protección de autenticación -->
+    <script src="utils/auth-guard.js"></script>
+    
+    <!-- Global theme setup - Configuración global del tema -->
+    <script src="scripts/global-theme-setup.js"></script>
+</head>
+<body class="taller-info-page">
+    <!-- Partículas de fondo estáticas CSS -->
+    <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Contenedor principal con fondo dinámico -->
+    <div class="auth-container">
+        <div class="auth-bg">
+            <div class="bg-glow"></div>
+            <canvas id="bgParticles"></canvas>
+        </div>
+
+    <!-- Header con navbar -->
+    <header class="catalog-header">
+        <div class="container">
+            <div class="course-tabs">
+                <button class="tab-button" onclick="location.href='cursos.html'">
+                    <i class='bx bx-collection'></i>
+                    Talleres
+                </button>
+                <button class="tab-button" onclick="location.href='coming-soon.html'">
+                    <i class='bx bx-group'></i>
+                    Comunidad
+                </button>
+                <button class="tab-button" onclick="location.href='coming-soon.html'">
+                    <i class='bx bx-news'></i>
+                    Noticias
+                </button>
+            </div>
+            <button class="header-profile">
+                <img src="assets/images/icono.png" alt="Perfil" />
+            </button>
+            <div id="profileMenu" class="profile-menu">
+                <div class="pm-header">
+                    <div class="pm-avatar"><img src="assets/images/icono.png" alt="Perfil"/></div>
+                    <div>
+                        <div class="pm-name" id="pmName">Usuario</div>
+                        <div class="pm-email" id="pmEmail"></div>
+                    </div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" onclick="location.href='courses.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" onclick="location.href='profile.html'"><i class='bx bx-user'></i> Editar perfil</div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" id="themeToggle" onclick="toggleTheme()">
+                        <i class='bx bx-sun theme-icon-sun'></i>
+                        <i class='bx bx-moon theme-icon-moon'></i>
+                        Cambiar tema
+                    </div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" onclick="location.href='index.html'"><i class='bx bx-log-out'></i> Cerrar sesión</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="taller-info-main">
+        <div class="taller-info-container">
+            
+            <!-- Botón de regreso -->
+            <div class="back-button-container">
+                <button class="back-button" onclick="history.back()">
+                    <i class='bx bx-arrow-back'></i>
+                    Volver
+                </button>
+            </div>
+
+            <!-- Tarjeta principal del taller -->
+            <div class="taller-info-card">
+                <div class="taller-header">
+                    <div class="taller-image">
+                        <img src="assets/images/brain-icon.jpg" alt="Taller de IA">
+                    </div>
+                    <div class="taller-title-section">
+                        <h1>Dominando ChatGPT y Gemini para la Productividad</h1>
+                        <p class="taller-subtitle">Aprende a maximizar tu productividad con las herramientas de IA más avanzadas</p>
+                        <div class="taller-meta">
+                            <span class="meta-item">
+                                <i class='bx bx-user'></i>
+                                Instructor: Lia IA
+                            </span>
+                            <span class="meta-item">
+                                <i class='bx bx-time'></i>
+                                Duración: 15 horas
+                            </span>
+                            <span class="meta-item">
+                                <i class='bx bx-star'></i>
+                                Nivel: Intermedio
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video de YouTube -->
+                <div class="video-section">
+                    <h2>Video de Introducción</h2>
+                    <div class="video-container">
+                        <iframe 
+                            width="100%" 
+                            height="400" 
+                            src="https://www.youtube.com/embed/y7xsTTRmk88" 
+                            title="Introducción al Taller de IA" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+
+                <!-- Descripción del taller -->
+                <div class="taller-description">
+                    <h2>¿Qué aprenderás?</h2>
+                    <div class="learning-objectives">
+                        <div class="objective-item">
+                            <i class='bx bx-check-circle'></i>
+                            <span>Dominar ChatGPT para automatizar tareas diarias</span>
+                        </div>
+                        <div class="objective-item">
+                            <i class='bx bx-check-circle'></i>
+                            <span>Utilizar Gemini para análisis de datos y contenido</span>
+                        </div>
+                        <div class="objective-item">
+                            <i class='bx bx-check-circle'></i>
+                            <span>Crear flujos de trabajo optimizados con IA</span>
+                        </div>
+                        <div class="objective-item">
+                            <i class='bx bx-check-circle'></i>
+                            <span>Integrar herramientas de IA en tu rutina profesional</span>
+                        </div>
+                        <div class="objective-item">
+                            <i class='bx bx-check-circle'></i>
+                            <span>Desarrollar estrategias de productividad personalizadas</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido del taller -->
+                <div class="taller-content">
+                    <h2>Contenido del Taller</h2>
+                    <div class="content-modules">
+                        <div class="module-item">
+                            <div class="module-header">
+                                <i class='bx bx-play-circle'></i>
+                                <h3>Módulo 1: Fundamentos de ChatGPT</h3>
+                                <span class="module-duration">3 horas</span>
+                            </div>
+                            <p>Introducción a ChatGPT, configuración y primeros pasos para maximizar su potencial.</p>
+                        </div>
+                        <div class="module-item">
+                            <div class="module-header">
+                                <i class='bx bx-play-circle'></i>
+                                <h3>Módulo 2: Gemini Avanzado</h3>
+                                <span class="module-duration">4 horas</span>
+                            </div>
+                            <p>Exploración profunda de Gemini para análisis, investigación y generación de contenido.</p>
+                        </div>
+                        <div class="module-item">
+                            <div class="module-header">
+                                <i class='bx bx-play-circle'></i>
+                                <h3>Módulo 3: Automatización y Flujos</h3>
+                                <span class="module-duration">5 horas</span>
+                            </div>
+                            <p>Creación de flujos de trabajo automatizados y integración de herramientas.</p>
+                        </div>
+                        <div class="module-item">
+                            <div class="module-header">
+                                <i class='bx bx-play-circle'></i>
+                                <h3>Módulo 4: Proyecto Final</h3>
+                                <span class="module-duration">3 horas</span>
+                            </div>
+                            <p>Aplicación práctica de todo lo aprendido en un proyecto real.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="taller-actions">
+                    <button class="btn-primary btn-start-taller" onclick="startTaller()">
+                        <i class='bx bx-play'></i>
+                        Comenzar Taller
+                    </button>
+                    <button class="btn-secondary btn-preview" onclick="previewTaller()">
+                        <i class='bx bx-show'></i>
+                        Vista Previa
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sección "¿Qué hago después?" -->
+            <div class="what-next-section">
+                <h2>¿Qué hago después?</h2>
+                <div class="next-steps">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Completa el taller</h3>
+                            <p>Dedica tiempo diario para avanzar en el contenido y completar todos los módulos.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Practica con LIA</h3>
+                            <p>Utiliza el asistente LIA para resolver dudas y profundizar en los conceptos aprendidos.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Aplica en proyectos reales</h3>
+                            <p>Implementa las técnicas aprendidas en tu trabajo o proyectos personales.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Únete a la comunidad</h3>
+                            <p>Comparte tus experiencias y conecta con otros estudiantes en nuestra comunidad.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    </div> <!-- Cierre del auth-container -->
+
+    <script src="scripts/main.js"></script>
+    <script src="scripts/profile-avatar-manager.js"></script>
+    <script src="scripts/courses-particles-direct.js"></script>
+    <script src="scripts/force-theme-init.js"></script>
+    <script src="scripts/theme-manager.js"></script>
+    <script src="scripts/theme-toggle.js"></script>
+    <script src="scripts/taller-info.js"></script>
+</body>
+</html>
