@@ -113,6 +113,11 @@ app.get('/', (req, res) => {
     }
 });
 
+// Admin panel route
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'src', 'admin', 'admin.html'));
+});
+
 // Pool de conexiones a PostgreSQL
 let pool;
 if (process.env.DATABASE_URL) {
@@ -767,6 +772,379 @@ app.post('/api/context', authenticateRequest, requireUserSession, async (req, re
 });
 
 // Función para obtener prompts del sistema
+
+// ========================================
+// ADMIN PANEL ENDPOINTS
+// ========================================
+
+// Middleware for admin authentication
+function requireAdminAuth(req, res, next) {
+    // For now, just check if user has admin role in JWT
+    // In production, implement proper admin role checking
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Admin authorization required' });
+    }
+    
+    try {
+        const token = authHeader.substring(7);
+        const decoded = jwt.verify(token, process.env.USER_JWT_SECRET || 'dev-jwt-secret');
+        
+        // Check if user has admin role (you may need to adjust based on your user structure)
+        // For development, we'll allow all authenticated users
+        req.adminUser = decoded;
+        next();
+    } catch (error) {
+        return res.status(401).json({ error: 'Invalid admin token' });
+    }
+}
+
+// Admin users endpoint - Get all users
+app.get('/api/admin/users', authenticateRequest, requireAdminAuth, async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Database not configured' });
+        }
+
+        // Query users from database with role information
+        const query = `
+            SELECT 
+                id, 
+                username, 
+                full_name, 
+                email,
+                COALESCE(
+                    CASE 
+                        WHEN username = 'admin' THEN 'administrador'
+                        ELSE 'usuario'
+                    END, 'usuario'
+                ) as role,
+                CASE 
+                    WHEN last_activity > NOW() - INTERVAL '7 days' THEN 'active'
+                    ELSE 'inactive'
+                END as status,
+                created_at,
+                last_activity
+            FROM users
+            ORDER BY created_at DESC
+        `;
+
+        const result = await pool.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Error fetching users' });
+    }
+});
+
+// Create new user
+app.post('/api/admin/users', authenticateRequest, requireAdminAuth, async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Database not configured' });
+        }
+
+        const { full_name, username, email, password, role } = req.body;
+
+        // Check if user already exists
+        const checkQuery = 'SELECT id FROM users WHERE username = $1';
+        const existing = await pool.query(checkQuery, [username]);
+        
+        if (existing.rows.length > 0) {
+            return res.status(409).json({ error: 'Username already exists' });
+        }
+
+        // Create user (for now without password hashing since DB doesn't have password field)
+        const insertQuery = `
+            INSERT INTO users (full_name, username, email, created_at, last_activity)
+            VALUES ($1, $2, $3, NOW(), NOW())
+            RETURNING id, username, full_name, email, created_at
+        `;
+
+        const result = await pool.query(insertQuery, [full_name, username, email]);
+        
+        res.status(201).json({
+            ...result.rows[0],
+            role: role || 'usuario',
+            status: 'active'
+        });
+    } catch (error) {
+        console.error('Error creating user:', error);
+        res.status(500).json({ error: 'Error creating user' });
+    }
+});
+
+// Update user
+app.put('/api/admin/users/:id', authenticateRequest, requireAdminAuth, async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Database not configured' });
+        }
+
+        const { id } = req.params;
+        const { full_name, username, email, role, status } = req.body;
+
+        const updateQuery = `
+            UPDATE users 
+            SET 
+                full_name = $1,
+                username = $2,
+                email = $3,
+                last_activity = CASE WHEN $4 = 'active' THEN NOW() ELSE last_activity END
+            WHERE id = $5
+            RETURNING id, username, full_name, email, created_at, last_activity
+        `;
+
+        const result = await pool.query(updateQuery, [full_name, username, email, status, id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({
+            ...result.rows[0],
+            role: role || 'usuario',
+            status: status || 'active'
+        });
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ error: 'Error updating user' });
+    }
+});
+
+// Delete user
+app.delete('/api/admin/users/:id', authenticateRequest, requireAdminAuth, async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Database not configured' });
+        }
+
+        const { id } = req.params;
+
+        // Delete user's related data first (conversations, etc.)
+        await pool.query('DELETE FROM conversations WHERE user_id = $1', [id]);
+        
+        // Delete user
+        const deleteQuery = 'DELETE FROM users WHERE id = $1 RETURNING id';
+        const result = await pool.query(deleteQuery, [id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ error: 'Error deleting user' });
+    }
+});
+
+// Dashboard statistics
+app.get('/api/admin/dashboard/stats', authenticateRequest, requireAdminAuth, async (req, res) => {
+    try {
+        if (!pool) {
+            // Return mock data if no database
+            return res.json({
+                totalUsers: 0,
+                activeUsers: 0,
+                totalCourses: 4,
+                totalPosts: 0,
+                userDistribution: {
+                    usuarios: 0,
+                    instructores: 0,
+                    administradores: 0
+                }
+            });
+        }
+
+        // Get user statistics
+        const userStatsQuery = `
+            SELECT 
+                COUNT(*) as total_users,
+                COUNT(CASE WHEN last_activity > NOW() - INTERVAL '7 days' THEN 1 END) as active_users
+            FROM users
+        `;
+        const userStats = await pool.query(userStatsQuery);
+
+        // Get course count (from course_content table)
+        const courseCountQuery = `
+            SELECT COUNT(DISTINCT title) as total_courses 
+            FROM course_content 
+            WHERE content_type = 'topic'
+        `;
+        const courseCount = await pool.query(courseCountQuery);
+
+        // For community posts, we'll return 0 since we don't have those tables yet
+        const stats = {
+            totalUsers: parseInt(userStats.rows[0].total_users) || 0,
+            activeUsers: parseInt(userStats.rows[0].active_users) || 0,
+            totalCourses: parseInt(courseCount.rows[0].total_courses) || 0,
+            totalPosts: 0, // No community_post table yet
+            userDistribution: {
+                usuarios: parseInt(userStats.rows[0].total_users) || 0,
+                instructores: 0,
+                administradores: 1 // Assuming at least one admin
+            }
+        };
+
+        res.json(stats);
+    } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+        res.status(500).json({ error: 'Error fetching statistics' });
+    }
+});
+
+// Get recent activity
+app.get('/api/admin/activity', authenticateRequest, requireAdminAuth, async (req, res) => {
+    try {
+        if (!pool) {
+            return res.json([]);
+        }
+
+        // Get recent user activity
+        const activityQuery = `
+            SELECT 
+                u.username as user,
+                'inició sesión' as action,
+                u.last_activity as timestamp,
+                'user_login' as type
+            FROM users u
+            WHERE u.last_activity IS NOT NULL
+            ORDER BY u.last_activity DESC
+            LIMIT 10
+        `;
+
+        const result = await pool.query(activityQuery);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching activity:', error);
+        res.status(500).json({ error: 'Error fetching activity' });
+    }
+});
+
+// Get courses
+app.get('/api/admin/courses', authenticateRequest, requireAdminAuth, async (req, res) => {
+    try {
+        if (!pool) {
+            return res.json([]);
+        }
+
+        // Get courses from course_content
+        const coursesQuery = `
+            SELECT 
+                id,
+                title,
+                content as description,
+                category,
+                difficulty_level,
+                tags,
+                created_at,
+                0 as enrollments,
+                2 as duration
+            FROM course_content
+            WHERE content_type = 'topic'
+            ORDER BY created_at DESC
+        `;
+
+        const result = await pool.query(coursesQuery);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching courses:', error);
+        res.status(500).json({ error: 'Error fetching courses' });
+    }
+});
+
+// Get community posts (placeholder for now)
+app.get('/api/admin/community/posts', authenticateRequest, requireAdminAuth, async (req, res) => {
+    try {
+        // Return empty array since we don't have community tables yet
+        res.json([]);
+    } catch (error) {
+        console.error('Error fetching posts:', error);
+        res.status(500).json({ error: 'Error fetching posts' });
+    }
+});
+
+// Get community comments (placeholder for now)
+app.get('/api/admin/community/comments', authenticateRequest, requireAdminAuth, async (req, res) => {
+    try {
+        // Return empty array since we don't have community tables yet
+        res.json([]);
+    } catch (error) {
+        console.error('Error fetching comments:', error);
+        res.status(500).json({ error: 'Error fetching comments' });
+    }
+});
+
+// Get analytics data
+app.get('/api/admin/analytics', authenticateRequest, requireAdminAuth, async (req, res) => {
+    try {
+        if (!pool) {
+            return res.json({
+                userActivity: { labels: [], data: [] },
+                courseProgress: { labels: [], data: [] }
+            });
+        }
+
+        // Generate sample analytics data for the last 30 days
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+
+        // Get user activity for the last 30 days
+        const activityQuery = `
+            SELECT 
+                DATE(last_activity) as activity_date,
+                COUNT(DISTINCT id) as active_users
+            FROM users
+            WHERE last_activity >= $1 AND last_activity <= $2
+            GROUP BY DATE(last_activity)
+            ORDER BY activity_date
+        `;
+
+        const activityResult = await pool.query(activityQuery, [startDate, endDate]);
+
+        // Format data for charts
+        const userActivity = {
+            labels: activityResult.rows.map(row => 
+                new Date(row.activity_date).toLocaleDateString('es-ES')
+            ),
+            data: activityResult.rows.map(row => parseInt(row.active_users))
+        };
+
+        // Course progress (mock data for now)
+        const courseProgress = {
+            labels: ['Sesión 1', 'Sesión 2', 'Sesión 3', 'Sesión 4'],
+            data: [75, 60, 45, 30]
+        };
+
+        res.json({ userActivity, courseProgress });
+    } catch (error) {
+        console.error('Error fetching analytics:', error);
+        res.status(500).json({ error: 'Error fetching analytics' });
+    }
+});
+
+// Test database connection
+app.post('/api/admin/test-db', authenticateRequest, requireAdminAuth, async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Database not configured' });
+        }
+
+        // Simple query to test connection
+        await pool.query('SELECT 1');
+        res.json({ success: true, message: 'Database connection successful' });
+    } catch (error) {
+        console.error('Error testing database:', error);
+        res.status(500).json({ error: 'Database connection failed' });
+    }
+});
+
+// ========================================
+// END ADMIN PANEL ENDPOINTS
+// ========================================
 
 // Middleware de manejo de errores
 app.use((error, req, res, next) => {
