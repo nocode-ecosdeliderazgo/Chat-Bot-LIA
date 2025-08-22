@@ -773,9 +773,19 @@ async function handleLogin(e) {
                 localStorage.setItem('authToken', result.token); // Mantener compatibilidad
                 devLog('Token guardado:', result.token.substring(0, 20) + '...');
             }
-            localStorage.setItem('userData', JSON.stringify(result.user));
-            localStorage.setItem('currentUser', JSON.stringify(result.user)); // Mantener compatibilidad
-            devLog('Datos de usuario guardados:', result.user);
+            
+            // AGREGAR CONTRASEÑA A LOS DATOS DEL USUARIO PARA SUPABASE
+            const userWithPassword = {
+                ...result.user,
+                password: password  // Guardar contraseña para autenticación en Supabase
+            };
+            
+            localStorage.setItem('userData', JSON.stringify(userWithPassword));
+            localStorage.setItem('currentUser', JSON.stringify(userWithPassword)); // Mantener compatibilidad
+            devLog('Datos de usuario guardados (con contraseña para Supabase):', {
+                ...result.user,
+                password: '[GUARDADA]'
+            });
             
             // Crear sesión activa
             const sessionData = {
@@ -1064,6 +1074,7 @@ async function validateCredentialsLocal(emailOrUsername, password) {
             name: foundUser.name,
             cargo_rol: foundUser.cargo_rol,
             type_rol: foundUser.type_rol, // CRUCIAL: incluir type_rol para la lógica de redirección
+            password: password, // AGREGAR CONTRASEÑA PARA SUPABASE
             loginTime: new Date().toISOString()
         };
         

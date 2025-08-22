@@ -310,8 +310,14 @@
                                     <button onclick="createTestData()" class="btn-secondary" style="margin-right: 8px; font-size: 12px; padding: 0.4rem 0.8rem;">
                                         Crear Datos
                                     </button>
-                                    <button onclick="testRealBackend()" class="btn-secondary" style="font-size: 12px; padding: 0.4rem 0.8rem;">
+                                    <button onclick="testRealBackend()" class="btn-secondary" style="margin-right: 8px; font-size: 12px; padding: 0.4rem 0.8rem;">
                                         Test Real
+                                    </button>
+                                    <button onclick="testLinearIssueUser()" class="btn-secondary" style="margin-right: 8px; font-size: 12px; padding: 0.4rem 0.8rem;">
+                                        Test Linear User
+                                    </button>
+                                    <button onclick="testDebugEndpoint()" class="btn-secondary" style="font-size: 12px; padding: 0.4rem 0.8rem;">
+                                        Debug User
                                     </button>
                                 </div>
                             </div>
@@ -456,7 +462,10 @@
             if (userData) {
                 try {
                     const user = JSON.parse(userData);
-                    if (user.id) return user.id;
+                    if (user.id) {
+                        console.log('✅ UserId encontrado en userData:', user.id);
+                        return user.id;
+                    }
                 } catch (e) {
                     console.warn('Error parsing userData from localStorage:', e);
                 }
@@ -467,15 +476,26 @@
             if (token) {
                 try {
                     const payload = JSON.parse(atob(token.split('.')[1]));
-                    if (payload.sub) return payload.sub;
+                    if (payload.sub) {
+                        console.log('✅ UserId encontrado en token JWT:', payload.sub);
+                        return payload.sub;
+                    }
                 } catch (e) {
                     console.warn('Error decoding token:', e);
                 }
             }
             
-            // Método 3: Usuario de prueba para desarrollo
-            console.warn('⚠️ No se encontró userId, usando userId de prueba');
-            return 'dev-user-id';
+            // Método 3: Verificar si hay un userId específico en la URL (para testing)
+            const urlParams = new URLSearchParams(window.location.search);
+            const testUserId = urlParams.get('userId');
+            if (testUserId) {
+                console.log('✅ UserId encontrado en URL params:', testUserId);
+                return testUserId;
+            }
+            
+            // Método 4: Usuario específico mencionado en el issue Linear
+            console.warn('⚠️ No se encontró userId, usando userId del issue Linear');
+            return '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0';
         }
         
         // Cargar datos del radar del usuario
@@ -491,6 +511,7 @@
                 }
                 
                 // Hacer fetch al endpoint del backend
+                console.log('🌐 Haciendo request a:', `/api/radar/user/${userId}`);
                 const response = await fetch(`/api/radar/user/${userId}`, {
                     headers: {
                         'Content-Type': 'application/json'
@@ -498,27 +519,42 @@
                     }
                 });
                 
+                console.log('📡 Response status:', response.status, response.statusText);
+                
                 if (!response.ok) {
                     console.error('❌ Error en response:', response.status, response.statusText);
+                    const errorText = await response.text();
+                    console.error('❌ Error details:', errorText);
                     showRadarPlaceholder();
                     return;
                 }
                 
                 const data = await response.json();
                 console.log('📊 Datos del radar recibidos:', data);
+                console.log('📊 DataSource:', data.dataSource);
+                console.log('📊 HasData:', data.hasData);
                 
                 currentUserData = data;
                 
                 if (data.hasData && (data.conocimiento > 0 || data.aplicacion > 0 || data.productividad > 0 || data.estrategia > 0 || data.inversion > 0)) {
+                    console.log('✅ Datos válidos encontrados, creando radar chart');
                     createRadarChart(data);
                     showSessionInfo(data.session_id);
                 } else {
                     console.log('📭 Usuario sin datos de cuestionario');
+                    console.log('📊 Valores de dimensiones:', {
+                        conocimiento: data.conocimiento,
+                        aplicacion: data.aplicacion,
+                        productividad: data.productividad,
+                        estrategia: data.estrategia,
+                        inversion: data.inversion
+                    });
                     showRadarPlaceholder();
                 }
                 
             } catch (error) {
                 console.error('💥 Error cargando datos del radar:', error);
+                console.error('💥 Error stack:', error.stack);
                 showRadarPlaceholder();
             }
         }
@@ -854,6 +890,94 @@
                 console.error('💥 Error testing real backend:', error);
                 alert(`💥 Error: ${error.message}`);
                 handleNetworkError();
+            }
+        }
+        
+        // Test con el usuario específico del issue Linear
+        async function testLinearIssueUser() {
+            console.log('🔍 Testing usuario del issue Linear...');
+            
+            try {
+                const userId = '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0';
+                const response = await fetch(`/api/radar/user/${userId}`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Linear issue user response:', data);
+                    
+                    if (data.hasData && data.dataSource === 'database') {
+                        currentUserData = data;
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                        alert('✅ ¡Usuario del issue Linear tiene datos en la base de datos!');
+                    } else if (data.hasData && data.dataSource === 'test') {
+                        currentUserData = data;
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                        alert('⚠️ Usuario del issue Linear cargando datos de prueba');
+                    } else {
+                        showRadarPlaceholder();
+                        alert('📭 Usuario del issue Linear no tiene datos en la base de datos');
+                    }
+                } else {
+                    console.error('❌ Backend error:', response.status);
+                    alert(`❌ Error del backend: ${response.status}`);
+                    handleNetworkError();
+                }
+                
+            } catch (error) {
+                console.error('💥 Error testing Linear issue user:', error);
+                alert(`💥 Error: ${error.message}`);
+                handleNetworkError();
+            }
+        }
+        
+        // Test del endpoint de debug
+        async function testDebugEndpoint() {
+            console.log('🔍 Testing endpoint de debug...');
+            
+            try {
+                const userId = getCurrentUserId();
+                const response = await fetch(`/api/radar/debug/${userId}`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Debug endpoint response:', data);
+                    
+                    // Mostrar información detallada
+                    let debugInfo = `🔍 Debug Info para ${userId}:\n\n`;
+                    debugInfo += `👤 Usuario existe: ${data.userExists}\n`;
+                    debugInfo += `📝 Sesiones: ${data.sessionsCount}\n`;
+                    debugInfo += `💬 Respuestas: ${data.responsesCount}\n`;
+                    debugInfo += `👁️ Vista existe: ${data.viewExists}\n`;
+                    debugInfo += `✅ Sesiones completadas: ${data.hasCompletedSessions}\n`;
+                    
+                    if (data.radarData) {
+                        debugInfo += `\n📊 Datos de radar:\n`;
+                        debugInfo += `- Conocimiento: ${data.radarData.conocimiento}\n`;
+                        debugInfo += `- Aplicación: ${data.radarData.aplicacion}\n`;
+                        debugInfo += `- Productividad: ${data.radarData.productividad}\n`;
+                        debugInfo += `- Estrategia: ${data.radarData.estrategia}\n`;
+                        debugInfo += `- Inversión: ${data.radarData.inversion}\n`;
+                    }
+                    
+                    alert(debugInfo);
+                } else {
+                    console.error('❌ Debug endpoint error:', response.status);
+                    alert(`❌ Error del debug endpoint: ${response.status}`);
+                }
+                
+            } catch (error) {
+                console.error('💥 Error testing debug endpoint:', error);
+                alert(`💥 Error: ${error.message}`);
             }
         }
     </script>

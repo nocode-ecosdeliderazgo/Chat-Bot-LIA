@@ -134,11 +134,51 @@ class FileUploadManager {
                         this.supabaseUser = data.session.user;
                         return true;
                     } else {
-                        console.warn('⚠️ Login falló, intentando crear usuario:', error?.message);
+                        console.warn('⚠️ Login falló:', error?.message);
+                        
+                        // MANEJO DETALLADO DE ERRORES DE SUPABASE
+                        const errorMessage = error?.message || '';
+                        
+                        // ERROR 1: EMAIL NOT CONFIRMED
+                        if (errorMessage.includes('Email not confirmed')) {
+                            console.error('❌ EMAIL NO CONFIRMADO en Supabase');
+                            console.log('📧 El usuario debe confirmar su email antes de usar Storage');
+                            console.log('🔧 SOLUCIÓN: Reenviar email de confirmación o confirmar manualmente');
+                            
+                            // Mostrar notificación específica con opciones de solución
+                            this.showEmailNotConfirmedNotification();
+                            return false;
+                        }
+                        
+                        // ERROR 2: INVALID LOGIN CREDENTIALS  
+                        if (errorMessage.includes('Invalid login credentials')) {
+                            console.error('❌ CREDENCIALES INVÁLIDAS en Supabase');
+                            console.log('🔧 POSIBLES CAUSAS:');
+                            console.log('   - Contraseña incorrecta');
+                            console.log('   - Usuario no registrado en Supabase');
+                            console.log('   - Email incorrecto');
+                            console.log('🔧 SOLUCIÓN: Verificar credenciales o crear usuario nuevo');
+                        }
+                        
+                        // ERROR 3: TOO MANY REQUESTS
+                        if (errorMessage.includes('Too many requests') || errorMessage.includes('rate limit')) {
+                            console.error('❌ DEMASIADAS SOLICITUDES en Supabase');
+                            console.log('🔧 SOLUCIÓN: Esperar unos minutos antes de intentar nuevamente');
+                            this.showError('Demasiadas solicitudes. Espera unos minutos e intenta de nuevo.');
+                            return false;
+                        }
+                        
+                        // ERROR 4: SIGNUP DISABLED
+                        if (errorMessage.includes('Signups not allowed')) {
+                            console.error('❌ REGISTRO DESHABILITADO en Supabase');
+                            console.log('🔧 SOLUCIÓN: El administrador debe habilitar registros en Supabase');
+                            this.showError('Los registros están deshabilitados. Contacta al administrador.');
+                            return false;
+                        }
                         
                         // Si el usuario no existe, intentar crearlo
-                        if (error?.message?.includes('Invalid login credentials') || 
-                            error?.message?.includes('User not found')) {
+                        if (errorMessage.includes('Invalid login credentials') || 
+                            errorMessage.includes('User not found')) {
                             
                             console.log('🔑 Usuario no existe, intentando crear en Supabase...');
                             
@@ -157,8 +197,36 @@ class FileUploadManager {
                                 console.log('✅ Usuario creado y autenticado exitosamente');
                                 this.supabaseUser = signUpData.session.user;
                                 return true;
+                            } else if (!signUpError && signUpData.user && !signUpData.session) {
+                                console.log('✅ Usuario creado - Email de confirmación enviado');
+                                console.log('📧 El usuario debe confirmar su email para completar el registro');
+                                this.showEmailNotConfirmedNotification();
+                                return false;
                             } else {
-                                console.warn('⚠️ Error creando usuario:', signUpError?.message);
+                                console.error('❌ Error creando usuario:', signUpError?.message);
+                                
+                                // MANEJO DETALLADO DE ERRORES DE SIGNUP
+                                const signUpErrorMessage = signUpError?.message || '';
+                                
+                                if (signUpErrorMessage.includes('User already registered')) {
+                                    console.log('🔧 CAUSA: Usuario ya existe pero con credenciales diferentes');
+                                    console.log('🔧 SOLUCIÓN: Verificar email y contraseña correctos');
+                                    this.showError('Usuario ya registrado. Verifica tus credenciales.');
+                                } else if (signUpErrorMessage.includes('Password should be at least')) {
+                                    console.log('🔧 CAUSA: Contraseña muy corta');
+                                    console.log('🔧 SOLUCIÓN: Usar contraseña más larga');
+                                    this.showError('La contraseña debe tener al menos 6 caracteres.');
+                                } else if (signUpErrorMessage.includes('Signups not allowed')) {
+                                    console.log('🔧 CAUSA: Registros deshabilitados en Supabase');
+                                    console.log('🔧 SOLUCIÓN: Contactar administrador');
+                                    this.showError('Los registros están deshabilitados. Contacta al administrador.');
+                                } else if (signUpErrorMessage.includes('Invalid email')) {
+                                    console.log('🔧 CAUSA: Email inválido');
+                                    console.log('🔧 SOLUCIÓN: Verificar formato de email');
+                                    this.showError('El formato del email es inválido.');
+                                } else if (signUpErrorMessage) {
+                                    this.showError(`Error al crear usuario: ${signUpErrorMessage}`);
+                                }
                             }
                         }
                     }
@@ -202,7 +270,13 @@ class FileUploadManager {
                 hasUsername: !!this.currentUser.username,
                 username: this.currentUser.username || 'NO USERNAME'
             });
-            console.log('🚨 SOLUCIÓN: El usuario debe tener email y password para usar Supabase Storage');
+            console.log('🚨 SOLUCIÓN PRINCIPAL: El usuario debe confirmar su email en Supabase');
+            console.log('🔧 PASOS PARA SOLUCIONAR:');
+            console.log('   1. Revisar bandeja de entrada del email:', this.currentUser.email);
+            console.log('   2. Buscar email de Supabase con asunto "Confirm your signup"');
+            console.log('   3. Hacer clic en el enlace de confirmación');
+            console.log('   4. O usar el botón "Reenviar Email" cuando aparezca la notificación');
+            console.log('   5. Una vez confirmado, recargar la página e intentar subir el CV nuevamente');
             
             return false;
             
@@ -402,11 +476,30 @@ class FileUploadManager {
             
             if (!this.supabaseUser) {
                 console.error('❌ Usuario no autenticado en Supabase - Storage fallará');
+                
+                // VERIFICAR SI TIENE CONTRASEÑA ANTES DE INTENTAR AUTENTICAR
+                if (!this.currentUser.password) {
+                    console.error('❌ PROBLEMA: Usuario sin contraseña guardada');
+                    console.log('📝 Estado del usuario:', {
+                        hasEmail: !!this.currentUser.email,
+                        email: this.currentUser.email || 'NO EMAIL',
+                        hasPassword: !!this.currentUser.password,
+                        hasUsername: !!this.currentUser.username,
+                        username: this.currentUser.username || 'NO USERNAME'
+                    });
+                    console.log('🚨 SOLUCIÓN: El usuario debe hacer login nuevamente para guardar la contraseña');
+                    
+                    // Mostrar notificación al usuario
+                    this.showPasswordRequiredNotification();
+                    
+                    return null;
+                }
+                
                 console.log('🔄 Intentando autenticar con token local...');
                 
                 // Intentar autenticar con datos locales si están disponibles
                 if (this.currentUser && this.currentUser.email) {
-                    console.log('🔑 Usuario local encontrado, intentando autenticar en Supabase...');
+                    console.log('🔑 Usuario local encontrado con contraseña, intentando autenticar en Supabase...');
                     await this.tryAuthenticateUser();
                     
                     // Verificar de nuevo después del intento de autenticación
@@ -414,10 +507,10 @@ class FileUploadManager {
                         console.warn('⚠️ No se pudo autenticar en Supabase - usando fallback');
                         return null;
                     }
+                } else {
+                    // Continuar con fallback
+                    return null;
                 }
-                
-                // Continuar con fallback
-                return null;
             }
             
             console.log('✅ Usuario autenticado, procediendo con Storage');
@@ -837,6 +930,410 @@ class FileUploadManager {
             console.error('❌ Error descargando curriculum:', error);
             this.showError('Error al descargar curriculum');
         }
+    }
+
+    // Función para mostrar notificación cuando falta contraseña
+    showPasswordRequiredNotification() {
+        const notification = document.createElement('div');
+        notification.className = 'password-required-notification';
+        notification.innerHTML = `
+            <div class="notification-content">
+                <div class="notification-header">
+                    <h3>🔑 Requiere nueva autenticación</h3>
+                    <button class="notification-close">&times;</button>
+                </div>
+                <div class="notification-body">
+                    <p>Para subir archivos a la nube, necesitas hacer login nuevamente.</p>
+                    <p><strong>Razón:</strong> Tu sesión actual no tiene las credenciales necesarias para el almacenamiento seguro.</p>
+                    <div class="notification-actions">
+                        <button class="btn-login-again">Hacer Login Nuevamente</button>
+                        <button class="btn-continue-local">Continuar sin Nube</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Estilos de la notificación
+        notification.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10002;
+            backdrop-filter: blur(5px);
+        `;
+
+        const content = notification.querySelector('.notification-content');
+        content.style.cssText = `
+            background: var(--color-background, #ffffff);
+            color: var(--color-text, #333333);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            margin: 2rem;
+            font-family: 'Inter', sans-serif;
+        `;
+
+        const header = notification.querySelector('.notification-header');
+        header.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+        `;
+
+        const actions = notification.querySelector('.notification-actions');
+        actions.style.cssText = `
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        `;
+
+        const buttons = notification.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.style.cssText = `
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-family: inherit;
+                font-weight: 500;
+                transition: all 0.2s ease;
+            `;
+        });
+
+        const loginBtn = notification.querySelector('.btn-login-again');
+        loginBtn.style.cssText += `
+            background: var(--color-primary, #0066cc);
+            color: white;
+        `;
+
+        const continueBtn = notification.querySelector('.btn-continue-local');
+        continueBtn.style.cssText += `
+            background: #6b7280;
+            color: white;
+        `;
+
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.style.cssText += `
+            background: none;
+            color: #6b7280;
+            font-size: 1.5rem;
+            padding: 0;
+        `;
+
+        // Event listeners
+        closeBtn.addEventListener('click', () => notification.remove());
+        continueBtn.addEventListener('click', () => notification.remove());
+        loginBtn.addEventListener('click', () => {
+            notification.remove();
+            // Redirigir al login
+            window.location.href = '/src/login/new-auth.html';
+        });
+
+        document.body.appendChild(notification);
+    }
+
+    // Función para reenviar email de confirmación
+    async resendEmailConfirmation() {
+        try {
+            if (!this.supabase) {
+                console.error('❌ Supabase no está inicializado');
+                this.showError('Error: Supabase no está disponible');
+                return false;
+            }
+
+            if (!this.currentUser?.email) {
+                console.error('❌ No hay email para reenviar confirmación');
+                this.showError('Error: No se encontró el email del usuario');
+                return false;
+            }
+
+            console.log('📧 Reenviando email de confirmación a:', this.currentUser.email);
+            this.showLoading('Reenviando email de confirmación...');
+
+            // Usar la función resend de Supabase Auth
+            const { data, error } = await this.supabase.auth.resend({
+                type: 'signup',
+                email: this.currentUser.email,
+                options: {
+                    emailRedirectTo: window.location.origin + '/src/profile.html'
+                }
+            });
+
+            this.hideLoading();
+
+            if (error) {
+                console.error('❌ Error reenviando email:', error.message);
+                this.showError(`Error reenviando email: ${error.message}`);
+                return false;
+            } else {
+                console.log('✅ Email de confirmación reenviado exitosamente');
+                this.showSuccess('Email de confirmación reenviado. Revisa tu bandeja de entrada.');
+                
+                // Opcional: Cerrar la notificación después de un momento
+                setTimeout(() => {
+                    const notification = document.querySelector('.email-not-confirmed-notification');
+                    if (notification) {
+                        notification.remove();
+                    }
+                }, 3000);
+                
+                return true;
+            }
+        } catch (error) {
+            this.hideLoading();
+            console.error('❌ Error inesperado reenviando email:', error);
+            this.showError('Error inesperado al reenviar email de confirmación');
+            return false;
+        }
+    }
+
+    // Función para mostrar notificación de email no confirmado
+    showEmailNotConfirmedNotification() {
+        const notification = document.createElement('div');
+        notification.className = 'email-not-confirmed-notification';
+        notification.innerHTML = `
+            <div class="notification-content">
+                <div class="notification-header">
+                    <h3>📧 Email no confirmado</h3>
+                    <button class="notification-close">&times;</button>
+                </div>
+                <div class="notification-body">
+                    <p><strong>⚠️ Tu cuenta necesita verificación de email</strong></p>
+                    <p>Para guardar archivos en la nube de forma segura, Supabase requiere que confirmes tu email.</p>
+                    
+                    <div class="user-info">
+                        <p><strong>📧 Email a confirmar:</strong> <code>${this.currentUser.email}</code></p>
+                        <p><strong>📊 Estado actual:</strong> <span class="status-unconfirmed">❌ No confirmado</span></p>
+                    </div>
+                    
+                    <div class="email-instructions">
+                        <h4>🔧 Cómo confirmar tu email:</h4>
+                        <ol>
+                            <li><strong>Revisa tu bandeja de entrada</strong> (y carpeta de spam/promociones)</li>
+                            <li><strong>Busca un email de Supabase</strong> con asunto "Confirm your signup"</li>
+                            <li><strong>Haz clic en el enlace</strong> "Confirm your email address"</li>
+                            <li><strong>Regresa aquí</strong> y recarga la página</li>
+                            <li><strong>Intenta subir tu CV nuevamente</strong></li>
+                        </ol>
+                    </div>
+                    
+                    <div class="email-alternatives">
+                        <h4>📨 ¿No recibiste el email?</h4>
+                        <ul>
+                            <li>Revisa tu carpeta de spam o promociones</li>
+                            <li>Verifica que el email ${this.currentUser.email} sea correcto</li>
+                            <li>Usa el botón "Reenviar Email" de abajo</li>
+                            <li>Puede tardar unos minutos en llegar</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="notification-actions">
+                        <button class="btn-resend-email">📧 Reenviar Email de Confirmación</button>
+                        <button class="btn-continue-local">💾 Guardar Solo Local (temporal)</button>
+                    </div>
+                    
+                    <div class="notification-note">
+                        <small><strong>Nota:</strong> Mientras no confirmes tu email, los archivos se guardarán solo en tu navegador (no en la nube).</small>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Estilos de la notificación
+        notification.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10002;
+            backdrop-filter: blur(5px);
+        `;
+
+        const content = notification.querySelector('.notification-content');
+        content.style.cssText = `
+            background: var(--color-background, #ffffff);
+            color: var(--color-text, #333333);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: 2rem;
+            font-family: 'Inter', sans-serif;
+        `;
+
+        const header = notification.querySelector('.notification-header');
+        header.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+        `;
+
+        // Estilos para user-info
+        const userInfo = notification.querySelector('.user-info');
+        userInfo.style.cssText = `
+            background: #f0f8ff;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #0066cc;
+        `;
+
+        const statusUnconfirmed = notification.querySelector('.status-unconfirmed');
+        statusUnconfirmed.style.cssText = `
+            color: #dc3545;
+            font-weight: bold;
+        `;
+
+        const instructions = notification.querySelector('.email-instructions');
+        instructions.style.cssText = `
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid var(--color-primary, #28a745);
+        `;
+
+        const alternatives = notification.querySelector('.email-alternatives');
+        alternatives.style.cssText = `
+            background: #fff3cd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #ffc107;
+        `;
+
+        const notificationNote = notification.querySelector('.notification-note');
+        notificationNote.style.cssText = `
+            background: #e9ecef;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            font-style: italic;
+            text-align: center;
+        `;
+
+        const actions = notification.querySelector('.notification-actions');
+        actions.style.cssText = `
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        `;
+
+        const buttons = notification.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.style.cssText = `
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-family: inherit;
+                font-weight: 500;
+                transition: all 0.2s ease;
+            `;
+        });
+
+        const resendBtn = notification.querySelector('.btn-resend-email');
+        resendBtn.style.cssText += `
+            background: var(--color-primary, #0066cc);
+            color: white;
+        `;
+
+        const continueBtn = notification.querySelector('.btn-continue-local');
+        continueBtn.style.cssText += `
+            background: #6b7280;
+            color: white;
+        `;
+
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.style.cssText += `
+            background: none;
+            color: #6b7280;
+            font-size: 1.5rem;
+            padding: 0;
+        `;
+
+        // Event listeners
+        closeBtn.addEventListener('click', () => notification.remove());
+        continueBtn.addEventListener('click', () => notification.remove());
+        resendBtn.addEventListener('click', async () => {
+            console.log('📧 Reenviando email de confirmación...');
+            await this.resendEmailConfirmation();
+        });
+
+        document.body.appendChild(notification);
+
+        // Comprobar periódicamente si el email ha sido confirmado
+        this.startEmailConfirmationChecker();
+    }
+
+    // Función para verificar periódicamente si el email ha sido confirmado
+    startEmailConfirmationChecker() {
+        // Evitar múltiples checkers corriendo al mismo tiempo
+        if (this.emailCheckerInterval) {
+            clearInterval(this.emailCheckerInterval);
+        }
+
+        console.log('⏰ Iniciando verificación periódica de confirmación de email...');
+        
+        this.emailCheckerInterval = setInterval(async () => {
+            try {
+                console.log('🔍 Verificando si el email ha sido confirmado...');
+                
+                // Intentar autenticar nuevamente
+                const authSuccess = await this.tryAuthenticateUser();
+                
+                if (authSuccess) {
+                    console.log('✅ ¡Email confirmado! Autenticación exitosa.');
+                    
+                    // Cerrar la notificación
+                    const notification = document.querySelector('.email-not-confirmed-notification');
+                    if (notification) {
+                        notification.remove();
+                    }
+                    
+                    // Detener el checker
+                    clearInterval(this.emailCheckerInterval);
+                    this.emailCheckerInterval = null;
+                    
+                    // Mostrar mensaje de éxito
+                    this.showSuccess('✅ Email confirmado correctamente. Ya puedes subir archivos a la nube.');
+                    
+                    // Opcional: Intentar el upload automáticamente si había uno pendiente
+                    console.log('🔄 Email confirmado, Storage ahora disponible');
+                }
+            } catch (error) {
+                console.log('🔍 Aún sin confirmar, continuando verificación...');
+            }
+        }, 10000); // Verificar cada 10 segundos
+
+        // Detener el checker después de 10 minutos para evitar requests infinitos
+        setTimeout(() => {
+            if (this.emailCheckerInterval) {
+                clearInterval(this.emailCheckerInterval);
+                this.emailCheckerInterval = null;
+                console.log('⏰ Verificación automática de email terminada después de 10 minutos');
+            }
+        }, 600000); // 10 minutos
     }
 
     showLoading(message) {

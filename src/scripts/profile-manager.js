@@ -299,12 +299,30 @@ class ProfileManager {
                     return;
                 }
                 
+                // Verificar que no haya otros diálogos abiertos
+                if (document.querySelector('.password-required-notification')) {
+                    console.log('⚠️ Diálogo de notificación abierto, esperando...');
+                    return;
+                }
+                
                 try {
                     console.log('📝 Abriendo selector de archivos para CV...');
-                    curriculumInput.click();
+                    
+                    // Usar setTimeout para asegurar que se ejecute en el contexto correcto
+                    setTimeout(() => {
+                        try {
+                            curriculumInput.click();
+                        } catch (error) {
+                            console.error('❌ Error en setTimeout click:', error);
+                        }
+                    }, 0);
+                    
                 } catch (error) {
                     console.error('❌ Error abriendo file chooser:', error);
-                    alert('Error al abrir el selector de archivos. Por favor, intenta de nuevo.');
+                    // No mostrar alert inmediatamente, puede interferir
+                    setTimeout(() => {
+                        alert('Error al abrir el selector de archivos. Por favor, intenta de nuevo.');
+                    }, 100);
                 }
             });
 

@@ -1,163 +1,134 @@
-# PROMPT PARA SOLUCIONAR PROBLEMA DE CONTRASEÑA FALTANTE - CV NO SE GUARDA
+# PROMPT PARA SOLUCIONAR PROBLEMA DE EMAIL NO CONFIRMADO - CV NO SE GUARDA
 
 ## PROBLEMA CRÍTICO IDENTIFICADO
 
-### ERROR DE AUTENTICACIÓN - CONTRASEÑA FALTANTE
-**Síntoma:** El CV no se guarda porque el usuario NO tiene contraseña guardada localmente para autenticarse en Supabase.
+### ERROR DE AUTENTICACIÓN - EMAIL NO CONFIRMADO
+**Síntoma:** El CV no se guarda porque el email del usuario NO está confirmado en Supabase.
 
 **Evidencia en consola:**
 ```
-❌ ⚠️ Usuario NO autenticado en Supabase - Storage puede fallar
-❌ 🔑 Usuario no autenticado, intentando autenticar...
-❌ 🔑 Intentando autenticar con email: draax17.5@gmail.com
-❌ ❌ No se pudo autenticar en Supabase de ninguna forma
-
-📝 Estado del usuario local: {
+✅ Estado del usuario local: {
     hasEmail: true, 
     email: 'draax17.5@gmail.com', 
-    hasPassword: false,  // ❌ PROBLEMA AQUÍ
+    hasPassword: true,  // ✅ AHORA SÍ TIENE CONTRASEÑA
     hasUsername: true, 
     username: 'gaelchido'
 }
-🚨 SOLUCIÓN: El usuario debe tener email y password para usar Supabase Storage
+
+❌ POST https://miwbzotcuaywpdbidpwo.supabase.co/auth/v1/token?grant_type=password 400 (Bad Request)
+❌ Login falló, intentando crear usuario: Email not confirmed
+❌ Error creando usuario: undefined
+❌ ❌ No se pudo autenticar en Supabase de ninguna forma
 ```
 
 **PROBLEMA IDENTIFICADO:**
-- El usuario tiene email y username guardados localmente
-- **PERO NO tiene contraseña guardada** (`hasPassword: false`)
-- Sin contraseña, no puede autenticarse en Supabase
+- El usuario tiene email y contraseña correctos
+- **PERO el email NO está confirmado en Supabase**
+- Supabase requiere confirmación de email antes de permitir autenticación
 - Como resultado, el CV se guarda localmente en lugar de en Supabase
 
 ## POSIBLES CAUSAS
 
-### 1. **Problema en el flujo de registro/login:**
-- El usuario se registró pero la contraseña no se guardó en localStorage
-- El login no está guardando la contraseña correctamente
-- La contraseña se perdió o se borró del localStorage
+### 1. **Email no confirmado en Supabase:**
+- El usuario se registró pero no confirmó su email
+- El email de confirmación no llegó o se perdió
+- El usuario no hizo clic en el enlace de confirmación
 
-### 2. **Problema de seguridad:**
-- La aplicación no guarda contraseñas por seguridad
-- Se requiere un enfoque diferente para la autenticación
+### 2. **Problema en el flujo de registro:**
+- El sistema no está enviando emails de confirmación
+- El email de confirmación se está enviando a spam
+- Hay un problema con la configuración de emails en Supabase
 
-### 3. **Problema de sincronización:**
-- El usuario se logueó en una versión anterior que no guardaba contraseñas
-- Ahora necesita volver a hacer login para guardar la contraseña
+### 3. **Problema de configuración de Supabase:**
+- La configuración de emails no está correcta
+- El dominio de email no está verificado
+- Las credenciales de email están mal configuradas
 
-### 4. **Problema de diseño del sistema:**
-- El sistema no está diseñado para guardar contraseñas localmente
-- Se necesita una estrategia diferente para la autenticación
+### 4. **Problema de sincronización:**
+- El usuario se registró en una versión anterior que no requería confirmación
+- Ahora Supabase requiere confirmación pero el usuario no la tiene
 
 ## ARCHIVOS A REVISAR
 
 ### En file-upload-manager.js:
 **Líneas críticas:**
-- Línea 197: `❌ No se pudo autenticar en Supabase de ninguna forma`
-- Línea 198: Verificación del estado del usuario local
-- Línea 205: Mensaje de solución que indica el problema
+- Línea 127: `signInWithPassword` - Intento de login
+- Línea 137: `Login falló, intentando crear usuario: Email not confirmed`
+- Línea 143: `Usuario no existe, intentando crear en Supabase`
+- Línea 161: `Error creando usuario: undefined`
 
-### En el sistema de login/registro:
-**Verificar:**
-- `new-auth.html` o archivo de login principal
-- Scripts de autenticación
-- Cómo se guarda la información del usuario en localStorage
+### En supabase-client.js:
+**Verificar configuración:**
+- Configuración de Supabase
+- Configuración de emails
+- Políticas de confirmación de email
 
-### En profile-manager.js:
+### En el sistema de registro:
 **Verificar:**
-- Cómo se maneja la información del usuario
-- Si se está guardando la contraseña correctamente
+- `new-auth.html` o archivo de registro principal
+- Scripts de registro
+- Flujo de confirmación de email
 
 ## SOLUCIONES ESPECÍFICAS
 
-### 1. **Solución inmediata - Forzar nuevo login:**
+### 1. **Solución inmediata - Confirmar email:**
 ```javascript
-// Limpiar localStorage y forzar al usuario a hacer login nuevamente
-// para que se guarde la contraseña correctamente
+// Enviar email de confirmación al usuario
+// O permitir reenviar email de confirmación
 ```
 
-### 2. **Verificar flujo de guardado de contraseña:**
+### 2. **Verificar configuración de emails en Supabase:**
 ```javascript
-// Asegurar que cuando el usuario se loguee, la contraseña se guarde en localStorage
-// Verificar que el campo de contraseña se procese correctamente
+// Verificar que los emails de confirmación se estén enviando
+// Verificar configuración de SMTP o proveedor de email
 ```
 
-### 3. **Implementar verificación de contraseña:**
+### 3. **Implementar reenvío de confirmación:**
 ```javascript
-// Antes de intentar autenticar en Supabase, verificar que la contraseña esté disponible
-// Si no está, mostrar mensaje al usuario para que haga login nuevamente
+// Agregar botón para reenviar email de confirmación
+// Implementar función de reenvío
 ```
 
 ### 4. **Mejorar manejo de errores:**
 ```javascript
-// Mostrar mensaje claro al usuario sobre el problema
-// Proporcionar opción para hacer login nuevamente
+// Mostrar mensaje claro al usuario sobre la necesidad de confirmar email
+// Proporcionar opción para reenviar confirmación
 ```
 
 ## PASOS DE IMPLEMENTACIÓN
 
-1. **Verificar estado actual del usuario:**
-   - Revisar localStorage para ver qué información está guardada
-   - Verificar si la contraseña está presente
+1. **Verificar estado del email en Supabase:**
+   - Ir a la consola de Supabase
+   - Verificar si el email está confirmado
+   - Verificar configuración de emails
 
-2. **Corregir flujo de login:**
-   - Asegurar que la contraseña se guarde en localStorage
-   - Verificar que el campo de contraseña se procese correctamente
+2. **Enviar email de confirmación:**
+   - Reenviar email de confirmación al usuario
+   - Verificar que llegue correctamente
 
-3. **Implementar verificación:**
-   - Antes de intentar autenticar en Supabase, verificar que `hasPassword: true`
-   - Si no, mostrar mensaje al usuario
+3. **Implementar reenvío automático:**
+   - Agregar función para reenviar confirmación
+   - Mostrar mensaje al usuario sobre la necesidad de confirmar
 
 4. **Probar la solución:**
-   - Hacer logout y login nuevamente
-   - Verificar que la contraseña se guarde correctamente
+   - Confirmar el email en Supabase
    - Intentar subir un archivo CV
+   - Verificar que se guarde correctamente
 
 ## RESULTADO ESPERADO
 
-- **Estado del usuario:** `hasPassword: true`
+- **Email:** Confirmado en Supabase
 - **Autenticación:** Usuario autenticado correctamente en Supabase
 - **CV:** Se guarda correctamente en bucket "CURRICULUMS" sin fallback a localStorage
-- **Consola:** Sin errores de autenticación
+- **Consola:** Sin errores de "Email not confirmed"
 
 ## NOTAS IMPORTANTES
 
-- **El problema principal es que falta la contraseña en localStorage**
-- **El usuario debe hacer login nuevamente para guardar la contraseña**
-- **Verificar que el flujo de login guarde correctamente todos los datos**
-- **Considerar la seguridad al guardar contraseñas localmente**
-
-LOG:
-⚠️ Usuario NO autenticado en Supabase - Storage puede fallar
-verifySupabaseAuth @ file-upload-manager.js:73
-await in verifySupabaseAuth
-(anonymous) @ file-upload-manager.js:1005
-(anonymous) @ file-upload-manager.js:1037
-setTimeout
-(anonymous) @ file-upload-manager.js:1035
-file-upload-manager.js:1008 🔑 Usuario no autenticado, intentando autenticar...
-file-upload-manager.js:87 🔑 Intentando autenticar usuario en Supabase...
-file-upload-manager.js:123 🔑 Intentando autenticar con email: draax17.5@gmail.com
-file-upload-manager.js:197 ❌ No se pudo autenticar en Supabase de ninguna forma
-tryAuthenticateUser @ file-upload-manager.js:197
-(anonymous) @ file-upload-manager.js:1009
-await in (anonymous)
-(anonymous) @ file-upload-manager.js:1037
-setTimeout
-(anonymous) @ file-upload-manager.js:1035
-file-upload-manager.js:198 📝 Estado del usuario local: {hasEmail: true, email: 'draax17.5@gmail.com', hasPassword: false, hasUsername: true, username: 'gaelchido'}
-file-upload-manager.js:205 🚨 SOLUCIÓN: El usuario debe tener email y password para usar Supabase Storage
-file-upload-manager.js:1015 ⚠️ No se pudo autenticar automáticamente
-(anonymous) @ file-upload-manager.js:1015
-await in (anonymous)
-(anonymous) @ file-upload-manager.js:1037
-setTimeout
-(anonymous) @ file-upload-manager.js:1035
-avatar-fix-simple.js:50 📍 Verificando si ya hay foto de perfil...
-avatar-fix-simple.js:70 📍 Buscando elemento avatar...
-avatar-fix-simple.js:75 ✅ Elemento avatar encontrado
-avatar-fix-simple.js:79 ⚠️ AVATAR PROTEGIDO DETECTADO, NO APLICANDO PLACEHOLDER
-
-LOG DE LA CONSOLA: 
-Uncaught TypeError: Cannot read properties of null (reading 'classList')
+- **El problema principal es que el email no está confirmado en Supabase**
+- **El usuario debe confirmar su email para poder usar Supabase Storage**
+- **Verificar que los emails de confirmación se estén enviando correctamente**
+- **Considerar implementar reenvío automático de confirmación**
+global-theme-setup.js:19 Uncaught TypeError: Cannot read properties of null (reading 'classList')
     at setupGlobalTheme (global-theme-setup.js:19:23)
     at global-theme-setup.js:50:5
     at global-theme-setup.js:69:3
@@ -195,6 +166,9 @@ profile-particles-direct.js:16 ✅ Contenedor de partículas encontrado, inicial
 profile-particles-direct.js:259 ✅ Partículas DOM inicializadas
 file-upload-manager.js:41 Supabase inicializado correctamente
 avatar-fix-simple.js:128 📄 Ejecutando avatar después de load...
+profile-avatar-manager.js:51 🔍 Datos del avatar en profile.html (PRIORITARIO): {hasProfilePicture: true, profilePictureUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQA...', currentSrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQA...'}
+profile-avatar-manager.js:64 ✅ FOTO REAL DETECTADA, aplicando con PRIORIDAD ALTA
+profile-avatar-manager.js:75 ✅ FOTO REAL cargada correctamente en profile.html
 file-upload-manager.js:73 ⚠️ Usuario NO autenticado en Supabase - Storage puede fallar
 verifySupabaseAuth @ file-upload-manager.js:73
 await in verifySupabaseAuth
@@ -202,132 +176,81 @@ initializeSupabase @ file-upload-manager.js:44
 await in initializeSupabase
 init @ file-upload-manager.js:12
 FileUploadManager @ file-upload-manager.js:7
-(anonymous) @ file-upload-manager.js:1032
-file-upload-manager.js:222 Usuario cargado: {id: '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0', username: 'gaelchido', display_name: 'Gael Flores', email: 'draax17.5@gmail.com', profile_picture_url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQA…//+BseqgAAAAGSURBVAMABygN55YrTRkAAAAASUVORK5CYII='}
+(anonymous) @ file-upload-manager.js:1161
+file-upload-manager.js:222 Usuario cargado: {id: '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0', username: 'gaelchido', display_name: 'Gael Flores', email: 'draax17.5@gmail.com', password: 'ViEtnamitas17', …}
 profile-avatar-manager.js:51 🔍 Datos del avatar en profile.html (PRIORITARIO): {hasProfilePicture: true, profilePictureUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQA...', currentSrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQA...'}
 profile-avatar-manager.js:64 ✅ FOTO REAL DETECTADA, aplicando con PRIORIDAD ALTA
-profile-avatar-manager.js:75 ✅ FOTO REAL cargada correctamente en profile.html
-profile-avatar-manager.js:51 🔍 Datos del avatar en profile.html (PRIORITARIO): {hasProfilePicture: true, profilePictureUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQA...', currentSrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQA...'}
-profile-avatar-manager.js:64 ✅ FOTO REAL DETECTADA, aplicando con PRIORIDAD ALTA
-profile-avatar-manager.js:75 ✅ FOTO REAL cargada correctamente en profile.html
+2profile-avatar-manager.js:75 ✅ FOTO REAL cargada correctamente en profile.html
 avatar-fix-simple.js:122 ⏰ Ejecutando avatar con retraso...
 avatar-fix-simple.js:50 📍 Verificando si ya hay foto de perfil...
 avatar-fix-simple.js:70 📍 Buscando elemento avatar...
 avatar-fix-simple.js:75 ✅ Elemento avatar encontrado
 avatar-fix-simple.js:79 ⚠️ AVATAR PROTEGIDO DETECTADO, NO APLICANDO PLACEHOLDER
-profile-avatar-manager.js:75 ✅ FOTO REAL cargada correctamente en profile.html
-file-upload-manager.js:1036 🔑 Verificando autenticación automática en Supabase...
+file-upload-manager.js:1165 🔑 Verificando autenticación automática en Supabase...
 file-upload-manager.js:73 ⚠️ Usuario NO autenticado en Supabase - Storage puede fallar
 verifySupabaseAuth @ file-upload-manager.js:73
 await in verifySupabaseAuth
-(anonymous) @ file-upload-manager.js:1005
-(anonymous) @ file-upload-manager.js:1037
+window.ensureSupabaseAuth @ file-upload-manager.js:1134
+(anonymous) @ file-upload-manager.js:1166
 setTimeout
-(anonymous) @ file-upload-manager.js:1035
-file-upload-manager.js:1008 🔑 Usuario no autenticado, intentando autenticar...
+(anonymous) @ file-upload-manager.js:1164
+file-upload-manager.js:1137 🔑 Usuario no autenticado, intentando autenticar...
 file-upload-manager.js:87 🔑 Intentando autenticar usuario en Supabase...
 file-upload-manager.js:123 🔑 Intentando autenticar con email: draax17.5@gmail.com
-file-upload-manager.js:197 ❌ No se pudo autenticar en Supabase de ninguna forma
-tryAuthenticateUser @ file-upload-manager.js:197
-(anonymous) @ file-upload-manager.js:1009
-await in (anonymous)
-(anonymous) @ file-upload-manager.js:1037
-setTimeout
-(anonymous) @ file-upload-manager.js:1035
-file-upload-manager.js:198 📝 Estado del usuario local: {hasEmail: true, email: 'draax17.5@gmail.com', hasPassword: false, hasUsername: true, username: 'gaelchido'}
-file-upload-manager.js:205 🚨 SOLUCIÓN: El usuario debe tener email y password para usar Supabase Storage
-file-upload-manager.js:1015 ⚠️ No se pudo autenticar automáticamente
-(anonymous) @ file-upload-manager.js:1015
-await in (anonymous)
-(anonymous) @ file-upload-manager.js:1037
-setTimeout
-(anonymous) @ file-upload-manager.js:1035
 avatar-fix-simple.js:50 📍 Verificando si ya hay foto de perfil...
 avatar-fix-simple.js:70 📍 Buscando elemento avatar...
 avatar-fix-simple.js:75 ✅ Elemento avatar encontrado
 avatar-fix-simple.js:79 ⚠️ AVATAR PROTEGIDO DETECTADO, NO APLICANDO PLACEHOLDER
-file-upload-manager.js:1052 🔑 Verificación periódica - reintentando autenticación...
-file-upload-manager.js:73 ⚠️ Usuario NO autenticado en Supabase - Storage puede fallar
-verifySupabaseAuth @ file-upload-manager.js:73
-await in verifySupabaseAuth
-(anonymous) @ file-upload-manager.js:1005
-(anonymous) @ file-upload-manager.js:1053
-setInterval
-(anonymous) @ file-upload-manager.js:1049
-file-upload-manager.js:1008 🔑 Usuario no autenticado, intentando autenticar...
-file-upload-manager.js:87 🔑 Intentando autenticar usuario en Supabase...
-file-upload-manager.js:123 🔑 Intentando autenticar con email: draax17.5@gmail.com
+index.js:1  POST https://miwbzotcuaywpdbidpwo.supabase.co/auth/v1/token?grant_type=password 400 (Bad Request)
+(anonymous) @ index.js:1
+c.headers @ index.js:1
+se @ index.js:1
+signInWithPassword @ index.js:1
+tryAuthenticateUser @ file-upload-manager.js:127
+window.ensureSupabaseAuth @ file-upload-manager.js:1138
+await in window.ensureSupabaseAuth
+(anonymous) @ file-upload-manager.js:1166
+setTimeout
+(anonymous) @ file-upload-manager.js:1164
+file-upload-manager.js:137 ⚠️ Login falló, intentando crear usuario: Invalid login credentials
+tryAuthenticateUser @ file-upload-manager.js:137
+await in tryAuthenticateUser
+window.ensureSupabaseAuth @ file-upload-manager.js:1138
+await in window.ensureSupabaseAuth
+(anonymous) @ file-upload-manager.js:1166
+setTimeout
+(anonymous) @ file-upload-manager.js:1164
+file-upload-manager.js:143 🔑 Usuario no existe, intentando crear en Supabase...
+file-upload-manager.js:161 ⚠️ Error creando usuario: undefined
+tryAuthenticateUser @ file-upload-manager.js:161
+await in tryAuthenticateUser
+window.ensureSupabaseAuth @ file-upload-manager.js:1138
+await in window.ensureSupabaseAuth
+(anonymous) @ file-upload-manager.js:1166
+setTimeout
+(anonymous) @ file-upload-manager.js:1164
 file-upload-manager.js:197 ❌ No se pudo autenticar en Supabase de ninguna forma
 tryAuthenticateUser @ file-upload-manager.js:197
-(anonymous) @ file-upload-manager.js:1009
-await in (anonymous)
-(anonymous) @ file-upload-manager.js:1053
-setInterval
-(anonymous) @ file-upload-manager.js:1049
-file-upload-manager.js:198 📝 Estado del usuario local: {hasEmail: true, email: 'draax17.5@gmail.com', hasPassword: false, hasUsername: true, username: 'gaelchido'}
+await in tryAuthenticateUser
+window.ensureSupabaseAuth @ file-upload-manager.js:1138
+await in window.ensureSupabaseAuth
+(anonymous) @ file-upload-manager.js:1166
+setTimeout
+(anonymous) @ file-upload-manager.js:1164
+file-upload-manager.js:198 📝 Estado del usuario local: {hasEmail: true, email: 'draax17.5@gmail.com', hasPassword: true, hasUsername: true, username: 'gaelchido'}
 file-upload-manager.js:205 🚨 SOLUCIÓN: El usuario debe tener email y password para usar Supabase Storage
-file-upload-manager.js:1015 ⚠️ No se pudo autenticar automáticamente
-(anonymous) @ file-upload-manager.js:1015
-await in (anonymous)
-(anonymous) @ file-upload-manager.js:1053
-setInterval
-(anonymous) @ file-upload-manager.js:1049
-file-upload-manager.js:1052 🔑 Verificación periódica - reintentando autenticación...
-file-upload-manager.js:73 ⚠️ Usuario NO autenticado en Supabase - Storage puede fallar
-verifySupabaseAuth @ file-upload-manager.js:73
-await in verifySupabaseAuth
-(anonymous) @ file-upload-manager.js:1005
-(anonymous) @ file-upload-manager.js:1053
-setInterval
-(anonymous) @ file-upload-manager.js:1049
-file-upload-manager.js:1008 🔑 Usuario no autenticado, intentando autenticar...
-file-upload-manager.js:87 🔑 Intentando autenticar usuario en Supabase...
-file-upload-manager.js:123 🔑 Intentando autenticar con email: draax17.5@gmail.com
-file-upload-manager.js:197 ❌ No se pudo autenticar en Supabase de ninguna forma
-tryAuthenticateUser @ file-upload-manager.js:197
-(anonymous) @ file-upload-manager.js:1009
-await in (anonymous)
-(anonymous) @ file-upload-manager.js:1053
-setInterval
-(anonymous) @ file-upload-manager.js:1049
-file-upload-manager.js:198 📝 Estado del usuario local: {hasEmail: true, email: 'draax17.5@gmail.com', hasPassword: false, hasUsername: true, username: 'gaelchido'}
-file-upload-manager.js:205 🚨 SOLUCIÓN: El usuario debe tener email y password para usar Supabase Storage
-file-upload-manager.js:1015 ⚠️ No se pudo autenticar automáticamente
-(anonymous) @ file-upload-manager.js:1015
-await in (anonymous)
-(anonymous) @ file-upload-manager.js:1053
-setInterval
-(anonymous) @ file-upload-manager.js:1049
-file-upload-manager.js:1052 🔑 Verificación periódica - reintentando autenticación...
-file-upload-manager.js:73 ⚠️ Usuario NO autenticado en Supabase - Storage puede fallar
-verifySupabaseAuth @ file-upload-manager.js:73
-await in verifySupabaseAuth
-(anonymous) @ file-upload-manager.js:1005
-(anonymous) @ file-upload-manager.js:1053
-setInterval
-(anonymous) @ file-upload-manager.js:1049
-file-upload-manager.js:1008 🔑 Usuario no autenticado, intentando autenticar...
-file-upload-manager.js:87 🔑 Intentando autenticar usuario en Supabase...
-file-upload-manager.js:123 🔑 Intentando autenticar con email: draax17.5@gmail.com
-file-upload-manager.js:197 ❌ No se pudo autenticar en Supabase de ninguna forma
-tryAuthenticateUser @ file-upload-manager.js:197
-(anonymous) @ file-upload-manager.js:1009
-await in (anonymous)
-(anonymous) @ file-upload-manager.js:1053
-setInterval
-(anonymous) @ file-upload-manager.js:1049
-file-upload-manager.js:198 📝 Estado del usuario local: {hasEmail: true, email: 'draax17.5@gmail.com', hasPassword: false, hasUsername: true, username: 'gaelchido'}
-file-upload-manager.js:205 🚨 SOLUCIÓN: El usuario debe tener email y password para usar Supabase Storage
-file-upload-manager.js:1015 ⚠️ No se pudo autenticar automáticamente
-(anonymous) @ file-upload-manager.js:1015
-await in (anonymous)
-(anonymous) @ file-upload-manager.js:1053
-setInterval
-(anonymous) @ file-upload-manager.js:1049
-profile-manager.js:303 📝 Abriendo selector de archivos para CV...
-profile-manager.js:304 File chooser dialog can only be shown with a user activation.
-(anonymous) @ profile-manager.js:304
+file-upload-manager.js:1144 ⚠️ No se pudo autenticar automáticamente
+window.ensureSupabaseAuth @ file-upload-manager.js:1144
+await in window.ensureSupabaseAuth
+(anonymous) @ file-upload-manager.js:1166
+setTimeout
+(anonymous) @ file-upload-manager.js:1164
+profile-manager.js:309 📝 Abriendo selector de archivos para CV...
 profile.html:1 window.open blocked due to active file chooser.
+profile-manager.js:314 File chooser dialog can only be shown with a user activation.
+(anonymous) @ profile-manager.js:314
+setTimeout
+(anonymous) @ profile-manager.js:312
 file-upload-manager.js:73 ⚠️ Usuario NO autenticado en Supabase - Storage puede fallar
 verifySupabaseAuth @ file-upload-manager.js:73
 await in verifySupabaseAuth
@@ -339,49 +262,40 @@ uploadToStorage @ file-upload-manager.js:404
 await in uploadToStorage
 handleCurriculumUpload @ file-upload-manager.js:319
 (anonymous) @ file-upload-manager.js:254
-file-upload-manager.js:405 🔄 Intentando autenticar con token local...
-file-upload-manager.js:409 🔑 Usuario local encontrado, intentando autenticar en Supabase...
+file-upload-manager.js:424 🔄 Intentando autenticar con token local...
+file-upload-manager.js:428 🔑 Usuario local encontrado con contraseña, intentando autenticar en Supabase...
 file-upload-manager.js:87 🔑 Intentando autenticar usuario en Supabase...
 file-upload-manager.js:123 🔑 Intentando autenticar con email: draax17.5@gmail.com
-file-upload-manager.js:197 ❌ No se pudo autenticar en Supabase de ninguna forma
-tryAuthenticateUser @ file-upload-manager.js:197
-uploadToStorage @ file-upload-manager.js:410
+index.js:1  POST https://miwbzotcuaywpdbidpwo.supabase.co/auth/v1/token?grant_type=password 400 (Bad Request)
+(anonymous) @ index.js:1
+c.headers @ index.js:1
+se @ index.js:1
+signInWithPassword @ index.js:1
+tryAuthenticateUser @ file-upload-manager.js:127
+uploadToStorage @ file-upload-manager.js:429
 await in uploadToStorage
 handleCurriculumUpload @ file-upload-manager.js:319
 (anonymous) @ file-upload-manager.js:254
-file-upload-manager.js:198 📝 Estado del usuario local: {hasEmail: true, email: 'draax17.5@gmail.com', hasPassword: false, hasUsername: true, username: 'gaelchido'}
+file-upload-manager.js:137 ⚠️ Login falló, intentando crear usuario: Email not confirmed
+tryAuthenticateUser @ file-upload-manager.js:137
+await in tryAuthenticateUser
+uploadToStorage @ file-upload-manager.js:429
+await in uploadToStorage
+handleCurriculumUpload @ file-upload-manager.js:319
+(anonymous) @ file-upload-manager.js:254
+file-upload-manager.js:197 ❌ No se pudo autenticar en Supabase de ninguna forma
+tryAuthenticateUser @ file-upload-manager.js:197
+await in tryAuthenticateUser
+uploadToStorage @ file-upload-manager.js:429
+await in uploadToStorage
+handleCurriculumUpload @ file-upload-manager.js:319
+(anonymous) @ file-upload-manager.js:254
+file-upload-manager.js:198 📝 Estado del usuario local: {hasEmail: true, email: 'draax17.5@gmail.com', hasPassword: true, hasUsername: true, username: 'gaelchido'}
 file-upload-manager.js:205 🚨 SOLUCIÓN: El usuario debe tener email y password para usar Supabase Storage
-file-upload-manager.js:414 ⚠️ No se pudo autenticar en Supabase - usando fallback
-uploadToStorage @ file-upload-manager.js:414
+file-upload-manager.js:433 ⚠️ No se pudo autenticar en Supabase - usando fallback
+uploadToStorage @ file-upload-manager.js:433
 await in uploadToStorage
 handleCurriculumUpload @ file-upload-manager.js:319
 (anonymous) @ file-upload-manager.js:254
 file-upload-manager.js:335 Storage falló, guardando información local del CV
-file-upload-manager.js:575 Curriculum info actualizada en localStorage
-file-upload-manager.js:1052 🔑 Verificación periódica - reintentando autenticación...
-file-upload-manager.js:73 ⚠️ Usuario NO autenticado en Supabase - Storage puede fallar
-verifySupabaseAuth @ file-upload-manager.js:73
-await in verifySupabaseAuth
-(anonymous) @ file-upload-manager.js:1005
-(anonymous) @ file-upload-manager.js:1053
-setInterval
-(anonymous) @ file-upload-manager.js:1049
-file-upload-manager.js:1008 🔑 Usuario no autenticado, intentando autenticar...
-file-upload-manager.js:87 🔑 Intentando autenticar usuario en Supabase...
-file-upload-manager.js:123 🔑 Intentando autenticar con email: draax17.5@gmail.com
-file-upload-manager.js:197 ❌ No se pudo autenticar en Supabase de ninguna forma
-tryAuthenticateUser @ file-upload-manager.js:197
-(anonymous) @ file-upload-manager.js:1009
-await in (anonymous)
-(anonymous) @ file-upload-manager.js:1053
-setInterval
-(anonymous) @ file-upload-manager.js:1049
-file-upload-manager.js:198 📝 Estado del usuario local: {hasEmail: true, email: 'draax17.5@gmail.com', hasPassword: false, hasUsername: true, username: 'gaelchido'}
-file-upload-manager.js:205 🚨 SOLUCIÓN: El usuario debe tener email y password para usar Supabase Storage
-file-upload-manager.js:1015 ⚠️ No se pudo autenticar automáticamente
-(anonymous) @ file-upload-manager.js:1015
-await in (anonymous)
-(anonymous) @ file-upload-manager.js:1053
-setInterval
-(anonymous) @ file-upload-manager.js:1049
-profile-manager.js:648 Auto-guardando cambios...
+file-upload-manager.js:594
