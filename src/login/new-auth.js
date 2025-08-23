@@ -1,5 +1,3 @@
-/* ===== NUEVA UI DE AUTENTICACIÓN - JAVASCRIPT ===== */
-
 // Configuración del sistema de login
 // Importante: Deshabilitamos uso directo de Supabase en frontend para evitar 401 por RLS
 // Todo el login/registro pasa por el backend cuando se usa username
@@ -18,24 +16,19 @@ async function ensureAuthDataSync() {
         
         // Si hay currentUser pero no userData, sincronizar
         if (currentUser && !userData) {
-            devLog('Sincronizando datos: currentUser -> userData');
             localStorage.setItem('userData', currentUser);
         }
         
         // Si hay userData pero no currentUser, sincronizar
         if (userData && !currentUser) {
-            devLog('Sincronizando datos: userData -> currentUser');
             localStorage.setItem('currentUser', userData);
         }
         
         // Si no hay token, crear uno válido usando auth-issue
         if ((currentUser || userData) && !existingToken) {
-            devLog('Creando token válido para usuario autenticado');
             const user = JSON.parse(currentUser || userData);
             
             try {
-                console.log('[TOKEN DEBUG] Intentando generar token en:', `${API_BASE}/api/auth/issue`);
-                console.log('[TOKEN DEBUG] API_BASE actual:', API_BASE);
                 const tokenResponse = await fetch(`${API_BASE}/api/auth/issue`, {
                     method: 'POST',
                     headers: {
@@ -51,17 +44,13 @@ async function ensureAuthDataSync() {
                     const { token, userId } = await tokenResponse.json();
                     localStorage.setItem('userToken', token);
                     localStorage.setItem('authToken', token);
-                    console.log('[TOKEN DEBUG] Token de sync generado:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
-                    console.log('[TOKEN DEBUG] UserId de sync:', userId);
-                    devLog('Token válido generado:', token.substring(0, 20) + '...');
                 } else {
                     const errorText = await tokenResponse.text();
-                    console.error('[TOKEN DEBUG] Error en auth-issue (sync):', tokenResponse.status, errorText);
+                    console.error('Error en auth-issue:', tokenResponse.status, errorText);
                     throw new Error(`Error generando token válido: ${tokenResponse.status}`);
                 }
             } catch (error) {
-                console.error('[TOKEN DEBUG] Excepción en auth-issue (sync):', error);
-                devLog('Error generando token, usando mock:', error.message);
+                console.error('Excepción en auth-issue:', error);
                 // Fallback a token mock solo para desarrollo local
                 const mockToken = btoa(JSON.stringify({
                     exp: Math.floor(Date.now() / 1000) + 3600,
@@ -1100,8 +1089,6 @@ async function validateCredentialsLocal(emailOrUsername, password) {
             const jwtToken = `${header}.${payloadEncoded}.${signature}`;
             
             localStorage.setItem('userToken', jwtToken);
-            console.log('[TOKEN DEBUG] Token JWT simulado generado:', jwtToken.substring(0, 30) + '...');
-            console.log('[TOKEN DEBUG] Payload:', payload);
             
             const sessionData = {
                 sessionId: 'session-' + Date.now(),
@@ -1111,7 +1098,7 @@ async function validateCredentialsLocal(emailOrUsername, password) {
             localStorage.setItem('userSession', JSON.stringify(sessionData));
             
         } catch (error) {
-            console.error('[TOKEN DEBUG] Error generando token JWT:', error);
+            console.error('Error generando token JWT:', error);
             // Último fallback: token base64 simple
             const mockToken = btoa(JSON.stringify({
                 exp: Math.floor(Date.now() / 1000) + 3600,

@@ -14,7 +14,6 @@ class AdminPanel {
         this.setupNotifications();
     }
 
-    // ===== HELPER METHODS =====
     
     /**
      * Makes an authenticated API request
@@ -23,14 +22,9 @@ class AdminPanel {
      * @returns {Promise<Response>} - Fetch response
      */
     async makeAuthenticatedRequest(url, options = {}) {
-        console.log('📡 Realizando request autenticado a:', url);
-        
         // Get authentication data from localStorage
         const token = localStorage.getItem('userToken');
         const userData = localStorage.getItem('userData');
-        
-        console.log('🔑 Token disponible:', !!token);
-        console.log('👤 UserData disponible:', !!userData);
         
         if (!token || !userData) {
             console.error('❌ No authentication data found');
@@ -214,8 +208,6 @@ class AdminPanel {
     }
 
     async loadDashboardData() {
-        // Simular carga de datos del dashboard
-        console.log('Cargando datos del dashboard...');
         
         // Actualizar estadísticas
         await this.updateDashboardStats();
@@ -265,7 +257,6 @@ class AdminPanel {
 
     loadDashboardCharts() {
         // Simular gráficos con Chart.js (si estuviera disponible)
-        console.log('Cargando gráficos del dashboard...');
         
         // Placeholder para gráficos
         const chartElements = document.querySelectorAll('canvas');
@@ -374,8 +365,7 @@ class AdminPanel {
             // Show loading state
             this.showLoading('coursesGrid');
             
-            console.log('Cargando datos de talleres...');
-            const response = await this.makeAuthenticatedRequest('/api/admin/courses');
+                const response = await this.makeAuthenticatedRequest('/api/admin/courses');
             
             if (!response.ok) {
                 const errorText = await response.text();
@@ -384,7 +374,6 @@ class AdminPanel {
             }
             
             const courses = await response.json();
-            console.log('Talleres cargados:', courses.length);
 
             if (!Array.isArray(courses) || courses.length === 0) {
                 coursesGrid.innerHTML = `
@@ -471,8 +460,7 @@ class AdminPanel {
             // Show loading state
             this.showLoading('usersTableBody');
             
-            console.log('Cargando datos de usuarios...');
-            const response = await this.makeAuthenticatedRequest('/api/admin/users');
+                const response = await this.makeAuthenticatedRequest('/api/admin/users');
             
             if (!response.ok) {
                 const errorText = await response.text();
@@ -481,7 +469,6 @@ class AdminPanel {
             }
             
             const users = await response.json();
-            console.log('Usuarios cargados:', users.length);
 
             if (!Array.isArray(users) || users.length === 0) {
                 usersTableBody.innerHTML = `

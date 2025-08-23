@@ -125,52 +125,30 @@ function getCurrentUserProfilePicture() {
 // PASO 1: Función para probar la conexión a la base de datos
 async function testDatabaseConnection() {
     try {
-        console.log('🔍 Probando conexión a base de datos...');
-        
         if (!window.supabase) {
             console.error('❌ Supabase no está disponible');
             return { error: 'Supabase no disponible' };
         }
         
-        // Probar consulta a chatbot_faq
-        console.log('📋 Probando tabla chatbot_faq...');
         const { data: faqData, error: faqError } = await window.supabase
             .from('chatbot_faq')
             .select('*')
             .limit(1);
         
-        console.log('📋 FAQ Data:', faqData);
-        console.log('📋 FAQ Error:', faqError);
-        
-        // Probar consulta a glossary_term
-        console.log('📚 Probando tabla glossary_term...');
         const { data: glossaryData, error: glossaryError } = await window.supabase
             .from('glossary_term')
             .select('*')
             .limit(1);
         
-        console.log('📚 Glossary Data:', glossaryData);
-        console.log('📚 Glossary Error:', glossaryError);
-        
-        // Probar consulta a ai_courses
-        console.log('🎓 Probando tabla ai_courses...');
         const { data: coursesData, error: coursesError } = await window.supabase
             .from('ai_courses')
             .select('*')
             .limit(1);
         
-        console.log('🎓 Courses Data:', coursesData);
-        console.log('🎓 Courses Error:', coursesError);
-        
-        // Probar consulta a users
-        console.log('👤 Probando tabla users...');
         const { data: usersData, error: usersError } = await window.supabase
             .from('users')
             .select('*')
             .limit(1);
-        
-        console.log('👤 Users Data:', usersData);
-        console.log('👤 Users Error:', usersError);
         
         return { 
             faqData, glossaryData, coursesData, usersData,
@@ -226,8 +204,6 @@ async function getCurrentUserInfo() {
 
 // OBLIGATORIO: Consultar base de datos ANTES de responder (CORREGIDO según PROMPT)
 async function getGeneralAnswer(question) {
-    console.log('🔍 [DB_QUERY] Consultando FAQ para:', question);
-    
     if (!window.supabase) {
         console.error('❌ Supabase no está disponible');
         return getFallbackAnswer(question);
@@ -236,7 +212,6 @@ async function getGeneralAnswer(question) {
     try {
         // Prioridad 1: Consultar chatbot_faq con múltiples estrategias de búsqueda
         const searchTerms = extractKeyTerms(question);
-        console.log('🔍 [DB_QUERY] Términos de búsqueda extraídos:', searchTerms);
         
         let faqData = null, faqError = null;
         
@@ -252,7 +227,6 @@ async function getGeneralAnswer(question) {
             if (termFaqData && termFaqData.length > 0) {
                 faqData = termFaqData;
                 faqError = termFaqError;
-                console.log('✔ [DB_QUERY] FAQ encontrado por término:', term);
                 break;
             }
         }
@@ -270,14 +244,9 @@ async function getGeneralAnswer(question) {
             faqError = generalFaqError;
         }
         
-        console.log('[DB_QUERY] FAQ Result:', faqData?.length || 0, 'resultados, Error:', faqError);
-        
         if (faqData && faqData.length > 0) {
-            console.log('✔ [DB_QUERY] Respuesta encontrada en FAQ:', faqData[0].question);
             return faqData[0].answer;
         }
-        
-        console.log('🔍 [DB_QUERY] Consultando Glossary para:', question);
         
         // Prioridad 2: Consultar glossary_term con múltiples estrategias
         let glossaryData = null, glossaryError = null;
@@ -293,7 +262,6 @@ async function getGeneralAnswer(question) {
             if (termGlossaryData && termGlossaryData.length > 0) {
                 glossaryData = termGlossaryData;
                 glossaryError = termGlossaryError;
-                console.log('✔ [DB_QUERY] Glossary encontrado por término:', term);
                 break;
             }
         }
@@ -478,7 +446,6 @@ async function getUserChatContext(userId) {
     }
 }
 
-// ELIMINADAS: Funciones obsoletas de consulta individual
 // Ahora se usan getGeneralAnswer(), getCurrentUserCourse() y getCourseDetails() que son más específicas
 
 // OBLIGATORIO: Consultar información específica del usuario y curso (según PROMPT)
@@ -1271,7 +1238,6 @@ async function generatePersonalizedResponse(userQuestion, userId, courseId) {
     }
 }
 
-// ELIMINADAS: Funciones obsoletas de respuestas específicas
 // Ahora se usa generatePersonalizedResponse() que maneja todos los casos
 
 // Función de inicialización principal consolidada
@@ -1453,8 +1419,7 @@ function showCourseWelcomeMessage(courseId) {
         // Mostrar mensaje del bot
         addBotMessage(welcomeMessage, null, false, true);
         
-        // ELIMINADO: Sugerencias genéricas del curso
-        // Ahora el usuario puede preguntar directamente y el sistema responderá personalizadamente
+                // Ahora el usuario puede preguntar directamente y el sistema responderá personalizadamente
         if (courseId === 'curso-ia-completo') {
             // Sin sugerencias plantilla
         } else if (courseId === 'ml-fundamentos') {
@@ -3058,8 +3023,7 @@ function showHelp() {
         sendBotMessage("📝 ESCRIBIR MENSAJES\n\nEscribe cualquier pregunta y presiona Enter o haz clic en enviar.", null, false, false);
     }, 1500);
     
-    // ELIMINADO: Mensajes plantilla de tipos de preguntas
-    // El sistema ahora responde dinámicamente según la base de datos
+        // El sistema ahora responde dinámicamente según la base de datos
     
     setTimeout(() => {
         sendBotMessage("⌨️ COMANDOS ESPECIALES\n\n• 'ayuda' - Para ver estas instrucciones\n• 'temas' - Para ver los temas disponibles\n• 'ejercicios' - Para solicitar ejercicios prácticos", null, false, false);
@@ -3248,8 +3212,7 @@ async function callOpenAI(prompt, context = '') {
 async function getFallbackResponse(prompt) {
     const promptLower = prompt.toLowerCase();
     
-    // ELIMINADAS RESPUESTAS PLANTILLA GENÉRICAS
-    // Ahora se usa el sistema de respuestas personalizadas con base de datos
+        // Ahora se usa el sistema de respuestas personalizadas con base de datos
     
     try {
         // Usar el nuevo sistema de respuestas personalizadas
@@ -3382,75 +3345,6 @@ function getUserAuthHeaders() {
     } catch (_) {
     return {};
     }
-}
-
-// Cargar datos del curso hardcodeados
-async function loadCourseData() {
-    try {
-        const response = await fetch('/data/course-data.js');
-        if (response.ok) {
-            const text = await response.text();
-            // Evaluar el módulo para obtener los datos
-            const moduleText = text.replace('module.exports = COURSE_DATA;', 'COURSE_DATA');
-            return eval(`(${moduleText})`);
-        }
-    } catch (error) {
-        console.log('Usando datos de curso embebidos como fallback');
-    }
-    return null;
-}
-
-// Buscar información relevante en los datos del curso
-function searchCourseData(courseData, query) {
-    if (!courseData) return '';
-    
-    const queryLower = query.toLowerCase();
-    let relevantInfo = [];
-    
-    // Buscar en glosario
-    courseData.glossary.forEach(item => {
-        if (item.term.toLowerCase().includes(queryLower) || 
-            item.definition.toLowerCase().includes(queryLower)) {
-            relevantInfo.push(`📖 ${item.term}: ${item.definition}`);
-        }
-    });
-    
-    // Buscar en sesiones
-    courseData.sessions.forEach(session => {
-        // Buscar en conceptos de la sesión
-        session.content.concepts.forEach(concept => {
-            if (concept.term.toLowerCase().includes(queryLower) || 
-                concept.definition.toLowerCase().includes(queryLower)) {
-                relevantInfo.push(`🎓 Sesión ${session.id} - ${concept.term}: ${concept.definition}`);
-            }
-        });
-        
-        // Buscar en FAQs
-        session.faq.forEach(faq => {
-            if (faq.question.toLowerCase().includes(queryLower) || 
-                faq.answer.toLowerCase().includes(queryLower)) {
-                relevantInfo.push(`❓ FAQ (${session.title}): ${faq.question} - ${faq.answer}`);
-            }
-        });
-        
-        // Buscar en actividades
-        session.activities.forEach(activity => {
-            if (activity.title.toLowerCase().includes(queryLower) || 
-                activity.description.toLowerCase().includes(queryLower)) {
-                relevantInfo.push(`🎯 Actividad (${session.title}): ${activity.title} - ${activity.description}`);
-            }
-        });
-    });
-    
-    // Buscar en ejercicios prácticos
-    courseData.practicalExercises.forEach(exercise => {
-        if (exercise.title.toLowerCase().includes(queryLower) || 
-            exercise.description.toLowerCase().includes(queryLower)) {
-            relevantInfo.push(`💻 Ejercicio: ${exercise.title} - ${exercise.description}`);
-        }
-    });
-    
-    return relevantInfo.slice(0, 8); // Limitar a 8 resultados más relevantes
 }
 
 // Cargar datos del curso hardcodeados
@@ -3797,7 +3691,6 @@ async function handleUserMessage(message) {
     }
 }
 
-// FUNCIÓN ELIMINADA: generateResponse
 // Las respuestas ahora se generan dinámicamente con generatePersonalizedResponse()
 // Esta función quedó obsoleta con el nuevo sistema inteligente
 
