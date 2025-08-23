@@ -116,41 +116,48 @@ class GenAIQuestionnaire {
     }
     
     mapToGenAIArea(userArea) {
-        // Mapeo de áreas antiguas a IDs de áreas en la tabla areas
+        // Mapeo de áreas antiguas a IDs de áreas en la tabla areas (actualizado con áreas reales)
         const areaMap = {
-            'CEO': 2, // CEO/Alta Dirección
+            'CEO': 2, // Ventas (más cercano a CEO)
             'Dirección General': 2,
-            'CTO/CIO': 3, // Tecnología/Desarrollo de Software
-            'Tecnología/TI': 3,
-            'Dirección de Marketing': 4, // Marketing y Comunicación
-            'Miembros de Marketing': 4,
-            'Marketing': 4,
-            'Dirección de Ventas': 4,
-            'Miembros de Ventas': 4,
-            'Ventas': 4,
-            'Dirección de Finanzas (CFO)': 7, // Finanzas/Contabilidad
-            'Miembros de Finanzas': 7,
-            'Finanzas': 7,
-            'Dirección/Jefatura de Contabilidad': 7,
+            'CTO/CIO': 9, // Tecnología/TI
+            'Tecnología/TI': 9,
+            'Tecnología/Desarrollo de Software': 9,
+            'Dirección de Marketing': 3, // Marketing
+            'Miembros de Marketing': 3,
+            'Marketing': 3,
+            'Marketing y Comunicación': 3,
+            'Dirección de Ventas': 2, // Ventas
+            'Miembros de Ventas': 2,
+            'Ventas': 2,
+            'Dirección de Finanzas (CFO)': 5, // Finanzas
+            'Miembros de Finanzas': 5,
+            'Finanzas': 5,
+            'Finanzas/Contabilidad': 5,
+            'Dirección/Jefatura de Contabilidad': 7, // Contabilidad
             'Miembros de Contabilidad': 7,
             'Contabilidad': 7,
             'Freelancer': 11, // Diseño/Industrias Creativas
-            'Consultor': 8, // Administración Pública/Gobierno
-            'Salud': 5, // Salud/Medicina
-            'Medicina': 5,
-            'Médico': 5,
-            'Derecho': 6, // Derecho/Sector Legal
-            'Legal': 6,
-            'Abogado': 6,
-            'Academia': 9, // Academia/Investigación
-            'Investigación': 9,
-            'Investigador': 9,
-            'Educación': 10, // Educación/Docentes
+            'Consultor': 4, // Operaciones (más cercano a consultoría)
+            'Administración Pública/Gobierno': 4, // Mapeado a Operaciones
+            'Administración Pública': 4,
+            'Gobierno': 4,
+            'Salud': 4, // Operaciones (más cercano)
+            'Medicina': 4,
+            'Médico': 4,
+            'Derecho': 4, // Operaciones (más cercano)
+            'Legal': 4,
+            'Abogado': 4,
+            'Academia': 10, // Otra
+            'Investigación': 10,
+            'Investigador': 10,
+            'Educación': 10, // Otra
             'Docentes': 10,
             'Profesor': 10
         };
         
-        return areaMap[userArea] || 2; // Por defecto CEO/Alta Dirección
+        console.log('🔍 Mapeando área:', userArea, '→', areaMap[userArea] || 2);
+        return areaMap[userArea] || 2; // Por defecto Ventas
     }
     
     async updateAreaBadge() {
