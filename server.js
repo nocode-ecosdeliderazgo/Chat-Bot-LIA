@@ -1564,52 +1564,322 @@ app.get('/api/admin/dashboard/stats', async (req, res) => {
 });
 
 // Obtener lista de usuarios
-app.get('/api/admin/users', (req, res) => {
+app.get('/api/admin/users', async (req, res) => {
     console.log('Endpoint de usuarios llamado');
     
-    const mockUsers = [
-        {
-            id: 1,
-            full_name: 'Juan Pérez',
-            username: 'juanperez',
-            email: 'juan@example.com',
-            cargo_rol: 'Usuario',
-            created_at: '2024-01-15T10:30:00Z',
-            updated_at: '2024-01-15T10:30:00Z',
-            last_login_at: '2024-01-15T10:30:00Z',
-            type_rol: 'Usuario'
-        },
-        {
-            id: 2,
-            full_name: 'María García',
-            username: 'mariagarcia',
-            email: 'maria@example.com',
-            cargo_rol: 'Administrador',
-            created_at: '2024-01-15T09:15:00Z',
-            updated_at: '2024-01-15T09:15:00Z',
-            last_login_at: '2024-01-15T09:15:00Z',
-            type_rol: 'Administrador'
-        },
-        {
-            id: 3,
-            full_name: 'Carlos López',
-            username: 'carloslopez',
-            email: 'carlos@example.com',
-            cargo_rol: 'Usuario',
-            created_at: '2024-01-10T14:20:00Z',
-            updated_at: '2024-01-10T14:20:00Z',
-            last_login_at: '2024-01-10T14:20:00Z',
-            type_rol: 'Usuario'
+    try {
+        if (!pool) {
+            console.log('Pool de base de datos no configurado, retornando usuarios simulados');
+            // Retornar usuarios simulados cuando no hay base de datos
+            const mockUsers = [
+                {
+                    id: 1,
+                    full_name: 'Juan Pérez',
+                    username: 'juanperez',
+                    email: 'juan@example.com',
+                    cargo_rol: 'Usuario',
+                    created_at: '2024-01-15T10:30:00Z',
+                    updated_at: '2024-01-15T10:30:00Z',
+                    last_login_at: '2024-01-15T10:30:00Z',
+                    type_rol: 'Usuario'
+                },
+                {
+                    id: 2,
+                    full_name: 'María García',
+                    username: 'mariagarcia',
+                    email: 'maria@example.com',
+                    cargo_rol: 'Administrador',
+                    created_at: '2024-01-15T09:15:00Z',
+                    updated_at: '2024-01-15T09:15:00Z',
+                    last_login_at: '2024-01-15T09:15:00Z',
+                    type_rol: 'Administrador'
+                },
+                {
+                    id: 3,
+                    full_name: 'Carlos López',
+                    username: 'carloslopez',
+                    email: 'carlos@example.com',
+                    cargo_rol: 'Usuario',
+                    created_at: '2024-01-10T14:20:00Z',
+                    updated_at: '2024-01-10T14:20:00Z',
+                    last_login_at: '2024-01-10T14:20:00Z',
+                    type_rol: 'Usuario'
+                }
+            ];
+            return res.json(mockUsers);
         }
-    ];
+
+        // Verificar si la tabla users existe
+        const tableCheck = await pool.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'users'
+            );
+        `);
+
+        if (!tableCheck.rows[0].exists) {
+            console.log('Tabla users no existe, retornando usuarios simulados');
+            const mockUsers = [
+                {
+                    id: 1,
+                    full_name: 'Juan Pérez',
+                    username: 'juanperez',
+                    email: 'juan@example.com',
+                    cargo_rol: 'Usuario',
+                    created_at: '2024-01-15T10:30:00Z',
+                    updated_at: '2024-01-15T10:30:00Z',
+                    last_login_at: '2024-01-15T10:30:00Z',
+                    type_rol: 'Usuario'
+                },
+                {
+                    id: 2,
+                    full_name: 'María García',
+                    username: 'mariagarcia',
+                    email: 'maria@example.com',
+                    cargo_rol: 'Administrador',
+                    created_at: '2024-01-15T09:15:00Z',
+                    updated_at: '2024-01-15T09:15:00Z',
+                    last_login_at: '2024-01-15T09:15:00Z',
+                    type_rol: 'Administrador'
+                }
+            ];
+            return res.json(mockUsers);
+        }
+
+        // Consultar usuarios reales de la base de datos
+        const result = await pool.query(`
+            SELECT 
+                id,
+                username,
+                email,
+                COALESCE(
+                    NULLIF(TRIM(display_name), ''),
+                    NULLIF(TRIM(first_name || ' ' || last_name), ' '),
+                    NULLIF(TRIM(first_name), ''),
+                    username,
+                    'Sin nombre'
+                ) as full_name,
+                cargo_rol,
+                type_rol,
+                created_at,
+                updated_at,
+                last_login_at,
+                phone,
+                bio,
+                location
+            FROM users 
+            ORDER BY created_at DESC
+            LIMIT 100
+        `);
+
+        console.log(`Usuarios obtenidos de la base de datos: ${result.rows.length}`);
+        
+        // Formatear datos para el frontend
+        const users = result.rows.map(user => ({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            full_name: user.full_name,
+            cargo_rol: user.cargo_rol || 'Usuario',
+            type_rol: user.type_rol || 'Usuario',
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+            last_login_at: user.last_login_at,
+            phone: user.phone,
+            bio: user.bio,
+            location: user.location
+        }));
+
+        res.json(users);
+
+    } catch (error) {
+        console.error('Error obteniendo usuarios:', error);
+        
+        // En caso de error, retornar datos simulados
+        const mockUsers = [
+            {
+                id: 1,
+                full_name: 'Error - Datos simulados',
+                username: 'error_user',
+                email: 'error@example.com',
+                cargo_rol: 'Usuario',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                last_login_at: null,
+                type_rol: 'Usuario'
+            }
+        ];
+        
+        res.status(500).json({
+            error: 'Error al obtener usuarios de la base de datos',
+            details: error.message,
+            fallback_data: mockUsers
+        });
+    }
+});
+
+// Obtener lista de talleres/cursos
+app.get('/api/admin/courses', async (req, res) => {
+    console.log('Endpoint de talleres llamado');
     
-    res.json(mockUsers);
+    try {
+        if (!pool) {
+            console.log('Pool de base de datos no configurado, retornando talleres simulados');
+            // Retornar talleres simulados cuando no hay base de datos
+            const mockCourses = [
+                {
+                    id: 1,
+                    name: 'Introducción a la Inteligencia Artificial',
+                    short_description: 'Conceptos fundamentales de IA',
+                    long_description: 'Un curso completo sobre los fundamentos de la inteligencia artificial.',
+                    status: 'published',
+                    modality: 'online',
+                    session_count: 8,
+                    total_duration: 480,
+                    price: '$99',
+                    currency: 'USD',
+                    created_at: '2024-01-10T09:00:00Z'
+                },
+                {
+                    id: 2,
+                    name: 'Machine Learning Avanzado',
+                    short_description: 'Técnicas avanzadas de ML',
+                    long_description: 'Profundiza en algoritmos avanzados de machine learning.',
+                    status: 'draft',
+                    modality: 'hybrid',
+                    session_count: 12,
+                    total_duration: 720,
+                    price: '$149',
+                    currency: 'USD',
+                    created_at: '2024-01-05T14:30:00Z'
+                }
+            ];
+            return res.json(mockCourses);
+        }
+
+        // Verificar si la tabla ai_courses existe
+        const tableCheck = await pool.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'ai_courses'
+            );
+        `);
+
+        if (!tableCheck.rows[0].exists) {
+            console.log('Tabla ai_courses no existe, retornando talleres simulados');
+            const mockCourses = [
+                {
+                    id: 1,
+                    name: 'Introducción a la Inteligencia Artificial',
+                    short_description: 'Conceptos fundamentales de IA',
+                    long_description: 'Un curso completo sobre los fundamentos de la inteligencia artificial.',
+                    status: 'published',
+                    modality: 'online',
+                    session_count: 8,
+                    total_duration: 480,
+                    price: '$99',
+                    currency: 'USD',
+                    created_at: '2024-01-10T09:00:00Z'
+                },
+                {
+                    id: 2,
+                    name: 'Machine Learning Avanzado',
+                    short_description: 'Técnicas avanzadas de ML',
+                    long_description: 'Profundiza en algoritmos avanzados de machine learning.',
+                    status: 'draft',
+                    modality: 'hybrid',
+                    session_count: 12,
+                    total_duration: 720,
+                    price: '$149',
+                    currency: 'USD',
+                    created_at: '2024-01-05T14:30:00Z'
+                }
+            ];
+            return res.json(mockCourses);
+        }
+
+        // Consultar talleres reales de la base de datos
+        const result = await pool.query(`
+            SELECT 
+                id_ai_courses as id,
+                name,
+                short_description,
+                long_description,
+                status,
+                modality,
+                session_count,
+                total_duration,
+                price,
+                currency,
+                created_at,
+                purchase_url,
+                course_url,
+                roi
+            FROM ai_courses 
+            ORDER BY created_at DESC
+            LIMIT 50
+        `);
+
+        console.log(`Talleres obtenidos de la base de datos: ${result.rows.length}`);
+        
+        // Formatear datos para el frontend
+        const courses = result.rows.map(course => ({
+            id: course.id,
+            name: course.name || 'Taller sin nombre',
+            short_description: course.short_description || 'Sin descripción',
+            long_description: course.long_description || 'Sin descripción detallada',
+            status: course.status || 'draft',
+            modality: course.modality || 'online',
+            session_count: course.session_count || 0,
+            total_duration: course.total_duration || 0,
+            price: course.price || 'Gratis',
+            currency: course.currency || 'USD',
+            created_at: course.created_at,
+            purchase_url: course.purchase_url,
+            course_url: course.course_url,
+            roi: course.roi
+        }));
+
+        res.json(courses);
+
+    } catch (error) {
+        console.error('Error obteniendo talleres:', error);
+        
+        // En caso de error, retornar datos simulados
+        const mockCourses = [
+            {
+                id: 1,
+                name: 'Error - Datos simulados',
+                short_description: 'Error al cargar talleres',
+                long_description: 'Error al cargar talleres de la base de datos',
+                status: 'error',
+                modality: 'unknown',
+                session_count: 0,
+                total_duration: 0,
+                price: '$0',
+                currency: 'USD',
+                created_at: new Date().toISOString()
+            }
+        ];
+        
+        res.status(500).json({
+            error: 'Error al obtener talleres de la base de datos',
+            details: error.message,
+            fallback_data: mockCourses
+        });
+    }
 });
 
 // Obtener información del administrador actual
 app.get('/api/admin/auth/check', async (req, res) => {
     try {
         console.log('Endpoint de auth check llamado');
+        
+        // Intentar obtener información del usuario actual desde los headers
+        const authHeader = req.headers['authorization'];
+        const userIdHeader = req.headers['x-user-id'];
         
         if (!pool) {
             console.log('Pool de base de datos no configurado, retornando datos simulados del administrador');
@@ -1645,18 +1915,58 @@ app.get('/api/admin/auth/check', async (req, res) => {
             return res.json(admin);
         }
 
-        // Por ahora, obtener el primer administrador de la base de datos
-        const result = await pool.query(`
-            SELECT 
-                id,
-                username,
-                full_name,
-                email,
-                cargo_rol
-            FROM users 
-            WHERE cargo_rol = 'Administrador'
-            LIMIT 1
-        `);
+        let result;
+        
+        // Si hay información de autenticación, buscar el usuario específico
+        if (userIdHeader) {
+            console.log('Buscando usuario específico con ID:', userIdHeader);
+            result = await pool.query(`
+                SELECT 
+                    id,
+                    username,
+                    email,
+                    COALESCE(
+                        NULLIF(TRIM(display_name), ''),
+                        NULLIF(TRIM(first_name || ' ' || last_name), ' '),
+                        NULLIF(TRIM(first_name), ''),
+                        username,
+                        'Usuario'
+                    ) as full_name,
+                    cargo_rol,
+                    type_rol,
+                    last_login_at,
+                    created_at
+                FROM users 
+                WHERE id = $1 AND (cargo_rol = 'Administrador' OR cargo_rol = 'administrador')
+                LIMIT 1
+            `, [userIdHeader]);
+        }
+        
+        // Si no se encontró el usuario específico o no hay ID, buscar cualquier administrador
+        if (!result || result.rows.length === 0) {
+            console.log('Buscando cualquier administrador en la base de datos');
+            result = await pool.query(`
+                SELECT 
+                    id,
+                    username,
+                    email,
+                    COALESCE(
+                        NULLIF(TRIM(display_name), ''),
+                        NULLIF(TRIM(first_name || ' ' || last_name), ' '),
+                        NULLIF(TRIM(first_name), ''),
+                        username,
+                        'Administrador'
+                    ) as full_name,
+                    cargo_rol,
+                    type_rol,
+                    last_login_at,
+                    created_at
+                FROM users 
+                WHERE cargo_rol = 'Administrador' OR cargo_rol = 'administrador'
+                ORDER BY last_login_at DESC NULLS LAST, created_at DESC
+                LIMIT 1
+            `);
+        }
 
         if (result.rows.length === 0) {
             console.log('No se encontró administrador en la base de datos, retornando datos simulados');
@@ -1671,12 +1981,17 @@ app.get('/api/admin/auth/check', async (req, res) => {
         }
 
         const admin = result.rows[0];
+        console.log('Administrador encontrado:', { username: admin.username, fullName: admin.full_name });
+        
         res.json({
             id: admin.id,
             username: admin.username,
             fullName: admin.full_name,
             email: admin.email,
-            role: admin.cargo_rol
+            role: admin.cargo_rol,
+            type_rol: admin.type_rol,
+            lastLogin: admin.last_login_at,
+            createdAt: admin.created_at
         });
     } catch (error) {
         console.error('Error verificando autenticación:', error);

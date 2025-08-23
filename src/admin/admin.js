@@ -186,7 +186,7 @@ class AdminPanel {
                 await this.loadDashboardData();
                 break;
             case 'courses':
-                this.loadCoursesData();
+                await this.loadCoursesData();
                 break;
             case 'users':
                 await this.loadUsersData();
@@ -359,62 +359,101 @@ class AdminPanel {
         });
     }
 
-    loadCoursesData() {
+    async loadCoursesData() {
         const coursesGrid = document.getElementById('coursesGrid');
         if (!coursesGrid) return;
 
-        const courses = [
-            {
-                id: 1,
-                title: 'Introducción a la Inteligencia Artificial',
-                description: 'Curso básico sobre conceptos fundamentales de IA',
-                category: 'Inteligencia Artificial',
-                students: 1234,
-                rating: 4.8,
-                status: 'published'
-            },
-            {
-                id: 2,
-                title: 'Machine Learning Práctico',
-                description: 'Aprende a implementar algoritmos de ML',
-                category: 'Machine Learning',
-                students: 987,
-                rating: 4.6,
-                status: 'published'
-            },
-            {
-                id: 3,
-                title: 'Deep Learning Avanzado',
-                description: 'Técnicas avanzadas de deep learning',
-                category: 'Deep Learning',
-                students: 654,
-                rating: 4.9,
-                status: 'draft'
+        try {
+            // Show loading state
+            this.showLoading('coursesGrid');
+            
+            console.log('Cargando datos de talleres...');
+            const response = await this.makeAuthenticatedRequest('/api/admin/courses');
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response:', response.status, errorText);
+                throw new Error(`Error ${response.status}: ${errorText || 'Error obteniendo talleres'}`);
             }
-        ];
+            
+            const courses = await response.json();
+            console.log('Talleres cargados:', courses.length);
 
-        coursesGrid.innerHTML = courses.map(course => `
-            <div class="course-card">
-                <div class="course-header">
-                    <h3>${course.title}</h3>
-                    <span class="course-status ${course.status}">${course.status}</span>
-                </div>
-                <p class="course-description">${course.description}</p>
-                <div class="course-meta">
-                    <span class="course-category">${course.category}</span>
-                    <span class="course-students">${course.students} estudiantes</span>
-                    <span class="course-rating">⭐ ${course.rating}</span>
-                </div>
-                <div class="course-actions">
-                    <button class="btn-secondary" onclick="adminPanel.editCourse(${course.id})">
-                        <i class="fas fa-edit"></i> Editar
+            if (!Array.isArray(courses) || courses.length === 0) {
+                coursesGrid.innerHTML = `
+                    <div class="no-data-message">
+                        <i class="fas fa-graduation-cap"></i>
+                        <p>No hay talleres registrados</p>
+                    </div>
+                `;
+                return;
+            }
+
+            coursesGrid.innerHTML = courses.map(course => {
+                // Format duration from minutes to hours
+                const durationHours = course.total_duration ? Math.round(course.total_duration / 60) : 0;
+                
+                // Safe values for HTML
+                const title = (course.name || 'Taller sin nombre').replace(/[<>]/g, '');
+                const description = (course.short_description || 'Sin descripción').replace(/[<>]/g, '');
+                const modality = (course.modality || 'online').replace(/[<>]/g, '');
+                const status = (course.status || 'draft').replace(/[<>]/g, '');
+                
+                return `
+                    <div class="course-card">
+                        <div class="course-header">
+                            <h3>${title}</h3>
+                            <span class="course-status ${status}">${status}</span>
+                        </div>
+                        <p class="course-description">${description}</p>
+                        <div class="course-meta">
+                            <span class="course-category">
+                                <i class="fas fa-tag"></i> ${modality}
+                            </span>
+                            <span class="course-sessions">
+                                <i class="fas fa-play-circle"></i> ${course.session_count || 0} sesiones
+                            </span>
+                            <span class="course-duration">
+                                <i class="fas fa-clock"></i> ${durationHours}h
+                            </span>
+                            <span class="course-price">
+                                <i class="fas fa-dollar-sign"></i> ${course.price || 'Gratis'}
+                            </span>
+                        </div>
+                        <div class="course-actions">
+                            <button class="btn-secondary" onclick="adminPanel.editCourse('${course.id}')" title="Editar taller">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn-secondary" onclick="adminPanel.deleteCourse('${course.id}')" title="Eliminar taller">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                            ${course.course_url ? `
+                                <button class="btn-secondary" onclick="window.open('${course.course_url}', '_blank')" title="Ver taller">
+                                    <i class="fas fa-external-link-alt"></i> Ver
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            this.showToast(`${courses.length} talleres cargados correctamente`, 'success');
+        } catch (error) {
+            console.error('Error cargando talleres:', error);
+            
+            coursesGrid.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error cargando talleres</p>
+                    <small>${error.message}</small>
+                    <button class="btn-retry" onclick="adminPanel.loadCoursesData()">
+                        <i class="fas fa-retry"></i> Reintentar
                     </button>
-                    <button class="btn-secondary" onclick="adminPanel.deleteCourse(${course.id})">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </button>
                 </div>
-            </div>
-        `).join('');
+            `;
+            
+            this.showToast(`Error cargando talleres: ${error.message}`, 'error');
+        }
     }
 
     async loadUsersData() {
