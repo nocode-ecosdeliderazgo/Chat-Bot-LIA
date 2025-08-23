@@ -4,44 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Maestros</title>
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/animations.css">
-    <link rel="stylesheet" href="styles/components.css">
-    <link rel="stylesheet" href="styles/responsive.css">
+    
+    <!-- Supabase Configuration -->
+    <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
+    <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY">
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="../styles/animations.css">
+    <link rel="stylesheet" href="../styles/responsive.css">
+    <link rel="stylesheet" href="styles/panel-layout.css">
+    <link rel="stylesheet" href="styles/content-types.css">
+    
+    <!-- Fuentes -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     
-    <!-- Auth Guard - Protección de autenticación -->
+    <!-- Auth Guard -->
     <script src="../utils/auth-guard.js"></script>
+    
+    <!-- Supabase Client -->
+    <script src="../scripts/supabase-client.js"></script>
 </head>
 <body>
-    <!-- Header del Panel de Maestros -->
-    <header class="instructor-header">
-        <!-- Fondo con partículas animadas -->
-        <div class="header-background">
-            <div class="particles-container"></div>
-            <div class="gradient-overlay"></div>
-        </div>
-        
-        <!-- Navegación -->
-        <nav class="instructor-nav">
-            <div class="nav-logo">
-                <svg class="logo-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span class="logo-text">Panel de Maestros</span>
+    <!-- Panel Container -->
+    <div class="panel-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <!-- Header del Sidebar -->
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Panel de Maestros</span>
+                </div>
             </div>
-            <div class="nav-actions">
-                        <button class="btn-secondary" id="profileBtn" onclick="window.location.href='../profile.html'">
-            <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>Perfil</span>
-        </button>
-                <button class="btn-primary" id="logoutBtn">
-                    <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+            <!-- Navegación -->
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active" data-section="dashboard">
+                            <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="3" y="3" width="7" height="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <rect x="14" y="3" width="7" height="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <rect x="14" y="14" width="7" height="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <rect x="3" y="14" width="7" height="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="courses">
+                            <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M22 10V6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V10C3.1 10 4 10.9 4 12C4 13.1 3.1 14 2 14V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V14C20.9 14 20 13.1 20 12C20 10.9 20.9 10 22 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M6 6H18V10H6V6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M6 14H18V18H6V14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Mis Cursos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="create-course">
+                            <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Crear Curso</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Footer del Sidebar -->
+            <div class="sidebar-footer">
+                <button class="logout-btn" id="logoutBtn">
+                    <svg class="logout-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M16 17L21 12L16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -49,484 +90,324 @@
                     <span>Cerrar Sesión</span>
                 </button>
             </div>
-        </nav>
-        
+        </aside>
+
         <!-- Contenido Principal -->
-        <div class="header-content">
-            <div class="header-badge">
-                <svg class="instructor-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22 10V6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V10C3.1 10 4 10.9 4 12C4 13.1 3.1 14 2 14V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V14C20.9 14 20 13.1 20 12C20 10.9 20.9 10 22 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M6 6H18V10H6V6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M6 14H18V18H6V14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>Gestión de Talleres</span>
-            </div>
-            <h1 class="header-title">Panel de Maestros</h1>
-            <p class="header-description">
-                Crea, edita y administra tus cursos de manera profesional. 
-                Gestiona contenido, módulos, actividades y recursos multimedia sin necesidad de programar.
-            </p>
-            <div class="header-actions">
-                <button class="btn-primary btn-large" id="createCourseBtn">
-                    <span>Crear Nuevo Curso</span>
-                    <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-                <button class="btn-secondary btn-large" id="viewCoursesBtn">
-                    <span>Ver Mis Talleres</span>
-                    <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- Sección Principal del Panel -->
-    <main class="instructor-main">
-        <div class="container">
-            <!-- El contenido principal se cargará dinámicamente aquí -->
-            <div id="mainContent">
-                <!-- Contenido principal sin animaciones no deseadas -->
-            </div>
-        </div>
-    </main>
-
-    <!-- Formulario de Creación/Edición de Curso -->
-    <section class="course-form-section" id="courseFormSection" style="display: none;">
-        <div class="form-container">
-            <div class="form-header">
-                <h2 id="formTitle">Crear Nuevo Curso</h2>
-                <button class="btn-secondary" id="closeFormBtn">
-                    <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-            </div>
-            
-            <form id="courseForm" class="course-form">
-                <!-- Información Básica del Curso -->
-                <div class="form-section">
-                    <h3>Información Básica</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="courseName">Nombre del Curso *</label>
-                            <input type="text" id="courseName" name="name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="coursePrice">Precio *</label>
-                            <input type="number" id="coursePrice" name="price" step="0.01" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="courseCurrency">Moneda</label>
-                            <select id="courseCurrency" name="currency">
-                                <option value="USD">USD</option>
-                                <option value="EUR">EUR</option>
-                                <option value="MXN">MXN</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="courseModality">Modalidad *</label>
-                            <select id="courseModality" name="modality" required>
-                                <option value="async">Asíncrona (Solo videos/documentos)</option>
-                                <option value="sync">Síncrona (Sesiones en vivo)</option>
-                                <option value="mixed">Mixta (Videos + sesiones en vivo)</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="courseShortDescription">Descripción Corta *</label>
-                        <textarea id="courseShortDescription" name="short_description" rows="3" required></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="courseLongDescription">Descripción Larga *</label>
-                        <textarea id="courseLongDescription" name="long_description" rows="6" required></textarea>
+        <main class="main-content">
+            <!-- Header del Contenido -->
+            <header class="content-header">
+                <div class="header-content">
+                    <div class="header-text">
+                        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+                        <p class="page-description" id="pageDescription">Bienvenido al panel de maestros</p>
                     </div>
                 </div>
+            </header>
 
-                <!-- Configuración del Curso -->
-                <div class="form-section">
-                    <h3>Configuración</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="courseSessions">Número de Sesiones</label>
-                            <input type="number" id="courseSessions" name="session_count" min="1" max="75">
-                        </div>
-                        <div class="form-group">
-                            <label for="courseDuration">Duración Total (minutos)</label>
-                            <input type="number" id="courseDuration" name="total_duration">
-                        </div>
-                        <div class="form-group">
-                            <label for="courseSeries">Serie (opcional)</label>
-                            <select id="courseSeries" name="series_id">
-                                <option value="">Sin serie</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="courseStatus">Estado</label>
-                            <select id="courseStatus" name="status">
-                                <option value="draft">Borrador</option>
-                                <option value="published">Publicado</option>
-                                <option value="archived">Archivado</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- URLs y Enlaces -->
-                <div class="form-section">
-                    <h3>Enlaces y URLs</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="coursePurchaseUrl">URL de Compra *</label>
-                            <input type="url" id="coursePurchaseUrl" name="purchase_url" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="courseUrl">URL del Curso</label>
-                            <input type="url" id="courseUrl" name="course_url">
-                        </div>
-                        <div class="form-group">
-                            <label for="courseTemarioUrl">URL del Temario</label>
-                            <input type="url" id="courseTemarioUrl" name="temario_url">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Bonos y Documentos -->
-                <div class="form-section">
-                    <h3>Bonos y Documentos</h3>
-                    <div class="form-group">
-                        <label for="courseBonuses">Bonos (JSON)</label>
-                        <textarea id="courseBonuses" name="bonuses" rows="4" placeholder='[{"title": "Bono 1", "description": "Descripción del bono"}]'></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="courseInfoDocs">Documentos Informativos (JSON)</label>
-                        <textarea id="courseInfoDocs" name="info_docs" rows="4" placeholder='[{"title": "Documento 1", "url": "https://..."}]'></textarea>
-                    </div>
-                </div>
-
-                <!-- Feedback de IA -->
-                <div class="form-section">
-                    <h3>Feedback de IA</h3>
-                    <div class="form-group">
-                        <label for="courseAiFeedback">Comentarios de IA</label>
-                        <textarea id="courseAiFeedback" name="ai_feedback" rows="3"></textarea>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" id="cancelCourseBtn">Cancelar</button>
-                    <button type="submit" class="btn-primary">Guardar Curso</button>
-                </div>
-            </form>
-        </div>
-    </section>
-
-    <!-- Panel de Administración de Cursos -->
-    <section class="admin-panel" id="adminPanel" style="display: none;">
-        <div class="admin-container">
-            <div class="admin-header">
-                <h2>Panel de Administración de Cursos</h2>
-                <div class="admin-actions">
-                    <div class="search-container">
-                        <input type="text" id="adminSearch" placeholder="Buscar cursos...">
-                        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                    <button class="btn-primary" id="addCourseBtn">
-                        <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Nuevo Curso</span>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="admin-filters">
-                <div class="filter-group">
-                    <label for="statusFilter">Estado:</label>
-                    <select id="statusFilter">
-                        <option value="">Todos</option>
-                        <option value="draft">Borrador</option>
-                        <option value="published">Publicado</option>
-                        <option value="archived">Archivado</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="modalityFilter">Modalidad:</label>
-                    <select id="modalityFilter">
-                        <option value="">Todas</option>
-                        <option value="async">Asíncrona</option>
-                        <option value="sync">Síncrona</option>
-                        <option value="mixed">Mixta</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="sortBy">Ordenar por:</label>
-                    <select id="sortBy">
-                        <option value="created_at">Fecha de creación</option>
-                        <option value="name">Nombre</option>
-                        <option value="price">Precio</option>
-                        <option value="status">Estado</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="courses-table-container">
-                <table class="courses-table" id="coursesTable">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Precio</th>
-                            <th>Modalidad</th>
-                            <th>Estado</th>
-                            <th>Sesiones</th>
-                            <th>Fecha</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="coursesTableBody">
-                        <!-- Los cursos se cargarán dinámicamente aquí -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="pagination" id="pagination">
-                <!-- Paginación se generará dinámicamente -->
-            </div>
-        </div>
-    </section>
-
-    <!-- Gestión de Módulos -->
-    <section class="modules-section" id="modulesSection" style="display: none;">
-        <div class="modules-container">
-            <div class="modules-header">
-                <h2>Gestión de Módulos - <span id="currentCourseName"></span></h2>
-                <button class="btn-primary" id="addModuleBtn">
-                    <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <span>Agregar Módulo</span>
-                </button>
-            </div>
-            
-            <div class="modules-list" id="modulesList">
-                <!-- Los módulos se cargarán dinámicamente aquí -->
-            </div>
-        </div>
-    </section>
-
-    <!-- Gestión de Actividades -->
-    <section class="activities-section" id="activitiesSection" style="display: none;">
-        <div class="activities-container">
-            <div class="activities-header">
-                <h2>Actividades del Módulo - <span id="currentModuleName"></span></h2>
-                <button class="btn-primary" id="addActivityBtn">
-                    <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <span>Agregar Actividad</span>
-                </button>
-            </div>
-            
-            <div class="activities-list" id="activitiesList">
-                <!-- Las actividades se cargarán dinámicamente aquí -->
-            </div>
-        </div>
-    </section>
-
-    <!-- Layout de Chat (Similar a chat.html) -->
-    <div class="chat-layout" id="chatLayout" style="display: none;">
-        <div class="chat-container">
-            <!-- Panel Izquierdo -->
-            <div class="chat-sidebar">
-                <div class="sidebar-header">
-                    <h3>Panel de Control</h3>
-                </div>
-                
-                <div class="sidebar-content">
-                    <div class="sidebar-section">
-                        <h4>Información del Curso</h4>
-                        <div class="course-info" id="courseInfo">
-                            <!-- Información del curso actual -->
-                        </div>
-                    </div>
-                    
-                    <div class="sidebar-section">
-                        <h4>Estadísticas</h4>
-                        <div class="stats-info">
-                            <div class="stat-item">
-                                <span class="stat-label">Módulos</span>
-                                <span class="stat-value" id="modulesCount">0</span>
+            <!-- Contenido Dinámico -->
+            <div class="content-wrapper">
+                <!-- Dashboard -->
+                <section class="content-section active" id="dashboard">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M22 10V6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V10C3.1 10 4 10.9 4 12C4 13.1 3.1 14 2 14V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V14C20.9 14 20 13.1 20 12C20 10.9 20.9 10 22 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Actividades</span>
-                                <span class="stat-value" id="activitiesCount">0</span>
+                            <div class="stat-content">
+                                <h3 class="stat-number" id="totalCourses">0</h3>
+                                <p class="stat-label">Cursos Totales</p>
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Recursos</span>
-                                <span class="stat-value" id="resourcesCount">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-number" id="totalSeries">0</h3>
+                                <p class="stat-label">Series de Talleres</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M16 4H18C19.1046 4 20 4.89543 20 6V18C20 19.1046 19.1046 20 18 20H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M8 6H4C2.89543 6 2 6.89543 2 8V16C2 17.1046 2.89543 18 4 18H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 2L12 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-number" id="publishedCourses">0</h3>
+                                <p class="stat-label">Cursos Publicados</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-number" id="draftCourses">0</h3>
+                                <p class="stat-label">Borradores</p>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="sidebar-section">
-                        <h4>Acciones Rápidas</h4>
-                        <div class="quick-actions">
-                            <button class="btn-secondary" id="previewCourseBtn">
-                                <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span>Vista Previa</span>
-                            </button>
-                            <button class="btn-secondary" id="exportCourseBtn">
-                                <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span>Exportar</span>
-                            </button>
-                            <button class="btn-secondary" id="duplicateCourseBtn">
-                                <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M5 15H4C3.46957 15 2.96086 14.7893 2.58579 14.4142C2.21071 14.0391 2 13.5304 2 13V4C2 3.46957 2.21071 2.96086 2.58579 2.58579C2.96086 2.21071 3.46957 2 4 2H13C13.5304 2 14.0391 2.21071 14.4142 2.58579C14.7893 2.96086 15 3.46957 15 4V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span>Duplicar</span>
-                            </button>
+
+                    <div class="recent-courses">
+                        <h2>Cursos Recientes</h2>
+                        <div class="courses-grid" id="recentCoursesGrid">
+                            <!-- Los cursos recientes se cargarán dinámicamente -->
                         </div>
                     </div>
-                </div>
-            </div>
+                </section>
 
-            <!-- Panel Central -->
-            <div class="chat-main">
-                <div class="chat-header">
-                    <div class="header-left">
-                        <button class="btn-secondary" id="backToDashboardBtn">
-                            <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Mis Cursos -->
+                <section class="content-section" id="courses">
+                    <div class="section-header">
+                        <h2>Mis Cursos</h2>
+                        <button class="btn-primary" id="addCourseBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                            <span>Volver al Dashboard</span>
+                            <span>Crear Nuevo Curso</span>
                         </button>
                     </div>
-                    <div class="header-center">
-                        <h2 id="currentCourseTitle">Nombre del Curso</h2>
-                        <span class="course-status" id="courseStatus">Borrador</span>
-                    </div>
-                    <div class="header-right">
-                        <button class="btn-primary" id="saveAllBtn">
-                            <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <polyline points="17,21 17,13 7,13 7,21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <polyline points="7,3 7,8 15,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            <span>Guardar Todo</span>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="chat-content">
-                    <!-- Contenido principal del curso se cargará aquí -->
-                    <div id="courseContent">
-                        <!-- Secciones del curso -->
-                    </div>
-                </div>
-            </div>
 
-            <!-- Panel Derecho - Chat IA -->
-            <div class="chat-ia">
-                <div class="ia-header">
-                    <h3>Asistente IA</h3>
-                    <button class="btn-secondary" id="toggleIaBtn">
-                        <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="ia-content">
-                    <div class="ia-messages" id="iaMessages">
-                        <div class="ia-message">
-                            <div class="message-content">
-                                <p>¡Hola! Soy tu asistente IA para la creación de cursos. ¿En qué puedo ayudarte hoy?</p>
-                            </div>
+                    <div class="courses-grid" id="coursesGrid">
+                        <!-- Los cursos se cargarán dinámicamente -->
+                    </div>
+                </section>
+
+                <!-- Crear Curso -->
+                <section class="content-section" id="create-course">
+                    <div class="course-form-container">
+                        <div class="form-header">
+                            <h2>Crear Nuevo Curso</h2>
+                            <p>Completa la información para crear tu nuevo curso</p>
                         </div>
+
+                        <form id="courseForm" class="course-form">
+                            <!-- Información Básica del Curso -->
+                            <div class="form-section">
+                                <h3>Información Básica</h3>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="courseName">Nombre del Curso *</label>
+                                        <input type="text" id="courseName" name="name" required placeholder="Ej: Introducción a la Inteligencia Artificial">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="courseArea">Área *</label>
+                                        <select id="courseArea" name="area" required>
+                                            <option value="">Selecciona un área</option>
+                                            <option value="ia">Inteligencia Artificial</option>
+                                            <option value="datos">Ciencia de Datos</option>
+                                            <option value="desarrollo">Desarrollo Web</option>
+                                            <option value="desarrollo-movil">Desarrollo Móvil</option>
+                                            <option value="desarrollo-juegos">Desarrollo de Juegos</option>
+                                            <option value="diseño">Diseño Gráfico</option>
+                                            <option value="diseño-web">Diseño Web</option>
+                                            <option value="diseño-ui-ux">Diseño UI/UX</option>
+                                            <option value="it">IT & Software</option>
+                                            <option value="ciberseguridad">Ciberseguridad</option>
+                                            <option value="cloud-computing">Cloud Computing</option>
+                                            <option value="devops">DevOps</option>
+                                            <option value="marketing">Marketing Digital</option>
+                                            <option value="marketing-redes">Marketing en Redes Sociales</option>
+                                            <option value="seo-sem">SEO & SEM</option>
+                                            <option value="negocios">Negocios</option>
+                                            <option value="emprendimiento">Emprendimiento</option>
+                                            <option value="finanzas">Finanzas Personales</option>
+                                            <option value="liderazgo">Liderazgo</option>
+                                            <option value="ventas">Ventas</option>
+                                            <option value="productividad">Productividad</option>
+                                            <option value="idiomas">Idiomas</option>
+                                            <option value="musica">Música</option>
+                                            <option value="fotografia">Fotografía</option>
+                                            <option value="video">Video y Edición</option>
+                                            <option value="fitness">Fitness y Salud</option>
+                                            <option value="cocina">Cocina</option>
+                                            <option value="arte">Arte y Creatividad</option>
+                                            <option value="otros">Otros</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="courseIdentifier">Identificador del Curso</label>
+                                        <input type="text" id="courseIdentifier" name="identifier" readonly placeholder="Se generará automáticamente">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="courseInstructor">Instructor</label>
+                                        <input type="text" id="courseInstructor" name="instructor" readonly placeholder="Se llenará automáticamente">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="courseDescription">Descripción del Curso *</label>
+                                    <textarea id="courseDescription" name="description" rows="6" required placeholder="Describe detalladamente el contenido, objetivos y beneficios de tu curso"></textarea>
+                                </div>
+                                
+                                <!-- Serie de Talleres -->
+                                <div class="form-group">
+                                    <label for="courseSeries" class="series-toggle-label">
+                                        <svg class="series-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        ¿Es parte de una serie de talleres?
+                                    </label>
+                                    <select id="courseSeries" name="is_series" class="series-toggle-select">
+                                        <option value="no">No, es un curso independiente</option>
+                                        <option value="yes">Sí, es parte de una serie</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Contenedor de Series de Talleres -->
+                                <div id="seriesOptions" class="series-container" style="display: none;">
+                                    <div class="series-header">
+                                        <h4 class="series-title">
+                                            <svg class="series-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            Configuración de Serie de Talleres
+                                        </h4>
+                                        <p class="series-subtitle">Organiza tu curso como parte de una serie estructurada</p>
+                                    </div>
+                                    
+                                    <!-- Opciones de Serie -->
+                                    <div class="series-options">
+                                        <div class="series-option-card">
+                                            <div class="series-option-header">
+                                                <h5>Buscar Serie Existente</h5>
+                                                <p>Selecciona una serie que ya hayas creado</p>
+                                            </div>
+                                            <div class="form-group">
+                                                <select id="seriesSearch" name="existing_series" class="series-select">
+                                                    <option value="">Selecciona una serie existente</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="series-option-divider">
+                                            <span>o</span>
+                                        </div>
+                                        
+                                        <div class="series-option-card">
+                                            <div class="series-option-header">
+                                                <h5>Crear Nueva Serie</h5>
+                                                <p>Define una nueva serie de talleres</p>
+                                            </div>
+                                            <button type="button" class="btn-create-series" id="createNewSeriesBtn">
+                                                <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                                Crear Nueva Serie
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Formulario de Nueva Serie -->
+                                <div id="newSeriesForm" class="new-series-form" style="display: none;">
+                                    <div class="series-form-header">
+                                        <h4>Nueva Serie de Talleres</h4>
+                                        <p>Define los detalles de tu nueva serie</p>
+                                    </div>
+                                    
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label for="seriesName" class="required-label">
+                                                <span class="label-text">Nombre de la Serie</span>
+                                                <span class="required-mark">*</span>
+                                            </label>
+                                            <input type="text" id="seriesName" name="series_name" required 
+                                                   placeholder="Ej: Masterclass Completa de Inteligencia Artificial" 
+                                                   class="series-input">
+                                            <small class="input-hint">Nombre descriptivo para identificar la serie</small>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="seriesDescription" class="required-label">
+                                                <span class="label-text">Descripción de la Serie</span>
+                                                <span class="required-mark">*</span>
+                                            </label>
+                                            <textarea id="seriesDescription" name="series_description" rows="4" required
+                                                      placeholder="Describe el objetivo general, estructura y beneficios de la serie completa"
+                                                      class="series-textarea"></textarea>
+                                            <small class="input-hint">Explica qué aprenderán los estudiantes en toda la serie</small>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="workshopNumber" class="required-label">
+                                                <span class="label-text">Número de Taller en la Serie</span>
+                                                <span class="required-mark">*</span>
+                                            </label>
+                                            <input type="number" id="workshopNumber" name="workshop_number" min="1" max="99" required
+                                                   placeholder="Ej: 1" class="series-input">
+                                            <small class="input-hint">Posición de este curso en la secuencia de la serie</small>
+                                        </div>
+                                        
+
+                                    </div>
+                                    
+                                    <div class="series-form-actions">
+                                        <button type="button" class="btn-cancel-series" id="cancelSeriesBtn">
+                                            Cancelar Serie
+                                        </button>
+                                        <button type="button" class="btn-save-series" id="saveSeriesBtn">
+                                            <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M16 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M8 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M3 11H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            Guardar Serie
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Imagen del Curso -->
+                            <div class="form-section">
+                                <h3>Imagen del Curso</h3>
+                                <div class="form-group">
+                                    <label for="courseImage">Imagen del Curso</label>
+                                    <div class="image-upload-container">
+                                        <input type="file" id="courseImage" name="image" accept="image/*">
+                                        <div class="upload-placeholder">
+                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.51L14.5 12L19 18H5L8.5 13.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            <p>Haz clic para subir una imagen</p>
+                                            <span>PNG, JPG hasta 5MB</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Acciones del Formulario -->
+                            <div class="form-actions">
+                                <button type="button" class="btn-secondary" id="cancelFormBtn">Cancelar</button>
+                                <button type="submit" class="btn-primary">Crear Curso</button>
+                            </div>
+                        </form>
                     </div>
-                    
-                    <div class="ia-input">
-                        <textarea id="iaInput" placeholder="Escribe tu pregunta..."></textarea>
-                        <button class="btn-primary" id="sendIaBtn">
-                            <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
+                </section>
             </div>
-        </div>
+        </main>
     </div>
 
-    <!-- Footer del Panel -->
-    <footer class="instructor-footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <div class="footer-logo">
-                        <svg class="logo-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Panel de Maestros</span>
-                    </div>
-                    <p>Gestiona tus cursos de manera profesional y eficiente</p>
-                </div>
-                <div class="footer-links">
-                    <div class="link-group">
-                        <h4>Recursos</h4>
-                        <ul>
-                            <li><a href="#" id="helpLink">Ayuda</a></li>
-                            <li><a href="#" id="docsLink">Documentación</a></li>
-                            <li><a href="#" id="supportLink">Soporte</a></li>
-                        </ul>
-                    </div>
-                    <div class="link-group">
-                        <h4>Acciones</h4>
-                        <ul>
-                            <li><a href="#" id="backupLink">Respaldo</a></li>
-                            <li><a href="#" id="exportLink">Exportar</a></li>
-                            <li><a href="#" id="settingsLink">Configuración</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 Panel de Maestros. Todos los derechos reservados.</p>
-            </div>
-        </div>
-    </footer>
-
     <!-- Scripts -->
-    <script src="scripts/main.js"></script>
-    <script src="scripts/particles.js"></script>
-    <script src="scripts/animations.js"></script>
-    <script src="scripts/course-manager.js"></script>
+    <script src="scripts/navigation-clean.js"></script>
 </body>
 </html>

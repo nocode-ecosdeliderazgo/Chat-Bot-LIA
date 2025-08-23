@@ -292,7 +292,7 @@
 .module-card:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(68, 229, 255, 0.3);
-    transform: translateY(-2px);
+    transform: none;
 }
 
 .module-header {
@@ -373,7 +373,7 @@
 .activity-card:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(68, 229, 255, 0.3);
-    transform: translateY(-2px);
+    transform: none;
 }
 
 .activity-header {

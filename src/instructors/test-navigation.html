@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Navegación</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .nav-test {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .nav-btn {
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .nav-btn:hover {
+            background: #2563eb;
+        }
+        .section {
+            display: none;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .section.active {
+            display: block;
+        }
+        .debug {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test de Navegación</h1>
+    
+    <div class="nav-test">
+        <button class="nav-btn" data-section="dashboard">Dashboard</button>
+        <button class="nav-btn" data-section="courses">Cursos</button>
+        <button class="nav-btn" data-section="create-course">Crear Curso</button>
+    </div>
+    
+    <div id="dashboard" class="section active">
+        <h2>Dashboard</h2>
+        <p>Esta es la sección del dashboard.</p>
+    </div>
+    
+    <div id="courses" class="section">
+        <h2>Mis Cursos</h2>
+        <p>Esta es la sección de cursos.</p>
+    </div>
+    
+    <div id="create-course" class="section">
+        <h2>Crear Curso</h2>
+        <p>Esta es la sección para crear cursos.</p>
+    </div>
+    
+    <div class="debug" id="debug">
+        <h3>Debug Info:</h3>
+        <div id="debug-content">Esperando eventos...</div>
+    </div>
+    
+    <script>
+        // Función simple de navegación
+        function showSection(sectionName) {
+            console.log('🔄 Navegando a sección:', sectionName);
+            
+            // Ocultar todas las secciones
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Mostrar la sección seleccionada
+            const targetSection = document.getElementById(sectionName);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Actualizar debug
+            document.getElementById('debug-content').innerHTML = `
+                <strong>Sección activa:</strong> ${sectionName}<br>
+                <strong>Elemento encontrado:</strong> ${targetSection ? 'Sí' : 'No'}<br>
+                <strong>Timestamp:</strong> ${new Date().toLocaleTimeString()}
+            `;
+        }
+        
+        // Event listeners para los botones
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sectionName = this.getAttribute('data-section');
+                showSection(sectionName);
+            });
+        });
+        
+        // Mostrar información inicial
+        document.getElementById('debug-content').innerHTML = `
+            <strong>Estado inicial:</strong> Dashboard activo<br>
+            <strong>Botones encontrados:</strong> ${document.querySelectorAll('.nav-btn').length}<br>
+            <strong>Secciones encontradas:</strong> ${document.querySelectorAll('.section').length}
+        `;
+    </script>
+</body>
+</html>

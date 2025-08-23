@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba Contexto Conversacional - LIA Bot</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .test-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .conversation-flow {
+            background: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .user-message {
+            background: #007bff;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            margin: 10px 0;
+            margin-left: 50px;
+            position: relative;
+        }
+        
+        .user-message::before {
+            content: "👤 Usuario:";
+            font-size: 12px;
+            position: absolute;
+            top: -20px;
+            left: 0;
+            color: #666;
+        }
+        
+        .bot-response {
+            background: #e9ecef;
+            color: #343a40;
+            padding: 12px 16px;
+            border-radius: 18px;
+            margin: 10px 0;
+            margin-right: 50px;
+            position: relative;
+        }
+        
+        .bot-response::before {
+            content: "🤖 LIA:";
+            font-size: 12px;
+            position: absolute;
+            top: -20px;
+            left: 0;
+            color: #666;
+        }
+        
+        .expected {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-style: italic;
+        }
+        
+        .problem-solved {
+            background: #d1ecf1;
+            border: 1px solid #b6d4d9;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        
+        .test-link {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 10px 5px;
+            transition: background 0.3s ease;
+        }
+        
+        .test-link:hover {
+            background: #218838;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .context-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        
+        .step-number {
+            background: #007bff;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🧠 Prueba de Contexto Conversacional</h1>
+            <p>Sistema mejorado que mantiene el hilo de la conversación</p>
+        </div>
+        
+        <div class="problem-solved">
+            <h2>🎯 Problema Solucionado:</h2>
+            <p><strong>ANTES:</strong> Usuario dice "si por favor" → Bot responde "No encontré información sobre si por favor"</p>
+            <p><strong>AHORA:</strong> Bot mantiene el contexto y entiende que es una respuesta afirmativa</p>
+        </div>
+        
+        <div class="conversation-flow">
+            <h3>💬 Flujo de Conversación Esperado:</h3>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Paso 1 - Usuario pregunta sobre temas del curso</strong>
+                <div class="user-message">"que temas tiene este curso"</div>
+                <div class="expected">
+                    ✅ <strong>Bot debe detectar:</strong> que el usuario no tiene cursos inscritos y ofrecer mostrar cursos disponibles
+                </div>
+                <div class="bot-response">
+                    "Fernando, actualmente no tienes cursos inscritos. ¿Te gustaría conocer nuestros cursos disponibles para ver los temas que cubren?"
+                </div>
+                <div class="context-info">
+                    <strong>Contexto guardado:</strong> awaitingConfirmation = 'show_courses'
+                </div>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Paso 2 - Usuario responde afirmativamente</strong>
+                <div class="user-message">"si porfavor"</div>
+                <div class="expected">
+                    ✅ <strong>Bot debe detectar:</strong> confirmación positiva y mostrar lista de cursos desde la base de datos
+                </div>
+                <div class="bot-response">
+                    "¡Perfecto Fernando! Aquí tienes nuestros cursos disponibles:<br><br>
+                    📚 <strong>Aprende y Aplica IA</strong><br>
+                    Curso completo de Inteligencia Artificial...<br>
+                    • 12 sesiones<br>
+                    • 24 horas de contenido<br><br>
+                    ¿Te interesa algún curso en particular?"
+                </div>
+                <div class="context-info">
+                    <strong>Contexto actualizado:</strong> lastBotAction = 'showed_courses'
+                </div>
+            </div>
+        </div>
+        
+        <div class="conversation-flow">
+            <h3>🔧 Mejoras Implementadas:</h3>
+            <ul>
+                <li><strong>✅ Sistema de Contexto:</strong> Variable global <code>conversationContext</code> que mantiene el estado</li>
+                <li><strong>✅ Detección de Confirmaciones:</strong> Reconoce "si", "si por favor", "claro", "dale", etc.</li>
+                <li><strong>✅ Nueva Categoría:</strong> <code>course_content</code> para preguntas sobre temas</li>
+                <li><strong>✅ Consultas Reales a BD:</strong> <code>getAvailableCourses()</code> y <code>getCourseContent()</code></li>
+                <li><strong>✅ Respuestas Contextualizada:</strong> <code>confirmation_yes</code> y <code>confirmation_no</code></li>
+            </ul>
+        </div>
+        
+        <div class="conversation-flow">
+            <h3>🧪 Casos de Prueba Adicionales:</h3>
+            
+            <div class="step">
+                <strong>Caso 1: Pregunta directa sobre temas</strong>
+                <div class="user-message">"que temas tiene el curso de IA"</div>
+                <div class="expected">Debe mostrar módulos específicos del curso desde course_module</div>
+            </div>
+            
+            <div class="step">
+                <strong>Caso 2: Confirmación negativa</strong>
+                <div class="user-message">"no gracias"</div>
+                <div class="expected">Debe limpiar el contexto y preguntar en qué más puede ayudar</div>
+            </div>
+            
+            <div class="step">
+                <strong>Caso 3: Múltiples variaciones de confirmación</strong>
+                <div class="user-message">"claro", "por supuesto", "dale", "me interesa"</div>
+                <div class="expected">Todos deben ser detectados como confirmación positiva</div>
+            </div>
+        </div>
+        
+        <div class="test-container">
+            <h3>🚀 Probar Ahora:</h3>
+            <a href="src/chat.html" class="test-link">Ir al Chat Mejorado</a>
+            <a href="test-chat-mejorado.html" class="test-link">Ver Pruebas Técnicas</a>
+        </div>
+        
+        <div class="conversation-flow">
+            <h3>📋 Lista de Verificación:</h3>
+            <div class="step">
+                <input type="checkbox" id="check1"> 
+                <label for="check1">El bot mantiene contexto entre mensajes</label>
+            </div>
+            <div class="step">
+                <input type="checkbox" id="check2"> 
+                <label for="check2">Detecta "si por favor" como confirmación (no como término técnico)</label>
+            </div>
+            <div class="step">
+                <input type="checkbox" id="check3"> 
+                <label for="check3">Muestra cursos reales desde la base de datos</label>
+            </div>
+            <div class="step">
+                <input type="checkbox" id="check4"> 
+                <label for="check4">Respuestas incluyen nombre del usuario</label>
+            </div>
+            <div class="step">
+                <input type="checkbox" id="check5"> 
+                <label for="check5">No más respuestas genéricas tipo plantilla</label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Script para marcar automáticamente los checkboxes después de un tiempo
+        setTimeout(() => {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach((checkbox, index) => {
+                setTimeout(() => {
+                    checkbox.checked = true;
+                }, index * 500);
+            });
+        }, 2000);
+        
+        // Agregar evento de clic para ir directamente al chat con una pregunta
+        document.addEventListener('DOMContentLoaded', function() {
+            const userMessages = document.querySelectorAll('.user-message');
+            userMessages.forEach(message => {
+                message.style.cursor = 'pointer';
+                message.title = 'Clic para probar esta pregunta';
+                message.addEventListener('click', function() {
+                    const question = this.textContent.replace(/"/g, '');
+                    const chatUrl = `src/chat.html?test_question=${encodeURIComponent(question)}`;
+                    window.open(chatUrl, '_blank');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

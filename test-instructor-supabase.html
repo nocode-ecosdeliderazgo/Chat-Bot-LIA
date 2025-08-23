@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Instructor Supabase</title>
+    
+    <!-- Supabase Configuration -->
+    <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
+    <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY">
+    
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section { 
+            margin-bottom: 30px; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 4px; 
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        input, textarea, select { 
+            width: 100%; 
+            padding: 8px; 
+            margin: 5px 0; 
+            border: 1px solid #ccc; 
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        #log { 
+            height: 200px; 
+            overflow-y: auto; 
+            background: #000; 
+            color: #00ff00; 
+            font-family: monospace; 
+            padding: 10px;
+            white-space: pre-wrap;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 4px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Test - Instructor Supabase Connection</h1>
+        
+        <!-- Status Section -->
+        <div class="section" id="statusSection">
+            <h2>📊 Estado del Sistema</h2>
+            <div class="status-item">
+                <span>🌐 Supabase Cliente:</span>
+                <span id="supabaseStatus">⏳ Verificando...</span>
+            </div>
+            <div class="status-item">
+                <span>🔐 Token de Usuario:</span>
+                <span id="tokenStatus">⏳ Verificando...</span>
+            </div>
+            <div class="status-item">
+                <span>👤 Datos de Usuario:</span>
+                <span id="userDataStatus">⏳ Verificando...</span>
+            </div>
+            <div class="status-item">
+                <span>📁 Tabla workshop_series:</span>
+                <span id="tableStatus">⏳ Verificando...</span>
+            </div>
+        </div>
+
+        <!-- Authentication Section -->
+        <div class="section">
+            <h2>🔐 Configurar Autenticación (Test)</h2>
+            <div class="form-group">
+                <label for="testUsername">Usuario de prueba:</label>
+                <input type="text" id="testUsername" value="test_instructor" placeholder="Nombre de usuario">
+            </div>
+            <div class="form-group">
+                <label for="testUserId">ID de usuario de prueba:</label>
+                <input type="text" id="testUserId" value="" placeholder="Se generará UUID automáticamente">
+                <small style="color: #666;">Se generará un UUID válido automáticamente si está vacío o no es válido</small>
+            </div>
+            <button onclick="setTestAuth()">🔑 Configurar Autenticación de Prueba</button>
+            <button onclick="clearAuth()">🗑️ Limpiar Autenticación</button>
+        </div>
+
+        <!-- User Selection Section -->
+        <div class="section">
+            <h2>👨‍🏫 Seleccionar Instructor Existente</h2>
+            <p><strong>Importante:</strong> Selecciona un instructor/administrador existente de la base de datos.</p>
+            <button onclick="loadInstructors()">🔍 Cargar Instructores/Administradores</button>
+            <div class="form-group" id="instructorSelection" style="display: none;">
+                <label for="instructorSelect">Seleccionar Instructor:</label>
+                <select id="instructorSelect">
+                    <option value="">Selecciona un instructor...</option>
+                </select>
+                <button onclick="useSelectedInstructor()">✅ Usar Este Instructor</button>
+            </div>
+        </div>
+
+        <!-- Series Test Section -->
+        <div class="section">
+            <h2>📚 Test de Series de Talleres</h2>
+            <div class="form-group">
+                <label for="seriesName">Nombre de la serie:</label>
+                <input type="text" id="seriesName" value="Serie de prueba" placeholder="Nombre de la serie">
+            </div>
+            <div class="form-group">
+                <label for="seriesDescription">Descripción:</label>
+                <textarea id="seriesDescription" placeholder="Descripción de la serie">Esta es una serie de prueba para verificar la conexión con Supabase.</textarea>
+            </div>
+            <button onclick="testCreateSeries()" id="createSeriesBtn">💾 Crear Serie de Prueba</button>
+            <button onclick="testLoadSeries()">📂 Cargar Series Existentes</button>
+        </div>
+
+        <!-- Results Section -->
+        <div class="section">
+            <h2>📝 Resultados</h2>
+            <div id="results"></div>
+        </div>
+
+        <!-- Log Section -->
+        <div class="section">
+            <h2>📋 Log del Sistema</h2>
+            <div id="log"></div>
+            <button onclick="clearLog()">🗑️ Limpiar Log</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="src/scripts/supabase-client.js"></script>
+    <script>
+        // Override console.log to show in our log
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        function addToLog(message, type = 'info') {
+            const log = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = {
+                'info': '💡',
+                'error': '❌',
+                'warn': '⚠️',
+                'success': '✅'
+            }[type] || '📝';
+            
+            log.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToLog(args.join(' '), 'info');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToLog(args.join(' '), 'error');
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToLog(args.join(' '), 'warn');
+        };
+
+        function addSuccess(message) {
+            addToLog(message, 'success');
+        }
+
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+
+        function showResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `section ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+        }
+
+        function updateStatus(elementId, status, isSuccess) {
+            const element = document.getElementById(elementId);
+            element.textContent = status;
+            element.style.color = isSuccess ? 'green' : 'red';
+        }
+
+        async function checkSystemStatus() {
+            console.log('🔍 Verificando estado del sistema...');
+            
+            // Check Supabase
+            setTimeout(() => {
+                if (window.supabase) {
+                    updateStatus('supabaseStatus', '✅ Conectado', true);
+                    addSuccess('Supabase cliente inicializado correctamente');
+                } else {
+                    updateStatus('supabaseStatus', '❌ No conectado', false);
+                    console.error('Supabase no está disponible');
+                }
+            }, 2000);
+
+            // Check Token
+            const token = localStorage.getItem('userToken');
+            if (token) {
+                updateStatus('tokenStatus', '✅ Presente', true);
+            } else {
+                updateStatus('tokenStatus', '❌ Ausente', false);
+            }
+
+            // Check User Data
+            const userData = localStorage.getItem('userData') || localStorage.getItem('currentUser');
+            if (userData) {
+                updateStatus('userDataStatus', '✅ Presente', true);
+            } else {
+                updateStatus('userDataStatus', '❌ Ausente', false);
+            }
+
+            // Check Table (after Supabase loads)
+            setTimeout(async () => {
+                if (window.supabase) {
+                    try {
+                        const { data, error } = await window.supabase
+                            .from('workshop_series')
+                            .select('count')
+                            .limit(1);
+                        
+                        if (error) {
+                            updateStatus('tableStatus', `❌ Error: ${error.message}`, false);
+                        } else {
+                            updateStatus('tableStatus', '✅ Accesible', true);
+                            addSuccess('Tabla workshop_series es accesible');
+                        }
+                    } catch (e) {
+                        updateStatus('tableStatus', `❌ Error: ${e.message}`, false);
+                    }
+                } else {
+                    updateStatus('tableStatus', '❌ Supabase no disponible', false);
+                }
+            }, 3000);
+        }
+
+        // Función para generar UUID válido
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function setTestAuth() {
+            const username = document.getElementById('testUsername').value;
+            const userId = document.getElementById('testUserId').value;
+            
+            if (!username || !userId) {
+                showResult('❌ Por favor completa usuario e ID, o usa "Cargar Instructores" para seleccionar uno existente', 'error');
+                return;
+            }
+            
+            const testUser = {
+                id: userId,
+                username: username,
+                email: `${username}@test.com`,
+                display_name: `Test ${username}`,
+                cargo_rol: 'instructor'
+            };
+
+            const testToken = `test-token-${Date.now()}`;
+
+            localStorage.setItem('userToken', testToken);
+            localStorage.setItem('userData', JSON.stringify(testUser));
+            localStorage.setItem('currentUser', JSON.stringify(testUser));
+
+            showResult(`✅ Autenticación configurada para: ${username} (ID: ${userId})`, 'success');
+            checkSystemStatus();
+        }
+
+        function clearAuth() {
+            localStorage.removeItem('userToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('currentUser');
+            showResult('🗑️ Autenticación eliminada', 'info');
+            checkSystemStatus();
+        }
+
+        function getCurrentUserInfo() {
+            try {
+                const userData = localStorage.getItem('userData');
+                if (userData) {
+                    return JSON.parse(userData);
+                }
+                
+                const currentUser = localStorage.getItem('currentUser');
+                if (currentUser) {
+                    return JSON.parse(currentUser);
+                }
+                
+                return null;
+            } catch (e) {
+                console.error('Error obteniendo información del usuario:', e);
+                return null;
+            }
+        }
+
+        async function testCreateSeries() {
+            const createBtn = document.getElementById('createSeriesBtn');
+            const originalText = createBtn.textContent;
+            
+            try {
+                createBtn.textContent = '⏳ Creando...';
+                createBtn.disabled = true;
+
+                const userInfo = getCurrentUserInfo();
+                if (!userInfo) {
+                    throw new Error('No hay información del usuario. Configura la autenticación primero.');
+                }
+
+                const seriesData = {
+                    name: document.getElementById('seriesName').value,
+                    description: document.getElementById('seriesDescription').value,
+                    instructor_id: userInfo.id
+                };
+
+                if (!seriesData.name) {
+                    throw new Error('El nombre de la serie es requerido');
+                }
+
+                console.log('📝 Datos de la serie a crear:', seriesData);
+
+                if (!window.supabase) {
+                    throw new Error('Supabase no está disponible');
+                }
+
+                const { data, error } = await window.supabase
+                    .from('workshop_series')
+                    .insert([{
+                        name: seriesData.name,
+                        description: seriesData.description,
+                        instructor_id: seriesData.instructor_id,
+                        created_at: new Date().toISOString()
+                    }])
+                    .select();
+
+                if (error) {
+                    throw new Error(`Error de base de datos: ${error.message}`);
+                }
+
+                console.log('✅ Serie creada exitosamente:', data);
+                showResult(`✅ Serie "${seriesData.name}" creada exitosamente con ID: ${data[0].id}`, 'success');
+                
+                // Limpiar campos
+                document.getElementById('seriesName').value = '';
+                document.getElementById('seriesDescription').value = '';
+
+            } catch (error) {
+                console.error('❌ Error al crear serie:', error);
+                showResult(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                createBtn.textContent = originalText;
+                createBtn.disabled = false;
+            }
+        }
+
+        async function loadInstructors() {
+            try {
+                if (!window.supabase) {
+                    throw new Error('Supabase no está disponible');
+                }
+
+                console.log('👨‍🏫 Cargando instructores y administradores...');
+
+                const { data, error } = await window.supabase
+                    .from('users')
+                    .select('id, username, email, display_name, cargo_rol')
+                    .in('cargo_rol', ['instructor', 'Instructor', 'Administrador', 'administrador']);
+
+                if (error) {
+                    throw new Error(`Error de base de datos: ${error.message}`);
+                }
+
+                console.log('👥 Instructores encontrados:', data);
+                
+                if (data.length === 0) {
+                    showResult('👥 No se encontraron instructores/administradores en la base de datos', 'warning');
+                    return;
+                }
+
+                // Poblar el select con los instructores
+                const instructorSelect = document.getElementById('instructorSelect');
+                instructorSelect.innerHTML = '<option value="">Selecciona un instructor...</option>';
+                
+                data.forEach(instructor => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify(instructor);
+                    option.textContent = `${instructor.display_name || instructor.username} (${instructor.cargo_rol}) - ${instructor.email}`;
+                    instructorSelect.appendChild(option);
+                });
+
+                document.getElementById('instructorSelection').style.display = 'block';
+                showResult(`✅ Encontrados ${data.length} instructor(es)/administrador(es)`, 'success');
+
+            } catch (error) {
+                console.error('❌ Error al cargar instructores:', error);
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function useSelectedInstructor() {
+            const instructorSelect = document.getElementById('instructorSelect');
+            const selectedValue = instructorSelect.value;
+            
+            if (!selectedValue) {
+                showResult('❌ Por favor selecciona un instructor', 'error');
+                return;
+            }
+
+            try {
+                const instructor = JSON.parse(selectedValue);
+                console.log('👤 Instructor seleccionado:', instructor);
+
+                // Configurar como usuario activo
+                const testToken = `instructor-token-${Date.now()}`;
+                localStorage.setItem('userToken', testToken);
+                localStorage.setItem('userData', JSON.stringify(instructor));
+                localStorage.setItem('currentUser', JSON.stringify(instructor));
+
+                // Actualizar campos de autenticación
+                document.getElementById('testUsername').value = instructor.username;
+                document.getElementById('testUserId').value = instructor.id;
+
+                showResult(`✅ Instructor configurado: ${instructor.display_name || instructor.username} (${instructor.cargo_rol})`, 'success');
+                checkSystemStatus();
+
+            } catch (error) {
+                console.error('❌ Error al configurar instructor:', error);
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLoadSeries() {
+            try {
+                const userInfo = getCurrentUserInfo();
+                if (!userInfo) {
+                    throw new Error('No hay información del usuario. Configura la autenticación primero.');
+                }
+
+                console.log('📂 Cargando series para usuario:', userInfo);
+
+                if (!window.supabase) {
+                    throw new Error('Supabase no está disponible');
+                }
+
+                const { data, error } = await window.supabase
+                    .from('workshop_series')
+                    .select('*')
+                    .eq('instructor_id', userInfo.id);
+
+                if (error) {
+                    throw new Error(`Error de base de datos: ${error.message}`);
+                }
+
+                console.log('📚 Series encontradas:', data);
+                
+                if (data.length === 0) {
+                    showResult('📭 No se encontraron series para este instructor', 'info');
+                } else {
+                    showResult(`📚 Encontradas ${data.length} serie(s): ${data.map(s => s.name).join(', ')}`, 'success');
+                }
+
+            } catch (error) {
+                console.error('❌ Error al cargar series:', error);
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Test de Instructor Supabase iniciado');
+            checkSystemStatus();
+        });
+    </script>
+</body>
+</html>

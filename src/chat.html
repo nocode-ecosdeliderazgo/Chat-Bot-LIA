@@ -17,6 +17,9 @@
     <!-- Auth Guard - Protección de autenticación -->
     <script src="utils/auth-guard.js"></script>
     
+    <!-- Supabase Client - Base de datos -->
+    <script src="scripts/supabase-client.js"></script>
+    
     <!-- Global theme setup - Configuración global del tema -->
     <script src="scripts/global-theme-setup.js"></script>
     <style>
@@ -39,6 +42,11 @@
             z-index: 10;
             margin: 0;
             height: 0; /* no ocupa espacio, la isla es fija */
+        }
+
+        /* Espacio para la Dynamic Island - evitar que los mensajes se corten */
+        .chat-messages {
+            padding-bottom: 100px !important; /* Espacio suficiente para la Dynamic Island */
         }
 
         .message-input-wrapper {
