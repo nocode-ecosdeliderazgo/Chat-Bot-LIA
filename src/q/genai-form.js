@@ -329,11 +329,22 @@ class GenAIQuestionnaire {
     renderQuestion(question, questionNumber) {
         let optionsHtml = '';
         
-        // Parsear las opciones desde el campo JSON
+        // Parsear las opciones desde el campo (puede ser JSON o string separado por comas)
         let options = [];
         try {
             if (question.options && typeof question.options === 'string') {
-                options = JSON.parse(question.options);
+                // Intentar parsear como JSON primero
+                try {
+                    options = JSON.parse(question.options);
+                } catch (jsonError) {
+                    // Si no es JSON, intentar parsear como string separado por comas
+                    if (question.options.includes(',')) {
+                        options = question.options.split(',').map(opt => opt.trim());
+                    } else {
+                        // Si no hay comas, usar el string completo
+                        options = [question.options];
+                    }
+                }
             } else if (Array.isArray(question.options)) {
                 options = question.options;
             }

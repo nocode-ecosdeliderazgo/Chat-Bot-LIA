@@ -24,33 +24,71 @@ async function getGenAIRadarData(userId) {
         
         // Query para obtener los últimos datos del radar por usuario
         const query = `
+            WITH user_responses AS (
+                SELECT 
+                    r.user_id,
+                    r.pregunta_id,
+                    r.valor->>'answer' as answer,
+                    r.respondido_en,
+                    p.bloque,
+                    p.scoring
+                FROM respuestas r
+                JOIN preguntas p ON p.id = r.pregunta_id
+                WHERE r.user_id = $1 
+                    AND p.section = 'Cuestionario'
+                ORDER BY r.respondido_en DESC
+            ),
+            scores_calculados AS (
+                SELECT 
+                    user_id,
+                    COUNT(*) as total_questions,
+                    COUNT(CASE WHEN bloque = 'Adopción' THEN 1 END) as adoption_questions,
+                    COUNT(CASE WHEN bloque = 'Conocimiento' THEN 1 END) as knowledge_questions,
+                    AVG(CASE WHEN bloque = 'Adopción' THEN 
+                        CASE 
+                            WHEN answer = 'A' THEN 1
+                            WHEN answer = 'B' THEN 2
+                            WHEN answer = 'C' THEN 3
+                            WHEN answer = 'D' THEN 4
+                            WHEN answer = 'E' THEN 5
+                            ELSE 0
+                        END
+                    END) as adoption_score,
+                    AVG(CASE WHEN bloque = 'Conocimiento' THEN 
+                        CASE 
+                            WHEN answer = 'A' THEN 20
+                            WHEN answer = 'B' THEN 40
+                            WHEN answer = 'C' THEN 60
+                            WHEN answer = 'D' THEN 80
+                            WHEN answer = 'E' THEN 100
+                            ELSE 0
+                        END
+                    END) as knowledge_score
+                FROM user_responses
+                GROUP BY user_id
+            )
             SELECT 
-                gqs.id as session_id,
-                gqs.user_id,
-                gqs.genai_area,
-                gqs.total_score,
-                gqs.adoption_score,
-                gqs.knowledge_score,
-                gqs.classification,
-                gqs.completed_at,
+                ur.user_id,
                 u.username,
                 u.email,
-                -- Scores por dimensión desde genai_radar_scores
-                COALESCE(
-                    (SELECT score FROM genai_radar_scores 
-                     WHERE session_id = gqs.id AND dimension = 'Adopción' 
-                     ORDER BY created_at DESC LIMIT 1), 0
-                ) as adopcion_score,
-                COALESCE(
-                    (SELECT score FROM genai_radar_scores 
-                     WHERE session_id = gqs.id AND dimension = 'Conocimiento' 
-                     ORDER BY created_at DESC LIMIT 1), 0
-                ) as conocimiento_score
-            FROM genai_questionnaire_sessions gqs
-            LEFT JOIN users u ON u.id = gqs.user_id
-            WHERE gqs.user_id = $1 
-                AND gqs.completed_at IS NOT NULL
-            ORDER BY gqs.completed_at DESC
+                sc.total_questions,
+                sc.adoption_questions,
+                sc.knowledge_questions,
+                sc.adoption_score,
+                sc.knowledge_score,
+                (sc.adoption_score + sc.knowledge_score) / 2 as total_score,
+                CASE 
+                    WHEN (sc.adoption_score + sc.knowledge_score) / 2 >= 70 THEN 'Avanzado'
+                    WHEN (sc.adoption_score + sc.knowledge_score) / 2 >= 40 THEN 'Intermedio'
+                    ELSE 'Básico'
+                END as classification,
+                MAX(ur.respondido_en) as completed_at
+            FROM user_responses ur
+            JOIN scores_calculados sc ON sc.user_id = ur.user_id
+            LEFT JOIN users u ON u.id = ur.user_id
+            GROUP BY ur.user_id, u.username, u.email, sc.total_questions, sc.adoption_questions, 
+                     sc.knowledge_questions, sc.adoption_score, sc.knowledge_score
+            ORDER BY completed_at DESC
             LIMIT 1
         `;
         
@@ -62,7 +100,7 @@ async function getGenAIRadarData(userId) {
                 hasData: false,
                 message: 'No hay datos de cuestionario GenAI completado',
                 userId: userId,
-                dataSource: 'genai_questionnaire_sessions'
+                dataSource: 'preguntas_respuestas'
             };
         }
         
@@ -71,11 +109,11 @@ async function getGenAIRadarData(userId) {
         // Formatear datos para el radar chart
         const radarData = {
             hasData: true,
-            session_id: row.session_id,
+            session_id: 'session-' + row.user_id + '-' + Date.now(),
             userId: row.user_id,
             username: row.username,
             email: row.email,
-            genaiArea: row.genai_area,
+            genaiArea: 'Operaciones', // Por defecto, se puede mejorar obteniendo el área real
             
             // Scores principales
             totalScore: parseFloat(row.total_score) || 0,
@@ -86,13 +124,13 @@ async function getGenAIRadarData(userId) {
             
             // Datos para radar chart (5 dimensiones)
             // Mapear los 2 scores GenAI a 5 dimensiones del radar original
-            conocimiento: parseFloat(row.conocimiento_score) || parseFloat(row.knowledge_score) || 0,
-            aplicacion: parseFloat(row.adopcion_score) || parseFloat(row.adoption_score) || 0,
-            productividad: parseFloat(row.adopcion_score) || parseFloat(row.adoption_score) || 0, // Usar adopción como proxy
+            conocimiento: parseFloat(row.knowledge_score) || 0,
+            aplicacion: parseFloat(row.adoption_score) || 0,
+            productividad: parseFloat(row.adoption_score) || 0, // Usar adopción como proxy
             estrategia: parseFloat(row.total_score) || 0, // Usar score total como estrategia
             inversion: Math.min(parseFloat(row.total_score) || 0, 80), // Cap a 80 para ser realista
             
-            dataSource: 'genai_questionnaire_sessions'
+            dataSource: 'preguntas_respuestas'
         };
         
         console.log('📊 Datos GenAI radar obtenidos:', {
