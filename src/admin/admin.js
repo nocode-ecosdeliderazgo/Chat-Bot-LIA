@@ -30,11 +30,10 @@ class AdminPanel {
     constructor() {
         this.currentSection = 'dashboard';
         this.usersLoadedBefore = false; // Flag to prevent repetitive notifications
-        this.init();
+        this.setupEventListeners();
     }
 
     async init() {
-        this.setupEventListeners();
         await this.loadInitialData();
         this.loadDashboardData();
         this.setupNotifications();
@@ -1458,27 +1457,41 @@ class AdminPanel {
     async loadAdminInfo() {
         try {
             const response = await this.makeAuthenticatedRequest('/api/admin/auth/check');
-            if (!response.ok) {
-                throw new Error('Error obteniendo información del administrador');
-            }
+            let admin = null;
             
-            const admin = await response.json();
+            if (response.ok) {
+                admin = await response.json();
+            } else {
+                throw new Error('Backend no disponible');
+            }
             
             // Actualizar información en el sidebar
-            const userNameElement = document.querySelector('.user-name');
-            const userRoleElement = document.querySelector('.user-role');
-            
-            if (userNameElement) {
-                userNameElement.textContent = admin.fullName || 'Administrador';
-            }
-            
-            if (userRoleElement) {
-                userRoleElement.textContent = admin.role || 'Administrador';
-            }
+            this.updateAdminInfo(admin);
             
         } catch (error) {
-            console.error('Error cargando información del administrador:', error);
-            // Mantener valores por defecto si hay error
+            console.log('Backend no disponible, usando datos de administrador por defecto');
+            
+            // Usar datos por defecto del administrador
+            const defaultAdmin = {
+                fullName: 'Administrador',
+                role: 'Administrador',
+                username: 'admin'
+            };
+            
+            this.updateAdminInfo(defaultAdmin);
+        }
+    }
+    
+    updateAdminInfo(admin) {
+        const userNameElement = document.querySelector('.user-name');
+        const userRoleElement = document.querySelector('.user-role');
+        
+        if (userNameElement) {
+            userNameElement.textContent = admin.fullName || 'Administrador';
+        }
+        
+        if (userRoleElement) {
+            userRoleElement.textContent = admin.role || 'Administrador';
         }
     }
 }
@@ -1493,6 +1506,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.head.appendChild(styleSheet);
     
     adminPanel = new AdminPanel();
+    await adminPanel.init();
 });
 
 // ===== ESTILOS ADICIONALES PARA COMPONENTES =====
