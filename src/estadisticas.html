@@ -189,10 +189,10 @@
             margin: 2rem 0;
         }
         
-        .adoption-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+                 .adoption-container {
+             max-width: 1400px;
+             margin: 0 auto;
+         }
         
         .adoption-card {
             background: rgba(255, 255, 255, 0.1);
@@ -217,27 +217,27 @@
             margin-bottom: 2rem;
         }
         
-        .adoption-chart-container {
-            position: relative;
-            width: 100%;
-            height: 600px;
-            margin: 2rem 0;
-        }
+                 .adoption-chart-container {
+             position: relative;
+             width: 100%;
+             height: 700px;
+             margin: 2rem 0;
+         }
         
-        #adoptionChart {
-            max-width: 100%;
-            height: 600px;
-        }
+                 #adoptionChart {
+             max-width: 100%;
+             height: 700px;
+         }
         
-        .adoption-placeholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 600px;
-            background: rgba(68, 229, 255, 0.1);
-            border-radius: 16px;
-            border: 2px dashed #44e5ff;
-        }
+                 .adoption-placeholder {
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             height: 700px;
+             background: rgba(68, 229, 255, 0.1);
+             border-radius: 16px;
+             border: 2px dashed #44e5ff;
+         }
         
         .adoption-info {
             margin-top: 1rem;
@@ -245,24 +245,24 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        /* Responsive para adopción */
-        @media (max-width: 768px) {
-            .adoption-card {
-                padding: 1.5rem;
-                margin: 0 1rem;
-            }
-            
-            .adoption-chart-container {
-                height: 400px;
-            }
-            
-            #adoptionChart {
-                height: 400px;
-            }
-            
-            .adoption-placeholder {
-                height: 400px;
-            }
+                 /* Responsive para adopción */
+         @media (max-width: 768px) {
+             .adoption-card {
+                 padding: 1.5rem;
+                 margin: 0 1rem;
+             }
+             
+             .adoption-chart-container {
+                 height: 500px;
+             }
+             
+             #adoptionChart {
+                 height: 500px;
+             }
+             
+             .adoption-placeholder {
+                 height: 500px;
+             }
             
             .adoption-header h3 {
                 font-size: 1.25rem;
@@ -417,8 +417,8 @@
                             <h3><i class='bx bx-globe'></i> Adopción de GenAI en Países Hispanoparlantes</h3>
                             <p>Índice de Adopción e Implementación de IA (AIPI) por país</p>
                         </div>
-                        <div class="adoption-chart-container">
-                            <canvas id="adoptionChart" width="800" height="600"></canvas>
+                                                 <div class="adoption-chart-container">
+                             <canvas id="adoptionChart" width="1200" height="700"></canvas>
                             <div id="adoptionPlaceholder" class="adoption-placeholder" style="display: none;">
                                 <div class="placeholder-content">
                                     <i class='bx bx-globe' style="font-size: 48px; color: #44e5ff; margin-bottom: 16px;"></i>
@@ -911,8 +911,8 @@
                     borderWidth: 2,
                     borderRadius: 8,
                     borderSkipped: false,
-                    barThickness: 30,
-                    maxBarThickness: 35,
+                                         barThickness: 35,
+                     maxBarThickness: 40,
                     // Efectos adicionales
                     hoverBackgroundColor: '#44E5FF',
                     hoverBorderColor: '#0077A6',
@@ -1034,15 +1034,15 @@
                         intersect: false,
                         mode: 'index'
                     },
-                    // Configuración adicional para tooltips
-                    layout: {
-                        padding: {
-                            top: 20,
-                            bottom: 20,
-                            left: 20,
-                            right: 20
-                        }
-                    }
+                                         // Configuración adicional para tooltips
+                     layout: {
+                         padding: {
+                             top: 30,
+                             bottom: 30,
+                             left: 40,
+                             right: 40
+                         }
+                     }
                 }
             };
             
