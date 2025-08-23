@@ -183,6 +183,118 @@
         [data-theme="light"] .radar-info {
             border-top-color: rgba(0, 0, 0, 0.1);
         }
+
+        /* Estilos para la sección de adopción */
+        .adoption-section {
+            margin: 2rem 0;
+        }
+        
+        .adoption-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .adoption-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .adoption-header h3 {
+            color: #44e5ff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .adoption-header p {
+            color: #888;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .adoption-chart-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            margin: 2rem 0;
+        }
+        
+        #adoptionChart {
+            max-width: 100%;
+            height: 600px;
+        }
+        
+        .adoption-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 600px;
+            background: rgba(68, 229, 255, 0.1);
+            border-radius: 16px;
+            border: 2px dashed #44e5ff;
+        }
+        
+        .adoption-info {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Responsive para adopción */
+        @media (max-width: 768px) {
+            .adoption-card {
+                padding: 1.5rem;
+                margin: 0 1rem;
+            }
+            
+            .adoption-chart-container {
+                height: 400px;
+            }
+            
+            #adoptionChart {
+                height: 400px;
+            }
+            
+            .adoption-placeholder {
+                height: 400px;
+            }
+            
+            .adoption-header h3 {
+                font-size: 1.25rem;
+            }
+            
+            .adoption-header p {
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Tema claro para adopción */
+        [data-theme="light"] .adoption-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="light"] .adoption-header h3 {
+            color: #0077a6;
+        }
+        
+        [data-theme="light"] .adoption-header p {
+            color: #666;
+        }
+        
+        [data-theme="light"] .adoption-placeholder {
+            background: rgba(0, 119, 166, 0.1);
+            border-color: #0077a6;
+        }
+        
+        [data-theme="light"] .adoption-info {
+            border-top-color: rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body class="bg-glow-global">
@@ -292,6 +404,31 @@
                                 <div id="userIdInfo"></div>
                                 <div id="connectionStatus"></div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Nueva sección para gráfica de adopción GenAI por países -->
+            <section class="adoption-section animate-on-scroll">
+                <div class="adoption-container">
+                    <div class="adoption-card glass-card">
+                        <div class="adoption-header">
+                            <h3><i class='bx bx-globe'></i> Adopción de GenAI en Países Hispanoparlantes</h3>
+                            <p>Índice de Adopción e Implementación de IA (AIPI) por país</p>
+                        </div>
+                        <div class="adoption-chart-container">
+                            <canvas id="adoptionChart" width="800" height="600"></canvas>
+                            <div id="adoptionPlaceholder" class="adoption-placeholder" style="display: none;">
+                                <div class="placeholder-content">
+                                    <i class='bx bx-globe' style="font-size: 48px; color: #44e5ff; margin-bottom: 16px;"></i>
+                                    <h4 style="color: #44e5ff; margin: 0 0 8px 0;">Cargando datos...</h4>
+                                    <p style="color: #888; margin: 0 0 8px 0; text-align: center;">Obteniendo estadísticas de adopción de GenAI</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="adoption-info">
+                            <p id="adoptionInfo" style="color: #888; font-size: 14px; margin: 0;">Datos actualizados de adopción de Inteligencia Artificial Generativa</p>
                         </div>
                     </div>
                 </div>
@@ -418,6 +555,9 @@
             
             // Obtener información del usuario logueado
             await loadUserRadarData();
+            
+            // Cargar datos de adopción de GenAI por países
+            await loadAdoptionData();
         });
         
         // Función para obtener el userId del usuario actual
@@ -685,6 +825,228 @@
                 const shortSessionId = sessionId.toString().substring(0, 8);
                 sessionInfo.textContent = `Última sesión: ${shortSessionId}...`;
                 sessionInfo.style.display = 'block';
+            }
+        }
+
+        // Variables globales para la gráfica de adopción
+        let adoptionChart = null;
+        
+        // Cargar datos de adopción de GenAI por países
+        async function loadAdoptionData() {
+            try {
+                console.log('🌍 Cargando datos de adopción de GenAI por países...');
+                
+                // Mostrar placeholder de carga
+                showAdoptionPlaceholder('Cargando datos...');
+                
+                const baseURL = 'http://localhost:3000';
+                const response = await fetch(`${baseURL}/api/adopcion-genai`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📡 Response status adopción:', response.status);
+                
+                if (!response.ok) {
+                    console.error('❌ Error obteniendo datos de adopción:', response.status, response.statusText);
+                    showAdoptionPlaceholder('Error al cargar datos');
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('📊 Datos de adopción recibidos:', data);
+                
+                if (data && data.length > 0) {
+                    console.log('✅ Datos válidos de adopción encontrados, creando gráfica');
+                    createAdoptionChart(data);
+                } else {
+                    console.log('📭 No hay datos de adopción disponibles');
+                    showAdoptionPlaceholder('No hay datos disponibles');
+                }
+                
+            } catch (error) {
+                console.error('💥 Error cargando datos de adopción:', error);
+                showAdoptionPlaceholder('Error de conexión');
+            }
+        }
+        
+        // Crear gráfica de barras horizontal para adopción de GenAI
+        function createAdoptionChart(data) {
+            const canvas = document.getElementById('adoptionChart');
+            if (!canvas) {
+                console.error('❌ Canvas adoptionChart no encontrado');
+                return;
+            }
+            
+            // Destruir chart existente si existe
+            if (adoptionChart) {
+                adoptionChart.destroy();
+            }
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Preparar datos para la gráfica
+            const countries = data.map(item => item.pais);
+            const scores = data.map(item => parseFloat(item.indice_aipi));
+            
+            // Crear gradientes de colores
+            const gradients = scores.map((score, index) => {
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+                const intensity = Math.min(score / 100, 1);
+                gradient.addColorStop(0, `rgba(68, 229, 255, ${0.3 + intensity * 0.4})`);
+                gradient.addColorStop(1, `rgba(0, 119, 166, ${0.3 + intensity * 0.4})`);
+                return gradient;
+            });
+            
+            // Configuración del dataset
+            const chartData = {
+                labels: countries,
+                datasets: [{
+                    label: 'Índice AIPI',
+                    data: scores,
+                    backgroundColor: gradients,
+                    borderColor: '#44E5FF',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    barThickness: 25,
+                    maxBarThickness: 30
+                }]
+            };
+            
+            // Configuración del chart
+            const config = {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#44E5FF',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `Índice AIPI: ${context.parsed.x.toFixed(1)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: Math.max(...scores) * 1.1,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#888',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#fff',
+                                font: {
+                                    size: 14,
+                                    weight: '500'
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart',
+                        onProgress: function(animation) {
+                            const chart = animation.chart;
+                            const ctx = chart.ctx;
+                            const dataset = chart.data.datasets[0];
+                            const meta = chart.getDatasetMeta(0);
+                            
+                            meta.data.forEach((bar, index) => {
+                                const value = dataset.data[index];
+                                const x = bar.x;
+                                const y = bar.y;
+                                const width = bar.width;
+                                const height = bar.height;
+                                
+                                // Agregar valor en la barra
+                                ctx.fillStyle = '#fff';
+                                ctx.font = 'bold 12px Inter';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(value.toFixed(1), x + width/2, y + height/2);
+                            });
+                        }
+                    }
+                }
+            };
+            
+            // Crear el chart
+            adoptionChart = new Chart(ctx, config);
+            
+            // Ocultar placeholder y mostrar chart
+            document.getElementById('adoptionPlaceholder').style.display = 'none';
+            canvas.style.display = 'block';
+            
+            // Actualizar información
+            updateAdoptionInfo(data);
+            
+            console.log('✅ Gráfica de adopción creada exitosamente');
+        }
+        
+        // Mostrar placeholder para la gráfica de adopción
+        function showAdoptionPlaceholder(message) {
+            const canvas = document.getElementById('adoptionChart');
+            const placeholder = document.getElementById('adoptionPlaceholder');
+            
+            if (canvas) canvas.style.display = 'none';
+            if (placeholder) {
+                const content = placeholder.querySelector('.placeholder-content');
+                if (content) {
+                    content.innerHTML = `
+                        <i class='bx bx-globe' style="font-size: 48px; color: #44e5ff; margin-bottom: 16px;"></i>
+                        <h4 style="color: #44e5ff; margin: 0 0 8px 0;">${message}</h4>
+                        <p style="color: #888; margin: 0 0 8px 0; text-align: center;">Estadísticas de adopción de GenAI en países hispanoparlantes</p>
+                    `;
+                }
+                placeholder.style.display = 'flex';
+            }
+            
+            console.log('📋 Mostrando placeholder para gráfica de adopción:', message);
+        }
+        
+        // Actualizar información de la gráfica de adopción
+        function updateAdoptionInfo(data) {
+            const adoptionInfo = document.getElementById('adoptionInfo');
+            if (adoptionInfo && data && data.length > 0) {
+                const totalCountries = data.length;
+                const avgScore = (data.reduce((sum, item) => sum + parseFloat(item.indice_aipi), 0) / totalCountries).toFixed(1);
+                const maxScore = Math.max(...data.map(item => parseFloat(item.indice_aipi))).toFixed(1);
+                const topCountry = data.find(item => parseFloat(item.indice_aipi) === Math.max(...data.map(item => parseFloat(item.indice_aipi))));
+                
+                adoptionInfo.innerHTML = `
+                    <strong>${totalCountries} países analizados</strong> | 
+                    Promedio: <strong>${avgScore}</strong> | 
+                    Máximo: <strong>${maxScore}</strong> (${topCountry.pais}) | 
+                    Fuente: ${data[0].fuente || 'Datos actualizados'}
+                `;
             }
         }
         

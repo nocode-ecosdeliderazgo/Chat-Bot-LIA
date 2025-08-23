@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
+const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
@@ -16,6 +17,18 @@ require('dotenv').config();
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
 const DEV_MODE = process.env.NODE_ENV !== 'production';
+
+// Configuración de Supabase
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+let supabase = null;
+if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+    supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    console.log('✅ Supabase configurado correctamente');
+} else {
+    console.warn('⚠️ SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY no configurados en .env');
+}
 
 // Configuración de seguridad
 app.disable('x-powered-by');
@@ -2785,6 +2798,35 @@ io.on('connection', (socket) => {
             console.log(`👋 ${user.username} se desconectó del livestream`);
         }
     });
+});
+
+// Endpoint para obtener datos de adopción de GenAI por países
+app.get('/api/adopcion-genai', async (req, res) => {
+    try {
+        console.log('🌍 Obteniendo datos de adopción GenAI por países...');
+        
+        if (!supabase) {
+            console.error('❌ Supabase no configurado');
+            return res.status(500).json({ error: 'Supabase no configurado' });
+        }
+        
+        const { data, error } = await supabase
+            .from('adopcion_genai')
+            .select('*')
+            .order('indice_aipi', { ascending: false });
+        
+        if (error) {
+            console.error('❌ Error obteniendo datos de adopción:', error);
+            return res.status(500).json({ error: error.message });
+        }
+        
+        console.log(`✅ Datos de adopción obtenidos: ${data.length} países`);
+        res.json(data);
+        
+    } catch (error) {
+        console.error('❌ Error en adopcion-genai:', error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Iniciar servidor
