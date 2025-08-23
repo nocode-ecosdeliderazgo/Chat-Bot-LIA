@@ -392,13 +392,54 @@ class ProfileQuestionnaire {
     }
 
     getProfileRoute(profile) {
-        // Redirección al formulario genérico pasando el perfil por query string
+        // NUEVO: Mapear perfil a área GenAI y redirigir al nuevo cuestionario
+        const genaiArea = this.mapToGenAIArea(profile);
         const params = new URLSearchParams();
-        if (profile) params.set('perfil', profile);
-        const area = this.profileData?.area || '';
-        if (area) params.set('area', area);
+        if (genaiArea) params.set('area', genaiArea);
         const qs = params.toString();
-        return qs ? `q/form.html?${qs}` : 'q/form.html';
+        return qs ? `q/genai-form.html?${qs}` : 'q/genai-form.html';
+    }
+
+    mapToGenAIArea(profile) {
+        // Mapeo de 17 perfiles antiguos → 10 áreas GenAI del CSV
+        const mapping = {
+            // CEO y Alta Dirección
+            'CEO': 'CEO/Alta Dirección',
+            
+            // Tecnología
+            'CTO/CIO': 'Tecnología/Desarrollo de Software',
+            
+            // Marketing y Comunicación
+            'Dirección de Marketing': 'Marketing y Comunicación',
+            'Miembros de Marketing': 'Marketing y Comunicación',
+            
+            // Finanzas y Contabilidad
+            'Dirección de Finanzas (CFO)': 'Finanzas/Contabilidad',
+            'Miembros de Finanzas': 'Finanzas/Contabilidad',
+            'Dirección/Jefatura de Contabilidad': 'Finanzas/Contabilidad',
+            'Miembros de Contabilidad': 'Finanzas/Contabilidad',
+            
+            // Salud/Bienestar (para RRHH)
+            'Dirección de RRHH': 'Salud/Bienestar',
+            'Miembros de RRHH': 'Salud/Bienestar',
+            
+            // Administración Pública/Gobierno (para consultores y operaciones)
+            'Consultor': 'Administración Pública/Gobierno',
+            'Dirección de Operaciones': 'Administración Pública/Gobierno',
+            'Miembros de Operaciones': 'Administración Pública/Gobierno',
+            'Gerencia Media': 'Administración Pública/Gobierno',
+            
+            // Diseño/Industrias Creativas (para freelancers y otros)
+            'Freelancer': 'Diseño/Industrias Creativas',
+            
+            // Ventas y Compras se mapean a Marketing por similitud
+            'Dirección de Ventas': 'Marketing y Comunicación',
+            'Miembros de Ventas': 'Marketing y Comunicación',
+            'Dirección de Compras / Supply': 'Marketing y Comunicación',
+            'Miembros de Compras': 'Marketing y Comunicación'
+        };
+        
+        return mapping[profile] || 'CEO/Alta Dirección'; // Fallback por defecto
     }
 
     saveProfileData() {

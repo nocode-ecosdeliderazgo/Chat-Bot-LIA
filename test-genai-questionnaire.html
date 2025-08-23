@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cuestionario GenAI</title>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <!-- Configuración Supabase -->
+    <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
+    <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .area-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        
+        .progress-bar {
+            background: #f0f0f0;
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .question-block {
+            margin-bottom: 40px;
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .block-header {
+            background: #f8f9fa;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .block-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+        }
+        
+        .block-title h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .block-title p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .question-item {
+            padding: 25px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .question-item:last-child {
+            border-bottom: none;
+        }
+        
+        .question-header {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .question-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .question-text {
+            font-size: 1.1em;
+            color: #333;
+            line-height: 1.5;
+        }
+        
+        .question-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option-item:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .option-item.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .option-item input[type="radio"] {
+            margin-right: 15px;
+            transform: scale(1.2);
+        }
+        
+        .option-item label {
+            cursor: pointer;
+            color: #333;
+            font-size: 1em;
+        }
+        
+        .submit-section {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .message.error {
+            background: #ffe6e6;
+            color: #d63031;
+            border: 1px solid #fab1a0;
+        }
+        
+        .message.success {
+            background: #e6ffe6;
+            color: #00b894;
+            border: 1px solid #a0fab1;
+        }
+        
+        .test-controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .test-controls h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .test-controls select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+            font-size: 1em;
+        }
+        
+        .test-controls button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        
+        .test-controls button:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Cuestionario GenAI</h1>
+            <p>Evaluación de competencias en Inteligencia Artificial Generativa</p>
+            <div class="area-badge" id="areaBadge">
+                <i class='bx bx-user-circle'></i> Cargando área...
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Controles de prueba -->
+            <div class="test-controls">
+                <h3>🧪 Controles de Prueba</h3>
+                <select id="areaSelect">
+                    <option value="">Seleccionar área...</option>
+                    <option value="2">Ventas</option>
+                    <option value="3">Marketing</option>
+                    <option value="4">Operaciones</option>
+                    <option value="5">Finanzas</option>
+                    <option value="6">Recursos Humanos</option>
+                    <option value="7">Contabilidad</option>
+                    <option value="8">Compras/Supply Chain</option>
+                    <option value="9">Tecnología/TI</option>
+                    <option value="10">Otra</option>
+                    <option value="11">Diseño/Industrias Creativas</option>
+                </select>
+                <button onclick="changeArea()">Cambiar Área</button>
+            </div>
+            
+            <!-- Barra de progreso -->
+            <div class="progress-text" id="progressText">Pregunta 0 de 0</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <!-- Mensajes -->
+            <div class="message error" id="errorMessage"></div>
+            <div class="message success" id="successMessage"></div>
+            
+            <!-- Contenedor de preguntas -->
+            <div id="questionsContainer">
+                <p style="text-align: center; color: #666; padding: 40px;">
+                    Selecciona un área para comenzar el cuestionario...
+                </p>
+            </div>
+        </div>
+        
+        <div class="submit-section">
+            <button class="submit-btn" id="submitBtn" disabled>
+                <div class="loading-spinner" id="loadingSpinner"></div>
+                <span id="submitText">Completar Cuestionario</span>
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        // Inicializar Supabase
+        const supabaseUrl = 'https://miwbzotcuaywpdbidpwo.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY';
+        
+        window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // Variable global para el cuestionario
+        let questionnaire;
+        
+        // Función para cambiar área
+        function changeArea() {
+            const areaSelect = document.getElementById('areaSelect');
+            const selectedArea = areaSelect.value;
+            
+            if (selectedArea) {
+                // Actualizar URL con el área seleccionada
+                const url = new URL(window.location);
+                url.searchParams.set('area', selectedArea);
+                window.history.pushState({}, '', url);
+                
+                // Reinicializar el cuestionario
+                if (questionnaire) {
+                    questionnaire.genaiArea = parseInt(selectedArea);
+                    questionnaire.init();
+                }
+            }
+        }
+        
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar el script del cuestionario
+            const script = document.createElement('script');
+            script.src = 'src/q/genai-form.js';
+            script.onload = function() {
+                questionnaire = new GenAIQuestionnaire();
+            };
+            document.head.appendChild(script);
+        });
+    </script>
+</body>
+</html>

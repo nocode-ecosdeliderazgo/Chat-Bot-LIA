@@ -13,10 +13,14 @@
         const themeToApply = storedTheme || (systemPrefersDark ? 'dark' : 'light');
         
         // Aplicar tema al documento
-        document.documentElement.setAttribute('data-theme', themeToApply);
+        if (document.documentElement) {
+            document.documentElement.setAttribute('data-theme', themeToApply);
+        }
         
         // Agregar clase al body para transiciones
-        document.body.classList.add('theme-loaded');
+        if (document.body) {
+            document.body.classList.add('theme-loaded');
+        }
         
         // Debug
         console.log('🎨 Global theme setup:', themeToApply);
@@ -25,7 +29,9 @@
     // Función para cambiar tema globalmente
     window.changeGlobalTheme = function(newTheme) {
         localStorage.setItem('theme', newTheme);
-        document.documentElement.setAttribute('data-theme', newTheme);
+        if (document.documentElement) {
+            document.documentElement.setAttribute('data-theme', newTheme);
+        }
         
         // Disparar evento para que otras páginas sepan del cambio
         window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
@@ -58,7 +64,9 @@
     
     // Escuchar eventos de cambio de tema
     window.addEventListener('themeChanged', function(e) {
-        document.documentElement.setAttribute('data-theme', e.detail.theme);
+        if (document.documentElement) {
+            document.documentElement.setAttribute('data-theme', e.detail.theme);
+        }
     });
     
     // Aplicar también cuando el DOM esté listo

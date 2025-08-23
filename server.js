@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
+const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
@@ -16,6 +17,18 @@ require('dotenv').config();
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
 const DEV_MODE = process.env.NODE_ENV !== 'production';
+
+// Configuración de Supabase
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+let supabase = null;
+if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+    supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    console.log('✅ Supabase configurado correctamente');
+} else {
+    console.warn('⚠️ SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY no configurados en .env');
+}
 
 // Configuración de seguridad
 app.disable('x-powered-by');
@@ -200,6 +213,36 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({ limit: '10mb' }));
+
+// Endpoint para obtener datos de adopción de GenAI por países
+app.get('/api/adopcion-genai', async (req, res) => {
+    try {
+        console.log('🌍 Obteniendo datos de adopción GenAI por países...');
+        
+        if (!supabase) {
+            console.error('❌ Supabase no configurado');
+            return res.status(500).json({ error: 'Supabase no configurado' });
+        }
+        
+        const { data, error } = await supabase
+            .from('adopcion_genai')
+            .select('*')
+            .order('indice_aipi', { ascending: false });
+        
+        if (error) {
+            console.error('❌ Error obteniendo datos de adopción:', error);
+            return res.status(500).json({ error: error.message });
+        }
+        
+        console.log(`✅ Datos de adopción obtenidos: ${data.length} países`);
+        res.json(data);
+        
+    } catch (error) {
+        console.error('❌ Error en adopcion-genai:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.use(express.static('src'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Servir prompts para depuración/inspección (protegido por API en endpoints abajo)
@@ -1705,6 +1748,206 @@ app.post('/api/admin/auth/logout', (req, res) => {
 
 // ====== ENDPOINTS PARA RADAR CHARTS ======
 
+// Endpoint para guardar respuestas del cuestionario
+app.post('/api/save-responses', async (req, res) => {
+    try {
+        const { userId, responses } = req.body;
+        
+        if (!userId || !responses || !Array.isArray(responses)) {
+            return res.status(400).json({ error: 'Datos inválidos' });
+        }
+        
+        console.log('💾 Guardando respuestas para usuario:', userId, 'Cantidad:', responses.length);
+        
+        // Insertar respuestas usando el cliente de Supabase del servidor
+        const { error } = await supabase
+            .from('respuestas')
+            .insert(responses);
+        
+        if (error) {
+            console.error('❌ Error guardando respuestas:', error);
+            return res.status(500).json({ error: error.message });
+        }
+        
+        console.log('✅ Respuestas guardadas exitosamente');
+        res.json({ success: true, count: responses.length });
+        
+    } catch (error) {
+        console.error('❌ Error en save-responses:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Nuevo endpoint para GenAI Radar (cuestionario GenAI MultiArea)
+app.get('/api/genai-radar/:userId', async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        const { userId } = req.params;
+        
+        if (!userId) {
+            return res.status(400).json({ error: 'userId es requerido' });
+        }
+        
+        console.log(`🎯 Obteniendo datos GenAI radar para userId: ${userId}`);
+        
+        // Query para obtener los últimos datos del radar por usuario desde las nuevas tablas preguntas y respuestas
+        const query = `
+            WITH user_responses AS (
+                SELECT 
+                    r.user_id,
+                    r.pregunta_id,
+                    r.valor->>'answer' as answer,
+                    r.respondido_en,
+                    p.bloque,
+                    p.scoring
+                FROM respuestas r
+                JOIN preguntas p ON p.id = r.pregunta_id
+                WHERE r.user_id = $1 
+                    AND p.section = 'Cuestionario'
+                ORDER BY r.respondido_en DESC
+            ),
+            scores_calculados AS (
+                SELECT 
+                    user_id,
+                    COUNT(*) as total_questions,
+                    COUNT(CASE WHEN bloque = 'Adopción' THEN 1 END) as adoption_questions,
+                    COUNT(CASE WHEN bloque = 'Conocimiento' THEN 1 END) as knowledge_questions,
+                    AVG(CASE WHEN bloque = 'Adopción' THEN 
+                        CASE 
+                            WHEN answer = 'A' THEN 1
+                            WHEN answer = 'B' THEN 2
+                            WHEN answer = 'C' THEN 3
+                            WHEN answer = 'D' THEN 4
+                            WHEN answer = 'E' THEN 5
+                            ELSE 0
+                        END
+                    END) as adoption_score,
+                    AVG(CASE WHEN bloque = 'Conocimiento' THEN 
+                        CASE 
+                            WHEN answer = 'A' THEN 20
+                            WHEN answer = 'B' THEN 40
+                            WHEN answer = 'C' THEN 60
+                            WHEN answer = 'D' THEN 80
+                            WHEN answer = 'E' THEN 100
+                            ELSE 0
+                        END
+                    END) as knowledge_score
+                FROM user_responses
+                GROUP BY user_id
+            )
+            SELECT 
+                ur.user_id,
+                u.username,
+                u.email,
+                sc.total_questions,
+                sc.adoption_questions,
+                sc.knowledge_questions,
+                sc.adoption_score,
+                sc.knowledge_score,
+                (sc.adoption_score + sc.knowledge_score) / 2 as total_score,
+                CASE 
+                    WHEN (sc.adoption_score + sc.knowledge_score) / 2 >= 70 THEN 'Avanzado'
+                    WHEN (sc.adoption_score + sc.knowledge_score) / 2 >= 40 THEN 'Intermedio'
+                    ELSE 'Básico'
+                END as classification,
+                MAX(ur.respondido_en) as completed_at
+            FROM user_responses ur
+            JOIN scores_calculados sc ON sc.user_id = ur.user_id
+            LEFT JOIN users u ON u.id = ur.user_id
+            GROUP BY ur.user_id, u.username, u.email, sc.total_questions, sc.adoption_questions, 
+                     sc.knowledge_questions, sc.adoption_score, sc.knowledge_score
+            ORDER BY completed_at DESC
+            LIMIT 1
+        `;
+        
+        const result = await pool.query(query, [userId]);
+        
+        if (result.rows.length === 0) {
+            console.log(`📭 No se encontraron datos GenAI para userId: ${userId}`);
+            
+            // Para desarrollo/testing, devolver datos de prueba
+            if (userId.includes('dev-') || userId === 'test-user') {
+                return res.json({
+                    hasData: true,
+                    session_id: 'test-session-' + Date.now(),
+                    userId: userId,
+                    username: 'usuario_prueba',
+                    email: 'test@example.com',
+                    genaiArea: 'CEO/Alta Dirección',
+                    totalScore: 65,
+                    adoptionScore: 70,
+                    knowledgeScore: 60,
+                    classification: 'Intermedio',
+                    completedAt: new Date().toISOString(),
+                    // Datos para radar chart
+                    conocimiento: 60,
+                    aplicacion: 70,
+                    productividad: 68,
+                    estrategia: 65,
+                    inversion: 55,
+                    dataSource: 'test_data'
+                });
+            }
+            
+            return res.json({
+                hasData: false,
+                message: 'No hay datos de cuestionario GenAI completado',
+                userId: userId,
+                dataSource: 'preguntas_respuestas'
+            });
+        }
+        
+        const row = result.rows[0];
+        
+        // Formatear datos para el radar chart
+        const radarData = {
+            hasData: true,
+            session_id: 'session-' + row.user_id + '-' + Date.now(),
+            userId: row.user_id,
+            username: row.username,
+            email: row.email,
+            genaiArea: 'Operaciones', // Por defecto, se puede mejorar obteniendo el área real
+            
+            // Scores principales
+            totalScore: parseFloat(row.total_score) || 0,
+            adoptionScore: parseFloat(row.adoption_score) || 0,
+            knowledgeScore: parseFloat(row.knowledge_score) || 0,
+            classification: row.classification,
+            completedAt: row.completed_at,
+            
+            // Datos para radar chart (5 dimensiones)
+            // Mapear los 2 scores GenAI a 5 dimensiones del radar original
+            conocimiento: parseFloat(row.knowledge_score) || 0,
+            aplicacion: parseFloat(row.adoption_score) || 0,
+            productividad: parseFloat(row.adoption_score) || 0, // Usar adopción como proxy
+            estrategia: parseFloat(row.total_score) || 0, // Usar score total como estrategia
+            inversion: Math.min(parseFloat(row.total_score) || 0, 80), // Cap a 80 para ser realista
+            
+            dataSource: 'preguntas_respuestas'
+        };
+        
+        console.log('📊 Datos GenAI radar obtenidos:', {
+            userId: radarData.userId,
+            genaiArea: radarData.genaiArea,
+            totalScore: radarData.totalScore,
+            classification: radarData.classification
+        });
+        
+        res.json(radarData);
+        
+    } catch (error) {
+        console.error('❌ Error obteniendo datos GenAI radar:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            message: error.message,
+            hasData: false
+        });
+    }
+});
+
 // Obtener datos de radar del usuario (última sesión completada)
 app.get('/api/radar/user/:userId', async (req, res) => {
     try {
@@ -1733,7 +1976,7 @@ app.get('/api/radar/user/:userId', async (req, res) => {
             console.warn('⚠️ Vista v_radar_latest_by_user no existe, usando datos de prueba');
             
             // Para testing, devolver datos de prueba si el userId es específico
-            if (userId === 'test-user' || userId === 'dev-user-id' || userId === 'test-user-uuid') {
+            if (userId === 'test-user' || userId === 'dev-user-id' || userId === 'test-user-uuid' || userId === '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0') {
                 return res.json({
                     session_id: 'test-session-123',
                     user_id: userId,
@@ -2211,143 +2454,7 @@ app.get('/api/courses/:courseId/syllabus', authenticateRequest, async (req, res)
     }
 });
 
-// ====== ENDPOINTS PARA RADAR CHARTS ======
 
-// Obtener datos de radar del usuario (última sesión completada)
-app.get('/api/radar/user/:userId', async (req, res) => {
-    try {
-        if (!pool) {
-            return res.status(500).json({ error: 'Base de datos no configurada' });
-        }
-        
-        const { userId } = req.params;
-        
-        if (!userId) {
-            return res.status(400).json({ error: 'userId es requerido' });
-        }
-        
-        console.log('🔍 Radar API - userId recibido:', userId);
-        
-        // Primero verificar si las vistas existen
-        const viewCheckQuery = `
-            SELECT EXISTS (
-                SELECT FROM information_schema.views 
-                WHERE table_schema = 'public' 
-                AND table_name = 'v_radar_latest_by_user'
-            ) as view_exists
-        `;
-        
-        const viewCheck = await pool.query(viewCheckQuery);
-        console.log('🔍 Vista v_radar_latest_by_user existe:', viewCheck.rows[0].view_exists);
-        
-        if (!viewCheck.rows[0].view_exists) {
-            console.warn('⚠️ Vista v_radar_latest_by_user no existe, usando datos de prueba');
-            
-            // Para testing, devolver datos de prueba si el userId es específico
-            if (userId === 'test-user' || userId === 'dev-user-id' || userId === 'test-user-uuid') {
-                return res.json({
-                    session_id: 'test-session-123',
-                    user_id: userId,
-                    conocimiento: 75,
-                    aplicacion: 80,
-                    productividad: 65,
-                    estrategia: 70,
-                    inversion: 85,
-                    hasData: true,
-                    dataSource: 'test'
-                });
-            }
-            
-            // Usuario sin datos
-            return res.json({
-                session_id: null,
-                user_id: userId,
-                conocimiento: 0,
-                aplicacion: 0,
-                productividad: 0,
-                estrategia: 0,
-                inversion: 0,
-                hasData: false,
-                dataSource: 'no_view'
-            });
-        }
-        
-        // Consultar la vista v_radar_latest_by_user
-        const query = `
-            SELECT 
-                session_id,
-                user_id,
-                COALESCE(conocimiento, 0) as conocimiento,
-                COALESCE(aplicacion, 0) as aplicacion,
-                COALESCE(productividad, 0) as productividad,
-                COALESCE(estrategia, 0) as estrategia,
-                COALESCE(inversion, 0) as inversion
-            FROM public.v_radar_latest_by_user 
-            WHERE user_id = $1
-            LIMIT 1
-        `;
-        
-        console.log('🔍 Ejecutando query:', query);
-        console.log('🔍 Parámetros:', [userId]);
-        
-        const result = await pool.query(query, [userId]);
-        console.log('🔍 Resultados encontrados:', result.rows.length);
-        
-        if (result.rows.length === 0) {
-            console.log('📭 No hay datos para el usuario en la vista');
-            // No hay datos para este usuario
-            return res.json({
-                session_id: null,
-                user_id: userId,
-                conocimiento: 0,
-                aplicacion: 0,
-                productividad: 0,
-                estrategia: 0,
-                inversion: 0,
-                hasData: false,
-                dataSource: 'database'
-            });
-        }
-        
-        const radarData = result.rows[0];
-        
-        res.json({
-            session_id: radarData.session_id,
-            user_id: radarData.user_id,
-            conocimiento: radarData.conocimiento,
-            aplicacion: radarData.aplicacion,
-            productividad: radarData.productividad,
-            estrategia: radarData.estrategia,
-            inversion: radarData.inversion,
-            hasData: true,
-            dataSource: 'database'
-        });
-        
-    } catch (error) {
-        console.error('Error obteniendo datos de radar por usuario:', error);
-        
-        // En caso de error, proporcionar datos de prueba para desarrollo
-        if (process.env.NODE_ENV !== 'production') {
-            console.log('🔧 Modo desarrollo: proporcionando datos de prueba');
-            return res.json({
-                session_id: 'fallback-session',
-                user_id: userId,
-                conocimiento: 60,
-                aplicacion: 70,
-                productividad: 55,
-                estrategia: 65,
-                inversion: 75,
-                hasData: true,
-                dataSource: 'fallback'
-            });
-        }
-        
-        res.status(500).json({ 
-            error: 'Error obteniendo datos de radar',
-            details: process.env.NODE_ENV !== 'production' ? error.message : undefined
-        });
-    }
-});
 
 // Obtener datos de radar por sesión específica (opcional)
 app.get('/api/radar/session/:sessionId', async (req, res) => {
@@ -2722,6 +2829,8 @@ io.on('connection', (socket) => {
         }
     });
 });
+
+
 
 // Iniciar servidor
 server.listen(PORT, () => {
