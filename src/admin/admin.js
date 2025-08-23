@@ -3,6 +3,7 @@
 class AdminPanel {
     constructor() {
         this.currentSection = 'dashboard';
+        this.usersLoadedBefore = false; // Flag to prevent repetitive notifications
         this.init();
     }
 
@@ -529,7 +530,11 @@ class AdminPanel {
                 `;
             }).join('');
             
-            this.showToast(`${users.length} usuarios cargados correctamente`, 'success');
+            // Only show toast notification on first load or when explicitly requested
+            if (!this.usersLoadedBefore) {
+                this.showToast(`${users.length} usuarios cargados correctamente`, 'success');
+                this.usersLoadedBefore = true;
+            }
         } catch (error) {
             console.error('Error cargando usuarios:', error);
             
@@ -717,7 +722,113 @@ class AdminPanel {
 
     filterUsers() {
         console.log('Filtrando usuarios...');
-        // Implementar lógica de filtrado
+        
+        const searchTerm = document.getElementById('userSearch')?.value.toLowerCase() || '';
+        const selectedRole = document.getElementById('userRole')?.value || '';
+        const selectedStatus = document.getElementById('userStatus')?.value || '';
+        
+        const usersTableBody = document.getElementById('usersTableBody');
+        if (!usersTableBody) return;
+        
+        const rows = usersTableBody.querySelectorAll('tr');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            if (row.querySelector('.no-data') || row.querySelector('.error-state')) {
+                return; // Skip empty state rows
+            }
+            
+            const cells = row.querySelectorAll('td');
+            if (cells.length < 5) return; // Skip malformed rows
+            
+            const userName = cells[0].textContent.toLowerCase();
+            const userEmail = cells[1].textContent.toLowerCase();
+            const userRole = cells[2].textContent.trim();
+            const userStatus = cells[3].textContent.trim();
+            
+            // Text search filter
+            const matchesSearch = !searchTerm || 
+                userName.includes(searchTerm) || 
+                userEmail.includes(searchTerm);
+            
+            // Role filter - map display values to filter values
+            const matchesRole = !selectedRole || 
+                (selectedRole === 'admin' && userRole === 'Administrador') ||
+                (selectedRole === 'user' && userRole === 'Usuario') ||
+                (selectedRole === 'moderator' && userRole === 'Tutor');
+            
+            // Status filter - map display values to filter values
+            const matchesStatus = !selectedStatus ||
+                (selectedStatus === 'active' && userStatus === 'Activo') ||
+                (selectedStatus === 'inactive' && userStatus === 'Inactivo') ||
+                (selectedStatus === 'suspended' && userStatus === 'Suspendido');
+            
+            const shouldShow = matchesSearch && matchesRole && matchesStatus;
+            
+            if (shouldShow) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Show message if no results
+        if (visibleCount === 0 && rows.length > 0) {
+            const noResultsRow = document.createElement('tr');
+            noResultsRow.innerHTML = `
+                <td colspan="6" class="no-data">
+                    <div class="no-data-message">
+                        <i class="fas fa-search"></i>
+                        <p>No se encontraron usuarios que coincidan con los filtros</p>
+                        <button class="btn-secondary" onclick="adminPanel.clearUserFilters()">
+                            Limpiar filtros
+                        </button>
+                    </div>
+                </td>
+            `;
+            noResultsRow.id = 'noResultsRow';
+            
+            // Remove previous no results row
+            const existingNoResults = usersTableBody.querySelector('#noResultsRow');
+            if (existingNoResults) {
+                existingNoResults.remove();
+            }
+            
+            if (visibleCount === 0) {
+                usersTableBody.appendChild(noResultsRow);
+            }
+        } else {
+            // Remove no results row if it exists
+            const existingNoResults = usersTableBody.querySelector('#noResultsRow');
+            if (existingNoResults) {
+                existingNoResults.remove();
+            }
+        }
+        
+        console.log(`Filtros aplicados: ${visibleCount} usuarios visibles`);
+    }
+    
+    clearUserFilters() {
+        // Clear all filter inputs
+        const userSearch = document.getElementById('userSearch');
+        const userRole = document.getElementById('userRole');
+        const userStatus = document.getElementById('userStatus');
+        
+        if (userSearch) userSearch.value = '';
+        if (userRole) userRole.value = '';
+        if (userStatus) userStatus.value = '';
+        
+        // Reapply filters (which will show all users)
+        this.filterUsers();
+        
+        this.showToast('Filtros limpiados', 'info');
+    }
+    
+    // Force reload users with notification (used after actions like edit/delete)
+    async reloadUsersData() {
+        this.usersLoadedBefore = false; // Reset flag to show notification
+        await this.loadUsersData();
     }
 
     // ===== BÚSQUEDA GLOBAL =====
@@ -911,16 +1022,147 @@ class AdminPanel {
         }
     }
 
-    editUser(id) {
+    async editUser(id) {
         console.log('Editando usuario:', id);
-        this.showToast('Funcionalidad de edición en desarrollo', 'info');
+        
+        try {
+            // Obtener datos del usuario actual
+            const response = await this.makeAuthenticatedRequest('/api/admin/users');
+            if (!response.ok) throw new Error('Error obteniendo usuarios');
+            
+            const users = await response.json();
+            const user = users.find(u => u.id === id);
+            
+            if (!user) {
+                this.showToast('Usuario no encontrado', 'error');
+                return;
+            }
+
+            // Crear contenido del modal para cambio de rol
+            const modalBody = `
+                <div class="edit-user-form">
+                    <div class="form-group">
+                        <label>Usuario:</label>
+                        <p><strong>${user.full_name}</strong> (${user.email})</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="userRoleSelect">Nuevo Rol:</label>
+                        <select id="userRoleSelect" class="form-select">
+                            <option value="Usuario" ${user.cargo_rol === 'Usuario' ? 'selected' : ''}>Usuario</option>
+                            <option value="Administrador" ${user.cargo_rol === 'Administrador' ? 'selected' : ''}>Administrador</option>
+                            <option value="Tutor" ${user.cargo_rol === 'Tutor' ? 'selected' : ''}>Tutor</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-secondary" onclick="adminPanel.closeModal()">Cancelar</button>
+                        <button class="btn-primary" onclick="adminPanel.confirmRoleChange(${id})">Cambiar Rol</button>
+                    </div>
+                </div>
+            `;
+
+            this.showModal('Cambiar Rol de Usuario', modalBody);
+            
+        } catch (error) {
+            console.error('Error editando usuario:', error);
+            this.showToast('Error cargando datos del usuario', 'error');
+        }
     }
 
-    deleteUser(id) {
-        if (confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
-            console.log('Eliminando usuario:', id);
-            this.showToast('Usuario eliminado exitosamente', 'success');
-            this.loadUsersData();
+    async confirmRoleChange(userId) {
+        try {
+            const newRole = document.getElementById('userRoleSelect').value;
+            
+            if (!newRole) {
+                this.showToast('Selecciona un rol válido', 'error');
+                return;
+            }
+
+            const response = await this.makeAuthenticatedRequest(`/api/admin/users/${userId}/role`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ cargo_rol: newRole })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Error cambiando rol');
+            }
+
+            this.showToast(result.message, 'success');
+            this.closeModal();
+            this.reloadUsersData();
+
+        } catch (error) {
+            console.error('Error cambiando rol:', error);
+            this.showToast(`Error: ${error.message}`, 'error');
+        }
+    }
+
+    async deleteUser(id) {
+        try {
+            // Obtener datos del usuario actual
+            const response = await this.makeAuthenticatedRequest('/api/admin/users');
+            if (!response.ok) throw new Error('Error obteniendo usuarios');
+            
+            const users = await response.json();
+            const user = users.find(u => u.id === id);
+            
+            if (!user) {
+                this.showToast('Usuario no encontrado', 'error');
+                return;
+            }
+
+            // Mostrar modal de confirmación
+            const modalBody = `
+                <div class="delete-user-form">
+                    <div class="warning-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h4>¿Estás seguro?</h4>
+                        <p>Esta acción eliminará permanentemente al usuario:</p>
+                        <div class="user-info">
+                            <strong>${user.full_name}</strong><br>
+                            <span>${user.email}</span><br>
+                            <span class="role-badge">${user.cargo_rol}</span>
+                        </div>
+                        <p class="warning-text">Esta acción no se puede deshacer.</p>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-secondary" onclick="adminPanel.closeModal()">Cancelar</button>
+                        <button class="btn-danger" onclick="adminPanel.confirmDeleteUser(${id})">Eliminar Usuario</button>
+                    </div>
+                </div>
+            `;
+
+            this.showModal('Eliminar Usuario', modalBody);
+            
+        } catch (error) {
+            console.error('Error preparando eliminación:', error);
+            this.showToast('Error cargando datos del usuario', 'error');
+        }
+    }
+
+    async confirmDeleteUser(userId) {
+        try {
+            const response = await this.makeAuthenticatedRequest(`/api/admin/users/${userId}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Error eliminando usuario');
+            }
+
+            this.showToast(result.message, 'success');
+            this.closeModal();
+            this.reloadUsersData();
+
+        } catch (error) {
+            console.error('Error eliminando usuario:', error);
+            this.showToast(`Error: ${error.message}`, 'error');
         }
     }
 

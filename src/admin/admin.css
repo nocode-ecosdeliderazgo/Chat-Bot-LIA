@@ -1059,3 +1059,134 @@ body {
         margin: var(--spacing-md);
     }
 }
+<<<<<<< Current (Your changes)
+=======
+
+/* User management modal styles */
+.edit-user-form, .delete-user-form {
+    padding: var(--spacing-md);
+}
+
+.edit-user-form .form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.edit-user-form label {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.edit-user-form .form-select {
+    width: 100%;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    background-color: var(--surface-color);
+    color: var(--text-color);
+}
+
+.delete-user-form .warning-message {
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.delete-user-form .warning-message i {
+    font-size: 3rem;
+    color: var(--color-error);
+    margin-bottom: var(--spacing-md);
+}
+
+.delete-user-form .warning-message h4 {
+    color: var(--color-error);
+    margin-bottom: var(--spacing-sm);
+}
+
+.delete-user-form .user-info {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin: var(--spacing-md) 0;
+}
+
+.delete-user-form .warning-text {
+    color: var(--color-error);
+    font-weight: 600;
+    font-style: italic;
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-danger {
+    background-color: var(--color-error);
+    color: white;
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.btn-danger:hover {
+    background-color: #c53030;
+}
+
+/* Filter improvements */
+.users-filters {
+    margin-bottom: var(--spacing-lg);
+}
+
+.filter-group {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-input, .filter-select {
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+    background-color: var(--surface-color);
+    color: var(--text-color);
+}
+
+.filter-input {
+    min-width: 200px;
+}
+
+.filter-select {
+    min-width: 150px;
+}
+
+@media (max-width: 768px) {
+    .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-input, .filter-select {
+        width: 100%;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn-danger, .btn-secondary, .btn-primary {
+        width: 100%;
+    }
+}
+>>>>>>> Incoming (Background Agent changes)
