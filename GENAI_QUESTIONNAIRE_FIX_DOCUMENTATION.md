@@ -93,45 +93,52 @@ async saveResponses() {
 ### 2. **Actualización de `src/q/genai-form.html`**
 - Agregado `auth-guard.js` para manejo de autenticación
 
-#### **A. Mapeo de Áreas Actualizado**
+### 3. **Actualización de `server.js`**
+- Agregado endpoint `/api/save-responses` para guardar respuestas sin problemas de RLS
+
+#### **A. Mapeo de Áreas y Roles Actualizado**
 ```javascript
 const areaMap = {
-    'CEO': 2, // Ventas
-    'Dirección General': 2,
-    'CTO/CIO': 9, // Tecnología/TI
-    'Tecnología/TI': 9,
-    'Tecnología/Desarrollo de Software': 9,
-    'Dirección de Marketing': 3, // Marketing
-    'Miembros de Marketing': 3,
-    'Marketing': 3,
-    'Marketing y Comunicación': 3,
-    'Dirección de Ventas': 2, // Ventas
-    'Miembros de Ventas': 2,
-    'Ventas': 2,
-    'Dirección de Finanzas (CFO)': 5, // Finanzas
-    'Miembros de Finanzas': 5,
-    'Finanzas': 5,
-    'Finanzas/Contabilidad': 5,
-    'Dirección/Jefatura de Contabilidad': 7, // Contabilidad
-    'Miembros de Contabilidad': 7,
-    'Contabilidad': 7,
-    'Freelancer': 11, // Diseño/Industrias Creativas
-    'Consultor': 4, // Operaciones
-    'Administración Pública/Gobierno': 4, // Operaciones
-    'Administración Pública': 4,
-    'Gobierno': 4,
-    'Salud': 4, // Operaciones
-    'Medicina': 4,
-    'Médico': 4,
-    'Derecho': 4, // Operaciones
-    'Legal': 4,
-    'Abogado': 4,
-    'Academia': 10, // Otra
-    'Investigación': 10,
-    'Investigador': 10,
-    'Educación': 10, // Otra
-    'Docentes': 10,
-    'Profesor': 10
+    'CEO': { area_id: 2, exclusivo_rol_id: 1 }, // Ventas
+    'Dirección General': { area_id: 2, exclusivo_rol_id: 1 },
+    'CTO/CIO': { area_id: 9, exclusivo_rol_id: 8 }, // Tecnología/TI
+    'Tecnología/TI': { area_id: 9, exclusivo_rol_id: 8 },
+    'Tecnología/Desarrollo de Software': { area_id: 9, exclusivo_rol_id: 8 },
+    'Desarrollo': { area_id: 9, exclusivo_rol_id: 8 },
+    'Dirección de Marketing': { area_id: 3, exclusivo_rol_id: 2 }, // Marketing
+    'Miembros de Marketing': { area_id: 3, exclusivo_rol_id: 2 },
+    'Marketing': { area_id: 3, exclusivo_rol_id: 2 },
+    'Marketing y Comunicación': { area_id: 3, exclusivo_rol_id: 2 },
+    'Dirección de Ventas': { area_id: 2, exclusivo_rol_id: 1 }, // Ventas
+    'Miembros de Ventas': { area_id: 2, exclusivo_rol_id: 1 },
+    'Ventas': { area_id: 2, exclusivo_rol_id: 1 },
+    'Dirección de Finanzas (CFO)': { area_id: 5, exclusivo_rol_id: 4 }, // Finanzas
+    'Miembros de Finanzas': { area_id: 5, exclusivo_rol_id: 4 },
+    'Finanzas': { area_id: 5, exclusivo_rol_id: 4 },
+    'Finanzas/Contabilidad': { area_id: 5, exclusivo_rol_id: 4 },
+    'Dirección/Jefatura de Contabilidad': { area_id: 7, exclusivo_rol_id: 6 }, // Contabilidad
+    'Miembros de Contabilidad': { area_id: 7, exclusivo_rol_id: 6 },
+    'Contabilidad': { area_id: 7, exclusivo_rol_id: 6 },
+    'Freelancer': { area_id: 11, exclusivo_rol_id: 10 }, // Diseño/Industrias Creativas
+    'Consultor': { area_id: 4, exclusivo_rol_id: 3 }, // Operaciones
+    'Administración Pública/Gobierno': { area_id: 4, exclusivo_rol_id: 3 },
+    'Administración Pública': { area_id: 4, exclusivo_rol_id: 3 },
+    'Gobierno': { area_id: 4, exclusivo_rol_id: 3 },
+    'Salud': { area_id: 4, exclusivo_rol_id: 3 },
+    'Medicina': { area_id: 4, exclusivo_rol_id: 3 },
+    'Médico': { area_id: 4, exclusivo_rol_id: 3 },
+    'Derecho': { area_id: 4, exclusivo_rol_id: 3 },
+    'Legal': { area_id: 4, exclusivo_rol_id: 3 },
+    'Abogado': { area_id: 4, exclusivo_rol_id: 3 },
+    'Academia': { area_id: 10, exclusivo_rol_id: 9 }, // Otra
+    'Investigación': { area_id: 10, exclusivo_rol_id: 9 },
+    'Investigador': { area_id: 10, exclusivo_rol_id: 9 },
+    'Educación': { area_id: 10, exclusivo_rol_id: 9 },
+    'Docentes': { area_id: 10, exclusivo_rol_id: 9 },
+    'Profesor': { area_id: 10, exclusivo_rol_id: 9 },
+    'Gerencia Media': { area_id: 2, exclusivo_rol_id: 1 }, // Por defecto Ventas
+    'Usuario': { area_id: 2, exclusivo_rol_id: 1 }, // Por defecto Ventas
+    'Administrador': { area_id: 2, exclusivo_rol_id: 1 } // Por defecto Ventas
 };
 ```
 
@@ -139,6 +146,7 @@ const areaMap = {
 ```javascript
 // ANTES (no funcionaba):
 .from('genai_questions')
+.eq('area_id', this.genaiArea)
 
 // DESPUÉS (funciona):
 .from('preguntas')
@@ -148,6 +156,7 @@ const areaMap = {
     section,
     bloque,
     area_id,
+    exclusivo_rol_id,
     texto,
     tipo,
     opciones,
@@ -156,7 +165,7 @@ const areaMap = {
     scoring,
     created_at
 `)
-.eq('area_id', this.genaiArea)
+.eq('exclusivo_rol_id', this.genaiRol)
 .eq('section', 'Cuestionario')
 .order('bloque, codigo');
 ```
@@ -363,11 +372,12 @@ Eliminados archivos que referenciaban tablas deprecadas:
 - **Cuestionario Principal**: `http://localhost:3000/q/genai-form.html?area=Administración+Pública%2FGobierno`
 
 ### **Problemas Resueltos:**
-- ✅ **Error 401 Unauthorized**: Solucionado agregando autenticación correcta con token
-- ✅ **Mapeo de áreas**: Verificado y funcionando correctamente
+- ✅ **Error 401 Unauthorized**: Solucionado agregando endpoint `/api/save-responses` en el servidor
+- ✅ **Mapeo de áreas**: Corregido para usar `exclusivo_rol_id` en lugar de solo `area_id`
 - ✅ **Obtención de usuario**: Ahora usa `userData` y `AuthGuard` correctamente
 - ✅ **Inicialización asíncrona**: Supabase se carga correctamente
-- ✅ **Guardado de respuestas**: Con autenticación RLS funcionando
+- ✅ **Guardado de respuestas**: A través del servidor backend para evitar RLS
+- ✅ **Preguntas correctas por área**: Marketing ahora muestra preguntas de Marketing, no de programación
 
 ### **Funcionalidades Verificadas:**
 - ✅ Todas las 10 áreas funcionales tienen 12 preguntas (6 Adopción + 6 Conocimiento)

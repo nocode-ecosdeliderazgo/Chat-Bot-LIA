@@ -1705,6 +1705,36 @@ app.post('/api/admin/auth/logout', (req, res) => {
 
 // ====== ENDPOINTS PARA RADAR CHARTS ======
 
+// Endpoint para guardar respuestas del cuestionario
+app.post('/api/save-responses', async (req, res) => {
+    try {
+        const { userId, responses } = req.body;
+        
+        if (!userId || !responses || !Array.isArray(responses)) {
+            return res.status(400).json({ error: 'Datos inválidos' });
+        }
+        
+        console.log('💾 Guardando respuestas para usuario:', userId, 'Cantidad:', responses.length);
+        
+        // Insertar respuestas usando el cliente de Supabase del servidor
+        const { error } = await supabase
+            .from('respuestas')
+            .insert(responses);
+        
+        if (error) {
+            console.error('❌ Error guardando respuestas:', error);
+            return res.status(500).json({ error: error.message });
+        }
+        
+        console.log('✅ Respuestas guardadas exitosamente');
+        res.json({ success: true, count: responses.length });
+        
+    } catch (error) {
+        console.error('❌ Error en save-responses:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Nuevo endpoint para GenAI Radar (cuestionario GenAI MultiArea)
 app.get('/api/genai-radar/:userId', async (req, res) => {
     try {

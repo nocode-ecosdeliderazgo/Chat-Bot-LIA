@@ -124,8 +124,10 @@ class GenAIQuestionnaire {
         
         this.currentUser = { id: userId, area: userArea, ...user };
         
-        // Mapear área a GenAI área
-        this.genaiArea = this.mapToGenAIArea(userArea);
+        // Mapear área a GenAI área y rol
+        const areaMapping = this.mapToGenAIArea(userArea);
+        this.genaiArea = areaMapping.area_id;
+        this.genaiRol = areaMapping.exclusivo_rol_id;
         
         // Actualizar UI
         await this.updateAreaBadge();
@@ -133,52 +135,59 @@ class GenAIQuestionnaire {
         console.log('✅ Usuario cargado:', {
             userId: this.currentUser.id,
             originalArea: userArea,
-            genaiArea: this.genaiArea
+            genaiArea: this.genaiArea,
+            genaiRol: this.genaiRol
         });
     }
     
     mapToGenAIArea(userArea) {
-        // Mapeo de áreas antiguas a IDs de áreas en la tabla areas (actualizado con áreas reales)
+        // Mapeo de áreas antiguas a IDs de áreas y roles en la tabla areas
+        // Formato: { area_id, exclusivo_rol_id }
         const areaMap = {
-            'CEO': 2, // Ventas (más cercano a CEO)
-            'Dirección General': 2,
-            'CTO/CIO': 9, // Tecnología/TI
-            'Tecnología/TI': 9,
-            'Tecnología/Desarrollo de Software': 9,
-            'Dirección de Marketing': 3, // Marketing
-            'Miembros de Marketing': 3,
-            'Marketing': 3,
-            'Marketing y Comunicación': 3,
-            'Dirección de Ventas': 2, // Ventas
-            'Miembros de Ventas': 2,
-            'Ventas': 2,
-            'Dirección de Finanzas (CFO)': 5, // Finanzas
-            'Miembros de Finanzas': 5,
-            'Finanzas': 5,
-            'Finanzas/Contabilidad': 5,
-            'Dirección/Jefatura de Contabilidad': 7, // Contabilidad
-            'Miembros de Contabilidad': 7,
-            'Contabilidad': 7,
-            'Freelancer': 11, // Diseño/Industrias Creativas
-            'Consultor': 4, // Operaciones (más cercano a consultoría)
-            'Administración Pública/Gobierno': 4, // Mapeado a Operaciones
-            'Administración Pública': 4,
-            'Gobierno': 4,
-            'Salud': 4, // Operaciones (más cercano)
-            'Medicina': 4,
-            'Médico': 4,
-            'Derecho': 4, // Operaciones (más cercano)
-            'Legal': 4,
-            'Abogado': 4,
-            'Academia': 10, // Otra
-            'Investigación': 10,
-            'Investigador': 10,
-            'Educación': 10, // Otra
-            'Docentes': 10,
-            'Profesor': 10
+            'CEO': { area_id: 2, exclusivo_rol_id: 1 }, // Ventas
+            'Dirección General': { area_id: 2, exclusivo_rol_id: 1 },
+            'CTO/CIO': { area_id: 9, exclusivo_rol_id: 8 }, // Tecnología/TI
+            'Tecnología/TI': { area_id: 9, exclusivo_rol_id: 8 },
+            'Tecnología/Desarrollo de Software': { area_id: 9, exclusivo_rol_id: 8 },
+            'Desarrollo': { area_id: 9, exclusivo_rol_id: 8 },
+            'Dirección de Marketing': { area_id: 3, exclusivo_rol_id: 2 }, // Marketing
+            'Miembros de Marketing': { area_id: 3, exclusivo_rol_id: 2 },
+            'Marketing': { area_id: 3, exclusivo_rol_id: 2 },
+            'Marketing y Comunicación': { area_id: 3, exclusivo_rol_id: 2 },
+            'Dirección de Ventas': { area_id: 2, exclusivo_rol_id: 1 }, // Ventas
+            'Miembros de Ventas': { area_id: 2, exclusivo_rol_id: 1 },
+            'Ventas': { area_id: 2, exclusivo_rol_id: 1 },
+            'Dirección de Finanzas (CFO)': { area_id: 5, exclusivo_rol_id: 4 }, // Finanzas
+            'Miembros de Finanzas': { area_id: 5, exclusivo_rol_id: 4 },
+            'Finanzas': { area_id: 5, exclusivo_rol_id: 4 },
+            'Finanzas/Contabilidad': { area_id: 5, exclusivo_rol_id: 4 },
+            'Dirección/Jefatura de Contabilidad': { area_id: 7, exclusivo_rol_id: 6 }, // Contabilidad
+            'Miembros de Contabilidad': { area_id: 7, exclusivo_rol_id: 6 },
+            'Contabilidad': { area_id: 7, exclusivo_rol_id: 6 },
+            'Freelancer': { area_id: 11, exclusivo_rol_id: 10 }, // Diseño/Industrias Creativas
+            'Consultor': { area_id: 4, exclusivo_rol_id: 3 }, // Operaciones
+            'Administración Pública/Gobierno': { area_id: 4, exclusivo_rol_id: 3 },
+            'Administración Pública': { area_id: 4, exclusivo_rol_id: 3 },
+            'Gobierno': { area_id: 4, exclusivo_rol_id: 3 },
+            'Salud': { area_id: 4, exclusivo_rol_id: 3 },
+            'Medicina': { area_id: 4, exclusivo_rol_id: 3 },
+            'Médico': { area_id: 4, exclusivo_rol_id: 3 },
+            'Derecho': { area_id: 4, exclusivo_rol_id: 3 },
+            'Legal': { area_id: 4, exclusivo_rol_id: 3 },
+            'Abogado': { area_id: 4, exclusivo_rol_id: 3 },
+            'Academia': { area_id: 10, exclusivo_rol_id: 9 }, // Otra
+            'Investigación': { area_id: 10, exclusivo_rol_id: 9 },
+            'Investigador': { area_id: 10, exclusivo_rol_id: 9 },
+            'Educación': { area_id: 10, exclusivo_rol_id: 9 },
+            'Docentes': { area_id: 10, exclusivo_rol_id: 9 },
+            'Profesor': { area_id: 10, exclusivo_rol_id: 9 },
+            'Gerencia Media': { area_id: 2, exclusivo_rol_id: 1 }, // Por defecto Ventas
+            'Usuario': { area_id: 2, exclusivo_rol_id: 1 }, // Por defecto Ventas
+            'Administrador': { area_id: 2, exclusivo_rol_id: 1 } // Por defecto Ventas
         };
         
-        console.log('🔍 Mapeando área:', userArea, '→', areaMap[userArea] || 2);
+        const mapping = areaMap[userArea] || { area_id: 2, exclusivo_rol_id: 1 }; // Por defecto Ventas
+        console.log('🔍 Mapeando área:', userArea, '→', mapping);
         
         // Debug: mostrar todas las claves disponibles
         if (!areaMap[userArea]) {
@@ -186,7 +195,7 @@ class GenAIQuestionnaire {
             console.log('📋 Áreas disponibles en el mapeo:', Object.keys(areaMap));
         }
         
-        return areaMap[userArea] || 2; // Por defecto Ventas
+        return mapping;
     }
     
     async updateAreaBadge() {
@@ -215,7 +224,7 @@ class GenAIQuestionnaire {
     
     async loadQuestions() {
         try {
-            console.log(`🔍 Cargando preguntas para área ID: ${this.genaiArea}`);
+            console.log(`🔍 Cargando preguntas para área ID: ${this.genaiArea}, rol ID: ${this.genaiRol}`);
             
             // Primero obtener el nombre del área para mostrar
             const { data: areaData, error: areaError } = await this.supabase
@@ -231,7 +240,7 @@ class GenAIQuestionnaire {
             const areaName = areaData?.nombre || `Área ID ${this.genaiArea}`;
             console.log(`📍 Área encontrada: ${areaName}`);
             
-            // Cargar preguntas de la tabla preguntas
+            // Cargar preguntas de la tabla preguntas usando exclusivo_rol_id
             console.log('🔍 Ejecutando consulta de preguntas...');
             const { data, error } = await this.supabase
                 .from('preguntas')
@@ -241,6 +250,7 @@ class GenAIQuestionnaire {
                     section,
                     bloque,
                     area_id,
+                    exclusivo_rol_id,
                     texto,
                     tipo,
                     opciones,
@@ -249,7 +259,7 @@ class GenAIQuestionnaire {
                     scoring,
                     created_at
                 `)
-                .eq('area_id', this.genaiArea)
+                .eq('exclusivo_rol_id', this.genaiRol)
                 .eq('section', 'Cuestionario')
                 .order('bloque, codigo');
             
@@ -261,8 +271,8 @@ class GenAIQuestionnaire {
             }
             
             if (!data || data.length === 0) {
-                console.error('❌ No se encontraron preguntas para el área:', this.genaiArea);
-                throw new Error(`No se encontraron preguntas para el área: ${areaName}`);
+                console.error('❌ No se encontraron preguntas para el rol:', this.genaiRol);
+                throw new Error(`No se encontraron preguntas para el rol: ${this.genaiRol} en área: ${areaName}`);
             }
             
             // Transformar los datos para que sean compatibles con el código existente
@@ -272,6 +282,7 @@ class GenAIQuestionnaire {
                 section: q.section,
                 block: q.bloque,
                 area_id: q.area_id,
+                exclusivo_rol_id: q.exclusivo_rol_id,
                 question_text: q.texto,
                 type: q.tipo,
                 options: q.opciones,
@@ -283,7 +294,7 @@ class GenAIQuestionnaire {
             
             this.totalQuestions = this.questions.length;
             
-            console.log(`✅ ${this.totalQuestions} preguntas cargadas para ${areaName}:`, {
+            console.log(`✅ ${this.totalQuestions} preguntas cargadas para ${areaName} (rol ${this.genaiRol}):`, {
                 adopcion: this.questions.filter(q => q.block === 'Adopción').length,
                 conocimiento: this.questions.filter(q => q.block === 'Conocimiento').length
             });
@@ -554,35 +565,69 @@ class GenAIQuestionnaire {
             hasSupabase: !!this.supabase
         });
         
-        // Verificar si tenemos autenticación
-        const { data: { session } } = await this.supabase.auth.getSession();
-        if (!session) {
-            console.warn('⚠️ No hay sesión de Supabase, intentando autenticación...');
+        // Intentar guardar usando el servidor backend en lugar de Supabase directo
+        try {
+            console.log('🔄 Intentando guardar a través del servidor backend...');
             
-            // Intentar obtener token del localStorage
-            const userToken = localStorage.getItem('userToken');
-            if (userToken) {
-                console.log('🔑 Token encontrado en localStorage, configurando sesión...');
-                // Configurar el token en Supabase
-                await this.supabase.auth.setSession({
-                    access_token: userToken,
-                    refresh_token: userToken
-                });
-            } else {
-                throw new Error('No se pudo obtener token de autenticación. Por favor inicia sesión nuevamente.');
+            const response = await fetch('/api/save-responses', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: this.currentUser.id,
+                    responses: responses
+                })
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
+            }
+            
+            const result = await response.json();
+            console.log('✅ Respuestas guardadas a través del servidor:', result);
+            
+        } catch (serverError) {
+            console.warn('⚠️ Error con servidor backend, intentando Supabase directo...', serverError);
+            
+            // Fallback a Supabase directo
+            try {
+                // Verificar si tenemos autenticación
+                const { data: { session } } = await this.supabase.auth.getSession();
+                if (!session) {
+                    console.warn('⚠️ No hay sesión de Supabase, intentando autenticación...');
+                    
+                    // Intentar obtener token del localStorage
+                    const userToken = localStorage.getItem('userToken');
+                    if (userToken) {
+                        console.log('🔑 Token encontrado en localStorage, configurando sesión...');
+                        // Configurar el token en Supabase
+                        await this.supabase.auth.setSession({
+                            access_token: userToken,
+                            refresh_token: userToken
+                        });
+                    } else {
+                        throw new Error('No se pudo obtener token de autenticación. Por favor inicia sesión nuevamente.');
+                    }
+                }
+                
+                const { error } = await this.supabase
+                    .from('respuestas')
+                    .insert(responses);
+                
+                if (error) {
+                    console.error('❌ Error detallado al guardar respuestas:', error);
+                    throw new Error(`Error guardando respuestas: ${error.message}`);
+                }
+                
+                console.log(`✅ ${responses.length} respuestas guardadas en tabla respuestas`);
+                
+            } catch (supabaseError) {
+                console.error('❌ Error con Supabase directo:', supabaseError);
+                throw new Error(`Error guardando respuestas: ${supabaseError.message}`);
             }
         }
-        
-        const { error } = await this.supabase
-            .from('respuestas')
-            .insert(responses);
-        
-        if (error) {
-            console.error('❌ Error detallado al guardar respuestas:', error);
-            throw new Error(`Error guardando respuestas: ${error.message}`);
-        }
-        
-        console.log(`✅ ${responses.length} respuestas guardadas en tabla respuestas`);
     }
     
     calculateScores() {
