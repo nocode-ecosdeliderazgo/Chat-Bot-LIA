@@ -51,31 +51,14 @@ class GenAIQuestionnaire {
     }
     
     async initializeSupabase() {
-        // Obtener configuración desde meta tags
-        const supabaseUrl = document.querySelector('meta[name="supabase-url"]')?.getAttribute('content');
-        const supabaseKey = document.querySelector('meta[name="supabase-key"]')?.getAttribute('content');
-        
-        if (!supabaseUrl || !supabaseKey) {
-            throw new Error('Configuración de Supabase no encontrada');
+        // Supabase ya debería estar disponible en este punto
+        if (typeof window.supabase !== 'undefined' && window.supabase) {
+            this.supabase = window.supabase;
+            console.log('✅ Cliente Supabase inicializado');
+            return;
         }
         
-        // Esperar a que Supabase esté disponible
-        let attempts = 0;
-        const maxAttempts = 50; // 5 segundos máximo
-        
-        while (attempts < maxAttempts) {
-            if (typeof window.supabase !== 'undefined' && window.supabase) {
-                this.supabase = window.supabase;
-                console.log('✅ Cliente Supabase inicializado');
-                return;
-            }
-            
-            console.log(`⏳ Esperando Supabase... (intento ${attempts + 1}/${maxAttempts})`);
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
-        
-        throw new Error('Cliente de Supabase no disponible después de 5 segundos');
+        throw new Error('Cliente de Supabase no disponible');
     }
     
     async loadUserInfo() {
@@ -663,18 +646,52 @@ class GenAIQuestionnaire {
 // INICIALIZACIÓN
 // ====================================================================
 
-document.addEventListener('DOMContentLoaded', function() {
+// Función para esperar a que Supabase esté disponible
+async function waitForSupabase() {
+    let attempts = 0;
+    const maxAttempts = 100; // 10 segundos máximo
+    
+    while (attempts < maxAttempts) {
+        if (typeof window.supabase !== 'undefined' && window.supabase) {
+            console.log('✅ Supabase detectado, inicializando cuestionario...');
+            return true;
+        }
+        
+        console.log(`⏳ Esperando Supabase... (intento ${attempts + 1}/${maxAttempts})`);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+    }
+    
+    console.error('❌ Supabase no disponible después de 10 segundos');
+    return false;
+}
+
+// Inicialización principal
+async function initializeQuestionnaire() {
     console.log('🎯 Inicializando aplicación GenAI Questionnaire...');
     
-    // Verificar requisitos
-    if (typeof window.supabase === 'undefined') {
-        console.error('❌ Supabase client no está disponible');
+    // Esperar a que Supabase esté disponible
+    const supabaseReady = await waitForSupabase();
+    
+    if (!supabaseReady) {
+        console.error('❌ No se pudo inicializar Supabase');
+        document.getElementById('errorMessage').textContent = 'Error: No se pudo conectar a la base de datos. Por favor recarga la página.';
+        document.getElementById('errorMessage').style.display = 'block';
         return;
     }
     
     // Inicializar cuestionario
-    window.genaiQuestionnaire = new GenAIQuestionnaire();
-});
+    try {
+        window.genaiQuestionnaire = new GenAIQuestionnaire();
+    } catch (error) {
+        console.error('❌ Error inicializando cuestionario:', error);
+        document.getElementById('errorMessage').textContent = 'Error inicializando el cuestionario. Por favor recarga la página.';
+        document.getElementById('errorMessage').style.display = 'block';
+    }
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', initializeQuestionnaire);
 
 // Funciones globales de utilidad
 window.goToStats = function() {
