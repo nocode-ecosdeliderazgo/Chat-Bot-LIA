@@ -886,9 +886,10 @@
             
             const ctx = canvas.getContext('2d');
             
-            // Preparar datos para la gráfica
-            const countries = data.map(item => item.pais);
-            const scores = data.map(item => parseFloat(item.indice_aipi));
+            // Preparar datos para la gráfica - filtrar países sin datos
+            const validData = data.filter(item => item.indice_aipi !== null && item.indice_aipi !== undefined);
+            const countries = validData.map(item => item.pais);
+            const scores = validData.map(item => parseFloat(item.indice_aipi));
             
             // Crear gradientes de colores
             const gradients = scores.map((score, index) => {
@@ -911,7 +912,11 @@
                     borderRadius: 8,
                     borderSkipped: false,
                     barThickness: 25,
-                    maxBarThickness: 30
+                    maxBarThickness: 30,
+                    // Efectos adicionales
+                    hoverBackgroundColor: '#44E5FF',
+                    hoverBorderColor: '#0077A6',
+                    hoverBorderWidth: 3
                 }]
             };
             
@@ -971,7 +976,7 @@
                         }
                     },
                     animation: {
-                        duration: 2000,
+                        duration: 2500,
                         easing: 'easeOutQuart',
                         onProgress: function(animation) {
                             const chart = animation.chart;
@@ -986,14 +991,30 @@
                                 const width = bar.width;
                                 const height = bar.height;
                                 
-                                // Agregar valor en la barra
+                                // Agregar valor en la barra con efecto de sombra
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                                ctx.shadowBlur = 4;
+                                ctx.shadowOffsetX = 2;
+                                ctx.shadowOffsetY = 2;
+                                
                                 ctx.fillStyle = '#fff';
                                 ctx.font = 'bold 12px Inter';
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
-                                ctx.fillText(value.toFixed(1), x + width/2, y + height/2);
+                                ctx.fillText(value.toFixed(2), x + width/2, y + height/2);
+                                
+                                // Resetear sombra
+                                ctx.shadowColor = 'transparent';
+                                ctx.shadowBlur = 0;
+                                ctx.shadowOffsetX = 0;
+                                ctx.shadowOffsetY = 0;
                             });
                         }
+                    },
+                    // Efectos de hover mejorados
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
                     }
                 }
             };
@@ -1036,17 +1057,28 @@
         function updateAdoptionInfo(data) {
             const adoptionInfo = document.getElementById('adoptionInfo');
             if (adoptionInfo && data && data.length > 0) {
-                const totalCountries = data.length;
-                const avgScore = (data.reduce((sum, item) => sum + parseFloat(item.indice_aipi), 0) / totalCountries).toFixed(1);
-                const maxScore = Math.max(...data.map(item => parseFloat(item.indice_aipi))).toFixed(1);
-                const topCountry = data.find(item => parseFloat(item.indice_aipi) === Math.max(...data.map(item => parseFloat(item.indice_aipi))));
+                // Filtrar datos válidos
+                const validData = data.filter(item => item.indice_aipi !== null && item.indice_aipi !== undefined);
+                const totalCountries = validData.length;
+                const totalAnalyzed = data.length;
                 
-                adoptionInfo.innerHTML = `
-                    <strong>${totalCountries} países analizados</strong> | 
-                    Promedio: <strong>${avgScore}</strong> | 
-                    Máximo: <strong>${maxScore}</strong> (${topCountry.pais}) | 
-                    Fuente: ${data[0].fuente || 'Datos actualizados'}
-                `;
+                if (validData.length > 0) {
+                    const avgScore = (validData.reduce((sum, item) => sum + parseFloat(item.indice_aipi), 0) / totalCountries).toFixed(2);
+                    const maxScore = Math.max(...validData.map(item => parseFloat(item.indice_aipi))).toFixed(2);
+                    const topCountry = validData.find(item => parseFloat(item.indice_aipi) === Math.max(...validData.map(item => parseFloat(item.indice_aipi))));
+                    
+                    adoptionInfo.innerHTML = `
+                        <strong>${totalCountries} países con datos</strong> (de ${totalAnalyzed} analizados) | 
+                        Promedio: <strong>${avgScore}</strong> | 
+                        Máximo: <strong>${maxScore}</strong> (${topCountry.pais}) | 
+                        Fuente: ${validData[0].fuente || 'Datos actualizados'}
+                    `;
+                } else {
+                    adoptionInfo.innerHTML = `
+                        <strong>${totalAnalyzed} países analizados</strong> | 
+                        <span style="color: #ff6b6b;">No hay datos de adopción disponibles</span>
+                    `;
+                }
             }
         }
         

@@ -213,6 +213,36 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({ limit: '10mb' }));
+
+// Endpoint para obtener datos de adopción de GenAI por países
+app.get('/api/adopcion-genai', async (req, res) => {
+    try {
+        console.log('🌍 Obteniendo datos de adopción GenAI por países...');
+        
+        if (!supabase) {
+            console.error('❌ Supabase no configurado');
+            return res.status(500).json({ error: 'Supabase no configurado' });
+        }
+        
+        const { data, error } = await supabase
+            .from('adopcion_genai')
+            .select('*')
+            .order('indice_aipi', { ascending: false });
+        
+        if (error) {
+            console.error('❌ Error obteniendo datos de adopción:', error);
+            return res.status(500).json({ error: error.message });
+        }
+        
+        console.log(`✅ Datos de adopción obtenidos: ${data.length} países`);
+        res.json(data);
+        
+    } catch (error) {
+        console.error('❌ Error en adopcion-genai:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.use(express.static('src'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Servir prompts para depuración/inspección (protegido por API en endpoints abajo)
@@ -2800,34 +2830,7 @@ io.on('connection', (socket) => {
     });
 });
 
-// Endpoint para obtener datos de adopción de GenAI por países
-app.get('/api/adopcion-genai', async (req, res) => {
-    try {
-        console.log('🌍 Obteniendo datos de adopción GenAI por países...');
-        
-        if (!supabase) {
-            console.error('❌ Supabase no configurado');
-            return res.status(500).json({ error: 'Supabase no configurado' });
-        }
-        
-        const { data, error } = await supabase
-            .from('adopcion_genai')
-            .select('*')
-            .order('indice_aipi', { ascending: false });
-        
-        if (error) {
-            console.error('❌ Error obteniendo datos de adopción:', error);
-            return res.status(500).json({ error: error.message });
-        }
-        
-        console.log(`✅ Datos de adopción obtenidos: ${data.length} países`);
-        res.json(data);
-        
-    } catch (error) {
-        console.error('❌ Error en adopcion-genai:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
+
 
 // Iniciar servidor
 server.listen(PORT, () => {
