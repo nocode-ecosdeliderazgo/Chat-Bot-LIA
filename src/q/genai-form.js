@@ -59,13 +59,23 @@ class GenAIQuestionnaire {
             throw new Error('Configuración de Supabase no encontrada');
         }
         
-        if (typeof window.supabase !== 'undefined') {
-            this.supabase = window.supabase;
-        } else {
-            throw new Error('Cliente de Supabase no disponible');
+        // Esperar a que Supabase esté disponible
+        let attempts = 0;
+        const maxAttempts = 50; // 5 segundos máximo
+        
+        while (attempts < maxAttempts) {
+            if (typeof window.supabase !== 'undefined' && window.supabase) {
+                this.supabase = window.supabase;
+                console.log('✅ Cliente Supabase inicializado');
+                return;
+            }
+            
+            console.log(`⏳ Esperando Supabase... (intento ${attempts + 1}/${maxAttempts})`);
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
         }
         
-        console.log('✅ Cliente Supabase inicializado');
+        throw new Error('Cliente de Supabase no disponible después de 5 segundos');
     }
     
     async loadUserInfo() {
@@ -200,8 +210,10 @@ class GenAIQuestionnaire {
             }
             
             const areaName = areaData?.nombre || `Área ID ${this.genaiArea}`;
+            console.log(`📍 Área encontrada: ${areaName}`);
             
             // Cargar preguntas de la tabla preguntas
+            console.log('🔍 Ejecutando consulta de preguntas...');
             const { data, error } = await this.supabase
                 .from('preguntas')
                 .select(`
@@ -222,11 +234,15 @@ class GenAIQuestionnaire {
                 .eq('section', 'Cuestionario')
                 .order('bloque, codigo');
             
+            console.log('📊 Resultado de la consulta:', { data, error });
+            
             if (error) {
+                console.error('❌ Error en consulta:', error);
                 throw error;
             }
             
             if (!data || data.length === 0) {
+                console.error('❌ No se encontraron preguntas para el área:', this.genaiArea);
                 throw new Error(`No se encontraron preguntas para el área: ${areaName}`);
             }
             
