@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Cuestionario GenAI</title>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Configuración Supabase -->
+    <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
+    <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Cuestionario GenAI</h1>
+        
+        <div>
+            <button onclick="testSupabase()">Test Supabase</button>
+            <button onclick="testQuestions()">Test Preguntas Área 4</button>
+            <button onclick="testAreaMapping()">Test Mapeo Áreas</button>
+            <button onclick="clearLog()">Limpiar Log</button>
+        </div>
+        
+        <div class="log" id="log"></div>
+    </div>
+    
+    <script>
+        const supabaseUrl = 'https://miwbzotcuaywpdbidpwo.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY';
+        
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            logDiv.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        async function testSupabase() {
+            try {
+                log('🔍 Probando conexión a Supabase...');
+                
+                const { data, error } = await supabase
+                    .from('areas')
+                    .select('id, nombre')
+                    .limit(1);
+                
+                if (error) {
+                    log(`❌ Error de Supabase: ${error.message}`, 'error');
+                } else {
+                    log(`✅ Supabase conectado. Datos: ${JSON.stringify(data)}`, 'success');
+                }
+            } catch (error) {
+                log(`❌ Error general: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testQuestions() {
+            try {
+                log('🔍 Probando carga de preguntas para área 4...');
+                
+                const { data, error } = await supabase
+                    .from('preguntas')
+                    .select('id, codigo, bloque, texto')
+                    .eq('area_id', 4)
+                    .eq('section', 'Cuestionario')
+                    .limit(5);
+                
+                if (error) {
+                    log(`❌ Error cargando preguntas: ${error.message}`, 'error');
+                } else {
+                    log(`✅ Preguntas cargadas: ${data.length} encontradas`, 'success');
+                    data.forEach(q => {
+                        log(`  - ${q.codigo}: ${q.bloque} - ${q.texto.substring(0, 50)}...`);
+                    });
+                }
+            } catch (error) {
+                log(`❌ Error general: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testAreaMapping() {
+            try {
+                log('🔍 Probando mapeo de áreas...');
+                
+                const areaMap = {
+                    'Administración Pública/Gobierno': 4,
+                    'Administración Pública': 4,
+                    'Gobierno': 4
+                };
+                
+                const testAreas = ['Administración Pública/Gobierno', 'Gobierno', 'Ventas'];
+                
+                testAreas.forEach(area => {
+                    const mappedId = areaMap[area] || 2;
+                    log(`  "${area}" → ID ${mappedId}`);
+                });
+                
+                log('✅ Mapeo de áreas probado', 'success');
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Auto-test al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Página cargada. Ejecutando tests automáticos...');
+            setTimeout(() => {
+                testSupabase();
+                setTimeout(() => {
+                    testQuestions();
+                    setTimeout(() => {
+                        testAreaMapping();
+                    }, 1000);
+                }, 1000);
+            }, 500);
+        });
+    </script>
+</body>
+</html>
