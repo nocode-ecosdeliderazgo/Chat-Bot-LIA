@@ -227,9 +227,9 @@ function redirectToLogin() {
         console.error('Error redirecting to login:', error);
         // Fallback directo - intentar primero producción, luego desarrollo
         try {
-            window.location.href = '/login/new-auth.html';
+            window.location.href = '/index.html';
         } catch (e) {
-            window.location.href = '/src/login/new-auth.html';
+            window.location.href = '/src/index.html';
         }
     }
 }

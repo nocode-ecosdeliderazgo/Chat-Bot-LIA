@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de Horas de Contenido</title>
+    
+    <!-- Supabase Configuration -->
+    <meta name="supabase-url" content="">
+    <meta name="supabase-key" content="">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .data-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+        .data-section h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .data-item {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .data-item strong {
+            color: #495057;
+        }
+        .data-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .data-details {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .summary {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+        .summary h4 {
+            margin-top: 0;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Verificación de Horas de Contenido</h1>
+        
+        <div class="status" id="connection-status">
+            Estado de conexión: Verificando...
+        </div>
+
+        <div class="summary">
+            <h4>📊 Resumen de Horas de Contenido</h4>
+            <div id="content-summary">
+                Analizando fuentes de datos...
+            </div>
+        </div>
+
+        <div class="data-section">
+            <h3>📚 Cursos AI (ai_courses)</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <strong>Total de Cursos:</strong>
+                    <div class="data-value" id="total-courses">-</div>
+                </div>
+                <div class="data-item">
+                    <strong>Duración Total (minutos):</strong>
+                    <div class="data-value" id="total-duration-minutes">-</div>
+                </div>
+                <div class="data-item">
+                    <strong>Duración Total (horas):</strong>
+                    <div class="data-value" id="total-duration-hours">-</div>
+                </div>
+            </div>
+            <div id="courses-details" class="data-details">
+                Cargando detalles de cursos...
+            </div>
+        </div>
+
+        <div class="data-section">
+            <h3>⏱️ Sesiones de Estudio (study_session)</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <strong>Total de Sesiones:</strong>
+                    <div class="data-value" id="total-sessions">-</div>
+                </div>
+                <div class="data-item">
+                    <strong>Duración Total (minutos):</strong>
+                    <div class="data-value" id="sessions-duration-minutes">-</div>
+                </div>
+                <div class="data-item">
+                    <strong>Duración Total (horas):</strong>
+                    <div class="data-value" id="sessions-duration-hours">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <h3>📝 Sesiones de Cuestionario (user_questionnaire_sessions)</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <strong>Sesiones Completadas:</strong>
+                    <div class="data-value" id="completed-questionnaires">-</div>
+                </div>
+                <div class="data-item">
+                    <strong>Duración Total (horas):</strong>
+                    <div class="data-value" id="questionnaires-duration-hours">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <h3>🎯 Actividades de Módulos (module_activity)</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <strong>Total de Actividades:</strong>
+                    <div class="data-value" id="total-activities">-</div>
+                </div>
+                <div class="data-item">
+                    <strong>Duración Total (horas):</strong>
+                    <div class="data-value" id="activities-duration-hours">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <button onclick="analyzeContentHours()">🔍 Analizar Horas de Contenido</button>
+            <button onclick="clearLog()">🗑️ Limpiar Log</button>
+            <button onclick="testCurrentCalculation()">🧮 Probar Cálculo Actual</button>
+        </div>
+
+        <div class="log" id="log">
+            <div>Iniciando análisis de horas de contenido...</div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="src/scripts/supabase-client.js"></script>
+    <script src="src/scripts/stats-calculator.js"></script>
+    
+    <script>
+        // Función para agregar logs
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span style="color: #666;">[${timestamp}]</span> ${message}`;
+            log.appendChild(logEntry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Función para limpiar log
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        // Función para actualizar estado de conexión
+        function updateConnectionStatus(status, message) {
+            const statusElement = document.getElementById('connection-status');
+            statusElement.className = `status ${status}`;
+            statusElement.textContent = `Estado de conexión: ${message}`;
+        }
+
+        // Función para analizar horas de contenido
+        async function analyzeContentHours() {
+            addLog('🔍 Iniciando análisis detallado de horas de contenido...');
+            
+            let totalHours = 0;
+            let sources = [];
+
+            try {
+                // 1. Analizar cursos AI
+                addLog('📚 Analizando tabla ai_courses...');
+                const { data: aiCourses, error: courseError } = await window.supabase
+                    .from('ai_courses')
+                    .select('id_ai_courses, name, total_duration');
+
+                if (courseError) {
+                    addLog(`❌ Error al cargar cursos: ${courseError.message}`);
+                } else if (aiCourses && aiCourses.length > 0) {
+                    const courseMinutes = aiCourses.reduce((sum, course) => {
+                        return sum + (course.total_duration || 0);
+                    }, 0);
+                    const courseHours = courseMinutes / 60;
+                    totalHours += courseHours;
+                    sources.push(`Cursos AI: ${courseHours.toFixed(2)}h (${courseMinutes} min)`);
+
+                    document.getElementById('total-courses').textContent = aiCourses.length;
+                    document.getElementById('total-duration-minutes').textContent = courseMinutes;
+                    document.getElementById('total-duration-hours').textContent = courseHours.toFixed(2);
+
+                    // Mostrar detalles de cursos
+                    const coursesDetails = aiCourses.map(course => 
+                        `• ${course.name || 'Sin nombre'}: ${course.total_duration || 0} min`
+                    ).join('<br>');
+                    document.getElementById('courses-details').innerHTML = coursesDetails;
+
+                    addLog(`✅ Cursos AI: ${aiCourses.length} cursos, ${courseHours.toFixed(2)} horas`);
+                } else {
+                    addLog('⚠️ No se encontraron cursos en ai_courses');
+                }
+
+                // 2. Analizar sesiones de estudio
+                addLog('⏱️ Analizando tabla study_session...');
+                const { data: studySessions, error: sessionError } = await window.supabase
+                    .from('study_session')
+                    .select('duration_minutes');
+
+                if (sessionError) {
+                    addLog(`❌ Error al cargar sesiones: ${sessionError.message}`);
+                } else if (studySessions && studySessions.length > 0) {
+                    const sessionMinutes = studySessions.reduce((sum, session) => {
+                        return sum + (session.duration_minutes || 0);
+                    }, 0);
+                    const sessionHours = sessionMinutes / 60;
+                    totalHours += sessionHours;
+                    sources.push(`Sesiones de estudio: ${sessionHours.toFixed(2)}h (${sessionMinutes} min)`);
+
+                    document.getElementById('total-sessions').textContent = studySessions.length;
+                    document.getElementById('sessions-duration-minutes').textContent = sessionMinutes;
+                    document.getElementById('sessions-duration-hours').textContent = sessionHours.toFixed(2);
+
+                    addLog(`✅ Sesiones de estudio: ${studySessions.length} sesiones, ${sessionHours.toFixed(2)} horas`);
+                } else {
+                    addLog('⚠️ No se encontraron sesiones de estudio');
+                }
+
+                // 3. Analizar sesiones de cuestionario
+                addLog('📝 Analizando tabla user_questionnaire_sessions...');
+                const { data: questionnaireSessions, error: qSessionError } = await window.supabase
+                    .from('user_questionnaire_sessions')
+                    .select('started_at, completed_at')
+                    .not('completed_at', 'is', null);
+
+                if (qSessionError) {
+                    addLog(`❌ Error al cargar cuestionarios: ${qSessionError.message}`);
+                } else if (questionnaireSessions && questionnaireSessions.length > 0) {
+                    const sessionHours = questionnaireSessions.reduce((sum, session) => {
+                        if (session.started_at && session.completed_at) {
+                            const duration = new Date(session.completed_at) - new Date(session.started_at);
+                            return sum + (duration / (1000 * 60 * 60));
+                        }
+                        return sum;
+                    }, 0);
+                    totalHours += sessionHours;
+                    sources.push(`Cuestionarios: ${sessionHours.toFixed(2)}h`);
+
+                    document.getElementById('completed-questionnaires').textContent = questionnaireSessions.length;
+                    document.getElementById('questionnaires-duration-hours').textContent = sessionHours.toFixed(2);
+
+                    addLog(`✅ Cuestionarios: ${questionnaireSessions.length} sesiones, ${sessionHours.toFixed(2)} horas`);
+                } else {
+                    addLog('⚠️ No se encontraron sesiones de cuestionario completadas');
+                }
+
+                // 4. Analizar actividades de módulos
+                addLog('🎯 Analizando tabla module_activity...');
+                const { data: moduleActivities, error: activityError } = await window.supabase
+                    .from('module_activity')
+                    .select('metadata');
+
+                if (activityError) {
+                    addLog(`❌ Error al cargar actividades: ${activityError.message}`);
+                } else if (moduleActivities && moduleActivities.length > 0) {
+                    const activityHours = moduleActivities.reduce((sum, activity) => {
+                        if (activity.metadata && activity.metadata.duration) {
+                            return sum + (activity.metadata.duration / 60);
+                        }
+                        return sum;
+                    }, 0);
+                    totalHours += activityHours;
+                    sources.push(`Actividades: ${activityHours.toFixed(2)}h`);
+
+                    document.getElementById('total-activities').textContent = moduleActivities.length;
+                    document.getElementById('activities-duration-hours').textContent = activityHours.toFixed(2);
+
+                    addLog(`✅ Actividades: ${moduleActivities.length} actividades, ${activityHours.toFixed(2)} horas`);
+                } else {
+                    addLog('⚠️ No se encontraron actividades de módulos');
+                }
+
+                // Mostrar resumen
+                const summary = document.getElementById('content-summary');
+                summary.innerHTML = `
+                    <strong>Total de horas calculadas: ${totalHours.toFixed(2)} horas</strong><br>
+                    <strong>Fuentes:</strong><br>
+                    ${sources.map(source => `• ${source}`).join('<br>')}
+                `;
+
+                addLog(`📊 RESUMEN: Total de horas de contenido = ${totalHours.toFixed(2)} horas`);
+                addLog(`📊 Fuentes utilizadas: ${sources.length}`);
+
+            } catch (error) {
+                addLog(`❌ Error general: ${error.message}`);
+            }
+        }
+
+        // Función para probar el cálculo actual
+        async function testCurrentCalculation() {
+            try {
+                addLog('🧮 Probando cálculo actual de la calculadora...');
+                const calculator = new StatsCalculator();
+                const stats = await calculator.initialize();
+                
+                addLog(`📊 Resultado del cálculo actual: ${stats.contentHours} horas`);
+                addLog(`📊 Otros valores: Estudiantes=${stats.activeStudents}, Proyectos=${stats.completedProjects}, Satisfacción=${stats.satisfactionPercentage}%`);
+
+            } catch (error) {
+                addLog(`❌ Error al probar cálculo: ${error.message}`);
+            }
+        }
+
+        // Inicialización al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('🚀 Página cargada, verificando configuración...');
+            
+            const url = document.querySelector('meta[name="supabase-url"]').content;
+            const key = document.querySelector('meta[name="supabase-key"]').content;
+            
+            if (!url || !key) {
+                addLog('⚠️ Supabase no está configurado. No se pueden cargar datos reales.');
+                updateConnectionStatus('warning', 'No configurado');
+            } else {
+                addLog('✅ Supabase configurado correctamente');
+                updateConnectionStatus('success', 'Configurado');
+                
+                // Analizar automáticamente
+                setTimeout(() => {
+                    analyzeContentHours();
+                }, 1000);
+            }
+        });
+
+        // Interceptar logs de la consola
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+        const originalError = console.error;
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            if (args[0] && typeof args[0] === 'string' && args[0].includes('Horas de contenido')) {
+                addLog(args.join(' '));
+            }
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addLog(`⚠️ ${args.join(' ')}`);
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLog(`❌ ${args.join(' ')}`);
+        };
+    </script>
+</body>
+</html>

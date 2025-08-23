@@ -1,318 +1,224 @@
-/* ===== SISTEMA DE PARTÍCULAS ===== */
+/* ===== CONFIGURACIÓN DE PARTÍCULAS DE FONDO ===== */
+// Script para crear efectos de partículas en el fondo de las páginas
 
-class ParticleSystem {
-    constructor(container) {
-        this.container = container;
-        this.particles = [];
-        this.mouse = { x: 0, y: 0 };
-        this.animationId = null;
-        this.isActive = true;
-        
-        // Configuración
-        this.config = {
-            particleCount: 50,
-            particleSpeed: 0.5,
-            particleSize: { min: 2, max: 6 },
-            colors: ['#44E5FF', '#0077A6', '#22C55E'],
-            mouseInfluence: 100,
-            maxDistance: 150
-        };
-        
-        this.init();
-    }
-
-    init() {
-        // Verificar si hay soporte para animaciones
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            this.config.particleCount = 10;
-            this.config.particleSpeed = 0.1;
-        }
-        
-        this.createParticles();
-        this.bindEvents();
-        this.animate();
-        this.handleVisibilityChange();
-    }
-
-    createParticles() {
-        // Limpiar partículas existentes
-        this.container.innerHTML = '';
-        this.particles = [];
-        
-        for (let i = 0; i < this.config.particleCount; i++) {
-            const particle = this.createParticle();
-            this.container.appendChild(particle.element);
-            this.particles.push(particle);
-        }
-    }
-
-    createParticle() {
-        const element = document.createElement('div');
-        element.className = 'particle';
-        
-        // Propiedades aleatorias
-        const size = this.random(this.config.particleSize.min, this.config.particleSize.max);
-        const color = this.config.colors[Math.floor(Math.random() * this.config.colors.length)];
-        const x = this.random(0, this.container.clientWidth);
-        const y = this.random(0, this.container.clientHeight);
-        
-        // Estilos
-        element.style.width = size + 'px';
-        element.style.height = size + 'px';
-        element.style.backgroundColor = color;
-        element.style.left = x + 'px';
-        element.style.top = y + 'px';
-        element.style.position = 'absolute';
-        element.style.borderRadius = '50%';
-        element.style.pointerEvents = 'none';
-        element.style.opacity = this.random(0.3, 0.8);
-        
-        // Agregar animación CSS personalizada
-        const animationDuration = this.random(10, 30) + 's';
-        const animationDelay = this.random(0, 5) + 's';
-        element.style.animationDelay = animationDelay;
-        element.style.animationDuration = animationDuration;
-        
-        return {
-            element,
-            x,
-            y,
-            size,
-            color,
-            vx: this.random(-this.config.particleSpeed, this.config.particleSpeed),
-            vy: this.random(-this.config.particleSpeed, this.config.particleSpeed),
-            originalX: x,
-            originalY: y
-        };
-    }
-
-    bindEvents() {
-        // Eventos del mouse
-        document.addEventListener('mousemove', (e) => {
-            const rect = this.container.getBoundingClientRect();
-            this.mouse.x = e.clientX - rect.left;
-            this.mouse.y = e.clientY - rect.top;
-        });
-
-        // Redimensionar ventana
-        window.addEventListener('resize', () => {
-            this.handleResize();
-        });
-
-        // Cambio de visibilidad de la página
-        document.addEventListener('visibilitychange', () => {
-            this.handleVisibilityChange();
-        });
-
-        // Eventos táctiles para móviles
-        document.addEventListener('touchmove', (e) => {
-            if (e.touches.length > 0) {
-                const rect = this.container.getBoundingClientRect();
-                this.mouse.x = e.touches[0].clientX - rect.left;
-                this.mouse.y = e.touches[0].clientY - rect.top;
-            }
-        });
-    }
-
-    animate() {
-        if (!this.isActive) return;
-        
-        this.particles.forEach(particle => {
-            this.updateParticle(particle);
-        });
-        
-        this.animationId = requestAnimationFrame(() => this.animate());
-    }
-
-    updateParticle(particle) {
-        // Movimiento básico
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-        
-        // Rebote en los bordes
-        if (particle.x <= 0 || particle.x >= this.container.clientWidth) {
-            particle.vx *= -1;
-        }
-        if (particle.y <= 0 || particle.y >= this.container.clientHeight) {
-            particle.vy *= -1;
-        }
-        
-        // Mantener dentro de los límites
-        particle.x = Math.max(0, Math.min(this.container.clientWidth, particle.x));
-        particle.y = Math.max(0, Math.min(this.container.clientHeight, particle.y));
-        
-        // Interacción con el mouse
-        const deltaX = this.mouse.x - particle.x;
-        const deltaY = this.mouse.y - particle.y;
-        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        
-        if (distance < this.config.mouseInfluence) {
-            const force = (this.config.mouseInfluence - distance) / this.config.mouseInfluence;
-            const angle = Math.atan2(deltaY, deltaX);
-            
-            particle.x -= Math.cos(angle) * force * 2;
-            particle.y -= Math.sin(angle) * force * 2;
-        } else {
-            // Regreso suave a la posición original
-            const returnForce = 0.01;
-            particle.x += (particle.originalX - particle.x) * returnForce;
-            particle.y += (particle.originalY - particle.y) * returnForce;
-        }
-        
-        // Actualizar posición del elemento
-        particle.element.style.transform = `translate(${particle.x - particle.originalX}px, ${particle.y - particle.originalY}px)`;
-        
-        // Conexiones entre partículas cercanas
-        this.drawConnections(particle);
-    }
-
-    drawConnections(particle) {
-        this.particles.forEach(otherParticle => {
-            if (particle === otherParticle) return;
-            
-            const dx = particle.x - otherParticle.x;
-            const dy = particle.y - otherParticle.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance < this.config.maxDistance) {
-                this.createConnection(particle, otherParticle, distance);
-            }
-        });
-    }
-
-    createConnection(particle1, particle2, distance) {
-        // Crear línea de conexión temporal (usando canvas sería más eficiente)
-        const line = document.createElement('div');
-        line.className = 'particle-connection';
-        line.style.position = 'absolute';
-        line.style.background = `rgba(68, 229, 255, ${0.3 * (1 - distance / this.config.maxDistance)})`;
-        line.style.height = '1px';
-        line.style.pointerEvents = 'none';
-        line.style.zIndex = '0';
-        
-        const angle = Math.atan2(particle2.y - particle1.y, particle2.x - particle1.x);
-        line.style.width = distance + 'px';
-        line.style.left = particle1.x + 'px';
-        line.style.top = particle1.y + 'px';
-        line.style.transform = `rotate(${angle}rad)`;
-        line.style.transformOrigin = '0 0';
-        
-        this.container.appendChild(line);
-        
-        // Eliminar la línea después de un frame
-        requestAnimationFrame(() => {
-            if (line.parentNode) {
-                line.parentNode.removeChild(line);
-            }
-        });
-    }
-
-    handleResize() {
-        // Reposicionar partículas si la ventana cambia de tamaño
-        this.particles.forEach(particle => {
-            particle.x = Math.min(particle.x, this.container.clientWidth);
-            particle.y = Math.min(particle.y, this.container.clientHeight);
-            particle.originalX = Math.min(particle.originalX, this.container.clientWidth);
-            particle.originalY = Math.min(particle.originalY, this.container.clientHeight);
-        });
-    }
-
-    handleVisibilityChange() {
-        if (document.hidden) {
-            this.pause();
-        } else {
-            this.resume();
-        }
-    }
-
-    pause() {
-        this.isActive = false;
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-        }
-    }
-
-    resume() {
-        this.isActive = true;
-        this.animate();
-    }
-
-    destroy() {
-        this.pause();
-        this.container.innerHTML = '';
-        this.particles = [];
-        
-        // Remover eventos
-        document.removeEventListener('mousemove', this.bindEvents);
-        window.removeEventListener('resize', this.handleResize);
-        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
-    }
-
-    // Utilidades
-    random(min, max) {
-        return Math.random() * (max - min) + min;
-    }
-
-    // Configuración dinámica
-    updateConfig(newConfig) {
-        this.config = { ...this.config, ...newConfig };
-        this.createParticles();
-    }
-
-    // Métodos públicos para control
-    setParticleCount(count) {
-        this.config.particleCount = count;
-        this.createParticles();
-    }
-
-    setSpeed(speed) {
-        this.config.particleSpeed = speed;
-        this.particles.forEach(particle => {
-            particle.vx = this.random(-speed, speed);
-            particle.vy = this.random(-speed, speed);
-        });
-    }
-}
-
-// Clase para partículas optimizada para móviles
-class MobileParticleSystem extends ParticleSystem {
-    constructor(container) {
-        super(container);
-        
-        // Configuración optimizada para móviles
-        this.config = {
-            ...this.config,
-            particleCount: 20,
-            particleSpeed: 0.3,
-            mouseInfluence: 80,
-            maxDistance: 100
-        };
-        
-        this.init();
-    }
-
-    // Desactivar conexiones en móviles para mejor performance
-    drawConnections() {
-        // No hacer nada - desactivado para móviles
-    }
-}
-
-// Detección de dispositivo y inicialización automática
-function initializeParticleSystem() {
-    const particleContainers = document.querySelectorAll('.particles-container');
+(function() {
+    'use strict';
     
-    particleContainers.forEach(container => {
-        const isMobile = window.innerWidth < 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        if (isMobile) {
-            new MobileParticleSystem(container);
-        } else {
-            new ParticleSystem(container);
+    // Configuración de partículas
+    const particlesConfig = {
+        particles: {
+            number: {
+                value: 80,
+                density: {
+                    enable: true,
+                    value_area: 800
+                }
+            },
+            color: {
+                value: "#44e5ff"
+            },
+            shape: {
+                type: "circle",
+                stroke: {
+                    width: 0,
+                    color: "#000000"
+                }
+            },
+            opacity: {
+                value: 0.5,
+                random: false,
+                anim: {
+                    enable: false,
+                    speed: 1,
+                    opacity_min: 0.1,
+                    sync: false
+                }
+            },
+            size: {
+                value: 3,
+                random: true,
+                anim: {
+                    enable: false,
+                    speed: 40,
+                    size_min: 0.1,
+                    sync: false
+                }
+            },
+            line_linked: {
+                enable: true,
+                distance: 150,
+                color: "#44e5ff",
+                opacity: 0.4,
+                width: 1
+            },
+            move: {
+                enable: true,
+                speed: 6,
+                direction: "none",
+                random: false,
+                straight: false,
+                out_mode: "out",
+                bounce: false,
+                attract: {
+                    enable: false,
+                    rotateX: 600,
+                    rotateY: 1200
+                }
+            }
+        },
+        interactivity: {
+            detect_on: "canvas",
+            events: {
+                onhover: {
+                    enable: true,
+                    mode: "repulse"
+                },
+                onclick: {
+                    enable: true,
+                    mode: "push"
+                },
+                resize: true
+            },
+            modes: {
+                grab: {
+                    distance: 400,
+                    line_linked: {
+                        opacity: 1
+                    }
+                },
+                bubble: {
+                    distance: 400,
+                    size: 40,
+                    duration: 2,
+                    opacity: 8,
+                    speed: 3
+                },
+                repulse: {
+                    distance: 200,
+                    duration: 0.4
+                },
+                push: {
+                    particles_nb: 4
+                },
+                remove: {
+                    particles_nb: 2
+                }
+            }
+        },
+        retina_detect: true
+    };
+    
+    // Función para inicializar partículas
+    function initParticles() {
+        const canvas = document.getElementById('particles-js');
+        if (!canvas) {
+            console.warn('⚠️ Canvas de partículas no encontrado');
+            return;
         }
-    });
-}
-
-// Exportar para uso global
-window.ParticleSystem = ParticleSystem;
-window.MobileParticleSystem = MobileParticleSystem;
-window.initializeParticleSystem = initializeParticleSystem;
+        
+        try {
+            // Verificar si particles.js está disponible
+            if (typeof particlesJS !== 'undefined') {
+                particlesJS('particles-js', particlesConfig);
+                console.log('✅ Partículas inicializadas correctamente');
+            } else {
+                console.warn('⚠️ particlesJS no está disponible, creando efecto básico');
+                createBasicParticlesEffect(canvas);
+            }
+        } catch (error) {
+            console.error('❌ Error inicializando partículas:', error);
+            createBasicParticlesEffect(canvas);
+        }
+    }
+    
+    // Función de respaldo para crear efecto básico de partículas
+    function createBasicParticlesEffect(canvas) {
+        const ctx = canvas.getContext('2d');
+        const particles = [];
+        const particleCount = 50;
+        
+        // Configurar canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Clase de partícula
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.size = Math.random() * 3 + 1;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(68, 229, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+        
+        // Crear partículas
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+        
+        // Función de animación
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
+            // Dibujar conexiones
+            particles.forEach((particle, i) => {
+                particles.slice(i + 1).forEach(otherParticle => {
+                    const dx = particle.x - otherParticle.x;
+                    const dy = particle.y - otherParticle.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(particle.x, particle.y);
+                        ctx.lineTo(otherParticle.x, otherParticle.y);
+                        ctx.strokeStyle = `rgba(68, 229, 255, ${0.4 * (1 - distance / 150)})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                });
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    }
+    
+    // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initParticles);
+    } else {
+        initParticles();
+    }
+    
+    // Hacer disponible globalmente
+    window.initParticles = initParticles;
+    
+})();

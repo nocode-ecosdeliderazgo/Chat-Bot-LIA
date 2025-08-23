@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cuestionario GenAI | Aprende y Aplica IA</title>
+    
+    <!-- Supabase config -->
+    <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
+    <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY">
+    
+    <link rel="icon" type="image/png" href="../assets/images/icono.png" />
+    <link rel="stylesheet" href="../styles/main.css" />
+    <link rel="stylesheet" href="../styles/components.css" />
+    <link rel="stylesheet" href="form.css" />
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+
+    <!-- Global Theme Setup -->
+    <script src="../scripts/global-theme-setup.js"></script>
+    
+    <style>
+        /* Estilos específicos para el cuestionario GenAI */
+        .genai-header {
+            background: linear-gradient(135deg, #0077a6, #44e5ff);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 20px 20px;
+        }
+        
+        .genai-header h1 {
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .genai-header p {
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        
+        .area-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 1rem 0;
+        }
+        
+        .question-block {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .block-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .block-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .block-adoption .block-icon {
+            background: linear-gradient(135deg, #44e5ff, #0077a6);
+        }
+        
+        .block-knowledge .block-icon {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+        }
+        
+        .block-title h3 {
+            color: #44e5ff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .block-title p {
+            color: #888;
+            margin: 0.25rem 0 0 0;
+            font-size: 0.9rem;
+        }
+        
+        .question-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .question-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .question-number {
+            background: #44e5ff;
+            color: #0a0a0a;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .question-text {
+            color: #fff;
+            font-size: 1rem;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+        
+        .question-options {
+            margin-top: 1rem;
+        }
+        
+        .option-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .option-item:hover {
+            background: rgba(68, 229, 255, 0.1);
+            border-color: #44e5ff;
+        }
+        
+        .option-item.selected {
+            background: rgba(68, 229, 255, 0.2);
+            border-color: #44e5ff;
+            box-shadow: 0 0 0 2px rgba(68, 229, 255, 0.3);
+        }
+        
+        .option-item input[type="radio"] {
+            margin-right: 0.75rem;
+            accent-color: #44e5ff;
+        }
+        
+        .option-item label {
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            height: 8px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #44e5ff, #0077a6);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .progress-text {
+            text-align: center;
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .submit-section {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #44e5ff, #0077a6);
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            border-radius: 12px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 200px;
+        }
+        
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(68, 229, 255, 0.3);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        .success-message {
+            background: rgba(40, 167, 69, 0.1);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            color: #28a745;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .question-block {
+                padding: 1.5rem;
+            }
+            
+            .question-item {
+                padding: 1rem;
+            }
+            
+            .submit-btn {
+                padding: 1rem 2rem;
+                font-size: 1rem;
+            }
+        }
+        
+        /* Tema claro */
+        [data-theme="light"] .question-block {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="light"] .question-item {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="light"] .question-text {
+            color: #333;
+        }
+        
+        [data-theme="light"] .option-item label {
+            color: #333;
+        }
+        
+        [data-theme="light"] .block-title p {
+            color: #666;
+        }
+    </style>
+</head>
+<body class="bg-glow-global">
+    <div class="particles-container"></div>
+
+    <!-- Botón de cambio de tema -->
+    <button class="theme-toggle-btn" title="Cambiar tema">
+        <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <!-- Header del cuestionario -->
+    <div class="genai-header">
+        <div class="container">
+            <h1>Diagnóstico de Adopción de IA</h1>
+            <p>Cuestionario GenAI MultiArea MX/LATAM</p>
+            <div class="area-badge" id="areaBadge">
+                <i class='bx bx-user-circle'></i> Cargando área...
+            </div>
+        </div>
+    </div>
+
+    <main class="quiz-main">
+        <div class="container">
+            <!-- Barra de progreso -->
+            <div class="progress-text" id="progressText">Pregunta 0 de 0</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <!-- Mensajes -->
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <!-- Formulario del cuestionario -->
+            <form id="genaiQuizForm">
+                <div id="questionsContainer">
+                    <!-- Las preguntas se cargarán dinámicamente -->
+                </div>
+
+                <!-- Sección de envío -->
+                <div class="submit-section">
+                    <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                        <span class="loading-spinner" id="loadingSpinner"></span>
+                        <span id="submitText">Completar Cuestionario</span>
+                    </button>
+                    <p style="color: #888; margin-top: 1rem; font-size: 0.9rem;">
+                        Asegúrate de responder todas las preguntas antes de continuar
+                    </p>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="../scripts/supabase-client.js"></script>
+    <script src="../utils/auth-guard.js"></script>
+    <script src="genai-form.js"></script>
+
+    <!-- Script de funcionalidad del botón de tema -->
+    <script>
+        function toggleTheme() {
+            console.log('🔄 Cambiando tema...');
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            console.log('✅ Tema cambiado a:', newTheme);
+        }
+        
+        window.toggleTheme = toggleTheme;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            console.log('🎨 Tema inicial aplicado:', savedTheme);
+            
+            const themeBtn = document.querySelector('.theme-toggle-btn');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleTheme();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

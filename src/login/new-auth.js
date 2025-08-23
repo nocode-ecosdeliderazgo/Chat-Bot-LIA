@@ -444,13 +444,28 @@ function togglePasswordVisibility(button) {
     const showIcon = button.querySelector('.eye-icon.show');
     const hideIcon = button.querySelector('.eye-icon.hide');
     
-    if (!input || !showIcon || !hideIcon) return;
+    if (!input || !showIcon || !hideIcon) {
+        console.warn('Elementos de toggle de contraseña no encontrados:', { targetId, input: !!input, showIcon: !!showIcon, hideIcon: !!hideIcon });
+        return;
+    }
     
     const isPassword = input.type === 'password';
     input.type = isPassword ? 'text' : 'password';
     
-    showIcon.style.display = isPassword ? 'none' : 'block';
-    hideIcon.style.display = isPassword ? 'block' : 'none';
+    // Cambiar visibilidad de iconos con transición suave
+    if (isPassword) {
+        showIcon.style.display = 'none';
+        hideIcon.style.display = 'block';
+        button.setAttribute('aria-label', 'Ocultar contraseña');
+    } else {
+        showIcon.style.display = 'block';
+        hideIcon.style.display = 'none';
+        button.setAttribute('aria-label', 'Mostrar contraseña');
+    }
+    
+    // Agregar efecto visual de feedback
+    button.classList.add('clicked');
+    setTimeout(() => button.classList.remove('clicked'), 200);
 }
 
 // Configurar medidor de fuerza de contraseña
@@ -601,6 +616,17 @@ function normalizeUsername(username) {
     return username.toLowerCase().trim().replace(/\s+/g, '');
 }
 
+// Normaliza teléfono MX: conserva solo dígitos y recorta a 10
+function normalizeMxPhone(input) {
+    if (!input) return '';
+    const digits = String(input).replace(/\D/g, '');
+    // Quitar prefijos comunes: 52, +52, 521, 044, 045
+    let cleaned = digits.replace(/^52(1)?/, '');
+    cleaned = cleaned.replace(/^(044|045)/, '');
+    if (cleaned.length > 10) cleaned = cleaned.slice(-10);
+    return cleaned;
+}
+
 // Validar coincidencia de contraseñas
 function validatePasswordMatch(password, confirmPassword, input) {
     const isMatch = password === confirmPassword && confirmPassword.length > 0;
@@ -639,6 +665,9 @@ async function handleLogin(e) {
     devLog('emailOrUsername includes @:', emailOrUsername.includes('@'));
     
     try {
+        // LIMPIEZA AUTOMÁTICA DE DATOS PREVIOS
+        clearPreviousAccountData();
+        
         // 1) Supabase: opcional, solo con email y si está habilitado
         if (ENABLE_SUPABASE_AUTH && window.supabase && emailOrUsername.includes('@')) {
             devLog('Login con Supabase usando email directo');
@@ -698,7 +727,7 @@ async function handleLogin(e) {
             await ensureAuthDataSync();
             
             showNotification('¡Sesión iniciada correctamente!', 'success');
-            await handleSuccessfulAuth(emailOrUsername, remember);
+            await handleSuccessfulAuth(emailOrUsername, remember, false);
             return;
         }
 
@@ -744,9 +773,19 @@ async function handleLogin(e) {
                 localStorage.setItem('authToken', result.token); // Mantener compatibilidad
                 devLog('Token guardado:', result.token.substring(0, 20) + '...');
             }
-            localStorage.setItem('userData', JSON.stringify(result.user));
-            localStorage.setItem('currentUser', JSON.stringify(result.user)); // Mantener compatibilidad
-            devLog('Datos de usuario guardados:', result.user);
+            
+            // AGREGAR CONTRASEÑA A LOS DATOS DEL USUARIO PARA SUPABASE
+            const userWithPassword = {
+                ...result.user,
+                password: password  // Guardar contraseña para autenticación en Supabase
+            };
+            
+            localStorage.setItem('userData', JSON.stringify(userWithPassword));
+            localStorage.setItem('currentUser', JSON.stringify(userWithPassword)); // Mantener compatibilidad
+            devLog('Datos de usuario guardados (con contraseña para Supabase):', {
+                ...result.user,
+                password: '[GUARDADA]'
+            });
             
             // Crear sesión activa
             const sessionData = {
@@ -769,7 +808,7 @@ async function handleLogin(e) {
             await ensureAuthDataSync();
             
             showNotification('¡Sesión iniciada correctamente!', 'success');
-            await handleSuccessfulAuth(emailOrUsername, remember);
+            await handleSuccessfulAuth(emailOrUsername, remember, result.user.isNewUser);
         } else {
             const errorMessage = result.message || 'Credenciales incorrectas';
             showNotification(errorMessage, 'error');
@@ -794,7 +833,7 @@ async function handleLogin(e) {
                 await ensureAuthDataSync();
                 
                 showNotification('¡Sesión iniciada correctamente! (Modo desarrollo)', 'success');
-                await handleSuccessfulAuth();
+                await handleSuccessfulAuth(emailOrUsername, remember, false);
             } else {
                 await handleFailedLogin();
             }
@@ -816,6 +855,9 @@ async function handleRegister(e) {
         return;
     }
     
+    // LIMPIEZA AUTOMÁTICA DE DATOS PREVIOS PARA NUEVO REGISTRO
+    clearPreviousAccountData();
+    
     devLog('Creating FormData from target:', e.target);
     const formData = new FormData(e.target);
     
@@ -828,7 +870,7 @@ async function handleRegister(e) {
         first_name: formData.get('first_name')?.trim(),
         last_name: formData.get('last_name')?.trim(),
         username: normalizeUsername(formData.get('username')?.trim() || ''),
-        phone: formData.get('phone')?.trim(),
+        phone: normalizeMxPhone(formData.get('phone')?.trim()),
         email: formData.get('email')?.trim(),
         password: formData.get('password'),
         confirm_password: formData.get('confirm_password'),
@@ -955,6 +997,16 @@ function validateRegisterForm(userData) {
         showNotification('Por favor ingresa un email válido', 'error');
         return false;
     }
+
+    // Validación teléfono MX (10 dígitos opcional)
+    const phoneRaw = document.getElementById('phone')?.value || '';
+    if (phoneRaw) {
+        const normalized = normalizeMxPhone(phoneRaw);
+        if (!/^[0-9]{10}$/.test(normalized)) {
+            showNotification('El teléfono debe tener 10 dígitos (México).', 'error');
+            return false;
+        }
+    }
     
     // Validación de contraseña según Supabase (mínimo 8 caracteres)
     if (password.length < 8) {
@@ -991,15 +1043,18 @@ async function validateCredentialsLocal(emailOrUsername, password) {
     // Simular delay de red
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Credenciales de prueba - acepta email o username (incluye roles para testing)
+    // Credenciales de prueba con type_rol para testing del nuevo flujo
     const testCredentials = [
-        { email: 'admin@test.com', username: 'admin', password: 'admin123', name: 'Administrador', cargo_rol: 'Administrador' },
-        { email: 'instructor@test.com', username: 'instructor', password: 'instructor123', name: 'Instructor Test', cargo_rol: 'Instructor' },
-        { email: 'maestro@test.com', username: 'maestro', password: 'maestro123', name: 'Maestro Test', cargo_rol: 'Maestro' },
-        { email: 'user@test.com', username: 'usuario', password: 'user123', name: 'Usuario Test', cargo_rol: 'Usuario' },
-        { email: 'student@test.com', username: 'estudiante', password: 'student123', name: 'Estudiante Test', cargo_rol: 'Estudiante' },
-        { email: 'test@test.com', username: 'test', password: 'test123', name: 'Test User', cargo_rol: 'Usuario' },
-        { email: 'demo@demo.com', username: 'demo', password: '123456', name: 'Usuario Demo', cargo_rol: 'Usuario' }
+        // Usuarios con type_rol NULL (deben ir a perfil-cuestionario)
+        { email: 'nuevo@test.com', username: 'nuevo', password: 'nuevo123', name: 'Usuario Nuevo', cargo_rol: 'Usuario', type_rol: null },
+        { email: 'demo@demo.com', username: 'demo', password: '123456', name: 'Usuario Demo', cargo_rol: 'Usuario', type_rol: null },
+        
+        // Usuarios con type_rol definido (deben ir a cursos)
+        { email: 'admin@test.com', username: 'admin', password: 'admin123', name: 'Administrador', cargo_rol: 'Administrador', type_rol: 'administrador' },
+        { email: 'instructor@test.com', username: 'instructor', password: 'instructor123', name: 'Instructor Test', cargo_rol: 'Instructor', type_rol: 'instructor' },
+        { email: 'user@test.com', username: 'usuario', password: 'user123', name: 'Usuario Test', cargo_rol: 'Usuario', type_rol: 'estudiante' },
+        { email: 'student@test.com', username: 'estudiante', password: 'student123', name: 'Estudiante Test', cargo_rol: 'Estudiante', type_rol: 'estudiante' },
+        { email: 'test@test.com', username: 'test', password: 'test123', name: 'Test User', cargo_rol: 'Usuario', type_rol: 'usuario' }
     ];
     
     const foundUser = testCredentials.find(cred => {
@@ -1012,12 +1067,14 @@ async function validateCredentialsLocal(emailOrUsername, password) {
     });
     
     if (foundUser) {
-        // Guardar datos del usuario para uso posterior (incluye cargo_rol para redirección)
+        // Guardar datos del usuario para uso posterior (incluye type_rol para redirección)
         const userData = {
             email: foundUser.email,
             username: foundUser.username,
             name: foundUser.name,
             cargo_rol: foundUser.cargo_rol,
+            type_rol: foundUser.type_rol, // CRUCIAL: incluir type_rol para la lógica de redirección
+            password: password, // AGREGAR CONTRASEÑA PARA SUPABASE
             loginTime: new Date().toISOString()
         };
         
@@ -1113,38 +1170,31 @@ async function registerUserLocal(userData) {
     return newUser;
 }
 
-// Función para determinar la página de destino según el rol del usuario
-function getRedirectPageByRole(userRole) {
-    // Normalizar el rol para comparación (remover espacios y convertir a minúsculas)
-    const normalizedRole = (userRole || '').toLowerCase().trim();
+// Función para determinar la página de destino según type_rol del usuario
+function getRedirectPageByTypeRol(userData) {
+    const typeRol = userData.type_rol;
+    const isNewUser = userData.isNewUser;
     
-    devLog('Determinando redirección para rol:', normalizedRole);
+    devLog('Determinando redirección basada en type_rol:', typeRol);
+    devLog('Usuario es nuevo:', isNewUser);
+    devLog('Datos completos del usuario:', userData);
     
-    // Mapeo de roles a páginas
-    switch (normalizedRole) {
-        case 'administrador':
-        case 'admin':
-        case 'administrator':
-            return '../admin/admin.html';
-            
-        case 'instructor':
-        case 'maestro':
-        case 'teacher':
-        case 'profesor':
-            return '../instructors/index.html';
-            
-        case 'usuario':
-        case 'estudiante':
-        case 'student':
-        case 'user':
-        default:
-            // Por defecto, todos los usuarios van a courses.html
-            return '../courses.html';
+    // REGLA PRINCIPAL: Si type_rol es NULL -> perfil-cuestionario.html
+    if (typeRol === null || typeRol === undefined) {
+        devLog('type_rol es NULL, redirigiendo al perfil-cuestionario');
+        return '../perfil-cuestionario.html';
     }
+    
+    // REGLA SECUNDARIA: Si type_rol tiene algún valor -> cursos.html
+    devLog('type_rol tiene valor:', typeRol, ', redirigiendo a cursos');
+    return '../cursos.html';
+    
+    // NOTA: La lógica anterior basada en cargo_rol se mantiene comentada para referencia
+    // pero ahora la decisión se basa únicamente en type_rol según el requerimiento
 }
 
 // Manejo de autenticación exitosa
-async function handleSuccessfulAuth() {
+async function handleSuccessfulAuth(emailOrUsername, remember, isNewUser = false) {
     devLog('Manejando autenticación exitosa');
     
     // Asegurar sincronización como respaldo
@@ -1154,7 +1204,7 @@ async function handleSuccessfulAuth() {
     await animateSuccess();
     
     // Obtener información del usuario desde localStorage
-    let targetPage = '../courses.html'; // Fallback por defecto
+    let targetPage = '../cursos.html'; // Fallback por defecto
     
     try {
         // Verificar todos los datos de autenticación guardados
@@ -1165,19 +1215,16 @@ async function handleSuccessfulAuth() {
         devLog('Verificando datos guardados:', {
             userData: !!userDataStr,
             userToken: !!userToken,
-            userSession: !!userSession
+            userSession: !!userSession,
+            isNewUser: isNewUser
         });
         
         if (userDataStr) {
             const userData = JSON.parse(userDataStr);
             devLog('Datos de usuario encontrados:', userData);
             
-            // Buscar el rol del usuario (prioridad: cargo_rol > type_rol)
-            const userRole = userData.cargo_rol || userData.type_rol || 'usuario';
-            devLog('Rol de usuario detectado:', userRole);
-            
-            // Determinar página de destino basada en el rol
-            targetPage = getRedirectPageByRole(userRole);
+            // NUEVA LÓGICA: Determinar página basándose únicamente en type_rol
+            targetPage = getRedirectPageByTypeRol(userData);
             devLog('Página de destino determinada:', targetPage);
         } else {
             devLog('No se encontraron datos de usuario, usando página por defecto');
@@ -1799,5 +1846,312 @@ async function animateError() {
         authCard.style.animation = '';
     }
 }
+
+// ===== FUNCIONES PARA LA TARJETA INFORMATIVA DE TÉRMINOS Y CONDICIONES =====
+
+/**
+ * Abre la tarjeta informativa de términos y condiciones
+ * @param {string} tab - La pestaña a mostrar ('terms' o 'privacy')
+ */
+function openTermsCard(tab = 'terms') {
+    const termsCard = document.getElementById('termsCard');
+    if (termsCard) {
+        termsCard.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Si se especifica una pestaña, mostrarla
+        if (tab === 'privacy') {
+            showTermsTab('privacy');
+        }
+    }
+}
+
+/**
+ * Cierra la tarjeta informativa
+ */
+function closeTermsCard() {
+    const termsCard = document.getElementById('termsCard');
+    if (termsCard) {
+        termsCard.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+/**
+ * Cambia entre las pestañas de términos y privacidad
+ * @param {string} tabName - Nombre de la pestaña ('terms' o 'privacy')
+ */
+function showTermsTab(tabName) {
+    // Ocultar todos los contenidos
+    const contents = document.querySelectorAll('.terms-content');
+    contents.forEach(content => {
+        content.classList.remove('active');
+        content.style.animation = 'none';
+    });
+
+    // Remover clase active de todos los tabs
+    const tabs = document.querySelectorAll('.terms-tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+
+    // Mostrar contenido seleccionado
+    const selectedContent = document.getElementById(tabName + 'Content');
+    if (selectedContent) {
+        selectedContent.classList.add('active');
+        selectedContent.style.animation = 'fadeIn 0.3s ease';
+    }
+
+    // Agregar clase active al tab clickeado
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
+}
+
+/**
+ * Acepta los términos y cierra la tarjeta
+ */
+function acceptTermsAndClose() {
+    // Marcar los checkboxes como aceptados
+    const acceptTermsCheckbox = document.getElementById('acceptTerms');
+    const acceptPrivacyCheckbox = document.getElementById('acceptPrivacy');
+    
+    if (acceptTermsCheckbox) {
+        acceptTermsCheckbox.checked = true;
+    }
+    
+    if (acceptPrivacyCheckbox) {
+        acceptPrivacyCheckbox.checked = true;
+    }
+    
+    // Guardar la aceptación en localStorage
+    localStorage.setItem('termsAccepted', 'true');
+    localStorage.setItem('termsAcceptedDate', new Date().toISOString());
+    
+    // Cerrar la tarjeta
+    closeTermsCard();
+    
+    // Mostrar mensaje de confirmación
+    showNotification('Documentos legales aceptados correctamente', 'success');
+}
+
+/**
+ * Muestra una notificación
+ * @param {string} message - Mensaje a mostrar
+ * @param {string} type - Tipo de notificación ('success', 'error', 'info')
+ */
+function showNotification(message, type = 'info') {
+    // Crear elemento de notificación
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-message">${message}</span>
+            <button class="notification-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
+        </div>
+    `;
+    
+    // Agregar estilos si no existen
+    if (!document.querySelector('#notification-styles')) {
+        const styles = document.createElement('style');
+        styles.id = 'notification-styles';
+        styles.textContent = `
+            .notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--glass-strong);
+                border: 1px solid var(--border-light);
+                border-radius: var(--radius-md);
+                padding: var(--spacing-md);
+                z-index: 10000;
+                animation: slideInRight 0.3s ease;
+                backdrop-filter: blur(10px);
+            }
+            
+            .notification-success {
+                border-color: rgba(40, 167, 69, 0.3);
+                background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+            }
+            
+            .notification-error {
+                border-color: rgba(220, 53, 69, 0.3);
+                background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
+            }
+            
+            .notification-info {
+                border-color: rgba(68, 229, 255, 0.3);
+                background: linear-gradient(135deg, rgba(68, 229, 255, 0.1), rgba(68, 229, 255, 0.05));
+            }
+            
+            .notification-content {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-sm);
+            }
+            
+            .notification-message {
+                color: var(--text-on-dark);
+                font-size: var(--font-size-sm);
+            }
+            
+            .notification-close {
+                background: none;
+                border: none;
+                color: var(--text-muted);
+                cursor: pointer;
+                font-size: 18px;
+                padding: 0;
+                width: 20px;
+                height: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: all 0.3s ease;
+            }
+            
+            .notification-close:hover {
+                background: rgba(255, 255, 255, 0.1);
+                color: var(--text-on-dark);
+            }
+            
+            @keyframes slideInRight {
+                from {
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+        `;
+        document.head.appendChild(styles);
+    }
+    
+    // Agregar al DOM
+    document.body.appendChild(notification);
+    
+    // Remover automáticamente después de 5 segundos
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Configurar event listeners para los enlaces de términos
+document.addEventListener('DOMContentLoaded', function() {
+    // Enlaces de términos y condiciones
+    const termsLinks = document.querySelectorAll('a[href="#"]');
+    termsLinks.forEach(link => {
+        if (link.textContent.includes('Términos y Condiciones')) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                openTermsCard('terms');
+            });
+        } else if (link.textContent.includes('Políticas de Privacidad')) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                openTermsCard('privacy');
+            });
+        }
+    });
+    
+    // Cerrar tarjeta al hacer clic fuera de ella
+    const termsCardOverlay = document.getElementById('termsCard');
+    if (termsCardOverlay) {
+        termsCardOverlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeTermsCard();
+            }
+        });
+    }
+    
+    // Cerrar tarjeta con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeTermsCard();
+        }
+    });
+    
+    // Verificar si ya se aceptaron los términos al cargar la página
+    const termsAccepted = localStorage.getItem('termsAccepted');
+    if (termsAccepted) {
+        const acceptTermsCheckbox = document.getElementById('acceptTerms');
+        const acceptPrivacyCheckbox = document.getElementById('acceptPrivacy');
+        
+        if (acceptTermsCheckbox) {
+            acceptTermsCheckbox.checked = true;
+        }
+        
+        if (acceptPrivacyCheckbox) {
+            acceptPrivacyCheckbox.checked = true;
+        }
+    }
+});
+
+// Función para limpiar datos de cuenta anterior
+function clearPreviousAccountData() {
+    const keysToRemove = [
+        'currentUser',
+        'userData', 
+        'userSession',
+        'userToken',
+        'authToken',
+        'userId',
+        'user_profile_local'
+    ];
+    
+    // Remover claves específicas
+    keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+    });
+    
+    // Buscar y remover claves de perfil específicas del usuario
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('profile_') || key.startsWith('avatar_') || key.startsWith('cv_'))) {
+            localStorage.removeItem(key);
+        }
+    }
+    
+    console.log('✅ Datos de cuenta anterior limpiados');
+}
+
+// Función mejorada para login que limpia datos previos
+async function loginWithCleanup(emailOrUsername, password, remember = false) {
+    try {
+        // PASO 1: Limpiar datos de cuenta anterior
+        clearPreviousAccountData();
+        
+        // PASO 2: Proceder con login normal
+        let result;
+        if (isLocalMode()) {
+            result = await validateCredentialsLocal(emailOrUsername, password);
+        } else {
+            result = await validateCredentialsRemote(emailOrUsername, password);
+        }
+        
+        if (result.success) {
+            // PASO 3: Manejar autenticación exitosa
+            await handleSuccessfulAuth(emailOrUsername, remember, result.isNewUser);
+            return { success: true, isNewUser: result.isNewUser };
+        } else {
+            return { success: false, error: result.error };
+        }
+    } catch (error) {
+        console.error('Error en loginWithCleanup:', error);
+        return { success: false, error: 'Error interno de login' };
+    }
+}
+
+// Exportar funciones para uso global
+window.openTermsCard = openTermsCard;
+window.closeTermsCard = closeTermsCard;
+window.showTermsTab = showTermsTab;
+window.acceptTermsAndClose = acceptTermsAndClose;
+window.clearPreviousAccountData = clearPreviousAccountData;
+window.loginWithCleanup = loginWithCleanup;
 
 

@@ -27,7 +27,11 @@
       "Bash(start:*)",
       "Bash(node:*)",
       "Bash(PORT=3001 node server.js)",
-      "Bash(PORT=3002 node server.js)"
+      "Bash(PORT=3002 node server.js)",
+      "Bash(PORT=3003 node server.js)",
+      "Bash(PORT=3004 node server.js)",
+      "Bash(PORT=3005 node server.js)",
+      "Bash(SUPABASE_URL=\"https://miwbzotcuaywpdbidpwo.supabase.co\" SUPABASE_SERVICE_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDYxMTIyOSwiZXhwIjoyMDcwMTg3MjI5fQ.AENCuzy-2PTgTMMKELVeOXScXp4dD-t7SfKVHwu1ld0\" node scripts/import-genai-questions.js --clear --verbose)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

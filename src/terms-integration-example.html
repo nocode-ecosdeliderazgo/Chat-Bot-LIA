@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejemplo de Integración - Términos y Privacidad</title>
+    
+    <!-- Supabase Configuration -->
+    <meta name="supabase-url" content="">
+    <meta name="supabase-key" content="">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Variables CSS del proyecto principal */
+        :root {
+            --color-primary: #44E5FF;
+            --color-bg-dark: #0A0A0A;
+            --color-bg-light: #F2F2F2;
+            --color-contrast: #FFFFFF;
+            --color-accent: #0077A6;
+            --color-secondary: #0077A6;
+            --color-bg-1: #0A0A0A;
+            --color-bg-2: #0A0A0A;
+            --color-surface: #0A0A0A;
+            --text-on-dark: #FFFFFF;
+            --text-muted: #F2F2F2;
+            --glass: rgba(10, 10, 10, 0.6);
+            --glass-strong: rgba(10, 10, 10, 0.8);
+            --font-heading: 'Montserrat', Arial, Helvetica, sans-serif;
+            --font-body: 'Inter', Arial, Helvetica, sans-serif;
+            --heading-weight: 800;
+            --body-weight: 400;
+            --body-weight-medium: 500;
+            --font-size-h1: 32px;
+            --font-size-h2: 24px;
+            --font-size-base: 16px;
+            --font-size-sm: 14px;
+            --font-size-lg: 18px;
+            --line-height: 1.5;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,.12);
+            --spacing-xs: 8px;
+            --spacing-sm: 12px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --border-light: 1px solid rgba(255,255,255,.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-weight: var(--body-weight);
+            font-size: var(--font-size-base);
+            line-height: var(--line-height);
+            color: var(--text-on-dark);
+            background: linear-gradient(160deg, var(--color-bg-1) 0%, var(--color-bg-2) 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Fondo con partículas y glow */
+        .particles-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow::before {
+            content: '';
+            position: fixed;
+            width: 160vh;
+            height: 160vh;
+            left: -30vh;
+            top: -40vh;
+            background: radial-gradient(circle, rgba(68,229,255,0.18), transparent 60%);
+            filter: blur(60px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: var(--spacing-lg);
+        }
+
+        h1 {
+            font-family: var(--font-heading);
+            font-weight: var(--heading-weight);
+            font-size: clamp(2rem, 5vw, 3rem);
+            color: var(--text-on-dark);
+            text-align: center;
+            margin-bottom: calc(var(--spacing-lg) * 2);
+            background: linear-gradient(135deg, var(--color-primary), var(--color-contrast));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .demo-section {
+            background: var(--glass-strong);
+            border-radius: var(--radius-lg);
+            padding: calc(var(--spacing-lg) * 1.5);
+            margin: calc(var(--spacing-lg) * 2) 0;
+            border: var(--border-light);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .demo-section:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(68, 229, 255, 0.1);
+            border-color: rgba(68, 229, 255, 0.3);
+        }
+
+        .demo-section h3 {
+            font-family: var(--font-heading);
+            font-weight: var(--heading-weight);
+            font-size: var(--font-size-h2);
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .demo-section h3::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            border-radius: 2px;
+        }
+
+        .demo-section p {
+            color: var(--text-on-dark);
+            margin-bottom: var(--spacing-lg);
+            line-height: 1.7;
+        }
+
+        .button-group {
+            display: flex;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+            margin: var(--spacing-lg) 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            color: var(--color-bg-dark);
+            border: none;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-weight: var(--body-weight-medium);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: var(--font-size-base);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(68, 229, 255, 0.3);
+        }
+
+        .btn.secondary {
+            background: var(--glass-strong);
+            color: var(--text-muted);
+            border: 1px solid var(--border-light);
+        }
+
+        .btn.secondary:hover {
+            background: rgba(68, 229, 255, 0.1);
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: calc(var(--spacing-lg) * 3);
+            padding-top: var(--spacing-lg);
+            border-top: var(--border-light);
+        }
+
+        .footer-links a {
+            color: var(--color-primary);
+            text-decoration: none;
+            margin: 0 var(--spacing-md);
+            font-size: var(--font-size-sm);
+            transition: all 0.3s ease;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+        }
+
+        .footer-links a:hover {
+            background: rgba(68, 229, 255, 0.1);
+            color: var(--color-contrast);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            font-weight: var(--body-weight-medium);
+            margin-left: var(--spacing-sm);
+        }
+
+        .status-accepted {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.2), rgba(40, 167, 69, 0.1));
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 193, 7, 0.1));
+            color: #FFC107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .code-example {
+            background: var(--glass);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            margin: var(--spacing-lg) 0;
+            font-family: 'Courier New', monospace;
+            font-size: var(--font-size-sm);
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-example::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+        }
+
+        .code-example pre {
+            margin: 0;
+            color: var(--text-on-dark);
+        }
+
+        /* Animaciones */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Efectos de partículas */
+        .particles-container::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, var(--color-primary) 1px, transparent 1px),
+                radial-gradient(circle at 80% 20%, var(--color-accent) 1px, transparent 1px),
+                radial-gradient(circle at 40% 40%, var(--color-primary) 1px, transparent 1px);
+            background-size: 200px 200px, 300px 300px, 150px 150px;
+            animation: particleMove 20s linear infinite;
+        }
+
+        @keyframes particleMove {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(-100px, -100px);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--spacing-md);
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .footer-links {
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-sm);
+            }
+
+            .footer-links a {
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Fondo con partículas -->
+    <div class="particles-container"></div>
+    <div class="bg-glow"></div>
+
+    <div class="container">
+        <h1>📋 Integración de Términos y Privacidad</h1>
+
+        <div class="demo-section">
+            <h3>🎯 Opciones de Integración</h3>
+            <p>Puedes integrar los términos y condiciones de varias maneras en tu sitio web:</p>
+            
+            <div class="button-group">
+                <button class="btn" onclick="openTermsModal()">
+                    <span>📋</span>
+                    <span>Abrir Modal</span>
+                </button>
+                <a href="terms-privacy-card.html" class="btn secondary" target="_blank">
+                    <span>📄</span>
+                    <span>Página Completa</span>
+                </a>
+                <button class="btn" onclick="checkTermsStatus()">
+                    <span>🔍</span>
+                    <span>Verificar Estado</span>
+                </button>
+                <button class="btn secondary" onclick="resetTerms()">
+                    <span>🔄</span>
+                    <span>Resetear</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>📊 Estado Actual</h3>
+            <p>
+                <strong>Términos aceptados:</strong>
+                <span id="termsStatus" class="status-indicator status-pending">Verificando...</span>
+            </p>
+            <p id="acceptanceDate" style="font-size: var(--font-size-sm); color: var(--text-muted); margin-top: var(--spacing-sm);"></p>
+        </div>
+
+        <div class="demo-section">
+            <h3>💻 Código de Integración</h3>
+            <p>Para integrar el modal en tu página principal, agrega este código:</p>
+            
+            <div class="code-example">
+                <pre>&lt;!-- En el head de tu HTML --&gt;
+&lt;link rel="stylesheet" href="components/terms-modal.css"&gt;
+
+&lt;!-- Al final del body --&gt;
+&lt;div id="termsModal" class="modal-overlay"&gt;
+    &lt;!-- Contenido del modal aquí --&gt;
+&lt;/div&gt;
+
+&lt;script src="components/terms-modal.js"&gt;&lt;/script&gt;
+
+&lt;!-- Enlaces en el footer --&gt;
+&lt;div class="footer-links"&gt;
+    &lt;a href="#" onclick="openTermsModal()"&gt;Términos y Condiciones&lt;/a&gt;
+    &lt;a href="#" onclick="openTermsModal('privacy')"&gt;Política de Privacidad&lt;/a&gt;
+&lt;/div&gt;</pre>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🔧 Funciones Disponibles</h3>
+            <ul style="color: var(--text-on-dark); margin-left: var(--spacing-lg);">
+                <li><strong>openTermsModal()</strong> - Abre el modal de términos</li>
+                <li><strong>openTermsModal('privacy')</strong> - Abre el modal en la pestaña de privacidad</li>
+                <li><strong>closeTermsModal()</strong> - Cierra el modal</li>
+                <li><strong>checkTermsAcceptance()</strong> - Verifica si se aceptaron los términos</li>
+                <li><strong>acceptTerms()</strong> - Marca los términos como aceptados</li>
+            </ul>
+        </div>
+
+        <div class="footer-links">
+            <a href="#" onclick="openTermsModal()">📜 Términos y Condiciones</a>
+            <a href="#" onclick="openTermsModal('privacy')">🔒 Política de Privacidad</a>
+            <a href="terms-privacy-card.html" target="_blank">📄 Ver Página Completa</a>
+        </div>
+    </div>
+
+    <!-- Modal de Términos (incluir el contenido del modal aquí) -->
+    <div id="termsModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>📋 Términos y Política de Privacidad</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="modal-tabs">
+                    <button class="modal-tab active" onclick="showModalTab('terms')">📜 Términos</button>
+                    <button class="modal-tab" onclick="showModalTab('privacy')">🔒 Privacidad</button>
+                </div>
+
+                <!-- Términos y Condiciones -->
+                <div id="modalTerms" class="modal-content active">
+                    <div class="modal-section">
+                        <h4>1. Aceptación de Términos</h4>
+                        <p>Al usar "Aprende y Aplica IA", aceptas estos términos. Si no estás de acuerdo, no uses nuestros servicios.</p>
+                    </div>
+
+                    <div class="modal-section">
+                        <h4>2. Servicios Ofrecidos</h4>
+                        <ul>
+                            <li>Cursos de IA y machine learning</li>
+                            <li>Contenido educativo interactivo</li>
+                            <li>Evaluaciones y certificaciones</li>
+                            <li>Comunidad de aprendizaje</li>
+                        </ul>
+                    </div>
+
+                    <div class="modal-section">
+                        <h4>3. Uso Aceptable</h4>
+                        <p>Usa la plataforma solo para fines educativos legales. Está prohibido:</p>
+                        <ul>
+                            <li>Actividades ilegales</li>
+                            <li>Contenido ofensivo</li>
+                            <li>Acceso no autorizado</li>
+                            <li>Interferir con la plataforma</li>
+                        </ul>
+                    </div>
+
+                    <div class="contact-highlight">
+                        <h5>📞 Contacto Legal</h5>
+                        <p><strong>Email:</strong> legal@aprendeyaaplica.com</p>
+                        <p><strong>Teléfono:</strong> +1 (555) 123-4567</p>
+                    </div>
+                </div>
+
+                <!-- Política de Privacidad -->
+                <div id="modalPrivacy" class="modal-content">
+                    <div class="modal-section">
+                        <h4>1. Información Recopilada</h4>
+                        <ul>
+                            <li>Datos personales (nombre, email)</li>
+                            <li>Información de cuenta</li>
+                            <li>Datos de uso y progreso</li>
+                            <li>Información técnica</li>
+                        </ul>
+                    </div>
+
+                    <div class="modal-section">
+                        <h4>2. Uso de Información</h4>
+                        <ul>
+                            <li>Proporcionar servicios educativos</li>
+                            <li>Personalizar experiencia</li>
+                            <li>Comunicaciones sobre cursos</li>
+                            <li>Mejoras de la plataforma</li>
+                        </ul>
+                    </div>
+
+                    <div class="contact-highlight">
+                        <h5>🔒 Oficial de Privacidad</h5>
+                        <p><strong>Email:</strong> privacy@aprendeyaaplica.com</p>
+                        <p><strong>Dirección:</strong> Calle Principal 123, Ciudad, País</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="modal-btn" onclick="acceptTerms()">✅ Aceptar Términos</button>
+                <button class="modal-btn secondary" onclick="closeModal()">❌ Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estilos del Modal -->
+    <style>
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-container {
+            background: var(--glass-strong);
+            border-radius: var(--radius-lg);
+            max-width: 90%;
+            max-height: 90%;
+            width: 800px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(68, 229, 255, 0.2);
+            transform: scale(0.7);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: var(--border-light);
+            backdrop-filter: blur(20px);
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            color: var(--color-bg-dark);
+            padding: calc(var(--spacing-lg) * 1.5) var(--spacing-lg);
+            position: relative;
+            text-align: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-family: var(--font-heading);
+            font-weight: var(--heading-weight);
+            font-size: var(--font-size-h2);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            background: rgba(10, 10, 10, 0.3);
+            border: none;
+            color: var(--color-bg-dark);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: bold;
+        }
+
+        .modal-close:hover {
+            background: rgba(10, 10, 10, 0.5);
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        .modal-body {
+            padding: 0;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-tabs {
+            display: flex;
+            background: var(--glass);
+            border-bottom: var(--border-light);
+        }
+
+        .modal-tab {
+            flex: 1;
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: var(--font-size-base);
+            font-weight: var(--body-weight-medium);
+            color: var(--text-muted);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(68, 229, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .modal-tab:hover::before {
+            left: 100%;
+        }
+
+        .modal-tab.active {
+            background: var(--glass-strong);
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+            font-weight: var(--body-weight-medium);
+        }
+
+        .modal-tab:hover:not(.active) {
+            background: rgba(68, 229, 255, 0.1);
+            color: var(--color-primary);
+        }
+
+        .modal-content {
+            display: none;
+            padding: calc(var(--spacing-lg) * 1.5);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-section {
+            background: var(--glass);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            border: var(--border-light);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(68, 229, 255, 0.05), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .modal-section:hover::before {
+            left: 100%;
+        }
+
+        .modal-section:hover {
+            transform: translateY(-2px);
+            border-color: rgba(68, 229, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(68, 229, 255, 0.1);
+        }
+
+        .modal-section h4 {
+            font-family: var(--font-heading);
+            font-weight: var(--heading-weight);
+            font-size: var(--font-size-lg);
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .modal-section h4::before {
+            content: '';
+            width: 3px;
+            height: 20px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            border-radius: 2px;
+        }
+
+        .modal-section p {
+            color: var(--text-on-dark);
+            margin-bottom: var(--spacing-sm);
+            font-size: var(--font-size-base);
+            line-height: 1.6;
+        }
+
+        .modal-section ul {
+            margin-left: var(--spacing-lg);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .modal-section li {
+            color: var(--text-on-dark);
+            margin-bottom: var(--spacing-xs);
+            position: relative;
+            padding-left: var(--spacing-md);
+            font-size: var(--font-size-sm);
+        }
+
+        .modal-section li::before {
+            content: '•';
+            color: var(--color-primary);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .modal-footer {
+            padding: var(--spacing-lg);
+            background: var(--glass);
+            border-top: var(--border-light);
+            text-align: center;
+        }
+
+        .modal-btn {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            color: var(--color-bg-dark);
+            border: none;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-weight: var(--body-weight-medium);
+            margin: 0 var(--spacing-sm);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: var(--font-size-base);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(68, 229, 255, 0.3);
+        }
+
+        .modal-btn.secondary {
+            background: var(--glass-strong);
+            color: var(--text-muted);
+            border: 1px solid var(--border-light);
+        }
+
+        .modal-btn.secondary:hover {
+            background: rgba(68, 229, 255, 0.1);
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .contact-highlight {
+            background: linear-gradient(135deg, rgba(0, 119, 166, 0.1), rgba(68, 229, 255, 0.05));
+            border: 1px solid rgba(0, 119, 166, 0.3);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            margin: var(--spacing-lg) 0;
+            position: relative;
+        }
+
+        .contact-highlight::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
+        }
+
+        .contact-highlight h5 {
+            font-family: var(--font-heading);
+            font-weight: var(--heading-weight);
+            color: var(--color-accent);
+            margin-bottom: var(--spacing-sm);
+            font-size: var(--font-size-base);
+        }
+
+        .contact-highlight p {
+            color: var(--text-on-dark);
+            margin-bottom: var(--spacing-xs);
+            font-size: var(--font-size-sm);
+        }
+
+        /* Scrollbar personalizada */
+        .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-body::-webkit-scrollbar-track {
+            background: var(--glass);
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            border-radius: 4px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
+        }
+
+        @media (max-width: 768px) {
+            .modal-container {
+                width: 95%;
+                max-height: 95%;
+            }
+
+            .modal-header {
+                padding: var(--spacing-lg);
+            }
+
+            .modal-header h2 {
+                font-size: var(--font-size-lg);
+            }
+
+            .modal-tabs {
+                flex-direction: column;
+            }
+
+            .modal-tab {
+                border-bottom: var(--border-light);
+                border-right: none;
+            }
+
+            .modal-content {
+                padding: var(--spacing-lg);
+            }
+
+            .modal-footer {
+                padding: var(--spacing-lg);
+            }
+
+            .modal-btn {
+                display: block;
+                width: 100%;
+                margin: var(--spacing-xs) 0;
+            }
+        }
+    </style>
+
+    <script>
+        // Funciones del modal
+        function openTermsModal(tab = 'terms') {
+            document.getElementById('termsModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Si se especifica una pestaña, mostrarla
+            if (tab === 'privacy') {
+                showModalTab('privacy');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('termsModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function showModalTab(tabName) {
+            // Ocultar todos los contenidos
+            const contents = document.querySelectorAll('.modal-content');
+            contents.forEach(content => {
+                content.classList.remove('active');
+                content.style.animation = 'none';
+            });
+
+            // Remover clase active de todos los tabs
+            const tabs = document.querySelectorAll('.modal-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Mostrar contenido seleccionado
+            const selectedContent = document.getElementById('modal' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+            selectedContent.classList.add('active');
+            selectedContent.style.animation = 'slideIn 0.3s ease';
+
+            // Agregar clase active al tab clickeado
+            event.target.classList.add('active');
+        }
+
+        function acceptTerms() {
+            // Guardar la aceptación
+            localStorage.setItem('termsAccepted', 'true');
+            localStorage.setItem('termsAcceptedDate', new Date().toISOString());
+            
+            // Actualizar el estado en la página
+            updateTermsStatus();
+            
+            // Mostrar mensaje de confirmación
+            alert('¡Gracias por aceptar nuestros términos y condiciones!');
+            
+            closeModal();
+        }
+
+        function checkTermsStatus() {
+            updateTermsStatus();
+        }
+
+        function updateTermsStatus() {
+            const accepted = localStorage.getItem('termsAccepted');
+            const statusElement = document.getElementById('termsStatus');
+            const dateElement = document.getElementById('acceptanceDate');
+            
+            if (accepted) {
+                statusElement.textContent = '✅ Aceptados';
+                statusElement.className = 'status-indicator status-accepted';
+                
+                const date = localStorage.getItem('termsAcceptedDate');
+                if (date) {
+                    const formattedDate = new Date(date).toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    dateElement.textContent = `Aceptados el: ${formattedDate}`;
+                }
+            } else {
+                statusElement.textContent = '❌ Pendientes';
+                statusElement.className = 'status-indicator status-pending';
+                dateElement.textContent = '';
+            }
+        }
+
+        function resetTerms() {
+            localStorage.removeItem('termsAccepted');
+            localStorage.removeItem('termsAcceptedDate');
+            updateTermsStatus();
+            alert('Estado de términos reseteado. El modal se mostrará nuevamente.');
+        }
+
+        // Cerrar modal al hacer clic fuera de él
+        document.getElementById('termsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Cerrar modal con ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Verificar estado al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTermsStatus();
+            
+            // Mostrar modal automáticamente si no se han aceptado los términos
+            const accepted = localStorage.getItem('termsAccepted');
+            if (!accepted) {
+                setTimeout(() => {
+                    openTermsModal();
+                }, 3000); // Mostrar después de 3 segundos
+            }
+        });
+
+        // Exportar funciones para uso global
+        window.openTermsModal = openTermsModal;
+        window.closeTermsModal = closeModal;
+        window.acceptTerms = acceptTerms;
+        window.checkTermsStatus = checkTermsStatus;
+        window.resetTerms = resetTerms;
+    </script>
+</body>
+</html>

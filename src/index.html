@@ -8,6 +8,10 @@
     <meta name="author" content="Aprende y Aplica">
     <title>Aprende y Aplica IA - Domina la IA que transformará tu futuro</title>
     
+    <!-- Supabase Configuration -->
+    <meta name="supabase-url" content="">
+    <meta name="supabase-key" content="">
+    
     <!-- Preload critical resources -->
     <link rel="preload" href="styles/main.css" as="style">
     <link rel="preload" href="assets/fonts/montserrat.woff2" as="font" type="font/woff2" crossorigin>
@@ -26,205 +30,323 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Global theme setup - Configuración global del tema -->
+    <script src="scripts/global-theme-setup.js"></script>
 </head>
 <body>
-    <!-- Header Hero Section -->
-    <header class="hero-section">
-        <!-- Fondo con partículas animadas -->
-        <div class="hero-background">
-            <div class="particles-container"></div>
-            <div class="gradient-overlay"></div>
+    <!-- Partículas de fondo estáticas CSS -->
+    <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Contenedor principal con fondo dinámico -->
+    <div class="main-container">
+        <div class="main-bg">
+            <div class="bg-glow"></div>
+            <canvas id="bgParticles"></canvas>
         </div>
         
-        <!-- Navegación -->
-        <nav class="hero-nav">
-            <div class="nav-logo">
-                <div class="logo-icon">
-                    <img src="assets/images/icono.png" alt="Aprende y Aplica" class="logo-img">
+        <!-- Header Hero Section -->
+        <header class="hero-section">
+            <!-- Navegación -->
+            <nav class="hero-nav">
+                <div class="nav-logo">
+                    <div class="logo-icon">
+                        <img src="assets/images/icono.png" alt="Aprende y Aplica" class="logo-img">
+                    </div>
+                    <div class="logo-text animated-text">
+                        <span class="letter" data-letter="A">A</span>
+                        <span class="letter" data-letter="p">p</span>
+                        <span class="letter" data-letter="r">r</span>
+                        <span class="letter" data-letter="e">e</span>
+                        <span class="letter" data-letter="n">n</span>
+                        <span class="letter" data-letter="d">d</span>
+                        <span class="letter" data-letter="e">e</span>
+                        <span class="letter space" data-letter=" ">&nbsp;</span>
+                        <span class="letter" data-letter="y">y</span>
+                        <span class="letter space" data-letter=" ">&nbsp;</span>
+                        <span class="letter" data-letter="A">A</span>
+                        <span class="letter" data-letter="p">p</span>
+                        <span class="letter" data-letter="l">l</span>
+                        <span class="letter" data-letter="i">i</span>
+                        <span class="letter" data-letter="c">c</span>
+                        <span class="letter" data-letter="a">a</span>
+                    </div>
                 </div>
-                <span class="logo-text">Aprende y Aplica</span>
-            </div>
-            <div class="nav-actions">
-                <button class="btn-secondary" onclick="window.location.href='login/new-auth.html'">Iniciar Sesión</button>
-                <button class="btn-primary" onclick="window.location.href='login/new-auth.html'">Registrarse</button>
-            </div>
-        </nav>
-        
-        <!-- Contenido Principal -->
-        <div class="hero-content">
-            <div class="hero-text">
-                <div class="hero-badge animate-on-scroll">
-                    <img src="assets/icons/rocket.svg" alt="Rocket" class="icon rocket-icon">
-                    <span>Aprende y Aplica IA</span>
-                </div>
-                <h1 class="hero-title animate-on-scroll">Domina la IA que transformará tu futuro</h1>
-                <p class="hero-description animate-on-scroll">
-                    Conviértete en experto aplicado: fundamentos claros, herramientas que importan, 
-                    y hábitos de aprendizaje continuo para destacar en la era de la inteligencia artificial.
-                </p>
-                <div class="hero-actions animate-on-scroll">
-                    <button class="btn-primary btn-large" onclick="window.location.href='login/new-auth.html'">
-                        <span>Iniciar Sesión</span>
-                        <span class="btn-icon">→</span>
+                <div class="nav-actions">
+                    <button class="theme-toggle-btn" id="themeToggle" aria-label="Cambiar modo claro/oscuro">
+                        <svg class="theme-icon sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+                            <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
+                            <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2"/>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2"/>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2"/>
+                            <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2"/>
+                            <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2"/>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2"/>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <svg class="theme-icon moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2"/>
+                        </svg>
                     </button>
+                    <button class="btn-secondary" onclick="window.location.href='login/new-auth.html'">Iniciar Sesión</button>
+                    <button class="btn-primary" onclick="window.location.href='login/new-auth.html'">Registrarse</button>
                 </div>
-            </div>
+            </nav>
             
-            <!-- Elemento Visual -->
-            <div class="hero-visual animate-on-scroll">
-                <div class="floating-card glass-card floating">
-                    <div class="card-content">
-                        <h3>Lo que aprenderás</h3>
-                        <ul class="learning-list">
-                            <li class="stagger-item">✓ Fundamentos de IA sin complicarte</li>
-                            <li class="stagger-item">✓ Herramientas que realmente importan</li>
-                            <li class="stagger-item">✓ Aplicación en proyectos reales</li>
-                            <li class="stagger-item">✓ Hábitos de aprendizaje continuo</li>
-                        </ul>
+            <!-- Contenido Principal -->
+            <div class="hero-content">
+                <div class="hero-text">
+                    <div class="hero-badge animate-on-scroll">
+                        <img src="assets/icons/rocket.svg" alt="Rocket" class="icon rocket-icon">
+                        <span>Aprende y Aplica IA</span>
+                    </div>
+                    <h1 class="hero-title animate-on-scroll">Domina la IA que transformará tu futuro</h1>
+                    <p class="hero-description animate-on-scroll">
+                        Conviértete en experto aplicado: fundamentos claros, herramientas que importan, 
+                        y hábitos de aprendizaje continuo para destacar en la era de la inteligencia artificial.
+                    </p>
+                    <div class="hero-actions animate-on-scroll">
+                        <button class="btn-primary btn-large" onclick="window.location.href='login/new-auth.html'">
+                            <span>Iniciar Sesión</span>
+                            <span class="btn-icon">→</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Elemento Visual -->
+                <div class="hero-visual animate-on-scroll">
+                    <div class="floating-card glass-card floating">
+                        <div class="card-content">
+                            <h3>Lo que aprenderás</h3>
+                            <ul class="learning-list">
+                                <li class="stagger-item">✓ Fundamentos de IA sin complicarte</li>
+                                <li class="stagger-item">✓ Herramientas que realmente importan</li>
+                                <li class="stagger-item">✓ Aplicación en proyectos reales</li>
+                                <li class="stagger-item">✓ Hábitos de aprendizaje continuo</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <!-- Sección de Características -->
-    <section class="features-section">
-        <div class="container">
-            <div class="section-header animate-on-scroll">
-                <h2>¿Por qué elegir nuestra plataforma?</h2>
-                <p>Descubre las ventajas que te harán destacar en el mundo de la IA</p>
+        <!-- Sección de Características -->
+        <section class="features-section">
+            <div class="container">
+                <div class="section-header animate-on-scroll">
+                    <h2>¿Por qué elegir nuestra plataforma?</h2>
+                    <p>Descubre las ventajas que te harán destacar en el mundo de la IA</p>
+                </div>
+                <div class="features-grid stagger-container">
+                    <div class="feature-card animate-on-scroll lift-hover">
+                        <div class="feature-icon">
+                            <img src="assets/icons/learn.svg" alt="Fundamentos" class="icon icon-brain">
+                        </div>
+                        <h3>Fundamentos Sólidos</h3>
+                        <p>Aprende los conceptos esenciales de IA sin perderte en teoría innecesaria</p>
+                    </div>
+                    <div class="feature-card animate-on-scroll lift-hover">
+                        <div class="feature-icon">
+                            <img src="assets/icons/tools.svg" alt="Herramientas" class="icon icon-tools">
+                        </div>
+                        <h3>Herramientas Prácticas</h3>
+                        <p>Utiliza las herramientas que realmente importan en el mercado laboral</p>
+                    </div>
+                    <div class="feature-card animate-on-scroll lift-hover">
+                        <div class="feature-icon">
+                            <img src="assets/icons/chart.svg" alt="Proyectos" class="icon icon-projects">
+                        </div>
+                        <h3>Proyectos Reales</h3>
+                        <p>Aplica tus conocimientos en proyectos del mundo real</p>
+                    </div>
+                    <div class="feature-card animate-on-scroll lift-hover">
+                        <div class="feature-icon">
+                            <img src="assets/icons/rocket.svg" alt="Crecimiento" class="icon icon-growth">
+                        </div>
+                        <h3>Crecimiento Continuo</h3>
+                        <p>Desarrolla hábitos de aprendizaje que te mantendrán actualizado</p>
+                    </div>
+                </div>
             </div>
-            <div class="features-grid stagger-container">
-                <div class="feature-card animate-on-scroll lift-hover">
-                    <div class="feature-icon">
-                        <img src="assets/icons/learn.svg" alt="Fundamentos" class="icon icon-brain">
-                    </div>
-                    <h3>Fundamentos Sólidos</h3>
-                    <p>Aprende los conceptos esenciales de IA sin perderte en teoría innecesaria</p>
-                </div>
-                <div class="feature-card animate-on-scroll lift-hover">
-                    <div class="feature-icon">
-                        <img src="assets/icons/tools.svg" alt="Herramientas" class="icon icon-tools">
-                    </div>
-                    <h3>Herramientas Prácticas</h3>
-                    <p>Utiliza las herramientas que realmente importan en el mercado laboral</p>
-                </div>
-                <div class="feature-card animate-on-scroll lift-hover">
-                    <div class="feature-icon">
-                        <img src="assets/icons/chart.svg" alt="Proyectos" class="icon icon-projects">
-                    </div>
-                    <h3>Proyectos Reales</h3>
-                    <p>Aplica tus conocimientos en proyectos del mundo real</p>
-                </div>
-                <div class="feature-card animate-on-scroll lift-hover">
-                    <div class="feature-icon">
-                        <img src="assets/icons/rocket.svg" alt="Crecimiento" class="icon icon-growth">
-                    </div>
-                    <h3>Crecimiento Continuo</h3>
-                    <p>Desarrolla hábitos de aprendizaje que te mantendrán actualizado</p>
-                </div>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Sección de Estadísticas -->
-    <section class="stats-section animated-gradient">
-        <div class="container">
-            <div class="stats-grid">
-                <div class="stat-item animate-on-scroll">
-                    <div class="stat-number" data-target="1000">0</div>
-                    <div class="stat-label">Estudiantes Activos</div>
-                </div>
-                <div class="stat-item animate-on-scroll">
-                    <div class="stat-number" data-target="50">0</div>
-                    <div class="stat-label">Proyectos Completados</div>
-                </div>
-                <div class="stat-item animate-on-scroll">
-                    <div class="stat-number" data-target="95">0</div>
-                    <div class="stat-label">% de Satisfacción</div>
-                </div>
-                <div class="stat-item animate-on-scroll">
-                    <div class="stat-number" data-target="24">0</div>
-                    <div class="stat-label">Horas de Contenido</div>
+        <!-- Sección de Estadísticas -->
+        <section class="stats-section animated-gradient">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-item animate-on-scroll">
+                        <div class="stat-number" data-target="1000">0</div>
+                        <div class="stat-label">Estudiantes Activos</div>
+                    </div>
+                    <div class="stat-item animate-on-scroll">
+                        <div class="stat-number" data-target="50">0</div>
+                        <div class="stat-label">Proyectos Completados</div>
+                    </div>
+                    <div class="stat-item animate-on-scroll">
+                        <div class="stat-number" data-target="95">0</div>
+                        <div class="stat-label">% de Satisfacción</div>
+                    </div>
+                    <div class="stat-item animate-on-scroll">
+                        <div class="stat-number" data-target="24">0</div>
+                        <div class="stat-label">Horas de Contenido</div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Sección de Testimonios -->
-    <section class="testimonials-section">
-        <div class="container">
-            <div class="section-header animate-on-scroll">
-                <h2>Lo que dicen nuestros estudiantes</h2>
+        <!-- Sección de Testimonios -->
+        <section class="testimonials-section">
+            <div class="container">
+                <div class="section-header animate-on-scroll">
+                    <h2>Lo que dicen nuestros estudiantes</h2>
+                </div>
+                <div class="testimonials-carousel">
+                    <div class="testimonial-card active glass-card">
+                        <div class="testimonial-content">
+                            <p>"Esta plataforma transformó mi carrera. Los proyectos prácticos me dieron la confianza para aplicar IA en mi trabajo."</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <div class="avatar-placeholder"></div>
+                            </div>
+                            <div class="author-info">
+                                <h4>Ana García</h4>
+                                <span>Data Scientist</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial-card glass-card">
+                        <div class="testimonial-content">
+                            <p>"Los fundamentos claros y las herramientas prácticas me ayudaron a destacar en mi equipo de desarrollo."</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <div class="avatar-placeholder"></div>
+                            </div>
+                            <div class="author-info">
+                                <h4>Carlos Ruiz</h4>
+                                <span>Software Engineer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial-card glass-card">
+                        <div class="testimonial-content">
+                            <p>"Aprendí más en 3 meses aquí que en años de cursos teóricos. Los proyectos reales hacen la diferencia."</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <div class="avatar-placeholder"></div>
+                            </div>
+                            <div class="author-info">
+                                <h4>María López</h4>
+                                <span>Product Manager</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="testimonials-carousel">
-                <div class="testimonial-card active glass-card">
-                    <div class="testimonial-content">
-                        <p>"Esta plataforma transformó mi carrera. Los proyectos prácticos me dieron la confianza para aplicar IA en mi trabajo."</p>
-                    </div>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">
-                            <div class="avatar-placeholder"></div>
-                        </div>
-                        <div class="author-info">
-                            <h4>Ana García</h4>
-                            <span>Data Scientist</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="testimonial-card glass-card">
-                    <div class="testimonial-content">
-                        <p>"Los fundamentos claros y las herramientas prácticas me ayudaron a destacar en mi equipo de desarrollo."</p>
-                    </div>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">
-                            <div class="avatar-placeholder"></div>
-                        </div>
-                        <div class="author-info">
-                            <h4>Carlos Ruiz</h4>
-                            <span>Software Engineer</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="testimonial-card glass-card">
-                    <div class="testimonial-content">
-                        <p>"Aprendí más en 3 meses aquí que en años de cursos teóricos. Los proyectos reales hacen la diferencia."</p>
-                    </div>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">
-                            <div class="avatar-placeholder"></div>
-                        </div>
-                        <div class="author-info">
-                            <h4>María López</h4>
-                            <span>Product Manager</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Call to Action Final -->
-    <section class="cta-section">
-        <div class="container">
-            <div class="cta-content animate-on-scroll">
-                <h2>¿Listo para transformar tu futuro?</h2>
-                <p>Únete a miles de estudiantes que ya están dominando la IA</p>
-                <div class="cta-actions">
-                    <button class="btn-primary btn-large pulse" onclick="window.location.href='login/new-auth.html'">
-                        <span>Comenzar Ahora</span>
-                        <img src="assets/icons/rocket.svg" alt="Rocket" class="icon btn-icon">
-                    </button>
+        <!-- Call to Action Final -->
+        <section class="cta-section">
+            <div class="container">
+                <div class="cta-content animate-on-scroll">
+                    <h2>¿Listo para transformar tu futuro?</h2>
+                    <p>Únete a miles de estudiantes que ya están dominando la IA</p>
+                    <div class="cta-actions">
+                        <button class="btn-primary btn-large pulse" onclick="window.location.href='login/new-auth.html'">
+                            <span>Comenzar Ahora</span>
+                            <img src="assets/icons/rocket.svg" alt="Rocket" class="icon btn-icon">
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
-
+        </section>
+    </div>
 
     <!-- Scripts -->
-    <script src="scripts/particles.js"></script>
+    <script src="scripts/supabase-client.js"></script>
+    <script src="scripts/stats-calculator.js"></script>
     <script src="scripts/animations.js"></script>
     <script src="scripts/carousel.js"></script>
+    <script src="scripts/theme-manager.js"></script>
     <script src="scripts/welcome.js"></script>
+    <script src="scripts/index-particles.js"></script>
+    
+    <script>
+        // Esperar a que se carguen todos los scripts y luego actualizar las estadísticas
+        document.addEventListener('DOMContentLoaded', function() {
+            // Esperar un poco más para que Supabase se inicialice
+            setTimeout(async () => {
+                try {
+                    await updateStatsCounters();
+                } catch (error) {
+                    console.error('Error al actualizar estadísticas:', error);
+                }
+            }, 1000);
+            
+            // Animación mejorada para las letras del logo
+            const animatedText = document.querySelector('.animated-text');
+            if (animatedText) {
+                // Efecto de entrada inicial
+                const letters = animatedText.querySelectorAll('.letter');
+                letters.forEach((letter, index) => {
+                    letter.style.opacity = '0';
+                    letter.style.transform = 'translateY(20px) scale(0.8)';
+                    
+                    setTimeout(() => {
+                        letter.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                        letter.style.opacity = '1';
+                        letter.style.transform = 'translateY(0) scale(1)';
+                    }, index * 100);
+                });
+
+                // Efecto hover mejorado
+                animatedText.addEventListener('mouseenter', function() {
+                    const letters = this.querySelectorAll('.letter');
+                    letters.forEach((letter, index) => {
+                        letter.style.animationDelay = `${index * 0.03}s`;
+                        letter.style.zIndex = '10';
+                    });
+                    
+                    // Añadir efecto de sonido visual (vibración sutil)
+                    this.style.animation = 'textVibrate 0.1s ease-in-out';
+                });
+                
+                animatedText.addEventListener('mouseleave', function() {
+                    const letters = this.querySelectorAll('.letter');
+                    letters.forEach(letter => {
+                        letter.style.animationDelay = '0s';
+                        letter.style.zIndex = '1';
+                    });
+                    
+                    this.style.animation = '';
+                });
+
+                // Efecto de clic
+                animatedText.addEventListener('click', function() {
+                    const letters = this.querySelectorAll('.letter');
+                    letters.forEach((letter, index) => {
+                        setTimeout(() => {
+                            letter.style.animation = 'letterClick 0.3s ease-out';
+                            setTimeout(() => {
+                                letter.style.animation = '';
+                            }, 300);
+                        }, index * 50);
+                    });
+                });
+            }
+        });
+    </script>
 </body>
 </html>

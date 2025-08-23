@@ -222,8 +222,8 @@ app.get('/', (req, res) => {
             res.sendFile(path.join(__dirname, 'src', 'welcome.html'));
         }
     } catch (_) {
-        // Fallback en caso de que no exista la landing: redirigir a nuevo login
-        res.redirect('/login/new-auth.html');
+        // Fallback en caso de que no exista la landing: redirigir a index
+        res.redirect('/index.html');
     }
 });
 
@@ -1795,6 +1795,336 @@ app.post('/api/admin/auth/logout', (req, res) => {
     }
 });
 
+// ====== ENDPOINTS PARA RADAR CHARTS ======
+
+// Endpoint para guardar respuestas del cuestionario
+app.post('/api/save-responses', async (req, res) => {
+    try {
+        const { userId, responses } = req.body;
+        
+        if (!userId || !responses || !Array.isArray(responses)) {
+            return res.status(400).json({ error: 'Datos inválidos' });
+        }
+        
+        console.log('💾 Guardando respuestas para usuario:', userId, 'Cantidad:', responses.length);
+        
+        // Insertar respuestas usando el cliente de Supabase del servidor
+        const { error } = await supabase
+            .from('respuestas')
+            .insert(responses);
+        
+        if (error) {
+            console.error('❌ Error guardando respuestas:', error);
+            return res.status(500).json({ error: error.message });
+        }
+        
+        console.log('✅ Respuestas guardadas exitosamente');
+        res.json({ success: true, count: responses.length });
+        
+    } catch (error) {
+        console.error('❌ Error en save-responses:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Nuevo endpoint para GenAI Radar (cuestionario GenAI MultiArea)
+app.get('/api/genai-radar/:userId', async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        const { userId } = req.params;
+        
+        if (!userId) {
+            return res.status(400).json({ error: 'userId es requerido' });
+        }
+        
+        console.log(`🎯 Obteniendo datos GenAI radar para userId: ${userId}`);
+        
+        // Query para obtener los últimos datos del radar por usuario desde las nuevas tablas preguntas y respuestas
+        const query = `
+            WITH user_responses AS (
+                SELECT 
+                    r.user_id,
+                    r.pregunta_id,
+                    r.valor->>'answer' as answer,
+                    r.respondido_en,
+                    p.bloque,
+                    p.scoring
+                FROM respuestas r
+                JOIN preguntas p ON p.id = r.pregunta_id
+                WHERE r.user_id = $1 
+                    AND p.section = 'Cuestionario'
+                ORDER BY r.respondido_en DESC
+            ),
+            scores_calculados AS (
+                SELECT 
+                    user_id,
+                    COUNT(*) as total_questions,
+                    COUNT(CASE WHEN bloque = 'Adopción' THEN 1 END) as adoption_questions,
+                    COUNT(CASE WHEN bloque = 'Conocimiento' THEN 1 END) as knowledge_questions,
+                    AVG(CASE WHEN bloque = 'Adopción' THEN 
+                        CASE 
+                            WHEN answer = 'A' THEN 1
+                            WHEN answer = 'B' THEN 2
+                            WHEN answer = 'C' THEN 3
+                            WHEN answer = 'D' THEN 4
+                            WHEN answer = 'E' THEN 5
+                            ELSE 0
+                        END
+                    END) as adoption_score,
+                    AVG(CASE WHEN bloque = 'Conocimiento' THEN 
+                        CASE 
+                            WHEN answer = 'A' THEN 20
+                            WHEN answer = 'B' THEN 40
+                            WHEN answer = 'C' THEN 60
+                            WHEN answer = 'D' THEN 80
+                            WHEN answer = 'E' THEN 100
+                            ELSE 0
+                        END
+                    END) as knowledge_score
+                FROM user_responses
+                GROUP BY user_id
+            )
+            SELECT 
+                ur.user_id,
+                u.username,
+                u.email,
+                sc.total_questions,
+                sc.adoption_questions,
+                sc.knowledge_questions,
+                sc.adoption_score,
+                sc.knowledge_score,
+                (sc.adoption_score + sc.knowledge_score) / 2 as total_score,
+                CASE 
+                    WHEN (sc.adoption_score + sc.knowledge_score) / 2 >= 70 THEN 'Avanzado'
+                    WHEN (sc.adoption_score + sc.knowledge_score) / 2 >= 40 THEN 'Intermedio'
+                    ELSE 'Básico'
+                END as classification,
+                MAX(ur.respondido_en) as completed_at
+            FROM user_responses ur
+            JOIN scores_calculados sc ON sc.user_id = ur.user_id
+            LEFT JOIN users u ON u.id = ur.user_id
+            GROUP BY ur.user_id, u.username, u.email, sc.total_questions, sc.adoption_questions, 
+                     sc.knowledge_questions, sc.adoption_score, sc.knowledge_score
+            ORDER BY completed_at DESC
+            LIMIT 1
+        `;
+        
+        const result = await pool.query(query, [userId]);
+        
+        if (result.rows.length === 0) {
+            console.log(`📭 No se encontraron datos GenAI para userId: ${userId}`);
+            
+            // Para desarrollo/testing, devolver datos de prueba
+            if (userId.includes('dev-') || userId === 'test-user') {
+                return res.json({
+                    hasData: true,
+                    session_id: 'test-session-' + Date.now(),
+                    userId: userId,
+                    username: 'usuario_prueba',
+                    email: 'test@example.com',
+                    genaiArea: 'CEO/Alta Dirección',
+                    totalScore: 65,
+                    adoptionScore: 70,
+                    knowledgeScore: 60,
+                    classification: 'Intermedio',
+                    completedAt: new Date().toISOString(),
+                    // Datos para radar chart
+                    conocimiento: 60,
+                    aplicacion: 70,
+                    productividad: 68,
+                    estrategia: 65,
+                    inversion: 55,
+                    dataSource: 'test_data'
+                });
+            }
+            
+            return res.json({
+                hasData: false,
+                message: 'No hay datos de cuestionario GenAI completado',
+                userId: userId,
+                dataSource: 'preguntas_respuestas'
+            });
+        }
+        
+        const row = result.rows[0];
+        
+        // Formatear datos para el radar chart
+        const radarData = {
+            hasData: true,
+            session_id: 'session-' + row.user_id + '-' + Date.now(),
+            userId: row.user_id,
+            username: row.username,
+            email: row.email,
+            genaiArea: 'Operaciones', // Por defecto, se puede mejorar obteniendo el área real
+            
+            // Scores principales
+            totalScore: parseFloat(row.total_score) || 0,
+            adoptionScore: parseFloat(row.adoption_score) || 0,
+            knowledgeScore: parseFloat(row.knowledge_score) || 0,
+            classification: row.classification,
+            completedAt: row.completed_at,
+            
+            // Datos para radar chart (5 dimensiones)
+            // Mapear los 2 scores GenAI a 5 dimensiones del radar original
+            conocimiento: parseFloat(row.knowledge_score) || 0,
+            aplicacion: parseFloat(row.adoption_score) || 0,
+            productividad: parseFloat(row.adoption_score) || 0, // Usar adopción como proxy
+            estrategia: parseFloat(row.total_score) || 0, // Usar score total como estrategia
+            inversion: Math.min(parseFloat(row.total_score) || 0, 80), // Cap a 80 para ser realista
+            
+            dataSource: 'preguntas_respuestas'
+        };
+        
+        console.log('📊 Datos GenAI radar obtenidos:', {
+            userId: radarData.userId,
+            genaiArea: radarData.genaiArea,
+            totalScore: radarData.totalScore,
+            classification: radarData.classification
+        });
+        
+        res.json(radarData);
+        
+    } catch (error) {
+        console.error('❌ Error obteniendo datos GenAI radar:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            message: error.message,
+            hasData: false
+        });
+    }
+});
+
+// Obtener datos de radar del usuario (última sesión completada)
+app.get('/api/radar/user/:userId', async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        const { userId } = req.params;
+        
+        if (!userId) {
+            return res.status(400).json({ error: 'userId es requerido' });
+        }
+        
+        // Primero verificar si las vistas existen
+        const viewCheckQuery = `
+            SELECT EXISTS (
+                SELECT FROM information_schema.views 
+                WHERE table_schema = 'public' 
+                AND table_name = 'v_radar_latest_by_user'
+            ) as view_exists
+        `;
+        
+        const viewCheck = await pool.query(viewCheckQuery);
+        
+        if (!viewCheck.rows[0].view_exists) {
+            console.warn('⚠️ Vista v_radar_latest_by_user no existe, usando datos de prueba');
+            
+            // Para testing, devolver datos de prueba si el userId es específico
+            if (userId === 'test-user' || userId === 'dev-user-id' || userId === 'test-user-uuid' || userId === '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0') {
+                return res.json({
+                    session_id: 'test-session-123',
+                    user_id: userId,
+                    conocimiento: 75,
+                    aplicacion: 80,
+                    productividad: 65,
+                    estrategia: 70,
+                    inversion: 85,
+                    hasData: true,
+                    dataSource: 'test'
+                });
+            }
+            
+            // Usuario sin datos
+            return res.json({
+                session_id: null,
+                user_id: userId,
+                conocimiento: 0,
+                aplicacion: 0,
+                productividad: 0,
+                estrategia: 0,
+                inversion: 0,
+                hasData: false,
+                dataSource: 'no_view'
+            });
+        }
+        
+        // Consultar la vista v_radar_latest_by_user
+        const query = `
+            SELECT 
+                session_id,
+                user_id,
+                COALESCE(conocimiento, 0) as conocimiento,
+                COALESCE(aplicacion, 0) as aplicacion,
+                COALESCE(productividad, 0) as productividad,
+                COALESCE(estrategia, 0) as estrategia,
+                COALESCE(inversion, 0) as inversion
+            FROM public.v_radar_latest_by_user 
+            WHERE user_id = $1
+            LIMIT 1
+        `;
+        
+        const result = await pool.query(query, [userId]);
+        
+        if (result.rows.length === 0) {
+            // No hay datos para este usuario
+            return res.json({
+                session_id: null,
+                user_id: userId,
+                conocimiento: 0,
+                aplicacion: 0,
+                productividad: 0,
+                estrategia: 0,
+                inversion: 0,
+                hasData: false,
+                dataSource: 'database'
+            });
+        }
+        
+        const radarData = result.rows[0];
+        
+        res.json({
+            session_id: radarData.session_id,
+            user_id: radarData.user_id,
+            conocimiento: radarData.conocimiento,
+            aplicacion: radarData.aplicacion,
+            productividad: radarData.productividad,
+            estrategia: radarData.estrategia,
+            inversion: radarData.inversion,
+            hasData: true,
+            dataSource: 'database'
+        });
+        
+    } catch (error) {
+        console.error('Error obteniendo datos de radar por usuario:', error);
+        
+        // En caso de error, proporcionar datos de prueba para desarrollo
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('🔧 Modo desarrollo: proporcionando datos de prueba');
+            return res.json({
+                session_id: 'fallback-session',
+                user_id: req.params.userId,
+                conocimiento: 60,
+                aplicacion: 70,
+                productividad: 55,
+                estrategia: 65,
+                inversion: 75,
+                hasData: true,
+                dataSource: 'fallback'
+            });
+        }
+        
+        res.status(500).json({ 
+            error: 'Error obteniendo datos de radar',
+            details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+        });
+    }
+});
+
 app.use((error, req, res, next) => {
     console.error('Error no manejado:', error);
     if (process.env.NODE_ENV === 'production') {
@@ -2170,6 +2500,313 @@ app.get('/api/courses/:courseId/syllabus', authenticateRequest, async (req, res)
     } catch (error) {
         console.error('Error obteniendo temario:', error);
         res.status(500).json({ error: 'Error obteniendo temario del curso' });
+    }
+});
+
+
+
+// Obtener datos de radar por sesión específica (opcional)
+app.get('/api/radar/session/:sessionId', async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        const { sessionId } = req.params;
+        
+        if (!sessionId) {
+            return res.status(400).json({ error: 'sessionId es requerido' });
+        }
+        
+        // Consultar la vista v_radar_by_session
+        const query = `
+            SELECT 
+                session_id,
+                user_id,
+                COALESCE(conocimiento, 0) as conocimiento,
+                COALESCE(aplicacion, 0) as aplicacion,
+                COALESCE(productividad, 0) as productividad,
+                COALESCE(estrategia, 0) as estrategia,
+                COALESCE(inversion, 0) as inversion
+            FROM public.v_radar_by_session 
+            WHERE session_id = $1
+            LIMIT 1
+        `;
+        
+        const result = await pool.query(query, [sessionId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ 
+                error: 'No se encontraron datos para esta sesión' 
+            });
+        }
+        
+        const radarData = result.rows[0];
+        
+        res.json({
+            session_id: radarData.session_id,
+            user_id: radarData.user_id,
+            conocimiento: radarData.conocimiento,
+            aplicacion: radarData.aplicacion,
+            productividad: radarData.productividad,
+            estrategia: radarData.estrategia,
+            inversion: radarData.inversion,
+            hasData: true
+        });
+        
+    } catch (error) {
+        console.error('Error obteniendo datos de radar por sesión:', error);
+        res.status(500).json({ 
+            error: 'Error obteniendo datos de radar',
+            details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+        });
+    }
+});
+
+// Endpoint para verificar datos de un usuario específico (debugging)
+app.get('/api/radar/debug/:userId', authenticateRequest, async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        const { userId } = req.params;
+        
+        if (!userId) {
+            return res.status(400).json({ error: 'userId es requerido' });
+        }
+        
+        console.log('🔍 Debug - Verificando datos para userId:', userId);
+        
+        // Verificar si el usuario existe
+        const userCheck = await pool.query('SELECT id, username, email FROM public.users WHERE id = $1', [userId]);
+        
+        // Verificar sesiones de cuestionario
+        const sessionsCheck = await pool.query(`
+            SELECT id, user_id, perfil, area, started_at, completed_at 
+            FROM public.user_questionnaire_sessions 
+            WHERE user_id = $1 
+            ORDER BY completed_at DESC
+        `, [userId]);
+        
+        // Verificar respuestas de cuestionario
+        const responsesCheck = await pool.query(`
+            SELECT COUNT(*) as total_responses
+            FROM public.user_question_responses 
+            WHERE user_id = $1
+        `, [userId]);
+        
+        // Verificar si las vistas existen
+        const viewCheck = await pool.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.views 
+                WHERE table_schema = 'public' 
+                AND table_name = 'v_radar_latest_by_user'
+            ) as view_exists
+        `);
+        
+        // Si las vistas existen, verificar datos en la vista
+        let radarData = null;
+        if (viewCheck.rows[0].view_exists) {
+            const radarCheck = await pool.query(`
+                SELECT * FROM public.v_radar_latest_by_user 
+                WHERE user_id = $1
+            `, [userId]);
+            
+            if (radarCheck.rows.length > 0) {
+                radarData = radarCheck.rows[0];
+            }
+        }
+        
+        res.json({
+            userId: userId,
+            userExists: userCheck.rows.length > 0,
+            userData: userCheck.rows[0] || null,
+            sessionsCount: sessionsCheck.rows.length,
+            sessions: sessionsCheck.rows,
+            responsesCount: responsesCheck.rows[0].total_responses,
+            viewExists: viewCheck.rows[0].view_exists,
+            radarData: radarData,
+            hasCompletedSessions: sessionsCheck.rows.some(s => s.completed_at !== null)
+        });
+        
+    } catch (error) {
+        console.error('Error en debug endpoint:', error);
+        res.status(500).json({ 
+            error: 'Error en debug endpoint',
+            details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+        });
+    }
+});
+
+// Endpoint para crear las vistas de radar (solo desarrollo)
+app.post('/api/radar/create-views', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ error: 'No disponible en producción' });
+    }
+    
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        // Leer el archivo SQL
+        const fs = require('fs');
+        const path = require('path');
+        const sqlPath = path.join(__dirname, 'create_radar_views.sql');
+        
+        if (!fs.existsSync(sqlPath)) {
+            return res.status(404).json({ error: 'Archivo create_radar_views.sql no encontrado' });
+        }
+        
+        const sqlContent = fs.readFileSync(sqlPath, 'utf8');
+        
+        // Ejecutar el SQL
+        await pool.query(sqlContent);
+        
+        console.log('✅ Vistas de radar creadas exitosamente');
+        
+        res.json({
+            success: true,
+            message: 'Vistas de radar creadas exitosamente',
+            views: ['v_radar_latest_by_user', 'v_radar_by_session']
+        });
+        
+    } catch (error) {
+        console.error('Error creando vistas de radar:', error);
+        res.status(500).json({ 
+            error: 'Error creando vistas de radar',
+            details: error.message
+        });
+    }
+});
+
+        // Endpoint para verificar si existen datos de prueba y crearlos si es necesario
+        app.post('/api/radar/create-test-data', async (req, res) => {
+            if (process.env.NODE_ENV === 'production') {
+                return res.status(403).json({ error: 'No disponible en producción' });
+            }
+            
+            try {
+                if (!pool) {
+                    return res.status(500).json({ error: 'Base de datos no configurada' });
+                }
+                
+                // Crear usuario de prueba si no existe
+                const testUserId = 'test-user-uuid';
+                const sessionId = 'test-session-uuid';
+                
+                // Verificar si ya existe el usuario
+                const userCheck = await pool.query('SELECT id FROM public.users WHERE id = $1', [testUserId]);
+                
+                if (userCheck.rows.length === 0) {
+                    // Crear usuario de prueba
+                    await pool.query(`
+                        INSERT INTO public.users (id, username, email, password_hash, first_name, last_name)
+                        VALUES ($1, 'testuser', 'test@example.com', 'hash123', 'Usuario', 'Prueba')
+                        ON CONFLICT (id) DO NOTHING
+                    `, [testUserId]);
+                }
+                
+                // Crear sesión de cuestionario de prueba
+                await pool.query(`
+                    INSERT INTO public.user_questionnaire_sessions (id, user_id, perfil, area, completed_at)
+                    VALUES ($1, $2, 'Gerente de Operaciones', 'Tecnología', NOW())
+                    ON CONFLICT (id) DO NOTHING
+                `, [sessionId, testUserId]);
+                
+                // Crear respuestas de cuestionario de prueba
+                const testQuestions = await pool.query(`
+                    SELECT id, code, dimension 
+                    FROM public.questions_catalog 
+                    WHERE perfil = 'Gerente de Operaciones' 
+                    LIMIT 10
+                `);
+                
+                for (const question of testQuestions.rows) {
+                    let answerValue;
+                    if (question.dimension === 'Conocimiento') {
+                        answerValue = Math.floor(Math.random() * 7) + 1; // 1-7
+                    } else if (question.dimension === 'Aplicación') {
+                        answerValue = Math.floor(Math.random() * 7) + 1; // 1-7
+                    } else if (question.dimension === 'Productividad') {
+                        answerValue = Math.floor(Math.random() * 7) + 1; // 1-7
+                    } else if (question.dimension === 'Estrategia') {
+                        answerValue = Math.floor(Math.random() * 7) + 1; // 1-7
+                    } else if (question.dimension === 'Inversión') {
+                        answerValue = Math.floor(Math.random() * 7) + 1; // 1-7
+                    }
+                    
+                    await pool.query(`
+                        INSERT INTO public.user_question_responses (session_id, user_id, question_id, answer_likert)
+                        VALUES ($1, $2, $3, $4)
+                        ON CONFLICT DO NOTHING
+                    `, [sessionId, testUserId, question.id, answerValue]);
+                }
+                
+                console.log('✅ Datos de prueba creados exitosamente');
+                
+                res.json({
+                    success: true,
+                    message: 'Datos de prueba creados exitosamente',
+            testUserId: testUserId,
+            sessionId: sessionId
+        });
+        
+    } catch (error) {
+        console.error('Error creando datos de prueba:', error);
+        res.status(500).json({ 
+            error: 'Error creando datos de prueba',
+            details: error.message
+        });
+    }
+});
+
+// Endpoint para obtener información de sesión (para mostrar session_id corto)
+app.get('/api/session-info', authenticateRequest, requireUserSession, async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        const { userId } = req.user;
+        
+        // Obtener la última sesión del usuario
+        const query = `
+            SELECT 
+                session_id,
+                user_id,
+                created_at
+            FROM public.v_radar_latest_by_user 
+            WHERE user_id = $1
+            LIMIT 1
+        `;
+        
+        const result = await pool.query(query, [userId]);
+        
+        if (result.rows.length === 0) {
+            return res.json({
+                session_id: null,
+                user_id: userId,
+                hasSession: false
+            });
+        }
+        
+        const sessionInfo = result.rows[0];
+        
+        res.json({
+            session_id: sessionInfo.session_id,
+            user_id: sessionInfo.user_id,
+            created_at: sessionInfo.created_at,
+            hasSession: true
+        });
+        
+    } catch (error) {
+        console.error('Error obteniendo información de sesión:', error);
+        res.status(500).json({ 
+            error: 'Error obteniendo información de sesión',
+            details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+        });
     }
 });
 

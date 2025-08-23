@@ -3,19 +3,41 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cursos — Explora y Aprende</title>
+    <title>Talleres — Explora y Aprende</title>
     <link rel="stylesheet" href="styles/main.css" />
     <link rel="stylesheet" href="styles/cursos.css" />
     <!-- Estilos del navbar de pestañas reutilizado -->
     <link rel="stylesheet" href="styles/courses.css" />
+    <!-- Estilos del login para las partículas -->
+    <link rel="stylesheet" href="login/new-auth.css" />
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="icon" type="image/png" href="assets/images/icono.png" />
     
     <!-- Auth Guard - Protección de autenticación -->
     <script src="utils/auth-guard.js"></script>
+    
+    <!-- Global theme setup - Configuración global del tema -->
+    <script src="scripts/global-theme-setup.js"></script>
 </head>
 <body class="bg-glow-global">
-    <div class="particles-container"></div>
+    <!-- Partículas de fondo estáticas CSS -->
+    <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Contenedor principal con fondo dinámico -->
+    <div class="auth-container">
+        <div class="auth-bg">
+            <div class="bg-glow"></div>
+            <canvas id="bgParticles"></canvas>
+        </div>
 
     <header class="catalog-header">
         <div class="container">
@@ -23,17 +45,18 @@
             <div class="course-tabs">
                 <button class="tab-button active" onclick="location.href='cursos.html'">
                     <i class='bx bx-collection'></i>
-                    Cursos
+                    Talleres
                 </button>
-                <button class="tab-button" onclick="location.href='Community/community.html'">
+                <button class="tab-button" onclick="location.href='coming-soon.html'">
                     <i class='bx bx-group'></i>
                     Comunidad
                 </button>
-                <button class="tab-button" onclick="location.href='Notices/notices.html'">
+                <button class="tab-button" onclick="location.href='coming-soon.html'">
                     <i class='bx bx-news'></i>
                     Noticias
                 </button>
             </div>
+
             <button class="header-profile">
                 <img src="assets/images/icono.png" alt="Perfil" />
             </button>
@@ -46,16 +69,21 @@
                     </div>
                 </div>
                 <div class="pm-section">
-                    <div class="pm-item" onclick="location.href='cursos.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
                     <div class="pm-item" onclick="location.href='estadisticas.html'"><i class='bx bx-bar-chart-alt-2'></i> Mis Estadísticas</div>
                     <div class="pm-item" onclick="location.href='courses.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
                 </div>
                 <div class="pm-section">
-                    <div class="pm-item" onclick="location.href='profile.html'"><i class='bx bx-cog'></i> Configuración</div>
                     <div class="pm-item" onclick="location.href='profile.html'"><i class='bx bx-user'></i> Editar perfil</div>
                 </div>
                 <div class="pm-section">
-                    <div class="pm-item" onclick="location.href='login/new-auth.html'"><i class='bx bx-log-out'></i> Cerrar sesión</div>
+                    <div class="pm-item" id="themeToggle" onclick="toggleTheme()">
+                        <i class='bx bx-sun theme-icon-sun'></i>
+                        <i class='bx bx-moon theme-icon-moon'></i>
+                        Cambiar tema
+                    </div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" onclick="location.href='index.html'"><i class='bx bx-log-out'></i> Cerrar sesión</div>
                 </div>
             </div>
             
@@ -90,10 +118,16 @@
 
         <section id="grid" class="courses-grid"></section>
     </main>
+    </div> <!-- Cierre del auth-container -->
 
-    <script src="scripts/particles.js"></script>
     <script src="scripts/main.js"></script>
     <script src="scripts/cursos.js"></script>
+    <script src="scripts/profile-avatar-manager.js"></script>
+    <script src="scripts/cursos-particles-direct.js"></script>
+    <script src="scripts/force-theme-init.js"></script>
+    <script src="scripts/theme-manager.js"></script>
+    <script src="scripts/theme-toggle.js"></script>
+    <script src="scripts/test-theme-debug.js"></script>
 </body>
 </html>
 

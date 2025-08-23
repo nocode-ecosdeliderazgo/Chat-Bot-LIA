@@ -44,6 +44,7 @@ function extractSupabaseConfig() {
 
         // Actualizar HTMLs si hay URL y KEY válidos
         if (supabaseUrl && looksLikeJwt(anonKey)) {
+            updateHtmlMeta(path.join(__dirname, '..', 'src', 'index.html'), supabaseUrl, anonKey);
             updateHtmlMeta(path.join(__dirname, '..', 'src', 'login', 'new-auth.html'), supabaseUrl, anonKey);
             updateHtmlMeta(path.join(__dirname, '..', 'src', 'q', 'form.html'), supabaseUrl, anonKey);
             updateHtmlMeta(path.join(__dirname, '..', 'src', 'perfil-cuestionario.html'), supabaseUrl, anonKey);

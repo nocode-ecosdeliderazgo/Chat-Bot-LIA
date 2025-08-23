@@ -28,6 +28,13 @@ class ProfileQuestionnaire {
 
     async guardByUserRole() {
         try {
+            // Verificar si hay un parámetro especial para forzar el acceso
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('force') === 'true' || urlParams.get('force-questionnaire') === 'true') {
+                console.log('🔓 Acceso forzado al cuestionario');
+                return; // Salir sin hacer ninguna verificación
+            }
+            
             // 1) Intentar con Supabase si existe
             if (window.supabase && window.supabase.auth) {
                 try {
@@ -385,13 +392,54 @@ class ProfileQuestionnaire {
     }
 
     getProfileRoute(profile) {
-        // Redirección al formulario genérico pasando el perfil por query string
+        // NUEVO: Mapear perfil a área GenAI y redirigir al nuevo cuestionario
+        const genaiArea = this.mapToGenAIArea(profile);
         const params = new URLSearchParams();
-        if (profile) params.set('perfil', profile);
-        const area = this.profileData?.area || '';
-        if (area) params.set('area', area);
+        if (genaiArea) params.set('area', genaiArea);
         const qs = params.toString();
-        return qs ? `q/form.html?${qs}` : 'q/form.html';
+        return qs ? `q/genai-form.html?${qs}` : 'q/genai-form.html';
+    }
+
+    mapToGenAIArea(profile) {
+        // Mapeo de 17 perfiles antiguos → 10 áreas GenAI del CSV
+        const mapping = {
+            // CEO y Alta Dirección
+            'CEO': 'CEO/Alta Dirección',
+            
+            // Tecnología
+            'CTO/CIO': 'Tecnología/Desarrollo de Software',
+            
+            // Marketing y Comunicación
+            'Dirección de Marketing': 'Marketing y Comunicación',
+            'Miembros de Marketing': 'Marketing y Comunicación',
+            
+            // Finanzas y Contabilidad
+            'Dirección de Finanzas (CFO)': 'Finanzas/Contabilidad',
+            'Miembros de Finanzas': 'Finanzas/Contabilidad',
+            'Dirección/Jefatura de Contabilidad': 'Finanzas/Contabilidad',
+            'Miembros de Contabilidad': 'Finanzas/Contabilidad',
+            
+            // Salud/Bienestar (para RRHH)
+            'Dirección de RRHH': 'Salud/Bienestar',
+            'Miembros de RRHH': 'Salud/Bienestar',
+            
+            // Administración Pública/Gobierno (para consultores y operaciones)
+            'Consultor': 'Administración Pública/Gobierno',
+            'Dirección de Operaciones': 'Administración Pública/Gobierno',
+            'Miembros de Operaciones': 'Administración Pública/Gobierno',
+            'Gerencia Media': 'Administración Pública/Gobierno',
+            
+            // Diseño/Industrias Creativas (para freelancers y otros)
+            'Freelancer': 'Diseño/Industrias Creativas',
+            
+            // Ventas y Compras se mapean a Marketing por similitud
+            'Dirección de Ventas': 'Marketing y Comunicación',
+            'Miembros de Ventas': 'Marketing y Comunicación',
+            'Dirección de Compras / Supply': 'Marketing y Comunicación',
+            'Miembros de Compras': 'Marketing y Comunicación'
+        };
+        
+        return mapping[profile] || 'CEO/Alta Dirección'; // Fallback por defecto
     }
 
     saveProfileData() {
@@ -407,8 +455,9 @@ class ProfileQuestionnaire {
         // Guardar en localStorage
         localStorage.setItem('profileQuestionnaireData', JSON.stringify(telemetryData));
         
-        // Persistir en BD
-        this.persistRoleIfMissing().catch(err => console.warn('[PersistRole] Error:', err));
+        // Persistir en BD - Intentar ambos métodos
+        this.persistRoleIfMissing().catch(err => console.warn('[PersistRole Supabase] Error:', err));
+        this.persistRoleWithBackend().catch(err => console.warn('[PersistRole Backend] Error:', err));
         this.persistQuestionnaireAnswers().catch(err => console.warn('[PersistAnswers] Error:', err));
 
         console.log('Datos de perfil guardados:', telemetryData);
@@ -436,6 +485,52 @@ class ProfileQuestionnaire {
             .from('users')
             .update({ type_rol: roleToSave })
             .eq('id', userId);
+    }
+
+    async persistRoleWithBackend() {
+        // Función para actualizar type_rol vía backend para usuarios autenticados por nuestro sistema
+        try {
+            const currentUserRaw = localStorage.getItem('currentUser') || localStorage.getItem('userData');
+            if (!currentUserRaw) return;
+
+            const currentUser = JSON.parse(currentUserRaw);
+            if (!currentUser.id && !currentUser.username && !currentUser.email) return;
+
+            const roleToSave = this.overrideProfile || this.selectedProfile || '';
+            if (!roleToSave) return;
+
+            console.log('[PersistRole Backend] Actualizando type_rol a:', roleToSave);
+
+            const response = await fetch('/api/update-profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': 'dev-api-key',
+                    'Authorization': `Bearer ${localStorage.getItem('userToken') || localStorage.getItem('authToken')}`
+                },
+                body: JSON.stringify({
+                    user_id: currentUser.id,
+                    username: currentUser.username,
+                    email: currentUser.email,
+                    type_rol: roleToSave
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('[PersistRole Backend] type_rol actualizado correctamente:', result);
+                
+                // Actualizar datos en localStorage
+                const updatedUser = { ...currentUser, type_rol: roleToSave };
+                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                localStorage.setItem('userData', JSON.stringify(updatedUser));
+            } else {
+                const error = await response.text();
+                console.warn('[PersistRole Backend] Error actualizando type_rol:', response.status, error);
+            }
+        } catch (error) {
+            console.warn('[PersistRole Backend] Error en persistRoleWithBackend:', error);
+        }
     }
 
     async persistQuestionnaireAnswers() {

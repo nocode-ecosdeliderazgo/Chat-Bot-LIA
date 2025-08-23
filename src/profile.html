@@ -9,13 +9,37 @@
     <meta name="supabase-key" content="">
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/profile.css">
+    <!-- Estilos específicos para las partículas -->
+    <link rel="stylesheet" href="styles/particles-background.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="assets/images/icono.png">
     
     <!-- Auth Guard - Protección de autenticación -->
     <script src="utils/auth-guard.js"></script>
+    
+    <!-- Global theme setup - Configuración global del tema -->
+    <script src="scripts/global-theme-setup.js"></script>
 </head>
 <body>
+    <!-- Partículas de fondo estáticas CSS -->
+    <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Contenedor principal con fondo dinámico -->
+    <div class="auth-container">
+        <div class="auth-bg">
+            <div class="bg-glow"></div>
+            <canvas id="bgParticles"></canvas>
+        </div>
+
     <!-- Header fijo a ancho completo -->
     <header class="header">
         <div class="header-container">
@@ -31,6 +55,7 @@
                 <p>Gestiona tu información personal</p>
             </div>
             
+            <!-- Botón de guardar (movido a la posición del botón de tema) -->
             <button class="save-btn" id="saveProfileBtn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -64,8 +89,8 @@
                     </div>
                     
                     <div class="user-info">
-                        <h2 id="currentFullName">Juan Pérez</h2>
-                        <p id="currentEmail">juan.perez@ejemplo.com</p>
+                        <h2 id="currentFullName">Tu nombre</h2>
+                        <p id="currentEmail">tu.email@ejemplo.com</p>
                         <div class="user-badges">
                             <span class="badge primary" id="currentCargoRol">Desarrollador de Software</span>
                         </div>
@@ -84,7 +109,7 @@
                         </div>
                         <div class="stat-content">
                             <span class="stat-value" id="coursesCount">2</span>
-                            <span class="stat-label">Cursos</span>
+                            <span class="stat-label">Talleres</span>
                         </div>
                     </div>
                     
@@ -154,38 +179,38 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="firstName">Nombre *</label>
-                                <input type="text" id="firstName" name="first_name" value="Juan" required>
+                                <input type="text" id="firstName" name="first_name" value="" placeholder="Nombre" required>
                             </div>
                             
                             <div class="form-group">
                                 <label for="lastName">Apellido *</label>
-                                <input type="text" id="lastName" name="last_name" value="Pérez" required>
+                                <input type="text" id="lastName" name="last_name" value="" placeholder="Apellido" required>
                             </div>
                             
                             <div class="form-group">
                                 <label for="username">Nombre de Usuario *</label>
-                                <input type="text" id="username" name="username" value="juanperez" required>
+                                <input type="text" id="username" name="username" value="" required>
                             </div>
                             
                             <div class="form-group">
                                 <label for="companyRole">Rol en la Empresa</label>
-                                <input type="text" id="companyRole" name="company_role" value="Desarrollador de Software" placeholder="Ej: Gerente de Ventas, Desarrollador, Analista...">
+                                <input type="text" id="companyRole" name="company_role" value="" placeholder="Ej: Gerente de Ventas, Desarrollador, Analista...">
                             </div>
                             
                             <div class="form-group">
                                 <label for="phone">Teléfono</label>
-                                <input type="tel" id="phone" name="phone" value="+52 555 123 4567">
+                                <input type="tel" id="phone" name="phone" value="">
                             </div>
                             
                             <div class="form-group">
                                 <label for="location">Ubicación</label>
-                                <input type="text" id="location" name="location" value="Ciudad de México, México">
+                                <input type="text" id="location" name="location" value="">
                             </div>
                         </div>
                         
                         <div class="form-group">
                             <label for="bio">Biografía</label>
-                            <textarea id="bio" name="bio" rows="3" placeholder="Cuéntanos sobre ti, tus intereses y objetivos de aprendizaje...">Estudiante apasionado por la inteligencia artificial y el desarrollo de software. Me encanta aprender nuevas tecnologías y aplicarlas en proyectos innovadores.</textarea>
+                            <textarea id="bio" name="bio" rows="3" placeholder="Cuéntanos sobre ti, tus intereses y objetivos de aprendizaje..."></textarea>
                         </div>
                     </div>
 
@@ -199,7 +224,7 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="email">Correo Electrónico *</label>
-                                <input type="email" id="email" name="email" value="juan.perez@ejemplo.com" required>
+                                <input type="email" id="email" name="email" value="" placeholder="tu.email@ejemplo.com" required>
                             </div>
                             
                             <div class="form-group">
@@ -290,7 +315,13 @@
             </div>
         </div>
     </div>
+    </div> <!-- Cierre del auth-container -->
 
+    <script src="scripts/theme-manager.js"></script>
     <script src="scripts/profile-manager.js"></script>
+    <script src="scripts/file-upload-manager.js"></script>
+    <script src="scripts/profile-avatar-manager.js"></script>
+    <script src="scripts/profile-particles-direct.js"></script>
+    <script src="scripts/avatar-fix-simple.js"></script>
 </body>
 </html>

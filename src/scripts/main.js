@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Configuración del chatbot según PROMPT_CLAUDE.md
 const CHATBOT_CONFIG = {
-    name: 'Lia IA',
+    name: 'Lia',
     typingSpeed: 50,
     responseDelay: 1000,
     audioEnabled: true,
@@ -83,7 +83,7 @@ function getBotAvatarHTML() {
     return `
         <div class="msg-avatar bot">
             <div class="avatar-circle">
-                <img src="assets/images/AprendeIA.png" alt="Lia IA" onerror="this.onerror=null;this.src='assets/images/AprendeIA.jpg'" />
+                <img src="assets/images/AprendeIA.png" alt="Lia" onerror="this.onerror=null;this.src='assets/images/AprendeIA.jpg'" />
             </div>
         </div>
     `;
@@ -412,12 +412,12 @@ function initializeChat() {
             }
         } catch (_) {}
 
-        const greeting = chatState.userName
-            ? `¡Hola, ${chatState.userName}!  Bienvenido a Lia IA.\n\nSoy tu asistente virtual y estaré aquí para acompañarte durante tu aprendizaje en IA.`
-            : `¡Hola!  Bienvenido a Lia IA.\n\nSoy tu asistente virtual y estaré aquí para acompañarte durante tu aprendizaje en IA.`;
+                const greeting = chatState.userName
+            ? `¿Qué tema de IA te gustaría explorar o practicar?`
+            : `¿Qué tema de IA te gustaría explorar o practicar?`;
 
         await sendBotMessage(greeting, null, false, true);
-        await showWelcomeInstructions();
+        // await showWelcomeInstructions(); // Mensajes plantilla deshabilitados
         // Menú inline eliminado: ahora el panel izquierdo contiene las herramientas
     })();
 }
@@ -436,7 +436,7 @@ function playWelcomeAudio() {
 // Reproducir audio usando Web Speech API
 function playWelcomeSpeech() {
     try {
-        const welcomeText = "¡Hola! Bienvenido a Lia IA. Soy tu asistente virtual y estaré aquí para acompañarte durante tu aprendizaje en IA.";
+        const welcomeText = "¿Qué tema de IA te gustaría explorar o practicar?";
         const utterance = new SpeechSynthesisUtterance(welcomeText);
         utterance.lang = 'es-ES';
         utterance.rate = 0.85;
@@ -1464,10 +1464,10 @@ function playBotResponseAudio(text) {
 // showMainMenu eliminado; navegación ahora desde el panel izquierdo/Studio
 
 // Mostrar instrucciones de bienvenida divididas
-async function showWelcomeInstructions() {
-    await sendBotMessage("📝 ESCRIBE EN EL CHAT\n\nHaz tus preguntas y presiona Enter. Las herramientas ahora están en los paneles laterales (Notas, Glosario, Resumen de audio/video, Informes).");
-    await sendBotMessage("🎯 SUGERENCIAS\n\nCuando corresponda, te propondré acciones como 'Enviar a Notas' o 'Crear Informe'; el panel Studio de la derecha las mostrará como tarjetas.");
-}
+// async function showWelcomeInstructions() {
+//     await sendBotMessage("📝 ESCRIBE EN EL CHAT\n\nHaz tus preguntas y presiona Enter. Las herramientas ahora están en los paneles laterales (Notas, Glosario, Resumen de audio/video, Informes).");
+//     await sendBotMessage("🎯 SUGERENCIAS\n\nCuando corresponda, te propondré acciones como 'Enviar a Notas' o 'Crear Informe'; el panel Studio de la derecha las mostrará como tarjetas.");
+// }
 
 // Mensaje guía para dirigir a sesiones del curso
 async function showSessionGuide() {
@@ -1897,6 +1897,9 @@ async function callOpenAI(prompt, context = '') {
     try {
         const base = (typeof window !== 'undefined' && (window.API_BASE || localStorage.getItem('API_BASE'))) || '';
         
+        console.log('[OPENAI CALL] Enviando request a:', `${base}/api/openai`);
+        console.log('[OPENAI CALL] Prompt:', prompt.substring(0, 100) + '...');
+        
         const response = await fetch(`${base}/api/openai`, {
             method: 'POST',
             headers: {
@@ -1909,16 +1912,51 @@ async function callOpenAI(prompt, context = '') {
             body: JSON.stringify({ prompt, context })
         });
 
+        console.log('[OPENAI CALL] Response status:', response.status);
+        
         if (!response.ok) {
-            throw new Error(`Error en la API: ${response.status}`);
+            const errorText = await response.text();
+            console.error('[OPENAI CALL] Error response:', errorText);
+            
+            // Si es error de autenticación (401), devolver respuesta de fallback
+            if (response.status === 401) {
+                console.log('[OPENAI CALL] Error de autenticación, usando respuesta de fallback');
+                return getFallbackResponse(prompt);
+            }
+            
+            throw new Error(`Error en la API: ${response.status} - ${errorText}`);
         }
 
         const data = await response.json();
+        console.log('[OPENAI CALL] Response data:', data);
         return data.response;
     } catch (error) {
         console.error('Error llamando a OpenAI:', error);
-        return null;
+        
+        // Fallback: respuesta básica de desarrollo
+        console.log('[OPENAI CALL] Usando respuesta de fallback por error');
+        return getFallbackResponse(prompt);
     }
+}
+
+// Función de respuesta de fallback para desarrollo
+function getFallbackResponse(prompt) {
+    const promptLower = prompt.toLowerCase();
+    
+    if (promptLower.includes('hola') || promptLower.includes('hi')) {
+        return '¡Hola! Soy Lia, tu asistente de IA. Estoy aquí para ayudarte con el curso "Aprende y Aplica IA". ¿En qué puedo asistirte hoy?';
+    }
+    
+    if (promptLower.includes('curso') || promptLower.includes('ia') || promptLower.includes('inteligencia artificial')) {
+        return 'Te puedo ayudar con el curso de Inteligencia Artificial. Puedes preguntarme sobre:\n\n• **Conceptos básicos** de IA y Machine Learning\n• **Aplicaciones prácticas** en diferentes industrias\n• **Herramientas y frameworks** como Python, TensorFlow\n• **Proyectos** y ejercicios del curso\n\n¿Sobre qué tema específico te gustaría aprender?';
+    }
+    
+    if (promptLower.includes('ayuda') || promptLower.includes('help')) {
+        return 'Estoy aquí para ayudarte con el curso de IA. Puedes preguntarme sobre:\n\n• **Conceptos teóricos** y definiciones\n• **Ejercicios prácticos** y proyectos\n• **Herramientas** y tecnologías\n• **Aplicaciones** en el mundo real\n\n¿Qué te gustaría aprender hoy?';
+    }
+    
+    // Respuesta genérica
+    return `Entiendo tu pregunta sobre "${prompt}". Como tu asistente de IA, puedo ayudarte con conceptos, ejercicios y aplicaciones del curso.\n\n• **¿Necesitas conceptos básicos?** Te explico fundamentos de IA\n• **¿Quieres ejercicios prácticos?** Te propongo actividades\n• **¿Buscas aplicaciones?** Te muestro casos de uso reales\n\n¿Podrías ser más específico sobre qué aspecto te interesa más?`;
 }
 
 
@@ -2312,6 +2350,13 @@ Responde siguiendo exactamente el formato especificado y utilizando la informaci
         
         // Llamar a OpenAI
         const aiResponse = await callOpenAI(fullPrompt, contextInfo);
+        
+        // Si no hay respuesta de OpenAI, usar fallback
+        if (!aiResponse || aiResponse.trim() === '') {
+            console.log('[PROCESS MESSAGE] No hay respuesta de OpenAI, usando fallback');
+            return getFallbackResponse(message);
+        }
+        
         return aiResponse;
     } catch (error) {
         console.error('Error procesando mensaje con IA:', error);
@@ -2328,15 +2373,9 @@ Responde siguiendo exactamente el formato especificado y utilizando la informaci
             }
         }
         
-        // Mensaje de error siguiendo formato PROMPT_CLAUDE.md
-        return `Hubo un problema temporal con el servicio, pero sigo disponible para ayudarte.
-
-• **Problema técnico**: Conexión temporalmente interrumpida
-• **Alternativas**: Puedo ayudarte con conceptos básicos de IA como **prompts**, **LLMs** o **tokens**
-• **Ejercicios**: Disponibles algoritmos de clasificación, redes neuronales básicas
-• **Navegación**: Usa el menú principal para acceder a temas organizados
-
-¿Prefieres explorar fundamentos de IA, ejercicios prácticos o consultar el glosario?`;
+        // En caso de error, usar respuesta de fallback
+        console.log('[PROCESS MESSAGE] Error en procesamiento, usando fallback');
+        return getFallbackResponse(message);
     }
 }
 

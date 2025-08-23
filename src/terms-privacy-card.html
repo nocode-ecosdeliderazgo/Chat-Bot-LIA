@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Términos y Condiciones - Políticas de Privacidad | Aprende y Aplica IA</title>
+    
+    <!-- Supabase Configuration -->
+    <meta name="supabase-url" content="">
+    <meta name="supabase-key" content="">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Variables CSS del proyecto principal */
+        :root {
+            --color-primary: #44E5FF;
+            --color-bg-dark: #0A0A0A;
+            --color-bg-light: #F2F2F2;
+            --color-contrast: #FFFFFF;
+            --color-accent: #0077A6;
+            --color-secondary: #0077A6;
+            --color-bg-1: #0A0A0A;
+            --color-bg-2: #0A0A0A;
+            --color-surface: #0A0A0A;
+            --text-on-dark: #FFFFFF;
+            --text-muted: #F2F2F2;
+            --glass: rgba(10, 10, 10, 0.6);
+            --glass-strong: rgba(10, 10, 10, 0.8);
+            --font-heading: 'Montserrat', Arial, Helvetica, sans-serif;
+            --font-body: 'Inter', Arial, Helvetica, sans-serif;
+            --heading-weight: 800;
+            --body-weight: 400;
+            --body-weight-medium: 500;
+            --font-size-h1: 32px;
+            --font-size-h2: 24px;
+            --font-size-base: 16px;
+            --font-size-sm: 14px;
+            --font-size-lg: 18px;
+            --line-height: 1.5;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,.12);
+            --spacing-xs: 8px;
+            --spacing-sm: 12px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --border-light: 1px solid rgba(255,255,255,.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-weight: var(--body-weight);
+            font-size: var(--font-size-base);
+            line-height: var(--line-height);
+            color: var(--text-on-dark);
+            background: linear-gradient(160deg, var(--color-bg-1) 0%, var(--color-bg-2) 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Fondo con partículas y glow */
+        .particles-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow::before {
+            content: '';
+            position: fixed;
+            width: 160vh;
+            height: 160vh;
+            left: -30vh;
+            top: -40vh;
+            background: radial-gradient(circle, rgba(68,229,255,0.18), transparent 60%);
+            filter: blur(60px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Contenedor principal */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-lg);
+        }
+
+        /* Header con estilo del proyecto */
+        .header {
+            text-align: center;
+            padding: calc(var(--spacing-lg) * 3) var(--spacing-lg);
+            margin-bottom: calc(var(--spacing-lg) * 2);
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+            border-radius: 2px;
+        }
+
+        .header h1 {
+            font-family: var(--font-heading);
+            font-weight: var(--heading-weight);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: var(--spacing-md);
+            background: linear-gradient(135deg, var(--color-primary), var(--color-contrast));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .header p {
+            font-size: var(--font-size-lg);
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        /* Navegación por pestañas */
+        .nav-tabs {
+            display: flex;
+            background: var(--glass-strong);
+            border-radius: var(--radius-lg);
+            margin-bottom: calc(var(--spacing-lg) * 2);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: var(--border-light);
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: var(--spacing-lg) var(--spacing-md);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: var(--font-size-base);
+            font-weight: var(--body-weight-medium);
+            color: var(--text-muted);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(68, 229, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .nav-tab:hover::before {
+            left: 100%;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            color: var(--color-bg-dark);
+            font-weight: var(--body-weight-medium);
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: rgba(68, 229, 255, 0.1);
+            color: var(--color-primary);
+        }
+
+        /* Contenido de pestañas */
+        .tab-content {
+            display: none;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Secciones de contenido */
+        .section {
+            background: var(--glass-strong);
+            border-radius: var(--radius-lg);
+            padding: calc(var(--spacing-lg) * 1.5);
+            margin-bottom: var(--spacing-lg);
+            border: var(--border-light);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(68, 229, 255, 0.1);
+            border-color: rgba(68, 229, 255, 0.3);
+        }
+
+        .section h3 {
+            font-family: var(--font-heading);
+            font-weight: var(--heading-weight);
+            font-size: var(--font-size-h2);
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .section h3::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            border-radius: 2px;
+        }
+
+        .section p {
+            color: var(--text-on-dark);
+            margin-bottom: var(--spacing-md);
+            line-height: 1.7;
+        }
+
+        .section ul {
+            margin-left: var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .section li {
+            color: var(--text-on-dark);
+            margin-bottom: var(--spacing-sm);
+            position: relative;
+            padding-left: var(--spacing-md);
+        }
+
+        .section li::before {
+            content: '•';
+            color: var(--color-primary);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        /* Cajas destacadas */
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.1), rgba(0, 119, 166, 0.1));
+            border: 1px solid rgba(68, 229, 255, 0.3);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            margin: var(--spacing-lg) 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .highlight-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+        }
+
+        .highlight-box h4 {
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-sm);
+            font-family: var(--font-heading);
+            font-weight: var(--heading-weight);
+        }
+
+        .contact-info {
+            background: linear-gradient(135deg, rgba(0, 119, 166, 0.1), rgba(68, 229, 255, 0.05));
+            border: 1px solid rgba(0, 119, 166, 0.3);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            margin: var(--spacing-lg) 0;
+            position: relative;
+        }
+
+        .contact-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
+        }
+
+        .contact-info h4 {
+            color: var(--color-accent);
+            margin-bottom: var(--spacing-sm);
+            font-family: var(--font-heading);
+            font-weight: var(--heading-weight);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--glass-strong);
+            padding: calc(var(--spacing-lg) * 2) var(--spacing-lg);
+            text-align: center;
+            border-top: var(--border-light);
+            margin-top: calc(var(--spacing-lg) * 3);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            color: var(--color-bg-dark);
+            padding: var(--spacing-md) var(--spacing-lg);
+            text-decoration: none;
+            border-radius: var(--radius-lg);
+            font-weight: var(--body-weight-medium);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: var(--spacing-lg);
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-body);
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(68, 229, 255, 0.3);
+        }
+
+        /* Indicador de última actualización */
+        .last-updated {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            margin: var(--spacing-lg) 0;
+            text-align: center;
+            color: #FFC107;
+            font-weight: var(--body-weight-medium);
+        }
+
+        /* Botón de scroll to top */
+        .scroll-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            color: var(--color-bg-dark);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(68, 229, 255, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            visibility: hidden;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .scroll-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-to-top:hover {
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 15px 40px rgba(68, 229, 255, 0.4);
+        }
+
+        /* Animaciones */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Efectos de hover para secciones */
+        .section {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(68, 229, 255, 0.05), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .section:hover::before {
+            left: 100%;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--spacing-md);
+            }
+
+            .header {
+                padding: calc(var(--spacing-lg) * 2) var(--spacing-md);
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .nav-tab {
+                border-bottom: var(--border-light);
+            }
+
+            .section {
+                padding: var(--spacing-lg);
+            }
+
+            .scroll-to-top {
+                bottom: 20px;
+                right: 20px;
+                width: 45px;
+                height: 45px;
+            }
+        }
+
+        /* Efectos de partículas */
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--color-primary);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+                opacity: 0;
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+                opacity: 1;
+            }
+        }
+
+        /* Generar partículas dinámicamente */
+        .particles-container::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, var(--color-primary) 1px, transparent 1px),
+                radial-gradient(circle at 80% 20%, var(--color-accent) 1px, transparent 1px),
+                radial-gradient(circle at 40% 40%, var(--color-primary) 1px, transparent 1px);
+            background-size: 200px 200px, 300px 300px, 150px 150px;
+            animation: particleMove 20s linear infinite;
+        }
+
+        @keyframes particleMove {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(-100px, -100px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Fondo con partículas -->
+    <div class="particles-container"></div>
+    <div class="bg-glow"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>📋 Términos y Condiciones</h1>
+            <p>Políticas de Privacidad y Uso de Aprende y Aplica IA</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('terms')">📜 Términos y Condiciones</button>
+            <button class="nav-tab" onclick="showTab('privacy')">🔒 Política de Privacidad</button>
+        </div>
+
+        <!-- Términos y Condiciones -->
+        <div id="terms" class="tab-content active">
+            <div class="last-updated">
+                <strong>Última actualización:</strong> Diciembre 2024
+            </div>
+
+            <div class="section">
+                <h3>1. Aceptación de los Términos</h3>
+                <p>Al acceder y utilizar la plataforma "Aprende y Aplica IA", usted acepta estar sujeto a estos términos y condiciones de uso. Si no está de acuerdo con alguna parte de estos términos, no debe utilizar nuestros servicios.</p>
+            </div>
+
+            <div class="section">
+                <h3>2. Descripción del Servicio</h3>
+                <p>Aprende y Aplica IA es una plataforma educativa que ofrece:</p>
+                <ul>
+                    <li>Cursos de inteligencia artificial y machine learning</li>
+                    <li>Contenido educativo interactivo</li>
+                    <li>Evaluaciones y certificaciones</li>
+                    <li>Comunidad de aprendizaje</li>
+                    <li>Recursos y herramientas de práctica</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>3. Registro y Cuenta de Usuario</h3>
+                <p>Para acceder a ciertos servicios, debe crear una cuenta proporcionando información precisa y actualizada. Usted es responsable de:</p>
+                <ul>
+                    <li>Mantener la confidencialidad de su contraseña</li>
+                    <li>Todas las actividades que ocurran bajo su cuenta</li>
+                    <li>Notificar inmediatamente cualquier uso no autorizado</li>
+                    <li>Mantener su información de contacto actualizada</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>4. Uso Aceptable</h3>
+                <p>Usted se compromete a utilizar la plataforma únicamente para fines legales y educativos. Está prohibido:</p>
+                <ul>
+                    <li>Usar la plataforma para actividades ilegales</li>
+                    <li>Compartir contenido ofensivo o inapropiado</li>
+                    <li>Intentar acceder a cuentas de otros usuarios</li>
+                    <li>Interferir con el funcionamiento de la plataforma</li>
+                    <li>Distribuir malware o código malicioso</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>5. Propiedad Intelectual</h3>
+                <p>Todos los contenidos, materiales y recursos disponibles en la plataforma son propiedad de Aprende y Aplica IA o sus licenciantes. Usted puede:</p>
+                <ul>
+                    <li>Acceder al contenido para uso personal y educativo</li>
+                    <li>Compartir enlaces a nuestros contenidos</li>
+                </ul>
+                <p>Está prohibido:</p>
+                <ul>
+                    <li>Reproducir, distribuir o modificar el contenido sin autorización</li>
+                    <li>Usar el contenido para fines comerciales</li>
+                    <li>Eliminar marcas de agua o atribuciones</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>6. Limitación de Responsabilidad</h3>
+                <p>Aprende y Aplica IA se esfuerza por proporcionar contenido educativo de alta calidad, pero no garantiza:</p>
+                <ul>
+                    <li>La precisión absoluta de toda la información</li>
+                    <li>La disponibilidad ininterrumpida del servicio</li>
+                    <li>Resultados específicos de aprendizaje</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>7. Modificaciones</h3>
+                <p>Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios entrarán en vigor inmediatamente después de su publicación. Se recomienda revisar periódicamente estos términos.</p>
+            </div>
+
+            <div class="contact-info">
+                <h4>📞 Contacto para Consultas</h4>
+                <p>Si tiene preguntas sobre estos términos y condiciones, puede contactarnos a través de:</p>
+                <p><strong>Email:</strong> legal@aprendeyaaplica.com</p>
+                <p><strong>Teléfono:</strong> +1 (555) 123-4567</p>
+            </div>
+        </div>
+
+        <!-- Política de Privacidad -->
+        <div id="privacy" class="tab-content">
+            <div class="last-updated">
+                <strong>Última actualización:</strong> Diciembre 2024
+            </div>
+
+            <div class="section">
+                <h3>1. Información que Recopilamos</h3>
+                <p>Recopilamos la siguiente información para proporcionar nuestros servicios:</p>
+                <ul>
+                    <li><strong>Información personal:</strong> Nombre, email, fecha de nacimiento</li>
+                    <li><strong>Información de la cuenta:</strong> Usuario, contraseña, preferencias</li>
+                    <li><strong>Datos de uso:</strong> Actividad en la plataforma, progreso de cursos</li>
+                    <li><strong>Información técnica:</strong> IP, navegador, dispositivo</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>2. Cómo Usamos su Información</h3>
+                <p>Utilizamos su información para:</p>
+                <ul>
+                    <li>Proporcionar y mejorar nuestros servicios educativos</li>
+                    <li>Personalizar su experiencia de aprendizaje</li>
+                    <li>Comunicarnos con usted sobre su cuenta y cursos</li>
+                    <li>Enviar actualizaciones y contenido relevante</li>
+                    <li>Analizar el uso de la plataforma para mejoras</li>
+                    <li>Cumplir con obligaciones legales</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>3. Compartir Información</h3>
+                <p>No vendemos, alquilamos ni compartimos su información personal con terceros, excepto:</p>
+                <ul>
+                    <li>Con su consentimiento explícito</li>
+                    <li>Para cumplir con obligaciones legales</li>
+                    <li>Con proveedores de servicios que nos ayudan a operar la plataforma</li>
+                    <li>Para proteger nuestros derechos y seguridad</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>4. Seguridad de Datos</h3>
+                <p>Implementamos medidas de seguridad técnicas y organizativas para proteger su información:</p>
+                <ul>
+                    <li>Encriptación de datos en tránsito y en reposo</li>
+                    <li>Acceso restringido a información personal</li>
+                    <li>Monitoreo regular de seguridad</li>
+                    <li>Copias de seguridad seguras</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>5. Cookies y Tecnologías Similares</h3>
+                <p>Utilizamos cookies y tecnologías similares para:</p>
+                <ul>
+                    <li>Recordar sus preferencias y configuraciones</li>
+                    <li>Analizar el uso de la plataforma</li>
+                    <li>Mejorar la funcionalidad del sitio</li>
+                    <li>Proporcionar contenido personalizado</li>
+                </ul>
+                <p>Puede controlar el uso de cookies a través de la configuración de su navegador.</p>
+            </div>
+
+            <div class="section">
+                <h3>6. Sus Derechos</h3>
+                <p>Usted tiene derecho a:</p>
+                <ul>
+                    <li>Acceder a su información personal</li>
+                    <li>Corregir información inexacta</li>
+                    <li>Solicitar la eliminación de sus datos</li>
+                    <li>Oponerse al procesamiento de sus datos</li>
+                    <li>Portabilidad de sus datos</li>
+                    <li>Retirar su consentimiento en cualquier momento</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>7. Retención de Datos</h3>
+                <p>Conservamos su información personal durante el tiempo necesario para:</p>
+                <ul>
+                    <li>Proporcionar nuestros servicios</li>
+                    <li>Cumplir con obligaciones legales</li>
+                    <li>Resolver disputas</li>
+                    <li>Hacer cumplir nuestros acuerdos</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>8. Menores de Edad</h3>
+                <p>Nuestros servicios no están dirigidos a menores de 13 años. No recopilamos intencionalmente información personal de menores de 13 años. Si es padre o tutor y cree que su hijo nos ha proporcionado información personal, contáctenos inmediatamente.</p>
+            </div>
+
+            <div class="section">
+                <h3>9. Cambios en la Política</h3>
+                <p>Podemos actualizar esta política de privacidad ocasionalmente. Le notificaremos sobre cambios significativos por email o a través de la plataforma.</p>
+            </div>
+
+            <div class="contact-info">
+                <h4>🔒 Oficial de Privacidad</h4>
+                <p>Para consultas sobre privacidad y protección de datos:</p>
+                <p><strong>Email:</strong> privacy@aprendeyaaplica.com</p>
+                <p><strong>Dirección:</strong> Calle Principal 123, Ciudad, País</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Aprende y Aplica IA</strong> - Transformando el futuro a través de la educación en inteligencia artificial</p>
+            <p>© 2024 Aprende y Aplica IA. Todos los derechos reservados.</p>
+            <button class="back-button" onclick="window.location.href='index.html'">
+                <span>← Volver al Inicio</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="scroll-to-top" onclick="scrollToTop()">
+        ↑
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Ocultar todas las pestañas
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                content.style.animation = 'none';
+            });
+
+            // Remover clase active de todos los botones
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => tab.classList.remove('active'));
+
+            // Mostrar la pestaña seleccionada
+            const selectedTab = document.getElementById(tabName);
+            selectedTab.classList.add('active');
+            selectedTab.style.animation = 'fadeInUp 0.6s ease';
+
+            // Agregar clase active al botón clickeado
+            event.target.classList.add('active');
+        }
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Mostrar/ocultar botón de scroll to top
+        window.addEventListener('scroll', function() {
+            const scrollButton = document.querySelector('.scroll-to-top');
+            if (window.pageYOffset > 300) {
+                scrollButton.classList.add('visible');
+            } else {
+                scrollButton.classList.remove('visible');
+            }
+        });
+
+        // Animación de entrada para elementos
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.6s ease';
+                }
+            });
+        }, observerOptions);
+
+        // Observar todas las secciones
+        document.querySelectorAll('.section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Efecto de partículas dinámicas
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            document.querySelector('.particles-container').appendChild(particle);
+
+            setTimeout(() => {
+                particle.remove();
+            }, 6000);
+        }
+
+        // Crear partículas periódicamente
+        setInterval(createParticle, 2000);
+
+        // Animación suave para enlaces internos
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

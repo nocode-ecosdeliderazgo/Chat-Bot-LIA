@@ -14,6 +14,63 @@
     --course-success: #22c55e;
     --course-warning: #f59e0b;
     --course-danger: #ef4444;
+    
+    /* Variables para tema claro/oscuro */
+    --bg-primary: #0A0A0A;
+    --bg-secondary: #0A0A0A;
+    --bg-1: #0A0A0A;
+    --bg-2: #0A0A0A;
+    --text-primary: #ffffff;
+    --text-secondary: #b8c5d1;
+    --text-muted: #8a9ba8;
+    --card-bg: rgba(20, 30, 45, 0.9);
+    --card-border: rgba(68, 229, 255, 0.15);
+    --shadow-card: 0 8px 22px rgba(0,0,0,.35);
+    --shadow-card-hover: 0 18px 40px rgba(0,0,0,.5);
+}
+
+/* ===== MODO CLARO ===== */
+[data-theme="light"] {
+    --bg-primary: #E6F3FF;
+    --bg-secondary: #D4E6F1;
+    --bg-1: #E6F3FF;
+    --bg-2: #D4E6F1;
+    --text-primary: #2D3748;
+    --text-secondary: rgba(45, 55, 72, 0.8);
+    --text-muted: rgba(45, 55, 72, 0.6);
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --card-border: rgba(68, 229, 255, 0.15);
+    --shadow-card: 0 4px 12px rgba(0,0,0,.03);
+    --shadow-card-hover: 0 8px 24px rgba(0,0,0,.06);
+    --course-bg-primary: rgba(255, 255, 255, 0.95);
+    --course-bg-secondary: rgba(255, 255, 255, 0.8);
+    --course-card-bg: rgba(255, 255, 255, 0.85);
+    --course-border: rgba(68, 229, 255, 0.15);
+    --course-text-primary: #2D3748;
+    --course-text-secondary: rgba(45, 55, 72, 0.8);
+    --course-text-muted: rgba(45, 55, 72, 0.6);
+}
+
+/* ===== MODO OSCURO ===== */
+[data-theme="dark"] {
+    --bg-primary: #0A0A0A;
+    --bg-secondary: #0A0A0A;
+    --bg-1: #0A0A0A;
+    --bg-2: #0A0A0A;
+    --text-primary: #ffffff;
+    --text-secondary: #b8c5d1;
+    --text-muted: #8a9ba8;
+    --card-bg: rgba(20, 30, 45, 0.9);
+    --card-border: rgba(68, 229, 255, 0.15);
+    --shadow-card: 0 8px 22px rgba(0,0,0,.35);
+    --shadow-card-hover: 0 18px 40px rgba(0,0,0,.5);
+    --course-bg-primary: rgba(10, 15, 25, 0.95);
+    --course-bg-secondary: rgba(15, 25, 40, 0.8);
+    --course-card-bg: rgba(20, 30, 45, 0.9);
+    --course-border: rgba(68, 229, 255, 0.15);
+    --course-text-primary: #ffffff;
+    --course-text-secondary: #b8c5d1;
+    --course-text-muted: #8a9ba8;
 }
 
 
@@ -22,22 +79,38 @@
 html, body.courses-page {
     margin: 0;
     padding: 0;
-    /* Colores del degradado específicos para Mis Cursos (más azulados, no negro) */
-    --color-bg-1: #041326; /* azul noche (más oscuro) */
-    --color-bg-2: #070F1D; /* azul profundo (más oscuro) */
-    background: linear-gradient(160deg, var(--color-bg-1) 0%, var(--color-bg-2) 100%);
+    /* Usar el mismo fondo que el login con partículas */
+    background: 
+        radial-gradient(1200px 800px at 20% 0%, rgba(68, 229, 255, 0.08), transparent 60%),
+        radial-gradient(800px 600px at 80% 100%, rgba(0, 119, 166, 0.12), transparent 60%),
+        linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
     color: var(--course-text-primary);
     font-family: var(--font-body);
     min-height: 100vh;
     overflow-x: hidden; /* Solo ocultar scroll horizontal */
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ===== Header fijo con navbar (para Mis Cursos) ===== */
 .catalog-header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: transparent; backdrop-filter: none; border-bottom: 0; }
 .catalog-header .container { display:flex; align-items:center; justify-content:center; gap:12px; padding: 10px 16px; min-height: 60px; position: relative; }
 .catalog-header .course-tabs { margin: 0; width: auto; background: rgba(20,30,45,0.95); border: 1px solid rgba(68,229,255,0.15); box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(68,229,255,0.1) inset; backdrop-filter: blur(20px); border-radius: 20px; }
-.catalog-header .header-profile { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); width: 40px; height: 40px; border: 0; background: transparent; box-shadow: none; }
-.profile-menu { position: fixed; top: 64px; right: 16px; width: 240px; background: rgba(10,16,28,.96); border:1px solid rgba(68,229,255,.18); border-radius: 12px; box-shadow: 0 18px 46px rgba(0,0,0,.45); backdrop-filter: blur(10px); display:none; z-index: 1002; overflow: hidden; }
+.catalog-header .header-profile {
+    position: fixed;
+    top: 12px;
+    right: 20px;
+    transform: none;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(68,229,255,.55);
+    background: rgba(7,17,36,.5);
+    box-shadow: 0 0 0 3px rgba(68,229,255,.22), 0 10px 24px rgba(0,0,0,.45);
+    z-index: 1002;
+}
+.catalog-header .header-profile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.profile-menu { position: fixed; top: 72px; right: 20px; width: 240px; background: rgba(10,16,28,.96); border:1px solid rgba(68,229,255,.18); border-radius: 12px; box-shadow: 0 18px 46px rgba(0,0,0,.45); backdrop-filter: blur(10px); display:none; z-index: 1002; overflow: hidden; }
 .profile-menu.show { display:block; }
 .profile-menu .pm-header { display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid rgba(68,229,255,.12); }
 .profile-menu .pm-avatar { width:36px; height:36px; border-radius:50%; overflow:hidden; border:1px solid rgba(68,229,255,.25); }
@@ -173,13 +246,13 @@ html, body.courses-page {
     height: 100%;
     background: linear-gradient(90deg, 
         transparent, 
-        rgba(68, 229, 255, 0.15), 
+        rgba(68, 229, 255, 0.2), 
         transparent);
-    transition: left 0.6s ease;
+    transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .tab-button:hover::before {
-    left: 100%;
+    left: 0;
 }
 
 .tab-button:hover {
@@ -418,19 +491,36 @@ html, body.courses-page {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: rgba(68, 229, 255, 0.1);
-    border: 1px solid rgba(68, 229, 255, 0.2);
+    background: transparent;
+    border: 2px solid rgba(68, 229, 255, 0.2);
     border-radius: 8px;
     padding: 8px 12px;
     color: var(--course-accent);
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+}
+
+.clear-search-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(68, 229, 255, 0.2);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.clear-search-btn:hover::before {
+    left: 0;
 }
 
 .clear-search-btn:hover {
-    background: rgba(68, 229, 255, 0.2);
     border-color: var(--course-accent);
     transform: translateY(-1px);
 }
@@ -767,18 +857,38 @@ html, body.courses-page {
 
 /* ===== BOTONES ===== */
 .btn-primary {
-    background: linear-gradient(135deg, var(--course-accent), #3dd4eb);
-    color: #000;
-    border: none;
+    background: transparent;
+    color: var(--course-accent);
+    border: 2px solid var(--course-accent);
     padding: 12px 24px;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     box-shadow: 0 4px 16px rgba(68, 229, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--course-accent), #3dd4eb);
+    transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.btn-primary:hover::before {
+    left: 0;
 }
 
 .btn-primary:hover {
+    color: #000;
+    border-color: transparent;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(68, 229, 255, 0.3);
 }
@@ -786,39 +896,75 @@ html, body.courses-page {
 .btn-secondary {
     background: transparent;
     color: var(--course-text-secondary);
-    border: 1px solid var(--course-border);
+    border: 2px solid var(--course-border);
     padding: 12px 24px;
     border-radius: 8px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-secondary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(68, 229, 255, 0.1);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.btn-secondary:hover::before {
+    left: 0;
 }
 
 .btn-secondary:hover {
-    background: rgba(68, 229, 255, 0.1);
     color: var(--course-accent);
     border-color: var(--course-accent);
     transform: translateY(-1px);
 }
 
 .btn-course-primary {
-    background: var(--course-accent);
-    color: #000;
-    border: none;
+    background: transparent;
+    color: var(--course-accent);
+    border: 2px solid var(--course-accent);
     padding: 10px 20px;
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-course-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--course-accent);
+    transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.btn-course-primary:hover::before {
+    left: 0;
 }
 
 .btn-course-primary:hover {
-    background: var(--course-accent-hover);
+    color: #000;
+    border-color: transparent;
     transform: translateY(-1px);
 }
 
@@ -881,8 +1027,8 @@ html, body.courses-page {
 }
 
 .menu-btn {
-    background: rgba(0, 0, 0, 0.7);
-    border: none;
+    background: transparent;
+    border: 2px solid rgba(68, 229, 255, 0.3);
     color: white;
     width: 32px;
     height: 32px;
@@ -891,13 +1037,33 @@ html, body.courses-page {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+.menu-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(68, 229, 255, 0.8);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+    border-radius: 50%;
+}
+
+.menu-btn:hover::before {
+    left: 0;
 }
 
 .menu-btn:hover {
-    background: rgba(68, 229, 255, 0.8);
     color: #000;
+    border-color: rgba(68, 229, 255, 0.8);
+    transform: scale(1.05);
 }
 
 .course-info {
@@ -1739,18 +1905,35 @@ html, body.courses-page {
 
 
 .scheduler-footer .btn-primary {
+    background: transparent;
+    color: var(--course-accent);
+    border: 2px solid var(--course-accent);
+    box-shadow: 0 4px 15px rgba(68, 229, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.scheduler-footer .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
     background: linear-gradient(135deg, 
         var(--course-accent) 0%, 
         var(--course-accent-hover) 100%);
-    color: #000;
-    border: 1px solid rgba(68, 229, 255, 0.3);
-    box-shadow: 0 4px 15px rgba(68, 229, 255, 0.3);
+    transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.scheduler-footer .btn-primary:hover::before {
+    left: 0;
 }
 
 .scheduler-footer .btn-primary:hover {
-    background: linear-gradient(135deg, 
-        var(--course-accent-hover) 0%, 
-        var(--course-accent) 100%);
+    color: #000;
+    border-color: transparent;
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(68, 229, 255, 0.4);
 }
@@ -1758,6 +1941,30 @@ html, body.courses-page {
 .scheduler-footer .btn-primary:active {
     transform: translateY(0);
     box-shadow: 0 4px 15px rgba(68, 229, 255, 0.3);
+}
+
+/* Efecto de clic para todos los botones */
+.btn-primary:active,
+.btn-secondary:active,
+.btn-course-primary:active,
+.menu-btn:active,
+.clear-search-btn:active,
+.scheduler-footer .btn-primary:active {
+    transform: translateY(-1px) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* Efecto de focus para accesibilidad */
+.btn-primary:focus,
+.btn-secondary:focus,
+.btn-course-primary:focus,
+.menu-btn:focus,
+.clear-search-btn:focus,
+.scheduler-footer .btn-primary:focus {
+    outline: none;
+    box-shadow: 
+        0 0 0 3px rgba(68, 229, 255, 0.3),
+        0 8px 25px rgba(68, 229, 255, 0.4);
 }
 
 /* Responsive para el modal */
@@ -2178,6 +2385,531 @@ html, body.courses-page {
     content: none !important;
     box-shadow: none !important;
     background: none !important;
+}
+
+/* ===== ESTILOS PARA MODO CLARO/OSCURO ===== */
+
+/* Forzar actualización de estilos en cambio de tema */
+[data-theme="light"] body.courses-page {
+    background: 
+        radial-gradient(1200px 800px at 20% 0%, rgba(68, 229, 255, 0.08), transparent 60%),
+        radial-gradient(800px 600px at 80% 100%, rgba(0, 119, 166, 0.12), transparent 60%),
+        linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%) !important;
+}
+
+[data-theme="dark"] body.courses-page {
+    background: 
+        radial-gradient(1200px 800px at 20% 0%, rgba(68, 229, 255, 0.08), transparent 60%),
+        radial-gradient(800px 600px at 80% 100%, rgba(0, 119, 166, 0.12), transparent 60%),
+        linear-gradient(160deg, #0A0A0A 0%, #0A0A0A 100%) !important;
+}
+
+/* Estilos para el header en modo claro */
+[data-theme="light"] .catalog-header .course-tabs {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(68, 229, 255, 0.2) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .tab-button {
+    color: #4A5568 !important;
+    background: transparent !important;
+}
+
+[data-theme="light"] .tab-button:hover {
+    background: rgba(68, 229, 255, 0.1) !important;
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .tab-button.active {
+    background: linear-gradient(135deg, var(--course-accent), var(--course-accent-hover)) !important;
+    color: #001018 !important;
+    box-shadow: 0 4px 12px rgba(68, 229, 255, 0.3) !important;
+}
+
+[data-theme="light"] .tab-button i {
+    color: inherit !important;
+}
+
+/* Estilos para el menú del perfil en modo claro */
+[data-theme="light"] .profile-menu {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(68, 229, 255, 0.2) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .pm-header {
+    border-bottom: 1px solid rgba(68, 229, 255, 0.1) !important;
+}
+
+[data-theme="light"] .pm-name {
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .pm-email {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] .pm-section {
+    border-bottom: 1px solid rgba(68, 229, 255, 0.05) !important;
+}
+
+[data-theme="light"] .pm-item {
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .pm-item:hover {
+    background: rgba(68, 229, 255, 0.1) !important;
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .pm-item i {
+    color: #4A5568 !important;
+}
+
+/* Estilos para el botón de cambio de tema en el menú */
+[data-theme="light"] .pm-item#themeToggle {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    padding-left: 40px !important;
+}
+
+[data-theme="light"] .pm-item#themeToggle:hover {
+    background: rgba(68, 229, 255, 0.1);
+}
+
+[data-theme="light"] .pm-item#themeToggle.clicked {
+    transform: scale(0.98);
+    background: rgba(68, 229, 255, 0.2);
+}
+
+[data-theme="light"] .theme-icon-sun,
+[data-theme="light"] .theme-icon-moon {
+    margin-right: 0;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
+    display: inline-block;
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+[data-theme="light"] .theme-icon-sun {
+    opacity: 1;
+    transform: translateY(-50%);
+}
+
+[data-theme="light"] .theme-icon-moon {
+    opacity: 0;
+    transform: translateY(-50%);
+}
+
+/* Estilos para modo oscuro */
+[data-theme="dark"] .pm-item#themeToggle {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    padding-left: 40px !important;
+}
+
+[data-theme="dark"] .theme-icon-sun,
+[data-theme="dark"] .theme-icon-moon {
+    margin-right: 0;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
+    display: inline-block;
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+[data-theme="dark"] .theme-icon-sun {
+    opacity: 0;
+    transform: translateY(-50%);
+}
+
+[data-theme="dark"] .theme-icon-moon {
+    opacity: 1;
+    transform: translateY(-50%);
+}
+
+/* Estilos para las tarjetas de cursos en modo claro */
+[data-theme="light"] .course-card {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid rgba(68, 229, 255, 0.15) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .course-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06) !important;
+    border-color: var(--course-accent) !important;
+}
+
+[data-theme="light"] .course-card h3 {
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .course-card .course-instructor {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] .course-card .progress-text {
+    color: #4A5568 !important;
+}
+
+/* Estilos para las tarjetas de herramientas en modo claro */
+[data-theme="light"] .tool-card {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid rgba(68, 229, 255, 0.15) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .tool-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06) !important;
+    border-color: var(--course-accent) !important;
+}
+
+[data-theme="light"] .tool-card h3 {
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .tool-card p {
+    color: #4A5568 !important;
+}
+
+/* Estilos para la tarjeta de racha en modo claro */
+[data-theme="light"] .learning-streak-card {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid rgba(68, 229, 255, 0.15) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .learning-streak-card h2 {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .learning-streak-card p {
+    color: #4A5568 !important;
+}
+
+/* Estilos para el anillo de racha en modo claro */
+[data-theme="light"] .streak-ring {
+    border: 3px solid #0066CC !important;
+    background: rgba(0, 102, 204, 0.1) !important;
+    border-radius: 50% !important;
+}
+
+[data-theme="light"] .streak-ring .streak-number {
+    color: #0066CC !important;
+}
+
+/* Estilos para el nombre en modo claro */
+[data-theme="light"] .streak-info h2 {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+[data-theme="light"] .streak-info h2#welcomeTitle {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+/* Estilos para las estadísticas en modo claro */
+[data-theme="light"] .streak-stats .stat-value {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .streak-stats .stat-label {
+    color: #4A5568 !important;
+}
+
+/* Estilos para el texto de bienvenida en modo claro */
+[data-theme="light"] .streak-info h2 {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+[data-theme="light"] .streak-info p {
+    color: #4A5568 !important;
+}
+
+/* Estilos específicos para el título de bienvenida */
+[data-theme="light"] #welcomeTitle {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+/* Estilos para cualquier texto de bienvenida */
+[data-theme="light"] .welcome-text,
+[data-theme="light"] .welcome-title,
+[data-theme="light"] .streak-info .welcome {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+/* Estilos simples y directos para el nombre en modo claro */
+[data-theme="light"] .streak-info h2 {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .learning-streak-card h2 {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .streak-content h2 {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] #welcomeTitle {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+}
+
+/* Estilo específico para el texto de bienvenida */
+[data-theme="light"] .streak-info h2,
+[data-theme="light"] .learning-streak-card h2,
+[data-theme="light"] .streak-content h2,
+[data-theme="light"] #welcomeTitle {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+/* Estilo adicional para asegurar que se vea */
+[data-theme="light"] .streak-info h2 {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+    background: transparent !important;
+}
+
+/* Estilos para texto dinámico en modo claro */
+[data-theme="light"] .streak-info h2,
+[data-theme="light"] .streak-info h2 *,
+[data-theme="light"] .streak-info h2::before,
+[data-theme="light"] .streak-info h2::after {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+/* Estilos para cualquier texto dentro del streak-info */
+[data-theme="light"] .streak-info {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] .streak-info h2,
+[data-theme="light"] .streak-info h2 span,
+[data-theme="light"] .streak-info h2 strong,
+[data-theme="light"] .streak-info h2 em {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+/* Estilos para el texto de bienvenida específicamente */
+[data-theme="light"] #welcomeTitle,
+[data-theme="light"] #welcomeTitle *,
+[data-theme="light"] #welcomeTitle::before,
+[data-theme="light"] #welcomeTitle::after {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+/* Estilo global para cualquier texto en modo claro */
+[data-theme="light"] .streak-info,
+[data-theme="light"] .learning-streak-card,
+[data-theme="light"] .streak-content {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] .streak-info h2,
+[data-theme="light"] .learning-streak-card h2,
+[data-theme="light"] .streak-content h2 {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+/* Estilo para texto dinámico que se agregue después */
+[data-theme="light"] .streak-info h2:not([style*="color"]) {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+/* Estilos para sobrescribir estilos inline del JavaScript */
+[data-theme="light"] #welcomeTitle[style*="color"] {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+[data-theme="light"] .streak-info h2[style*="color"] {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+/* Estilos para cualquier elemento con estilos inline */
+[data-theme="light"] h2[style*="color"] {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+}
+
+/* Estilos para sobrescribir la variable CSS */
+[data-theme="light"] #welcomeTitle {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+    /* DESHABILITAR EL GRADIENTE DE TEXTO */
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+    background-clip: unset !important;
+    background: none !important;
+}
+
+/* Estilos para el modo claro que sobrescriban todo */
+[data-theme="light"] .streak-info h2,
+[data-theme="light"] .learning-streak-card h2,
+[data-theme="light"] .streak-content h2,
+[data-theme="light"] #welcomeTitle {
+    color: #0066CC !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+    background: transparent !important;
+    /* DESHABILITAR EL GRADIENTE DE TEXTO */
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+    background-clip: unset !important;
+    background: none !important;
+}
+
+/* Estilos para botones en modo claro */
+[data-theme="light"] .btn-primary {
+    font-weight: 800 !important;
+    color: #0066CC !important;
+    border-color: #0066CC !important;
+    background: transparent !important;
+}
+
+[data-theme="light"] .btn-primary:hover {
+    color: white !important;
+    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
+    border-color: transparent !important;
+    font-weight: 800 !important;
+}
+
+[data-theme="light"] .btn-secondary {
+    color: #4A5568 !important;
+    border-color: #4A5568 !important;
+    background: transparent !important;
+}
+
+[data-theme="light"] .btn-secondary:hover {
+    color: white !important;
+    background: #4A5568 !important;
+    border-color: transparent !important;
+}
+
+/* Estilos para botones específicos de cursos en modo claro */
+[data-theme="light"] .btn-course-primary {
+    color: #0066CC !important;
+    border-color: #0066CC !important;
+    background: transparent !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="light"] .btn-course-primary:hover {
+    color: white !important;
+    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
+    border-color: transparent !important;
+}
+
+[data-theme="light"] .btn-course-primary:disabled {
+    color: #9CA3AF !important;
+    border-color: #9CA3AF !important;
+    background: transparent !important;
+    cursor: not-allowed !important;
+}
+
+/* Estilos para el texto de progreso en modo claro */
+[data-theme="light"] .progress-text {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] .course-instructor {
+    color: #4A5568 !important;
+}
+
+/* Estilos para la barra de progreso en modo claro */
+[data-theme="light"] .progress-bar {
+    background: rgba(0, 102, 204, 0.1) !important;
+}
+
+[data-theme="light"] .progress-fill {
+    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
+}
+
+/* Estilos adicionales para elementos de texto en modo claro */
+[data-theme="light"] .streak-content h2 {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .streak-content p {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] .streak-visual {
+    color: #0066CC !important;
+}
+
+/* Estilos para el texto de estadísticas específicas */
+[data-theme="light"] .stat-item .stat-value {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .stat-item .stat-label {
+    color: #4A5568 !important;
+}
+
+/* Estilos para el texto de fecha en modo claro */
+[data-theme="light"] .streak-date {
+    color: #4A5568 !important;
+}
+
+/* Estilos para el texto de porcentaje de progreso */
+[data-theme="light"] .progress-percentage {
+    color: #0066CC !important;
+}
+
+/* Transiciones suaves para cambio de tema */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Clase para transiciones durante cambio de tema */
+.theme-transitioning * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
 

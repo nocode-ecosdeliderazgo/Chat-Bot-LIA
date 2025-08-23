@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Subida de Archivos</title>
+    
+    <!-- Supabase credentials -->
+    <meta name="supabase-url" content="">
+    <meta name="supabase-key" content="">
+    
+    <link rel="stylesheet" href="src/styles/main.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            color: var(--color-primary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(68, 229, 255, 0.2);
+        }
+        
+        .test-section h3 {
+            color: var(--color-primary);
+            margin-bottom: 15px;
+        }
+        
+        .upload-area {
+            border: 2px dashed rgba(68, 229, 255, 0.3);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--color-primary);
+            background: rgba(68, 229, 255, 0.05);
+        }
+        
+        .upload-btn {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(68, 229, 255, 0.3);
+        }
+        
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10B981;
+        }
+        
+        .status.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+        }
+        
+        .status.info {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #3B82F6;
+        }
+        
+        .preview {
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            border: 2px solid rgba(68, 229, 255, 0.3);
+        }
+        
+        .file-info {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .back-btn {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="src/profile.html" class="back-btn">← Volver al Perfil</a>
+        
+        <h1>🧪 Test de Subida de Archivos</h1>
+        
+        <div class="test-section">
+            <h3>📸 Subida de Foto de Perfil</h3>
+            <p>Prueba la funcionalidad de subida de imágenes al bucket "avatars"</p>
+            
+            <div class="upload-area" onclick="document.getElementById('testImageInput').click()">
+                <p>Haz clic aquí o arrastra una imagen</p>
+                <p style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.6);">
+                    Formatos: JPG, PNG, GIF (máx. 5MB)
+                </p>
+            </div>
+            
+            <input type="file" id="testImageInput" accept="image/*" style="display: none;">
+            
+            <div id="imageStatus" class="status" style="display: none;"></div>
+            <div id="imagePreview" class="preview" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📄 Subida de Curriculum</h3>
+            <p>Prueba la funcionalidad de subida de documentos al bucket "Curriculums"</p>
+            
+            <div class="upload-area" onclick="document.getElementById('testDocInput').click()">
+                <p>Haz clic aquí o arrastra un documento</p>
+                <p style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.6);">
+                    Formatos: PDF, DOC, DOCX (máx. 10MB)
+                </p>
+            </div>
+            
+            <input type="file" id="testDocInput" accept=".pdf,.doc,.docx" style="display: none;">
+            
+            <div id="docStatus" class="status" style="display: none;"></div>
+            <div id="docInfo" class="file-info" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔧 Configuración de Supabase</h3>
+            <div id="configStatus" class="status info">
+                Verificando configuración de Supabase...
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📋 Logs de Debug</h3>
+            <div id="debugLog" style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.9rem; max-height: 200px; overflow-y: auto;">
+                Iniciando test de subida de archivos...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para agregar logs
+        function addLog(message, type = 'info') {
+            const logDiv = document.getElementById('debugLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#EF4444' : type === 'success' ? '#10B981' : '#3B82F6';
+            logDiv.innerHTML += `<div style="color: ${color}; margin-bottom: 5px;">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // Verificar configuración de Supabase
+        async function checkSupabaseConfig() {
+            const configStatus = document.getElementById('configStatus');
+            
+            try {
+                const supabaseUrl = document.querySelector('meta[name="supabase-url"]')?.content || 
+                                   localStorage.getItem('supabaseUrl');
+                const supabaseKey = document.querySelector('meta[name="supabase-key"]')?.content || 
+                                   localStorage.getItem('supabaseAnonKey');
+                
+                if (!supabaseUrl || !supabaseKey) {
+                    configStatus.className = 'status error';
+                    configStatus.textContent = '❌ Credenciales de Supabase no encontradas';
+                    addLog('Error: Credenciales de Supabase no encontradas', 'error');
+                    return false;
+                }
+                
+                configStatus.className = 'status success';
+                configStatus.textContent = '✅ Credenciales de Supabase configuradas';
+                addLog('Credenciales de Supabase encontradas', 'success');
+                return true;
+                
+            } catch (error) {
+                configStatus.className = 'status error';
+                configStatus.textContent = '❌ Error verificando configuración';
+                addLog('Error verificando configuración: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // Test de subida de imagen
+        async function testImageUpload(file) {
+            const statusDiv = document.getElementById('imageStatus');
+            const previewDiv = document.getElementById('imagePreview');
+            
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status info';
+            statusDiv.textContent = 'Subiendo imagen...';
+            
+            addLog('Iniciando subida de imagen: ' + file.name);
+            
+            try {
+                // Simular subida (aquí iría la lógica real)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                statusDiv.className = 'status success';
+                statusDiv.textContent = '✅ Imagen subida correctamente';
+                
+                // Mostrar preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewDiv.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    previewDiv.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                
+                addLog('Imagen subida exitosamente', 'success');
+                
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ Error subiendo imagen: ' + error.message;
+                addLog('Error subiendo imagen: ' + error.message, 'error');
+            }
+        }
+
+        // Test de subida de documento
+        async function testDocumentUpload(file) {
+            const statusDiv = document.getElementById('docStatus');
+            const infoDiv = document.getElementById('docInfo');
+            
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status info';
+            statusDiv.textContent = 'Subiendo documento...';
+            
+            addLog('Iniciando subida de documento: ' + file.name);
+            
+            try {
+                // Simular subida (aquí iría la lógica real)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                statusDiv.className = 'status success';
+                statusDiv.textContent = '✅ Documento subido correctamente';
+                
+                // Mostrar información del archivo
+                const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                infoDiv.innerHTML = `
+                    <strong>Archivo:</strong> ${file.name}<br>
+                    <strong>Tamaño:</strong> ${fileSize} MB<br>
+                    <strong>Tipo:</strong> ${file.type}
+                `;
+                infoDiv.style.display = 'block';
+                
+                addLog('Documento subido exitosamente', 'success');
+                
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ Error subiendo documento: ' + error.message;
+                addLog('Error subiendo documento: ' + error.message, 'error');
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', async () => {
+            addLog('Página cargada, verificando configuración...');
+            await checkSupabaseConfig();
+            
+            // Event listener para imagen
+            document.getElementById('testImageInput').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    testImageUpload(file);
+                }
+            });
+            
+            // Event listener para documento
+            document.getElementById('testDocInput').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    testDocumentUpload(file);
+                }
+            });
+            
+            // Drag and drop para imagen
+            const imageUploadArea = document.querySelector('.test-section:nth-child(2) .upload-area');
+            imageUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                imageUploadArea.style.borderColor = 'var(--color-primary)';
+                imageUploadArea.style.background = 'rgba(68, 229, 255, 0.1)';
+            });
+            
+            imageUploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                imageUploadArea.style.borderColor = 'rgba(68, 229, 255, 0.3)';
+                imageUploadArea.style.background = 'transparent';
+            });
+            
+            imageUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                imageUploadArea.style.borderColor = 'rgba(68, 229, 255, 0.3)';
+                imageUploadArea.style.background = 'transparent';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    testImageUpload(files[0]);
+                }
+            });
+            
+            // Drag and drop para documento
+            const docUploadArea = document.querySelector('.test-section:nth-child(3) .upload-area');
+            docUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                docUploadArea.style.borderColor = 'var(--color-primary)';
+                docUploadArea.style.background = 'rgba(68, 229, 255, 0.1)';
+            });
+            
+            docUploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                docUploadArea.style.borderColor = 'rgba(68, 229, 255, 0.3)';
+                docUploadArea.style.background = 'transparent';
+            });
+            
+            docUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                docUploadArea.style.borderColor = 'rgba(68, 229, 255, 0.3)';
+                docUploadArea.style.background = 'transparent';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    testDocumentUpload(files[0]);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Avatar Directo</title>
+    <style>
+        body {
+            background: #0A0A0A;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .avatar-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid #44E5FF;
+            overflow: hidden;
+            margin: 0 auto 20px;
+            position: relative;
+            background: #1a1a1a;
+        }
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        .avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #44E5FF, #0077A6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+        button {
+            background: #44E5FF;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #00B4D8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(68, 229, 255, 0.3);
+        }
+        .log {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .status.success {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00FF00;
+            color: #00FF00;
+        }
+        .status.error {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid #FF0000;
+            color: #FF0000;
+        }
+        .status.info {
+            background: rgba(68, 229, 255, 0.1);
+            border: 1px solid #44E5FF;
+            color: #44E5FF;
+        }
+        h1 {
+            text-align: center;
+            color: #44E5FF;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: rgba(68, 229, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid rgba(68, 229, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fix Avatar Directo</h1>
+        
+        <div class="test-section">
+            <h3>🎯 Avatar Actual</h3>
+            <div class="avatar-section">
+                <div class="avatar" id="avatarContainer">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjMEEwQTBBIi8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjNDRFNUZGIi8+CjxyZWN0IHg9IjMwIiB5PSI1NSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNDRFNUZGIi8+Cjwvc3ZnPgo=" alt="Avatar" id="avatarImage">
+                </div>
+                <div id="status" class="status info">Esperando acción...</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="createAvatar()">🎨 Crear Avatar</button>
+            <button onclick="testCanvas()">🧪 Probar Canvas</button>
+            <button onclick="checkElement()">🔍 Verificar Elemento</button>
+            <button onclick="clearLogs()">🗑️ Limpiar Logs</button>
+        </div>
+
+        <div class="log" id="logs">
+            <div>🚀 Sistema iniciado...</div>
+        </div>
+    </div>
+
+    <script>
+        // Función para log
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            console.log(logEntry);
+            
+            const logsDiv = document.getElementById('logs');
+            const logElement = document.createElement('div');
+            logElement.textContent = logEntry;
+            logElement.style.color = type === 'error' ? '#FF6B6B' : type === 'success' ? '#4ECDC4' : '#44E5FF';
+            logsDiv.appendChild(logElement);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        // Función para actualizar estado
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        // Función para crear avatar con canvas
+        function createAvatar() {
+            log('🎨 Iniciando creación de avatar...', 'info');
+            
+            try {
+                // Crear canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = 100;
+                canvas.height = 100;
+                const ctx = canvas.getContext('2d');
+                
+                log('✅ Canvas creado correctamente', 'success');
+                
+                // Fondo circular con gradiente
+                const gradient = ctx.createRadialGradient(50, 50, 0, 50, 50, 50);
+                gradient.addColorStop(0, '#44E5FF');
+                gradient.addColorStop(1, '#0077A6');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(50, 50, 50, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                log('✅ Fondo circular aplicado', 'success');
+                
+                // Borde blanco
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Letra F en blanco
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 40px Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('F', 50, 50);
+                
+                log('✅ Texto aplicado', 'success');
+                
+                // Convertir a data URL
+                const dataURL = canvas.toDataURL('image/png');
+                log(`✅ Data URL generado: ${dataURL.substring(0, 50)}...`, 'success');
+                
+                // Aplicar al elemento
+                const avatarImage = document.getElementById('avatarImage');
+                if (avatarImage) {
+                    avatarImage.src = dataURL;
+                    avatarImage.style.display = 'block';
+                    avatarImage.style.visibility = 'visible';
+                    avatarImage.style.opacity = '1';
+                    
+                    log('✅ Avatar aplicado al elemento', 'success');
+                    updateStatus('Avatar creado y aplicado exitosamente', 'success');
+                    
+                    // Guardar en localStorage
+                    try {
+                        const currentUser = localStorage.getItem('currentUser');
+                        if (currentUser) {
+                            const userData = JSON.parse(currentUser);
+                            userData.profile_picture_url = dataURL;
+                            localStorage.setItem('currentUser', JSON.stringify(userData));
+                            log('✅ Avatar guardado en localStorage', 'success');
+                        } else {
+                            log('⚠️ No hay datos de usuario en localStorage', 'info');
+                        }
+                    } catch (error) {
+                        log(`❌ Error guardando en localStorage: ${error.message}`, 'error');
+                    }
+                    
+                    return true;
+                } else {
+                    log('❌ Elemento avatar no encontrado', 'error');
+                    updateStatus('Error: Elemento avatar no encontrado', 'error');
+                    return false;
+                }
+                
+            } catch (error) {
+                log(`❌ Error creando avatar: ${error.message}`, 'error');
+                updateStatus(`Error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Función para probar canvas
+        function testCanvas() {
+            log('🧪 Probando funcionalidad de canvas...', 'info');
+            
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 50;
+                canvas.height = 50;
+                const ctx = canvas.getContext('2d');
+                
+                // Dibujar algo simple
+                ctx.fillStyle = '#FF0000';
+                ctx.fillRect(0, 0, 50, 50);
+                
+                const dataURL = canvas.toDataURL();
+                log(`✅ Canvas funciona: ${dataURL.substring(0, 30)}...`, 'success');
+                updateStatus('Canvas funciona correctamente', 'success');
+                
+            } catch (error) {
+                log(`❌ Error en canvas: ${error.message}`, 'error');
+                updateStatus(`Error en canvas: ${error.message}`, 'error');
+            }
+        }
+
+        // Función para verificar elemento
+        function checkElement() {
+            log('🔍 Verificando elemento avatar...', 'info');
+            
+            const avatarImage = document.getElementById('avatarImage');
+            if (avatarImage) {
+                log('✅ Elemento avatar encontrado', 'success');
+                log(`📍 ID: ${avatarImage.id}`, 'info');
+                log(`📍 Tag: ${avatarImage.tagName}`, 'info');
+                log(`📍 Src actual: ${avatarImage.src.substring(0, 50)}...`, 'info');
+                log(`📍 Display: ${getComputedStyle(avatarImage).display}`, 'info');
+                log(`📍 Visibility: ${getComputedStyle(avatarImage).visibility}`, 'info');
+                log(`📍 Opacity: ${getComputedStyle(avatarImage).opacity}`, 'info');
+                updateStatus('Elemento avatar encontrado y verificado', 'success');
+            } else {
+                log('❌ Elemento avatar no encontrado', 'error');
+                updateStatus('Error: Elemento avatar no encontrado', 'error');
+                
+                // Buscar elementos similares
+                const allImages = document.querySelectorAll('img');
+                log(`🔍 Encontrados ${allImages.length} elementos img`, 'info');
+                allImages.forEach((img, index) => {
+                    log(`📍 Img ${index}: id="${img.id}", src="${img.src.substring(0, 30)}..."`, 'info');
+                });
+            }
+        }
+
+        // Función para limpiar logs
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '<div>🚀 Logs limpiados...</div>';
+            updateStatus('Logs limpiados', 'info');
+        }
+
+        // Ejecutar automáticamente al cargar
+        window.addEventListener('load', function() {
+            log('📄 Página cargada completamente', 'success');
+            setTimeout(() => {
+                log('⏰ Ejecutando verificación automática...', 'info');
+                checkElement();
+            }, 500);
+        });
+
+        // Función global para acceso manual
+        window.createAvatar = createAvatar;
+        window.testCanvas = testCanvas;
+        window.checkElement = checkElement;
+        window.clearLogs = clearLogs;
+
+        log('✅ Script cargado y listo', 'success');
+    </script>
+</body>
+</html>

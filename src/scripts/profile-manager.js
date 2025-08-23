@@ -28,7 +28,7 @@ class ProfileManager {
             const raw = localStorage.getItem('currentUser');
             if (!raw) {
                 this.showError('Inicia sesión para ver tu perfil');
-                window.location.href = 'login/new-auth.html';
+                window.location.href = 'index.html';
                 return;
             }
             const sessionUser = JSON.parse(raw);
@@ -111,6 +111,11 @@ class ProfileManager {
                 avatarImage.src = this.currentUser.profile_picture_url;
             }
         }
+
+        // Actualizar curriculum si existe
+        if (this.currentUser.curriculum_url) {
+            this.updateCurriculumDisplay('Curriculum cargado', this.currentUser.curriculum_url);
+        }
     }
 
     populateForm() {
@@ -140,20 +145,75 @@ class ProfileManager {
         }
     }
 
-    updateStats() {
-        const stats = {
-            courses: 2,
-            progress: 35,
-            streak: 5
-        };
-
+    async updateStats() {
         const coursesElement = document.getElementById('coursesCount');
         const progressElement = document.getElementById('progressValue');
         const streakElement = document.getElementById('streakValue');
 
-        if (coursesElement) coursesElement.textContent = stats.courses;
-        if (progressElement) progressElement.textContent = stats.progress + '%';
-        if (streakElement) streakElement.textContent = stats.streak;
+        // Inicial por defecto
+        if (coursesElement) coursesElement.textContent = '0';
+        if (progressElement) progressElement.textContent = '0%';
+        if (streakElement) streakElement.textContent = '0';
+
+        try {
+            const supabaseUrl = localStorage.getItem('supabaseUrl');
+            const supabaseKey = localStorage.getItem('supabaseAnonKey');
+            const userId = this.currentUser?.id;
+            if (!supabaseUrl || !supabaseKey || !userId) return;
+
+            // 1) Minutos de la semana actual (lunes-domingo)
+            const monday = new Date();
+            const day = monday.getDay();
+            const diff = (day === 0 ? -6 : 1) - day; // ir al lunes
+            monday.setDate(monday.getDate() + diff);
+            const from = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate());
+
+            const minutesResp = await fetch(`${supabaseUrl}/rest/v1/study_session?user_id=eq.${userId}&started_at=gte.${from.toISOString()}&select=duration_minutes`, {
+                headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+            });
+            let minutes = 0;
+            if (minutesResp.ok) {
+                const rows = await minutesResp.json();
+                minutes = rows.reduce((sum, r) => sum + (r.duration_minutes || 0), 0);
+            }
+
+            // 2) Visitas del día (para racha diaria)
+            const today = new Date().toISOString().slice(0,10);
+            const visitResp = await fetch(`${supabaseUrl}/rest/v1/course_visit?user_id=eq.${userId}&visited_on=eq.${today}&select=visits`, {
+                headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+            });
+            let todayVisits = 0;
+            if (visitResp.ok) {
+                const rows = await visitResp.json();
+                todayVisits = rows.reduce((sum, r) => sum + (r.visits || 0), 0);
+            }
+
+            // 3) Racha: contar días consecutivos hacia atrás con al menos 1 minuto o 1 visita
+            let streak = 0;
+            for (let i = 0; i < 30; i++) { // mirar hasta 30 días hacia atrás
+                const d = new Date(); d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().slice(0,10);
+
+                const dayVisitsResp = await fetch(`${supabaseUrl}/rest/v1/course_visit?user_id=eq.${userId}&visited_on=eq.${dateStr}&select=visits`, {
+                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                });
+                const dayMinutesResp = await fetch(`${supabaseUrl}/rest/v1/study_session?user_id=eq.${userId}&started_at=gte.${dateStr}T00:00:00Z&started_at=lte.${dateStr}T23:59:59Z&select=duration_minutes`, {
+                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                });
+                const v = dayVisitsResp.ok ? (await dayVisitsResp.json()).reduce((s,r)=>s+(r.visits||0),0) : 0;
+                const m = dayMinutesResp.ok ? (await dayMinutesResp.json()).reduce((s,r)=>s+(r.duration_minutes||0),0) : 0;
+                if (v > 0 || m > 0) streak += 1; else break;
+            }
+
+            // 4) Cursos (placeholder: si tienes tabla de inscripciones, cámbialo a real)
+            const courses = 2;
+
+            if (coursesElement) coursesElement.textContent = String(courses);
+            if (progressElement) progressElement.textContent = `${Math.min(100, Math.round((minutes/30)*100))}%`;
+            if (streakElement) streakElement.textContent = String(streak);
+        } catch (err) {
+            console.warn('[PROFILE] No se pudieron cargar estadísticas reales', err);
+        }
     }
 
     setupEventListeners() {
@@ -232,8 +292,38 @@ class ProfileManager {
         const curriculumName = document.getElementById('curriculumName');
 
         if (curriculumInput && curriculumBtn) {
-            curriculumBtn.addEventListener('click', () => {
-                curriculumInput.click();
+            curriculumBtn.addEventListener('click', (event) => {
+                // VERIFICAR QUE ES UNA ACTIVACIÓN DEL USUARIO
+                if (!event.isTrusted) {
+                    console.error('❌ Error: File chooser requiere activación del usuario');
+                    return;
+                }
+                
+                // Verificar que no haya otros diálogos abiertos
+                if (document.querySelector('.password-required-notification')) {
+                    console.log('⚠️ Diálogo de notificación abierto, esperando...');
+                    return;
+                }
+                
+                try {
+                    console.log('📝 Abriendo selector de archivos para CV...');
+                    
+                    // Usar setTimeout para asegurar que se ejecute en el contexto correcto
+                    setTimeout(() => {
+                        try {
+                            curriculumInput.click();
+                        } catch (error) {
+                            console.error('❌ Error en setTimeout click:', error);
+                        }
+                    }, 0);
+                    
+                } catch (error) {
+                    console.error('❌ Error abriendo file chooser:', error);
+                    // No mostrar alert inmediatamente, puede interferir
+                    setTimeout(() => {
+                        alert('Error al abrir el selector de archivos. Por favor, intenta de nuevo.');
+                    }, 100);
+                }
             });
 
             curriculumInput.addEventListener('change', async (e) => {
@@ -312,6 +402,11 @@ class ProfileManager {
             const avatarImage = document.getElementById('avatarImage');
             if (avatarImage) {
                 avatarImage.src = e.target.result;
+            }
+            
+            // Actualizar avatares en otras páginas inmediatamente
+            if (window.updateProfileAvatars) {
+                window.updateProfileAvatars();
             }
         };
         reader.readAsDataURL(file);
@@ -467,33 +562,70 @@ class ProfileManager {
             website_url: document.getElementById('portfolioUrl')?.value || null
         };
 
-        // Nota: subida de archivos a storage no implementada sin Supabase.
-        // Si se requiere, podemos implementar en backend /uploads con Multer.
-
-        const idOrUsername = this.currentUser?.id || this.currentUser?.username;
-        const body = { ...updates };
-        if (this.currentUser?.id) body.id = this.currentUser.id; else body.username = this.currentUser.username;
+        console.log('Actualizando perfil con datos:', updates);
 
         let user;
         try {
-            const resp = await fetch('/api/profile', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            if (!resp.ok) throw new Error('No se pudo actualizar el perfil');
-            ({ user } = await resp.json());
+            // Usar Supabase directamente
+            const supabaseUrl = localStorage.getItem('supabaseUrl');
+            const supabaseKey = localStorage.getItem('supabaseAnonKey');
+            
+            if (!supabaseUrl || !supabaseKey) {
+                throw new Error('Credenciales de Supabase no encontradas');
+            }
+
+            // Importar Supabase si no está disponible
+            let supabase;
+            if (typeof window.supabase === 'undefined') {
+                const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+                supabase = createClient(supabaseUrl, supabaseKey);
+            } else {
+                supabase = window.supabase;
+            }
+
+            // Actualizar en Supabase con identificación robusta
+            let query = supabase.from('users').update(updates);
+            
+            // CRUCIAL: Usar identificación robusta para evitar mezclar cuentas
+            if (this.currentUser.id && 
+                !String(this.currentUser.id).startsWith('dev-') && 
+                !String(this.currentUser.id).includes('test')) {
+                // Usar ID si es válido y real de BD
+                query = query.eq('id', this.currentUser.id);
+            } else if (this.currentUser.username) {
+                // Usar username como fallback
+                query = query.eq('username', this.currentUser.username);
+            } else if (this.currentUser.email) {
+                // Usar email como último recurso
+                query = query.eq('email', this.currentUser.email);
+            } else {
+                throw new Error('No se puede identificar al usuario actual');
+            }
+            
+            const { data, error } = await query.select();
+
+            if (error) {
+                throw error;
+            }
+
+            user = data[0];
+            console.log('Perfil actualizado en Supabase:', user);
+
         } catch (err) {
-            // Fallback local: persistir en localStorage y continuar
+            console.error('Error actualizando en Supabase:', err);
+            
+            // Fallback local: persistir en localStorage
             const KEY = 'user_profile_local';
             try {
                 const store = JSON.parse(localStorage.getItem(KEY) || '{}');
-                const key = this.currentUser?.username || body.username || 'usuario';
-                store[key] = { ...(store[key] || {}), ...body };
+                const key = this.currentUser?.username || updates.username || 'usuario';
+                store[key] = { ...(store[key] || {}), ...updates };
                 localStorage.setItem(KEY, JSON.stringify(store));
                 user = { ...store[key] };
-            } catch (_) {
-                throw err; // si no podemos guardar localmente, re-lanzamos
+                console.log('Perfil guardado localmente:', user);
+            } catch (localErr) {
+                console.error('Error guardando localmente:', localErr);
+                throw err; // si no podemos guardar localmente, re-lanzamos el error original
             }
         }
 
@@ -506,6 +638,7 @@ class ProfileManager {
             bio: user.bio || updates.bio,
             location: user.location || updates.location
         });
+        
         this.currentUser.email = user.email || updates.email;
         this.currentUser.username = user.username || updates.username;
         if (user.profile_picture_url) this.currentUser.profile_picture_url = user.profile_picture_url;
@@ -514,7 +647,16 @@ class ProfileManager {
         this.currentUser.linkedin_url = user.linkedin_url || updates.linkedin_url;
         this.currentUser.github_url = user.github_url || updates.github_url;
         this.currentUser.website_url = user.website_url || updates.website_url;
+        
+        // Actualizar localStorage con los nuevos datos
+        localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+        
         this.updateCurrentProfileDisplay();
+        
+        // Actualizar avatares en otras páginas si existe la función
+        if (window.updateProfileAvatars) {
+            window.updateProfileAvatars();
+        }
     }
 
     setupAutoSave() {
@@ -573,11 +715,56 @@ class ProfileManager {
             }, 300);
         }, 3000);
     }
+
+    updateCurriculumDisplay(fileName, fileUrl) {
+        const curriculumName = document.getElementById('curriculumName');
+        if (curriculumName) {
+            curriculumName.textContent = fileName;
+            curriculumName.style.color = 'var(--color-primary)';
+        }
+
+        // Agregar link para descargar
+        const curriculumBtn = document.getElementById('curriculumBtn');
+        if (curriculumBtn) {
+            curriculumBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Descargar CV</span>
+            `;
+            curriculumBtn.onclick = () => window.open(fileUrl, '_blank');
+        }
+    }
 }
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    new ProfileManager();
+    window.profileManager = new ProfileManager();
+    
+    // Función global de debug disponible en consola
+    window.debugProfile = () => {
+        if (window.profileManager) {
+            console.log('=== DEBUG PROFILE STATE ===');
+            console.log('Current User:', window.profileManager.currentUser);
+            console.log('Profile Data:', window.profileManager.profileData);
+            console.log('LocalStorage currentUser:', localStorage.getItem('currentUser'));
+            
+            // Mostrar todas las claves de perfil en localStorage
+            const profileKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('profile_')) {
+                    profileKeys.push(key);
+                }
+            }
+            console.log('Profile keys in localStorage:', profileKeys);
+            console.log('=== END DEBUG ===');
+        } else {
+            console.log('ProfileManager no está inicializado');
+        }
+    };
 });
 
 // ===== FUNCIONES UTILITARIAS =====

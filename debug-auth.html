@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Autenticación Supabase</title>
+    
+    <!-- Supabase credentials -->
+    <meta name="supabase-url" content="">
+    <meta name="supabase-key" content="">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            color: #44E5FF;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .debug-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(68, 229, 255, 0.2);
+        }
+        
+        .debug-section h3 {
+            color: #44E5FF;
+            margin-bottom: 15px;
+        }
+        
+        .status {
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10B981;
+        }
+        
+        .status.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+        }
+        
+        .status.info {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #3B82F6;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #44E5FF, #6366F1);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(68, 229, 255, 0.3);
+        }
+        
+        .log-area {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin: 5px 0;
+        }
+        
+        .config-label {
+            font-weight: 500;
+        }
+        
+        .config-value {
+            font-family: monospace;
+            color: #44E5FF;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug - Autenticación Supabase</h1>
+        
+        <div class="debug-section">
+            <h3>📋 Configuración de Supabase</h3>
+            <div id="supabaseConfig">
+                <div class="config-item">
+                    <span class="config-label">URL de Supabase:</span>
+                    <span class="config-value" id="supabaseUrl">Verificando...</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Clave Anónima:</span>
+                    <span class="config-value" id="supabaseKey">Verificando...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="debug-section">
+            <h3>👤 Estado de Autenticación</h3>
+            <div id="authStatus">
+                <div class="status info">Verificando autenticación...</div>
+            </div>
+            <button class="btn" onclick="checkAuth()">Verificar Autenticación</button>
+        </div>
+        
+        <div class="debug-section">
+            <h3>🪣 Test de Storage</h3>
+            <div id="storageStatus">
+                <div class="status info">Listo para probar storage</div>
+            </div>
+            <button class="btn" onclick="testStorage()">Test Storage</button>
+        </div>
+        
+        <div class="debug-section">
+            <h3>📋 Logs de Debug</h3>
+            <div id="debugLog" class="log-area">
+                Iniciando debug de autenticación...
+            </div>
+            <button class="btn" onclick="clearLog()">Limpiar Log</button>
+        </div>
+    </div>
+
+    <script>
+        let supabase = null;
+
+        // Función para agregar logs
+        function addLog(message, type = 'info') {
+            const logDiv = document.getElementById('debugLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#EF4444' : type === 'success' ? '#10B981' : '#3B82F6';
+            logDiv.innerHTML += `<div style="color: ${color}; margin-bottom: 5px;">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // Función para limpiar log
+        function clearLog() {
+            document.getElementById('debugLog').innerHTML = '';
+        }
+
+        // Función para actualizar estado
+        function updateStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${type}`;
+            element.textContent = message;
+        }
+
+        // Inicializar Supabase
+        async function initializeSupabase() {
+            try {
+                const supabaseUrl = document.querySelector('meta[name="supabase-url"]')?.content || 
+                                   localStorage.getItem('supabaseUrl');
+                const supabaseKey = document.querySelector('meta[name="supabase-key"]')?.content || 
+                                   localStorage.getItem('supabaseAnonKey');
+
+                if (!supabaseUrl || !supabaseKey) {
+                    throw new Error('Credenciales de Supabase no encontradas');
+                }
+
+                // Actualizar UI
+                document.getElementById('supabaseUrl').textContent = supabaseUrl.substring(0, 30) + '...';
+                document.getElementById('supabaseKey').textContent = supabaseKey.substring(0, 20) + '...';
+
+                // Importar Supabase
+                if (typeof window.supabase === 'undefined') {
+                    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+                    supabase = createClient(supabaseUrl, supabaseKey);
+                } else {
+                    supabase = window.supabase;
+                }
+
+                addLog('Supabase inicializado correctamente', 'success');
+                return true;
+            } catch (error) {
+                addLog('Error inicializando Supabase: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // Verificar autenticación
+        async function checkAuth() {
+            if (!supabase) {
+                addLog('Supabase no inicializado', 'error');
+                return;
+            }
+
+            try {
+                addLog('Verificando autenticación...', 'info');
+                
+                // Obtener sesión actual
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                
+                if (sessionError) {
+                    throw sessionError;
+                }
+
+                if (session) {
+                    addLog('Usuario autenticado: ' + session.user.email, 'success');
+                    updateStatus('authStatus', '✅ Usuario autenticado: ' + session.user.email, 'success');
+                    
+                    // Verificar usuario en localStorage
+                    const localUser = localStorage.getItem('currentUser');
+                    if (localUser) {
+                        const user = JSON.parse(localUser);
+                        addLog('Usuario en localStorage: ' + (user.email || user.username), 'success');
+                    } else {
+                        addLog('No hay usuario en localStorage', 'error');
+                    }
+                } else {
+                    addLog('Usuario no autenticado', 'error');
+                    updateStatus('authStatus', '❌ Usuario no autenticado', 'error');
+                }
+
+            } catch (error) {
+                addLog('Error verificando autenticación: ' + error.message, 'error');
+                updateStatus('authStatus', '❌ Error verificando autenticación', 'error');
+            }
+        }
+
+        // Test de storage
+        async function testStorage() {
+            if (!supabase) {
+                addLog('Supabase no inicializado', 'error');
+                return;
+            }
+
+            try {
+                addLog('Iniciando test de storage...', 'info');
+                updateStatus('storageStatus', 'Probando storage...', 'info');
+
+                // Verificar sesión primero
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    throw new Error('Usuario no autenticado');
+                }
+
+                // Crear archivo de prueba
+                const testFile = new File(['test-content'], 'test.txt', { type: 'text/plain' });
+                
+                // Intentar subir al bucket Curriculums
+                const fileName = `test-${Date.now()}.txt`;
+                const { data, error } = await supabase.storage
+                    .from('Curriculums')
+                    .upload(fileName, testFile, { upsert: true });
+
+                if (error) {
+                    throw error;
+                }
+
+                addLog('Archivo subido correctamente: ' + fileName, 'success');
+                updateStatus('storageStatus', '✅ Test de storage exitoso', 'success');
+
+                // Limpiar archivo de prueba
+                await supabase.storage.from('Curriculums').remove([fileName]);
+                addLog('Archivo de prueba eliminado', 'success');
+
+            } catch (error) {
+                addLog('Error en test de storage: ' + error.message, 'error');
+                updateStatus('storageStatus', '❌ Error en test de storage: ' + error.message, 'error');
+            }
+        }
+
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', async () => {
+            addLog('Iniciando debug de autenticación...', 'info');
+            
+            const supabaseOk = await initializeSupabase();
+            if (supabaseOk) {
+                await checkAuth();
+            }
+        });
+    </script>
+</body>
+</html>

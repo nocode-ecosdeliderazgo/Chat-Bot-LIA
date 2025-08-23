@@ -11,9 +11,30 @@
     <link rel="stylesheet" href="new-auth.css?v=2.0">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="../assets/images/icono.png">
+    
+    <!-- Global theme setup - Configuración global del tema -->
+    <script src="../scripts/global-theme-setup.js"></script>
 </head>
 <body>
     <!-- Partículas de fondo del login original -->
+    <!-- Botón de cambio de tema -->
+    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">
+        <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
     <div class="particles-container">
         <div class="particle"></div>
         <div class="particle"></div>
@@ -72,7 +93,7 @@
                             <label for="loginPassword">Contraseña</label>
                             <div class="input-wrapper">
                                 <input type="password" id="loginPassword" name="password" required placeholder="••••••••">
-                                <button type="button" class="toggle-password" data-target="loginPassword">
+                                <button type="button" class="toggle-password" data-target="loginPassword" aria-label="Mostrar contraseña">
                                     <svg class="eye-icon show" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                         <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -153,7 +174,10 @@
                             <div class="form-group">
                                 <label for="phone">Teléfono</label>
                                 <div class="input-wrapper">
-                                    <input type="tel" id="phone" name="phone" placeholder="+52 555 123 4567">
+                                    <div style="display:flex; align-items:center; gap:8px; width:100%">
+                                        <span style="padding:10px 12px; border-radius:8px; background: rgba(255,255,255,0.06); border:1px solid rgba(68,229,255,0.18); color:#9bd6df; font-weight:600">+52</span>
+                                        <input type="tel" id="phone" name="phone" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="10 dígitos" style="flex:1">
+                                    </div>
                                     <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7293C21.7209 20.9845 21.5573 21.2136 21.3521 21.4019C21.1468 21.5901 20.9046 21.7335 20.6407 21.8227C20.3769 21.9119 20.0974 21.9451 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77382 17.3147 6.72533 15.2662 5.18999 12.85C3.49997 10.2412 2.44824 7.27099 2.11999 4.18C2.095 3.90347 2.12787 3.62476 2.21649 3.36162C2.30512 3.09849 2.44756 2.85669 2.63476 2.65162C2.82196 2.44655 3.0498 2.28271 3.30379 2.17052C3.55777 2.05833 3.83233 2.00026 4.10999 2H7.10999C7.59344 1.99522 8.06544 2.16708 8.43785 2.48353C8.81026 2.79999 9.06708 3.23945 9.15999 3.72C9.33657 4.68007 9.62533 5.62273 10.02 6.53C10.1513 6.88792 10.1778 7.27691 10.0965 7.65088C10.0152 8.02485 9.82943 8.36811 9.55999 8.64L8.28999 9.91C9.57376 12.4135 11.5865 14.4261 14.09 15.71L15.36 14.44C15.6319 14.1706 15.9751 13.9848 16.3491 13.9035C16.7231 13.8222 17.1121 13.8487 17.47 13.98C18.3773 14.3747 19.3199 14.6634 20.28 14.84C20.7658 14.9334 21.2094 15.1938 21.5265 15.5739C21.8437 15.954 22.0122 16.4311 22 16.92Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
@@ -177,7 +201,7 @@
                                 <label for="registerPassword">Contraseña</label>
                                 <div class="input-wrapper">
                                     <input type="password" id="registerPassword" name="password" required placeholder="••••••••">
-                                    <button type="button" class="toggle-password" data-target="registerPassword">
+                                    <button type="button" class="toggle-password" data-target="registerPassword" aria-label="Mostrar contraseña">
                                         <svg class="eye-icon show" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                             <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -195,7 +219,7 @@
                                 <label for="confirmPassword">Verificar contraseña</label>
                                 <div class="input-wrapper">
                                     <input type="password" id="confirmPassword" name="confirm_password" required placeholder="••••••••">
-                                    <button type="button" class="toggle-password" data-target="confirmPassword">
+                                    <button type="button" class="toggle-password" data-target="confirmPassword" aria-label="Mostrar contraseña">
                                         <svg class="eye-icon show" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                             <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -249,7 +273,141 @@
         </div>
     </div>
 
+    <!-- Tarjeta Informativa de Términos y Condiciones -->
+    <div id="termsCard" class="terms-card-overlay">
+        <div class="terms-card">
+            <div class="terms-card-header">
+                <div class="header-content">
+                    <svg class="header-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <polyline points="10,9 9,9 8,9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h3>Documentos Legales</h3>
+                </div>
+                <button class="terms-close" onclick="closeTermsCard()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="terms-card-tabs">
+                <button class="terms-tab active" onclick="showTermsTab('terms')">
+                    <svg class="tab-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <polyline points="10,9 9,9 8,9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Términos y Condiciones</span>
+                </button>
+                <button class="terms-tab" onclick="showTermsTab('privacy')">
+                    <svg class="tab-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 8V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Política de Privacidad</span>
+                </button>
+            </div>
+            
+            <div class="terms-card-content">
+                <!-- Términos y Condiciones -->
+                <div id="termsContent" class="terms-content active">
+                    <div class="terms-section">
+                        <h4>1. Aceptación de los Términos</h4>
+                        <p>Al acceder y utilizar la plataforma "Aprende y Aplica IA", usted acepta estar sujeto a estos términos y condiciones de uso.</p>
+                    </div>
+                    
+                    <div class="terms-section">
+                        <h4>2. Descripción del Servicio</h4>
+                        <p>Aprende y Aplica IA es una plataforma educativa que ofrece:</p>
+                        <ul>
+                            <li>Cursos de inteligencia artificial y machine learning</li>
+                            <li>Contenido educativo interactivo</li>
+                            <li>Evaluaciones y certificaciones</li>
+                            <li>Comunidad de aprendizaje</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="terms-section">
+                        <h4>3. Uso Aceptable</h4>
+                        <p>Usted se compromete a utilizar la plataforma únicamente para fines legales y educativos.</p>
+                    </div>
+                    
+                    <div class="terms-section">
+                        <h4>4. Propiedad Intelectual</h4>
+                        <p>Todos los contenidos son propiedad de Aprende y Aplica IA. Puedes acceder para uso personal, pero no redistribuir sin autorización.</p>
+                    </div>
+                </div>
+                
+                <!-- Política de Privacidad -->
+                <div id="privacyContent" class="terms-content">
+                    <div class="terms-section">
+                        <h4>1. Información que Recopilamos</h4>
+                        <ul>
+                            <li>Datos personales (nombre, email)</li>
+                            <li>Información de cuenta</li>
+                            <li>Datos de uso y progreso</li>
+                            <li>Información técnica</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="terms-section">
+                        <h4>2. Cómo Usamos su Información</h4>
+                        <ul>
+                            <li>Proporcionar servicios educativos</li>
+                            <li>Personalizar experiencia</li>
+                            <li>Comunicaciones sobre cursos</li>
+                            <li>Mejoras de la plataforma</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="terms-section">
+                        <h4>3. Protección de Datos</h4>
+                        <p>Implementamos medidas de seguridad para proteger tu información:</p>
+                        <ul>
+                            <li>Encriptación de datos</li>
+                            <li>Acceso restringido</li>
+                            <li>Monitoreo de seguridad</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="terms-section">
+                        <h4>4. Tus Derechos</h4>
+                        <ul>
+                            <li>Acceder a tus datos</li>
+                            <li>Corregir información</li>
+                            <li>Solicitar eliminación</li>
+                            <li>Retirar consentimiento</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="terms-card-footer">
+                <button class="btn-terms-accept" onclick="acceptTermsAndClose()">
+                    <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Aceptar y Continuar</span>
+                </button>
+                <button class="btn-terms-close" onclick="closeTermsCard()">
+                    <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Cerrar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="../scripts/supabase-client.js"></script>
     <script src="new-auth.js?v=2.0"></script>
+    <script src="../scripts/theme-toggle.js"></script>
 </body>
 </html>
