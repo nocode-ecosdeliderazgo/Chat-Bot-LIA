@@ -1170,14 +1170,22 @@ async function registerUserLocal(userData) {
     return newUser;
 }
 
-// Función para determinar la página de destino según type_rol del usuario
+// Función para determinar la página de destino según type_rol y cargo_rol del usuario
 function getRedirectPageByTypeRol(userData) {
     const typeRol = userData.type_rol;
+    const cargoRol = userData.cargo_rol;
     const isNewUser = userData.isNewUser;
     
     devLog('Determinando redirección basada en type_rol:', typeRol);
+    devLog('Determinando redirección basada en cargo_rol:', cargoRol);
     devLog('Usuario es nuevo:', isNewUser);
     devLog('Datos completos del usuario:', userData);
+    
+    // REGLA PRIORITARIA: Si cargo_rol es 'Instructor' -> instructor-dashboard.html
+    if (cargoRol === 'Instructor' || cargoRol === 'instructor') {
+        devLog('cargo_rol es Instructor, redirigiendo al panel de instructores');
+        return '../instructors/instructor-dashboard.html';
+    }
     
     // REGLA PRINCIPAL: Si type_rol es NULL -> perfil-cuestionario.html
     if (typeRol === null || typeRol === undefined) {

@@ -29,15 +29,33 @@ class InstructorDashboard {
     }
 
     async checkAuth() {
-        const { data: { user }, error } = await this.supabase.auth.getUser();
+        // Verificar autenticación usando el sistema local
+        const userDataStr = localStorage.getItem('userData') || localStorage.getItem('currentUser');
+        const userToken = localStorage.getItem('userToken') || localStorage.getItem('authToken');
         
-        if (error || !user) {
+        if (!userDataStr || !userToken) {
+            console.log('No hay datos de autenticación, redirigiendo al login');
             window.location.href = '../login/new-auth.html';
             return;
         }
 
-        this.currentUser = user;
-        this.updateUserInfo();
+        try {
+            const userData = JSON.parse(userDataStr);
+            
+            // Verificar que el usuario sea instructor
+            if (userData.cargo_rol !== 'Instructor' && userData.cargo_rol !== 'instructor') {
+                console.log('Usuario no es instructor, redirigiendo');
+                window.location.href = '../cursos.html';
+                return;
+            }
+
+            this.currentUser = userData;
+            this.updateUserInfo();
+            
+        } catch (error) {
+            console.error('Error verificando autenticación:', error);
+            window.location.href = '../login/new-auth.html';
+        }
     }
 
     updateUserInfo() {
@@ -45,15 +63,16 @@ class InstructorDashboard {
         const userAvatarElement = document.getElementById('userAvatar');
         
         if (this.currentUser) {
-            const displayName = this.currentUser.user_metadata?.full_name || 
-                              this.currentUser.user_metadata?.name || 
+            const displayName = this.currentUser.display_name || 
+                              this.currentUser.first_name + ' ' + this.currentUser.last_name ||
+                              this.currentUser.username || 
                               this.currentUser.email?.split('@')[0] || 
                               'Maestro';
             
             userNameElement.textContent = displayName;
             
-            if (this.currentUser.user_metadata?.avatar_url) {
-                userAvatarElement.src = this.currentUser.user_metadata.avatar_url;
+            if (this.currentUser.profile_picture_url) {
+                userAvatarElement.src = this.currentUser.profile_picture_url;
             }
         }
     }
@@ -628,7 +647,13 @@ class InstructorDashboard {
 
     async logout() {
         try {
-            await this.supabase.auth.signOut();
+            // Limpiar datos de autenticación local
+            localStorage.removeItem('userData');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('userToken');
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userSession');
+            
             window.location.href = '../login/new-auth.html';
         } catch (error) {
             console.error('Error al cerrar sesión:', error);

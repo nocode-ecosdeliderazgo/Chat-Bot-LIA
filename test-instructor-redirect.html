@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Redirección Instructor - Aprende y Aplica</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .test-container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .test-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .test-info h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .credentials {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .btn {
+            background: #44E5FF;
+            color: #0A0A0A;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 10px 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #0077A6;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #495057;
+        }
+        .steps {
+            margin: 20px 0;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid #44E5FF;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test de Redirección para Instructores</h1>
+        
+        <div class="test-info">
+            <h3>📋 Información del Test</h3>
+            <p>Este test verifica que cuando un usuario con <strong>cargo_rol = 'Instructor'</strong> inicie sesión, sea redirigido automáticamente al panel de maestros.</p>
+        </div>
+
+        <div class="test-info">
+            <h3>👤 Credenciales de Prueba</h3>
+            <div class="credentials">
+                <strong>Email:</strong> instructor@test.com<br>
+                <strong>Usuario:</strong> instructor<br>
+                <strong>Contraseña:</strong> instructor123<br>
+                <strong>Rol:</strong> Instructor
+            </div>
+        </div>
+
+        <div class="steps">
+            <h3>📝 Pasos para Probar</h3>
+            <div class="step">
+                1. Haz clic en "Ir al Login" para abrir la página de autenticación
+            </div>
+            <div class="step">
+                2. Inicia sesión con las credenciales de instructor
+            </div>
+            <div class="step">
+                3. Deberías ser redirigido automáticamente al panel de maestros
+            </div>
+            <div class="step">
+                4. Verifica que el panel muestre la información correcta del instructor
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="src/login/new-auth.html" class="btn">🚀 Ir al Login</a>
+            <a href="src/instructors/instructor-dashboard.html" class="btn btn-secondary">📊 Ver Panel Directamente</a>
+        </div>
+
+        <div class="test-info" style="margin-top: 30px;">
+            <h3>🔧 Configuración Técnica</h3>
+            <p><strong>Archivo modificado:</strong> <code>src/login/new-auth.js</code></p>
+            <p><strong>Función:</strong> <code>getRedirectPageByTypeRol()</code></p>
+            <p><strong>Lógica:</strong> Si <code>cargo_rol === 'Instructor'</code> → redirigir a <code>../instructors/instructor-dashboard.html</code></p>
+        </div>
+
+        <div class="test-info" style="margin-top: 20px;">
+            <h3>🐛 Solución de Problemas</h3>
+            <ul>
+                <li>Si no funciona, verifica que el usuario tenga <code>cargo_rol: 'Instructor'</code></li>
+                <li>Abre la consola del navegador para ver logs de debug</li>
+                <li>Verifica que los archivos estén en las rutas correctas</li>
+                <li>Si hay errores de CORS, usa un servidor local</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Función para verificar si el usuario está autenticado
+        function checkAuthStatus() {
+            const userData = localStorage.getItem('userData');
+            const userToken = localStorage.getItem('userToken');
+            
+            if (userData && userToken) {
+                try {
+                    const user = JSON.parse(userData);
+                    console.log('Usuario autenticado:', user);
+                    console.log('Rol:', user.cargo_rol);
+                    console.log('Type Rol:', user.type_rol);
+                    
+                    if (user.cargo_rol === 'Instructor') {
+                        console.log('✅ Usuario es instructor - redirección configurada correctamente');
+                    } else {
+                        console.log('❌ Usuario no es instructor');
+                    }
+                } catch (error) {
+                    console.error('Error parseando datos de usuario:', error);
+                }
+            } else {
+                console.log('No hay usuario autenticado');
+            }
+        }
+
+        // Verificar estado al cargar la página
+        checkAuthStatus();
+
+        // Función para limpiar datos de prueba
+        function clearTestData() {
+            localStorage.removeItem('userData');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('userToken');
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userSession');
+            console.log('Datos de prueba limpiados');
+            location.reload();
+        }
+
+        // Agregar botón para limpiar datos
+        const clearBtn = document.createElement('button');
+        clearBtn.textContent = '🧹 Limpiar Datos de Prueba';
+        clearBtn.className = 'btn btn-secondary';
+        clearBtn.style.marginTop = '20px';
+        clearBtn.onclick = clearTestData;
+        document.querySelector('.test-container').appendChild(clearBtn);
+    </script>
+</body>
+</html>
