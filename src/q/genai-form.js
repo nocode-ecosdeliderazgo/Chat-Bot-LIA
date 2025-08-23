@@ -66,14 +66,26 @@ class GenAIQuestionnaire {
         let userId = null;
         let userArea = null;
         
-        // 1. Desde localStorage
+        // 1. Desde localStorage (usando userData que es la clave correcta)
+        const userData = localStorage.getItem('userData');
         const currentUser = localStorage.getItem('currentUser');
-        if (currentUser) {
+        
+        let user = null;
+        if (userData) {
             try {
-                const user = JSON.parse(currentUser);
+                user = JSON.parse(userData);
                 userId = user.id;
-                userArea = user.type_rol;
-                console.log('👤 Usuario desde localStorage:', { userId, userArea });
+                userArea = user.type_rol || user.cargo_rol;
+                console.log('👤 Usuario desde userData:', { userId, userArea });
+            } catch (e) {
+                console.warn('Error parseando userData:', e);
+            }
+        } else if (currentUser) {
+            try {
+                user = JSON.parse(currentUser);
+                userId = user.id;
+                userArea = user.type_rol || user.cargo_rol;
+                console.log('👤 Usuario desde currentUser:', { userId, userArea });
             } catch (e) {
                 console.warn('Error parseando currentUser:', e);
             }
@@ -87,13 +99,30 @@ class GenAIQuestionnaire {
             console.log('🔗 Área desde URL:', userArea);
         }
         
-        // 3. Usuario por defecto para desarrollo
-        if (!userId) {
-            userId = 'dev-user-' + Date.now();
-            console.log('⚠️ Usando userId de desarrollo:', userId);
+        // 3. Verificar si el usuario está autenticado
+        if (!userId || userId.includes('dev-user-')) {
+            console.warn('⚠️ Usuario no autenticado o usando ID de desarrollo');
+            
+            // Intentar obtener usuario autenticado
+            if (window.AuthGuard && window.AuthGuard.getCurrentUser) {
+                const authUser = window.AuthGuard.getCurrentUser();
+                if (authUser && authUser.id) {
+                    userId = authUser.id;
+                    userArea = authUser.type_rol || authUser.cargo_rol;
+                    user = authUser;
+                    console.log('👤 Usuario autenticado encontrado:', { userId, userArea });
+                }
+            }
+            
+            // Si aún no hay usuario válido, mostrar error
+            if (!userId || userId.includes('dev-user-')) {
+                console.error('❌ No se pudo obtener un usuario válido');
+                this.showError('Error: No se pudo obtener información del usuario. Por favor inicia sesión nuevamente.');
+                return;
+            }
         }
         
-        this.currentUser = { id: userId, area: userArea };
+        this.currentUser = { id: userId, area: userArea, ...user };
         
         // Mapear área a GenAI área
         this.genaiArea = this.mapToGenAIArea(userArea);
@@ -150,6 +179,13 @@ class GenAIQuestionnaire {
         };
         
         console.log('🔍 Mapeando área:', userArea, '→', areaMap[userArea] || 2);
+        
+        // Debug: mostrar todas las claves disponibles
+        if (!areaMap[userArea]) {
+            console.warn('⚠️ Área no encontrada en el mapeo:', userArea);
+            console.log('📋 Áreas disponibles en el mapeo:', Object.keys(areaMap));
+        }
+        
         return areaMap[userArea] || 2; // Por defecto Ventas
     }
     
@@ -512,11 +548,37 @@ class GenAIQuestionnaire {
             };
         });
         
+        console.log('💾 Intentando guardar respuestas:', {
+            userId: this.currentUser.id,
+            responseCount: responses.length,
+            hasSupabase: !!this.supabase
+        });
+        
+        // Verificar si tenemos autenticación
+        const { data: { session } } = await this.supabase.auth.getSession();
+        if (!session) {
+            console.warn('⚠️ No hay sesión de Supabase, intentando autenticación...');
+            
+            // Intentar obtener token del localStorage
+            const userToken = localStorage.getItem('userToken');
+            if (userToken) {
+                console.log('🔑 Token encontrado en localStorage, configurando sesión...');
+                // Configurar el token en Supabase
+                await this.supabase.auth.setSession({
+                    access_token: userToken,
+                    refresh_token: userToken
+                });
+            } else {
+                throw new Error('No se pudo obtener token de autenticación. Por favor inicia sesión nuevamente.');
+            }
+        }
+        
         const { error } = await this.supabase
             .from('respuestas')
             .insert(responses);
         
         if (error) {
+            console.error('❌ Error detallado al guardar respuestas:', error);
             throw new Error(`Error guardando respuestas: ${error.message}`);
         }
         

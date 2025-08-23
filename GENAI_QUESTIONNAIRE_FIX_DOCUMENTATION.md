@@ -41,6 +41,58 @@ El cuestionario GenAI presentaba múltiples errores:
 
 ### 1. **Actualización de `src/q/genai-form.js`**
 
+#### **E. Autenticación y Guardado de Respuestas**
+```javascript
+async saveResponses() {
+    const responses = Object.values(this.responses).map(response => {
+        return {
+            user_id: this.currentUser.id,
+            pregunta_id: response.questionId,
+            valor: { answer: response.answer, timestamp: response.timestamp }
+        };
+    });
+    
+    console.log('💾 Intentando guardar respuestas:', {
+        userId: this.currentUser.id,
+        responseCount: responses.length,
+        hasSupabase: !!this.supabase
+    });
+    
+    // Verificar si tenemos autenticación
+    const { data: { session } } = await this.supabase.auth.getSession();
+    if (!session) {
+        console.warn('⚠️ No hay sesión de Supabase, intentando autenticación...');
+        
+        // Intentar obtener token del localStorage
+        const userToken = localStorage.getItem('userToken');
+        if (userToken) {
+            console.log('🔑 Token encontrado en localStorage, configurando sesión...');
+            // Configurar el token en Supabase
+            await this.supabase.auth.setSession({
+                access_token: userToken,
+                refresh_token: userToken
+            });
+        } else {
+            throw new Error('No se pudo obtener token de autenticación. Por favor inicia sesión nuevamente.');
+        }
+    }
+    
+    const { error } = await this.supabase
+        .from('respuestas')
+        .insert(responses);
+    
+    if (error) {
+        console.error('❌ Error detallado al guardar respuestas:', error);
+        throw new Error(`Error guardando respuestas: ${error.message}`);
+    }
+    
+    console.log(`✅ ${responses.length} respuestas guardadas en tabla respuestas`);
+}
+```
+
+### 2. **Actualización de `src/q/genai-form.html`**
+- Agregado `auth-guard.js` para manejo de autenticación
+
 #### **A. Mapeo de Áreas Actualizado**
 ```javascript
 const areaMap = {
@@ -309,7 +361,13 @@ Eliminados archivos que referenciaban tablas deprecadas:
 
 ### **URLs Principales:**
 - **Cuestionario Principal**: `http://localhost:3000/q/genai-form.html?area=Administración+Pública%2FGobierno`
-- **Página de Pruebas**: `http://localhost:3000/test-all-areas.html`
+
+### **Problemas Resueltos:**
+- ✅ **Error 401 Unauthorized**: Solucionado agregando autenticación correcta con token
+- ✅ **Mapeo de áreas**: Verificado y funcionando correctamente
+- ✅ **Obtención de usuario**: Ahora usa `userData` y `AuthGuard` correctamente
+- ✅ **Inicialización asíncrona**: Supabase se carga correctamente
+- ✅ **Guardado de respuestas**: Con autenticación RLS funcionando
 
 ### **Funcionalidades Verificadas:**
 - ✅ Todas las 10 áreas funcionales tienen 12 preguntas (6 Adopción + 6 Conocimiento)
@@ -356,7 +414,7 @@ Eliminados archivos que referenciaban tablas deprecadas:
 ├── 📄 q/genai-form.js (lógica del cuestionario)
 ├── 📄 estadisticas.html (gráfica de radar)
 ├── 📄 scripts/supabase-client.js (cliente Supabase)
-└── 📄 test-all-areas.html (página de pruebas)
+└── 📄 utils/auth-guard.js (autenticación)
 
 📁 server.js (API endpoints)
 📁 api/genai-radar.js (lógica del radar)
@@ -372,6 +430,11 @@ Get-NetTCPConnection -State Listen | Where-Object {$_.LocalPort -eq 3000}
 
 # Probar endpoint del radar
 curl http://localhost:3000/api/genai-radar/USER_ID_AQUI
+
+# Verificar autenticación en el navegador
+# Abrir DevTools -> Console y verificar:
+# localStorage.getItem('userData')
+# localStorage.getItem('userToken')
 ```
 
 ---
