@@ -23,12 +23,18 @@ class AdminPanel {
      * @returns {Promise<Response>} - Fetch response
      */
     async makeAuthenticatedRequest(url, options = {}) {
+        console.log('📡 Realizando request autenticado a:', url);
+        
         // Get authentication data from localStorage
         const token = localStorage.getItem('userToken');
         const userData = localStorage.getItem('userData');
         
+        console.log('🔑 Token disponible:', !!token);
+        console.log('👤 UserData disponible:', !!userData);
+        
         if (!token || !userData) {
-            console.error('No authentication data found');
+            console.error('❌ No authentication data found');
+            this.showToast('Error: Usuario no autenticado. Por favor, inicia sesión.', 'error');
             throw new Error('Usuario no autenticado');
         }
 
@@ -513,22 +519,25 @@ class AdminPanel {
                             </div>
                         </td>
                         <td>${email}</td>
-                        <td><span class="role-badge ${role.toLowerCase()}">${role}</span></td>
+                        <td><span class="role-badge ${role.toLowerCase()}">${role.charAt(0).toUpperCase() + role.slice(1)}</span></td>
                         <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
                         <td>${lastLogin}</td>
                         <td>
                             <div class="action-buttons">
-                                <button class="btn-icon" onclick="adminPanel.editUser(${user.id})" title="Editar usuario">
-                                    <i class="fas fa-edit"></i>
+                                <button class="btn-icon btn-edit" data-user-id="${user.id}" data-action="edit" title="Cambiar rol de usuario">
+                                    <i class="fas fa-user-cog"></i>
                                 </button>
-                                <button class="btn-icon" onclick="adminPanel.deleteUser(${user.id})" title="Eliminar usuario">
-                                    <i class="fas fa-trash"></i>
+                                <button class="btn-icon btn-delete" data-user-id="${user.id}" data-action="delete" title="Eliminar usuario permanentemente">
+                                    <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
                         </td>
                     </tr>
                 `;
             }).join('');
+            
+            // Agregar event listeners a los botones de acción
+            this.attachUserActionListeners();
             
             // Only show toast notification on first load or when explicitly requested
             if (!this.usersLoadedBefore) {
@@ -830,6 +839,39 @@ class AdminPanel {
         this.usersLoadedBefore = false; // Reset flag to show notification
         await this.loadUsersData();
     }
+    
+    // Attach event listeners to user action buttons
+    attachUserActionListeners() {
+        console.log('🔗 Adjuntando event listeners a botones de acción...');
+        
+        const editButtons = document.querySelectorAll('.btn-edit[data-action="edit"]');
+        const deleteButtons = document.querySelectorAll('.btn-delete[data-action="delete"]');
+        
+        console.log(`🔧 Botones de editar encontrados: ${editButtons.length}`);
+        console.log(`🗑️ Botones de eliminar encontrados: ${deleteButtons.length}`);
+        
+        // Event listeners para botones de editar
+        editButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const userId = button.getAttribute('data-user-id');
+                console.log('🔧 Click en editar usuario:', userId);
+                this.editUser(userId);
+            });
+        });
+        
+        // Event listeners para botones de eliminar
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const userId = button.getAttribute('data-user-id');
+                console.log('🗑️ Click en eliminar usuario:', userId);
+                this.deleteUser(userId);
+            });
+        });
+        
+        console.log('✓ Event listeners adjuntados correctamente');
+    }
 
     // ===== BÚSQUEDA GLOBAL =====
     handleGlobalSearch(query) {
@@ -867,6 +909,47 @@ class AdminPanel {
         if (modalTitle) modalTitle.textContent = title;
         if (modalBody) modalBody.innerHTML = content;
         if (modalOverlay) modalOverlay.classList.add('active');
+        
+        // Agregar event listeners a botones del modal
+        this.attachModalListeners();
+    }
+    
+    attachModalListeners() {
+        console.log('🔗 Adjuntando event listeners del modal...');
+        
+        // Botón cancelar
+        const cancelButtons = document.querySelectorAll('[data-action="close-modal"], .btn-secondary');
+        cancelButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('❌ Cerrando modal');
+                this.closeModal();
+            }, { once: true }); // Solo ejecutar una vez
+        });
+        
+        // Botón confirmar cambio de rol
+        const confirmRoleButtons = document.querySelectorAll('[data-action="confirm-role-change"]');
+        confirmRoleButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const userId = button.getAttribute('data-user-id');
+                console.log('💾 Confirmando cambio de rol para:', userId);
+                this.confirmRoleChange(userId);
+            }, { once: true });
+        });
+        
+        // Botón confirmar eliminación
+        const confirmDeleteButtons = document.querySelectorAll('[data-action="confirm-delete-user"]');
+        confirmDeleteButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const userId = button.getAttribute('data-user-id');
+                console.log('🗑️ Confirmando eliminación de:', userId);
+                this.confirmDeleteUser(userId);
+            }, { once: true });
+        });
+        
+        console.log('✓ Event listeners del modal adjuntados');
     }
 
     closeModal() {
@@ -1023,7 +1106,13 @@ class AdminPanel {
     }
 
     async editUser(id) {
-        console.log('Editando usuario:', id);
+        console.log('🔧 Editando usuario con ID:', id);
+        
+        if (!id) {
+            console.error('❌ Error: ID de usuario no válido:', id);
+            this.showToast('Error: ID de usuario no válido', 'error');
+            return;
+        }
         
         try {
             // Obtener datos del usuario actual
@@ -1042,25 +1131,30 @@ class AdminPanel {
             const modalBody = `
                 <div class="edit-user-form">
                     <div class="form-group">
-                        <label>Usuario:</label>
-                        <p><strong>${user.full_name}</strong> (${user.email})</p>
+                        <label>Usuario a modificar:</label>
+                        <div class="user-preview">
+                            <strong>${user.full_name}</strong><br>
+                            <span class="user-email">${user.email}</span><br>
+                            <span class="role-badge ${(user.cargo_rol || 'usuario').toLowerCase()}">Rol actual: ${(user.cargo_rol || 'Usuario').charAt(0).toUpperCase() + (user.cargo_rol || 'Usuario').slice(1)}</span>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="userRoleSelect">Nuevo Rol:</label>
+                        <label for="userRoleSelect">Asignar nuevo rol:</label>
                         <select id="userRoleSelect" class="form-select">
-                            <option value="Usuario" ${user.cargo_rol === 'Usuario' ? 'selected' : ''}>Usuario</option>
-                            <option value="Administrador" ${user.cargo_rol === 'Administrador' ? 'selected' : ''}>Administrador</option>
-                            <option value="Tutor" ${user.cargo_rol === 'Tutor' ? 'selected' : ''}>Tutor</option>
+                            <option value="administrador" ${(user.cargo_rol === 'administrador' || user.cargo_rol === 'Administrador') ? 'selected' : ''}>🔧 Administrador - Acceso completo al sistema</option>
+                            <option value="usuario" ${(user.cargo_rol === 'usuario' || user.cargo_rol === 'Usuario') ? 'selected' : ''}>👤 Usuario - Acceso estándar a cursos y chat</option>
+                            <option value="tutor" ${(user.cargo_rol === 'tutor' || user.cargo_rol === 'Tutor') ? 'selected' : ''}>🎓 Tutor - Puede moderar y asistir estudiantes</option>
                         </select>
+                        <p class="role-description">Los cambios de rol se aplicarán inmediatamente y afectarán los permisos de acceso del usuario.</p>
                     </div>
                     <div class="form-actions">
                         <button class="btn-secondary" onclick="adminPanel.closeModal()">Cancelar</button>
-                        <button class="btn-primary" onclick="adminPanel.confirmRoleChange(${id})">Cambiar Rol</button>
+                        <button class="btn-primary" onclick="window.adminPanel.confirmRoleChange('${id}')">💾 Cambiar Rol</button>
                     </div>
                 </div>
             `;
 
-            this.showModal('Cambiar Rol de Usuario', modalBody);
+            this.showModal('⚙️ Gestionar Rol de Usuario', modalBody);
             
         } catch (error) {
             console.error('Error editando usuario:', error);
@@ -1102,7 +1196,16 @@ class AdminPanel {
     }
 
     async deleteUser(id) {
+        console.log('🗑️ Eliminando usuario con ID:', id);
+        
+        if (!id) {
+            console.error('❌ Error: ID de usuario no válido:', id);
+            this.showToast('Error: ID de usuario no válido', 'error');
+            return;
+        }
+        
         try {
+            console.log('📡 Obteniendo datos del usuario...');
             // Obtener datos del usuario actual
             const response = await this.makeAuthenticatedRequest('/api/admin/users');
             if (!response.ok) throw new Error('Error obteniendo usuarios');
@@ -1119,24 +1222,32 @@ class AdminPanel {
             const modalBody = `
                 <div class="delete-user-form">
                     <div class="warning-message">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h4>¿Estás seguro?</h4>
-                        <p>Esta acción eliminará permanentemente al usuario:</p>
-                        <div class="user-info">
-                            <strong>${user.full_name}</strong><br>
-                            <span>${user.email}</span><br>
-                            <span class="role-badge">${user.cargo_rol}</span>
+                        <i class="fas fa-exclamation-triangle" style="color: #FF4757; font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <h4 style="color: #FF4757; margin-bottom: 1rem;">⚠️ Confirmación de Eliminación</h4>
+                        <p style="margin-bottom: 1.5rem;">Esta acción eliminará <strong>permanentemente</strong> al siguiente usuario:</p>
+                        <div class="user-info" style="background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.3); border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+                            <div style="font-size: 1.1rem; margin-bottom: 0.5rem;">👤 <strong>${user.full_name}</strong></div>
+                            <div style="margin-bottom: 0.5rem;">📧 ${user.email}</div>
+                            <span class="role-badge ${(user.cargo_rol || 'usuario').toLowerCase()}">🏅 ${(user.cargo_rol || 'Usuario').charAt(0).toUpperCase() + (user.cargo_rol || 'Usuario').slice(1)}</span>
                         </div>
-                        <p class="warning-text">Esta acción no se puede deshacer.</p>
+                        <div class="warning-box" style="background: rgba(255, 71, 87, 0.05); border-left: 4px solid #FF4757; padding: 1rem; margin: 1rem 0;">
+                            <p class="warning-text" style="color: #FF4757; font-weight: 600; font-style: italic; margin: 0;">¡ATENCIÓN! Esta acción es irreversible y eliminará:</p>
+                            <ul style="margin: 0.5rem 0 0 1rem; color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">
+                                <li>Todos los datos del usuario</li>
+                                <li>Historial de conversaciones</li>
+                                <li>Progreso en cursos</li>
+                                <li>Configuraciones personales</li>
+                            </ul>
+                        </div>
                     </div>
                     <div class="form-actions">
-                        <button class="btn-secondary" onclick="adminPanel.closeModal()">Cancelar</button>
-                        <button class="btn-danger" onclick="adminPanel.confirmDeleteUser(${id})">Eliminar Usuario</button>
+                        <button class="btn-secondary" onclick="window.adminPanel.closeModal()">❌ Cancelar</button>
+                        <button class="btn-danger" onclick="window.adminPanel.confirmDeleteUser('${id}')">🗑️ Sí, Eliminar Usuario</button>
                     </div>
                 </div>
             `;
 
-            this.showModal('Eliminar Usuario', modalBody);
+            this.showModal('🗑️ Eliminar Usuario Permanentemente', modalBody);
             
         } catch (error) {
             console.error('Error preparando eliminación:', error);
@@ -1368,14 +1479,25 @@ class AdminPanel {
 // ===== INICIALIZACIÓN =====
 let adminPanel;
 
+// Hacer adminPanel globalmente accesible
+window.adminPanel = null;
+
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🚀 Inicializando Admin Panel...');
+    
     // Apply additional styles
     const styleSheet = document.createElement('style');
     styleSheet.textContent = additionalStyles;
     document.head.appendChild(styleSheet);
     
     adminPanel = new AdminPanel();
+    window.adminPanel = adminPanel; // Asignar globalmente
+    
+    console.log('👍 AdminPanel asignado globalmente:', !!window.adminPanel);
+    
     await adminPanel.init();
+    
+    console.log('✓ Admin Panel inicializado completamente');
 });
 
 // ===== ESTILOS ADICIONALES PARA COMPONENTES =====
@@ -1530,6 +1652,11 @@ const additionalStyles = `
         color: rgba(255, 255, 255, 0.7);
     }
     
+    .role-badge.tutor {
+        background: rgba(255, 184, 0, 0.2);
+        color: #FFB800;
+    }
+    
     .status-badge.activo {
         background: rgba(0, 212, 170, 0.2);
         color: #00D4AA;
@@ -1553,11 +1680,39 @@ const additionalStyles = `
         color: #44E5FF;
         cursor: pointer;
         transition: 0.2s ease;
+        min-width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
     }
     
     .btn-icon:hover {
         background: rgba(68, 229, 255, 0.2);
         transform: translateY(-1px);
+    }
+    
+    .btn-edit {
+        background: rgba(0, 212, 170, 0.1) !important;
+        border: 1px solid rgba(0, 212, 170, 0.2) !important;
+        color: #00D4AA !important;
+    }
+    
+    .btn-edit:hover {
+        background: rgba(0, 212, 170, 0.2) !important;
+        border-color: #00D4AA !important;
+    }
+    
+    .btn-delete {
+        background: rgba(255, 71, 87, 0.1) !important;
+        border: 1px solid rgba(255, 71, 87, 0.2) !important;
+        color: #FF4757 !important;
+    }
+    
+    .btn-delete:hover {
+        background: rgba(255, 71, 87, 0.2) !important;
+        border-color: #FF4757 !important;
     }
     
     .forum-item, .debate-item {
@@ -1638,6 +1793,49 @@ const additionalStyles = `
     .notification-time {
         font-size: 0.7rem;
         color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .user-preview {
+        background: rgba(68, 229, 255, 0.05);
+        border: 1px solid rgba(68, 229, 255, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+    }
+    
+    .user-email {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+    }
+    
+    .role-description {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: rgba(68, 229, 255, 0.05);
+        border-radius: 4px;
+        border-left: 3px solid rgba(68, 229, 255, 0.3);
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #FF4757 0%, #c53030 100%);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-danger:hover {
+        background: linear-gradient(135deg, #c53030 0%, #9b2c2c 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
     }
 `;
 

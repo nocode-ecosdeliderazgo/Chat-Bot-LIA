@@ -1724,16 +1724,16 @@ app.put('/api/admin/users/:id/role', async (req, res) => {
     console.log('Endpoint de cambio de rol llamado');
     
     try {
-        const userId = parseInt(req.params.id);
+        const userId = req.params.id;
         const { cargo_rol } = req.body;
 
         // Validar parámetros
-        if (!userId || isNaN(userId)) {
+        if (!userId || typeof userId !== 'string') {
             return res.status(400).json({ error: 'ID de usuario inválido' });
         }
 
-        if (!cargo_rol || !['Usuario', 'Administrador', 'Tutor'].includes(cargo_rol)) {
-            return res.status(400).json({ error: 'Rol inválido. Debe ser: Usuario, Administrador o Tutor' });
+        if (!cargo_rol || !['usuario', 'administrador', 'tutor', 'Usuario', 'Administrador', 'Tutor'].includes(cargo_rol)) {
+            return res.status(400).json({ error: 'Rol inválido. Debe ser: usuario, administrador o tutor' });
         }
 
         // Verificar autorización del usuario actual
@@ -1786,7 +1786,7 @@ app.put('/api/admin/users/:id/role', async (req, res) => {
 
         // Actualizar el rol del usuario
         const updateResult = await pool.query(
-            'UPDATE users SET cargo_rol = $1, type_rol = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, cargo_rol, full_name, email',
+            'UPDATE users SET cargo_rol = $1, type_rol = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, cargo_rol, display_name, email',
             [cargo_rol, userId]
         );
 
@@ -1816,10 +1816,10 @@ app.delete('/api/admin/users/:id', async (req, res) => {
     console.log('Endpoint de eliminación de usuario llamado');
     
     try {
-        const userId = parseInt(req.params.id);
+        const userId = req.params.id;
 
         // Validar parámetros
-        if (!userId || isNaN(userId)) {
+        if (!userId || typeof userId !== 'string') {
             return res.status(400).json({ error: 'ID de usuario inválido' });
         }
 
@@ -1853,7 +1853,7 @@ app.delete('/api/admin/users/:id', async (req, res) => {
         }
 
         // Verificar que el usuario existe
-        const userCheck = await pool.query('SELECT id, cargo_rol, full_name, email FROM users WHERE id = $1', [userId]);
+        const userCheck = await pool.query('SELECT id, cargo_rol, display_name, email FROM users WHERE id = $1', [userId]);
         if (userCheck.rows.length === 0) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
@@ -1880,14 +1880,14 @@ app.delete('/api/admin/users/:id', async (req, res) => {
             return res.status(500).json({ error: 'Error eliminando el usuario' });
         }
 
-        console.log(`Usuario ${userId} (${userToDelete.full_name}) eliminado exitosamente`);
+        console.log(`Usuario ${userId} (${userToDelete.display_name}) eliminado exitosamente`);
         
         res.json({
             success: true,
-            message: `Usuario ${userToDelete.full_name} eliminado exitosamente`,
+            message: `Usuario ${userToDelete.display_name || 'desconocido'} eliminado exitosamente`,
             deletedUser: {
                 id: userId,
-                full_name: userToDelete.full_name,
+                display_name: userToDelete.display_name,
                 email: userToDelete.email
             }
         });
