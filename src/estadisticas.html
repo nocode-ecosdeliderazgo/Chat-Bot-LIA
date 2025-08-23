@@ -911,8 +911,8 @@
                     borderWidth: 2,
                     borderRadius: 8,
                     borderSkipped: false,
-                    barThickness: 25,
-                    maxBarThickness: 30,
+                    barThickness: 30,
+                    maxBarThickness: 35,
                     // Efectos adicionales
                     hoverBackgroundColor: '#44E5FF',
                     hoverBorderColor: '#0077A6',
@@ -933,18 +933,36 @@
                             display: false
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
                             titleColor: '#fff',
                             bodyColor: '#fff',
                             borderColor: '#44E5FF',
-                            borderWidth: 1,
-                            cornerRadius: 8,
+                            borderWidth: 2,
+                            cornerRadius: 12,
                             displayColors: false,
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
                             callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
                                 label: function(context) {
-                                    return `Índice AIPI: ${context.parsed.x.toFixed(1)}`;
+                                    return `Índice AIPI: ${context.parsed.x.toFixed(2)}`;
                                 }
-                            }
+                            },
+                            // Configuración para evitar que se corte
+                            position: 'nearest',
+                            mode: 'index',
+                            intersect: false,
+                            // Asegurar que el tooltip tenga suficiente espacio
+                            xAlign: 'center',
+                            yAlign: 'center'
                         }
                     },
                     scales: {
@@ -1015,6 +1033,15 @@
                     interaction: {
                         intersect: false,
                         mode: 'index'
+                    },
+                    // Configuración adicional para tooltips
+                    layout: {
+                        padding: {
+                            top: 20,
+                            bottom: 20,
+                            left: 20,
+                            right: 20
+                        }
                     }
                 }
             };
