@@ -32,7 +32,12 @@
       "Bash(PORT=3004 node server.js)",
       "Bash(PORT=3005 node server.js)",
       "Bash(SUPABASE_URL=\"https://miwbzotcuaywpdbidpwo.supabase.co\" SUPABASE_SERVICE_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDYxMTIyOSwiZXhwIjoyMDcwMTg3MjI5fQ.AENCuzy-2PTgTMMKELVeOXScXp4dD-t7SfKVHwu1ld0\" node scripts/import-genai-questions.js --clear --verbose)",
-      "Bash(del \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\test-auth-protection.html\")"
+      "Bash(del \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\test-auth-protection.html\")",
+      "Bash(del \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\tests\\main.test.js\")",
+      "Bash(del \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\test-course-integration.js\")",
+      "Bash(del \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\test-radar-views.js\")",
+      "Bash(del \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\login\\test-credentials.html\")",
+      "Bash(del \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\test-avatar-simple.html\")"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
