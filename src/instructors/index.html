@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Maestros</title>
+    <title>Panel de Instructores - Aprende y Aplica IA</title>
     
     <!-- Supabase Configuration -->
     <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
     <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY">
     
-    <!-- Estilos -->
-    <link rel="stylesheet" href="../styles/main.css">
-    <link rel="stylesheet" href="../styles/components.css">
-    <link rel="stylesheet" href="../styles/animations.css">
-    <link rel="stylesheet" href="../styles/responsive.css">
-    <link rel="stylesheet" href="styles/panel-layout.css">
-    <link rel="stylesheet" href="styles/content-types.css">
+    <!-- Estilos mejorados con diseño del new-auth -->
+    <link rel="stylesheet" href="styles/instructors-new.css?v=2.0">
     
-    <!-- Fuentes -->
+    <!-- Fuentes modernas -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Iconos -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <!-- Global theme setup - Configuración global del tema -->
+    <script src="../scripts/global-theme-setup.js"></script>
     
     <!-- Auth Guard -->
     <script src="../utils/auth-guard.js"></script>
@@ -27,6 +28,54 @@
     <script src="../scripts/supabase-client.js"></script>
 </head>
 <body>
+    <!-- Botón de cambio de tema -->
+    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">
+        <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <!-- Partículas de fondo -->
+    <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Fondo con efectos -->
+    <div class="instructor-bg">
+        <div class="bg-glow"></div>
+        <canvas id="bgParticles"></canvas>
+    </div>
+
     <!-- Panel Container -->
     <div class="panel-container">
         <!-- Sidebar -->
@@ -409,5 +458,9 @@
 
     <!-- Scripts -->
     <script src="scripts/navigation-clean.js"></script>
+    <script src="scripts/particles.js"></script>
+    <script src="scripts/scroll-header.js"></script>
+    <script src="scripts/fix-sidebar.js"></script>
+    <script src="../scripts/theme-toggle.js"></script>
 </body>
 </html>
