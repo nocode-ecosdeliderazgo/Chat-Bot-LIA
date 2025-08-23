@@ -980,55 +980,28 @@
                                 }
                             }
                         },
-                        y: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: '#fff',
-                                font: {
-                                    size: 14,
-                                    weight: '500'
-                                }
-                            }
-                        }
+                                                 y: {
+                             grid: {
+                                 display: false
+                             },
+                             ticks: {
+                                 color: '#fff',
+                                 font: {
+                                     size: 14,
+                                     weight: '500'
+                                 },
+                                 callback: function(value, index) {
+                                     const country = this.getLabelForValue(value);
+                                     const score = scores[index];
+                                     return `${country}  ${score.toFixed(2)}`;
+                                 }
+                             }
+                         }
                     },
-                    animation: {
-                        duration: 2500,
-                        easing: 'easeOutQuart',
-                        onProgress: function(animation) {
-                            const chart = animation.chart;
-                            const ctx = chart.ctx;
-                            const dataset = chart.data.datasets[0];
-                            const meta = chart.getDatasetMeta(0);
-                            
-                            meta.data.forEach((bar, index) => {
-                                const value = dataset.data[index];
-                                const x = bar.x;
-                                const y = bar.y;
-                                const width = bar.width;
-                                const height = bar.height;
-                                
-                                // Agregar valor en la barra con efecto de sombra
-                                ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-                                ctx.shadowBlur = 4;
-                                ctx.shadowOffsetX = 2;
-                                ctx.shadowOffsetY = 2;
-                                
-                                ctx.fillStyle = '#fff';
-                                ctx.font = 'bold 12px Inter';
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'middle';
-                                ctx.fillText(value.toFixed(2), x + width/2, y + height/2);
-                                
-                                // Resetear sombra
-                                ctx.shadowColor = 'transparent';
-                                ctx.shadowBlur = 0;
-                                ctx.shadowOffsetX = 0;
-                                ctx.shadowOffsetY = 0;
-                            });
-                        }
-                    },
+                                         animation: {
+                         duration: 2500,
+                         easing: 'easeOutQuart'
+                     },
                     // Efectos de hover mejorados
                     interaction: {
                         intersect: false,
