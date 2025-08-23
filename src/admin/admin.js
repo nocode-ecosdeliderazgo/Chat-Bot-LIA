@@ -3,6 +3,7 @@
 class AdminPanel {
     constructor() {
         this.currentSection = 'dashboard';
+        this.usersLoadedBefore = false; // Flag to prevent repetitive notifications
         this.init();
     }
 
@@ -11,6 +12,75 @@ class AdminPanel {
         await this.loadInitialData();
         this.loadDashboardData();
         this.setupNotifications();
+    }
+
+    // ===== HELPER METHODS =====
+    
+    /**
+     * Makes an authenticated API request
+     * @param {string} url - API endpoint URL
+     * @param {object} options - Fetch options
+     * @returns {Promise<Response>} - Fetch response
+     */
+    async makeAuthenticatedRequest(url, options = {}) {
+        console.log('📡 Realizando request autenticado a:', url);
+        
+        // Get authentication data from localStorage
+        const token = localStorage.getItem('userToken');
+        const userData = localStorage.getItem('userData');
+        
+        console.log('🔑 Token disponible:', !!token);
+        console.log('👤 UserData disponible:', !!userData);
+        
+        if (!token || !userData) {
+            console.error('❌ No authentication data found');
+            this.showToast('Error: Usuario no autenticado. Por favor, inicia sesión.', 'error');
+            throw new Error('Usuario no autenticado');
+        }
+
+        // Parse user data to get user ID if needed
+        let userId = null;
+        try {
+            const user = JSON.parse(userData);
+            userId = user.id || user.userId;
+        } catch (e) {
+            console.warn('Error parsing user data:', e);
+        }
+
+        // Prepare headers
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Requested-With': 'XMLHttpRequest',
+            ...options.headers
+        };
+
+        // Add user ID header if available
+        if (userId) {
+            headers['X-User-Id'] = userId;
+        }
+
+        // Make the request
+        return fetch(url, {
+            ...options,
+            headers
+        });
+    }
+
+    /**
+     * Shows loading state for a container
+     * @param {string} containerId - ID of container to show loading state
+     */
+    showLoading(containerId) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Cargando...</p>
+                </div>
+            `;
+        }
     }
 
     // ===== EVENT LISTENERS =====
@@ -123,7 +193,7 @@ class AdminPanel {
                 await this.loadDashboardData();
                 break;
             case 'courses':
-                this.loadCoursesData();
+                await this.loadCoursesData();
                 break;
             case 'users':
                 await this.loadUsersData();
@@ -156,7 +226,7 @@ class AdminPanel {
 
     async updateDashboardStats() {
         try {
-            const response = await fetch('/api/admin/dashboard/stats');
+            const response = await this.makeAuthenticatedRequest('/api/admin/dashboard/stats');
             if (!response.ok) {
                 throw new Error('Error obteniendo estadísticas');
             }
@@ -296,74 +366,136 @@ class AdminPanel {
         });
     }
 
-    loadCoursesData() {
+    async loadCoursesData() {
         const coursesGrid = document.getElementById('coursesGrid');
         if (!coursesGrid) return;
 
-        const courses = [
-            {
-                id: 1,
-                title: 'Introducción a la Inteligencia Artificial',
-                description: 'Curso básico sobre conceptos fundamentales de IA',
-                category: 'Inteligencia Artificial',
-                students: 1234,
-                rating: 4.8,
-                status: 'published'
-            },
-            {
-                id: 2,
-                title: 'Machine Learning Práctico',
-                description: 'Aprende a implementar algoritmos de ML',
-                category: 'Machine Learning',
-                students: 987,
-                rating: 4.6,
-                status: 'published'
-            },
-            {
-                id: 3,
-                title: 'Deep Learning Avanzado',
-                description: 'Técnicas avanzadas de deep learning',
-                category: 'Deep Learning',
-                students: 654,
-                rating: 4.9,
-                status: 'draft'
+        try {
+            // Show loading state
+            this.showLoading('coursesGrid');
+            
+            console.log('Cargando datos de talleres...');
+            const response = await this.makeAuthenticatedRequest('/api/admin/courses');
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response:', response.status, errorText);
+                throw new Error(`Error ${response.status}: ${errorText || 'Error obteniendo talleres'}`);
             }
-        ];
+            
+            const courses = await response.json();
+            console.log('Talleres cargados:', courses.length);
 
-        coursesGrid.innerHTML = courses.map(course => `
-            <div class="course-card">
-                <div class="course-header">
-                    <h3>${course.title}</h3>
-                    <span class="course-status ${course.status}">${course.status}</span>
-                </div>
-                <p class="course-description">${course.description}</p>
-                <div class="course-meta">
-                    <span class="course-category">${course.category}</span>
-                    <span class="course-students">${course.students} estudiantes</span>
-                    <span class="course-rating">⭐ ${course.rating}</span>
-                </div>
-                <div class="course-actions">
-                    <button class="btn-secondary" onclick="adminPanel.editCourse(${course.id})">
-                        <i class="fas fa-edit"></i> Editar
+            if (!Array.isArray(courses) || courses.length === 0) {
+                coursesGrid.innerHTML = `
+                    <div class="no-data-message">
+                        <i class="fas fa-graduation-cap"></i>
+                        <p>No hay talleres registrados</p>
+                    </div>
+                `;
+                return;
+            }
+
+            coursesGrid.innerHTML = courses.map(course => {
+                // Format duration from minutes to hours
+                const durationHours = course.total_duration ? Math.round(course.total_duration / 60) : 0;
+                
+                // Safe values for HTML
+                const title = (course.name || 'Taller sin nombre').replace(/[<>]/g, '');
+                const description = (course.short_description || 'Sin descripción').replace(/[<>]/g, '');
+                const modality = (course.modality || 'online').replace(/[<>]/g, '');
+                const status = (course.status || 'draft').replace(/[<>]/g, '');
+                
+                return `
+                    <div class="course-card">
+                        <div class="course-header">
+                            <h3>${title}</h3>
+                            <span class="course-status ${status}">${status}</span>
+                        </div>
+                        <p class="course-description">${description}</p>
+                        <div class="course-meta">
+                            <span class="course-category">
+                                <i class="fas fa-tag"></i> ${modality}
+                            </span>
+                            <span class="course-sessions">
+                                <i class="fas fa-play-circle"></i> ${course.session_count || 0} sesiones
+                            </span>
+                            <span class="course-duration">
+                                <i class="fas fa-clock"></i> ${durationHours}h
+                            </span>
+                            <span class="course-price">
+                                <i class="fas fa-dollar-sign"></i> ${course.price || 'Gratis'}
+                            </span>
+                        </div>
+                        <div class="course-actions">
+                            <button class="btn-secondary" onclick="adminPanel.editCourse('${course.id}')" title="Editar taller">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn-secondary" onclick="adminPanel.deleteCourse('${course.id}')" title="Eliminar taller">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                            ${course.course_url ? `
+                                <button class="btn-secondary" onclick="window.open('${course.course_url}', '_blank')" title="Ver taller">
+                                    <i class="fas fa-external-link-alt"></i> Ver
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            this.showToast(`${courses.length} talleres cargados correctamente`, 'success');
+        } catch (error) {
+            console.error('Error cargando talleres:', error);
+            
+            coursesGrid.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error cargando talleres</p>
+                    <small>${error.message}</small>
+                    <button class="btn-retry" onclick="adminPanel.loadCoursesData()">
+                        <i class="fas fa-retry"></i> Reintentar
                     </button>
-                    <button class="btn-secondary" onclick="adminPanel.deleteCourse(${course.id})">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </button>
                 </div>
-            </div>
-        `).join('');
+            `;
+            
+            this.showToast(`Error cargando talleres: ${error.message}`, 'error');
+        }
     }
 
     async loadUsersData() {
+        const usersTableBody = document.getElementById('usersTableBody');
+        if (!usersTableBody) return;
+
         try {
-            const response = await fetch('/api/admin/users');
+            // Show loading state
+            this.showLoading('usersTableBody');
+            
+            console.log('Cargando datos de usuarios...');
+            const response = await this.makeAuthenticatedRequest('/api/admin/users');
+            
             if (!response.ok) {
-                throw new Error('Error obteniendo usuarios');
+                const errorText = await response.text();
+                console.error('Error response:', response.status, errorText);
+                throw new Error(`Error ${response.status}: ${errorText || 'Error obteniendo usuarios'}`);
             }
             
             const users = await response.json();
-            const usersTableBody = document.getElementById('usersTableBody');
-            if (!usersTableBody) return;
+            console.log('Usuarios cargados:', users.length);
+
+            if (!Array.isArray(users) || users.length === 0) {
+                usersTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="no-data">
+                            <div class="no-data-message">
+                                <i class="fas fa-users"></i>
+                                <p>No hay usuarios registrados</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
 
             usersTableBody.innerHTML = users.map(user => {
                 const lastLogin = user.last_login_at ? 
@@ -374,33 +506,63 @@ class AdminPanel {
                     new Date(user.last_login_at) > new Date(Date.now() - 24 * 60 * 60 * 1000) ? 
                     'Activo' : 'Inactivo';
 
+                // Ensure safe values for HTML
+                const fullName = (user.full_name || 'Sin nombre').replace(/[<>]/g, '');
+                const email = (user.email || 'Sin email').replace(/[<>]/g, '');
+                const role = (user.cargo_rol || 'Usuario').replace(/[<>]/g, '');
+
                 return `
                     <tr>
                         <td>
                             <div class="user-info">
-                                <strong>${user.full_name || 'Sin nombre'}</strong>
+                                <strong>${fullName}</strong>
                             </div>
                         </td>
-                        <td>${user.email}</td>
-                        <td><span class="role-badge ${(user.cargo_rol || 'Usuario').toLowerCase()}">${user.cargo_rol || 'Usuario'}</span></td>
+                        <td>${email}</td>
+                        <td><span class="role-badge ${role.toLowerCase()}">${role.charAt(0).toUpperCase() + role.slice(1)}</span></td>
                         <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
                         <td>${lastLogin}</td>
                         <td>
                             <div class="action-buttons">
-                                <button class="btn-icon" onclick="adminPanel.editUser(${user.id})">
-                                    <i class="fas fa-edit"></i>
+                                <button class="btn-icon btn-edit" data-user-id="${user.id}" data-action="edit" title="Cambiar rol de usuario">
+                                    <i class="fas fa-user-cog"></i>
                                 </button>
-                                <button class="btn-icon" onclick="adminPanel.deleteUser(${user.id})">
-                                    <i class="fas fa-trash"></i>
+                                <button class="btn-icon btn-delete" data-user-id="${user.id}" data-action="delete" title="Eliminar usuario permanentemente">
+                                    <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
                         </td>
                     </tr>
                 `;
             }).join('');
+            
+            // Agregar event listeners a los botones de acción
+            this.attachUserActionListeners();
+            
+            // Only show toast notification on first load or when explicitly requested
+            if (!this.usersLoadedBefore) {
+                this.showToast(`${users.length} usuarios cargados correctamente`, 'success');
+                this.usersLoadedBefore = true;
+            }
         } catch (error) {
             console.error('Error cargando usuarios:', error);
-            this.showToast('Error cargando usuarios', 'error');
+            
+            usersTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="error-state">
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error cargando usuarios</p>
+                            <small>${error.message}</small>
+                            <button class="btn-retry" onclick="adminPanel.loadUsersData()">
+                                <i class="fas fa-retry"></i> Reintentar
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            
+            this.showToast(`Error cargando usuarios: ${error.message}`, 'error');
         }
     }
 
@@ -569,7 +731,146 @@ class AdminPanel {
 
     filterUsers() {
         console.log('Filtrando usuarios...');
-        // Implementar lógica de filtrado
+        
+        const searchTerm = document.getElementById('userSearch')?.value.toLowerCase() || '';
+        const selectedRole = document.getElementById('userRole')?.value || '';
+        const selectedStatus = document.getElementById('userStatus')?.value || '';
+        
+        const usersTableBody = document.getElementById('usersTableBody');
+        if (!usersTableBody) return;
+        
+        const rows = usersTableBody.querySelectorAll('tr');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            if (row.querySelector('.no-data') || row.querySelector('.error-state')) {
+                return; // Skip empty state rows
+            }
+            
+            const cells = row.querySelectorAll('td');
+            if (cells.length < 5) return; // Skip malformed rows
+            
+            const userName = cells[0].textContent.toLowerCase();
+            const userEmail = cells[1].textContent.toLowerCase();
+            const userRole = cells[2].textContent.trim();
+            const userStatus = cells[3].textContent.trim();
+            
+            // Text search filter
+            const matchesSearch = !searchTerm || 
+                userName.includes(searchTerm) || 
+                userEmail.includes(searchTerm);
+            
+            // Role filter - map display values to filter values
+            const matchesRole = !selectedRole || 
+                (selectedRole === 'admin' && userRole === 'Administrador') ||
+                (selectedRole === 'user' && userRole === 'Usuario') ||
+                (selectedRole === 'moderator' && userRole === 'Tutor');
+            
+            // Status filter - map display values to filter values
+            const matchesStatus = !selectedStatus ||
+                (selectedStatus === 'active' && userStatus === 'Activo') ||
+                (selectedStatus === 'inactive' && userStatus === 'Inactivo') ||
+                (selectedStatus === 'suspended' && userStatus === 'Suspendido');
+            
+            const shouldShow = matchesSearch && matchesRole && matchesStatus;
+            
+            if (shouldShow) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Show message if no results
+        if (visibleCount === 0 && rows.length > 0) {
+            const noResultsRow = document.createElement('tr');
+            noResultsRow.innerHTML = `
+                <td colspan="6" class="no-data">
+                    <div class="no-data-message">
+                        <i class="fas fa-search"></i>
+                        <p>No se encontraron usuarios que coincidan con los filtros</p>
+                        <button class="btn-secondary" onclick="adminPanel.clearUserFilters()">
+                            Limpiar filtros
+                        </button>
+                    </div>
+                </td>
+            `;
+            noResultsRow.id = 'noResultsRow';
+            
+            // Remove previous no results row
+            const existingNoResults = usersTableBody.querySelector('#noResultsRow');
+            if (existingNoResults) {
+                existingNoResults.remove();
+            }
+            
+            if (visibleCount === 0) {
+                usersTableBody.appendChild(noResultsRow);
+            }
+        } else {
+            // Remove no results row if it exists
+            const existingNoResults = usersTableBody.querySelector('#noResultsRow');
+            if (existingNoResults) {
+                existingNoResults.remove();
+            }
+        }
+        
+        console.log(`Filtros aplicados: ${visibleCount} usuarios visibles`);
+    }
+    
+    clearUserFilters() {
+        // Clear all filter inputs
+        const userSearch = document.getElementById('userSearch');
+        const userRole = document.getElementById('userRole');
+        const userStatus = document.getElementById('userStatus');
+        
+        if (userSearch) userSearch.value = '';
+        if (userRole) userRole.value = '';
+        if (userStatus) userStatus.value = '';
+        
+        // Reapply filters (which will show all users)
+        this.filterUsers();
+        
+        this.showToast('Filtros limpiados', 'info');
+    }
+    
+    // Force reload users with notification (used after actions like edit/delete)
+    async reloadUsersData() {
+        this.usersLoadedBefore = false; // Reset flag to show notification
+        await this.loadUsersData();
+    }
+    
+    // Attach event listeners to user action buttons
+    attachUserActionListeners() {
+        console.log('🔗 Adjuntando event listeners a botones de acción...');
+        
+        const editButtons = document.querySelectorAll('.btn-edit[data-action="edit"]');
+        const deleteButtons = document.querySelectorAll('.btn-delete[data-action="delete"]');
+        
+        console.log(`🔧 Botones de editar encontrados: ${editButtons.length}`);
+        console.log(`🗑️ Botones de eliminar encontrados: ${deleteButtons.length}`);
+        
+        // Event listeners para botones de editar
+        editButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const userId = button.getAttribute('data-user-id');
+                console.log('🔧 Click en editar usuario:', userId);
+                this.editUser(userId);
+            });
+        });
+        
+        // Event listeners para botones de eliminar
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const userId = button.getAttribute('data-user-id');
+                console.log('🗑️ Click en eliminar usuario:', userId);
+                this.deleteUser(userId);
+            });
+        });
+        
+        console.log('✓ Event listeners adjuntados correctamente');
     }
 
     // ===== BÚSQUEDA GLOBAL =====
@@ -608,6 +909,47 @@ class AdminPanel {
         if (modalTitle) modalTitle.textContent = title;
         if (modalBody) modalBody.innerHTML = content;
         if (modalOverlay) modalOverlay.classList.add('active');
+        
+        // Agregar event listeners a botones del modal
+        this.attachModalListeners();
+    }
+    
+    attachModalListeners() {
+        console.log('🔗 Adjuntando event listeners del modal...');
+        
+        // Botón cancelar
+        const cancelButtons = document.querySelectorAll('[data-action="close-modal"], .btn-secondary');
+        cancelButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('❌ Cerrando modal');
+                this.closeModal();
+            }, { once: true }); // Solo ejecutar una vez
+        });
+        
+        // Botón confirmar cambio de rol
+        const confirmRoleButtons = document.querySelectorAll('[data-action="confirm-role-change"]');
+        confirmRoleButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const userId = button.getAttribute('data-user-id');
+                console.log('💾 Confirmando cambio de rol para:', userId);
+                this.confirmRoleChange(userId);
+            }, { once: true });
+        });
+        
+        // Botón confirmar eliminación
+        const confirmDeleteButtons = document.querySelectorAll('[data-action="confirm-delete-user"]');
+        confirmDeleteButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const userId = button.getAttribute('data-user-id');
+                console.log('🗑️ Confirmando eliminación de:', userId);
+                this.confirmDeleteUser(userId);
+            }, { once: true });
+        });
+        
+        console.log('✓ Event listeners del modal adjuntados');
     }
 
     closeModal() {
@@ -763,16 +1105,175 @@ class AdminPanel {
         }
     }
 
-    editUser(id) {
-        console.log('Editando usuario:', id);
-        this.showToast('Funcionalidad de edición en desarrollo', 'info');
+    async editUser(id) {
+        console.log('🔧 Editando usuario con ID:', id);
+        
+        if (!id) {
+            console.error('❌ Error: ID de usuario no válido:', id);
+            this.showToast('Error: ID de usuario no válido', 'error');
+            return;
+        }
+        
+        try {
+            // Obtener datos del usuario actual
+            const response = await this.makeAuthenticatedRequest('/api/admin/users');
+            if (!response.ok) throw new Error('Error obteniendo usuarios');
+            
+            const users = await response.json();
+            const user = users.find(u => u.id === id);
+            
+            if (!user) {
+                this.showToast('Usuario no encontrado', 'error');
+                return;
+            }
+
+            // Crear contenido del modal para cambio de rol
+            const modalBody = `
+                <div class="edit-user-form">
+                    <div class="form-group">
+                        <label>Usuario a modificar:</label>
+                        <div class="user-preview">
+                            <strong>${user.full_name}</strong><br>
+                            <span class="user-email">${user.email}</span><br>
+                            <span class="role-badge ${(user.cargo_rol || 'usuario').toLowerCase()}">Rol actual: ${(user.cargo_rol || 'Usuario').charAt(0).toUpperCase() + (user.cargo_rol || 'Usuario').slice(1)}</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="userRoleSelect">Asignar nuevo rol:</label>
+                        <select id="userRoleSelect" class="form-select">
+                            <option value="administrador" ${(user.cargo_rol === 'administrador' || user.cargo_rol === 'Administrador') ? 'selected' : ''}>🔧 Administrador - Acceso completo al sistema</option>
+                            <option value="usuario" ${(user.cargo_rol === 'usuario' || user.cargo_rol === 'Usuario') ? 'selected' : ''}>👤 Usuario - Acceso estándar a cursos y chat</option>
+                            <option value="tutor" ${(user.cargo_rol === 'tutor' || user.cargo_rol === 'Tutor') ? 'selected' : ''}>🎓 Tutor - Puede moderar y asistir estudiantes</option>
+                        </select>
+                        <p class="role-description">Los cambios de rol se aplicarán inmediatamente y afectarán los permisos de acceso del usuario.</p>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-secondary" onclick="adminPanel.closeModal()">Cancelar</button>
+                        <button class="btn-primary" onclick="window.adminPanel.confirmRoleChange('${id}')">💾 Cambiar Rol</button>
+                    </div>
+                </div>
+            `;
+
+            this.showModal('⚙️ Gestionar Rol de Usuario', modalBody);
+            
+        } catch (error) {
+            console.error('Error editando usuario:', error);
+            this.showToast('Error cargando datos del usuario', 'error');
+        }
     }
 
-    deleteUser(id) {
-        if (confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
-            console.log('Eliminando usuario:', id);
-            this.showToast('Usuario eliminado exitosamente', 'success');
-            this.loadUsersData();
+    async confirmRoleChange(userId) {
+        try {
+            const newRole = document.getElementById('userRoleSelect').value;
+            
+            if (!newRole) {
+                this.showToast('Selecciona un rol válido', 'error');
+                return;
+            }
+
+            const response = await this.makeAuthenticatedRequest(`/api/admin/users/${userId}/role`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ cargo_rol: newRole })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Error cambiando rol');
+            }
+
+            this.showToast(result.message, 'success');
+            this.closeModal();
+            this.reloadUsersData();
+
+        } catch (error) {
+            console.error('Error cambiando rol:', error);
+            this.showToast(`Error: ${error.message}`, 'error');
+        }
+    }
+
+    async deleteUser(id) {
+        console.log('🗑️ Eliminando usuario con ID:', id);
+        
+        if (!id) {
+            console.error('❌ Error: ID de usuario no válido:', id);
+            this.showToast('Error: ID de usuario no válido', 'error');
+            return;
+        }
+        
+        try {
+            console.log('📡 Obteniendo datos del usuario...');
+            // Obtener datos del usuario actual
+            const response = await this.makeAuthenticatedRequest('/api/admin/users');
+            if (!response.ok) throw new Error('Error obteniendo usuarios');
+            
+            const users = await response.json();
+            const user = users.find(u => u.id === id);
+            
+            if (!user) {
+                this.showToast('Usuario no encontrado', 'error');
+                return;
+            }
+
+            // Mostrar modal de confirmación
+            const modalBody = `
+                <div class="delete-user-form">
+                    <div class="warning-message">
+                        <i class="fas fa-exclamation-triangle" style="color: #FF4757; font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <h4 style="color: #FF4757; margin-bottom: 1rem;">⚠️ Confirmación de Eliminación</h4>
+                        <p style="margin-bottom: 1.5rem;">Esta acción eliminará <strong>permanentemente</strong> al siguiente usuario:</p>
+                        <div class="user-info" style="background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.3); border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+                            <div style="font-size: 1.1rem; margin-bottom: 0.5rem;">👤 <strong>${user.full_name}</strong></div>
+                            <div style="margin-bottom: 0.5rem;">📧 ${user.email}</div>
+                            <span class="role-badge ${(user.cargo_rol || 'usuario').toLowerCase()}">🏅 ${(user.cargo_rol || 'Usuario').charAt(0).toUpperCase() + (user.cargo_rol || 'Usuario').slice(1)}</span>
+                        </div>
+                        <div class="warning-box" style="background: rgba(255, 71, 87, 0.05); border-left: 4px solid #FF4757; padding: 1rem; margin: 1rem 0;">
+                            <p class="warning-text" style="color: #FF4757; font-weight: 600; font-style: italic; margin: 0;">¡ATENCIÓN! Esta acción es irreversible y eliminará:</p>
+                            <ul style="margin: 0.5rem 0 0 1rem; color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">
+                                <li>Todos los datos del usuario</li>
+                                <li>Historial de conversaciones</li>
+                                <li>Progreso en cursos</li>
+                                <li>Configuraciones personales</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-secondary" onclick="window.adminPanel.closeModal()">❌ Cancelar</button>
+                        <button class="btn-danger" onclick="window.adminPanel.confirmDeleteUser('${id}')">🗑️ Sí, Eliminar Usuario</button>
+                    </div>
+                </div>
+            `;
+
+            this.showModal('🗑️ Eliminar Usuario Permanentemente', modalBody);
+            
+        } catch (error) {
+            console.error('Error preparando eliminación:', error);
+            this.showToast('Error cargando datos del usuario', 'error');
+        }
+    }
+
+    async confirmDeleteUser(userId) {
+        try {
+            const response = await this.makeAuthenticatedRequest(`/api/admin/users/${userId}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Error eliminando usuario');
+            }
+
+            this.showToast(result.message, 'success');
+            this.closeModal();
+            this.reloadUsersData();
+
+        } catch (error) {
+            console.error('Error eliminando usuario:', error);
+            this.showToast(`Error: ${error.message}`, 'error');
         }
     }
 
@@ -920,12 +1421,8 @@ class AdminPanel {
             console.log('Cerrando sesión...');
             
             // Llamar al endpoint de logout
-            const response = await fetch('/api/admin/auth/logout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+            const response = await this.makeAuthenticatedRequest('/api/admin/auth/logout', {
+                method: 'POST'
             });
 
             if (response.ok) {
@@ -953,7 +1450,7 @@ class AdminPanel {
     // ===== CARGA DE INFORMACIÓN DEL ADMINISTRADOR =====
     async loadAdminInfo() {
         try {
-            const response = await fetch('/api/admin/auth/check');
+            const response = await this.makeAuthenticatedRequest('/api/admin/auth/check');
             if (!response.ok) {
                 throw new Error('Error obteniendo información del administrador');
             }
@@ -982,13 +1479,99 @@ class AdminPanel {
 // ===== INICIALIZACIÓN =====
 let adminPanel;
 
+// Hacer adminPanel globalmente accesible
+window.adminPanel = null;
+
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🚀 Inicializando Admin Panel...');
+    
+    // Apply additional styles
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = additionalStyles;
+    document.head.appendChild(styleSheet);
+    
     adminPanel = new AdminPanel();
+    window.adminPanel = adminPanel; // Asignar globalmente
+    
+    console.log('👍 AdminPanel asignado globalmente:', !!window.adminPanel);
+    
     await adminPanel.init();
+    
+    console.log('✓ Admin Panel inicializado completamente');
 });
 
 // ===== ESTILOS ADICIONALES PARA COMPONENTES =====
 const additionalStyles = `
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .loading-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid rgba(68, 229, 255, 0.2);
+        border-top: 3px solid #44E5FF;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .no-data, .error-state {
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .no-data-message, .error-message {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .no-data-message i, .error-message i {
+        font-size: 2rem;
+        color: rgba(68, 229, 255, 0.5);
+    }
+    
+    .error-message i {
+        color: rgba(255, 71, 87, 0.7);
+    }
+    
+    .error-message small {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.8rem;
+    }
+    
+    .btn-retry {
+        background: rgba(68, 229, 255, 0.1);
+        border: 1px solid rgba(68, 229, 255, 0.3);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        color: #44E5FF;
+        cursor: pointer;
+        transition: 0.2s ease;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-retry:hover {
+        background: rgba(68, 229, 255, 0.2);
+        transform: translateY(-1px);
+    }
+
     .course-card, .news-card {
         background: rgba(68, 229, 255, 0.05);
         border: 1px solid rgba(68, 229, 255, 0.1);
@@ -1069,6 +1652,11 @@ const additionalStyles = `
         color: rgba(255, 255, 255, 0.7);
     }
     
+    .role-badge.tutor {
+        background: rgba(255, 184, 0, 0.2);
+        color: #FFB800;
+    }
+    
     .status-badge.activo {
         background: rgba(0, 212, 170, 0.2);
         color: #00D4AA;
@@ -1092,11 +1680,39 @@ const additionalStyles = `
         color: #44E5FF;
         cursor: pointer;
         transition: 0.2s ease;
+        min-width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
     }
     
     .btn-icon:hover {
         background: rgba(68, 229, 255, 0.2);
         transform: translateY(-1px);
+    }
+    
+    .btn-edit {
+        background: rgba(0, 212, 170, 0.1) !important;
+        border: 1px solid rgba(0, 212, 170, 0.2) !important;
+        color: #00D4AA !important;
+    }
+    
+    .btn-edit:hover {
+        background: rgba(0, 212, 170, 0.2) !important;
+        border-color: #00D4AA !important;
+    }
+    
+    .btn-delete {
+        background: rgba(255, 71, 87, 0.1) !important;
+        border: 1px solid rgba(255, 71, 87, 0.2) !important;
+        color: #FF4757 !important;
+    }
+    
+    .btn-delete:hover {
+        background: rgba(255, 71, 87, 0.2) !important;
+        border-color: #FF4757 !important;
     }
     
     .forum-item, .debate-item {
@@ -1177,6 +1793,49 @@ const additionalStyles = `
     .notification-time {
         font-size: 0.7rem;
         color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .user-preview {
+        background: rgba(68, 229, 255, 0.05);
+        border: 1px solid rgba(68, 229, 255, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+    }
+    
+    .user-email {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+    }
+    
+    .role-description {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: rgba(68, 229, 255, 0.05);
+        border-radius: 4px;
+        border-left: 3px solid rgba(68, 229, 255, 0.3);
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #FF4757 0%, #c53030 100%);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-danger:hover {
+        background: linear-gradient(135deg, #c53030 0%, #9b2c2c 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
     }
 `;
 
