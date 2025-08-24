@@ -33,7 +33,7 @@
 /* Botón de regreso */
 .back-button-container {
     position: absolute;
-    top: -60px;
+    top: -20px;
     left: 0;
     z-index: 10;
 }
@@ -79,7 +79,7 @@
     box-shadow: var(--taller-card-shadow);
     height: fit-content;
     position: sticky;
-    top: 40px;
+    top: 120px;
 }
 
 .sidebar-header {
