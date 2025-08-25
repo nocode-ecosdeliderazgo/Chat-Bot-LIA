@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Email - Aprende y Aplica IA</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/email-verification.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="assets/images/icono.png">
+    
+    <!-- Global theme setup -->
+    <script src="scripts/global-theme-setup.js"></script>
+</head>
+<body>
+    <!-- Botón de cambio de tema -->
+    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">
+        <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <div class="verification-container">
+        <div class="verification-card">
+            <div class="verification-header">
+                <div class="logo"></div>
+                <h1>Verifica tu Email</h1>
+                <p class="subtitle">Ingresa el código de 6 dígitos que enviamos a tu correo electrónico</p>
+                <div class="email-display" id="userEmail">cargando...</div>
+            </div>
+
+            <div class="verification-content">
+                <form id="verificationForm" class="verification-form">
+                    <div class="otp-input-group">
+                        <input type="text" id="otp1" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code">
+                        <input type="text" id="otp2" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code">
+                        <input type="text" id="otp3" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code">
+                        <input type="text" id="otp4" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code">
+                        <input type="text" id="otp5" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code">
+                        <input type="text" id="otp6" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code">
+                    </div>
+
+                    <div class="verification-buttons">
+                        <button type="submit" class="verify-btn" id="verifyBtn">
+                            <span class="btn-text">Verificar Email</span>
+                            <div class="loading-spinner" style="display: none;"></div>
+                        </button>
+                        
+                        <button type="button" class="resend-btn" id="resendBtn">
+                            Reenviar código
+                        </button>
+                        
+                        <div class="resend-countdown" id="countdown" style="display: none;">
+                            Reenviar en: <span id="countdownTimer">00:00</span>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="back-link">
+                    <a href="login/new-auth.html">Volver al login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notificaciones -->
+    <div id="notificationContainer"></div>
+
+    <script src="scripts/theme-toggle.js"></script>
+    <script src="scripts/email-verification.js"></script>
+</body>
+</html>

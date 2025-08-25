@@ -682,7 +682,12 @@ app.post('/api/transcribe', authenticateRequest, requireUserSession, upload.sing
     }
 });
 
-// Registro de usuarios con validaciones mejoradas
+// Importar servicios de email y OTP
+const emailService = require('./src/utils/email-service');
+const otpService = require('./src/utils/otp-service');
+const otpCleanupService = require('./src/utils/cleanup-otps');
+
+// Registro de usuarios con verificación de email
 app.post('/api/register', async (req, res) => {
     try {
         if (!pool) {
@@ -713,48 +718,83 @@ app.post('/api/register', async (req, res) => {
             });
         }
 
-        // type_rol ahora es opcional - se configura en el perfil después del registro
-        // Si no se proporciona, asignamos un valor por defecto
-        const userTypeRol = type_rol && String(type_rol).trim().length > 0 ? type_rol : 'estudiante';
+        // Verificar si el email ya está registrado
+        const existingUser = await pool.query(
+            'SELECT id, email_verified FROM users WHERE email = $1 OR username = $2',
+            [email, username]
+        );
 
-        // Verificar si existen las columnas necesarias
-        let hasPassword = false;
-        let hasCargoRol = false;
-        let hasTypeRol = false;
-        
-        try {
-            const cols = await pool.query(`
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = 'users' 
-                AND column_name IN ('password_hash', 'cargo_rol', 'type_rol')
-            `);
-            const columnNames = cols.rows.map(row => row.column_name);
-            hasPassword = columnNames.includes('password_hash');
-            hasCargoRol = columnNames.includes('cargo_rol');
-            hasTypeRol = columnNames.includes('type_rol');
-        } catch (_) {}
-
-        let query, params;
-        if (hasPassword && password) {
-            const bcrypt = require('bcryptjs');
-            const hash = await bcrypt.hash(String(password), 10);
-            query = `INSERT INTO users (username, email, password_hash, first_name, last_name, display_name) 
-                     VALUES ($1,$2,$3, NULL, NULL, $4) 
-                     RETURNING id, username, email, display_name`;
-            params = [username, email || null, hash, full_name || null];
-        } else if (!hasPassword && DEV_MODE) {
-            // Permitir registro sin password_hash en modo desarrollo
-            query = `INSERT INTO users (username, email, first_name, last_name, display_name) 
-                     VALUES ($1,$2, NULL, NULL, $3) 
-                     RETURNING id, username, email, display_name`;
-            params = [username, email || null, full_name || null];
-        } else {
-            return res.status(500).json({ error: 'Registro no disponible: falta password_hash' });
+        if (existingUser.rows.length > 0) {
+            const existing = existingUser.rows[0];
+            if (existing.email === email) {
+                return res.status(409).json({ error: 'El email ya está registrado' });
+            } else {
+                return res.status(409).json({ error: 'El nombre de usuario ya está en uso' });
+            }
         }
 
-        const result = await pool.query(query, params);
-        res.status(201).json({ user: result.rows[0] });
+        // Verificar configuración de email
+        if (!emailService.isConfigured()) {
+            console.warn('⚠️ Servicio de email no configurado, creando usuario sin verificación');
+            // Crear usuario sin verificación en modo desarrollo
+            const bcrypt = require('bcryptjs');
+            const hash = await bcrypt.hash(String(password), 10);
+            
+            const result = await pool.query(`
+                INSERT INTO users (username, email, password_hash, display_name, email_verified, email_verified_at) 
+                VALUES ($1, $2, $3, $4, true, NOW()) 
+                RETURNING id, username, email, display_name, email_verified
+            `, [username, email, hash, full_name]);
+
+            return res.status(201).json({ 
+                user: result.rows[0],
+                message: 'Usuario creado sin verificación de email (modo desarrollo)'
+            });
+        }
+
+        // Crear usuario con email no verificado
+        const bcrypt = require('bcryptjs');
+        const hash = await bcrypt.hash(String(password), 10);
+        
+        const result = await pool.query(`
+            INSERT INTO users (username, email, password_hash, display_name, email_verified) 
+            VALUES ($1, $2, $3, $4, false) 
+            RETURNING id, username, email, display_name, email_verified
+        `, [username, email, hash, full_name]);
+
+        const newUser = result.rows[0];
+
+        // Generar y enviar código OTP
+        try {
+            const otpResult = await otpService.createOTP(pool, newUser.id, 'verify_email');
+            
+            if (otpResult.success) {
+                await emailService.sendVerificationEmail(email, otpResult.otp, full_name);
+                
+                console.log('📧 Email de verificación enviado para nuevo usuario:', {
+                    userId: newUser.id,
+                    email: email,
+                    otpId: otpResult.otpId
+                });
+
+                res.status(201).json({ 
+                    user: newUser,
+                    message: 'Usuario creado. Revisa tu email para verificar tu cuenta.',
+                    requiresVerification: true
+                });
+            } else {
+                throw new Error('Error generando código de verificación');
+            }
+        } catch (emailError) {
+            console.error('❌ Error enviando email de verificación:', emailError);
+            
+            // Si falla el envío de email, eliminar el usuario creado
+            await pool.query('DELETE FROM users WHERE id = $1', [newUser.id]);
+            
+            return res.status(500).json({ 
+                error: 'Error enviando email de verificación. Inténtalo de nuevo.' 
+            });
+        }
         
     } catch (error) {
         console.error('Error registrando usuario:', error);
@@ -767,15 +807,15 @@ app.post('/api/register', async (req, res) => {
             } else if (errorMsg.includes('email')) {
                 return res.status(409).json({ error: 'El email ya está registrado' });
             } else {
-            return res.status(409).json({ error: 'El usuario ya existe' });
-        }
+                return res.status(409).json({ error: 'El usuario ya existe' });
+            }
         }
         
         res.status(500).json({ error: 'Error registrando usuario' });
     }
 });
 
-// Login de usuario (valida contra BD si está disponible)
+// Login de usuario con verificación de email
 app.post('/api/login', async (req, res) => {
     try {
         const { username, identifier, password } = req.body || {};
@@ -792,32 +832,20 @@ app.post('/api/login', async (req, res) => {
             return res.status(503).json({ error: 'Base de datos no configurada' });
         }
 
-        // Verificar si existe la columna password_hash
-        let hasPassword = false;
-        let hasCargoRol = false;
-        let hasTypeRol = false;
-        try {
-            const col = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'password_hash' LIMIT 1");
-            hasPassword = col.rows.length > 0;
-        } catch (_) {}
-
-        // Detectar columnas opcionales de roles
-        try {
-            const cols = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND column_name IN ('cargo_rol','type_rol')");
-            const names = (cols.rows || []).map(r => String(r.column_name || '').toLowerCase());
-            hasCargoRol = names.includes('cargo_rol');
-            hasTypeRol = names.includes('type_rol');
-        } catch (_) {}
-
-        const query = `SELECT 
+        // Buscar usuario con información de verificación de email
+        const query = `
+            SELECT 
                 id, 
                 username, 
                 email,
+                password_hash,
+                email_verified,
                 COALESCE(display_name, NULLIF(TRIM(CONCAT(COALESCE(first_name,''),' ',COALESCE(last_name,''))), '')) AS display_name
-                ${hasPassword ? ', password_hash' : ''}
             FROM users 
             WHERE LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($1) 
-            LIMIT 1`;
+            LIMIT 1
+        `;
+        
         const result = await pool.query(query, [String(input)]);
         if (result.rows.length === 0) {
             return res.status(401).json({ error: 'Credenciales inválidas' });
@@ -825,30 +853,199 @@ app.post('/api/login', async (req, res) => {
 
         const user = result.rows[0];
 
-        if (hasPassword) {
-            const bcrypt = require('bcryptjs');
-            let ok = false;
-            try {
-                ok = await bcrypt.compare(String(password), user.password_hash || '');
-            } catch(_) { ok = false; }
-            // Modo desarrollo: permitir coincidencia en texto plano si el hash no es válido
-            if (!ok && DEV_MODE && user.password_hash && !String(user.password_hash).startsWith('$2')) {
-                ok = String(user.password_hash) === String(password);
-            }
-            if (!ok) {
-                return res.status(401).json({ error: 'Credenciales inválidas' });
-            }
-        } else if (!hasPassword && DEV_MODE) {
-            // Fallback de desarrollo: permitir login si el usuario existe
-            console.warn('[DEV] password_hash no existe, permitiendo login para pruebas');
-        } else {
-            return res.status(500).json({ error: 'Autenticación no disponible: falta password_hash' });
+        // Verificar contraseña
+        const bcrypt = require('bcryptjs');
+        let passwordValid = false;
+        try {
+            passwordValid = await bcrypt.compare(String(password), user.password_hash || '');
+        } catch(_) { passwordValid = false; }
+        
+        // Modo desarrollo: permitir coincidencia en texto plano si el hash no es válido
+        if (!passwordValid && DEV_MODE && user.password_hash && !String(user.password_hash).startsWith('$2')) {
+            passwordValid = String(user.password_hash) === String(password);
+        }
+        
+        if (!passwordValid) {
+            return res.status(401).json({ error: 'Credenciales inválidas' });
         }
 
-        return res.json({ user: { id: user.id, username: user.username, display_name: user.display_name || null, email: user.email } });
+        // Verificar si el email está verificado
+        if (!user.email_verified) {
+            return res.status(403).json({ 
+                error: 'Email no verificado',
+                requiresVerification: true,
+                userId: user.id,
+                email: user.email,
+                message: 'Debes verificar tu email antes de iniciar sesión'
+            });
+        }
+
+        // Actualizar último login
+        await pool.query(
+            'UPDATE users SET last_login_at = NOW() WHERE id = $1',
+            [user.id]
+        );
+
+        return res.json({ 
+            user: { 
+                id: user.id, 
+                username: user.username, 
+                display_name: user.display_name || null, 
+                email: user.email,
+                email_verified: user.email_verified
+            } 
+        });
     } catch (err) {
         console.error('Error en /api/login:', err);
         return res.status(500).json({ error: 'Error interno en login' });
+    }
+});
+
+// Endpoint para verificar código OTP
+app.post('/api/verify-email', async (req, res) => {
+    try {
+        const { userId, otp } = req.body || {};
+        
+        if (!userId || !otp) {
+            return res.status(400).json({ error: 'ID de usuario y código OTP requeridos' });
+        }
+
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+
+        // Validar formato del OTP
+        if (!otpService.validateOTPFormat(otp)) {
+            return res.status(400).json({ error: 'Formato de código inválido. Debe ser de 6 dígitos.' });
+        }
+
+        // Verificar el código OTP
+        const verificationResult = await otpService.verifyOTP(pool, userId, otp, 'verify_email');
+
+        if (!verificationResult.success) {
+            return res.status(400).json({ error: verificationResult.error });
+        }
+
+        // Marcar email como verificado
+        await pool.query(`
+            UPDATE users 
+            SET email_verified = true, email_verified_at = NOW() 
+            WHERE id = $1
+        `, [userId]);
+
+        // Obtener información actualizada del usuario
+        const userResult = await pool.query(`
+            SELECT id, username, email, display_name, email_verified, email_verified_at
+            FROM users WHERE id = $1
+        `, [userId]);
+
+        console.log('✅ Email verificado exitosamente:', {
+            userId: userId,
+            verifiedAt: new Date().toISOString()
+        });
+
+        res.json({
+            success: true,
+            message: 'Email verificado correctamente',
+            user: userResult.rows[0]
+        });
+
+    } catch (error) {
+        console.error('❌ Error verificando email:', error);
+        res.status(500).json({ error: 'Error interno verificando email' });
+    }
+});
+
+// Endpoint para obtener estadísticas de OTPs (solo administradores)
+app.get('/api/otp-stats', async (req, res) => {
+    try {
+        // Verificar si es administrador (implementar según tu lógica de roles)
+        const isAdmin = req.headers['x-admin-key'] === process.env.API_SECRET_KEY;
+        
+        if (!isAdmin) {
+            return res.status(403).json({ error: 'Acceso denegado' });
+        }
+
+        const stats = await otpCleanupService.getOTPStats();
+        
+        if (stats) {
+            res.json({
+                success: true,
+                stats: stats,
+                timestamp: new Date().toISOString()
+            });
+        } else {
+            res.status(500).json({ error: 'Error obteniendo estadísticas' });
+        }
+
+    } catch (error) {
+        console.error('❌ Error obteniendo estadísticas de OTPs:', error);
+        res.status(500).json({ error: 'Error interno obteniendo estadísticas' });
+    }
+});
+
+// Endpoint para reenviar código de verificación
+app.post('/api/resend-verification', async (req, res) => {
+    try {
+        const { userId, email } = req.body || {};
+        
+        if (!userId || !email) {
+            return res.status(400).json({ error: 'ID de usuario y email requeridos' });
+        }
+
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+
+        // Verificar que el usuario existe y no está verificado
+        const userResult = await pool.query(`
+            SELECT id, username, email, display_name, email_verified
+            FROM users WHERE id = $1 AND email = $2
+        `, [userId, email]);
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        const user = userResult.rows[0];
+
+        if (user.email_verified) {
+            return res.status(400).json({ error: 'El email ya está verificado' });
+        }
+
+        // Verificar configuración de email
+        if (!emailService.isConfigured()) {
+            return res.status(500).json({ error: 'Servicio de email no configurado' });
+        }
+
+        // Generar y enviar nuevo código OTP
+        try {
+            const otpResult = await otpService.createOTP(pool, userId, 'verify_email');
+            
+            if (otpResult.success) {
+                await emailService.sendVerificationEmail(email, otpResult.otp, user.display_name || user.username);
+                
+                console.log('📧 Código de verificación reenviado:', {
+                    userId: userId,
+                    email: email,
+                    otpId: otpResult.otpId
+                });
+
+                res.json({
+                    success: true,
+                    message: 'Código de verificación reenviado. Revisa tu email.'
+                });
+            } else {
+                throw new Error('Error generando código de verificación');
+            }
+        } catch (emailError) {
+            console.error('❌ Error reenviando código:', emailError);
+            res.status(500).json({ error: 'Error reenviando código de verificación' });
+        }
+
+    } catch (error) {
+        console.error('❌ Error en resend-verification:', error);
+        res.status(500).json({ error: 'Error interno reenviando verificación' });
     }
 });
 
@@ -3334,6 +3531,11 @@ server.listen(PORT, () => {
     console.log(`🚀 Lia IA — servidor iniciado en puerto ${PORT}`);
     console.log(`🔒 Modo: ${process.env.NODE_ENV || 'development'}`);
     console.log(`📺 Socket.IO habilitado para chat del livestream`);
+    console.log(`📧 Servicio de email: ${emailService.isConfigured() ? '✅ Configurado' : '❌ No configurado'}`);
+    console.log(`🔐 Verificación de email: ✅ Habilitada`);
+    
+    // Iniciar servicio de limpieza automática de OTPs
+    otpCleanupService.startAutoCleanup(15); // Limpiar cada 15 minutos
 });
 
 module.exports = app;
