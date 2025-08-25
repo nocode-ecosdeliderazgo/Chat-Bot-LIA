@@ -22,1175 +22,8 @@
     
     <!-- Global theme setup - Configuración global del tema -->
     <script src="scripts/global-theme-setup.js"></script>
-    <style>
-        /* Degradado azul oscuro específico para el chat de Lia */
-        body.layout-notebook {
-            --color-bg-1: #041326; /* azul noche (oscuro) */
-            --color-bg-2: #070F1D; /* azul profundo (oscuro) */
-        }
-
-        /* ===== LAYOUT FIXED - PANELES FIJOS ===== */
-        .layout-3panels {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-        }
-
-        /* Panel izquierdo - Herramientas */
-        .sidebar-left {
-            width: 280px;
-            min-width: 220px;
-            max-width: 400px;
-            background: rgba(20, 30, 45, 0.95);
-            border-right: 1px solid rgba(68, 229, 255, 0.18);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            flex-shrink: 0;
-            transition: width 0.3s ease;
-        }
-
-        .sidebar-left.collapsed {
-            width: 60px;
-            min-width: 60px;
-        }
-
-        /* Panel derecho - Studio */
-        .studio-right {
-            width: 240px;
-            min-width: 180px;
-            max-width: 350px;
-            background: rgba(20, 30, 45, 0.95);
-            border-left: 1px solid rgba(68, 229, 255, 0.18);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            flex-shrink: 0;
-            transition: width 0.3s ease;
-            margin-left: auto; /* Empuja el panel hacia la derecha */
-        }
-
-        .studio-right.collapsed {
-            width: 60px;
-            min-width: 60px;
-        }
-
-        /* Asegurar que el panel derecho esté pegado al borde */
-        .studio-right {
-            border-right: none;
-            border-radius: 0;
-        }
-
-        /* Área principal - Chat */
-        .chat-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            position: relative;
-            width: 100%;
-            padding: 16px;
-            gap: 16px;
-        }
-
-        /* Resizers */
-        .left-resizer,
-        .right-resizer {
-            position: absolute;
-            top: 0;
-            width: 4px;
-            height: 100%;
-            background: rgba(68, 229, 255, 0.1);
-            cursor: col-resize;
-            z-index: 1000;
-            transition: background 0.2s ease;
-        }
-
-        .left-resizer {
-            right: -2px;
-        }
-
-        .right-resizer {
-            left: -2px;
-            right: auto;
-        }
-
-        .left-resizer:hover,
-        .right-resizer:hover {
-            background: rgba(68, 229, 255, 0.3);
-        }
-
-        .left-resizer:active,
-        .right-resizer:active {
-            background: rgba(68, 229, 255, 0.5);
-        }
-
-        /* Estilos para el resize activo */
-        body.resizing {
-            cursor: col-resize !important;
-            user-select: none;
-        }
-
-        body.resizing * {
-            cursor: col-resize !important;
-        }
-
-        /* Mejorar la transición de los paneles */
-        .sidebar-left,
-        .studio-right {
-            transition: width 0.1s ease-out;
-        }
-
-        /* Asegurar que el contenido no se desborde */
-        .sidebar-left .tool-list,
-        .studio-right .studio-cards {
-            overflow-y: auto;
-            overflow-x: hidden;
-            height: calc(100vh - 60px);
-        }
-
-        /* Asegurar que el layout ocupe todo el ancho */
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        /* Expansión automática cuando se colapsan los paneles laterales */
-        .sidebar-left.collapsed ~ .chat-main .live-stream-main-panel,
-        .sidebar-left.collapsed ~ .chat-main .presentation-main-panel {
-            width: calc(100% + 220px); /* 280px - 60px = 220px */
-            margin-left: -220px;
-        }
-
-        .studio-right.collapsed ~ .chat-main .live-stream-main-panel,
-        .studio-right.collapsed ~ .chat-main .presentation-main-panel {
-            width: calc(100% + 180px); /* 240px - 60px = 180px */
-            margin-right: -180px;
-        }
-
-        /* Cuando ambos paneles están colapsados */
-        .sidebar-left.collapsed ~ .chat-main .studio-right.collapsed ~ .chat-main .live-stream-main-panel,
-        .sidebar-left.collapsed ~ .chat-main .studio-right.collapsed ~ .chat-main .presentation-main-panel {
-            width: calc(100% + 400px); /* 220px + 180px = 400px */
-            margin-left: -220px;
-            margin-right: -180px;
-        }
-
-        /* Expansión automática cuando se colapsa un panel central */
-        .live-stream-main-panel.collapsed ~ .presentation-main-panel {
-            height: calc(100% - 76px); /* 100% - 60px del panel colapsado - 16px de gap */
-            min-height: calc(100% - 76px);
-        }
-
-        .presentation-main-panel.collapsed ~ .live-stream-main-panel {
-            height: calc(100% - 76px); /* 100% - 60px del panel colapsado - 16px de gap */
-            min-height: calc(100% - 76px);
-        }
-
-        /* ===== Dynamic Island — barra flotante (basado en ChatGeneral) ===== */
-        .message-input-area {
-            background: transparent;
-            border-top: none;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex-shrink: 0;
-            position: relative;
-            z-index: 10;
-            margin: 0;
-            height: 0; /* no ocupa espacio, la isla es fija */
-        }
-
-        /* Espacio para la Dynamic Island - evitar que los mensajes se corten */
-        .chat-messages {
-            padding-bottom: 100px !important; /* Espacio suficiente para la Dynamic Island */
-        }
-
-        /* ===== NUEVOS ESTILOS PARA REESTRUCTURACIÓN ===== */
-
-        /* Panel de Estado - Toggle entre chats */
-        .connection-panel {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-            padding: 8px;
-            background: rgba(20, 30, 45, 0.8);
-            border-radius: 12px;
-            border: 1px solid rgba(68, 229, 255, 0.18);
-        }
-
-        .toggle-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 8px;
-            color: #94a3b8;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .toggle-btn:hover {
-            background: rgba(68, 229, 255, 0.1);
-            color: #44e5ff;
-            border-color: rgba(68, 229, 255, 0.3);
-        }
-
-        .toggle-btn.active {
-            background: rgba(68, 229, 255, 0.15);
-            color: #44e5ff;
-            border-color: #44e5ff;
-            box-shadow: 0 0 12px rgba(68, 229, 255, 0.2);
-        }
-
-        .toggle-btn i {
-            font-size: 1.1rem;
-        }
-
-        /* Zoom Session dentro del panel de herramientas */
-        .zoom-session-container {
-            padding: 12px;
-        }
-
-        .zoom-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-            font-size: 0.85rem;
-        }
-
-        .zoom-controls {
-            margin-bottom: 12px;
-        }
-
-        .zoom-connect-btn {
-            width: 100%;
-            padding: 8px 12px;
-            background: rgba(68, 229, 255, 0.15);
-            border: 1px solid #44e5ff;
-            border-radius: 6px;
-            color: #44e5ff;
-            font-weight: 500;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .zoom-connect-btn:hover {
-            background: rgba(68, 229, 255, 0.25);
-            box-shadow: 0 0 8px rgba(68, 229, 255, 0.3);
-        }
-
-        .zoom-embed-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100px;
-            color: #64748b;
-            text-align: center;
-            font-size: 0.8rem;
-        }
-
-        .zoom-embed-placeholder i {
-            font-size: 1.5rem;
-            margin-bottom: 6px;
-            opacity: 0.5;
-        }
-
-        .zoom-sdk-container {
-            width: 100%;
-            height: 150px;
-            border-radius: 6px;
-            overflow: hidden;
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        /* Panel de Presentación Principal (Centro) */
-        .presentation-main-panel {
-            background: rgba(20, 30, 45, 0.95);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 12px;
-            margin-bottom: 16px;
-            overflow: hidden;
-        }
-
-        .presentation-main-header {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            padding: 12px 16px;
-            background: rgba(68, 229, 255, 0.08);
-            border-bottom: 1px solid rgba(68, 229, 255, 0.18);
-        }
-
-        .presentation-main-header h3 {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 0;
-            color: #44e5ff;
-            font-size: 1rem;
-            font-weight: 600;
-            flex: 1;
-        }
-
-        .presentation-main-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .presentation-main-control-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 6px;
-            padding: 6px;
-            color: #94a3b8;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .presentation-main-control-btn:hover {
-            background: rgba(68, 229, 255, 0.1);
-            color: #44e5ff;
-        }
-
-        .presentation-main-counter {
-            color: #94a3b8;
-            font-size: 0.85rem;
-            min-width: 60px;
-            text-align: center;
-        }
-
-        .presentation-main-content {
-            padding: 16px;
-            min-height: 400px;
-        }
-
-        .presentation-main-collapse-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 6px;
-            padding: 6px;
-            color: #94a3b8;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-left: 8px;
-        }
-
-        .presentation-main-collapse-btn:hover {
-            background: rgba(68, 229, 255, 0.1);
-            color: #44e5ff;
-        }
-
-        .presentation-main-collapse-btn.collapsed i {
-            transform: rotate(180deg);
-        }
-
-        .presentation-main-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 300px;
-            color: #94a3b8;
-            text-align: center;
-            border: 2px dashed rgba(68, 229, 255, 0.18);
-            border-radius: 8px;
-        }
-
-        .presentation-main-placeholder i {
-            font-size: 4rem;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        .load-presentation-main-btn {
-            margin-top: 16px;
-            padding: 12px 24px;
-            background: rgba(68, 229, 255, 0.15);
-            border: 1px solid #44e5ff;
-            border-radius: 8px;
-            color: #44e5ff;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .load-presentation-main-btn:hover {
-            background: rgba(68, 229, 255, 0.25);
-            box-shadow: 0 0 12px rgba(68, 229, 255, 0.3);
-        }
-
-        .presentation-main-embed-container {
-            width: 100%;
-            height: 500px;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #1a1a1a;
-        }
-
-        .presentation-content {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            box-sizing: border-box;
-            color: #44e5ff;
-            font-family: Arial, sans-serif;
-        }
-
-        .presentation-container {
-            text-align: center;
-            max-width: 600px;
-            width: 100%;
-        }
-
-        .presentation-title {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            color: #44e5ff;
-        }
-
-        .presentation-status {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            color: #44e5ff;
-        }
-
-        .presentation-info {
-            color: #94a3b8;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-
-        .file-details {
-            background: rgba(68,229,255,0.1);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid rgba(68,229,255,0.3);
-            margin-top: 20px;
-        }
-
-        .file-details p {
-            margin: 5px 0;
-            font-size: 0.9rem;
-        }
-
-        .demo-slide {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(68,229,255,0.2);
-            border-radius: 12px;
-            padding: 30px;
-            margin: 20px 0;
-        }
-
-        .slide-number {
-            font-size: 0.8rem;
-            color: #94a3b8;
-            margin-bottom: 10px;
-        }
-
-        .slide-content {
-            font-size: 1.1rem;
-            line-height: 1.6;
-        }
-
-        .slide-content h2 {
-            color: #44e5ff;
-            margin-bottom: 15px;
-        }
-
-        .slide-content p {
-            margin-bottom: 10px;
-        }
-
-        .slide-content ul {
-            text-align: left;
-            margin: 10px 0;
-        }
-
-        .slide-content li {
-            margin-bottom: 5px;
-        }
-
-        /* Contenedor Principal del Chat */
-        .main-chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            display: none; /* Oculto pero funcional */
-        }
-
-        .live-chat-content,
-        .lia-chat-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .live-chat-content.active {
-            display: flex;
-        }
-
-        .lia-chat-content.hidden {
-            display: none;
-        }
-
-        .lia-chat-content.active {
-            display: flex;
-        }
-
-        /* Panel de Live Stream Principal (Centro - Arriba) */
-        .live-stream-main-panel {
-            background: rgba(20, 30, 45, 0.95);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 12px;
-            margin-bottom: 16px;
-            overflow: hidden;
-            height: 50%;
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-
-        .live-stream-main-panel.collapsed {
-            height: 60px !important;
-            min-height: 60px !important;
-            max-height: 60px !important;
-        }
-
-        .live-stream-main-panel.collapsed .live-stream-main-content {
-            display: none !important;
-        }
-
-        .live-stream-main-panel.collapsed .live-stream-main-placeholder {
-            display: none !important;
-        }
-
-        .live-stream-main-panel.collapsed .live-stream-main-embed-container {
-            display: none !important;
-        }
-
-        .live-stream-main-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: rgba(68, 229, 255, 0.08);
-            border-bottom: 1px solid rgba(68, 229, 255, 0.18);
-        }
-
-        .live-stream-main-header h3 {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 0;
-            color: #44e5ff;
-            font-size: 1rem;
-            font-weight: 600;
-            flex: 1;
-        }
-
-        .live-stream-main-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .live-stream-main-control-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 6px;
-            padding: 6px;
-            color: #94a3b8;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .live-stream-main-control-btn:hover {
-            background: rgba(68, 229, 255, 0.1);
-            color: #44e5ff;
-        }
-
-        .live-stream-main-collapse-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 6px;
-            padding: 6px;
-            color: #94a3b8;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-left: 8px;
-        }
-
-        .live-stream-main-collapse-btn:hover {
-            background: rgba(68, 229, 255, 0.1);
-            color: #44e5ff;
-        }
-
-        .live-stream-main-collapse-btn.collapsed i {
-            transform: rotate(180deg);
-        }
-
-        .live-stream-main-content {
-            padding: 16px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .live-stream-main-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: #94a3b8;
-            text-align: center;
-            border: 2px dashed rgba(68, 229, 255, 0.18);
-            border-radius: 8px;
-        }
-
-        .live-stream-main-placeholder i {
-            font-size: 3rem;
-            margin-bottom: 12px;
-            opacity: 0.5;
-        }
-
-        .live-stream-main-connect-btn {
-            margin-top: 12px;
-            padding: 10px 20px;
-            background: rgba(68, 229, 255, 0.15);
-            border: 1px solid #44e5ff;
-            border-radius: 8px;
-            color: #44e5ff;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .live-stream-main-connect-btn:hover {
-            background: rgba(68, 229, 255, 0.25);
-            box-shadow: 0 0 12px rgba(68, 229, 255, 0.3);
-        }
-
-        .live-stream-main-embed-container {
-            width: 100%;
-            height: 100%;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .live-stream-main-embed-container iframe {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* Panel de Presentación Principal (Centro - Abajo) */
-        .presentation-main-panel {
-            background: rgba(20, 30, 45, 0.95);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 12px;
-            margin-bottom: 16px;
-            overflow: hidden;
-            height: 50%;
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            margin: 0;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-
-        .presentation-main-panel.collapsed {
-            height: 60px !important;
-            min-height: 60px !important;
-            max-height: 60px !important;
-        }
-
-        .presentation-main-panel.collapsed .presentation-main-content {
-            display: none !important;
-        }
-
-        .presentation-main-panel.collapsed #presentationMainEmbedContainer {
-            display: none !important;
-        }
-
-        .presentation-main-panel.collapsed #presentationContent {
-            display: none !important;
-        }
-
-        .presentation-main-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: rgba(68, 229, 255, 0.08);
-            border-bottom: 1px solid rgba(68, 229, 255, 0.18);
-        }
-
-        .presentation-main-header h3 {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 0;
-            color: #44e5ff;
-            font-size: 1rem;
-            font-weight: 600;
-            flex: 1;
-        }
-
-        .presentation-main-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .presentation-main-control-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 6px;
-            padding: 6px;
-            color: #94a3b8;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .presentation-main-control-btn:hover {
-            background: rgba(68, 229, 255, 0.1);
-            color: #44e5ff;
-        }
-
-        .presentation-main-counter {
-            color: #94a3b8;
-            font-size: 0.85rem;
-            min-width: 60px;
-            text-align: center;
-        }
-
-        .presentation-main-content {
-            padding: 16px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .presentation-main-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: #94a3b8;
-            text-align: center;
-            border: 2px dashed rgba(68, 229, 255, 0.18);
-            border-radius: 8px;
-        }
-
-        .presentation-main-placeholder i {
-            font-size: 4rem;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        .load-presentation-main-btn {
-            margin-top: 16px;
-            padding: 12px 24px;
-            background: rgba(68, 229, 255, 0.15);
-            border: 1px solid #44e5ff;
-            border-radius: 8px;
-            color: #44e5ff;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .load-presentation-main-btn:hover {
-            background: rgba(68, 229, 255, 0.25);
-            box-shadow: 0 0 12px rgba(68, 229, 255, 0.3);
-        }
-
-        .presentation-main-embed-container {
-            width: 100%;
-            height: 100%;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        /* Eliminado iframe - ahora usa contenido directo */
-
-        /* Chat con LIA */
-        .lia-chat-panel {
-            background: rgba(20, 30, 45, 0.95);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            height: calc(100vh - 200px);
-            overflow: hidden;
-        }
-
-        .lia-chat-panel.hidden {
-            display: none;
-        }
-
-        .lia-chat-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            background: rgba(68, 229, 255, 0.08);
-            border-bottom: 1px solid rgba(68, 229, 255, 0.18);
-        }
-
-        .lia-avatar img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .lia-info {
-            flex: 1;
-        }
-
-        .lia-info h3 {
-            margin: 0;
-            color: #44e5ff;
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .lia-info p {
-            margin: 2px 0 0;
-            color: #94a3b8;
-            font-size: 0.85rem;
-        }
-
-        .lia-chat-controls {
-            display: flex;
-            gap: 8px;
-        }
-
-        .lia-control-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 6px;
-            padding: 8px;
-            color: #94a3b8;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .lia-control-btn:hover {
-            background: rgba(68, 229, 255, 0.1);
-            color: #44e5ff;
-        }
-
-        .lia-chat-messages {
-            flex: 1;
-            padding: 16px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .lia-message {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-        }
-
-        .lia-message-avatar img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .lia-message-content {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(68, 229, 255, 0.18);
-        }
-
-        .lia-message-content p {
-            margin: 0;
-            color: #e2e8f0;
-            line-height: 1.5;
-        }
-
-        .lia-message-time {
-            color: #64748b;
-            font-size: 0.75rem;
-            margin-top: 4px;
-        }
-
-        .lia-chat-input-area {
-            padding: 16px;
-            border-top: 1px solid rgba(68, 229, 255, 0.18);
-            background: rgba(68, 229, 255, 0.03);
-        }
-
-        .lia-input-container {
-            display: flex;
-            align-items: flex-end;
-            gap: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 12px;
-            padding: 12px;
-        }
-
-        .lia-attachment-btn {
-            background: none;
-            border: none;
-            color: #94a3b8;
-            cursor: pointer;
-            padding: 6px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-
-        .lia-attachment-btn:hover {
-            background: rgba(68, 229, 255, 0.1);
-            color: #44e5ff;
-        }
-
-        #liaMessageInput {
-            flex: 1;
-            background: none;
-            border: none;
-            color: #fff;
-            padding: 0;
-            resize: none;
-            min-height: 20px;
-            max-height: 120px;
-            font-family: inherit;
-            font-size: 0.95rem;
-            line-height: 1.4;
-        }
-
-        #liaMessageInput::placeholder {
-            color: #64748b;
-        }
-
-        #liaMessageInput:focus {
-            outline: none;
-        }
-
-        .lia-send-btn {
-            background: rgba(68, 229, 255, 0.15);
-            border: 1px solid #44e5ff;
-            border-radius: 8px;
-            padding: 8px;
-            color: #44e5ff;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .lia-send-btn:hover {
-            background: rgba(68, 229, 255, 0.25);
-            box-shadow: 0 0 12px rgba(68, 229, 255, 0.3);
-        }
-
-        .lia-quick-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .lia-quick-btn {
-            background: rgba(68, 229, 255, 0.08);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 16px;
-            padding: 6px 12px;
-            color: #94a3b8;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .lia-quick-btn:hover {
-            background: rgba(68, 229, 255, 0.15);
-            color: #44e5ff;
-            border-color: #44e5ff;
-        }
-
-        /* Estados de visibilidad */
-        #liveChatPanel {
-            display: block;
-        }
-
-        #liveChatPanel.hidden {
-            display: none;
-        }
-
-        #liaChatPanel.show {
-            display: flex;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .connection-panel {
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .zoom-content,
-            .slides-content {
-                min-height: 200px;
-            }
-            
-            .lia-chat-panel {
-                height: calc(100vh - 150px);
-            }
-        }
-
-        .message-input-wrapper {
-            position: relative;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* Isla flotante */
-        .message-input-area .input-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(20, 30, 45, 0.95);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 30px;
-            padding: 8px 16px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            backdrop-filter: blur(20px);
-            width: calc(100% - 80px);
-            max-width: 600px;
-            min-height: 48px;
-            z-index: 1000;
-        }
-
-        .plus-btn {
-            background: rgba(68, 229, 255, 0.1);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            color: #44e5ff;
-            font-size: 1.3rem;
-            font-weight: 900;
-            cursor: pointer;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-            width: 38px; height: 38px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .plus-btn:hover { background: rgba(68,229,255,0.2); border-color: #44e5ff; transform: scale(1.05); }
-
-        /* Campo de texto */
-        #messageInput {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            border: none;
-            color: #fff;
-            font-size: 0.95rem;
-            resize: none;
-            max-height: 100px;
-            min-height: 20px;
-            outline: none;
-            line-height: 1.4;
-            padding: 8px 16px;
-            border-radius: 18px;
-            margin: 0 8px;
-            min-width: 0;
-            box-shadow: none;
-        }
-        #messageInput::placeholder { color: rgba(255,255,255,0.65); }
-
-        /* Botón acción (micrófono/enviar) */
-        .action-button {
-            background: #007AFF;
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-            width: 38px; height: 38px;
-            display: flex; align-items: center; justify-content: center;
-            position: relative;
-        }
-        .action-button:hover { background: #0056CC; transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,122,255,0.5); }
-        .action-button .send-icon { position: absolute; inset: 0; margin: auto; transform: rotate(-90deg) scale(.6); opacity: 0; transition: transform .18s ease, opacity .18s ease; }
-        .action-button .mic-icon { position: absolute; inset: 0; margin: auto; transform: rotate(0) scale(1); opacity: 1; transition: transform .18s ease, opacity .18s ease; }
-        .input-has-text .action-button .send-icon { transform: rotate(0) scale(1); opacity: 1; }
-        .input-has-text .action-button .mic-icon { transform: rotate(90deg) scale(.6); opacity: 0; }
-
-        /* Dropdown de acciones rápidas */
-        .quick-actions-dropdown {
-            position: absolute;
-            bottom: 100%; left: 50%; transform: translateX(-50%);
-            background: rgba(20,30,45,0.95);
-            border: 1px solid rgba(68,229,255,0.18);
-            border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,.5);
-            padding: 8px; margin-bottom: 8px; min-width: 200px; z-index: 1001; display: none;
-            backdrop-filter: blur(20px);
-        }
-        .quick-actions-dropdown.active { display: block; }
-        .quick-action-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; cursor: pointer; border-radius: 8px; color: #fff; }
-        .quick-action-item:hover { background: rgba(68,229,255,0.1); border: 1px solid rgba(68,229,255,0.18); }
-
-        /* Reubicar menú global al centro bajo la isla (sobre-escribe main.css) */
-        .global-menu { left: auto !important; bottom: 84px !important; transform: none !important; display: none; }
-        .global-menu.show { display: block; }
-    </style>
+    <!-- Enlazar archivo CSS separado -->
+    <link rel="stylesheet" href="styles/chat.css">
 </head>
 <body class="layout-notebook bg-glow-global">
     <div class="layout-3panels">
@@ -1344,9 +177,7 @@
                         <button class="live-stream-main-control-btn" id="liveStreamMainDisconnectBtn" title="Detener Stream">
                             <i class='bx bx-stop-circle'></i>
                         </button>
-                        <button class="live-stream-main-control-btn" id="liveStreamMainFullscreenBtn" title="Pantalla completa">
-                            <i class='bx bx-fullscreen'></i>
-                        </button>
+
                         <button class="live-stream-main-collapse-btn" id="liveStreamMainCollapseBtn" title="Colapsar/Expandir">
                             <i class='bx bx-chevron-up'></i>
                         </button>
@@ -1363,7 +194,7 @@
                     </div>
                     
                     <!-- Contenedor para Live Stream -->
-                    <div class="live-stream-main-embed-container" id="liveStreamMainEmbedContainer" style="display: none;">
+                    <div class="live-stream-main-embed-container" id="liveStreamMainEmbedContainer" style="display: none; background: rgba(20, 30, 45, 0.95);">
                         <iframe id="liveStreamMainIframe" src="" frameborder="0" allowfullscreen></iframe>
                     </div>
                 </div>
@@ -1384,9 +215,7 @@
                         <button class="presentation-main-control-btn" id="presentationMainNextBtn" title="Siguiente">
                             <i class='bx bx-chevron-right'></i>
                         </button>
-                        <button class="presentation-main-fullscreen-btn" id="presentationMainFullscreenBtn" title="Pantalla completa">
-                            <i class='bx bx-fullscreen'></i>
-                        </button>
+
                         <button class="presentation-main-collapse-btn" id="presentationMainCollapseBtn" title="Colapsar/Expandir">
                             <i class='bx bx-chevron-down'></i>
                         </button>
@@ -1403,9 +232,9 @@
                     </div>
                     
                     <!-- Aquí se mostrará la presentación -->
-                    <div class="presentation-main-embed-container" id="presentationMainEmbedContainer" style="display: none;">
+                    <div class="presentation-main-embed-container" id="presentationMainEmbedContainer" style="display: none; background: rgba(20, 30, 45, 0.95);">
                         <!-- Contenido directo sin iframe para compatibilidad con Brave -->
-                        <div id="presentationContent" class="presentation-content">
+                        <div id="presentationContent" class="presentation-content" style="background: rgba(20, 30, 45, 0.95);">
                             <!-- El contenido se insertará dinámicamente aquí -->
                         </div>
                     </div>
@@ -1750,7 +579,7 @@
                 const liveStreamMainConnectBtn = document.getElementById('liveStreamMainConnectBtn');
                 const liveStreamMainConnectBtnLarge = document.getElementById('liveStreamMainConnectBtnLarge');
                 const liveStreamMainDisconnectBtn = document.getElementById('liveStreamMainDisconnectBtn');
-                const liveStreamMainFullscreenBtn = document.getElementById('liveStreamMainFullscreenBtn');
+            
                 const liveStreamMainCollapseBtn = document.getElementById('liveStreamMainCollapseBtn');
                 const liveStreamMainPlaceholder = document.getElementById('liveStreamMainPlaceholder');
                 const liveStreamMainEmbedContainer = document.getElementById('liveStreamMainEmbedContainer');
@@ -1780,18 +609,7 @@
                     });
                 }
                 
-                // Pantalla completa
-                if (liveStreamMainFullscreenBtn) {
-                    liveStreamMainFullscreenBtn.addEventListener('click', function() {
-                        console.log('🖥️ Modo pantalla completa para Live Stream');
-                        const iframe = document.getElementById('liveStreamMainIframe');
-                        if (iframe && iframe.requestFullscreen) {
-                            iframe.requestFullscreen();
-                        } else {
-                            alert('Funcionalidad de pantalla completa - Demo');
-                        }
-                    });
-                }
+
                 
                 // Función para iniciar Live Stream
                 function startLiveStream() {
@@ -1811,9 +629,10 @@
                         if (liveStreamMainPlaceholder) liveStreamMainPlaceholder.style.display = 'none';
                         if (liveStreamMainEmbedContainer) {
                             liveStreamMainEmbedContainer.style.display = 'block';
+                            liveStreamMainEmbedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
                             liveStreamMainEmbedContainer.innerHTML = `
                                 <div style="display: flex; align-items: center; justify-content: center; height: 100%; 
-                                     background: rgba(0,0,0,0.8); border-radius: 8px; color: #44e5ff; font-size: 0.8rem;">
+                                     background: rgba(20, 30, 45, 0.95); border-radius: 8px; color: #44e5ff; font-size: 0.8rem;">
                                     <div style="text-align: center;">
                                         <i class='bx bx-broadcast' style="font-size: 2rem; margin-bottom: 8px; display: block;"></i>
                                         <p style="margin: 0; font-size: 1rem;">Live Stream Activo</p>
@@ -1862,34 +681,58 @@
                             liveStreamMainCollapseBtn.classList.remove('collapsed');
                             liveStreamMainCollapseBtn.querySelector('i').className = 'bx bx-chevron-up';
                             
-                            // Mostrar contenido si existe
-                            if (liveStreamContent) {
-                                liveStreamContent.style.display = 'flex';
-                            }
-                            if (liveStreamPlaceholder) {
-                                liveStreamPlaceholder.style.display = 'flex';
-                            }
-                            if (liveStreamEmbedContainer) {
-                                liveStreamEmbedContainer.style.display = 'block';
-                            }
+                            // Mostrar contenido con transición suave
+                            setTimeout(() => {
+                                if (liveStreamContent) {
+                                    liveStreamContent.style.display = 'flex';
+                                    liveStreamContent.style.opacity = '1';
+                                    liveStreamContent.style.visibility = 'visible';
+                                }
+                                if (liveStreamPlaceholder) {
+                                    liveStreamPlaceholder.style.display = 'flex';
+                                    liveStreamPlaceholder.style.opacity = '1';
+                                    liveStreamPlaceholder.style.visibility = 'visible';
+                                }
+                                if (liveStreamEmbedContainer) {
+                                    liveStreamEmbedContainer.style.display = 'block';
+                                    liveStreamEmbedContainer.style.opacity = '1';
+                                    liveStreamEmbedContainer.style.visibility = 'visible';
+                                }
+                            }, 100);
                             
                             console.log('📺 Panel Live Stream expandido');
                         } else {
-                            // Colapsar panel
-                            liveStreamMainPanel.classList.add('collapsed');
-                            liveStreamMainCollapseBtn.classList.add('collapsed');
-                            liveStreamMainCollapseBtn.querySelector('i').className = 'bx bx-chevron-down';
-                            
-                            // Ocultar contenido
+                            // Ocultar contenido primero
                             if (liveStreamContent) {
-                                liveStreamContent.style.display = 'none';
+                                liveStreamContent.style.opacity = '0';
+                                liveStreamContent.style.visibility = 'hidden';
                             }
                             if (liveStreamPlaceholder) {
-                                liveStreamPlaceholder.style.display = 'none';
+                                liveStreamPlaceholder.style.opacity = '0';
+                                liveStreamPlaceholder.style.visibility = 'hidden';
                             }
                             if (liveStreamEmbedContainer) {
-                                liveStreamEmbedContainer.style.display = 'none';
+                                liveStreamEmbedContainer.style.opacity = '0';
+                                liveStreamEmbedContainer.style.visibility = 'hidden';
                             }
+                            
+                            // Colapsar panel después de la transición
+                            setTimeout(() => {
+                                liveStreamMainPanel.classList.add('collapsed');
+                                liveStreamMainCollapseBtn.classList.add('collapsed');
+                                liveStreamMainCollapseBtn.querySelector('i').className = 'bx bx-chevron-down';
+                                
+                                // Ocultar completamente
+                                if (liveStreamContent) {
+                                    liveStreamContent.style.display = 'none';
+                                }
+                                if (liveStreamPlaceholder) {
+                                    liveStreamPlaceholder.style.display = 'none';
+                                }
+                                if (liveStreamEmbedContainer) {
+                                    liveStreamEmbedContainer.style.display = 'none';
+                                }
+                            }, 150);
                             
                             console.log('📺 Panel Live Stream colapsado');
                         }
@@ -1926,7 +769,7 @@
                 const loadPresentationMainBtn = document.getElementById('loadPresentationMainBtn');
                 const presentationMainPrevBtn = document.getElementById('presentationMainPrevBtn');
                 const presentationMainNextBtn = document.getElementById('presentationMainNextBtn');
-                const presentationMainFullscreenBtn = document.getElementById('presentationMainFullscreenBtn');
+
                 const presentationMainCollapseBtn = document.getElementById('presentationMainCollapseBtn');
                 const presentationMainCounter = document.getElementById('presentationMainCounter');
                 const presentationMainPlaceholder = document.getElementById('presentationMainPlaceholder');
@@ -2011,9 +854,13 @@
                                             // Limpiar todo el contenido
                                             embedContainer.innerHTML = '';
                                             console.log('🧹 Contenedor limpiado completamente');
+                                            
+                                            // Asegurar que el contenedor tenga el fondo correcto
+                                            embedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
                                         }
                                         
                                         presentationMainEmbedContainer.style.display = 'block';
+                                        presentationMainEmbedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
                                         
                                                                                 // Limpiar completamente el contenedor y mostrar contenido directo (compatible con Brave)
                                         const presentationContent = document.getElementById('presentationContent');
@@ -2026,6 +873,7 @@
                                             const newContentDiv = document.createElement('div');
                                             newContentDiv.id = 'presentationContent';
                                             newContentDiv.className = 'presentation-content';
+                                            newContentDiv.style.background = 'rgba(20, 30, 45, 0.95)';
                                             
                                             // Insertar el contenido
                                             newContentDiv.innerHTML = `
@@ -2054,10 +902,15 @@
                                             // Agregar el nuevo contenido al contenedor
                                             embedContainer.appendChild(newContentDiv);
                                             
+                                            // Asegurar que todos los elementos tengan el fondo correcto
+                                            embedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
+                                            newContentDiv.style.background = 'rgba(20, 30, 45, 0.95)';
+                                            
                                             // Forzar actualización del DOM
                                             embedContainer.style.display = 'none';
                                             setTimeout(() => {
                                                 embedContainer.style.display = 'block';
+                                                embedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
                                                 console.log('🔄 DOM actualizado forzadamente');
                                             }, 10);
                                             
@@ -2119,13 +972,13 @@
                 }
                 });
                 
-                                // Navegación de diapositivas
+                // Navegación de diapositivas
                 if (presentationMainPrevBtn) {
                     presentationMainPrevBtn.addEventListener('click', function() {
                         if (currentSlide > 1) {
                             currentSlide--;
                             if (presentationMainCounter) {
-                                presentationMainCounter.textContent = `${currentSlide} / ${totalSlides}`;
+                            presentationMainCounter.textContent = `${currentSlide} / ${totalSlides}`;
                             }
                             console.log(`⬅️ Diapositiva anterior: ${currentSlide}`);
                             
@@ -2138,13 +991,13 @@
                 } else {
                     console.warn('⚠️ No se encontró el botón de diapositiva anterior');
                 }
-                
+                    
                 if (presentationMainNextBtn) {
                     presentationMainNextBtn.addEventListener('click', function() {
                         if (currentSlide < totalSlides) {
                             currentSlide++;
                             if (presentationMainCounter) {
-                                presentationMainCounter.textContent = `${currentSlide} / ${totalSlides}`;
+                            presentationMainCounter.textContent = `${currentSlide} / ${totalSlides}`;
                             }
                             console.log(`➡️ Diapositiva siguiente: ${currentSlide}`);
                             
@@ -2203,7 +1056,7 @@
                         } catch (error) {
                             console.warn('⚠️ No se pudo actualizar el contenido de la presentación:', error);
                         }
-                    } else {
+                        } else {
                         console.warn('⚠️ No se encontró el contenedor de presentación para actualizar');
                     }
                 }
@@ -2212,42 +1065,7 @@
                     console.warn('⚠️ No se encontró el contador de diapositivas');
                 }
                 
-                                // Pantalla completa
-                if (presentationMainFullscreenBtn) {
-                    presentationMainFullscreenBtn.addEventListener('click', function() {
-                        console.log('🖥️ Intentando modo pantalla completa');
-                        
-                        try {
-                            const presentationContainer = document.getElementById('presentationMainEmbedContainer');
-                            if (presentationContainer) {
-                                if (presentationContainer.requestFullscreen) {
-                                    presentationContainer.requestFullscreen().then(() => {
-                                        console.log('✅ Pantalla completa activada');
-                                    }).catch((error) => {
-                                        console.error('❌ Error al activar pantalla completa:', error);
-                                        alert('❌ No se pudo activar la pantalla completa: ' + error.message);
-                                    });
-                                } else if (presentationContainer.webkitRequestFullscreen) {
-                                    presentationContainer.webkitRequestFullscreen();
-                                } else if (presentationContainer.mozRequestFullScreen) {
-                                    presentationContainer.mozRequestFullScreen();
-                                } else if (presentationContainer.msRequestFullscreen) {
-                                    presentationContainer.msRequestFullscreen();
-                                } else {
-                                    alert('⚠️ Tu navegador no soporta pantalla completa');
-                                }
-                            } else {
-                                console.error('❌ No se encontró el contenedor de presentación');
-                                alert('❌ No se encontró la presentación para pantalla completa');
-                            }
-                        } catch (error) {
-                            console.error('❌ Error al activar pantalla completa:', error);
-                            alert('❌ Error al activar pantalla completa: ' + error.message);
-                        }
-                    });
-                } else {
-                    console.warn('⚠️ No se encontró el botón de pantalla completa');
-                }
+                
 
                 // Funcionalidad de colapso del panel
                 if (presentationMainCollapseBtn && presentationMainPanel) {
@@ -2264,28 +1082,46 @@
                             presentationMainCollapseBtn.classList.remove('collapsed');
                             presentationMainCollapseBtn.querySelector('i').className = 'bx bx-chevron-down';
                             
-                            // Mostrar contenido si existe
-                            if (embedContainer) {
-                                embedContainer.style.display = 'block';
-                            }
-                            if (presentationContent) {
-                                presentationContent.style.display = 'flex';
-                            }
+                            // Mostrar contenido con transición suave
+                            setTimeout(() => {
+                                if (embedContainer) {
+                                    embedContainer.style.display = 'block';
+                                    embedContainer.style.opacity = '1';
+                                    embedContainer.style.visibility = 'visible';
+                                }
+                                if (presentationContent) {
+                                    presentationContent.style.display = 'flex';
+                                    presentationContent.style.opacity = '1';
+                                    presentationContent.style.visibility = 'visible';
+                                }
+                            }, 100);
                             
                             console.log('📊 Panel Presentación expandido');
                         } else {
-                            // Colapsar panel
-                            presentationMainPanel.classList.add('collapsed');
-                            presentationMainCollapseBtn.classList.add('collapsed');
-                            presentationMainCollapseBtn.querySelector('i').className = 'bx bx-chevron-up';
-                            
-                            // Ocultar contenido
+                            // Ocultar contenido primero
                             if (embedContainer) {
-                                embedContainer.style.display = 'none';
+                                embedContainer.style.opacity = '0';
+                                embedContainer.style.visibility = 'hidden';
                             }
                             if (presentationContent) {
-                                presentationContent.style.display = 'none';
+                                presentationContent.style.opacity = '0';
+                                presentationContent.style.visibility = 'hidden';
                             }
+                            
+                            // Colapsar panel después de la transición
+                            setTimeout(() => {
+                                presentationMainPanel.classList.add('collapsed');
+                                presentationMainCollapseBtn.classList.add('collapsed');
+                                presentationMainCollapseBtn.querySelector('i').className = 'bx bx-chevron-up';
+                                
+                                // Ocultar completamente
+                                if (embedContainer) {
+                                    embedContainer.style.display = 'none';
+                                }
+                                if (presentationContent) {
+                                    presentationContent.style.display = 'none';
+                                }
+                            }, 150);
                             
                             console.log('📊 Panel Presentación colapsado');
                         }
