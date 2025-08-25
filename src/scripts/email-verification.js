@@ -264,14 +264,6 @@ class EmailVerification {
             input.classList.add('error');
             input.classList.remove('filled');
         });
-        
-        const card = document.querySelector('.verification-card');
-        if (card) {
-            card.classList.add('error-shake');
-            setTimeout(() => {
-                card.classList.remove('error-shake');
-            }, 600);
-        }
     }
 
     /**
@@ -283,10 +275,19 @@ class EmailVerification {
         const verifyBtn = document.getElementById('verifyBtn');
         const resendBtn = document.getElementById('resendBtn');
         const inputs = document.querySelectorAll('.otp-input');
+        const btnText = verifyBtn?.querySelector('.btn-text');
+        const spinner = verifyBtn?.querySelector('.loading-spinner');
         
         if (verifyBtn) {
             verifyBtn.disabled = loading;
-            verifyBtn.classList.toggle('loading', loading);
+        }
+        
+        if (btnText) {
+            btnText.style.display = loading ? 'none' : 'inline';
+        }
+        
+        if (spinner) {
+            spinner.style.display = loading ? 'inline-block' : 'none';
         }
         
         if (resendBtn) {
@@ -364,46 +365,28 @@ class EmailVerification {
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         
-        const icon = this.getNotificationIcon(type);
-        
         notification.innerHTML = `
-            <svg class="notification-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                ${icon}
-            </svg>
             <div class="notification-content">
                 <div class="notification-message">${message}</div>
             </div>
-            <button class="notification-close" onclick="this.parentElement.remove()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
         `;
 
         container.appendChild(notification);
 
+        // Mostrar la notificación
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+
         // Auto-remover después de 5 segundos
         setTimeout(() => {
-            if (notification.parentElement) {
-                notification.remove();
-            }
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 300);
         }, 5000);
-    }
-
-    /**
-     * Obtiene el icono para el tipo de notificación
-     */
-    getNotificationIcon(type) {
-        switch (type) {
-            case 'success':
-                return '<path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
-            case 'error':
-                return '<path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
-            case 'warning':
-                return '<path d="M10.29 3.86L1.82 18A2 2 0 0 0 3.5 21H20.5A2 2 0 0 0 22.18 18L13.71 3.86A2 2 0 0 0 10.29 3.86Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
-            default:
-                return '<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 16V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
-        }
     }
 }
 
