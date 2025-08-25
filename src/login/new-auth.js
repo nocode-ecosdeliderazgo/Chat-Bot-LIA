@@ -750,6 +750,24 @@ async function handleLogin(e) {
         }
         
         const result = await response.json();
+        
+        // Verificar si el usuario necesita verificación de email
+        if (result.requiresVerification) {
+            // Guardar datos para verificación
+            localStorage.setItem('pendingVerification', JSON.stringify({
+                userId: result.userId,
+                email: result.email
+            }));
+            
+            showNotification('Debes verificar tu email antes de iniciar sesión', 'warning');
+            
+            // Redirigir a página de verificación
+            setTimeout(() => {
+                window.location.href = '../email-verification.html';
+            }, 2000);
+            return;
+        }
+        
         if (result && result.user) {
             // Limpiar intentos fallidos
             authState.attempts = 0;
@@ -906,15 +924,31 @@ async function handleRegister(e) {
         
         const result = await response.json();
         if (result && result.user) {
-            showNotification('¡Cuenta creada exitosamente!', 'success');
-            setTimeout(() => { 
-                setActiveTab('login'); 
-                const el = document.getElementById('loginEmailOrUsername'); 
-                if (el) { 
-                    el.value = userData.email; 
-                    el.focus(); 
-                } 
-            }, 1500);
+            // Verificar si requiere verificación de email
+            if (result.requiresVerification) {
+                showNotification('¡Cuenta creada! Revisa tu email para verificar tu cuenta.', 'success');
+                
+                // Guardar datos para verificación
+                localStorage.setItem('pendingVerification', JSON.stringify({
+                    userId: result.user.id,
+                    email: result.user.email
+                }));
+                
+                // Redirigir a página de verificación
+                setTimeout(() => {
+                    window.location.href = '../email-verification.html';
+                }, 2000);
+            } else {
+                showNotification('¡Cuenta creada exitosamente!', 'success');
+                setTimeout(() => { 
+                    setActiveTab('login'); 
+                    const el = document.getElementById('loginEmailOrUsername'); 
+                    if (el) { 
+                        el.value = userData.email; 
+                        el.focus(); 
+                    } 
+                }, 1500);
+            }
         } else {
             const errorMessage = result.message || 'Error al crear la cuenta';
             showNotification(errorMessage, 'error');
