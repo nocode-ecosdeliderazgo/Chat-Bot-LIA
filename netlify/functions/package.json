@@ -6,7 +6,8 @@
   "dependencies": {
     "pg": "^8.11.3",
     "jsonwebtoken": "^9.0.2",
-    "bcryptjs": "^2.4.3"
+    "bcryptjs": "^2.4.3",
+    "node-fetch": "^3.3.2"
   },
   "engines": {
     "node": ">=18.0.0"
