@@ -1,6 +1,5 @@
 [build]
   node_version = "18"
-  publish = "src"
   
 [build.environment]
   NODE_ENV = "production"
@@ -33,15 +32,6 @@
   to   = "/.netlify/functions/grafana-panel"
   status = 200
 
-[[redirects]]
-  from = "/sif-icap"
-  to   = "/sif-icap/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/sif-icap/"
-  to   = "/sif-icap/index.html"
-  status = 200
 
 [[redirects]]
   from = "/api/*"
