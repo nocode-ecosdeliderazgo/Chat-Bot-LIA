@@ -3704,4 +3704,33 @@ server.listen(PORT, () => {
     otpCleanupService.startAutoCleanup(15); // Limpiar cada 15 minutos
 });
 
+// Endpoint temporal para verificar perfiles disponibles en questions_catalog
+app.get('/api/debug/profiles', async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        const result = await pool.query(`
+            SELECT DISTINCT perfil, COUNT(*) as count
+            FROM questions_catalog 
+            WHERE active = true 
+            GROUP BY perfil 
+            ORDER BY perfil
+        `);
+        
+        res.json({
+            profiles: result.rows,
+            total_profiles: result.rows.length
+        });
+        
+    } catch (error) {
+        console.error('Error obteniendo perfiles:', error);
+        res.status(500).json({ 
+            error: 'Error obteniendo perfiles',
+            details: error.message
+        });
+    }
+});
+
 module.exports = app;

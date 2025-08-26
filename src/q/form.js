@@ -4,6 +4,9 @@
   const params = new URLSearchParams(location.search);
   let perfil = decodeURIComponent(params.get('perfil') || '').trim();
   let area = decodeURIComponent(params.get('area') || '').trim();
+  
+  console.log('🔍 [DEBUG] Parámetros URL:', { perfil, area });
+  
   // Fallback desde localStorage si no vienen parámetros
   if (!perfil || !area) {
     try {
@@ -12,6 +15,7 @@
         const t = JSON.parse(raw);
         if (!perfil && t.perfilFinal) perfil = String(t.perfilFinal).trim();
         if (!area && t.respuestasSeccion1?.area) area = t.respuestasSeccion1.area;
+        console.log('🔍 [DEBUG] Datos de localStorage profileQuestionnaireData:', t);
       }
     } catch (_) {}
   }
@@ -22,10 +26,127 @@
       if (rawUser) {
         const u = JSON.parse(rawUser);
         perfil = String(u.type_rol || u.typeRol || '').trim();
+        console.log('🔍 [DEBUG] Datos de localStorage currentUser:', u);
       }
     } catch (_) {}
   }
   if (!area) area = 'Otra';
+  
+  console.log('🔍 [DEBUG] Perfil final usado:', perfil);
+  console.log('🔍 [DEBUG] Área final usada:', area);
+
+  // Función para mapear perfiles a los valores correctos de la BD
+  function mapProfileToDatabase(profile) {
+    if (!profile) return null;
+    
+    const profileMap = {
+      // Mapeos directos
+      'marketing': 'Marketing',
+      'Marketing': 'Marketing',
+      'MARKETING': 'Marketing',
+      'ventas': 'Ventas',
+      'Ventas': 'Ventas',
+      'VENTAS': 'Ventas',
+      'operaciones': 'Operaciones',
+      'Operaciones': 'Operaciones',
+      'OPERACIONES': 'Operaciones',
+      'finanzas': 'Finanzas',
+      'Finanzas': 'Finanzas',
+      'FINANZAS': 'Finanzas',
+      'rrhh': 'RRHH',
+      'RRHH': 'RRHH',
+      'recursos humanos': 'RRHH',
+      'Recursos Humanos': 'RRHH',
+      'contabilidad': 'Contabilidad',
+      'Contabilidad': 'Contabilidad',
+      'tecnologia': 'Tecnología',
+      'Tecnología': 'Tecnología',
+      'TECNOLOGIA': 'Tecnología',
+      'TI': 'Tecnología',
+      'ti': 'Tecnología',
+      'compras': 'Compras',
+      'Compras': 'Compras',
+      'supply chain': 'Compras',
+      'Supply Chain': 'Compras',
+      'gerente de operaciones': 'Gerente de Operaciones',
+      'Gerente de Operaciones': 'Gerente de Operaciones',
+      'gerente operaciones': 'Gerente de Operaciones',
+      'director de marketing': 'Director de Marketing',
+      'Director de Marketing': 'Director de Marketing',
+      'director marketing': 'Director de Marketing',
+      'gerente de ventas': 'Gerente de Ventas',
+      'Gerente de Ventas': 'Gerente de Ventas',
+      'gerente ventas': 'Gerente de Ventas',
+      'gerente de finanzas': 'Gerente de Finanzas',
+      'Gerente de Finanzas': 'Gerente de Finanzas',
+      'gerente finanzas': 'Gerente de Finanzas',
+      'gerente de rrhh': 'Gerente de RRHH',
+      'Gerente de RRHH': 'Gerente de RRHH',
+      'gerente rrhh': 'Gerente de RRHH',
+      'gerente de tecnologia': 'Gerente de Tecnología',
+      'Gerente de Tecnología': 'Gerente de Tecnología',
+      'gerente tecnologia': 'Gerente de Tecnología',
+      'gerente de ti': 'Gerente de Tecnología',
+      'gerente ti': 'Gerente de Tecnología',
+      
+      // Mapeos específicos para perfiles con "Miembros de"
+      'miembros de marketing': 'Marketing',
+      'Miembros de Marketing': 'Marketing',
+      'MIEMBROS DE MARKETING': 'Marketing',
+      'miembros de ventas': 'Ventas',
+      'Miembros de Ventas': 'Ventas',
+      'MIEMBROS DE VENTAS': 'Ventas',
+      'miembros de operaciones': 'Operaciones',
+      'Miembros de Operaciones': 'Operaciones',
+      'MIEMBROS DE OPERACIONES': 'Operaciones',
+      'miembros de finanzas': 'Finanzas',
+      'Miembros de Finanzas': 'Finanzas',
+      'MIEMBROS DE FINANZAS': 'Finanzas',
+      'miembros de rrhh': 'RRHH',
+      'Miembros de RRHH': 'RRHH',
+      'MIEMBROS DE RRHH': 'RRHH',
+      'miembros de contabilidad': 'Contabilidad',
+      'Miembros de Contabilidad': 'Contabilidad',
+      'MIEMBROS DE CONTABILIDAD': 'Contabilidad',
+      'miembros de compras': 'Compras',
+      'Miembros de Compras': 'Compras',
+      'MIEMBROS DE COMPRAS': 'Compras',
+      
+      // Mapeos específicos para perfiles con "Dirección de"
+      'dirección de marketing': 'Marketing',
+      'Dirección de Marketing': 'Marketing',
+      'DIRECCIÓN DE MARKETING': 'Marketing',
+      'dirección de ventas': 'Ventas',
+      'Dirección de Ventas': 'Ventas',
+      'DIRECCIÓN DE VENTAS': 'Ventas',
+      'dirección de operaciones': 'Operaciones',
+      'Dirección de Operaciones': 'Operaciones',
+      'DIRECCIÓN DE OPERACIONES': 'Operaciones',
+      'dirección de finanzas': 'Finanzas',
+      'Dirección de Finanzas': 'Finanzas',
+      'DIRECCIÓN DE FINANZAS': 'Finanzas',
+      'dirección de rrhh': 'RRHH',
+      'Dirección de RRHH': 'RRHH',
+      'DIRECCIÓN DE RRHH': 'RRHH',
+      'dirección de contabilidad': 'Contabilidad',
+      'Dirección de Contabilidad': 'Contabilidad',
+      'DIRECCIÓN DE CONTABILIDAD': 'Contabilidad',
+      'dirección de compras': 'Compras',
+      'Dirección de Compras': 'Compras',
+      'DIRECCIÓN DE COMPRAS': 'Compras'
+    };
+    
+    const normalizedProfile = String(profile).toLowerCase().trim();
+    const mappedProfile = profileMap[normalizedProfile];
+    
+    console.log('🔍 [DEBUG] Mapeo de perfil:', { original: profile, normalized: normalizedProfile, mapped: mappedProfile });
+    
+    return mappedProfile || profile; // Si no hay mapeo, usar el original
+  }
+
+  // Aplicar mapeo al perfil
+  perfil = mapProfileToDatabase(perfil);
+  console.log('🔍 [DEBUG] Perfil después del mapeo:', perfil);
 
   // Ocultar subtítulo de perfil/área (solicitado)
   try {
@@ -133,6 +254,26 @@
 
   async function fetchQuestions(){
     if(!window.supabase){ console.warn('[Quiz] Supabase no está disponible'); return []; }
+    
+    console.log('🔍 [DEBUG] Buscando preguntas para perfil:', perfil);
+    console.log('🔍 [DEBUG] Buscando preguntas para área:', area);
+    
+    // Primero, verificar qué perfiles están disponibles en la BD
+    try {
+      const { data: availableProfiles, error: profileError } = await supabase
+        .from('questions_catalog')
+        .select('perfil')
+        .eq('active', true)
+        .order('perfil');
+      
+      if (!profileError && availableProfiles) {
+        const uniqueProfiles = [...new Set(availableProfiles.map(p => p.perfil))];
+        console.log('🔍 [DEBUG] Perfiles disponibles en BD:', uniqueProfiles);
+      }
+    } catch (e) {
+      console.warn('🔍 [DEBUG] No se pudieron obtener perfiles disponibles:', e);
+    }
+    
     // Simplificar: traer por perfil (ignorar área para evitar desajustes tipográficos)
     const { data, error } = await supabase
       .from('questions_catalog')
@@ -140,7 +281,33 @@
       .eq('perfil', perfil)
       .eq('active', true)
       .order('order_num', { ascending: true });
-    if (error) { console.error('[Quiz] Error cargando preguntas:', error); return []; }
+      
+    if (error) { 
+      console.error('[Quiz] Error cargando preguntas:', error); 
+      return []; 
+    }
+    
+    console.log('🔍 [DEBUG] Preguntas encontradas:', data?.length || 0);
+    console.log('🔍 [DEBUG] Primeras 3 preguntas:', data?.slice(0, 3).map(q => ({ id: q.id, content: q.content, perfil: q.perfil, dimension: q.dimension })));
+    
+    // Si no se encontraron preguntas, intentar con una búsqueda más flexible
+    if (!data || data.length === 0) {
+      console.log('🔍 [DEBUG] No se encontraron preguntas, intentando búsqueda flexible...');
+      
+      const { data: flexibleData, error: flexibleError } = await supabase
+        .from('questions_catalog')
+        .select('*')
+        .ilike('perfil', `%${perfil}%`)
+        .eq('active', true)
+        .order('order_num', { ascending: true });
+        
+      if (!flexibleError && flexibleData && flexibleData.length > 0) {
+        console.log('🔍 [DEBUG] Preguntas encontradas con búsqueda flexible:', flexibleData.length);
+        console.log('🔍 [DEBUG] Perfil encontrado en búsqueda flexible:', flexibleData[0].perfil);
+        return flexibleData;
+      }
+    }
+    
     return data || [];
   }
 
