@@ -4021,4 +4021,134 @@ app.get('/api/videosdk/recordings/:sessionId', authenticateRequest, async (req, 
     }
 });
 
+// ============================================================================
+// VIDEO SDK JWT ENDPOINT - APR-28: Endpoint para generar JWT con role_type
+// ============================================================================
+
+// Endpoint para generar JWT de Video SDK
+app.post('/api/videosdk/jwt', async (req, res) => {
+    try {
+        const { sessionName, userName, roleType = 0 } = req.body;
+        
+        // Validar parámetros requeridos
+        if (!sessionName || !userName) {
+            return res.status(400).json({ 
+                error: 'sessionName y userName son requeridos',
+                code: 'MISSING_PARAMETERS'
+            });
+        }
+        
+        // Validar que el usuario está autenticado
+        const user = req.user;
+        if (!user || !user.id) {
+            return res.status(401).json({ 
+                error: 'Usuario no autenticado',
+                code: 'UNAUTHORIZED'
+            });
+        }
+        
+        // Validar roleType (0 = user, 1 = host)
+        if (roleType !== 0 && roleType !== 1) {
+            return res.status(400).json({ 
+                error: 'roleType debe ser 0 (user) o 1 (host)',
+                code: 'INVALID_ROLE_TYPE'
+            });
+        }
+        
+        // Verificar permisos para role_type:1 (host)
+        if (roleType === 1) {
+            // Aquí puedes agregar lógica para verificar si el usuario tiene permisos de host
+            // Por ejemplo, verificar si es instructor, administrador, etc.
+            const hasHostPermissions = await checkHostPermissions(user.id);
+            if (!hasHostPermissions) {
+                return res.status(403).json({ 
+                    error: 'No tienes permisos para ser host',
+                    code: 'INSUFFICIENT_PERMISSIONS'
+                });
+            }
+        }
+        
+        console.log(`🔐 Generando JWT para sesión: ${sessionName}, usuario: ${userName}, rol: ${roleType}`);
+        
+        // Generar passcode aleatorio para la sesión
+        const sessionPasscode = generateSessionPasscode();
+        
+        // Crear payload del JWT según especificación del Video SDK
+        const now = Math.floor(Date.now() / 1000);
+        const payload = {
+            app_key: VIDEO_SDK_API_KEY,
+            tpc: sessionName,
+            role_type: roleType,
+            iat: now,
+            exp: now + 3600, // Expira en 1 hora
+            version: 2
+        };
+        
+        // Firmar el JWT con el secret key del Video SDK
+        const jwtToken = jwt.sign(payload, VIDEO_SDK_SECRET_KEY, { 
+            algorithm: 'HS256',
+            expiresIn: '1h'
+        });
+        
+        // Registrar el evento de generación de JWT
+        console.log(`✅ JWT generado exitosamente para usuario: ${user.id}, sesión: ${sessionName}`);
+        
+        res.json({
+            success: true,
+            jwt: jwtToken,
+            sessionName: sessionName,
+            userName: userName,
+            sessionPasscode: sessionPasscode,
+            roleType: roleType,
+            expiresAt: new Date((now + 3600) * 1000).toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Error generando JWT de Video SDK:', error);
+        
+        res.status(500).json({
+            error: 'Error al generar el JWT',
+            details: error.message,
+            code: 'JWT_GENERATION_ERROR'
+        });
+    }
+});
+
+// Función para verificar permisos de host
+async function checkHostPermissions(userId) {
+    try {
+        // Verificar si el usuario tiene permisos de host en la base de datos
+        if (!pool) {
+            console.warn('⚠️ Base de datos no disponible, permitiendo host por defecto');
+            return true; // En desarrollo, permitir por defecto
+        }
+        
+        const result = await pool.query(`
+            SELECT cargo_rol 
+            FROM users 
+            WHERE id = $1 AND active = true
+        `, [userId]);
+        
+        if (result.rows.length === 0) {
+            return false;
+        }
+        
+        const userRole = result.rows[0].cargo_rol;
+        
+        // Permitir host a instructores y administradores
+        const allowedRoles = ['instructor', 'administrador', 'admin'];
+        return allowedRoles.includes(userRole?.toLowerCase());
+        
+    } catch (error) {
+        console.error('Error verificando permisos de host:', error);
+        return false;
+    }
+}
+
+// Función para generar passcode de sesión
+function generateSessionPasscode() {
+    // Generar un passcode de 6 dígitos
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 module.exports = app;
