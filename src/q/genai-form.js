@@ -141,59 +141,137 @@ class GenAIQuestionnaire {
     }
     
     mapToGenAIArea(userArea) {
-        // Mapeo de áreas antiguas a IDs de áreas y roles en la tabla areas
+        // MAPEO CORREGIDO - Basado en análisis del contenido real de preguntas
         // Formato: { area_id, exclusivo_rol_id }
         const areaMap = {
-            'CEO': { area_id: 2, exclusivo_rol_id: 1 }, // Ventas
+            // ========== LIDERAZGO/ALTA DIRECCIÓN (Rol 1) ==========
+            // Preguntas sobre "impulsar iniciativas GenAI", "presupuesto y OKRs", "portafolio casos de uso"
+            'CEO': { area_id: 2, exclusivo_rol_id: 1 },
             'Dirección General': { area_id: 2, exclusivo_rol_id: 1 },
-            'CTO/CIO': { area_id: 9, exclusivo_rol_id: 8 }, // Tecnología/TI
-            'Tecnología/TI': { area_id: 9, exclusivo_rol_id: 8 },
-            'Tecnología/Desarrollo de Software': { area_id: 9, exclusivo_rol_id: 8 },
-            'Desarrollo': { area_id: 9, exclusivo_rol_id: 8 },
-            'Dirección de Marketing': { area_id: 3, exclusivo_rol_id: 2 }, // Marketing
-            'Miembros de Marketing': { area_id: 3, exclusivo_rol_id: 2 },
-            'Marketing': { area_id: 3, exclusivo_rol_id: 2 },
-            'Marketing y Comunicación': { area_id: 3, exclusivo_rol_id: 2 },
-            'Dirección de Ventas': { area_id: 2, exclusivo_rol_id: 1 }, // Ventas
+            'CEO (personal)': { area_id: 2, exclusivo_rol_id: 1 },
+            'Dirección de Ventas': { area_id: 2, exclusivo_rol_id: 1 },
             'Miembros de Ventas': { area_id: 2, exclusivo_rol_id: 1 },
             'Ventas': { area_id: 2, exclusivo_rol_id: 1 },
-            'Dirección de Finanzas (CFO)': { area_id: 5, exclusivo_rol_id: 4 }, // Finanzas
-            'Miembros de Finanzas': { area_id: 5, exclusivo_rol_id: 4 },
-            'Finanzas': { area_id: 5, exclusivo_rol_id: 4 },
-            'Finanzas/Contabilidad': { area_id: 5, exclusivo_rol_id: 4 },
-            'Dirección/Jefatura de Contabilidad': { area_id: 7, exclusivo_rol_id: 6 }, // Contabilidad
-            'Miembros de Contabilidad': { area_id: 7, exclusivo_rol_id: 6 },
-            'Contabilidad': { area_id: 7, exclusivo_rol_id: 6 },
-            'Freelancer': { area_id: 11, exclusivo_rol_id: 10 }, // Diseño/Industrias Creativas
-            'Consultor': { area_id: 4, exclusivo_rol_id: 3 }, // Operaciones
+            'Gerencia Media': { area_id: 2, exclusivo_rol_id: 1 },
+            
+            // ========== DESARROLLO/TECNOLOGÍA (Rol 2) ==========
+            // Preguntas sobre "asistentes de código", "refactoring", "code reviews", "documentación técnica"
+            'CTO/CIO': { area_id: 4, exclusivo_rol_id: 2 },
+            'Tecnología/TI': { area_id: 4, exclusivo_rol_id: 2 },
+            'Tecnología/Desarrollo de Software': { area_id: 4, exclusivo_rol_id: 2 },
+            'Desarrollo': { area_id: 4, exclusivo_rol_id: 2 },
+            'Programador': { area_id: 4, exclusivo_rol_id: 2 },
+            'Desarrollador': { area_id: 4, exclusivo_rol_id: 2 },
+            
+            // ========== MARKETING/COMUNICACIÓN (Rol 3) ==========
+            // Preguntas sobre "ideación y copy", "posts, emails, ads", "activos creativos", "carruseles"
+            'Dirección de Marketing': { area_id: 3, exclusivo_rol_id: 3 },
+            'Miembros de Marketing': { area_id: 3, exclusivo_rol_id: 3 },
+            'Marketing': { area_id: 3, exclusivo_rol_id: 3 },
+            'Marketing y Comunicación': { area_id: 3, exclusivo_rol_id: 3 },
+            'Comunicación': { area_id: 3, exclusivo_rol_id: 3 },
+            'Publicidad': { area_id: 3, exclusivo_rol_id: 3 },
+            'Consultor': { area_id: 3, exclusivo_rol_id: 3 }, // Los consultores suelen hacer marketing
+            
+            // ========== SALUD/MEDICINA (Rol 4) ==========
+            // Preguntas sobre "evidencia clínica", "notas clínicas", "guías médicas", "informes pacientes"
+            'Salud': { area_id: 5, exclusivo_rol_id: 4 },
+            'Medicina': { area_id: 5, exclusivo_rol_id: 4 },
+            'Médico': { area_id: 5, exclusivo_rol_id: 4 },
+            'Doctor': { area_id: 5, exclusivo_rol_id: 4 },
+            'Enfermería': { area_id: 5, exclusivo_rol_id: 4 },
+            'Salud/Bienestar': { area_id: 5, exclusivo_rol_id: 4 },
+            'Clínica': { area_id: 5, exclusivo_rol_id: 4 },
+            
+            // ========== FINANZAS (Rol 5) ==========
+            // Aún no hay preguntas específicas de finanzas, usar fallback por ahora
+            'Dirección de Finanzas (CFO)': { area_id: 2, exclusivo_rol_id: 1 }, // Temporal: usar liderazgo
+            'Miembros de Finanzas': { area_id: 2, exclusivo_rol_id: 1 }, // Temporal: usar liderazgo
+            'Finanzas': { area_id: 2, exclusivo_rol_id: 1 },
+            'Finanzas/Contabilidad': { area_id: 2, exclusivo_rol_id: 1 },
+            'CFO': { area_id: 2, exclusivo_rol_id: 1 },
+            
+            // ========== CONTABILIDAD (Rol 6) ==========
+            // Aún no hay preguntas específicas de contabilidad
+            'Dirección/Jefatura de Contabilidad': { area_id: 2, exclusivo_rol_id: 1 },
+            'Miembros de Contabilidad': { area_id: 2, exclusivo_rol_id: 1 },
+            'Contabilidad': { area_id: 2, exclusivo_rol_id: 1 },
+            'Contador': { area_id: 2, exclusivo_rol_id: 1 },
+            
+            // ========== OPERACIONES (Rol 7) ==========
+            // Aún no identificamos preguntas específicas
+            'Dirección de Operaciones': { area_id: 4, exclusivo_rol_id: 3 }, // Usar marketing por ahora
+            'Miembros de Operaciones': { area_id: 4, exclusivo_rol_id: 3 },
+            'Operaciones': { area_id: 4, exclusivo_rol_id: 3 },
+            'COO': { area_id: 4, exclusivo_rol_id: 3 },
+            
+            // ========== ACADEMIA/INVESTIGACIÓN (Rol 8) ==========
+            // Preguntas sobre "revisión/síntesis de literatura", "redacción de secciones", investigación
+            'Academia': { area_id: 4, exclusivo_rol_id: 8 },
+            'Investigación': { area_id: 4, exclusivo_rol_id: 8 },
+            'Investigador': { area_id: 4, exclusivo_rol_id: 8 },
+            'Educación': { area_id: 4, exclusivo_rol_id: 8 },
+            'Docentes': { area_id: 4, exclusivo_rol_id: 8 },
+            'Profesor': { area_id: 4, exclusivo_rol_id: 8 },
+            'Universidad': { area_id: 4, exclusivo_rol_id: 8 },
+            
+            // ========== RECURSOS HUMANOS (Rol 9) ==========
+            // Aún no hay preguntas específicas
+            'Dirección de RRHH': { area_id: 2, exclusivo_rol_id: 1 },
+            'Miembros de RRHH': { area_id: 2, exclusivo_rol_id: 1 },
+            'RRHH': { area_id: 2, exclusivo_rol_id: 1 },
+            'Recursos Humanos': { area_id: 2, exclusivo_rol_id: 1 },
+            
+            // ========== DISEÑO/CREATIVOS (Rol 10) ==========
+            // Preguntas sobre "rostro/voz personas", "ideación (moodboards, concept art)", industrias creativas
+            'Freelancer': { area_id: 4, exclusivo_rol_id: 10 },
+            'Diseño/Industrias Creativas': { area_id: 4, exclusivo_rol_id: 10 },
+            'Diseño': { area_id: 4, exclusivo_rol_id: 10 },
+            'Diseñador': { area_id: 4, exclusivo_rol_id: 10 },
+            'Creativo': { area_id: 4, exclusivo_rol_id: 10 },
+            'Arte': { area_id: 4, exclusivo_rol_id: 10 },
+            'Artista': { area_id: 4, exclusivo_rol_id: 10 },
+            
+            // ========== OTROS/GOBIERNO/LEGAL ==========
             'Administración Pública/Gobierno': { area_id: 4, exclusivo_rol_id: 3 },
             'Administración Pública': { area_id: 4, exclusivo_rol_id: 3 },
             'Gobierno': { area_id: 4, exclusivo_rol_id: 3 },
-            'Salud': { area_id: 4, exclusivo_rol_id: 3 },
-            'Medicina': { area_id: 4, exclusivo_rol_id: 3 },
-            'Médico': { area_id: 4, exclusivo_rol_id: 3 },
             'Derecho': { area_id: 4, exclusivo_rol_id: 3 },
             'Legal': { area_id: 4, exclusivo_rol_id: 3 },
             'Abogado': { area_id: 4, exclusivo_rol_id: 3 },
-            'Academia': { area_id: 10, exclusivo_rol_id: 9 }, // Otra
-            'Investigación': { area_id: 10, exclusivo_rol_id: 9 },
-            'Investigador': { area_id: 10, exclusivo_rol_id: 9 },
-            'Educación': { area_id: 10, exclusivo_rol_id: 9 },
-            'Docentes': { area_id: 10, exclusivo_rol_id: 9 },
-            'Profesor': { area_id: 10, exclusivo_rol_id: 9 },
-            'Gerencia Media': { area_id: 2, exclusivo_rol_id: 1 }, // Por defecto Ventas
-            'Usuario': { area_id: 2, exclusivo_rol_id: 1 }, // Por defecto Ventas
-            'Administrador': { area_id: 2, exclusivo_rol_id: 1 } // Por defecto Ventas
+            'Compras/Supply': { area_id: 4, exclusivo_rol_id: 3 },
+            'Dirección de Compras / Supply': { area_id: 4, exclusivo_rol_id: 3 },
+            'Miembros de Compras': { area_id: 4, exclusivo_rol_id: 3 },
+            
+            // ========== FALLBACKS ==========
+            'Usuario': { area_id: 2, exclusivo_rol_id: 1 },
+            'Administrador': { area_id: 2, exclusivo_rol_id: 1 }
         };
         
-        const mapping = areaMap[userArea] || { area_id: 2, exclusivo_rol_id: 1 }; // Por defecto Ventas
-        console.log('🔍 Mapeando área:', userArea, '→', mapping);
+        const mapping = areaMap[userArea] || { area_id: 2, exclusivo_rol_id: 1 }; // Por defecto Liderazgo
+        console.log('🔍 Mapeando área (CORREGIDO):', userArea, '→', mapping);
         
-        // Debug: mostrar todas las claves disponibles
+        // Debug mejorado
         if (!areaMap[userArea]) {
             console.warn('⚠️ Área no encontrada en el mapeo:', userArea);
-            console.log('📋 Áreas disponibles en el mapeo:', Object.keys(areaMap));
+            console.log('📋 ¿Quizás quisiste decir alguna de estas?');
+            const suggestions = Object.keys(areaMap).filter(key => 
+                key.toLowerCase().includes(userArea.toLowerCase()) || 
+                userArea.toLowerCase().includes(key.toLowerCase())
+            ).slice(0, 5);
+            suggestions.forEach(s => console.log(`   - ${s}`));
         }
+        
+        // Mostrar rol asignado para debugging
+        const roleNames = {
+            1: 'Liderazgo/Alta Dirección',
+            2: 'Desarrollo/Tecnología', 
+            3: 'Marketing/Comunicación',
+            4: 'Salud/Medicina',
+            8: 'Academia/Investigación',
+            10: 'Diseño/Creativos'
+        };
+        console.log(`   🎯 Tipo de preguntas asignadas: ${roleNames[mapping.exclusivo_rol_id] || 'Desconocido'}`);
         
         return mapping;
     }
