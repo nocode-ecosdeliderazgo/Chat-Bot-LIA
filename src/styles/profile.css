@@ -562,6 +562,68 @@ body {
     border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
+/* Panel de administración */
+.admin-panel {
+    margin-top: 16px;
+    margin-bottom: 8px;
+}
+
+.admin-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 152, 0, 0.1);
+    border: 1px solid rgba(255, 152, 0, 0.3);
+    border-radius: 8px;
+    color: #FF9800;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-link:hover {
+    background: rgba(255, 152, 0, 0.2);
+    border-color: rgba(255, 152, 0, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
+}
+
+.admin-link:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 152, 0, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.admin-link:hover:before {
+    left: 100%;
+}
+
+.admin-link svg {
+    z-index: 1;
+}
+
+/* Modo claro - Panel de administración */
+[data-theme="light"] .admin-link {
+    background: rgba(255, 152, 0, 0.08);
+    border: 1px solid rgba(255, 152, 0, 0.2);
+    color: #E65100;
+}
+
+[data-theme="light"] .admin-link:hover {
+    background: rgba(255, 152, 0, 0.15);
+    border-color: rgba(255, 152, 0, 0.4);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.15);
+}
+
 /* Estadísticas */
 .stats-section {
     margin-top: 20px;

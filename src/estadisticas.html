@@ -40,7 +40,7 @@
         }
         
         .radar-container {
-            max-width: 800px;
+            max-width: 1400px;
             margin: 0 auto;
         }
         
@@ -70,20 +70,20 @@
         .radar-chart-container {
             position: relative;
             width: 100%;
-            height: 400px;
+            height: 600px;
             margin: 2rem 0;
         }
         
         #radarChart {
             max-width: 100%;
-            height: 400px;
+            height: 600px;
         }
         
         .radar-placeholder {
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 400px;
+            height: 600px;
             background: rgba(68, 229, 255, 0.1);
             border-radius: 16px;
             border: 2px dashed #44e5ff;
@@ -141,15 +141,15 @@
             }
             
             .radar-chart-container {
-                height: 300px;
+                height: 400px;
             }
             
             #radarChart {
-                height: 300px;
+                height: 400px;
             }
             
             .radar-placeholder {
-                height: 300px;
+                height: 400px;
             }
             
             .radar-header h3 {
@@ -181,6 +181,118 @@
         }
         
         [data-theme="light"] .radar-info {
+            border-top-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilos para la sección de adopción */
+        .adoption-section {
+            margin: 2rem 0;
+        }
+        
+                 .adoption-container {
+             max-width: 1400px;
+             margin: 0 auto;
+         }
+        
+        .adoption-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .adoption-header h3 {
+            color: #44e5ff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .adoption-header p {
+            color: #888;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+                 .adoption-chart-container {
+             position: relative;
+             width: 100%;
+             height: 700px;
+             margin: 2rem 0;
+         }
+        
+                 #adoptionChart {
+             max-width: 100%;
+             height: 700px;
+         }
+        
+                 .adoption-placeholder {
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             height: 700px;
+             background: rgba(68, 229, 255, 0.1);
+             border-radius: 16px;
+             border: 2px dashed #44e5ff;
+         }
+        
+        .adoption-info {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+                 /* Responsive para adopción */
+         @media (max-width: 768px) {
+             .adoption-card {
+                 padding: 1.5rem;
+                 margin: 0 1rem;
+             }
+             
+             .adoption-chart-container {
+                 height: 500px;
+             }
+             
+             #adoptionChart {
+                 height: 500px;
+             }
+             
+             .adoption-placeholder {
+                 height: 500px;
+             }
+            
+            .adoption-header h3 {
+                font-size: 1.25rem;
+            }
+            
+            .adoption-header p {
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Tema claro para adopción */
+        [data-theme="light"] .adoption-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="light"] .adoption-header h3 {
+            color: #0077a6;
+        }
+        
+        [data-theme="light"] .adoption-header p {
+            color: #666;
+        }
+        
+        [data-theme="light"] .adoption-placeholder {
+            background: rgba(0, 119, 166, 0.1);
+            border-color: #0077a6;
+        }
+        
+        [data-theme="light"] .adoption-info {
             border-top-color: rgba(0, 0, 0, 0.1);
         }
     </style>
@@ -292,6 +404,31 @@
                                 <div id="userIdInfo"></div>
                                 <div id="connectionStatus"></div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Nueva sección para gráfica de adopción GenAI por países -->
+            <section class="adoption-section animate-on-scroll">
+                <div class="adoption-container">
+                    <div class="adoption-card glass-card">
+                        <div class="adoption-header">
+                            <h3><i class='bx bx-globe'></i> Adopción de GenAI en Países Hispanoparlantes</h3>
+                            <p>Índice de Adopción e Implementación de IA (AIPI) por país</p>
+                        </div>
+                                                 <div class="adoption-chart-container">
+                             <canvas id="adoptionChart" width="1200" height="700"></canvas>
+                            <div id="adoptionPlaceholder" class="adoption-placeholder" style="display: none;">
+                                <div class="placeholder-content">
+                                    <i class='bx bx-globe' style="font-size: 48px; color: #44e5ff; margin-bottom: 16px;"></i>
+                                    <h4 style="color: #44e5ff; margin: 0 0 8px 0;">Cargando datos...</h4>
+                                    <p style="color: #888; margin: 0 0 8px 0; text-align: center;">Obteniendo estadísticas de adopción de GenAI</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="adoption-info">
+                            <p id="adoptionInfo" style="color: #888; font-size: 14px; margin: 0;">Datos actualizados de adopción de Inteligencia Artificial Generativa</p>
                         </div>
                     </div>
                 </div>
@@ -413,43 +550,31 @@
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🎯 Inicializando página de estadísticas con radar chart...');
             
-                // Mostrar información de debugging
-            console.log('🔧 Modo desarrollo - debugging habilitado');
+            // Mostrar botones de prueba si estamos en localhost
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                const testButtons = document.getElementById('testButtons');
+                if (testButtons) {
+                    testButtons.style.display = 'block';
+                    console.log('🧪 Botones de testing habilitados (modo desarrollo)');
+                }
+            }
             
             // Obtener información del usuario logueado
             await loadUserRadarData();
+            
+            // Cargar datos de adopción de GenAI por países
+            await loadAdoptionData();
         });
         
         // Función para obtener el userId del usuario actual
         function getCurrentUserId() {
-            console.log('🔍 Buscando userId en localStorage...');
-            
-            // Mostrar todo el localStorage para debugging
-            console.log('📦 localStorage completo:', localStorage);
-            
-            // Método 1: Desde currentUser (más común en esta app)
-            const currentUser = localStorage.getItem('currentUser');
-            if (currentUser) {
-                try {
-                    const user = JSON.parse(currentUser);
-                    console.log('👤 currentUser encontrado:', user);
-                    if (user.id) {
-                        console.log('✅ userId desde currentUser:', user.id);
-                        return user.id;
-                    }
-                } catch (e) {
-                    console.warn('Error parsing currentUser from localStorage:', e);
-                }
-            }
-            
-            // Método 2: Desde userData
+            // Método 1: Desde localStorage
             const userData = localStorage.getItem('userData');
             if (userData) {
                 try {
                     const user = JSON.parse(userData);
-                    console.log('👤 userData encontrado:', user);
                     if (user.id) {
-                        console.log('✅ userId desde userData:', user.id);
+                        console.log('✅ UserId encontrado en userData:', user.id);
                         return user.id;
                     }
                 } catch (e) {
@@ -457,28 +582,31 @@
                 }
             }
             
-            // Método 3: Desde token JWT decodificado
+            // Método 2: Desde token JWT decodificado (sin verificar firma)
             const token = localStorage.getItem('userToken') || localStorage.getItem('authToken');
             if (token) {
                 try {
                     const payload = JSON.parse(atob(token.split('.')[1]));
-                    console.log('🎫 Token payload:', payload);
                     if (payload.sub) {
-                        console.log('✅ userId desde token:', payload.sub);
+                        console.log('✅ UserId encontrado en token JWT:', payload.sub);
                         return payload.sub;
-                    }
-                    if (payload.userId) {
-                        console.log('✅ userId desde token.userId:', payload.userId);
-                        return payload.userId;
                     }
                 } catch (e) {
                     console.warn('Error decoding token:', e);
                 }
             }
             
-            // Método 4: Usuario de prueba para desarrollo
-            console.warn('⚠️ No se encontró userId, usando userId de prueba');
-            return 'dev-user-id';
+            // Método 3: Verificar si hay un userId específico en la URL (para testing)
+            const urlParams = new URLSearchParams(window.location.search);
+            const testUserId = urlParams.get('userId');
+            if (testUserId) {
+                console.log('✅ UserId encontrado en URL params:', testUserId);
+                return testUserId;
+            }
+            
+            // Método 4: Usuario específico mencionado en el issue Linear
+            console.warn('⚠️ No se encontró userId, usando userId del issue Linear');
+            return '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0';
         }
         
         // Cargar datos del radar del usuario
@@ -488,15 +616,9 @@
                 console.log('👤 Cargando datos para userId:', userId);
                 
                 // Mostrar información del usuario en la página
-                const userIdInfo = document.getElementById('userIdInfo');
-                const connectionStatus = document.getElementById('connectionStatus');
-                
-                if (userIdInfo) {
-                    userIdInfo.innerHTML = `Usuario: ${userId}`;
-                }
-                
-                if (connectionStatus) {
-                    connectionStatus.innerHTML = `Conectando...`;
+                const sessionInfo = document.getElementById('sessionInfo');
+                if (sessionInfo) {
+                    sessionInfo.innerHTML = `Debugging: userId = ${userId}`;
                 }
                 
                 // Hacer fetch al endpoint GenAI del backend (puerto 3000 - configuración estándar del equipo)
@@ -506,37 +628,24 @@
                 const response = await fetch(`${baseURL}/api/genai-radar/${userId}`, {
                     headers: {
                         'Content-Type': 'application/json'
+                        // En development mode, no se requiere API key
                     }
                 });
                 
-                console.log('📡 Response status:', response.status);
-                console.log('📡 Response headers:', [...response.headers.entries()]);
+                console.log('📡 Response status:', response.status, response.statusText);
                 
                 if (!response.ok) {
                     console.error('❌ Error en response:', response.status, response.statusText);
-                    
-                    if (connectionStatus) {
-                        connectionStatus.innerHTML = `❌ Error ${response.status}: ${response.statusText}`;
-                    }
-                    
-                    // Intentar leer el error del backend
-                    try {
-                        const errorData = await response.text();
-                        console.error('📄 Error del backend:', errorData);
-                    } catch (e) {
-                        console.error('💥 No se pudo leer el error del backend');
-                    }
-                    
+                    const errorText = await response.text();
+                    console.error('❌ Error details:', errorText);
                     showRadarPlaceholder();
                     return;
                 }
                 
                 const data = await response.json();
                 console.log('📊 Datos del radar recibidos:', data);
-                
-                if (connectionStatus) {
-                    connectionStatus.innerHTML = `✅ Conectado - Fuente: ${data.dataSource || 'unknown'}`;
-                }
+                console.log('📊 DataSource:', data.dataSource);
+                console.log('📊 HasData:', data.hasData);
                 
                 currentUserData = data;
                 
@@ -558,12 +667,7 @@
                 
             } catch (error) {
                 console.error('💥 Error cargando datos del radar:', error);
-                
-                const connectionStatus = document.getElementById('connectionStatus');
-                if (connectionStatus) {
-                    connectionStatus.innerHTML = `💥 Error de conexión: ${error.message}`;
-                }
-                
+                console.error('💥 Error stack:', error.stack);
                 showRadarPlaceholder();
             }
         }
@@ -687,6 +791,260 @@
                 sessionInfo.style.display = 'block';
             }
         }
+
+        // Variables globales para la gráfica de adopción
+        let adoptionChart = null;
+        
+        // Cargar datos de adopción de GenAI por países
+        async function loadAdoptionData() {
+            try {
+                console.log('🌍 Cargando datos de adopción de GenAI por países...');
+                
+                // Mostrar placeholder de carga
+                showAdoptionPlaceholder('Cargando datos...');
+                
+                const baseURL = 'http://localhost:3000';
+                const response = await fetch(`${baseURL}/api/adopcion-genai`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📡 Response status adopción:', response.status);
+                
+                if (!response.ok) {
+                    console.error('❌ Error obteniendo datos de adopción:', response.status, response.statusText);
+                    showAdoptionPlaceholder('Error al cargar datos');
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('📊 Datos de adopción recibidos:', data);
+                
+                if (data && data.length > 0) {
+                    console.log('✅ Datos válidos de adopción encontrados, creando gráfica');
+                    createAdoptionChart(data);
+                } else {
+                    console.log('📭 No hay datos de adopción disponibles');
+                    showAdoptionPlaceholder('No hay datos disponibles');
+                }
+                
+            } catch (error) {
+                console.error('💥 Error cargando datos de adopción:', error);
+                showAdoptionPlaceholder('Error de conexión');
+            }
+        }
+        
+        // Crear gráfica de barras horizontal para adopción de GenAI
+        function createAdoptionChart(data) {
+            const canvas = document.getElementById('adoptionChart');
+            if (!canvas) {
+                console.error('❌ Canvas adoptionChart no encontrado');
+                return;
+            }
+            
+            // Destruir chart existente si existe
+            if (adoptionChart) {
+                adoptionChart.destroy();
+            }
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Preparar datos para la gráfica - filtrar países sin datos
+            const validData = data.filter(item => item.indice_aipi !== null && item.indice_aipi !== undefined);
+            const countries = validData.map(item => item.pais);
+            const scores = validData.map(item => parseFloat(item.indice_aipi));
+            
+            // Crear gradientes de colores
+            const gradients = scores.map((score, index) => {
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+                const intensity = Math.min(score / 100, 1);
+                gradient.addColorStop(0, `rgba(68, 229, 255, ${0.3 + intensity * 0.4})`);
+                gradient.addColorStop(1, `rgba(0, 119, 166, ${0.3 + intensity * 0.4})`);
+                return gradient;
+            });
+            
+            // Configuración del dataset
+            const chartData = {
+                labels: countries,
+                datasets: [{
+                    label: 'Índice AIPI',
+                    data: scores,
+                    backgroundColor: gradients,
+                    borderColor: '#44E5FF',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                                         barThickness: 35,
+                     maxBarThickness: 40,
+                    // Efectos adicionales
+                    hoverBackgroundColor: '#44E5FF',
+                    hoverBorderColor: '#0077A6',
+                    hoverBorderWidth: 3
+                }]
+            };
+            
+            // Configuración del chart
+            const config = {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#44E5FF',
+                            borderWidth: 2,
+                            cornerRadius: 12,
+                            displayColors: false,
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(context) {
+                                    return `Índice AIPI: ${context.parsed.x.toFixed(2)}`;
+                                }
+                            },
+                            // Configuración para evitar que se corte
+                            position: 'nearest',
+                            mode: 'index',
+                            intersect: false,
+                            // Asegurar que el tooltip tenga suficiente espacio
+                            xAlign: 'center',
+                            yAlign: 'center'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: Math.max(...scores) * 1.1,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#888',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                                                 y: {
+                             grid: {
+                                 display: false
+                             },
+                             ticks: {
+                                 color: '#fff',
+                                 font: {
+                                     size: 14,
+                                     weight: '500'
+                                 },
+                                 callback: function(value, index) {
+                                     const country = this.getLabelForValue(value);
+                                     const score = scores[index];
+                                     return `${country}  ${score.toFixed(2)}`;
+                                 }
+                             }
+                         }
+                    },
+                                         animation: {
+                         duration: 2500,
+                         easing: 'easeOutQuart'
+                     },
+                    // Efectos de hover mejorados
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                                         // Configuración adicional para tooltips
+                     layout: {
+                         padding: {
+                             top: 30,
+                             bottom: 30,
+                             left: 40,
+                             right: 40
+                         }
+                     }
+                }
+            };
+            
+            // Crear el chart
+            adoptionChart = new Chart(ctx, config);
+            
+            // Ocultar placeholder y mostrar chart
+            document.getElementById('adoptionPlaceholder').style.display = 'none';
+            canvas.style.display = 'block';
+            
+            // Actualizar información
+            updateAdoptionInfo(data);
+            
+            console.log('✅ Gráfica de adopción creada exitosamente');
+        }
+        
+        // Mostrar placeholder para la gráfica de adopción
+        function showAdoptionPlaceholder(message) {
+            const canvas = document.getElementById('adoptionChart');
+            const placeholder = document.getElementById('adoptionPlaceholder');
+            
+            if (canvas) canvas.style.display = 'none';
+            if (placeholder) {
+                const content = placeholder.querySelector('.placeholder-content');
+                if (content) {
+                    content.innerHTML = `
+                        <i class='bx bx-globe' style="font-size: 48px; color: #44e5ff; margin-bottom: 16px;"></i>
+                        <h4 style="color: #44e5ff; margin: 0 0 8px 0;">${message}</h4>
+                        <p style="color: #888; margin: 0 0 8px 0; text-align: center;">Estadísticas de adopción de GenAI en países hispanoparlantes</p>
+                    `;
+                }
+                placeholder.style.display = 'flex';
+            }
+            
+            console.log('📋 Mostrando placeholder para gráfica de adopción:', message);
+        }
+        
+        // Actualizar información de la gráfica de adopción
+        function updateAdoptionInfo(data) {
+            const adoptionInfo = document.getElementById('adoptionInfo');
+            if (adoptionInfo && data && data.length > 0) {
+                // Filtrar datos válidos
+                const validData = data.filter(item => item.indice_aipi !== null && item.indice_aipi !== undefined);
+                const totalCountries = validData.length;
+                const totalAnalyzed = data.length;
+                
+                if (validData.length > 0) {
+                    const avgScore = (validData.reduce((sum, item) => sum + parseFloat(item.indice_aipi), 0) / totalCountries).toFixed(2);
+                    const maxScore = Math.max(...validData.map(item => parseFloat(item.indice_aipi))).toFixed(2);
+                    const topCountry = validData.find(item => parseFloat(item.indice_aipi) === Math.max(...validData.map(item => parseFloat(item.indice_aipi))));
+                    
+                    adoptionInfo.innerHTML = `
+                        <strong>${totalCountries} países con datos</strong> (de ${totalAnalyzed} analizados) | 
+                        Promedio: <strong>${avgScore}</strong> | 
+                        Máximo: <strong>${maxScore}</strong> (${topCountry.pais}) | 
+                        Fuente: ${validData[0].fuente || 'Datos actualizados'}
+                    `;
+                } else {
+                    adoptionInfo.innerHTML = `
+                        <strong>${totalAnalyzed} países analizados</strong> | 
+                        <span style="color: #ff6b6b;">No hay datos de adopción disponibles</span>
+                    `;
+                }
+            }
+        }
         
         // Funciones de utilidad para manejo de errores de red
         function handleNetworkError() {
@@ -718,7 +1076,277 @@
             window.location.href = 'perfil-cuestionario.html?force=true';
         }
         
-        // ======= FUNCIONES ADICIONALES =======
+        // ======= FUNCIONES DE TESTING PARA DESARROLLO =======
+        
+        // Test con usuario que tiene datos
+        async function testUserWithData() {
+            console.log('🧪 Testing usuario con datos...');
+            
+            // Simular datos de prueba
+            const testData = {
+                session_id: 'test-session-123',
+                user_id: 'test-user',
+                conocimiento: 75,
+                aplicacion: 80,
+                productividad: 65,
+                estrategia: 70,
+                inversion: 85,
+                hasData: true,
+                dataSource: 'test'
+            };
+            
+            currentUserData = testData;
+            createRadarChart(testData);
+            showSessionInfo(testData.session_id);
+            
+            console.log('✅ Test completado - usuario con datos');
+        }
+        
+        // Test con usuario sin datos
+        async function testUserWithoutData() {
+            console.log('🧪 Testing usuario sin datos...');
+            
+            // Simular usuario sin datos
+            const testData = {
+                session_id: null,
+                user_id: 'user-without-data',
+                conocimiento: 0,
+                aplicacion: 0,
+                productividad: 0,
+                estrategia: 0,
+                inversion: 0,
+                hasData: false,
+                dataSource: 'test'
+            };
+            
+            currentUserData = testData;
+            showRadarPlaceholder();
+            
+            console.log('✅ Test completado - usuario sin datos');
+        }
+        
+        // Test de carga desde el backend real
+        async function testBackendConnection() {
+            console.log('🧪 Testing conexión al backend...');
+            
+            try {
+                const response = await fetch('/api/radar/user/test-user', {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Backend response:', data);
+                    
+                    currentUserData = data;
+                    
+                    if (data.hasData) {
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                    } else {
+                        showRadarPlaceholder();
+                    }
+                } else {
+                    console.error('❌ Backend error:', response.status);
+                    handleNetworkError();
+                }
+                
+            } catch (error) {
+                console.error('💥 Error testing backend:', error);
+                handleNetworkError();
+            }
+        }
+        
+        // ======= FUNCIONES DE SETUP DE BASE DE DATOS =======
+        
+        // Crear las vistas de radar en la base de datos
+        async function createRadarViews() {
+            console.log('🔧 Creando vistas de radar...');
+            
+            try {
+                const response = await fetch('/api/radar/create-views', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Vistas creadas:', data);
+                    alert(`✅ Vistas creadas exitosamente:\n${data.views.join(', ')}`);
+                } else {
+                    const error = await response.json();
+                    console.error('❌ Error creando vistas:', error);
+                    alert(`❌ Error creando vistas: ${error.error}`);
+                }
+                
+            } catch (error) {
+                console.error('💥 Error:', error);
+                alert(`💥 Error de conexión: ${error.message}`);
+            }
+        }
+        
+        // Crear datos de prueba en la base de datos
+        async function createTestData() {
+            console.log('🔧 Creando datos de prueba...');
+            
+            try {
+                const response = await fetch('/api/radar/create-test-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Datos de prueba creados:', data);
+                    alert(`✅ Datos de prueba creados exitosamente!\nUsuario: ${data.testUserId}\nSesión: ${data.sessionId}`);
+                } else {
+                    const error = await response.json();
+                    console.error('❌ Error creando datos:', error);
+                    alert(`❌ Error creando datos: ${error.error}`);
+                }
+                
+            } catch (error) {
+                console.error('💥 Error:', error);
+                alert(`💥 Error de conexión: ${error.message}`);
+            }
+        }
+        
+        // Test con el backend real usando datos de la base de datos
+        async function testRealBackend() {
+            console.log('🔍 Testing backend con datos reales...');
+            
+            try {
+                // Probar con el usuario de prueba que debería tener datos reales
+                const response = await fetch('/api/radar/user/test-user-uuid', {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Backend real response:', data);
+                    
+                    if (data.hasData && data.dataSource === 'database') {
+                        currentUserData = data;
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                        alert('✅ ¡Datos reales cargados desde la base de datos!');
+                    } else if (data.hasData && data.dataSource === 'test') {
+                        currentUserData = data;
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                        alert('⚠️ Cargando datos de prueba (vistas no existen aún)');
+                    } else {
+                        showRadarPlaceholder();
+                        alert('📭 No hay datos en la base de datos para este usuario');
+                    }
+                } else {
+                    console.error('❌ Backend error:', response.status);
+                    alert(`❌ Error del backend: ${response.status}`);
+                    handleNetworkError();
+                }
+                
+            } catch (error) {
+                console.error('💥 Error testing real backend:', error);
+                alert(`💥 Error: ${error.message}`);
+                handleNetworkError();
+            }
+        }
+        
+        // Test con el usuario específico del issue Linear
+        async function testLinearIssueUser() {
+            console.log('🔍 Testing usuario del issue Linear...');
+            
+            try {
+                const userId = '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0';
+                const response = await fetch(`/api/radar/user/${userId}`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Linear issue user response:', data);
+                    
+                    if (data.hasData && data.dataSource === 'database') {
+                        currentUserData = data;
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                        alert('✅ ¡Usuario del issue Linear tiene datos en la base de datos!');
+                    } else if (data.hasData && data.dataSource === 'test') {
+                        currentUserData = data;
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                        alert('⚠️ Usuario del issue Linear cargando datos de prueba');
+                    } else {
+                        showRadarPlaceholder();
+                        alert('📭 Usuario del issue Linear no tiene datos en la base de datos');
+                    }
+                } else {
+                    console.error('❌ Backend error:', response.status);
+                    alert(`❌ Error del backend: ${response.status}`);
+                    handleNetworkError();
+                }
+                
+            } catch (error) {
+                console.error('💥 Error testing Linear issue user:', error);
+                alert(`💥 Error: ${error.message}`);
+                handleNetworkError();
+            }
+        }
+        
+        // Test del endpoint de debug
+        async function testDebugEndpoint() {
+            console.log('🔍 Testing endpoint de debug...');
+            
+            try {
+                const userId = getCurrentUserId();
+                const response = await fetch(`/api/radar/debug/${userId}`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Debug endpoint response:', data);
+                    
+                    // Mostrar información detallada
+                    let debugInfo = `🔍 Debug Info para ${userId}:\n\n`;
+                    debugInfo += `👤 Usuario existe: ${data.userExists}\n`;
+                    debugInfo += `📝 Sesiones: ${data.sessionsCount}\n`;
+                    debugInfo += `💬 Respuestas: ${data.responsesCount}\n`;
+                    debugInfo += `👁️ Vista existe: ${data.viewExists}\n`;
+                    debugInfo += `✅ Sesiones completadas: ${data.hasCompletedSessions}\n`;
+                    
+                    if (data.radarData) {
+                        debugInfo += `\n📊 Datos de radar:\n`;
+                        debugInfo += `- Conocimiento: ${data.radarData.conocimiento}\n`;
+                        debugInfo += `- Aplicación: ${data.radarData.aplicacion}\n`;
+                        debugInfo += `- Productividad: ${data.radarData.productividad}\n`;
+                        debugInfo += `- Estrategia: ${data.radarData.estrategia}\n`;
+                        debugInfo += `- Inversión: ${data.radarData.inversion}\n`;
+                    }
+                    
+                    alert(debugInfo);
+                } else {
+                    console.error('❌ Debug endpoint error:', response.status);
+                    alert(`❌ Error del debug endpoint: ${response.status}`);
+                }
+                
+            } catch (error) {
+                console.error('💥 Error testing debug endpoint:', error);
+                alert(`💥 Error: ${error.message}`);
+            }
+        }
     </script>
     <script src="scripts/theme-toggle.js"></script>
     

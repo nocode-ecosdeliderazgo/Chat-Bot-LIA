@@ -11,135 +11,19 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="icon" type="image/png" href="assets/images/icono.png">
     <meta name="description" content="Lia: asistente inteligente para una experiencia educativa interactiva y personalizada">
-    <meta name="keywords" content="coach lia ia, asistente, educativo, inteligencia artificial, curso">
+    <meta name="keywords" content="coach lia ia, asistente, educativo, inteligencia artificial, taller">
     <meta name="author" content="Tu Nombre">
     
     <!-- Auth Guard - Protección de autenticación -->
     <script src="utils/auth-guard.js"></script>
     
+    <!-- Supabase Client - Base de datos -->
+    <script src="scripts/supabase-client.js"></script>
+    
     <!-- Global theme setup - Configuración global del tema -->
     <script src="scripts/global-theme-setup.js"></script>
-    <style>
-        /* Degradado azul oscuro específico para el chat de Lia */
-        body.layout-notebook {
-            --color-bg-1: #041326; /* azul noche (oscuro) */
-            --color-bg-2: #070F1D; /* azul profundo (oscuro) */
-        }
-
-        /* ===== Dynamic Island — barra flotante (basado en ChatGeneral) ===== */
-        .message-input-area {
-            background: transparent;
-            border-top: none;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex-shrink: 0;
-            position: relative;
-            z-index: 10;
-            margin: 0;
-            height: 0; /* no ocupa espacio, la isla es fija */
-        }
-
-        .message-input-wrapper {
-            position: relative;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* Isla flotante */
-        .message-input-area .input-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(20, 30, 45, 0.95);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            border-radius: 30px;
-            padding: 8px 16px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            backdrop-filter: blur(20px);
-            width: calc(100% - 80px);
-            max-width: 600px;
-            min-height: 48px;
-            z-index: 1000;
-        }
-
-        .plus-btn {
-            background: rgba(68, 229, 255, 0.1);
-            border: 1px solid rgba(68, 229, 255, 0.18);
-            color: #44e5ff;
-            font-size: 1.3rem;
-            font-weight: 900;
-            cursor: pointer;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-            width: 38px; height: 38px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .plus-btn:hover { background: rgba(68,229,255,0.2); border-color: #44e5ff; transform: scale(1.05); }
-
-        /* Campo de texto */
-        #messageInput {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            border: none;
-            color: #fff;
-            font-size: 0.95rem;
-            resize: none;
-            max-height: 100px;
-            min-height: 20px;
-            outline: none;
-            line-height: 1.4;
-            padding: 8px 16px;
-            border-radius: 18px;
-            margin: 0 8px;
-            min-width: 0;
-            box-shadow: none;
-        }
-        #messageInput::placeholder { color: rgba(255,255,255,0.65); }
-
-        /* Botón acción (micrófono/enviar) */
-        .action-button {
-            background: #007AFF;
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-            width: 38px; height: 38px;
-            display: flex; align-items: center; justify-content: center;
-            position: relative;
-        }
-        .action-button:hover { background: #0056CC; transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,122,255,0.5); }
-        .action-button .send-icon { position: absolute; inset: 0; margin: auto; transform: rotate(-90deg) scale(.6); opacity: 0; transition: transform .18s ease, opacity .18s ease; }
-        .action-button .mic-icon { position: absolute; inset: 0; margin: auto; transform: rotate(0) scale(1); opacity: 1; transition: transform .18s ease, opacity .18s ease; }
-        .input-has-text .action-button .send-icon { transform: rotate(0) scale(1); opacity: 1; }
-        .input-has-text .action-button .mic-icon { transform: rotate(90deg) scale(.6); opacity: 0; }
-
-        /* Dropdown de acciones rápidas */
-        .quick-actions-dropdown {
-            position: absolute;
-            bottom: 100%; left: 50%; transform: translateX(-50%);
-            background: rgba(20,30,45,0.95);
-            border: 1px solid rgba(68,229,255,0.18);
-            border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,.5);
-            padding: 8px; margin-bottom: 8px; min-width: 200px; z-index: 1001; display: none;
-            backdrop-filter: blur(20px);
-        }
-        .quick-actions-dropdown.active { display: block; }
-        .quick-action-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; cursor: pointer; border-radius: 8px; color: #fff; }
-        .quick-action-item:hover { background: rgba(68,229,255,0.1); border: 1px solid rgba(68,229,255,0.18); }
-
-        /* Reubicar menú global al centro bajo la isla (sobre-escribe main.css) */
-        .global-menu { left: auto !important; bottom: 84px !important; transform: none !important; display: none; }
-        .global-menu.show { display: block; }
-    </style>
+    <!-- Enlazar archivo CSS separado -->
+    <link rel="stylesheet" href="styles/chat.css">
 </head>
 <body class="layout-notebook bg-glow-global">
     <div class="layout-3panels">
@@ -184,19 +68,37 @@
                                 </button>
                             </div>
                             
-                            <div class="livestream-connection-status" id="livestreamConnectionStatus">
-                                <span class="status-indicator offline"></span>
-                                <span class="status-text">Desconectado</span>
+                            <!-- Panel de Estado - Toggle entre Chat en Vivo y Chat con LIA -->
+                            <div class="connection-panel">
+                                <button class="toggle-btn active" data-target="live-chat" id="liveChatToggle">
+                                    <i class='bx bx-broadcast'></i>
+                                    Chat en Vivo
+                                </button>
+                                <button class="toggle-btn" data-target="lia-chat" id="liaChatToggle">
+                                    <i class='bx bx-brain'></i>
+                                    Chat con LIA
+                                </button>
+                                <!-- Estado de conexión original (preservado) -->
+                                <div class="livestream-connection-status" id="livestreamConnectionStatus">
+                                    <span class="status-indicator offline"></span>
+                                    <span class="status-text">Desconectado</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+
             </nav>
             <div class="left-resizer" id="leftResizer" title="Ajustar ancho"></div>
         </aside>
 
         <main class="chat-main">
-            <div class="telegram-container">
+            <!-- Contenedor Principal del Chat (Centro) - Necesario para la lógica -->
+            <div class="main-chat-container" id="mainChatContainer" style="display: none;">
+                <!-- Chat en Vivo (OCULTO - solo para mantener la lógica) -->
+                <div class="live-chat-content active" id="liveChatContent">
+                    <div class="telegram-container" id="liveChatPanel">
                 <div class="chat-header">
                     <button id="backToCoursesBtn" class="back-to-courses-btn" onclick="window.location.href='cursos.html'" title="Volver a Mis Talleres">
                         <i class='bx bx-chevron-left'></i>
@@ -254,6 +156,86 @@
                         <div class="gm-submenu" id="gmReports">
                             <button class="gm-subitem" data-report="docs">Documentos</button>
                             <button class="gm-subitem" data-report="bonos">Bonos</button>
+                                </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Live Stream (Centro - Arriba) -->
+            <div class="live-stream-main-panel" id="liveStreamMainPanel">
+                <div class="live-stream-main-header">
+                    <h3>
+                        <i class='bx bx-broadcast'></i>
+                        Live Stream
+                    </h3>
+                    <div class="live-stream-main-controls">
+                        <button class="live-stream-main-control-btn" id="liveStreamMainConnectBtn" title="Iniciar Stream">
+                            <i class='bx bx-broadcast'></i>
+                        </button>
+                        <button class="live-stream-main-control-btn" id="liveStreamMainDisconnectBtn" title="Detener Stream">
+                            <i class='bx bx-stop-circle'></i>
+                        </button>
+
+                        <button class="live-stream-main-collapse-btn" id="liveStreamMainCollapseBtn" title="Colapsar/Expandir">
+                            <i class='bx bx-chevron-up'></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="live-stream-main-content">
+                    <div class="live-stream-main-placeholder" id="liveStreamMainPlaceholder">
+                        <i class='bx bx-broadcast'></i>
+                        <p>Inicia el Live Stream para comenzar la transmisión</p>
+                        <button class="live-stream-main-connect-btn" id="liveStreamMainConnectBtnLarge">
+                            <i class='bx bx-broadcast'></i>
+                            Iniciar Live Stream
+                        </button>
+                    </div>
+                    
+                    <!-- Contenedor para Live Stream -->
+                    <div class="live-stream-main-embed-container" id="liveStreamMainEmbedContainer" style="display: none; background: rgba(20, 30, 45, 0.95);">
+                        <iframe id="liveStreamMainIframe" src="" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Presentación (Centro - Abajo) -->
+            <div class="presentation-main-panel" id="presentationMainPanel">
+                <div class="presentation-main-header">
+                    <h3>
+                        <i class='bx bx-presentation'></i>
+                        Presentación
+                    </h3>
+                    <div class="presentation-main-controls">
+                        <button class="presentation-main-control-btn" id="presentationMainPrevBtn" title="Anterior">
+                            <i class='bx bx-chevron-left'></i>
+                        </button>
+                        <span class="presentation-main-counter" id="presentationMainCounter">1 / 10</span>
+                        <button class="presentation-main-control-btn" id="presentationMainNextBtn" title="Siguiente">
+                            <i class='bx bx-chevron-right'></i>
+                        </button>
+
+                        <button class="presentation-main-collapse-btn" id="presentationMainCollapseBtn" title="Colapsar/Expandir">
+                            <i class='bx bx-chevron-down'></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="presentation-main-content">
+                    <div class="presentation-main-placeholder" id="presentationMainPlaceholder">
+                        <i class='bx bx-file-blank'></i>
+                        <p>No hay presentación cargada</p>
+                        <button class="load-presentation-main-btn" id="loadPresentationMainBtn">
+                            <i class='bx bx-upload'></i>
+                            Cargar Presentación
+                        </button>
+                    </div>
+                    
+                    <!-- Aquí se mostrará la presentación -->
+                    <div class="presentation-main-embed-container" id="presentationMainEmbedContainer" style="display: none; background: rgba(20, 30, 45, 0.95);">
+                        <!-- Contenido directo sin iframe para compatibilidad con Brave -->
+                        <div id="presentationContent" class="presentation-content" style="background: rgba(20, 30, 45, 0.95);">
+                            <!-- El contenido se insertará dinámicamente aquí -->
                         </div>
                     </div>
                 </div>
@@ -358,6 +340,936 @@
                     }
                 });
             }
+
+            // ===== NUEVA FUNCIONALIDAD - SISTEMA DE TOGGLE =====
+            
+            // Elementos principales
+            const liveChatToggle = document.getElementById('liveChatToggle');
+            const liaChatToggle = document.getElementById('liaChatToggle');
+
+            // Sistema de toggle - solo visual para el chat en vivo
+            function initializeToggleSystem() {
+                console.log('🔧 Inicializando sistema de toggle para el chat...');
+                
+                // Toggle Chat en Vivo
+                if (liveChatToggle) {
+                    liveChatToggle.addEventListener('click', function() {
+                        console.log('📺 Chat en Vivo seleccionado');
+                        
+                        // Actualizar botones
+                        liveChatToggle.classList.add('active');
+                        liaChatToggle.classList.remove('active');
+                        
+                        // Aquí se puede agregar lógica específica para el chat en vivo
+                        console.log('✅ Chat en Vivo activado');
+                    });
+                }
+
+                // Toggle Chat con LIA (integrado en el chat en vivo)
+                if (liaChatToggle) {
+                    liaChatToggle.addEventListener('click', function() {
+                        console.log('🤖 Chat con LIA seleccionado');
+                        
+                        // Actualizar botones
+                        liaChatToggle.classList.add('active');
+                        liveChatToggle.classList.remove('active');
+                        
+                        // Aquí se integrará LIA dentro del chat en vivo existente
+                        console.log('✅ Chat con LIA activado (integrado en chat en vivo)');
+                    });
+                }
+            }
+
+            // Funcionalidad de colapsar/expandir paneles laterales
+            function initializePanelCollapse() {
+                console.log('🔧 Inicializando colapso de paneles...');
+                
+                const collapseLeft = document.getElementById('collapseLeft');
+                const collapseRight = document.getElementById('collapseRight');
+                const sidebarLeft = document.getElementById('sidebarLeft');
+                const studioRight = document.getElementById('studioRight');
+                
+                // Colapsar/expandir panel izquierdo
+                if (collapseLeft && sidebarLeft) {
+                    collapseLeft.addEventListener('click', function() {
+                        sidebarLeft.classList.toggle('collapsed');
+                        console.log('📱 Panel izquierdo:', sidebarLeft.classList.contains('collapsed') ? 'colapsado' : 'expandido');
+                    });
+                }
+                
+                // Colapsar/expandir panel derecho
+                if (collapseRight && studioRight) {
+                    collapseRight.addEventListener('click', function() {
+                        studioRight.classList.toggle('collapsed');
+                        console.log('📱 Panel derecho:', studioRight.classList.contains('collapsed') ? 'colapsado' : 'expandido');
+                    });
+                }
+            }
+
+            // Funcionalidad de resizer para paneles
+            function initializeResizers() {
+                console.log('🔧 Inicializando resizers...');
+                
+                const leftResizer = document.getElementById('leftResizer');
+                const rightResizer = document.getElementById('rightResizer');
+                const sidebarLeft = document.getElementById('sidebarLeft');
+                const studioRight = document.getElementById('studioRight');
+                
+                // Resizer izquierdo
+                if (leftResizer && sidebarLeft) {
+                    leftResizer.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const startX = e.clientX;
+                        const startWidth = sidebarLeft.offsetWidth;
+                        const minWidth = 250;
+                        const maxWidth = 500;
+                        
+                        function onMouseMove(e) {
+                            e.preventDefault();
+                            const deltaX = e.clientX - startX;
+                            const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth + deltaX));
+                            
+                            sidebarLeft.style.width = newWidth + 'px';
+                            console.log('📏 Panel izquierdo:', newWidth + 'px');
+                        }
+                        
+                        function onMouseUp() {
+                            document.removeEventListener('mousemove', onMouseMove);
+                            document.removeEventListener('mouseup', onMouseUp);
+                            document.body.classList.remove('resizing');
+                        }
+                        
+                        document.body.classList.add('resizing');
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                    });
+                }
+                
+                // Resizer derecho
+                if (rightResizer && studioRight) {
+                    rightResizer.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const startX = e.clientX;
+                        const startWidth = studioRight.offsetWidth;
+                        const minWidth = 200;
+                        const maxWidth = 400;
+                        
+                        function onMouseMove(e) {
+                            e.preventDefault();
+                            const deltaX = startX - e.clientX;
+                            const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth + deltaX));
+                            
+                            studioRight.style.width = newWidth + 'px';
+                            console.log('📏 Panel derecho:', newWidth + 'px');
+                        }
+                        
+                        function onMouseUp() {
+                            document.removeEventListener('mousemove', onMouseMove);
+                            document.removeEventListener('mouseup', onMouseUp);
+                            document.body.classList.remove('resizing');
+                        }
+                        
+                        document.body.classList.add('resizing');
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                    });
+                }
+            }
+
+            // Funcionalidad de colapsar/expandir secciones
+            function initializeCollapsibleSections() {
+                console.log('🔧 Inicializando secciones colapsibles...');
+                
+                // Toggle para Chat en Vivo
+                const livestreamToggle = document.getElementById('livestreamToggle');
+                const livestreamContent = document.getElementById('livestreamContent');
+                
+                if (livestreamToggle && livestreamContent) {
+                    livestreamToggle.addEventListener('click', function() {
+                        const isExpanded = livestreamToggle.getAttribute('aria-expanded') === 'true';
+                        livestreamToggle.setAttribute('aria-expanded', !isExpanded);
+                        livestreamContent.style.display = isExpanded ? 'none' : 'block';
+                        console.log('📺 Chat en Vivo:', isExpanded ? 'colapsado' : 'expandido');
+                    });
+                }
+                
+                // Toggle para Zoom Session
+                const zoomToggle = document.getElementById('zoomToggle');
+                const zoomContent = document.getElementById('zoomContent');
+                
+                if (zoomToggle && zoomContent) {
+                    zoomToggle.addEventListener('click', function() {
+                        const isExpanded = zoomToggle.getAttribute('aria-expanded') === 'true';
+                        zoomToggle.setAttribute('aria-expanded', !isExpanded);
+                        zoomContent.style.display = isExpanded ? 'none' : 'block';
+                        console.log('🎥 Zoom Session:', isExpanded ? 'colapsado' : 'expandido');
+                    });
+                }
+            }
+
+            // Funcionalidad de Zoom Session (dentro del panel de herramientas)
+            function initializeZoomSection() {
+                console.log('🎥 Inicializando sección de Zoom...');
+                
+                const zoomConnectBtn = document.getElementById('zoomConnectBtn');
+                const zoomStatus = document.getElementById('zoomStatus');
+                const zoomPlaceholder = document.getElementById('zoomEmbedPlaceholder');
+                const zoomContainer = document.getElementById('zoomWebSDKContainer');
+                
+                // Conectar con Zoom
+                if (zoomConnectBtn) {
+                    zoomConnectBtn.addEventListener('click', function() {
+                        console.log('🔗 Conectando con Zoom...');
+                        
+                        // Cambiar texto del botón y estado
+                        zoomConnectBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Conectando...';
+                        zoomConnectBtn.disabled = true;
+                        
+                        // Actualizar estado
+                        if (zoomStatus) {
+                            const statusIndicator = zoomStatus.querySelector('.status-indicator');
+                            const statusText = zoomStatus.querySelector('.status-text');
+                            if (statusIndicator) statusIndicator.className = 'status-indicator connecting';
+                            if (statusText) statusText.textContent = 'Conectando...';
+                        }
+                        
+                        // Simular conexión
+                        setTimeout(() => {
+                            // Ocultar placeholder y mostrar SDK
+                            if (zoomPlaceholder) zoomPlaceholder.style.display = 'none';
+                            if (zoomContainer) {
+                                zoomContainer.style.display = 'block';
+                                zoomContainer.innerHTML = `
+                                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; 
+                                         background: rgba(0,0,0,0.8); border-radius: 6px; color: #44e5ff; font-size: 0.8rem;">
+                                        <div style="text-align: center;">
+                                            <i class='bx bx-video' style="font-size: 1.5rem; margin-bottom: 4px; display: block;"></i>
+                                            <p style="margin: 0; font-size: 0.75rem;">Zoom Web SDK</p>
+                                            <small style="color: #94a3b8; font-size: 0.65rem;">Demo activo</small>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            
+                            // Actualizar estado y botón
+                            if (zoomStatus) {
+                                const statusIndicator = zoomStatus.querySelector('.status-indicator');
+                                const statusText = zoomStatus.querySelector('.status-text');
+                                if (statusIndicator) statusIndicator.className = 'status-indicator online';
+                                if (statusText) statusText.textContent = 'Conectado';
+                            }
+                            
+                            zoomConnectBtn.innerHTML = '<i class="bx bx-video-off"></i> Desconectar';
+                            zoomConnectBtn.disabled = false;
+                            
+                            console.log('✅ Zoom conectado (demo)');
+                        }, 2000);
+                    });
+                }
+            }
+
+            // Funcionalidad del Panel de Live Stream Principal (centro)
+            function initializeLiveStreamMainPanel() {
+                console.log('📺 Inicializando panel de Live Stream principal...');
+                
+                const liveStreamMainConnectBtn = document.getElementById('liveStreamMainConnectBtn');
+                const liveStreamMainConnectBtnLarge = document.getElementById('liveStreamMainConnectBtnLarge');
+                const liveStreamMainDisconnectBtn = document.getElementById('liveStreamMainDisconnectBtn');
+            
+                const liveStreamMainCollapseBtn = document.getElementById('liveStreamMainCollapseBtn');
+                const liveStreamMainPlaceholder = document.getElementById('liveStreamMainPlaceholder');
+                const liveStreamMainEmbedContainer = document.getElementById('liveStreamMainEmbedContainer');
+                const liveStreamMainPanel = document.getElementById('liveStreamMainPanel');
+                
+                // Iniciar Live Stream (botón pequeño)
+                if (liveStreamMainConnectBtn) {
+                    liveStreamMainConnectBtn.addEventListener('click', function() {
+                        console.log('📺 Iniciando Live Stream (header)...');
+                        startLiveStream();
+                    });
+                }
+                
+                // Iniciar Live Stream (botón grande)
+                if (liveStreamMainConnectBtnLarge) {
+                    liveStreamMainConnectBtnLarge.addEventListener('click', function() {
+                        console.log('📺 Iniciando Live Stream (placeholder)...');
+                        startLiveStream();
+                    });
+                }
+                
+                // Detener Live Stream
+                if (liveStreamMainDisconnectBtn) {
+                    liveStreamMainDisconnectBtn.addEventListener('click', function() {
+                        console.log('⏹️ Deteniendo Live Stream...');
+                        stopLiveStream();
+                    });
+                }
+                
+
+                
+                // Función para iniciar Live Stream
+                function startLiveStream() {
+                    // Cambiar texto del botón y estado
+                    if (liveStreamMainConnectBtn) {
+                        liveStreamMainConnectBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>';
+                        liveStreamMainConnectBtn.disabled = true;
+                    }
+                    if (liveStreamMainConnectBtnLarge) {
+                        liveStreamMainConnectBtnLarge.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Iniciando...';
+                        liveStreamMainConnectBtnLarge.disabled = true;
+                    }
+                    
+                    // Simular inicio de stream
+                    setTimeout(() => {
+                        // Ocultar placeholder y mostrar stream
+                        if (liveStreamMainPlaceholder) liveStreamMainPlaceholder.style.display = 'none';
+                        if (liveStreamMainEmbedContainer) {
+                            liveStreamMainEmbedContainer.style.display = 'block';
+                            liveStreamMainEmbedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
+                            liveStreamMainEmbedContainer.innerHTML = `
+                                <div style="display: flex; align-items: center; justify-content: center; height: 100%; 
+                                     background: rgba(20, 30, 45, 0.95); border-radius: 8px; color: #44e5ff; font-size: 0.8rem;">
+                                    <div style="text-align: center;">
+                                        <i class='bx bx-broadcast' style="font-size: 2rem; margin-bottom: 8px; display: block;"></i>
+                                        <p style="margin: 0; font-size: 1rem;">Live Stream Activo</p>
+                                        <small style="color: #94a3b8; font-size: 0.8rem;">Transmitiendo en vivo</small>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        // Restaurar botones
+                        if (liveStreamMainConnectBtn) {
+                            liveStreamMainConnectBtn.innerHTML = '<i class="bx bx-stop-circle"></i>';
+                            liveStreamMainConnectBtn.disabled = false;
+                        }
+                        if (liveStreamMainConnectBtnLarge) {
+                            liveStreamMainConnectBtnLarge.innerHTML = '<i class="bx bx-broadcast"></i> Iniciar Live Stream';
+                            liveStreamMainConnectBtnLarge.disabled = false;
+                        }
+                        
+                        console.log('✅ Live Stream iniciado (demo)');
+                    }, 2000);
+                }
+                
+                // Función para detener Live Stream
+                function stopLiveStream() {
+                    // Mostrar placeholder y ocultar stream
+                    if (liveStreamMainPlaceholder) liveStreamMainPlaceholder.style.display = 'flex';
+                    if (liveStreamMainEmbedContainer) liveStreamMainEmbedContainer.style.display = 'none';
+                    
+                    console.log('✅ Live Stream detenido');
+                }
+
+                // Funcionalidad de colapso del panel
+                if (liveStreamMainCollapseBtn && liveStreamMainPanel) {
+                    liveStreamMainCollapseBtn.addEventListener('click', function() {
+                        console.log('📺 Alternando colapso del panel Live Stream...');
+                        
+                        const isCollapsed = liveStreamMainPanel.classList.contains('collapsed');
+                        const liveStreamContent = liveStreamMainPanel.querySelector('.live-stream-main-content');
+                        const liveStreamPlaceholder = liveStreamMainPanel.querySelector('.live-stream-main-placeholder');
+                        const liveStreamEmbedContainer = liveStreamMainPanel.querySelector('.live-stream-main-embed-container');
+                        
+                        if (isCollapsed) {
+                            // Expandir panel
+                            liveStreamMainPanel.classList.remove('collapsed');
+                            liveStreamMainCollapseBtn.classList.remove('collapsed');
+                            liveStreamMainCollapseBtn.querySelector('i').className = 'bx bx-chevron-up';
+                            
+                            // Mostrar contenido con transición suave
+                            setTimeout(() => {
+                                if (liveStreamContent) {
+                                    liveStreamContent.style.display = 'flex';
+                                    liveStreamContent.style.opacity = '1';
+                                    liveStreamContent.style.visibility = 'visible';
+                                }
+                                if (liveStreamPlaceholder) {
+                                    liveStreamPlaceholder.style.display = 'flex';
+                                    liveStreamPlaceholder.style.opacity = '1';
+                                    liveStreamPlaceholder.style.visibility = 'visible';
+                                }
+                                if (liveStreamEmbedContainer) {
+                                    liveStreamEmbedContainer.style.display = 'block';
+                                    liveStreamEmbedContainer.style.opacity = '1';
+                                    liveStreamEmbedContainer.style.visibility = 'visible';
+                                }
+                            }, 100);
+                            
+                            console.log('📺 Panel Live Stream expandido');
+                        } else {
+                            // Ocultar contenido primero
+                            if (liveStreamContent) {
+                                liveStreamContent.style.opacity = '0';
+                                liveStreamContent.style.visibility = 'hidden';
+                            }
+                            if (liveStreamPlaceholder) {
+                                liveStreamPlaceholder.style.opacity = '0';
+                                liveStreamPlaceholder.style.visibility = 'hidden';
+                            }
+                            if (liveStreamEmbedContainer) {
+                                liveStreamEmbedContainer.style.opacity = '0';
+                                liveStreamEmbedContainer.style.visibility = 'hidden';
+                            }
+                            
+                            // Colapsar panel después de la transición
+                            setTimeout(() => {
+                                liveStreamMainPanel.classList.add('collapsed');
+                                liveStreamMainCollapseBtn.classList.add('collapsed');
+                                liveStreamMainCollapseBtn.querySelector('i').className = 'bx bx-chevron-down';
+                                
+                                // Ocultar completamente
+                                if (liveStreamContent) {
+                                    liveStreamContent.style.display = 'none';
+                                }
+                                if (liveStreamPlaceholder) {
+                                    liveStreamPlaceholder.style.display = 'none';
+                                }
+                                if (liveStreamEmbedContainer) {
+                                    liveStreamEmbedContainer.style.display = 'none';
+                                }
+                            }, 150);
+                            
+                            console.log('📺 Panel Live Stream colapsado');
+                        }
+                        
+                        // Forzar actualización del layout y expandir presentación
+                        setTimeout(() => {
+                            liveStreamMainPanel.style.height = isCollapsed ? '50%' : '60px';
+                            
+                            // Expandir presentación cuando se colapsa Live Stream
+                            const presentationPanel = document.getElementById('presentationMainPanel');
+                            if (presentationPanel && !isCollapsed) {
+                                // Cuando se colapsa Live Stream, expandir presentación
+                                presentationPanel.style.height = 'calc(100% - 76px)'; // 100% - 60px del panel colapsado - 16px de gap
+                                presentationPanel.style.minHeight = 'calc(100% - 76px)';
+                                console.log('📊 Presentación expandida automáticamente');
+                            } else if (presentationPanel && isCollapsed) {
+                                // Cuando se expande Live Stream, restaurar presentación
+                                presentationPanel.style.height = '50%';
+                                presentationPanel.style.minHeight = '300px';
+                                console.log('📊 Presentación restaurada a tamaño normal');
+                            }
+                            
+                            console.log('🔄 Layout actualizado');
+                        }, 10);
+                    });
+                } else {
+                    console.warn('⚠️ No se encontró el botón de colapso del Live Stream');
+                }
+            }
+
+            function initializePresentationMainPanel() {
+                console.log('📊 Inicializando panel de presentación principal...');
+                
+                const loadPresentationMainBtn = document.getElementById('loadPresentationMainBtn');
+                const presentationMainPrevBtn = document.getElementById('presentationMainPrevBtn');
+                const presentationMainNextBtn = document.getElementById('presentationMainNextBtn');
+
+                const presentationMainCollapseBtn = document.getElementById('presentationMainCollapseBtn');
+                const presentationMainCounter = document.getElementById('presentationMainCounter');
+                const presentationMainPlaceholder = document.getElementById('presentationMainPlaceholder');
+                const presentationMainEmbedContainer = document.getElementById('presentationMainEmbedContainer');
+                const presentationMainPanel = document.getElementById('presentationMainPanel');
+                
+                // Verificar que todos los elementos existen
+                if (!loadPresentationMainBtn) {
+                    console.error('❌ No se encontró el botón de cargar presentación');
+                    return;
+                }
+                if (!presentationMainPlaceholder) {
+                    console.error('❌ No se encontró el placeholder de presentación');
+                    return;
+                }
+                if (!presentationMainEmbedContainer) {
+                    console.error('❌ No se encontró el contenedor de presentación');
+                    return;
+                }
+                
+                let currentSlide = 1;
+                const totalSlides = 10;
+                let currentPresentation = null;
+                
+                // Cargar presentación
+                    loadPresentationMainBtn.addEventListener('click', function() {
+                    console.log('📤 Iniciando carga de presentación...');
+                        
+                    try {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = '.pdf,.ppt,.pptx,.key,.odp';
+                        input.multiple = false;
+                        
+                        input.onchange = function(e) {
+                            try {
+                            const file = e.target.files[0];
+                                if (!file) {
+                                    console.log('❌ No se seleccionó ningún archivo');
+                                    return;
+                                }
+                                
+                                console.log('📄 Archivo seleccionado:', file.name, 'Tamaño:', file.size, 'bytes');
+                                
+                                // Validar tipo de archivo
+                                const allowedTypes = ['.pdf', '.ppt', '.pptx', '.key', '.odp'];
+                                const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+                                
+                                if (!allowedTypes.includes(fileExtension)) {
+                                    alert('❌ Tipo de archivo no soportado. Use: PDF, PPT, PPTX, KEY, ODP');
+                                    console.error('❌ Tipo de archivo no válido:', fileExtension);
+                                    return;
+                                }
+                                
+                                // Validar tamaño (máximo 50MB)
+                                if (file.size > 50 * 1024 * 1024) {
+                                    alert('❌ Archivo demasiado grande. Máximo 50MB');
+                                    console.error('❌ Archivo demasiado grande:', file.size);
+                                    return;
+                                }
+                                
+                                // Cambiar estado del botón
+                                loadPresentationMainBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Cargando...';
+                                loadPresentationMainBtn.disabled = true;
+                                
+                                // Simular carga (en producción aquí iría la lógica real)
+                                setTimeout(() => {
+                                    try {
+                                                                        // Ocultar placeholder y limpiar cualquier contenido residual
+                                        presentationMainPlaceholder.style.display = 'none';
+                                        
+                                        // Limpiar cualquier iframe residual que pueda estar causando problemas
+                                        const embedContainer = document.getElementById('presentationMainEmbedContainer');
+                                        if (embedContainer) {
+                                            // Eliminar cualquier iframe que pueda estar presente
+                                            const existingIframes = embedContainer.querySelectorAll('iframe');
+                                            existingIframes.forEach(iframe => {
+                                                console.log('🗑️ Eliminando iframe residual:', iframe);
+                                                iframe.remove();
+                                            });
+                                            
+                                            // Limpiar todo el contenido
+                                            embedContainer.innerHTML = '';
+                                            console.log('🧹 Contenedor limpiado completamente');
+                                            
+                                            // Asegurar que el contenedor tenga el fondo correcto
+                                            embedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
+                                        }
+                                        
+                                        presentationMainEmbedContainer.style.display = 'block';
+                                        presentationMainEmbedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
+                                        
+                                                                                // Limpiar completamente el contenedor y mostrar contenido directo (compatible con Brave)
+                                        const presentationContent = document.getElementById('presentationContent');
+                                        
+                                        if (presentationContent && embedContainer) {
+                                            // Limpiar completamente el contenedor
+                                            embedContainer.innerHTML = '';
+                                            
+                                            // Crear nuevo contenedor de contenido
+                                            const newContentDiv = document.createElement('div');
+                                            newContentDiv.id = 'presentationContent';
+                                            newContentDiv.className = 'presentation-content';
+                                            newContentDiv.style.background = 'rgba(20, 30, 45, 0.95)';
+                                            
+                                            // Insertar el contenido
+                                            newContentDiv.innerHTML = `
+                                                <div class="presentation-container">
+                                                    <h1 class="presentation-title">📊 ${file.name}</h1>
+                                                    <p class="presentation-status">Presentación cargada correctamente</p>
+                                                    <p class="presentation-info">Use los controles del header para navegar entre diapositivas</p>
+                                                    
+                                                    <div class="demo-slide">
+                                                        <div class="slide-number">Diapositiva 1 de 10</div>
+                                                        <div class="slide-content">
+                                                            <h2>Bienvenidos a la Presentación</h2>
+                                                            <p>Esta es una vista previa de su presentación "${file.name}".</p>
+                                                            <p>En una implementación completa, aquí se mostraría el contenido real de la diapositiva.</p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="file-details">
+                                                        <p><strong>Tipo de archivo:</strong> ${fileExtension.toUpperCase()}</p>
+                                                        <p><strong>Tamaño:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                                        <p><strong>Fecha de carga:</strong> ${new Date().toLocaleString()}</p>
+                                                    </div>
+                                                </div>
+                                            `;
+                                            
+                                            // Agregar el nuevo contenido al contenedor
+                                            embedContainer.appendChild(newContentDiv);
+                                            
+                                            // Asegurar que todos los elementos tengan el fondo correcto
+                                            embedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
+                                            newContentDiv.style.background = 'rgba(20, 30, 45, 0.95)';
+                                            
+                                            // Forzar actualización del DOM
+                                            embedContainer.style.display = 'none';
+                                            setTimeout(() => {
+                                                embedContainer.style.display = 'block';
+                                                embedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
+                                                console.log('🔄 DOM actualizado forzadamente');
+                                            }, 10);
+                                            
+                                            console.log('✅ Presentación cargada directamente en el DOM (compatible con Brave)');
+                                            console.log('📄 Archivo procesado:', file.name);
+                                            console.log('📊 Contenido generado correctamente');
+                                            
+                                            // Verificar que el contenido se mostró correctamente
+                                            setTimeout(() => {
+                                                const finalContent = document.getElementById('presentationContent');
+                                                if (finalContent && finalContent.innerHTML.includes(file.name)) {
+                                                    console.log('✅ Verificación exitosa: Contenido visible');
+                                                } else {
+                                                    console.warn('⚠️ Verificación fallida: Contenido no visible');
+                                                }
+                                            }, 100);
+                                        } else {
+                                            console.error('❌ No se encontró el contenedor de presentación');
+                                            alert('❌ Error: No se pudo cargar la presentación');
+                                        }
+                                        
+                                        // Restaurar botón
+                                        loadPresentationMainBtn.innerHTML = '<i class="bx bx-upload"></i> Cargar Presentación';
+                                        loadPresentationMainBtn.disabled = false;
+                                        
+                                        currentPresentation = file.name;
+                                        console.log('✅ Presentación cargada exitosamente:', file.name);
+                                        
+                                    } catch (error) {
+                                        console.error('❌ Error al procesar la presentación:', error);
+                                        alert('❌ Error al cargar la presentación: ' + error.message);
+                                        
+                                        // Restaurar botón en caso de error
+                                        loadPresentationMainBtn.innerHTML = '<i class="bx bx-upload"></i> Cargar Presentación';
+                                        loadPresentationMainBtn.disabled = false;
+                                    }
+                                }, 1500); // Simular tiempo de carga
+                                
+                            } catch (error) {
+                                console.error('❌ Error al procesar archivo:', error);
+                                alert('❌ Error al procesar el archivo: ' + error.message);
+                                
+                                // Restaurar botón en caso de error
+                                loadPresentationMainBtn.innerHTML = '<i class="bx bx-upload"></i> Cargar Presentación';
+                                loadPresentationMainBtn.disabled = false;
+                            }
+                        };
+                        
+                        input.onerror = function() {
+                            console.error('❌ Error al abrir selector de archivos');
+                            alert('❌ Error al abrir selector de archivos');
+                        };
+                        
+                        input.click();
+                        
+                    } catch (error) {
+                        console.error('❌ Error al inicializar carga de presentación:', error);
+                        alert('❌ Error al cargar presentación: ' + error.message);
+                }
+                });
+                
+                // Navegación de diapositivas
+                if (presentationMainPrevBtn) {
+                    presentationMainPrevBtn.addEventListener('click', function() {
+                        if (currentSlide > 1) {
+                            currentSlide--;
+                            if (presentationMainCounter) {
+                            presentationMainCounter.textContent = `${currentSlide} / ${totalSlides}`;
+                            }
+                            console.log(`⬅️ Diapositiva anterior: ${currentSlide}`);
+                            
+                            // Actualizar contenido del iframe si existe
+                            updateSlideContent(currentSlide);
+                        } else {
+                            console.log('⚠️ Ya estás en la primera diapositiva');
+                        }
+                    });
+                } else {
+                    console.warn('⚠️ No se encontró el botón de diapositiva anterior');
+                }
+                    
+                if (presentationMainNextBtn) {
+                    presentationMainNextBtn.addEventListener('click', function() {
+                        if (currentSlide < totalSlides) {
+                            currentSlide++;
+                            if (presentationMainCounter) {
+                            presentationMainCounter.textContent = `${currentSlide} / ${totalSlides}`;
+                            }
+                            console.log(`➡️ Diapositiva siguiente: ${currentSlide}`);
+                            
+                            // Actualizar contenido del iframe si existe
+                            updateSlideContent(currentSlide);
+                        } else {
+                            console.log('⚠️ Ya estás en la última diapositiva');
+                        }
+                    });
+                } else {
+                    console.warn('⚠️ No se encontró el botón de diapositiva siguiente');
+                }
+
+                // Función para actualizar el contenido de la diapositiva
+                function updateSlideContent(slideNumber) {
+                    const presentationContent = document.getElementById('presentationContent');
+                    if (presentationContent) {
+                        try {
+                            const slideNumberElement = presentationContent.querySelector('.slide-number');
+                            if (slideNumberElement) {
+                                slideNumberElement.textContent = `Diapositiva ${slideNumber} de ${totalSlides}`;
+                            }
+                            
+                            const slideContent = presentationContent.querySelector('.slide-content');
+                            if (slideContent) {
+                                const slideTitles = [
+                                    'Bienvenidos a la Presentación',
+                                    'Agenda del Día',
+                                    'Objetivos Principales',
+                                    'Metodología',
+                                    'Recursos Disponibles',
+                                    'Cronograma',
+                                    'Resultados Esperados',
+                                    'Preguntas y Respuestas',
+                                    'Próximos Pasos',
+                                    'Cierre y Conclusiones'
+                                ];
+                                
+                                const slideContents = [
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>Esta es la diapositiva ${slideNumber} de su presentación.</p><p>Contenido de ejemplo para demostrar la navegación.</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><ul><li>Introducción al tema</li><li>Desarrollo de conceptos</li><li>Ejemplos prácticos</li><li>Conclusiones</li></ul>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>• Comprender los conceptos fundamentales</p><p>• Aplicar conocimientos en casos reales</p><p>• Desarrollar habilidades prácticas</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>Metodología interactiva que combina:</p><p>• Teoría y práctica</p><p>• Ejemplos del mundo real</p><p>• Participación activa</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>• Material de apoyo</p><p>• Herramientas digitales</p><p>• Biblioteca de recursos</p><p>• Soporte técnico</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>📅 Semana 1: Introducción</p><p>📅 Semana 2: Desarrollo</p><p>📅 Semana 3: Práctica</p><p>📅 Semana 4: Evaluación</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>✅ Mejora en comprensión</p><p>✅ Aplicación práctica</p><p>✅ Desarrollo de habilidades</p><p>✅ Evaluación positiva</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>¿Tiene alguna pregunta sobre el contenido?</p><p>Estamos aquí para ayudarle a comprender mejor los conceptos.</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>🔄 Revisar material</p><p>📝 Completar ejercicios</p><p>📚 Investigar más</p><p>👥 Participar en discusiones</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>Gracias por su atención y participación.</p><p>Esperamos que esta presentación haya sido útil.</p><p>¡Hasta la próxima!</p>`
+                                ];
+                                
+                                slideContent.innerHTML = slideContents[slideNumber - 1] || `<h2>Diapositiva ${slideNumber}</h2><p>Contenido de la diapositiva ${slideNumber}.</p>`;
+                                
+                                console.log(`✅ Diapositiva ${slideNumber} actualizada correctamente`);
+                            }
+                        } catch (error) {
+                            console.warn('⚠️ No se pudo actualizar el contenido de la presentación:', error);
+                        }
+                        } else {
+                        console.warn('⚠️ No se encontró el contenedor de presentación para actualizar');
+                    }
+                }
+                
+                if (!presentationMainCounter) {
+                    console.warn('⚠️ No se encontró el contador de diapositivas');
+                }
+                
+                
+
+                // Funcionalidad de colapso del panel
+                if (presentationMainCollapseBtn && presentationMainPanel) {
+                    presentationMainCollapseBtn.addEventListener('click', function() {
+                        console.log('📊 Alternando colapso del panel Presentación...');
+                        
+                        const isCollapsed = presentationMainPanel.classList.contains('collapsed');
+                        const presentationContent = document.getElementById('presentationContent');
+                        const embedContainer = document.getElementById('presentationMainEmbedContainer');
+                        
+                        if (isCollapsed) {
+                            // Expandir panel
+                            presentationMainPanel.classList.remove('collapsed');
+                            presentationMainCollapseBtn.classList.remove('collapsed');
+                            presentationMainCollapseBtn.querySelector('i').className = 'bx bx-chevron-down';
+                            
+                            // Mostrar contenido con transición suave
+                            setTimeout(() => {
+                                if (embedContainer) {
+                                    embedContainer.style.display = 'block';
+                                    embedContainer.style.opacity = '1';
+                                    embedContainer.style.visibility = 'visible';
+                                }
+                                if (presentationContent) {
+                                    presentationContent.style.display = 'flex';
+                                    presentationContent.style.opacity = '1';
+                                    presentationContent.style.visibility = 'visible';
+                                }
+                            }, 100);
+                            
+                            console.log('📊 Panel Presentación expandido');
+                        } else {
+                            // Ocultar contenido primero
+                            if (embedContainer) {
+                                embedContainer.style.opacity = '0';
+                                embedContainer.style.visibility = 'hidden';
+                            }
+                            if (presentationContent) {
+                                presentationContent.style.opacity = '0';
+                                presentationContent.style.visibility = 'hidden';
+                            }
+                            
+                            // Colapsar panel después de la transición
+                            setTimeout(() => {
+                                presentationMainPanel.classList.add('collapsed');
+                                presentationMainCollapseBtn.classList.add('collapsed');
+                                presentationMainCollapseBtn.querySelector('i').className = 'bx bx-chevron-up';
+                                
+                                // Ocultar completamente
+                                if (embedContainer) {
+                                    embedContainer.style.display = 'none';
+                                }
+                                if (presentationContent) {
+                                    presentationContent.style.display = 'none';
+                                }
+                            }, 150);
+                            
+                            console.log('📊 Panel Presentación colapsado');
+                        }
+                        
+                        // Forzar actualización del layout
+                        setTimeout(() => {
+                            presentationMainPanel.style.height = isCollapsed ? '50%' : '60px';
+                            
+                            // Expandir Live Stream cuando se colapsa la presentación
+                            const liveStreamPanel = document.getElementById('liveStreamMainPanel');
+                            if (liveStreamPanel && !isCollapsed) {
+                                // Cuando se colapsa la presentación, expandir Live Stream
+                                liveStreamPanel.style.height = 'calc(100% - 76px)'; // 100% - 60px del panel colapsado - 16px de gap
+                                liveStreamPanel.style.minHeight = 'calc(100% - 76px)';
+                                console.log('📺 Live Stream expandido automáticamente');
+                            } else if (liveStreamPanel && isCollapsed) {
+                                // Cuando se expande la presentación, restaurar Live Stream
+                                liveStreamPanel.style.height = '50%';
+                                liveStreamPanel.style.minHeight = '300px';
+                                console.log('📺 Live Stream restaurado a tamaño normal');
+                            }
+                            
+                            console.log('🔄 Layout actualizado');
+                        }, 10);
+                    });
+                } else {
+                    console.warn('⚠️ No se encontró el botón de colapso de Presentación');
+                }
+            }
+
+            // Funcionalidad del Chat con LIA
+            function initializeLiaChat() {
+                console.log('🤖 Inicializando Chat con LIA...');
+                
+                const liaMessageInput = document.getElementById('liaMessageInput');
+                const liaActionButton = document.getElementById('liaActionButton');
+                const liaChatMessages = document.getElementById('liaChatMessages');
+                const liaClearChatBtn = document.getElementById('liaClearChatBtn');
+                const liaExportChatBtn = document.getElementById('liaExportChatBtn');
+                const liaQuickBtns = document.querySelectorAll('.lia-quick-btn');
+                
+                // Enviar mensaje a LIA
+                function sendMessageToLia(message) {
+                    if (!message.trim()) return;
+                    
+                    console.log('💬 Enviando mensaje a LIA:', message);
+                    
+                    // Agregar mensaje del usuario
+                    const userMessage = document.createElement('div');
+                    userMessage.className = 'lia-message lia-message-user';
+                    userMessage.innerHTML = `
+                        <div class="lia-message-content">
+                            <p>${message}</p>
+                        </div>
+                        <div class="lia-message-time">Ahora</div>
+                    `;
+                    liaChatMessages.appendChild(userMessage);
+                    
+                    // Scroll al final
+                    liaChatMessages.scrollTop = liaChatMessages.scrollHeight;
+                    
+                    // Simular respuesta de LIA
+                    setTimeout(() => {
+                        const liaResponse = document.createElement('div');
+                        liaResponse.className = 'lia-message lia-message-assistant';
+                        liaResponse.innerHTML = `
+                            <div class="lia-message-avatar">
+                                <img src="assets/images/FOTO%20LIA.png" alt="LIA" onerror="this.onerror=null;this.src='assets/images/brain-icon.jpg'">
+                            </div>
+                            <div class="lia-message-content">
+                                <p>Gracias por tu pregunta: "${message}". Esta es una respuesta de demostración del sistema de Chat con LIA. En la implementación final, aquí se conectaría con la IA real para proporcionarte respuestas inteligentes y personalizadas.</p>
+                            </div>
+                            <div class="lia-message-time">Ahora</div>
+                        `;
+                        liaChatMessages.appendChild(liaResponse);
+                        liaChatMessages.scrollTop = liaChatMessages.scrollHeight;
+                        console.log('🤖 LIA respondió (demo)');
+                    }, 1500);
+                }
+                
+                // Event listeners para el chat
+                if (liaActionButton && liaMessageInput) {
+                    liaActionButton.addEventListener('click', function() {
+                        const message = liaMessageInput.value.trim();
+                        if (message) {
+                            sendMessageToLia(message);
+                            liaMessageInput.value = '';
+                        }
+                    });
+                    
+                    liaMessageInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            const message = liaMessageInput.value.trim();
+                            if (message) {
+                                sendMessageToLia(message);
+                                liaMessageInput.value = '';
+                            }
+                        }
+                    });
+                }
+                
+                // Botones rápidos
+                liaQuickBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const prompt = this.getAttribute('data-prompt');
+                        if (prompt) {
+                            liaMessageInput.value = prompt;
+                            sendMessageToLia(prompt);
+                            liaMessageInput.value = '';
+                        }
+                    });
+                });
+                
+                // Limpiar chat
+                if (liaClearChatBtn) {
+                    liaClearChatBtn.addEventListener('click', function() {
+                        console.log('🗑️ Limpiando chat con LIA');
+                        
+                        // Mantener solo el mensaje de bienvenida
+                        const welcomeMessage = liaChatMessages.querySelector('.lia-message-assistant');
+                        liaChatMessages.innerHTML = '';
+                        if (welcomeMessage) {
+                            liaChatMessages.appendChild(welcomeMessage);
+                        }
+                    });
+                }
+                
+                // Exportar chat
+                if (liaExportChatBtn) {
+                    liaExportChatBtn.addEventListener('click', function() {
+                        console.log('📥 Exportando chat con LIA');
+                        alert('Funcionalidad de exportación - Demo');
+                    });
+                }
+            }
+
+            // Inicializar todas las funcionalidades nuevas
+            console.log('🚀 Inicializando nuevas funcionalidades...');
+            initializePanelCollapse();
+            initializeResizers();
+            initializeCollapsibleSections();
+            initializeToggleSystem();
+            initializeZoomSection();
+            initializeLiveStreamMainPanel();
+            initializePresentationMainPanel();
+            initializeLiaChat();
+            console.log('✅ Todas las funcionalidades inicializadas correctamente');
         });
     </script>
 </body>

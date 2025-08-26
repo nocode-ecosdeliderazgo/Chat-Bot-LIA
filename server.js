@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
+const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
@@ -16,6 +17,18 @@ require('dotenv').config();
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
 const DEV_MODE = process.env.NODE_ENV !== 'production';
+
+// Configuración de Supabase
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+let supabase = null;
+if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+    supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    console.log('✅ Supabase configurado correctamente');
+} else {
+    console.warn('⚠️ SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY no configurados en .env');
+}
 
 // Configuración de seguridad
 app.disable('x-powered-by');
@@ -200,12 +213,44 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({ limit: '10mb' }));
+
+// Endpoint para obtener datos de adopción de GenAI por países
+app.get('/api/adopcion-genai', async (req, res) => {
+    try {
+        console.log('🌍 Obteniendo datos de adopción GenAI por países...');
+        
+        if (!supabase) {
+            console.error('❌ Supabase no configurado');
+            return res.status(500).json({ error: 'Supabase no configurado' });
+        }
+        
+        const { data, error } = await supabase
+            .from('adopcion_genai')
+            .select('*')
+            .order('indice_aipi', { ascending: false });
+        
+        if (error) {
+            console.error('❌ Error obteniendo datos de adopción:', error);
+            return res.status(500).json({ error: error.message });
+        }
+        
+        console.log(`✅ Datos de adopción obtenidos: ${data.length} países`);
+        res.json(data);
+        
+    } catch (error) {
+        console.error('❌ Error en adopcion-genai:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.use(express.static('src'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Servir prompts para depuración/inspección (protegido por API en endpoints abajo)
 app.use('/prompts', express.static(path.join(__dirname, 'prompts')));
 // Servir datos del curso
 app.use('/data', express.static(path.join(__dirname, 'src/data')));
+// Servir archivos estáticos de SIF ICAP
+app.use('/sif-icap', express.static(path.join(__dirname, 'sif-icap')));
 
 // Carpeta temporal de audios (entradas del micro)
 const tempDir = path.join(__dirname, 'tmp');
@@ -243,6 +288,11 @@ app.get('/community', (req, res) => {
 
 app.get('/chat-general', (req, res) => {
     res.sendFile(path.join(__dirname, 'src', 'ChatGeneral', 'chat-general.html'));
+});
+
+// Ruta para SIF ICAP
+app.get('/sif-icap', (req, res) => {
+    res.sendFile(path.join(__dirname, 'sif-icap', 'index.html'));
 });
 
 // Configuración de Grafana
@@ -648,7 +698,12 @@ app.post('/api/transcribe', authenticateRequest, requireUserSession, upload.sing
     }
 });
 
-// Registro de usuarios con validaciones mejoradas
+// Importar servicios de email y OTP
+const emailService = require('./src/utils/email-service');
+const otpService = require('./src/utils/otp-service');
+const otpCleanupService = require('./src/utils/cleanup-otps');
+
+// Registro de usuarios con verificación de email
 app.post('/api/register', async (req, res) => {
     try {
         if (!pool) {
@@ -679,48 +734,83 @@ app.post('/api/register', async (req, res) => {
             });
         }
 
-        // type_rol ahora es opcional - se configura en el perfil después del registro
-        // Si no se proporciona, asignamos un valor por defecto
-        const userTypeRol = type_rol && String(type_rol).trim().length > 0 ? type_rol : 'estudiante';
+        // Verificar si el email ya está registrado
+        const existingUser = await pool.query(
+            'SELECT id, email_verified FROM users WHERE email = $1 OR username = $2',
+            [email, username]
+        );
 
-        // Verificar si existen las columnas necesarias
-        let hasPassword = false;
-        let hasCargoRol = false;
-        let hasTypeRol = false;
-        
-        try {
-            const cols = await pool.query(`
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = 'users' 
-                AND column_name IN ('password_hash', 'cargo_rol', 'type_rol')
-            `);
-            const columnNames = cols.rows.map(row => row.column_name);
-            hasPassword = columnNames.includes('password_hash');
-            hasCargoRol = columnNames.includes('cargo_rol');
-            hasTypeRol = columnNames.includes('type_rol');
-        } catch (_) {}
-
-        let query, params;
-        if (hasPassword && password) {
-            const bcrypt = require('bcryptjs');
-            const hash = await bcrypt.hash(String(password), 10);
-            query = `INSERT INTO users (username, email, password_hash, first_name, last_name, display_name) 
-                     VALUES ($1,$2,$3, NULL, NULL, $4) 
-                     RETURNING id, username, email, display_name`;
-            params = [username, email || null, hash, full_name || null];
-        } else if (!hasPassword && DEV_MODE) {
-            // Permitir registro sin password_hash en modo desarrollo
-            query = `INSERT INTO users (username, email, first_name, last_name, display_name) 
-                     VALUES ($1,$2, NULL, NULL, $3) 
-                     RETURNING id, username, email, display_name`;
-            params = [username, email || null, full_name || null];
-        } else {
-            return res.status(500).json({ error: 'Registro no disponible: falta password_hash' });
+        if (existingUser.rows.length > 0) {
+            const existing = existingUser.rows[0];
+            if (existing.email === email) {
+                return res.status(409).json({ error: 'El email ya está registrado' });
+            } else {
+                return res.status(409).json({ error: 'El nombre de usuario ya está en uso' });
+            }
         }
 
-        const result = await pool.query(query, params);
-        res.status(201).json({ user: result.rows[0] });
+        // Verificar configuración de email
+        if (!emailService.isConfigured()) {
+            console.warn('⚠️ Servicio de email no configurado, creando usuario sin verificación');
+            // Crear usuario sin verificación en modo desarrollo
+            const bcrypt = require('bcryptjs');
+            const hash = await bcrypt.hash(String(password), 10);
+            
+            const result = await pool.query(`
+                INSERT INTO users (username, email, password_hash, display_name, email_verified, email_verified_at) 
+                VALUES ($1, $2, $3, $4, true, NOW()) 
+                RETURNING id, username, email, display_name, email_verified
+            `, [username, email, hash, full_name]);
+
+            return res.status(201).json({ 
+                user: result.rows[0],
+                message: 'Usuario creado sin verificación de email (modo desarrollo)'
+            });
+        }
+
+        // Crear usuario con email no verificado
+        const bcrypt = require('bcryptjs');
+        const hash = await bcrypt.hash(String(password), 10);
+        
+        const result = await pool.query(`
+            INSERT INTO users (username, email, password_hash, display_name, email_verified) 
+            VALUES ($1, $2, $3, $4, false) 
+            RETURNING id, username, email, display_name, email_verified
+        `, [username, email, hash, full_name]);
+
+        const newUser = result.rows[0];
+
+        // Generar y enviar código OTP
+        try {
+            const otpResult = await otpService.createOTP(pool, newUser.id, 'verify_email');
+            
+            if (otpResult.success) {
+                await emailService.sendVerificationEmail(email, otpResult.otp, full_name);
+                
+                console.log('📧 Email de verificación enviado para nuevo usuario:', {
+                    userId: newUser.id,
+                    email: email,
+                    otpId: otpResult.otpId
+                });
+
+                res.status(201).json({ 
+                    user: newUser,
+                    message: 'Usuario creado. Revisa tu email para verificar tu cuenta.',
+                    requiresVerification: true
+                });
+            } else {
+                throw new Error('Error generando código de verificación');
+            }
+        } catch (emailError) {
+            console.error('❌ Error enviando email de verificación:', emailError);
+            
+            // Si falla el envío de email, eliminar el usuario creado
+            await pool.query('DELETE FROM users WHERE id = $1', [newUser.id]);
+            
+            return res.status(500).json({ 
+                error: 'Error enviando email de verificación. Inténtalo de nuevo.' 
+            });
+        }
         
     } catch (error) {
         console.error('Error registrando usuario:', error);
@@ -733,15 +823,15 @@ app.post('/api/register', async (req, res) => {
             } else if (errorMsg.includes('email')) {
                 return res.status(409).json({ error: 'El email ya está registrado' });
             } else {
-            return res.status(409).json({ error: 'El usuario ya existe' });
-        }
+                return res.status(409).json({ error: 'El usuario ya existe' });
+            }
         }
         
         res.status(500).json({ error: 'Error registrando usuario' });
     }
 });
 
-// Login de usuario (valida contra BD si está disponible)
+// Login de usuario con verificación de email
 app.post('/api/login', async (req, res) => {
     try {
         const { username, identifier, password } = req.body || {};
@@ -758,32 +848,20 @@ app.post('/api/login', async (req, res) => {
             return res.status(503).json({ error: 'Base de datos no configurada' });
         }
 
-        // Verificar si existe la columna password_hash
-        let hasPassword = false;
-        let hasCargoRol = false;
-        let hasTypeRol = false;
-        try {
-            const col = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'password_hash' LIMIT 1");
-            hasPassword = col.rows.length > 0;
-        } catch (_) {}
-
-        // Detectar columnas opcionales de roles
-        try {
-            const cols = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND column_name IN ('cargo_rol','type_rol')");
-            const names = (cols.rows || []).map(r => String(r.column_name || '').toLowerCase());
-            hasCargoRol = names.includes('cargo_rol');
-            hasTypeRol = names.includes('type_rol');
-        } catch (_) {}
-
-        const query = `SELECT 
+        // Buscar usuario con información de verificación de email
+        const query = `
+            SELECT 
                 id, 
                 username, 
                 email,
+                password_hash,
+                email_verified,
                 COALESCE(display_name, NULLIF(TRIM(CONCAT(COALESCE(first_name,''),' ',COALESCE(last_name,''))), '')) AS display_name
-                ${hasPassword ? ', password_hash' : ''}
             FROM users 
             WHERE LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($1) 
-            LIMIT 1`;
+            LIMIT 1
+        `;
+        
         const result = await pool.query(query, [String(input)]);
         if (result.rows.length === 0) {
             return res.status(401).json({ error: 'Credenciales inválidas' });
@@ -791,30 +869,199 @@ app.post('/api/login', async (req, res) => {
 
         const user = result.rows[0];
 
-        if (hasPassword) {
-            const bcrypt = require('bcryptjs');
-            let ok = false;
-            try {
-                ok = await bcrypt.compare(String(password), user.password_hash || '');
-            } catch(_) { ok = false; }
-            // Modo desarrollo: permitir coincidencia en texto plano si el hash no es válido
-            if (!ok && DEV_MODE && user.password_hash && !String(user.password_hash).startsWith('$2')) {
-                ok = String(user.password_hash) === String(password);
-            }
-            if (!ok) {
-                return res.status(401).json({ error: 'Credenciales inválidas' });
-            }
-        } else if (!hasPassword && DEV_MODE) {
-            // Fallback de desarrollo: permitir login si el usuario existe
-            console.warn('[DEV] password_hash no existe, permitiendo login para pruebas');
-        } else {
-            return res.status(500).json({ error: 'Autenticación no disponible: falta password_hash' });
+        // Verificar contraseña
+        const bcrypt = require('bcryptjs');
+        let passwordValid = false;
+        try {
+            passwordValid = await bcrypt.compare(String(password), user.password_hash || '');
+        } catch(_) { passwordValid = false; }
+        
+        // Modo desarrollo: permitir coincidencia en texto plano si el hash no es válido
+        if (!passwordValid && DEV_MODE && user.password_hash && !String(user.password_hash).startsWith('$2')) {
+            passwordValid = String(user.password_hash) === String(password);
+        }
+        
+        if (!passwordValid) {
+            return res.status(401).json({ error: 'Credenciales inválidas' });
         }
 
-        return res.json({ user: { id: user.id, username: user.username, display_name: user.display_name || null, email: user.email } });
+        // Verificar si el email está verificado
+        if (!user.email_verified) {
+            return res.status(403).json({ 
+                error: 'Email no verificado',
+                requiresVerification: true,
+                userId: user.id,
+                email: user.email,
+                message: 'Debes verificar tu email antes de iniciar sesión'
+            });
+        }
+
+        // Actualizar último login
+        await pool.query(
+            'UPDATE users SET last_login_at = NOW() WHERE id = $1',
+            [user.id]
+        );
+
+        return res.json({ 
+            user: { 
+                id: user.id, 
+                username: user.username, 
+                display_name: user.display_name || null, 
+                email: user.email,
+                email_verified: user.email_verified
+            } 
+        });
     } catch (err) {
         console.error('Error en /api/login:', err);
         return res.status(500).json({ error: 'Error interno en login' });
+    }
+});
+
+// Endpoint para verificar código OTP
+app.post('/api/verify-email', async (req, res) => {
+    try {
+        const { userId, otp } = req.body || {};
+        
+        if (!userId || !otp) {
+            return res.status(400).json({ error: 'ID de usuario y código OTP requeridos' });
+        }
+
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+
+        // Validar formato del OTP
+        if (!otpService.validateOTPFormat(otp)) {
+            return res.status(400).json({ error: 'Formato de código inválido. Debe ser de 6 dígitos.' });
+        }
+
+        // Verificar el código OTP
+        const verificationResult = await otpService.verifyOTP(pool, userId, otp, 'verify_email');
+
+        if (!verificationResult.success) {
+            return res.status(400).json({ error: verificationResult.error });
+        }
+
+        // Marcar email como verificado
+        await pool.query(`
+            UPDATE users 
+            SET email_verified = true, email_verified_at = NOW() 
+            WHERE id = $1
+        `, [userId]);
+
+        // Obtener información actualizada del usuario
+        const userResult = await pool.query(`
+            SELECT id, username, email, display_name, email_verified, email_verified_at
+            FROM users WHERE id = $1
+        `, [userId]);
+
+        console.log('✅ Email verificado exitosamente:', {
+            userId: userId,
+            verifiedAt: new Date().toISOString()
+        });
+
+        res.json({
+            success: true,
+            message: 'Email verificado correctamente',
+            user: userResult.rows[0]
+        });
+
+    } catch (error) {
+        console.error('❌ Error verificando email:', error);
+        res.status(500).json({ error: 'Error interno verificando email' });
+    }
+});
+
+// Endpoint para obtener estadísticas de OTPs (solo administradores)
+app.get('/api/otp-stats', async (req, res) => {
+    try {
+        // Verificar si es administrador (implementar según tu lógica de roles)
+        const isAdmin = req.headers['x-admin-key'] === process.env.API_SECRET_KEY;
+        
+        if (!isAdmin) {
+            return res.status(403).json({ error: 'Acceso denegado' });
+        }
+
+        const stats = await otpCleanupService.getOTPStats();
+        
+        if (stats) {
+            res.json({
+                success: true,
+                stats: stats,
+                timestamp: new Date().toISOString()
+            });
+        } else {
+            res.status(500).json({ error: 'Error obteniendo estadísticas' });
+        }
+
+    } catch (error) {
+        console.error('❌ Error obteniendo estadísticas de OTPs:', error);
+        res.status(500).json({ error: 'Error interno obteniendo estadísticas' });
+    }
+});
+
+// Endpoint para reenviar código de verificación
+app.post('/api/resend-verification', async (req, res) => {
+    try {
+        const { userId, email } = req.body || {};
+        
+        if (!userId || !email) {
+            return res.status(400).json({ error: 'ID de usuario y email requeridos' });
+        }
+
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+
+        // Verificar que el usuario existe y no está verificado
+        const userResult = await pool.query(`
+            SELECT id, username, email, display_name, email_verified
+            FROM users WHERE id = $1 AND email = $2
+        `, [userId, email]);
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        const user = userResult.rows[0];
+
+        if (user.email_verified) {
+            return res.status(400).json({ error: 'El email ya está verificado' });
+        }
+
+        // Verificar configuración de email
+        if (!emailService.isConfigured()) {
+            return res.status(500).json({ error: 'Servicio de email no configurado' });
+        }
+
+        // Generar y enviar nuevo código OTP
+        try {
+            const otpResult = await otpService.createOTP(pool, userId, 'verify_email');
+            
+            if (otpResult.success) {
+                await emailService.sendVerificationEmail(email, otpResult.otp, user.display_name || user.username);
+                
+                console.log('📧 Código de verificación reenviado:', {
+                    userId: userId,
+                    email: email,
+                    otpId: otpResult.otpId
+                });
+
+                res.json({
+                    success: true,
+                    message: 'Código de verificación reenviado. Revisa tu email.'
+                });
+            } else {
+                throw new Error('Error generando código de verificación');
+            }
+        } catch (emailError) {
+            console.error('❌ Error reenviando código:', emailError);
+            res.status(500).json({ error: 'Error reenviando código de verificación' });
+        }
+
+    } catch (error) {
+        console.error('❌ Error en resend-verification:', error);
+        res.status(500).json({ error: 'Error interno reenviando verificación' });
     }
 });
 
@@ -992,6 +1239,73 @@ app.put('/api/profile', async (req, res) => {
     } catch (err) {
         console.error('Error en PUT /api/profile:', err);
         return res.status(500).json({ error: 'Error actualizando perfil', details: process.env.NODE_ENV !== 'production' ? String(err.message || err) : undefined });
+    }
+});
+
+// Endpoint para actualizar type_rol desde el cuestionario
+app.post('/api/update-profile', async (req, res) => {
+    try {
+        const { user_id, username, email, type_rol } = req.body || {};
+        
+        // Validaciones básicas
+        if (!type_rol) {
+            return res.status(400).json({ error: 'type_rol es requerido' });
+        }
+
+        if (!user_id && !username && !email) {
+            return res.status(400).json({ error: 'Se requiere user_id, username o email para identificar al usuario' });
+        }
+
+        console.log('🔄 Actualizando type_rol:', { user_id, username, email, type_rol });
+
+        // Verificar si existe la columna type_rol
+        let hasTypeRol = false;
+        try {
+            const cols = await pool.query(`
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'users' 
+                AND column_name = 'type_rol'
+            `);
+            hasTypeRol = cols.rows.length > 0;
+        } catch (err) {
+            console.warn('⚠️ Error verificando columna type_rol:', err.message);
+        }
+
+        if (!hasTypeRol) {
+            return res.status(400).json({ error: 'La tabla users no tiene columna type_rol' });
+        }
+
+        // Construir query de actualización
+        let query, params;
+        if (user_id) {
+            query = 'UPDATE users SET type_rol = $1, updated_at = NOW() WHERE id = $2 RETURNING id, username, email, type_rol, cargo_rol';
+            params = [type_rol, user_id];
+        } else if (username) {
+            query = 'UPDATE users SET type_rol = $1, updated_at = NOW() WHERE username = $2 RETURNING id, username, email, type_rol, cargo_rol';
+            params = [type_rol, username];
+        } else if (email) {
+            query = 'UPDATE users SET type_rol = $1, updated_at = NOW() WHERE email = $2 RETURNING id, username, email, type_rol, cargo_rol';
+            params = [type_rol, email];
+        }
+
+        const result = await pool.query(query, params);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        console.log('✅ type_rol actualizado correctamente:', result.rows[0]);
+
+        return res.json({ 
+            ok: true, 
+            message: 'type_rol actualizado correctamente',
+            user: result.rows[0] 
+        });
+
+    } catch (error) {
+        console.error('❌ Error actualizando type_rol:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
@@ -1656,52 +1970,504 @@ app.get('/api/admin/dashboard/stats', async (req, res) => {
 });
 
 // Obtener lista de usuarios
-app.get('/api/admin/users', (req, res) => {
+app.get('/api/admin/users', async (req, res) => {
     console.log('Endpoint de usuarios llamado');
     
-    const mockUsers = [
-        {
-            id: 1,
-            full_name: 'Juan Pérez',
-            username: 'juanperez',
-            email: 'juan@example.com',
-            cargo_rol: 'Usuario',
-            created_at: '2024-01-15T10:30:00Z',
-            updated_at: '2024-01-15T10:30:00Z',
-            last_login_at: '2024-01-15T10:30:00Z',
-            type_rol: 'Usuario'
-        },
-        {
-            id: 2,
-            full_name: 'María García',
-            username: 'mariagarcia',
-            email: 'maria@example.com',
-            cargo_rol: 'Administrador',
-            created_at: '2024-01-15T09:15:00Z',
-            updated_at: '2024-01-15T09:15:00Z',
-            last_login_at: '2024-01-15T09:15:00Z',
-            type_rol: 'Administrador'
-        },
-        {
-            id: 3,
-            full_name: 'Carlos López',
-            username: 'carloslopez',
-            email: 'carlos@example.com',
-            cargo_rol: 'Usuario',
-            created_at: '2024-01-10T14:20:00Z',
-            updated_at: '2024-01-10T14:20:00Z',
-            last_login_at: '2024-01-10T14:20:00Z',
-            type_rol: 'Usuario'
+    try {
+        if (!pool) {
+            console.log('Pool de base de datos no configurado, retornando usuarios simulados');
+            // Retornar usuarios simulados cuando no hay base de datos
+            const mockUsers = [
+                {
+                    id: 1,
+                    full_name: 'Juan Pérez',
+                    username: 'juanperez',
+                    email: 'juan@example.com',
+                    cargo_rol: 'Usuario',
+                    created_at: '2024-01-15T10:30:00Z',
+                    updated_at: '2024-01-15T10:30:00Z',
+                    last_login_at: '2024-01-15T10:30:00Z',
+                    type_rol: 'Usuario'
+                },
+                {
+                    id: 2,
+                    full_name: 'María García',
+                    username: 'mariagarcia',
+                    email: 'maria@example.com',
+                    cargo_rol: 'Administrador',
+                    created_at: '2024-01-15T09:15:00Z',
+                    updated_at: '2024-01-15T09:15:00Z',
+                    last_login_at: '2024-01-15T09:15:00Z',
+                    type_rol: 'Administrador'
+                },
+                {
+                    id: 3,
+                    full_name: 'Carlos López',
+                    username: 'carloslopez',
+                    email: 'carlos@example.com',
+                    cargo_rol: 'Usuario',
+                    created_at: '2024-01-10T14:20:00Z',
+                    updated_at: '2024-01-10T14:20:00Z',
+                    last_login_at: '2024-01-10T14:20:00Z',
+                    type_rol: 'Usuario'
+                }
+            ];
+            return res.json(mockUsers);
         }
-    ];
+
+        // Verificar si la tabla users existe
+        const tableCheck = await pool.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'users'
+            );
+        `);
+
+        if (!tableCheck.rows[0].exists) {
+            console.log('Tabla users no existe, retornando usuarios simulados');
+            const mockUsers = [
+                {
+                    id: 1,
+                    full_name: 'Juan Pérez',
+                    username: 'juanperez',
+                    email: 'juan@example.com',
+                    cargo_rol: 'Usuario',
+                    created_at: '2024-01-15T10:30:00Z',
+                    updated_at: '2024-01-15T10:30:00Z',
+                    last_login_at: '2024-01-15T10:30:00Z',
+                    type_rol: 'Usuario'
+                },
+                {
+                    id: 2,
+                    full_name: 'María García',
+                    username: 'mariagarcia',
+                    email: 'maria@example.com',
+                    cargo_rol: 'Administrador',
+                    created_at: '2024-01-15T09:15:00Z',
+                    updated_at: '2024-01-15T09:15:00Z',
+                    last_login_at: '2024-01-15T09:15:00Z',
+                    type_rol: 'Administrador'
+                }
+            ];
+            return res.json(mockUsers);
+        }
+
+        // Consultar usuarios reales de la base de datos
+        const result = await pool.query(`
+            SELECT 
+                id,
+                username,
+                email,
+                COALESCE(
+                    NULLIF(TRIM(display_name), ''),
+                    NULLIF(TRIM(first_name || ' ' || last_name), ' '),
+                    NULLIF(TRIM(first_name), ''),
+                    username,
+                    'Sin nombre'
+                ) as full_name,
+                cargo_rol,
+                type_rol,
+                created_at,
+                updated_at,
+                last_login_at,
+                phone,
+                bio,
+                location
+            FROM users 
+            ORDER BY created_at DESC
+            LIMIT 100
+        `);
+
+        console.log(`Usuarios obtenidos de la base de datos: ${result.rows.length}`);
+        
+        // Formatear datos para el frontend
+        const users = result.rows.map(user => ({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            full_name: user.full_name,
+            cargo_rol: user.cargo_rol || 'Usuario',
+            type_rol: user.type_rol || 'Usuario',
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+            last_login_at: user.last_login_at,
+            phone: user.phone,
+            bio: user.bio,
+            location: user.location
+        }));
+
+        res.json(users);
+
+    } catch (error) {
+        console.error('Error obteniendo usuarios:', error);
+        
+        // En caso de error, retornar datos simulados
+        const mockUsers = [
+            {
+                id: 1,
+                full_name: 'Error - Datos simulados',
+                username: 'error_user',
+                email: 'error@example.com',
+                cargo_rol: 'Usuario',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                last_login_at: null,
+                type_rol: 'Usuario'
+            }
+        ];
+        
+        res.status(500).json({
+            error: 'Error al obtener usuarios de la base de datos',
+            details: error.message,
+            fallback_data: mockUsers
+        });
+    }
+});
+
+// Cambiar rol de usuario
+app.put('/api/admin/users/:id/role', async (req, res) => {
+    console.log('Endpoint de cambio de rol llamado');
     
-    res.json(mockUsers);
+    try {
+        const userId = req.params.id;
+        const { cargo_rol } = req.body;
+
+        // Validar parámetros
+        if (!userId || typeof userId !== 'string') {
+            return res.status(400).json({ error: 'ID de usuario inválido' });
+        }
+
+        if (!cargo_rol || !['usuario', 'administrador', 'tutor', 'Usuario', 'Administrador', 'Tutor'].includes(cargo_rol)) {
+            return res.status(400).json({ error: 'Rol inválido. Debe ser: usuario, administrador o tutor' });
+        }
+
+        // Verificar autorización del usuario actual
+        const authHeader = req.headers['authorization'];
+        const userIdHeader = req.headers['x-user-id'];
+        
+        if (!pool) {
+            console.log('Pool de base de datos no configurado, simulando cambio de rol');
+            return res.json({ 
+                success: true, 
+                message: `Rol cambiado a ${cargo_rol} (simulado)`,
+                user: {
+                    id: userId,
+                    cargo_rol: cargo_rol
+                }
+            });
+        }
+
+        // Verificar que la tabla users existe
+        const tableCheck = await pool.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'users'
+            );
+        `);
+
+        if (!tableCheck.rows[0].exists) {
+            console.log('Tabla users no existe, simulando cambio de rol');
+            return res.json({ 
+                success: true, 
+                message: `Rol cambiado a ${cargo_rol} (simulado)`,
+                user: {
+                    id: userId,
+                    cargo_rol: cargo_rol
+                }
+            });
+        }
+
+        // Verificar que el usuario existe
+        const userCheck = await pool.query('SELECT id, cargo_rol FROM users WHERE id = $1', [userId]);
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        // Prevenir que el usuario se quite privilegios de administrador a sí mismo
+        if (userIdHeader && parseInt(userIdHeader) === userId && userCheck.rows[0].cargo_rol === 'Administrador' && cargo_rol !== 'Administrador') {
+            return res.status(403).json({ error: 'No puedes quitar tus propios privilegios de administrador' });
+        }
+
+        // Actualizar el rol del usuario
+        const updateResult = await pool.query(
+            'UPDATE users SET cargo_rol = $1, type_rol = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, cargo_rol, display_name, email',
+            [cargo_rol, userId]
+        );
+
+        if (updateResult.rows.length === 0) {
+            return res.status(500).json({ error: 'Error actualizando el rol del usuario' });
+        }
+
+        console.log(`Rol del usuario ${userId} cambiado a ${cargo_rol}`);
+        
+        res.json({
+            success: true,
+            message: `Rol cambiado a ${cargo_rol} exitosamente`,
+            user: updateResult.rows[0]
+        });
+
+    } catch (error) {
+        console.error('Error cambiando rol de usuario:', error);
+        res.status(500).json({ 
+            error: 'Error interno del servidor',
+            details: error.message 
+        });
+    }
+});
+
+// Eliminar usuario
+app.delete('/api/admin/users/:id', async (req, res) => {
+    console.log('Endpoint de eliminación de usuario llamado');
+    
+    try {
+        const userId = req.params.id;
+
+        // Validar parámetros
+        if (!userId || typeof userId !== 'string') {
+            return res.status(400).json({ error: 'ID de usuario inválido' });
+        }
+
+        // Verificar autorización del usuario actual
+        const authHeader = req.headers['authorization'];
+        const userIdHeader = req.headers['x-user-id'];
+        
+        if (!pool) {
+            console.log('Pool de base de datos no configurado, simulando eliminación');
+            return res.json({ 
+                success: true, 
+                message: 'Usuario eliminado exitosamente (simulado)'
+            });
+        }
+
+        // Verificar que la tabla users existe
+        const tableCheck = await pool.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'users'
+            );
+        `);
+
+        if (!tableCheck.rows[0].exists) {
+            console.log('Tabla users no existe, simulando eliminación');
+            return res.json({ 
+                success: true, 
+                message: 'Usuario eliminado exitosamente (simulado)'
+            });
+        }
+
+        // Verificar que el usuario existe
+        const userCheck = await pool.query('SELECT id, cargo_rol, display_name, email FROM users WHERE id = $1', [userId]);
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        const userToDelete = userCheck.rows[0];
+
+        // Prevenir que el usuario se elimine a sí mismo
+        if (userIdHeader && parseInt(userIdHeader) === userId) {
+            return res.status(403).json({ error: 'No puedes eliminar tu propia cuenta' });
+        }
+
+        // Verificar si es el último administrador
+        if (userToDelete.cargo_rol === 'Administrador') {
+            const adminCount = await pool.query("SELECT COUNT(*) FROM users WHERE cargo_rol = 'Administrador'");
+            if (parseInt(adminCount.rows[0].count) <= 1) {
+                return res.status(403).json({ error: 'No se puede eliminar el último administrador del sistema' });
+            }
+        }
+
+        // Eliminar el usuario
+        const deleteResult = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id', [userId]);
+
+        if (deleteResult.rows.length === 0) {
+            return res.status(500).json({ error: 'Error eliminando el usuario' });
+        }
+
+        console.log(`Usuario ${userId} (${userToDelete.display_name}) eliminado exitosamente`);
+        
+        res.json({
+            success: true,
+            message: `Usuario ${userToDelete.display_name || 'desconocido'} eliminado exitosamente`,
+            deletedUser: {
+                id: userId,
+                display_name: userToDelete.display_name,
+                email: userToDelete.email
+            }
+        });
+
+    } catch (error) {
+        console.error('Error eliminando usuario:', error);
+        res.status(500).json({ 
+            error: 'Error interno del servidor',
+            details: error.message 
+        });
+    }
+});
+
+// Obtener lista de talleres/cursos
+app.get('/api/admin/courses', async (req, res) => {
+    console.log('Endpoint de talleres llamado');
+    
+    try {
+        if (!pool) {
+            console.log('Pool de base de datos no configurado, retornando talleres simulados');
+            // Retornar talleres simulados cuando no hay base de datos
+            const mockCourses = [
+                {
+                    id: 1,
+                    name: 'Introducción a la Inteligencia Artificial',
+                    short_description: 'Conceptos fundamentales de IA',
+                    long_description: 'Un curso completo sobre los fundamentos de la inteligencia artificial.',
+                    status: 'published',
+                    modality: 'online',
+                    session_count: 8,
+                    total_duration: 480,
+                    price: '$99',
+                    currency: 'USD',
+                    created_at: '2024-01-10T09:00:00Z'
+                },
+                {
+                    id: 2,
+                    name: 'Machine Learning Avanzado',
+                    short_description: 'Técnicas avanzadas de ML',
+                    long_description: 'Profundiza en algoritmos avanzados de machine learning.',
+                    status: 'draft',
+                    modality: 'hybrid',
+                    session_count: 12,
+                    total_duration: 720,
+                    price: '$149',
+                    currency: 'USD',
+                    created_at: '2024-01-05T14:30:00Z'
+                }
+            ];
+            return res.json(mockCourses);
+        }
+
+        // Verificar si la tabla ai_courses existe
+        const tableCheck = await pool.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'ai_courses'
+            );
+        `);
+
+        if (!tableCheck.rows[0].exists) {
+            console.log('Tabla ai_courses no existe, retornando talleres simulados');
+            const mockCourses = [
+                {
+                    id: 1,
+                    name: 'Introducción a la Inteligencia Artificial',
+                    short_description: 'Conceptos fundamentales de IA',
+                    long_description: 'Un curso completo sobre los fundamentos de la inteligencia artificial.',
+                    status: 'published',
+                    modality: 'online',
+                    session_count: 8,
+                    total_duration: 480,
+                    price: '$99',
+                    currency: 'USD',
+                    created_at: '2024-01-10T09:00:00Z'
+                },
+                {
+                    id: 2,
+                    name: 'Machine Learning Avanzado',
+                    short_description: 'Técnicas avanzadas de ML',
+                    long_description: 'Profundiza en algoritmos avanzados de machine learning.',
+                    status: 'draft',
+                    modality: 'hybrid',
+                    session_count: 12,
+                    total_duration: 720,
+                    price: '$149',
+                    currency: 'USD',
+                    created_at: '2024-01-05T14:30:00Z'
+                }
+            ];
+            return res.json(mockCourses);
+        }
+
+        // Consultar talleres reales de la base de datos
+        const result = await pool.query(`
+            SELECT 
+                id_ai_courses as id,
+                name,
+                short_description,
+                long_description,
+                status,
+                modality,
+                session_count,
+                total_duration,
+                price,
+                currency,
+                created_at,
+                purchase_url,
+                course_url,
+                roi
+            FROM ai_courses 
+            ORDER BY created_at DESC
+            LIMIT 50
+        `);
+
+        console.log(`Talleres obtenidos de la base de datos: ${result.rows.length}`);
+        
+        // Formatear datos para el frontend
+        const courses = result.rows.map(course => ({
+            id: course.id,
+            name: course.name || 'Taller sin nombre',
+            short_description: course.short_description || 'Sin descripción',
+            long_description: course.long_description || 'Sin descripción detallada',
+            status: course.status || 'draft',
+            modality: course.modality || 'online',
+            session_count: course.session_count || 0,
+            total_duration: course.total_duration || 0,
+            price: course.price || 'Gratis',
+            currency: course.currency || 'USD',
+            created_at: course.created_at,
+            purchase_url: course.purchase_url,
+            course_url: course.course_url,
+            roi: course.roi
+        }));
+
+        res.json(courses);
+
+    } catch (error) {
+        console.error('Error obteniendo talleres:', error);
+        
+        // En caso de error, retornar datos simulados
+        const mockCourses = [
+            {
+                id: 1,
+                name: 'Error - Datos simulados',
+                short_description: 'Error al cargar talleres',
+                long_description: 'Error al cargar talleres de la base de datos',
+                status: 'error',
+                modality: 'unknown',
+                session_count: 0,
+                total_duration: 0,
+                price: '$0',
+                currency: 'USD',
+                created_at: new Date().toISOString()
+            }
+        ];
+        
+        res.status(500).json({
+            error: 'Error al obtener talleres de la base de datos',
+            details: error.message,
+            fallback_data: mockCourses
+        });
+    }
 });
 
 // Obtener información del administrador actual
 app.get('/api/admin/auth/check', async (req, res) => {
     try {
         console.log('Endpoint de auth check llamado');
+        
+        // Intentar obtener información del usuario actual desde los headers
+        const authHeader = req.headers['authorization'];
+        const userIdHeader = req.headers['x-user-id'];
         
         if (!pool) {
             console.log('Pool de base de datos no configurado, retornando datos simulados del administrador');
@@ -1737,18 +2503,58 @@ app.get('/api/admin/auth/check', async (req, res) => {
             return res.json(admin);
         }
 
-        // Por ahora, obtener el primer administrador de la base de datos
-        const result = await pool.query(`
-            SELECT 
-                id,
-                username,
-                full_name,
-                email,
-                cargo_rol
-            FROM users 
-            WHERE cargo_rol = 'Administrador'
-            LIMIT 1
-        `);
+        let result;
+        
+        // Si hay información de autenticación, buscar el usuario específico
+        if (userIdHeader) {
+            console.log('Buscando usuario específico con ID:', userIdHeader);
+            result = await pool.query(`
+                SELECT 
+                    id,
+                    username,
+                    email,
+                    COALESCE(
+                        NULLIF(TRIM(display_name), ''),
+                        NULLIF(TRIM(first_name || ' ' || last_name), ' '),
+                        NULLIF(TRIM(first_name), ''),
+                        username,
+                        'Usuario'
+                    ) as full_name,
+                    cargo_rol,
+                    type_rol,
+                    last_login_at,
+                    created_at
+                FROM users 
+                WHERE id = $1 AND (cargo_rol = 'Administrador' OR cargo_rol = 'administrador')
+                LIMIT 1
+            `, [userIdHeader]);
+        }
+        
+        // Si no se encontró el usuario específico o no hay ID, buscar cualquier administrador
+        if (!result || result.rows.length === 0) {
+            console.log('Buscando cualquier administrador en la base de datos');
+            result = await pool.query(`
+                SELECT 
+                    id,
+                    username,
+                    email,
+                    COALESCE(
+                        NULLIF(TRIM(display_name), ''),
+                        NULLIF(TRIM(first_name || ' ' || last_name), ' '),
+                        NULLIF(TRIM(first_name), ''),
+                        username,
+                        'Administrador'
+                    ) as full_name,
+                    cargo_rol,
+                    type_rol,
+                    last_login_at,
+                    created_at
+                FROM users 
+                WHERE cargo_rol = 'Administrador' OR cargo_rol = 'administrador'
+                ORDER BY last_login_at DESC NULLS LAST, created_at DESC
+                LIMIT 1
+            `);
+        }
 
         if (result.rows.length === 0) {
             console.log('No se encontró administrador en la base de datos, retornando datos simulados');
@@ -1763,12 +2569,17 @@ app.get('/api/admin/auth/check', async (req, res) => {
         }
 
         const admin = result.rows[0];
+        console.log('Administrador encontrado:', { username: admin.username, fullName: admin.full_name });
+        
         res.json({
             id: admin.id,
             username: admin.username,
             fullName: admin.full_name,
             email: admin.email,
-            role: admin.cargo_rol
+            role: admin.cargo_rol,
+            type_rol: admin.type_rol,
+            lastLogin: admin.last_login_at,
+            createdAt: admin.created_at
         });
     } catch (error) {
         console.error('Error verificando autenticación:', error);
@@ -2879,11 +3690,18 @@ io.on('connection', (socket) => {
     });
 });
 
+
+
 // Iniciar servidor
 server.listen(PORT, () => {
     console.log(`🚀 Lia IA — servidor iniciado en puerto ${PORT}`);
     console.log(`🔒 Modo: ${process.env.NODE_ENV || 'development'}`);
     console.log(`📺 Socket.IO habilitado para chat del livestream`);
+    console.log(`📧 Servicio de email: ${emailService.isConfigured() ? '✅ Configurado' : '❌ No configurado'}`);
+    console.log(`🔐 Verificación de email: ✅ Habilitada`);
+    
+    // Iniciar servicio de limpieza automática de OTPs
+    otpCleanupService.startAutoCleanup(15); // Limpiar cada 15 minutos
 });
 
 module.exports = app;

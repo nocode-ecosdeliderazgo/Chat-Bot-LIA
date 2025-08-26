@@ -1,9 +1,6 @@
-/* ===== NUEVA UI DE AUTENTICACIÓN - JAVASCRIPT ===== */
-
 // Configuración del sistema de login
-// Importante: Deshabilitamos uso directo de Supabase en frontend para evitar 401 por RLS
-// Todo el login/registro pasa por el backend cuando se usa username
-const ENABLE_SUPABASE_AUTH = false;
+// Importante: Habilitamos Supabase para validación de roles
+const ENABLE_SUPABASE_AUTH = true;
 
 /**
  * Función para asegurar que todos los datos de autenticación estén sincronizados
@@ -18,24 +15,19 @@ async function ensureAuthDataSync() {
         
         // Si hay currentUser pero no userData, sincronizar
         if (currentUser && !userData) {
-            devLog('Sincronizando datos: currentUser -> userData');
             localStorage.setItem('userData', currentUser);
         }
         
         // Si hay userData pero no currentUser, sincronizar
         if (userData && !currentUser) {
-            devLog('Sincronizando datos: userData -> currentUser');
             localStorage.setItem('currentUser', userData);
         }
         
         // Si no hay token, crear uno válido usando auth-issue
         if ((currentUser || userData) && !existingToken) {
-            devLog('Creando token válido para usuario autenticado');
             const user = JSON.parse(currentUser || userData);
             
             try {
-                console.log('[TOKEN DEBUG] Intentando generar token en:', `${API_BASE}/api/auth/issue`);
-                console.log('[TOKEN DEBUG] API_BASE actual:', API_BASE);
                 const tokenResponse = await fetch(`${API_BASE}/api/auth/issue`, {
                     method: 'POST',
                     headers: {
@@ -51,17 +43,13 @@ async function ensureAuthDataSync() {
                     const { token, userId } = await tokenResponse.json();
                     localStorage.setItem('userToken', token);
                     localStorage.setItem('authToken', token);
-                    console.log('[TOKEN DEBUG] Token de sync generado:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
-                    console.log('[TOKEN DEBUG] UserId de sync:', userId);
-                    devLog('Token válido generado:', token.substring(0, 20) + '...');
                 } else {
                     const errorText = await tokenResponse.text();
-                    console.error('[TOKEN DEBUG] Error en auth-issue (sync):', tokenResponse.status, errorText);
+                    console.error('Error en auth-issue:', tokenResponse.status, errorText);
                     throw new Error(`Error generando token válido: ${tokenResponse.status}`);
                 }
             } catch (error) {
-                console.error('[TOKEN DEBUG] Excepción en auth-issue (sync):', error);
-                devLog('Error generando token, usando mock:', error.message);
+                console.error('Excepción en auth-issue:', error);
                 // Fallback a token mock solo para desarrollo local
                 const mockToken = btoa(JSON.stringify({
                     exp: Math.floor(Date.now() / 1000) + 3600,
@@ -761,6 +749,24 @@ async function handleLogin(e) {
         }
         
         const result = await response.json();
+        
+        // Verificar si el usuario necesita verificación de email
+        if (result.requiresVerification) {
+            // Guardar datos para verificación
+            localStorage.setItem('pendingVerification', JSON.stringify({
+                userId: result.userId,
+                email: result.email
+            }));
+            
+            showNotification('Debes verificar tu email antes de iniciar sesión', 'warning');
+            
+            // Redirigir a página de verificación
+            setTimeout(() => {
+                window.location.href = '../email-verification.html';
+            }, 2000);
+            return;
+        }
+        
         if (result && result.user) {
             // Limpiar intentos fallidos
             authState.attempts = 0;
@@ -917,15 +923,31 @@ async function handleRegister(e) {
         
         const result = await response.json();
         if (result && result.user) {
-            showNotification('¡Cuenta creada exitosamente!', 'success');
-            setTimeout(() => { 
-                setActiveTab('login'); 
-                const el = document.getElementById('loginEmailOrUsername'); 
-                if (el) { 
-                    el.value = userData.email; 
-                    el.focus(); 
-                } 
-            }, 1500);
+            // Verificar si requiere verificación de email
+            if (result.requiresVerification) {
+                showNotification('¡Cuenta creada! Revisa tu email para verificar tu cuenta.', 'success');
+                
+                // Guardar datos para verificación
+                localStorage.setItem('pendingVerification', JSON.stringify({
+                    userId: result.user.id,
+                    email: result.user.email
+                }));
+                
+                // Redirigir a página de verificación
+                setTimeout(() => {
+                    window.location.href = '../email-verification.html';
+                }, 2000);
+            } else {
+                showNotification('¡Cuenta creada exitosamente!', 'success');
+                setTimeout(() => { 
+                    setActiveTab('login'); 
+                    const el = document.getElementById('loginEmailOrUsername'); 
+                    if (el) { 
+                        el.value = userData.email; 
+                        el.focus(); 
+                    } 
+                }, 1500);
+            }
         } else {
             const errorMessage = result.message || 'Error al crear la cuenta';
             showNotification(errorMessage, 'error');
@@ -1100,8 +1122,6 @@ async function validateCredentialsLocal(emailOrUsername, password) {
             const jwtToken = `${header}.${payloadEncoded}.${signature}`;
             
             localStorage.setItem('userToken', jwtToken);
-            console.log('[TOKEN DEBUG] Token JWT simulado generado:', jwtToken.substring(0, 30) + '...');
-            console.log('[TOKEN DEBUG] Payload:', payload);
             
             const sessionData = {
                 sessionId: 'session-' + Date.now(),
@@ -1111,7 +1131,7 @@ async function validateCredentialsLocal(emailOrUsername, password) {
             localStorage.setItem('userSession', JSON.stringify(sessionData));
             
         } catch (error) {
-            console.error('[TOKEN DEBUG] Error generando token JWT:', error);
+            console.error('Error generando token JWT:', error);
             // Último fallback: token base64 simple
             const mockToken = btoa(JSON.stringify({
                 exp: Math.floor(Date.now() / 1000) + 3600,
@@ -1170,14 +1190,22 @@ async function registerUserLocal(userData) {
     return newUser;
 }
 
-// Función para determinar la página de destino según type_rol del usuario
+// Función para determinar la página de destino según type_rol y cargo_rol del usuario
 function getRedirectPageByTypeRol(userData) {
     const typeRol = userData.type_rol;
+    const cargoRol = userData.cargo_rol;
     const isNewUser = userData.isNewUser;
     
     devLog('Determinando redirección basada en type_rol:', typeRol);
+    devLog('Determinando redirección basada en cargo_rol:', cargoRol);
     devLog('Usuario es nuevo:', isNewUser);
     devLog('Datos completos del usuario:', userData);
+    
+    // REGLA PRIORITARIA: Si cargo_rol es 'Instructor' -> instructor-dashboard.html
+    if (cargoRol === 'Instructor' || cargoRol === 'instructor') {
+        devLog('cargo_rol es Instructor, redirigiendo al panel de instructores');
+        return '../instructors/instructor-dashboard.html';
+    }
     
     // REGLA PRINCIPAL: Si type_rol es NULL -> perfil-cuestionario.html
     if (typeRol === null || typeRol === undefined) {

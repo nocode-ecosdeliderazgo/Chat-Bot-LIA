@@ -116,6 +116,28 @@ class ProfileManager {
         if (this.currentUser.curriculum_url) {
             this.updateCurriculumDisplay('Curriculum cargado', this.currentUser.curriculum_url);
         }
+
+        // Mostrar panel de administración si el usuario es administrador
+        this.updateAdminPanel();
+    }
+
+    updateAdminPanel() {
+        const adminPanel = document.getElementById('adminPanel');
+        if (!adminPanel) return;
+
+        // Verificar si el usuario es administrador
+        const isAdmin = this.currentUser && 
+            (this.currentUser.cargo_rol === 'Administrador' || 
+             this.currentUser.cargo_rol === 'administrador' ||
+             this.currentUser.type_rol === 'administrador');
+
+        if (isAdmin) {
+            console.log('Usuario es administrador, mostrando panel de administración');
+            adminPanel.style.display = 'block';
+        } else {
+            console.log('Usuario no es administrador, ocultando panel de administración');
+            adminPanel.style.display = 'none';
+        }
     }
 
     populateForm() {

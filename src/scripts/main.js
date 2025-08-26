@@ -31,29 +31,7 @@ const CHATBOT_CONFIG = {
     }
 };
 
-// Estructura del curso: se carga dinámicamente desde course_module
-let COURSE_SESSIONS = {};
 
-// Cargar sesiones desde course_module
-async function loadCourseSessions() {
-    try {
-        const response = await fetch('/api/course-sessions');
-        if (response.ok) {
-            const data = await response.json();
-            COURSE_SESSIONS = data.sessions || {};
-            console.log('Sesiones cargadas desde course_module:', COURSE_SESSIONS);
-        }
-    } catch (error) {
-        console.error('Error cargando sesiones:', error);
-        // Fallback básico
-        COURSE_SESSIONS = {
-            '1': { title: 'Sesión 1' },
-            '2': { title: 'Sesión 2' },
-            '3': { title: 'Sesión 3' },
-            '4': { title: 'Sesión 4' }
-        };
-    }
-}
 
 // Estado del chatbot
 let chatState = {
@@ -90,18 +68,1187 @@ function getBotAvatarHTML() {
 }
 
 function getUserAvatarHTML() {
+    // Obtener la foto de perfil del usuario actual
+    const userProfilePicture = getCurrentUserProfilePicture();
+    
+    if (userProfilePicture && userProfilePicture !== 'assets/images/icono.png') {
+        // Si el usuario tiene una foto personalizada, mostrarla
     return `
         <div class="msg-avatar user">
-            <div class="avatar-circle"><i class='bx bx-user'></i></div>
+                <div class="avatar-circle">
+                    <img src="${userProfilePicture}" alt="Usuario" onerror="this.onerror=null;this.src='assets/images/icono.png';" />
+                </div>
+            </div>
+        `;
+    } else {
+        // Si no tiene foto personalizada, usar el ícono por defecto
+        return `
+            <div class="msg-avatar user">
+                <div class="avatar-circle">
+                    <img src="assets/images/icono.png" alt="Usuario" />
+                </div>
         </div>
     `;
+    }
 }
+
+// Función para obtener la foto de perfil del usuario actual
+function getCurrentUserProfilePicture() {
+    try {
+        const currentUserData = localStorage.getItem('currentUser');
+        if (!currentUserData) {
+            return 'assets/images/icono.png';
+        }
+        
+        const userData = JSON.parse(currentUserData);
+        const profilePictureUrl = userData.profile_picture_url;
+        
+        // Verificar que sea una foto real (no un placeholder)
+        if (profilePictureUrl && 
+            profilePictureUrl !== '' &&
+            !profilePictureUrl.includes('createSimpleAvatar') &&
+            !profilePictureUrl.includes('createAvatar') &&
+            profilePictureUrl.length > 100) { // Fotos reales son URLs largas
+            
+            return profilePictureUrl;
+        }
+        
+        return 'assets/images/icono.png';
+    } catch (error) {
+        console.error('❌ Error obteniendo foto de perfil del usuario:', error);
+        return 'assets/images/icono.png';
+    }
+}
+
+// ===== FUNCIONES DE BASE DE DATOS MEJORADAS SEGÚN PROMPT_CLAUDE.md =====
+
+// PASO 1: Función para probar la conexión a la base de datos
+async function testDatabaseConnection() {
+    try {
+        if (!window.supabase) {
+            console.error('❌ Supabase no está disponible');
+            return { error: 'Supabase no disponible' };
+        }
+        
+        const { data: faqData, error: faqError } = await window.supabase
+            .from('chatbot_faq')
+            .select('*')
+            .limit(1);
+        
+        const { data: glossaryData, error: glossaryError } = await window.supabase
+            .from('glossary_term')
+            .select('*')
+            .limit(1);
+        
+        const { data: coursesData, error: coursesError } = await window.supabase
+            .from('ai_courses')
+            .select('*')
+            .limit(1);
+        
+        const { data: usersData, error: usersError } = await window.supabase
+            .from('users')
+            .select('*')
+            .limit(1);
+        
+        return { 
+            faqData, glossaryData, coursesData, usersData,
+            faqError, glossaryError, coursesError, usersError 
+        };
+        
+    } catch (error) {
+        console.error('❌ Error testing database:', error);
+        return { error };
+    }
+}
+
+// Función para obtener información del usuario actual
+async function getCurrentUserInfo() {
+    try {
+        const currentUserData = localStorage.getItem('currentUser');
+        if (!currentUserData) {
+            return { display_name: 'Usuario', first_name: 'Usuario' };
+        }
+        
+        const userData = JSON.parse(currentUserData);
+        
+        // Si tenemos Supabase disponible, intentar obtener info completa
+        if (window.supabase && userData.id) {
+            const { data, error } = await window.supabase
+                .from('users')
+                .select('first_name, last_name, display_name, username')
+                .eq('id', userData.id)
+                .single();
+                
+            if (data && !error) {
+                return {
+                    display_name: data.display_name || data.first_name || data.username || 'Usuario',
+                    first_name: data.first_name || data.username || 'Usuario',
+                    username: data.username,
+                    full_name: `${data.first_name || ''} ${data.last_name || ''}`.trim()
+                };
+            }
+        }
+        
+        // Fallback a datos locales
+        return {
+            display_name: userData.display_name || userData.first_name || userData.username || 'Usuario',
+            first_name: userData.first_name || userData.username || 'Usuario',
+            username: userData.username,
+            full_name: userData.full_name || userData.display_name || userData.first_name || 'Usuario'
+        };
+    } catch (error) {
+        console.error('❌ Error obteniendo información del usuario:', error);
+        return { display_name: 'Usuario', first_name: 'Usuario' };
+    }
+}
+
+// OBLIGATORIO: Consultar base de datos ANTES de responder (CORREGIDO según PROMPT)
+async function getGeneralAnswer(question) {
+    if (!window.supabase) {
+        console.error('❌ Supabase no está disponible');
+        return getFallbackAnswer(question);
+    }
+    
+    try {
+        // Prioridad 1: Consultar chatbot_faq con múltiples estrategias de búsqueda
+        const searchTerms = extractKeyTerms(question);
+        
+        let faqData = null, faqError = null;
+        
+        // Estrategia 1: Búsqueda exacta por términos clave
+        for (const term of searchTerms) {
+            const { data: termFaqData, error: termFaqError } = await window.supabase
+                .from('chatbot_faq')
+                .select('answer, category, question, priority')
+                .or(`question.ilike.%${term}%,answer.ilike.%${term}%`)
+                .order('priority', { ascending: false })
+                .limit(3);
+            
+            if (termFaqData && termFaqData.length > 0) {
+                faqData = termFaqData;
+                faqError = termFaqError;
+                break;
+            }
+        }
+        
+        // Estrategia 2: Búsqueda general si no hay resultados específicos
+        if (!faqData || faqData.length === 0) {
+            const { data: generalFaqData, error: generalFaqError } = await window.supabase
+                .from('chatbot_faq')
+                .select('answer, category, question, priority')
+                .or(`question.ilike.%${question.toLowerCase()}%,question.ilike.%${question}%`)
+                .order('priority', { ascending: false })
+                .limit(5);
+            
+            faqData = generalFaqData;
+            faqError = generalFaqError;
+        }
+        
+        if (faqData && faqData.length > 0) {
+            return faqData[0].answer;
+        }
+        
+        // Prioridad 2: Consultar glossary_term con múltiples estrategias
+        let glossaryData = null, glossaryError = null;
+        
+        // Estrategia 1: Búsqueda exacta por términos clave
+        for (const term of searchTerms) {
+            const { data: termGlossaryData, error: termGlossaryError } = await window.supabase
+                .from('glossary_term')
+                .select('definition, category, term')
+                .or(`term.ilike.%${term}%,definition.ilike.%${term}%`)
+                .limit(3);
+            
+            if (termGlossaryData && termGlossaryData.length > 0) {
+                glossaryData = termGlossaryData;
+                glossaryError = termGlossaryError;
+                break;
+            }
+        }
+        
+        // Estrategia 2: Búsqueda general
+        if (!glossaryData || glossaryData.length === 0) {
+            const { data: generalGlossaryData, error: generalGlossaryError } = await window.supabase
+                .from('glossary_term')
+                .select('definition, category, term')
+                .or(`term.ilike.%${question.toLowerCase()}%,term.ilike.%${question}%`)
+                .limit(5);
+            
+            glossaryData = generalGlossaryData;
+            glossaryError = generalGlossaryError;
+        }
+        
+        console.log('[DB_QUERY] Glossary Result:', glossaryData?.length || 0, 'resultados, Error:', glossaryError);
+        
+        if (glossaryData && glossaryData.length > 0) {
+            console.log('✔ [DB_QUERY] Respuesta encontrada en Glossary:', glossaryData[0].term);
+            return glossaryData[0].definition;
+        }
+        
+    } catch (error) {
+        console.error('❌ [DB_QUERY] Error consultando base de datos:', error);
+    }
+    
+    // Fallback solo si las consultas a BD no funcionan
+    console.log('⚠️ [DB_QUERY] No se encontró respuesta en BD, usando fallback');
+    return getFallbackAnswer(question);
+}
+
+// Función auxiliar para extraer términos clave de la pregunta
+function extractKeyTerms(question) {
+    const lowerQuestion = question.toLowerCase();
+    
+    // Limpiar palabras de conexión
+    const stopWords = ['que', 'qué', 'es', 'son', 'como', 'cómo', 'para', 'por', 'un', 'una', 'el', 'la', 'los', 'las', 'de', 'del', 'y', 'o'];
+    const words = lowerQuestion.split(/\s+/).filter(word => 
+        word.length > 2 && !stopWords.includes(word)
+    );
+    
+    // Términos técnicos específicos
+    const techTerms = {
+        'chatgpt': ['chatgpt', 'chat gpt', 'gpt'],
+        'llm': ['llm', 'large language model', 'modelo de lenguaje'],
+        'ia': ['ia', 'inteligencia artificial', 'artificial intelligence'],
+        'deepseek': ['deepseek', 'deep seek'],
+        'prompt': ['prompt', 'prompts'],
+        'machine learning': ['machine learning', 'ml', 'aprendizaje automático'],
+        'deep learning': ['deep learning', 'aprendizaje profundo']
+    };
+    
+    const extractedTerms = [];
+    
+    // Buscar términos técnicos
+    for (const [mainTerm, variations] of Object.entries(techTerms)) {
+        if (variations.some(variation => lowerQuestion.includes(variation))) {
+            extractedTerms.push(mainTerm);
+            extractedTerms.push(...variations.filter(v => lowerQuestion.includes(v)));
+        }
+    }
+    
+    // Agregar palabras clave individuales
+    extractedTerms.push(...words);
+    
+    return [...new Set(extractedTerms)]; // Remover duplicados
+}
+
+// Función de fallback mejorada (solo para casos donde la BD no tiene datos)
+function getFallbackAnswer(question) {
+    console.log('🔄 [FALLBACK] Generando respuesta de fallback para:', question);
+    
+    const lowerQuestion = question.toLowerCase();
+    
+    // Solo respuestas muy básicas como último recurso
+    const basicTerms = {
+        'chatgpt': 'ChatGPT es un modelo de lenguaje desarrollado por OpenAI que utiliza inteligencia artificial para generar texto similar al humano.',
+        'llm': 'LLM (Large Language Model) es un modelo de inteligencia artificial entrenado para procesar y generar texto humano.',
+        'ia': 'La Inteligencia Artificial (IA) es la simulación de procesos de inteligencia humana en máquinas.',
+        'deepseek': 'DeepSeek es un modelo de inteligencia artificial desarrollado por DeepSeek AI.',
+        'prompt': 'Un prompt es una instrucción o pregunta que se le da a un modelo de inteligencia artificial para obtener una respuesta específica.'
+    };
+    
+    for (const [term, answer] of Object.entries(basicTerms)) {
+        if (lowerQuestion.includes(term)) {
+            console.log('✔ [FALLBACK] Respuesta básica encontrada para:', term);
+            return answer;
+        }
+    }
+    
+    console.log('❌ [FALLBACK] No hay respuesta disponible');
+    return `No encontré información específica sobre "${question}" en nuestra base de datos. Te recomiendo consultar nuestros cursos donde cubrimos estos temas en detalle.`;
+}
+
+// FUNCIONES DE CHAT_SESSION SEGÚN PROMPT_CLAUDE.md
+
+// Función para crear/actualizar sesión de chat
+async function createOrUpdateChatSession(userId, courseId = null) {
+    console.log('🔧 Creando/actualizando sesión de chat para usuario:', userId);
+    
+    try {
+        if (!window.supabase) {
+            console.warn('⚠️ Supabase no disponible para crear chat_session');
+            return null;
+        }
+
+        // Verificar si ya existe una sesión activa
+        const { data: existingSession, error: existingError } = await window.supabase
+            .from('chat_session')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('is_active', true)
+            .single();
+
+        if (existingSession) {
+            console.log('✔ Sesión existente encontrada:', existingSession);
+            return existingSession;
+        }
+
+        // Si no hay sesión activa, crear una nueva
+        const { data: newSession, error: newError } = await window.supabase
+            .from('chat_session')
+            .insert({
+                user_id: userId,
+                course_id: courseId,
+                is_active: true
+            })
+            .select()
+            .single();
+
+        console.log('✔ Nueva sesión creada:', newSession);
+        return newSession;
+    } catch (error) {
+        console.error('❌ Error creando chat_session:', error);
+        return null;
+    }
+}
+
+// Función para obtener contexto del usuario
+async function getUserChatContext(userId) {
+    console.log('🔍 Obteniendo contexto de chat para usuario:', userId);
+    
+    try {
+        if (!window.supabase) {
+            console.warn('⚠️ Supabase no disponible para getUserChatContext');
+            return null;
+        }
+
+        // Obtener sesión activa
+        const { data: session, error: sessionError } = await window.supabase
+            .from('chat_session')
+            .select(`
+                *,
+                ai_courses!inner(
+                    id_ai_courses,
+                    name,
+                    short_description,
+                    long_description,
+                    session_count,
+                    total_duration,
+                    price,
+                    currency
+                ),
+                course_module!inner(
+                    id,
+                    title,
+                    description,
+                    position,
+                    session_id
+                )
+            `)
+            .eq('user_id', userId)
+            .eq('is_active', true)
+            .single();
+
+        console.log('Session Context:', session, sessionError);
+        return session;
+    } catch (error) {
+        console.error('❌ Error obteniendo contexto de chat:', error);
+        return null;
+    }
+}
+
+// Ahora se usan getGeneralAnswer(), getCurrentUserCourse() y getCourseDetails() que son más específicas
+
+// OBLIGATORIO: Consultar información específica del usuario y curso (según PROMPT)
+async function getCurrentUserCourse(userId) {
+    try {
+        console.log('🎓 Consultando cursos del usuario:', userId);
+        
+        if (!window.supabase || !userId) {
+            console.warn('⚠️ Supabase no disponible o userId faltante');
+            return null;
+        }
+        
+        // PRIMERO: Intentar obtener contexto de chat_session (MÉTODO MEJORADO según PROMPT)
+        const chatContext = await getUserChatContext(userId);
+        
+        if (chatContext && chatContext.ai_courses) {
+            console.log('✔ Usuario tiene sesión activa con curso:', chatContext.ai_courses.name);
+            return [chatContext.ai_courses];
+        }
+        
+        // SEGUNDO: Si no hay sesión, intentar enrollment (MÉTODO ORIGINAL)
+        console.log('🔍 No hay sesión activa, intentando enrollment...');
+        const { data: enrollmentData, error: enrollmentError } = await window.supabase
+            .from('enrollment')
+            .select('*')
+            .eq('user_id', userId);
+        
+        console.log('📋 Enrollment Data:', enrollmentData, enrollmentError);
+        
+        if (enrollmentData && enrollmentData.length > 0) {
+            console.log('✔ Usuario tiene inscripciones:', enrollmentData.length);
+            
+            // 2. Obtener información del curso actual
+            const courseIds = enrollmentData.map(enrollment => enrollment.course_id);
+            console.log('Course IDs:', courseIds);
+            
+            const { data: courseData, error: courseError } = await window.supabase
+                .from('ai_courses')
+                .select('id_ai_courses, name, short_description, long_description, course_url, session_count, total_duration, price, currency')
+                .in('id_ai_courses', courseIds);
+            
+            console.log('Course Data:', courseData, courseError);
+            return courseData;
+        } else {
+            console.log('❌ Usuario no tiene inscripciones');
+            // Intentar método alternativo si enrollment no funciona
+            console.log('🔄 Intentando método alternativo...');
+            return await getCurrentUserCourseAlternative(userId);
+        }
+    } catch (error) {
+        console.error('❌ Error en getCurrentUserCourse:', error);
+        return null;
+    }
+}
+
+async function getCourseDetails(courseId) {
+    try {
+        if (!window.supabase || !courseId) {
+            return null;
+        }
+        
+        console.log('📚 Consultando detalles del curso:', courseId);
+        
+        // Consultar información específica del curso
+        const { data: courseInfo, error: courseError } = await window.supabase
+            .from('ai_courses')
+            .select('name, short_description, long_description, course_url, session_count, total_duration, price, currency')
+            .eq('id_ai_courses', courseId)
+            .single();
+        
+        // Consultar módulos del curso
+        const { data: courseModules, error: modulesError } = await window.supabase
+            .from('course_module')
+            .select('title, description, position, session_id')
+            .eq('course_id', courseId)
+            .order('position', { ascending: true });
+        
+        console.log('📚 Course Details:', { courseInfo, courseModules });
+        return { courseInfo, courseModules };
+    } catch (error) {
+        console.error('❌ Error en getCourseDetails:', error);
+        return null;
+    }
+}
+
+// FUNCIÓN PARA VERIFICAR SI EL USUARIO ESTÁ INSCRITO (según PROMPT)
+async function checkUserEnrollment(userId) {
+  console.log('🔍 Verificando inscripción del usuario:', userId);
+  
+  // Probar tabla enrollment
+  const { data: enrollmentData, error: enrollmentError } = await window.supabase
+    .from('enrollment')
+    .select('*')
+    .eq('user_id', userId);
+  
+  console.log('Enrollment check:', enrollmentData, enrollmentError);
+  
+  // Probar tabla study_session como alternativa
+  const { data: sessionData, error: sessionError } = await window.supabase
+    .from('study_session')
+    .select('*')
+    .eq('user_id', userId);
+  
+  console.log('Session check:', sessionData, sessionError);
+  
+  return { enrollmentData, sessionData, enrollmentError, sessionError };
+}
+
+// FUNCIÓN ALTERNATIVA: Si enrollment no funciona, probar otras tablas (según PROMPT)
+async function getCurrentUserCourseAlternative(userId) {
+  console.log('🔍 Intentando método alternativo para usuario:', userId);
+  
+  // Probar con study_session si existe
+  const { data: sessionData, error: sessionError } = await window.supabase
+    .from('study_session')
+    .select('course_id')
+    .eq('user_id', userId)
+    .order('started_at', { ascending: false })
+    .limit(1);
+
+  console.log('Session Data:', sessionData, sessionError);
+
+  if (sessionData && sessionData.length > 0) {
+    const courseId = sessionData[0].course_id;
+    const { data: courseData, error: courseError } = await window.supabase
+      .from('ai_courses')
+      .select('*')
+      .eq('id_ai_courses', courseId);
+
+    console.log('Course Data (Alternative):', courseData, courseError);
+    return courseData;
+  }
+
+  return null;
+}
+
+// ===== SISTEMA DE MEMORIA CONVERSACIONAL PERSISTENTE =====
+
+// Estado avanzado de la conversación
+let conversationMemory = {
+    // Contexto inmediato (1-2 mensajes)
+    lastBotAction: null,
+    lastUserIntent: null,
+    awaitingConfirmation: null,
+    
+    // Historial completo de la conversación
+    fullHistory: [],
+    
+    // Memoria de largo plazo
+    userPreferences: {},
+    mentionedTopics: new Set(),
+    previousQuestions: [],
+    
+    // Estado de la conversación
+    conversationStarted: null,
+    lastActivity: null,
+    sessionId: null
+};
+
+// Inicializar memoria conversacional desde localStorage
+function initializeConversationMemory() {
+    try {
+        const savedMemory = localStorage.getItem('conversationMemory');
+        if (savedMemory) {
+            const parsed = JSON.parse(savedMemory);
+            // Restaurar datos básicos pero reiniciar contexto inmediato
+            conversationMemory.fullHistory = parsed.fullHistory || [];
+            conversationMemory.userPreferences = parsed.userPreferences || {};
+            conversationMemory.mentionedTopics = new Set(parsed.mentionedTopics || []);
+            conversationMemory.previousQuestions = parsed.previousQuestions || [];
+            conversationMemory.sessionId = parsed.sessionId;
+            
+            console.log('💾 [MEMORY] Memoria conversacional restaurada:', conversationMemory.fullHistory.length, 'mensajes');
+        } else {
+            conversationMemory.sessionId = generateSessionId();
+            conversationMemory.conversationStarted = new Date().toISOString();
+            console.log('🆕 [MEMORY] Nueva sesión conversacional iniciada:', conversationMemory.sessionId);
+        }
+    } catch (error) {
+        console.error('❌ Error inicializando memoria conversacional:', error);
+        conversationMemory.sessionId = generateSessionId();
+        conversationMemory.conversationStarted = new Date().toISOString();
+    }
+}
+
+// Generar ID único para la sesión
+function generateSessionId() {
+    return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// Guardar memoria en localStorage
+function saveConversationMemory() {
+    try {
+        const toSave = {
+            fullHistory: conversationMemory.fullHistory,
+            userPreferences: conversationMemory.userPreferences,
+            mentionedTopics: Array.from(conversationMemory.mentionedTopics),
+            previousQuestions: conversationMemory.previousQuestions,
+            sessionId: conversationMemory.sessionId,
+            conversationStarted: conversationMemory.conversationStarted,
+            lastActivity: new Date().toISOString()
+        };
+        localStorage.setItem('conversationMemory', JSON.stringify(toSave));
+        console.log('💾 [MEMORY] Memoria guardada exitosamente');
+    } catch (error) {
+        console.error('❌ Error guardando memoria conversacional:', error);
+    }
+}
+
+// Agregar mensaje al historial completo
+function addToConversationHistory(sender, message, messageType = null, context = null) {
+    const historyEntry = {
+        id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        timestamp: new Date().toISOString(),
+        sender: sender, // 'user' or 'bot'
+        message: message,
+        messageType: messageType,
+        context: context ? { ...context } : null
+    };
+    
+    conversationMemory.fullHistory.push(historyEntry);
+    conversationMemory.lastActivity = historyEntry.timestamp;
+    
+    // Mantener solo los últimos 50 mensajes para no saturar localStorage
+    if (conversationMemory.fullHistory.length > 50) {
+        conversationMemory.fullHistory = conversationMemory.fullHistory.slice(-50);
+    }
+    
+    // Actualizar memoria de temas mencionados
+    if (sender === 'user') {
+        updateMentionedTopics(message);
+        conversationMemory.previousQuestions.push({
+            question: message,
+            timestamp: historyEntry.timestamp
+        });
+        
+        // Mantener solo las últimas 20 preguntas
+        if (conversationMemory.previousQuestions.length > 20) {
+            conversationMemory.previousQuestions = conversationMemory.previousQuestions.slice(-20);
+        }
+    }
+    
+    saveConversationMemory();
+    console.log('📝 [MEMORY] Mensaje agregado al historial:', sender, message.substring(0, 50) + '...');
+}
+
+// Actualizar temas mencionados
+function updateMentionedTopics(message) {
+    const topics = [
+        'chatgpt', 'llm', 'ia', 'inteligencia artificial', 'machine learning', 
+        'deep learning', 'prompt', 'deepseek', 'curso', 'taller', 'modulo'
+    ];
+    
+    const lowerMessage = message.toLowerCase();
+    topics.forEach(topic => {
+        if (lowerMessage.includes(topic)) {
+            conversationMemory.mentionedTopics.add(topic);
+        }
+    });
+}
+
+// Analizar contexto conversacional completo
+function analyzeConversationContext(currentMessage) {
+    console.log('🧠 [CONTEXT] Analizando contexto conversacional completo...');
+    
+    // Obtener últimos N mensajes para análisis
+    const recentHistory = conversationMemory.fullHistory.slice(-10); // Últimos 10 mensajes
+    console.log('🧠 [CONTEXT] Analizando últimos', recentHistory.length, 'mensajes');
+    
+    const analysis = {
+        // Contexto inmediato (último intercambio)
+        lastBotAction: conversationMemory.lastBotAction,
+        awaitingConfirmation: conversationMemory.awaitingConfirmation,
+        
+        // Análisis de patrones
+        recentUserQuestions: [],
+        recentBotActions: [],
+        topicsDiscussed: [],
+        
+        // Estado conversacional
+        conversationFlow: null,
+        needsContext: false,
+        suggestedContext: null
+    };
+    
+    // Analizar mensajes recientes
+    recentHistory.forEach(entry => {
+        if (entry.sender === 'user') {
+            analysis.recentUserQuestions.push({
+                question: entry.message,
+                timestamp: entry.timestamp,
+                messageType: entry.messageType
+            });
+        } else if (entry.sender === 'bot') {
+            analysis.recentBotActions.push({
+                action: entry.context?.botAction || 'unknown',
+                timestamp: entry.timestamp
+            });
+        }
+    });
+    
+    // Detectar si necesita contexto de mensajes anteriores
+    analysis.needsContext = detectIfNeedsContext(currentMessage, analysis);
+    
+    // Sugerir contexto relevante
+    if (analysis.needsContext) {
+        analysis.suggestedContext = findRelevantContext(currentMessage, recentHistory);
+    }
+    
+    console.log('🧠 [CONTEXT] Análisis completado:', {
+        recentQuestions: analysis.recentUserQuestions.length,
+        recentActions: analysis.recentBotActions.length,
+        needsContext: analysis.needsContext,
+        hasContext: !!analysis.suggestedContext
+    });
+    
+    return analysis;
+}
+
+// Detectar si el mensaje actual necesita contexto de mensajes anteriores
+function detectIfNeedsContext(message, analysis) {
+    const lowerMessage = message.toLowerCase().trim();
+    
+    // Palabras/frases que indican continuidad conversacional
+    const contextualClues = [
+        'si', 'sí', 'si por favor', 'sí por favor', 'claro', 'perfecto', 'dale',
+        'no', 'no gracias', 'mejor no',
+        'y', 'también', 'además', 'pero', 'sin embargo',
+        'eso', 'esto', 'lo anterior', 'lo que dijiste', 'como mencionaste',
+        'más información', 'cuéntame más', 'explica mejor',
+        'ese', 'esa', 'esos', 'esas', 'el que', 'la que'
+    ];
+    
+    // Referencias pronominales o contextuales
+    const hasContextualClues = contextualClues.some(clue => lowerMessage.includes(clue));
+    
+    // Mensajes muy cortos probablemente necesiten contexto
+    const isShortResponse = message.length < 15;
+    
+    // Si hay una confirmación pendiente y el mensaje es corto
+    const hasPendingConfirmation = conversationMemory.awaitingConfirmation !== null;
+    
+    return hasContextualClues || (isShortResponse && hasPendingConfirmation);
+}
+
+// Encontrar contexto relevante de la conversación
+function findRelevantContext(currentMessage, recentHistory) {
+    console.log('🔍 [CONTEXT] Buscando contexto relevante para:', currentMessage);
+    
+    // Buscar el último mensaje del bot que hizo una pregunta o ofreció algo
+    const lastBotQuestion = [...recentHistory]
+        .reverse()
+        .find(entry => 
+            entry.sender === 'bot' && 
+            (entry.message.includes('?') || entry.message.includes('gustaría') || entry.message.includes('quieres'))
+        );
+    
+    // Buscar mensajes relacionados por temas
+    const currentTopics = extractTopicsFromMessage(currentMessage);
+    const relatedMessages = recentHistory.filter(entry => {
+        const entryTopics = extractTopicsFromMessage(entry.message);
+        return currentTopics.some(topic => entryTopics.includes(topic));
+    });
+    
+    return {
+        lastBotQuestion: lastBotQuestion,
+        relatedMessages: relatedMessages.slice(-3), // Últimos 3 mensajes relacionados
+        conversationFlow: determineConversationFlow(recentHistory)
+    };
+}
+
+// Extraer temas de un mensaje
+function extractTopicsFromMessage(message) {
+    const topics = [];
+    const lowerMessage = message.toLowerCase();
+    
+    const topicKeywords = {
+        'cursos': ['curso', 'cursos', 'taller', 'talleres'],
+        'ia': ['ia', 'inteligencia artificial', 'ai'],
+        'contenido': ['temas', 'contenido', 'modulo', 'módulos', 'sesion', 'sesiones'],
+        'definiciones': ['que es', 'qué es', 'significa', 'definicion']
+    };
+    
+    Object.entries(topicKeywords).forEach(([topic, keywords]) => {
+        if (keywords.some(keyword => lowerMessage.includes(keyword))) {
+            topics.push(topic);
+        }
+    });
+    
+    return topics;
+}
+
+// Determinar el flujo de conversación
+function determineConversationFlow(recentHistory) {
+    if (recentHistory.length < 2) return 'initial';
+    
+    const lastFewMessages = recentHistory.slice(-4);
+    const patterns = [];
+    
+    lastFewMessages.forEach(entry => {
+        if (entry.messageType) {
+            patterns.push(entry.messageType);
+        }
+    });
+    
+    // Detectar patrones comunes
+    if (patterns.includes('course') && patterns.includes('confirmation_yes')) {
+        return 'course_exploration';
+    }
+    
+    if (patterns.includes('general') && patterns.includes('general')) {
+        return 'learning_session';
+    }
+    
+    return 'normal_conversation';
+}
+
+// ===== SISTEMA DE CLASIFICACIÓN DE PREGUNTAS MEJORADO =====
+
+// Clasificación mejorada de preguntas con análisis completo de contexto
+function classifyQuestion(question) {
+    console.log('📋 [CLASSIFY] Clasificando pregunta:', question);
+    
+    // Analizar contexto completo de la conversación
+    const contextAnalysis = analyzeConversationContext(question);
+    console.log('📋 [CLASSIFY] Contexto analizado:', contextAnalysis.needsContext, contextAnalysis.conversationFlow);
+    
+    const lowerQuestion = question.toLowerCase().trim();
+    
+    // 0. RESPUESTAS DE CONFIRMACIÓN (NUEVA CATEGORÍA CON CONTEXTO)
+    const confirmationTerms = [
+        'si', 'sí', 'si por favor', 'sí por favor', 'si porfavor', 'sí porfavor',
+        'claro', 'por supuesto', 'perfecto', 'dale', 'ok', 'okay', 'vale', 'adelante',
+        'me interesa', 'quiero', 'quiero saber', 'dime', 'muéstrame', 'enséñame'
+    ];
+    
+    const negationTerms = ['no', 'no gracias', 'nah', 'para nada', 'mejor no'];
+    
+    // Si hay confirmación pendiente Y el contexto indica continuidad conversacional
+    if (conversationMemory.awaitingConfirmation && 
+        (confirmationTerms.some(term => lowerQuestion.includes(term)) || contextAnalysis.needsContext)) {
+        console.log('✔ [CLASSIFY] Clasificada como: confirmation_yes (con contexto)');
+        return 'confirmation_yes';
+    }
+    
+    // Si hay confirmación pendiente y el usuario responde negativamente
+    if (conversationMemory.awaitingConfirmation && negationTerms.some(term => lowerQuestion === term)) {
+        console.log('✔ [CLASSIFY] Clasificada como: confirmation_no (con contexto)');
+        return 'confirmation_no';
+    }
+    
+    // 1. Preguntas sobre TEMAS/CONTENIDO de cursos (NUEVA CATEGORÍA ESPECÍFICA)
+    const courseContentTerms = [
+        'que temas tiene', 'qué temas tiene', 'temas del curso', 'contenido del curso',
+        'que incluye el curso', 'qué incluye el curso', 'temario', 'programa',
+        'que voy a aprender', 'qué voy a aprender', 'que aprenderé', 'qué aprenderé',
+        'modulos', 'módulos', 'sesiones', 'lecciones'
+    ];
+    
+    if (courseContentTerms.some(term => lowerQuestion.includes(term))) {
+        console.log('✔ [CLASSIFY] Clasificada como: course_content');
+        return 'course_content';
+    }
+    
+    // 2. Preguntas sobre el curso actual del usuario (MÁXIMA PRIORIDAD)
+    const currentCourseTerms = [
+        'curso en el que estoy', 'curso actual', 'en el que estoy', 'actualmente', 
+        'inscrito en', 'mi curso', 'como se llama el curso', 'cuál es mi curso',
+        'curso que estoy tomando', 'curso al que pertenezco'
+    ];
+    if (currentCourseTerms.some(term => lowerQuestion.includes(term))) {
+        console.log('✔ [CLASSIFY] Clasificada como: current_course');
+        return 'current_course';
+    }
+    
+    // 3. Preguntas generales de definición (ALTA PRIORIDAD) - TÉRMINOS ESPECÍFICOS DEL PROMPT
+    const generalTerms = ['que es', 'qué es', 'que significa', 'qué significa', 'definición', 'definir', 'explica', 'explicame'];
+    const techTerms = [
+        // Términos específicos mencionados en PROMPT_CLAUDE.md
+        'chatgpt', 'chat gpt', 'gpt',
+        'llm', 'large language model', 'modelo de lenguaje',
+        'ia', 'inteligencia artificial', 'artificial intelligence',
+        'deepseek', 'deep seek',
+        'prompt', 'prompts',
+        'machine learning', 'ml', 'aprendizaje automático',
+        'deep learning', 'aprendizaje profundo',
+        'neural network', 'redes neuronales', 'red neuronal'
+    ];
+    
+    const hasGeneralTerm = generalTerms.some(term => lowerQuestion.includes(term));
+    const hasTechTerm = techTerms.some(term => lowerQuestion.includes(term));
+    
+    if (hasGeneralTerm && hasTechTerm) {
+        console.log('✔ [CLASSIFY] Clasificada como: general (definición técnica)');
+        return 'general';
+    }
+    
+    // 4. Preguntas técnicas sin palabras de definición explícitas
+    if (hasTechTerm && !hasGeneralTerm) {
+        console.log('✔ [CLASSIFY] Clasificada como: general (término técnico directo)');
+        return 'general';
+    }
+    
+    // 5. Preguntas sobre cursos en general (SOLICITAR INFORMACIÓN DE CURSOS)
+    const courseTerms = [
+        'curso', 'cursos', 'taller', 'talleres', 'aprender', 'inscribir', 'precio', 'precios',
+        'duración', 'horas', 'cursos disponibles', 'que cursos hay', 'qué cursos hay'
+    ];
+    if (courseTerms.some(term => lowerQuestion.includes(term))) {
+        console.log('✔ [CLASSIFY] Clasificada como: course');
+        return 'course';
+    }
+    
+    // 6. Preguntas sobre información específica del usuario
+    const userTerms = [
+        'mi', 'mis', 'yo', 'estoy', 'tengo', 'inscrito', 'mis cursos',
+        'mi progreso', 'mi avance', 'cuántos cursos tengo'
+    ];
+    if (userTerms.some(term => lowerQuestion.includes(term))) {
+        console.log('✔ [CLASSIFY] Clasificada como: user_specific');
+        return 'user_specific';
+    }
+    
+    // 7. Saludos básicos
+    const greetingTerms = ['hola', 'buenos días', 'buenas tardes', 'buenas noches', 'saludos', 'hi', 'hello'];
+    if (greetingTerms.some(term => lowerQuestion.includes(term))) {
+        console.log('✔ [CLASSIFY] Clasificada como: greeting');
+        return 'greeting';
+    }
+    
+    // 8. Si no se puede clasificar específicamente, tratar como pregunta general
+    console.log('⚠️ [CLASSIFY] Clasificada como: mixed (intentará consulta general)');
+    return 'mixed';
+}
+
+// Función para obtener todos los cursos disponibles
+async function getAvailableCourses() {
+    console.log('🎓 [COURSES] Consultando cursos disponibles...');
+    
+    if (!window.supabase) {
+        console.error('❌ Supabase no está disponible');
+        return null;
+    }
+    
+    try {
+        const { data: coursesData, error: coursesError } = await window.supabase
+            .from('ai_courses')
+            .select('id_ai_courses, name, short_description, long_description, session_count, total_duration, price, currency')
+            .order('name', { ascending: true });
+        
+        console.log('🎓 [COURSES] Cursos encontrados:', coursesData?.length || 0);
+        console.log('🎓 [COURSES] Error:', coursesError);
+        
+        return coursesData;
+    } catch (error) {
+        console.error('❌ Error consultando cursos disponibles:', error);
+        return null;
+    }
+}
+
+// Función para obtener contenido/temas de un curso específico
+async function getCourseContent(courseId) {
+    console.log('📚 [CONTENT] Consultando contenido del curso:', courseId);
+    
+    if (!window.supabase) {
+        console.error('❌ Supabase no está disponible');
+        return null;
+    }
+    
+    try {
+        const { data: moduleData, error: moduleError } = await window.supabase
+            .from('course_module')
+            .select('title, description, position, session_id')
+            .eq('course_id', courseId)
+            .order('position', { ascending: true });
+        
+        console.log('📚 [CONTENT] Módulos encontrados:', moduleData?.length || 0);
+        return moduleData;
+    } catch (error) {
+        console.error('❌ Error consultando contenido del curso:', error);
+        return null;
+    }
+}
+
+// Función para actualizar el contexto de la conversación con memoria persistente
+function updateConversationContext(botAction, userIntent, awaitingConfirmation = null) {
+    conversationMemory.lastBotAction = botAction;
+    conversationMemory.lastUserIntent = userIntent;
+    conversationMemory.awaitingConfirmation = awaitingConfirmation;
+    
+    // Actualizar preferencias del usuario basadas en el contexto
+    if (userIntent) {
+        conversationMemory.userPreferences[userIntent] = (conversationMemory.userPreferences[userIntent] || 0) + 1;
+    }
+    
+    saveConversationMemory();
+    console.log('📝 [CONTEXT] Contexto actualizado con memoria persistente:', {
+        botAction,
+        userIntent,
+        awaitingConfirmation,
+        historyLength: conversationMemory.fullHistory.length
+    });
+}
+
+// Generación de respuestas personalizada con memoria conversacional persistente
+async function generatePersonalizedResponse(userQuestion, userId, courseId) {
+    try {
+        console.log('🤖 [RESPONSE] Generando respuesta personalizada para:', userQuestion);
+        console.log('👤 [RESPONSE] Usuario ID:', userId);
+        
+        // Registrar pregunta del usuario en el historial
+        addToConversationHistory('user', userQuestion);
+        
+        // Analizar contexto completo antes de clasificar
+        const contextAnalysis = analyzeConversationContext(userQuestion);
+        const questionType = classifyQuestion(userQuestion);
+        console.log('📋 [RESPONSE] Tipo de pregunta clasificada:', questionType);
+        console.log('🧠 [RESPONSE] Análisis de contexto:', contextAnalysis.needsContext, contextAnalysis.suggestedContext?.lastBotQuestion?.message?.substring(0, 50));
+        
+        const userInfo = await getCurrentUserInfo();
+        
+        let response = '';
+        let responseContext = {
+            questionType: questionType,
+            userId: userId,
+            contextUsed: contextAnalysis.needsContext,
+            suggestedContext: contextAnalysis.suggestedContext
+        };
+        
+        switch (questionType) {
+            case 'confirmation_yes':
+                // Usuario respondió afirmativamente a una pregunta anterior
+                console.log('✅ [RESPONSE] Procesando confirmación positiva...');
+                
+                if (conversationContext.awaitingConfirmation === 'show_courses') {
+                    // Mostrar cursos disponibles
+                    const availableCourses = await getAvailableCourses();
+                    
+                    if (availableCourses && availableCourses.length > 0) {
+                        response = `¡Perfecto ${userInfo.display_name || userInfo.first_name}! Aquí tienes nuestros cursos disponibles:\n\n`;
+                        
+                        availableCourses.forEach((course, index) => {
+                            response += `📚 **${course.name}**\n`;
+                            response += `${course.short_description}\n`;
+                            if (course.session_count) response += `• ${course.session_count} sesiones\n`;
+                            if (course.total_duration) response += `• ${course.total_duration} horas de contenido\n`;
+                            if (course.price && course.currency) response += `• Precio: ${course.price} ${course.currency}\n`;
+                            response += `\n`;
+                        });
+                        
+                        response += `¿Te interesa algún curso en particular o quieres más información sobre alguno?`;
+                    } else {
+                        response = `${userInfo.display_name || userInfo.first_name}, tenemos un excelente curso de Inteligencia Artificial que cubre desde fundamentos hasta aplicaciones prácticas. ¿Te gustaría más información?`;
+                    }
+                    updateConversationContext('showed_courses', 'wants_course_info', null);
+                } else {
+                    response = `¡Perfecto ${userInfo.display_name || userInfo.first_name}! ¿En qué más puedo ayudarte?`;
+                    updateConversationContext(null, null, null);
+                }
+                break;
+                
+            case 'confirmation_no':
+                // Usuario respondió negativamente
+                console.log('❌ [RESPONSE] Procesando confirmación negativa...');
+                response = `Entiendo ${userInfo.display_name || userInfo.first_name}. ¿Hay algo más en lo que pueda ayudarte?`;
+                updateConversationContext(null, null, null);
+                break;
+                
+            case 'course_content':
+                // Usuario pregunta sobre temas/contenido de un curso
+                console.log('📚 [RESPONSE] Procesando pregunta sobre contenido del curso...');
+                const userCourses = await getCurrentUserCourse(userId);
+                
+                if (userCourses && userCourses.length > 0) {
+                    const currentCourse = userCourses[0];
+                    const courseContent = await getCourseContent(currentCourse.id_ai_courses);
+                    
+                    if (courseContent && courseContent.length > 0) {
+                        response = `${userInfo.display_name || userInfo.first_name}, el curso "${currentCourse.name}" incluye los siguientes temas:\n\n`;
+                        
+                        courseContent.forEach((module, index) => {
+                            response += `${index + 1}. **${module.title}**\n`;
+                            if (module.description) {
+                                response += `   ${module.description}\n`;
+                            }
+                            response += `\n`;
+                        });
+                        
+                        response += `¿Te gustaría profundizar en algún tema específico?`;
+                    } else {
+                        response = `${userInfo.display_name || userInfo.first_name}, tu curso "${currentCourse.name}" cubre temas fundamentales de Inteligencia Artificial, incluyendo conceptos básicos, aplicaciones prácticas y herramientas modernas. ¿Hay algún tema específico que te interese?`;
+                    }
+                } else {
+                    response = `${userInfo.display_name || userInfo.first_name}, actualmente no tienes cursos inscritos. ¿Te gustaría conocer nuestros cursos disponibles para ver los temas que cubren?`;
+                    updateConversationContext('offered_courses', 'asked_course_content', 'show_courses');
+                }
+                break;
+                
+            case 'general':
+                // OBLIGATORIO: Consultar base de datos para definiciones
+                console.log('📚 [RESPONSE] Procesando pregunta general...');
+                const generalAnswer = await getGeneralAnswer(userQuestion);
+                response = `Hola ${userInfo.display_name || userInfo.first_name}, ${generalAnswer}`;
+                updateConversationContext('answered_general', 'asked_general', null);
+                break;
+                
+            case 'course':
+                // OBLIGATORIO: Consultar cursos específicos del usuario
+                console.log('🎓 [RESPONSE] Procesando pregunta sobre cursos...');
+                const userCourseList = await getCurrentUserCourse(userId);
+                
+                if (userCourseList && userCourseList.length > 0) {
+                    const currentCourse = userCourseList[0];
+                    response = `${userInfo.display_name || userInfo.first_name}, actualmente estás inscrito en el curso "${currentCourse.name}". ${currentCourse.short_description}`;
+                    updateConversationContext('showed_user_course', 'asked_about_courses', null);
+                } else {
+                    response = `${userInfo.display_name || userInfo.first_name}, no tienes cursos inscritos actualmente. ¿Te gustaría conocer nuestros cursos disponibles?`;
+                    updateConversationContext('offered_courses', 'asked_about_courses', 'show_courses');
+                }
+                break;
+                
+            case 'current_course':
+                // Para preguntas específicas sobre el curso actual
+                console.log('📚 [RESPONSE] Procesando pregunta sobre curso actual...');
+                const userCurrentCourses = await getCurrentUserCourse(userId);
+                
+                if (userCurrentCourses && userCurrentCourses.length > 0) {
+                    const currentCourse = userCurrentCourses[0];
+                    const courseDetails = await getCourseDetails(currentCourse.id_ai_courses);
+                    
+                    if (courseDetails && courseDetails.courseInfo) {
+                        response = `${userInfo.display_name || userInfo.first_name}, tu curso actual es "${currentCourse.name}". Incluye ${courseDetails.courseInfo.session_count} sesiones con un total de ${courseDetails.courseInfo.total_duration} horas de contenido.`;
+                    } else {
+                        response = `${userInfo.display_name || userInfo.first_name}, tu curso actual es "${currentCourse.name}".`;
+                    }
+                    updateConversationContext('showed_current_course', 'asked_current_course', null);
+                } else {
+                    response = `${userInfo.display_name || userInfo.first_name}, no tienes cursos inscritos actualmente. ¿Te gustaría conocer nuestros cursos disponibles?`;
+                    updateConversationContext('offered_courses', 'asked_current_course', 'show_courses');
+                }
+                break;
+                
+            case 'user_specific':
+                // Consultar información específica del usuario
+                console.log('👤 [RESPONSE] Procesando pregunta específica del usuario...');
+                const userSpecificCourses = await getCurrentUserCourse(userId);
+                if (userSpecificCourses && userSpecificCourses.length > 0) {
+                    response = `${userInfo.display_name || userInfo.first_name}, tienes ${userSpecificCourses.length} curso(s) inscrito(s).`;
+                } else {
+                    response = `${userInfo.display_name || userInfo.first_name}, no tienes cursos inscritos actualmente.`;
+                }
+                updateConversationContext('showed_user_info', 'asked_user_specific', null);
+                break;
+                
+            case 'greeting':
+                response = `¡Hola ${userInfo.display_name || userInfo.first_name}! ¿En qué puedo ayudarte hoy?`;
+                updateConversationContext('greeted', 'greeted', null);
+                break;
+                
+            default:
+                // Intentar consultar base de datos para cualquier pregunta
+                console.log('🔍 [RESPONSE] Procesando pregunta mixta...');
+                const mixedAnswer = await getGeneralAnswer(userQuestion);
+                response = `Hola ${userInfo.display_name || userInfo.first_name}, ${mixedAnswer}`;
+                updateConversationContext('answered_mixed', 'asked_mixed', null);
+                break;
+        }
+        
+        // Registrar respuesta del bot en el historial
+        addToConversationHistory('bot', response, questionType, {
+            botAction: conversationMemory.lastBotAction,
+            awaitingConfirmation: conversationMemory.awaitingConfirmation,
+            contextUsed: responseContext.contextUsed
+        });
+        
+        console.log('✅ [RESPONSE] Respuesta generada y guardada en historial:', response.substring(0, 100) + '...');
+        console.log('📊 [MEMORY] Historial actual:', conversationMemory.fullHistory.length, 'mensajes');
+        
+        return response;
+        
+    } catch (error) {
+        console.error('❌ Error generando respuesta personalizada:', error);
+        const userInfo = await getCurrentUserInfo();
+        const errorResponse = `Hola ${userInfo.display_name || userInfo.first_name}, disculpa, tuve un problema técnico. ¿Podrías repetir tu pregunta?`;
+        
+        // Registrar error también
+        addToConversationHistory('bot', errorResponse, 'error', { error: error.message });
+        
+        return errorResponse;
+    }
+}
+
+// Ahora se usa generatePersonalizedResponse() que maneja todos los casos
 
 // Función de inicialización principal consolidada
 function init() {
     console.log('[CHAT_INIT] Iniciando aplicación...');
     
     try {
+        // Inicializar memoria conversacional persistente
+        initializeConversationMemory();
+        console.log('[CHAT_INIT] Memoria conversacional inicializada');
+        
     // EventBus y UI API para el nuevo layout tipo NotebookLM
     setupEventBusAndUI();
         console.log('[CHAT_INIT] EventBus y UI configurados');
@@ -272,19 +1419,9 @@ function showCourseWelcomeMessage(courseId) {
         // Mostrar mensaje del bot
         addBotMessage(welcomeMessage, null, false, true);
         
-        // También mostrar sugerencias específicas del curso
+                // Ahora el usuario puede preguntar directamente y el sistema responderá personalizadamente
         if (courseId === 'curso-ia-completo') {
-            setTimeout(() => {
-                const suggestions = `Puedes preguntarme sobre:
-• Conceptos básicos de Inteligencia Artificial
-• Fundamentos de Machine Learning
-• Redes Neuronales y Deep Learning
-• Procesamiento de Lenguaje Natural
-• IA Generativa y aplicaciones prácticas
-
-¿Por dónde te gustaría empezar?`;
-                addBotMessage(suggestions, null, false, false);
-            }, 1500);
+            // Sin sugerencias plantilla
         } else if (courseId === 'ml-fundamentos') {
             setTimeout(() => {
                 const suggestions = `En este curso aprenderás:
@@ -412,18 +1549,52 @@ function initializeChat() {
             }
         } catch (_) {}
 
+                // Mensaje de bienvenida y instrucciones
+        const welcomeMessage = `¡Hola! Soy Lia, tu asistente de IA. Estoy aquí para ayudarte a explorar y aprender sobre inteligencia artificial.`;
+        
+        const instructionsMessage = `**📋 Instrucciones para usar el chat:**
+
+**1. Hacer preguntas:**
+   Escribe tus preguntas o temas de interés en el campo de texto inferior
+
+**2. Tipos de consultas:**
+   • Conceptos de IA y machine learning
+   • Ejemplos prácticos y casos de uso
+   • Explicaciones técnicas detalladas
+   • Recursos y materiales de aprendizaje
+
+**3. Herramientas disponibles:**
+   • Panel izquierdo: Acceso a funciones adicionales
+   • Historial: Conversaciones guardadas automáticamente
+   • Configuración: Personaliza tu experiencia
+
+**4. Consejos:**
+   • Sé específico en tus preguntas para obtener mejores respuestas
+   • Puedes hacer preguntas de seguimiento para profundizar en temas
+   • El chat recuerda el contexto de la conversación`;
+
                 const greeting = chatState.userName
             ? `¿Qué tema de IA te gustaría explorar o practicar?`
             : `¿Qué tema de IA te gustaría explorar o practicar?`;
 
-        await sendBotMessage(greeting, null, false, true);
+        // Enviar mensaje de bienvenida
+        await sendBotMessage(welcomeMessage, null, false, false);
+        
+        // Enviar instrucciones
+        await sendBotMessage(instructionsMessage, null, false, false);
+        
+        // Enviar mensaje principal
+        await sendBotMessage(greeting, null, false, false);
         // await showWelcomeInstructions(); // Mensajes plantilla deshabilitados
         // Menú inline eliminado: ahora el panel izquierdo contiene las herramientas
     })();
 }
 
-// Reproducir audio de bienvenida
+// Reproducir audio de bienvenida (DESHABILITADO)
 function playWelcomeAudio() {
+    // Función deshabilitada - no reproduce audio automáticamente
+    return;
+    
     if (!chatState.audioEnabled || !CHATBOT_CONFIG.audioEnabled) return;
 
     if ('speechSynthesis' in window) {
@@ -801,11 +1972,10 @@ function setupEventBusAndUI() {
         overlay.id = 'noteEditorOverlay';
         overlay.className = 'prompt-overlay open';
         overlay.innerHTML = `
-            <div class="prompt-panel" role="dialog" aria-modal="true">
+            <div class="prompt-panel" role="dialog" aria-modal="true" style="height: 90vh; max-height: 90vh;">
                 <div class="prompt-header" style="gap:8px">
                     <div style="display:flex;align-items:center;gap:8px;color:var(--text-muted)">Studio <span>›</span> <strong>Nota</strong></div>
                     <div style="display:flex;gap:6px;margin-left:auto">
-                        <button id="exportPdfBtn" class="keyboard-button" style="max-width:160px">Exportar a PDF</button>
                         <button id="closeNoteBtn" class="prompt-close" aria-label="Cerrar">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -813,22 +1983,31 @@ function setupEventBusAndUI() {
                         </button>
                     </div>
                 </div>
-                <div class="prompt-body" style="display:flex;flex-direction:column;gap:10px">
+                <div class="prompt-body" style="display:flex;flex-direction:column;gap:10px;height: calc(90vh - 60px); overflow: hidden;">
                     <div style="display:flex;align-items:center;gap:8px">
                         <input id="noteTitle" value="${note.title || ''}" placeholder="Título" style="background:rgba(10,10,10,0.85);border:1px solid rgba(68,229,255,0.2);border-radius:10px;padding:10px 12px;color:var(--text-on-dark);font-weight:700;flex:1" />
                         <button id="deleteNoteBtn" class="session-btn" style="border-color:rgba(255,99,71,.45);color:rgba(255,99,71,.8);min-width:40px;height:40px;padding:8px;font-size:16px;display:flex;align-items:center;justify-content:center" title="Eliminar nota">🗑️</button>
                     </div>
-                    <div class="editor-toolbar" style="display:flex;gap:6px">
-                        <button class="session-btn" data-cmd="undo" title="Deshacer">↶</button>
-                        <button class="session-btn" data-cmd="redo" title="Rehacer">↷</button>
-                        <span style="width:8px"></span>
-                        <button class="session-btn" data-cmd="bold" title="Negritas">B</button>
-                        <button class="session-btn" data-cmd="italic" title="Cursiva"><em>I</em></button>
-                        <button class="session-btn" data-cmd="insertUnorderedList" title="Lista">• Lista</button>
+                    <div class="editor-toolbar" style="display:flex;gap:6px;padding:8px;background:rgba(10,10,10,0.5);border-radius:8px;border:1px solid rgba(68,229,255,0.15);justify-content:flex-start;">
+                        <button class="session-btn" data-cmd="undo" title="Deshacer" style="font-weight:bold;">↶</button>
+                        <button class="session-btn" data-cmd="redo" title="Rehacer" style="font-weight:bold;">↷</button>
+                        <span style="width:8px;border-left:1px solid rgba(68,229,255,0.2);"></span>
+                        <button class="session-btn" data-cmd="bold" title="Negritas" style="font-weight:bold;">B</button>
+                        <button class="session-btn" data-cmd="italic" title="Cursiva" style="font-style:italic;"><em>I</em></button>
+                        <button class="session-btn" data-cmd="insertUnorderedList" title="Lista" style="font-weight:bold;">• Lista</button>
                     </div>
-                    <div id="noteContent" contenteditable="true" style="min-height:70vh;background:rgba(10,10,10,0.85);border:1px solid rgba(68,229,255,0.2);border-radius:10px;padding:12px;flex:1;">${note.content || ''}</div>
-                    <div style="display:flex;justify-content:flex-start;align-items:center;color:var(--text-muted);font-size:12px;margin-top:8px">
-                        <div id="noteUpdateStatus">Actualizado: ${formatDate(note.updatedAt)}</div>
+                    <div id="noteContent" contenteditable="true" style="flex:1;min-height:0;background:rgba(10,10,10,0.85);border:1px solid rgba(68,229,255,0.2);border-radius:10px;padding:12px;overflow-y:auto;word-wrap:break-word;line-height:1.6;scrollbar-width:none;-ms-overflow-style:none;">${note.content || ''}</div>
+                    <div style="display:flex;justify-content:center;align-items:center;margin-top:12px;padding:8px;">
+                        <button id="exportPdfBtn" class="keyboard-button" style="background:linear-gradient(135deg, rgba(68,229,255,0.2), rgba(0,119,166,0.2));border:1px solid rgba(68,229,255,0.4);color:rgba(68,229,255,0.95);padding:8px 16px;border-radius:8px;font-weight:600;font-size:12px;transition:all 0.3s ease;box-shadow:0 2px 8px rgba(68,229,255,0.15);display:flex;align-items:center;gap:6px;min-width:120px;justify-content:center;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <polyline points="10,9 9,9 8,9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            PDF
+                        </button>
                     </div>
                 </div>
             </div>`;
@@ -836,11 +2015,37 @@ function setupEventBusAndUI() {
 
         const titleEl = overlay.querySelector('#noteTitle');
         const contentEl = overlay.querySelector('#noteContent');
+        
+        // Mejorar la funcionalidad de los botones de edición
         overlay.querySelectorAll('.editor-toolbar .session-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
                 const cmd = btn.getAttribute('data-cmd');
-                document.execCommand(cmd, false, null);
+                
+                // Asegurar que el contenido tenga foco
                 contentEl?.focus();
+                
+                // Ejecutar comando con mejor manejo
+                if (cmd === 'insertUnorderedList') {
+                    // Manejo especial para listas para evitar que se salgan del área
+                    document.execCommand(cmd, false, null);
+                    
+                    // Aplicar estilos CSS para las listas
+                    const lists = contentEl.querySelectorAll('ul');
+                    lists.forEach(list => {
+                        list.style.marginLeft = '20px';
+                        list.style.paddingLeft = '0';
+                        list.style.listStyleType = 'disc';
+                    });
+                } else {
+                    document.execCommand(cmd, false, null);
+                }
+                
+                // Actualizar estado visual del botón
+                btn.style.background = 'rgba(68,229,255,0.2)';
+                setTimeout(() => {
+                    btn.style.background = '';
+                }, 200);
             });
         });
         // Auto-save functionality
@@ -874,6 +2079,21 @@ function setupEventBusAndUI() {
         titleEl?.addEventListener('input', autoSave);
         contentEl?.addEventListener('input', autoSave);
         contentEl?.addEventListener('paste', () => setTimeout(autoSave, 100));
+        
+        // Event listener para manejar cambios en el contenido y aplicar estilos a listas
+        contentEl?.addEventListener('input', () => {
+            // Aplicar estilos a listas existentes
+            const lists = contentEl.querySelectorAll('ul, ol');
+            lists.forEach(list => {
+                list.style.marginLeft = '20px';
+                list.style.paddingLeft = '0';
+                if (list.tagName === 'UL') {
+                    list.style.listStyleType = 'disc';
+                } else if (list.tagName === 'OL') {
+                    list.style.listStyleType = 'decimal';
+                }
+            });
+        });
 
         // Event listeners para botones
         overlay.querySelector('#closeNoteBtn')?.addEventListener('click', () => {
@@ -892,58 +2112,106 @@ function setupEventBusAndUI() {
             window.UI.openNotes();
         });
         
-        overlay.querySelector('#exportPdfBtn')?.addEventListener('click', () => exportElementToPDF(contentEl, (titleEl.value || 'notas') + '.pdf'));
+        overlay.querySelector('#exportPdfBtn')?.addEventListener('click', () => {
+            // Mejorar la experiencia de exportación
+            const btn = overlay.querySelector('#exportPdfBtn');
+            const originalHTML = btn.innerHTML;
+                                    btn.innerHTML = `
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <polyline points="10,9 9,9 8,9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Exportando...`;
+            btn.style.opacity = '0.7';
+            btn.disabled = true;
+            
+            try {
+                exportElementToPDF(contentEl, (titleEl.value || 'notas') + '.pdf');
+            } catch (error) {
+                console.error('Error al exportar PDF:', error);
+            } finally {
+                                        // Restaurar el botón después de un breve delay
+                        setTimeout(() => {
+                            btn.innerHTML = `
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <polyline points="10,9 9,9 8,9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                PDF`;
+                            btn.style.opacity = '1';
+                            btn.disabled = false;
+                        }, 1000);
+            }
+        });
     }
 
     window.UI = {
         openNotes() {
             const renderList = () => {
                 const notes = notesStore.all();
+                if (notes.length === 0) {
+                    return `
+                        <div style="color:var(--text-muted);padding:8px;text-align:center">
+                            Sin notas aún
+                        </div>`;
+                }
                 const list = notes.map(n => `
                     <button class="session-item" data-id="${n.id}" title="${n.title}">
                         <span class="module-index"><i class='bx bx-file-blank'></i></span>
                         <span class="module-title">${n.title}</span>
                         <span style="font-size:11px;color:var(--text-muted)">${formatDate(n.updatedAt)}</span>
                     </button>`).join('');
-                return `<div class="module-list">${list || '<div style="color:var(--text-muted);padding:8px">Sin notas aún</div>'}</div>`;
+                return `<div class="module-list">${list}</div>`;
             };
 
             // Si ya existe la card de notas, solo re-renderizamos su contenido
             const existing = document.querySelector('.studio-card[data-card="notes"]');
             const content = `
-                <div class="collapsible" id="notesCard">
-                    <div class="collapsible-header" style="margin-bottom:8px">
+                <div class="collapsible studio-collapsible" id="notesCard">
+                    <div class="collapsible-header">
                         <h4 style="margin:0">Notas</h4>
                         <div style="display:flex;gap:6px">
-                            <button class="collapsible-toggle" id="removeNotesCard" title="Eliminar" aria-label="Eliminar">🗑</button>
-                            <button class="collapsible-toggle" id="notesCardToggle" aria-expanded="true" aria-controls="notesCardBody"><i class='bx bx-chevron-down'></i></button>
+                            <button id="notesRemove" class="collapsible-toggle" title="Quitar" aria-label="Quitar">🗑</button>
+                            <button id="notesToggle" class="collapsible-toggle" aria-expanded="true" aria-controls="notesCardBody" title="Mostrar/Ocultar">
+                                <i class='bx bx-chevron-down'></i>
+                            </button>
                         </div>
                     </div>
-                    <div class="collapsible-content" id="notesCardBody" style="display:block">
+                    <div class="collapsible-content" id="notesCardBody" style="display:block;border-top:1px solid rgba(68,229,255,.18);padding-top:10px">
                         ${renderList()}
-                        <div style="position:sticky;bottom:0;margin-top:8px;padding-top:8px;border-top:1px solid rgba(68,229,255,.12);display:flex;justify-content:center">
+                        <div style="display:flex;justify-content:center;margin-top:12px">
                             <button id="addNoteBtn" class="keyboard-button" style="width:220px">+ Nota</button>
                         </div>
                     </div>
                 </div>`;
             let el = existing;
             if (el) {
-                el.innerHTML = `<h4 style="margin:0 0 8px 0">Notas</h4>` + content;
+                // Solo actualizar el contenido, sin agregar encabezado duplicado
+                el.innerHTML = content;
             } else {
-                el = addCard('Notas', content);
+                el = addCard('', content);
                 el.dataset.card = 'notes';
             }
 
             // Toggle/Eliminar card
             const section = el.querySelector('#notesCard');
             const body = el.querySelector('#notesCardBody');
-            const toggle = el.querySelector('#notesCardToggle');
-            toggle?.addEventListener('click', () => {
+            const toggle = el.querySelector('#notesToggle');
+            if (section && toggle) {
+                toggle.addEventListener('click', () => {
                 const isOpen = section.classList.toggle('open');
                 if (body) body.style.display = isOpen ? 'block' : 'none';
                 toggle.setAttribute('aria-expanded', String(isOpen));
             });
-            el.querySelector('#removeNotesCard')?.addEventListener('click', () => el.remove());
+            }
+            // Quitar card completa de notas
+            el.querySelector('#notesRemove')?.addEventListener('click', () => el.remove());
 
             // Abrir existente
             el.querySelectorAll('.session-item')?.forEach(btn => {
@@ -1435,8 +2703,11 @@ function addUserMessage(text) {
     });
 }
 
-// Reproducir audio para respuestas del bot (solo cuando se solicita específicamente)
+// Reproducir audio para respuestas del bot (DESHABILITADO)
 function playBotResponseAudio(text) {
+    // Función deshabilitada - no reproduce audio automáticamente
+    return;
+    
     if (!chatState.audioEnabled) return;
 
     if ('speechSynthesis' in window) {
@@ -1752,9 +3023,7 @@ function showHelp() {
         sendBotMessage("📝 ESCRIBIR MENSAJES\n\nEscribe cualquier pregunta y presiona Enter o haz clic en enviar.", null, false, false);
     }, 1500);
     
-    setTimeout(() => {
-        sendBotMessage("🎯 TIPOS DE PREGUNTAS\n\nPuedes preguntarme sobre:\n• Temas del curso (IA, machine learning, deep learning)\n• Explicaciones de conceptos\n• Ejercicios prácticos\n• Dudas específicas sobre el contenido", null, false, false);
-    }, 3000);
+        // El sistema ahora responde dinámicamente según la base de datos
     
     setTimeout(() => {
         sendBotMessage("⌨️ COMANDOS ESPECIALES\n\n• 'ayuda' - Para ver estas instrucciones\n• 'temas' - Para ver los temas disponibles\n• 'ejercicios' - Para solicitar ejercicios prácticos", null, false, false);
@@ -1921,7 +3190,7 @@ async function callOpenAI(prompt, context = '') {
             // Si es error de autenticación (401), devolver respuesta de fallback
             if (response.status === 401) {
                 console.log('[OPENAI CALL] Error de autenticación, usando respuesta de fallback');
-                return getFallbackResponse(prompt);
+                return await getFallbackResponse(prompt);
             }
             
             throw new Error(`Error en la API: ${response.status} - ${errorText}`);
@@ -1935,28 +3204,29 @@ async function callOpenAI(prompt, context = '') {
         
         // Fallback: respuesta básica de desarrollo
         console.log('[OPENAI CALL] Usando respuesta de fallback por error');
-        return getFallbackResponse(prompt);
+        return await getFallbackResponse(prompt);
     }
 }
 
 // Función de respuesta de fallback para desarrollo
-function getFallbackResponse(prompt) {
+async function getFallbackResponse(prompt) {
     const promptLower = prompt.toLowerCase();
     
-    if (promptLower.includes('hola') || promptLower.includes('hi')) {
-        return '¡Hola! Soy Lia, tu asistente de IA. Estoy aquí para ayudarte con el curso "Aprende y Aplica IA". ¿En qué puedo asistirte hoy?';
+        // Ahora se usa el sistema de respuestas personalizadas con base de datos
+    
+    try {
+        // Usar el nuevo sistema de respuestas personalizadas
+        const personalizedResponse = await generatePersonalizedResponse(prompt);
+        if (personalizedResponse) {
+            return personalizedResponse;
+        }
+    } catch (error) {
+        console.error('❌ Error generando respuesta personalizada en getFallbackResponse:', error);
     }
     
-    if (promptLower.includes('curso') || promptLower.includes('ia') || promptLower.includes('inteligencia artificial')) {
-        return 'Te puedo ayudar con el curso de Inteligencia Artificial. Puedes preguntarme sobre:\n\n• **Conceptos básicos** de IA y Machine Learning\n• **Aplicaciones prácticas** en diferentes industrias\n• **Herramientas y frameworks** como Python, TensorFlow\n• **Proyectos** y ejercicios del curso\n\n¿Sobre qué tema específico te gustaría aprender?';
-    }
-    
-    if (promptLower.includes('ayuda') || promptLower.includes('help')) {
-        return 'Estoy aquí para ayudarte con el curso de IA. Puedes preguntarme sobre:\n\n• **Conceptos teóricos** y definiciones\n• **Ejercicios prácticos** y proyectos\n• **Herramientas** y tecnologías\n• **Aplicaciones** en el mundo real\n\n¿Qué te gustaría aprender hoy?';
-    }
-    
-    // Respuesta genérica
-    return `Entiendo tu pregunta sobre "${prompt}". Como tu asistente de IA, puedo ayudarte con conceptos, ejercicios y aplicaciones del curso.\n\n• **¿Necesitas conceptos básicos?** Te explico fundamentos de IA\n• **¿Quieres ejercicios prácticos?** Te propongo actividades\n• **¿Buscas aplicaciones?** Te muestro casos de uso reales\n\n¿Podrías ser más específico sobre qué aspecto te interesa más?`;
+    // Fallback mínimo si todo falla
+    const userInfo = await getCurrentUserInfo();
+    return `${userInfo.display_name}, disculpa, tuve un problema técnico. ¿Podrías repetir tu pregunta?`;
 }
 
 
@@ -2146,82 +3416,30 @@ function searchCourseData(courseData, query) {
     return relevantInfo.slice(0, 8); // Limitar a 8 resultados más relevantes
 }
 
-// Cargar datos del curso hardcodeados
-async function loadCourseData() {
-    try {
-        const response = await fetch('/data/course-data.js');
-        if (response.ok) {
-            const text = await response.text();
-            // Evaluar el módulo para obtener los datos
-            const moduleText = text.replace('module.exports = COURSE_DATA;', 'COURSE_DATA');
-            return eval(`(${moduleText})`);
-        }
-    } catch (error) {
-        console.log('Usando datos de curso embebidos como fallback');
-    }
-    return null;
-}
-
-// Buscar información relevante en los datos del curso
-function searchCourseData(courseData, query) {
-    if (!courseData) return '';
-    
-    const queryLower = query.toLowerCase();
-    let relevantInfo = [];
-    
-    // Buscar en glosario
-    courseData.glossary.forEach(item => {
-        if (item.term.toLowerCase().includes(queryLower) || 
-            item.definition.toLowerCase().includes(queryLower)) {
-            relevantInfo.push(`📖 ${item.term}: ${item.definition}`);
-        }
-    });
-    
-    // Buscar en sesiones
-    courseData.sessions.forEach(session => {
-        // Buscar en conceptos de la sesión
-        session.content.concepts.forEach(concept => {
-            if (concept.term.toLowerCase().includes(queryLower) || 
-                concept.definition.toLowerCase().includes(queryLower)) {
-                relevantInfo.push(`🎓 Sesión ${session.id} - ${concept.term}: ${concept.definition}`);
-            }
-        });
-        
-        // Buscar en FAQs
-        session.faq.forEach(faq => {
-            if (faq.question.toLowerCase().includes(queryLower) || 
-                faq.answer.toLowerCase().includes(queryLower)) {
-                relevantInfo.push(`❓ FAQ (${session.title}): ${faq.question} - ${faq.answer}`);
-            }
-        });
-        
-        // Buscar en actividades
-        session.activities.forEach(activity => {
-            if (activity.title.toLowerCase().includes(queryLower) || 
-                activity.description.toLowerCase().includes(queryLower)) {
-                relevantInfo.push(`🎯 Actividad (${session.title}): ${activity.title} - ${activity.description}`);
-            }
-        });
-    });
-    
-    // Buscar en ejercicios prácticos
-    courseData.practicalExercises.forEach(exercise => {
-        if (exercise.title.toLowerCase().includes(queryLower) || 
-            exercise.description.toLowerCase().includes(queryLower)) {
-            relevantInfo.push(`💻 Ejercicio: ${exercise.title} - ${exercise.description}`);
-        }
-    });
-    
-    return relevantInfo.slice(0, 8); // Limitar a 8 resultados más relevantes
-}
-
-// Procesar mensaje del usuario con IA
+// Procesar mensaje del usuario con IA - ACTUALIZADO SEGÚN PROMPT_CLAUDE.md
 async function processUserMessageWithAI(message) {
     try {
-        // Cargar datos del curso hardcodeados
-        const courseData = await loadCourseData();
+        console.log('🤖 Procesando mensaje con IA mejorada:', message);
         
-        // Obtener contexto de la base de datos (si está disponible)
+        // Obtener usuario actual
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+            console.error('❌ No se pudo obtener usuario actual en processUserMessageWithAI');
+            return 'Error: No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.';
+        }
+        
+        // NUEVA LÓGICA: Usar sistema de respuestas personalizadas con userId
+        const personalizedResponse = await generatePersonalizedResponse(message, currentUser.id);
+        
+        if (personalizedResponse) {
+            console.log('✅ Respuesta personalizada generada exitosamente');
+            return personalizedResponse;
+        }
+        
+        console.log('⚠️ No se pudo generar respuesta personalizada, usando fallback');
+        
+        // Fallback: mantener algo del sistema anterior como respaldo
+        const courseData = await loadCourseData();
         const dbContext = await getDatabaseContext(message);
         
         // Construir contexto de BD de forma más legible
@@ -2244,21 +3462,6 @@ async function processUserMessageWithAI(message) {
                         break;
                 }
             });
-        }
-        
-        // Agregar contexto de datos del curso hardcodeados
-        if (courseData) {
-            const courseInfo = searchCourseData(courseData, message);
-            if (courseInfo.length > 0) {
-                contextInfo += '\n\nInformación del curso "Aprende y Aplica IA":\n';
-                courseInfo.forEach(info => {
-                    contextInfo += `${info}\n`;
-                });
-                
-                // Agregar información general del curso
-                contextInfo += `\n📚 Curso: ${courseData.info.title} (${courseData.info.duration})\n`;
-                contextInfo += `🎯 Descripción: ${courseData.info.description}\n`;
-            }
         }
         
         // Agregar contexto de datos del curso hardcodeados
@@ -2354,7 +3557,7 @@ Responde siguiendo exactamente el formato especificado y utilizando la informaci
         // Si no hay respuesta de OpenAI, usar fallback
         if (!aiResponse || aiResponse.trim() === '') {
             console.log('[PROCESS MESSAGE] No hay respuesta de OpenAI, usando fallback');
-            return getFallbackResponse(message);
+            return await getFallbackResponse(message);
         }
         
         return aiResponse;
@@ -2375,13 +3578,14 @@ Responde siguiendo exactamente el formato especificado y utilizando la informaci
         
         // En caso de error, usar respuesta de fallback
         console.log('[PROCESS MESSAGE] Error en procesamiento, usando fallback');
-        return getFallbackResponse(message);
+        return await getFallbackResponse(message);
     }
 }
 
 // Enviar mensaje
-function sendMessage() {
-    console.log('[CHAT] Iniciando envío de mensaje...');
+// REEMPLAZAR completamente la función sendMessage según PROMPT_CLAUDE.md
+async function sendMessage() {
+    console.log('[CHAT] 🚀 Iniciando envío de mensaje mejorado...');
     const message = messageInput.value.trim();
     
     if (!message) {
@@ -2389,7 +3593,17 @@ function sendMessage() {
         return;
     }
     
-    // Cancelar cualquier escritura del bot en curso para no bloquear el primer envío
+    // Obtener usuario actual
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+        console.error('❌ No se pudo obtener usuario actual');
+        addBotMessage('Error: No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.');
+        return;
+    }
+    
+    console.log('[CHAT] 👤 Usuario identificado:', currentUser.username || currentUser.email);
+    
+    // Cancelar cualquier escritura del bot en curso
     try {
         chatState.typingToken++;
         hideTypingIndicator();
@@ -2414,10 +3628,51 @@ function sendMessage() {
     // Mostrar indicador de escritura
     showTypingIndicator();
 
-    setTimeout(async () => {
+    // Probar conexión a base de datos
+    await testDatabaseConnection();
+    
+    // PRIMERO: Crear/actualizar sesión de chat (según PROMPT)
+    await createOrUpdateChatSession(currentUser.id);
+    
+    // SEGUNDO: Verificar inscripción del usuario (según PROMPT)
+    await checkUserEnrollment(currentUser.id);
+    
+    // Clasificar pregunta
+    const questionType = classifyQuestion(message);
+    console.log('[CHAT] 📋 Tipo de pregunta clasificada:', questionType);
+    
+    try {
+        // Generar respuesta personalizada
+        console.log('[CHAT] 🤖 Generando respuesta personalizada...');
+        const response = await generatePersonalizedResponse(message, currentUser.id);
+        
         hideTypingIndicator();
-        await handleUserMessage(message);
-    }, 300);
+        console.log('[CHAT] ✅ Respuesta personalizada generada exitosamente');
+        
+        // Mostrar respuesta
+        await addBotMessage(response);
+        
+    } catch (error) {
+        hideTypingIndicator();
+        console.error('[CHAT] ❌ Error generando respuesta:', error);
+        
+        const userInfo = await getCurrentUserInfo();
+        await addBotMessage(`Hola ${userInfo.display_name || userInfo.first_name}, disculpa, tuve un problema técnico. ¿Podrías repetir tu pregunta?`);
+    }
+}
+
+// Función auxiliar para obtener el usuario actual
+function getCurrentUser() {
+    try {
+        const currentUserData = localStorage.getItem('currentUser');
+        if (!currentUserData) {
+            return null;
+        }
+        return JSON.parse(currentUserData);
+    } catch (error) {
+        console.error('❌ Error obteniendo usuario actual:', error);
+        return null;
+    }
 }
 
 // Procesar mensaje del usuario
@@ -2436,37 +3691,8 @@ async function handleUserMessage(message) {
     }
 }
 
-// Generar respuesta
-function generateResponse(message) {
-    const responses = {
-        'hola': '¡Hola! Me alegra verte. ¿Cómo estás hoy?',
-        'buenos días': '¡Buenos días! Espero que tengas un excelente día. ¿En qué puedo ayudarte?',
-        'buenas tardes': '¡Buenas tardes! ¿Cómo va tu día?',
-        'buenas noches': '¡Buenas noches! ¿Listo para aprender algo nuevo?',
-        'ayuda': 'Usa los botones del menú principal para navegar o escribe "ayuda" para ver las instrucciones completas.',
-        'temas': 'Usa el botón "📚 Temas del Curso" en el menú principal para explorar todos los temas disponibles.',
-        'ejercicios': 'Usa el botón "🧠 Ejercicios Prácticos" en el menú principal para ver todos los ejercicios disponibles.',
-        'adiós': '¡Hasta luego! Ha sido un placer ayudarte. ¡Que tengas un excelente día!',
-        'gracias': '¡De nada! Me alegra haber podido ayudarte. ¿Hay algo más en lo que pueda asistirte?',
-        'chao': '¡Chao! Espero verte pronto. ¡Sigue aprendiendo!'
-    };
-
-    for (const [key, response] of Object.entries(responses)) {
-        if (message.includes(key)) {
-            return response;
-        }
-    }
-
-    const defaultResponses = [
-        'Interesante pregunta. Déjame pensar en la mejor manera de explicártelo...',
-        'Esa es una excelente pregunta. Te ayudo a entenderlo mejor.',
-        'Me gusta tu curiosidad. Vamos a explorar ese tema juntos.',
-        'Excelente pregunta. Te explico de manera clara y sencilla.',
-        '¡Buena pregunta! Te ayudo a comprender este concepto.'
-    ];
-
-    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
-}
+// Las respuestas ahora se generan dinámicamente con generatePersonalizedResponse()
+// Esta función quedó obsoleta con el nuevo sistema inteligente
 
 // Funciones de utilidad para botones
 function getBackButton() { return ``; }
@@ -2801,16 +4027,7 @@ window.Chatbot = {
     getAudioStatus,
     setAudioVolume,
     playWelcomeAudio,
-    // Navegación de sesiones
-    showSessionsForTopic,
-    openTopicSession,
-    // Gestión de sesiones
-    sessionManager,
-    createNewSession,
-    switchToSession,
-    renameSession,
-    duplicateSession,
-    archiveSession
+
 }; 
 
 // Render del selector de sesiones/módulos dentro del menú
@@ -3045,11 +4262,26 @@ function renderStudioFooter() {
     cards.appendChild(footer);
     footer.querySelector('#addNoteFab')?.addEventListener('click', () => {
         try {
+            // Verificar si hay otros módulos desplegados para posicionar las notas debajo
+            const existingCards = document.querySelectorAll('.studio-card');
+            const notesCard = document.querySelector('.studio-card[data-card="notes"]');
+            
+            // Si no existe la tarjeta de notas, crearla
+            if (!notesCard) {
+                window.UI?.openNotes();
+                
+                // Si hay otras tarjetas, mover la de notas al final (debajo de las demás)
+                const newNotesCard = document.querySelector('.studio-card[data-card="notes"]');
+                if (newNotesCard && existingCards.length > 0) {
+                    const cardsContainer = document.getElementById('studioCards');
+                    cardsContainer.appendChild(newNotesCard);
+                }
+            } else {
+                // Si ya existe, crear una nueva nota directamente
             const note = (typeof notesStore !== 'undefined') ? notesStore.create({}) : null;
             if (note) {
                 openNoteEditor(note);
-            } else if (window.UI?.openNotes) {
-                window.UI.openNotes();
+                }
             }
         } catch(_) {
             window.UI?.openNotes?.();
@@ -3528,5 +4760,43 @@ function initializeLivestreamChat() {
         }
     }
 }
+
+// ===== SISTEMA DE ACTUALIZACIÓN DE AVATARES EN CHAT =====
+
+// Función para actualizar todos los avatares de usuario en el chat cuando cambie el perfil
+function refreshUserAvatarsInChat() {
+    console.log('🔄 Actualizando avatares de usuario en el chat...');
+    const userAvatars = document.querySelectorAll('.msg-avatar.user .avatar-circle img');
+    const newProfilePicture = getCurrentUserProfilePicture();
+    
+    userAvatars.forEach(img => {
+        img.src = newProfilePicture;
+    });
+    
+    console.log(`✅ Actualizados ${userAvatars.length} avatares de usuario en el chat`);
+}
+
+// Escuchar cambios en localStorage para actualizar avatares automáticamente
+window.addEventListener('storage', function(e) {
+    if (e.key === 'currentUser') {
+        console.log('👤 Datos de usuario actualizados, refrescando avatares...');
+        setTimeout(refreshUserAvatarsInChat, 500); // Pequeño delay para asegurar que los datos estén actualizados
+    }
+});
+
+// También escuchar cambios internos en la misma pestaña
+let lastUserData = localStorage.getItem('currentUser');
+setInterval(function() {
+    const currentUserData = localStorage.getItem('currentUser');
+    if (currentUserData !== lastUserData) {
+        console.log('👤 Cambio en datos de usuario detectado, refrescando avatares...');
+        refreshUserAvatarsInChat();
+        lastUserData = currentUserData;
+    }
+}, 2000); // Verificar cada 2 segundos
+
+// Exportar funciones para uso global
+window.refreshUserAvatarsInChat = refreshUserAvatarsInChat;
+window.getCurrentUserProfilePicture = getCurrentUserProfilePicture;
 
 // Inicializar chat del livestream cuando se carga la página

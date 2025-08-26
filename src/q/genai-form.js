@@ -533,18 +533,51 @@ class GenAIQuestionnaire {
             // Calcular scores
             const scores = this.calculateScores();
             
-            // Mostrar éxito y redirigir
+            console.log('✅ Cuestionario completado, cambiando botón...');
+            
+            // Mostrar éxito
             this.showSuccess('Cuestionario completado exitosamente');
             
-            setTimeout(() => {
-                window.location.href = '../estadisticas.html';
-            }, 2000);
+            // Cambiar el botón a "Ir a Inicio"
+            this.changeButtonToGoHome();
             
         } catch (error) {
             console.error('❌ Error enviando cuestionario:', error);
             this.showError(`Error enviando cuestionario: ${error.message}`);
         } finally {
             this.setLoading(false);
+        }
+    }
+    
+    changeButtonToGoHome() {
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        
+        if (submitBtn && submitText) {
+            // Ocultar spinner
+            if (loadingSpinner) {
+                loadingSpinner.style.display = 'none';
+            }
+            
+            // Cambiar texto del botón
+            submitText.textContent = 'Ir a Inicio';
+            
+            // Cambiar clase del botón para nuevo estilo
+            submitBtn.classList.remove('ready');
+            submitBtn.classList.add('go-home');
+            
+            // Habilitar botón
+            submitBtn.disabled = false;
+            
+            // Cambiar evento del botón para redirigir
+            submitBtn.onclick = (e) => {
+                e.preventDefault();
+                console.log('🚀 Redirigiendo a la página principal...');
+                window.location.href = '../cursos.html';
+            };
+            
+            console.log('✅ Botón cambiado a "Ir a Inicio"');
         }
     }
     
