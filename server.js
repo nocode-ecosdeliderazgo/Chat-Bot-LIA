@@ -250,7 +250,7 @@ app.use('/prompts', express.static(path.join(__dirname, 'prompts')));
 // Servir datos del curso
 app.use('/data', express.static(path.join(__dirname, 'src/data')));
 // Servir archivos estáticos de SIF ICAP
-app.use('/sif-icap', express.static(path.join(__dirname, 'sif-icap')));
+app.use('/sif-icap', express.static(path.join(__dirname, 'src', 'sif-icap')));
 
 // Carpeta temporal de audios (entradas del micro)
 const tempDir = path.join(__dirname, 'tmp');
@@ -292,7 +292,7 @@ app.get('/chat-general', (req, res) => {
 
 // Ruta para SIF ICAP
 app.get('/sif-icap', (req, res) => {
-    res.sendFile(path.join(__dirname, 'sif-icap', 'Aprende y Aplica IA_ Programa de Capacitación para SIF ICAP.html'));
+    res.sendFile(path.join(__dirname, 'src', 'sif-icap', 'index.html'));
 });
 
 // Configuración de Grafana

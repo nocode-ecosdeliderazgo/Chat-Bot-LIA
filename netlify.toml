@@ -1,6 +1,6 @@
 [build]
   node_version = "18"
-  publish = "."
+  publish = "src"
   
 [build.environment]
   NODE_ENV = "production"
