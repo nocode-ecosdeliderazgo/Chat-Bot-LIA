@@ -3733,4 +3733,292 @@ app.get('/api/debug/profiles', async (req, res) => {
     }
 });
 
+// ============================================================================
+// VIDEO SDK ENDPOINTS - APR-31: Endpoints para iniciar/detener grabación
+// ============================================================================
+
+// Configuración del Video SDK
+const VIDEO_SDK_API_KEY = process.env.VIDEO_SDK_API_KEY;
+const VIDEO_SDK_SECRET_KEY = process.env.VIDEO_SDK_SECRET_KEY;
+const VIDEO_SDK_BASE_URL = 'https://api.videosdk.live';
+
+// Función para autenticar con Video SDK API
+async function authenticateVideoSDK() {
+    if (!VIDEO_SDK_API_KEY || !VIDEO_SDK_SECRET_KEY) {
+        throw new Error('Video SDK credentials not configured');
+    }
+    
+    // En un entorno real, aquí podrías implementar un sistema de tokens
+    // Por ahora, usamos las credenciales directamente
+    return {
+        apiKey: VIDEO_SDK_API_KEY,
+        secretKey: VIDEO_SDK_SECRET_KEY
+    };
+}
+
+// Función para hacer requests a la API del Video SDK
+async function makeVideoSDKRequest(endpoint, method = 'GET', body = null) {
+    try {
+        const credentials = await authenticateVideoSDK();
+        const url = `${VIDEO_SDK_BASE_URL}${endpoint}`;
+        
+        const options = {
+            method,
+            headers: {
+                'Authorization': `Bearer ${credentials.apiKey}`,
+                'Content-Type': 'application/json'
+            }
+        };
+        
+        if (body && method !== 'GET') {
+            options.body = JSON.stringify(body);
+        }
+        
+        const response = await fetch(url, options);
+        
+        if (!response.ok) {
+            throw new Error(`Video SDK API error: ${response.status} ${response.statusText}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error en Video SDK request:', error);
+        throw error;
+    }
+}
+
+// Función para registrar logs de auditoría
+async function logRecordingEvent(event, sessionId, userId, details = {}) {
+    try {
+        const logEntry = {
+            event,
+            sessionId,
+            userId,
+            timestamp: new Date().toISOString(),
+            details,
+            ip: req?.ip || 'unknown'
+        };
+        
+        console.log(`📹 [VIDEO SDK] ${event}:`, logEntry);
+        
+        // Aquí podrías guardar en base de datos si es necesario
+        // await pool.query('INSERT INTO recording_logs (event, session_id, user_id, details) VALUES ($1, $2, $3, $4)', 
+        //     [event, sessionId, userId, JSON.stringify(details)]);
+        
+    } catch (error) {
+        console.error('Error logging recording event:', error);
+    }
+}
+
+// Endpoint para iniciar grabación
+app.post('/api/videosdk/recording/start', authenticateRequest, async (req, res) => {
+    try {
+        const { sessionId, userId } = req.body;
+        
+        if (!sessionId) {
+            return res.status(400).json({ 
+                error: 'sessionId es requerido',
+                code: 'MISSING_SESSION_ID'
+            });
+        }
+        
+        // Validar que el usuario tiene permisos para iniciar grabación
+        const user = req.user;
+        if (!user || !user.id) {
+            return res.status(401).json({ 
+                error: 'Usuario no autenticado',
+                code: 'UNAUTHORIZED'
+            });
+        }
+        
+        console.log(`🎬 Iniciando grabación para sesión: ${sessionId}, usuario: ${user.id}`);
+        
+        // Llamar a la API del Video SDK para iniciar grabación
+        const recordingData = await makeVideoSDKRequest('/v2/recordings/start', 'POST', {
+            sessionId: sessionId,
+            // Otros parámetros según la documentación del Video SDK
+        });
+        
+        // Registrar el evento
+        await logRecordingEvent('recording_started', sessionId, user.id, {
+            recordingId: recordingData.recordingId,
+            status: recordingData.status
+        });
+        
+        res.json({
+            success: true,
+            message: 'Grabación iniciada exitosamente',
+            recordingId: recordingData.recordingId,
+            status: recordingData.status,
+            sessionId: sessionId
+        });
+        
+    } catch (error) {
+        console.error('Error iniciando grabación:', error);
+        
+        // Registrar el error
+        await logRecordingEvent('recording_start_error', req.body.sessionId, req.user?.id, {
+            error: error.message
+        });
+        
+        res.status(500).json({
+            error: 'Error al iniciar la grabación',
+            details: error.message,
+            code: 'RECORDING_START_ERROR'
+        });
+    }
+});
+
+// Endpoint para detener grabación
+app.post('/api/videosdk/recording/stop', authenticateRequest, async (req, res) => {
+    try {
+        const { sessionId, recordingId, userId } = req.body;
+        
+        if (!sessionId || !recordingId) {
+            return res.status(400).json({ 
+                error: 'sessionId y recordingId son requeridos',
+                code: 'MISSING_PARAMETERS'
+            });
+        }
+        
+        // Validar que el usuario tiene permisos para detener grabación
+        const user = req.user;
+        if (!user || !user.id) {
+            return res.status(401).json({ 
+                error: 'Usuario no autenticado',
+                code: 'UNAUTHORIZED'
+            });
+        }
+        
+        console.log(`⏹️ Deteniendo grabación: ${recordingId}, sesión: ${sessionId}, usuario: ${user.id}`);
+        
+        // Llamar a la API del Video SDK para detener grabación
+        const stopData = await makeVideoSDKRequest(`/v2/recordings/${recordingId}/stop`, 'POST', {
+            sessionId: sessionId
+        });
+        
+        // Registrar el evento
+        await logRecordingEvent('recording_stopped', sessionId, user.id, {
+            recordingId: recordingId,
+            status: stopData.status,
+            downloadUrl: stopData.downloadUrl
+        });
+        
+        res.json({
+            success: true,
+            message: 'Grabación detenida exitosamente',
+            recordingId: recordingId,
+            status: stopData.status,
+            downloadUrl: stopData.downloadUrl,
+            sessionId: sessionId
+        });
+        
+    } catch (error) {
+        console.error('Error deteniendo grabación:', error);
+        
+        // Registrar el error
+        await logRecordingEvent('recording_stop_error', req.body.sessionId, req.user?.id, {
+            error: error.message,
+            recordingId: req.body.recordingId
+        });
+        
+        res.status(500).json({
+            error: 'Error al detener la grabación',
+            details: error.message,
+            code: 'RECORDING_STOP_ERROR'
+        });
+    }
+});
+
+// Endpoint para obtener estado de grabación
+app.get('/api/videosdk/recording/status/:recordingId', authenticateRequest, async (req, res) => {
+    try {
+        const { recordingId } = req.params;
+        
+        if (!recordingId) {
+            return res.status(400).json({ 
+                error: 'recordingId es requerido',
+                code: 'MISSING_RECORDING_ID'
+            });
+        }
+        
+        // Validar autenticación
+        const user = req.user;
+        if (!user || !user.id) {
+            return res.status(401).json({ 
+                error: 'Usuario no autenticado',
+                code: 'UNAUTHORIZED'
+            });
+        }
+        
+        console.log(`📊 Consultando estado de grabación: ${recordingId}`);
+        
+        // Llamar a la API del Video SDK para obtener estado
+        const statusData = await makeVideoSDKRequest(`/v2/recordings/${recordingId}`);
+        
+        res.json({
+            success: true,
+            recordingId: recordingId,
+            status: statusData.status,
+            downloadUrl: statusData.downloadUrl,
+            duration: statusData.duration,
+            createdAt: statusData.createdAt,
+            updatedAt: statusData.updatedAt
+        });
+        
+    } catch (error) {
+        console.error('Error obteniendo estado de grabación:', error);
+        
+        res.status(500).json({
+            error: 'Error al obtener el estado de la grabación',
+            details: error.message,
+            code: 'RECORDING_STATUS_ERROR'
+        });
+    }
+});
+
+// Endpoint para listar grabaciones de una sesión
+app.get('/api/videosdk/recordings/:sessionId', authenticateRequest, async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        
+        if (!sessionId) {
+            return res.status(400).json({ 
+                error: 'sessionId es requerido',
+                code: 'MISSING_SESSION_ID'
+            });
+        }
+        
+        // Validar autenticación
+        const user = req.user;
+        if (!user || !user.id) {
+            return res.status(401).json({ 
+                error: 'Usuario no autenticado',
+                code: 'UNAUTHORIZED'
+            });
+        }
+        
+        console.log(`📋 Listando grabaciones para sesión: ${sessionId}`);
+        
+        // Llamar a la API del Video SDK para listar grabaciones
+        const recordingsData = await makeVideoSDKRequest(`/v2/recordings?sessionId=${sessionId}`);
+        
+        res.json({
+            success: true,
+            sessionId: sessionId,
+            recordings: recordingsData.recordings || [],
+            total: recordingsData.total || 0
+        });
+        
+    } catch (error) {
+        console.error('Error listando grabaciones:', error);
+        
+        res.status(500).json({
+            error: 'Error al listar las grabaciones',
+            details: error.message,
+            code: 'RECORDINGS_LIST_ERROR'
+        });
+    }
+});
+
 module.exports = app;
