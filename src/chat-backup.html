@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lia — Chat</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="icon" type="image/png" href="assets/images/icono.png">
+    <meta name="description" content="Lia: asistente inteligente para una experiencia educativa interactiva y personalizada">
+    <meta name="keywords" content="coach lia ia, asistente, educativo, inteligencia artificial, taller">
+    <meta name="author" content="Tu Nombre">
+    
+    <!-- Auth Guard - Protección de autenticación -->
+    <script src="utils/auth-guard.js"></script>
+    
+    <!-- Supabase Client - Base de datos -->
+    <script src="scripts/supabase-client.js"></script>
+    
+    <!-- Global theme setup - Configuración global del tema -->
+    <script src="scripts/global-theme-setup.js"></script>
+    <style>
+        /* Degradado azul oscuro específico para el chat de Lia */
+        body.layout-notebook {
+            --color-bg-1: #041326; /* azul noche (oscuro) */
+            --color-bg-2: #070F1D; /* azul profundo (oscuro) */
+        }
+
+        /* ===== Dynamic Island — barra flotante (basado en ChatGeneral) ===== */
+        .message-input-area {
+            background: transparent;
+            border-top: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 10;
+            margin: 0;
+            height: 0; /* no ocupa espacio, la isla es fija */
+        }
+
+        /* Espacio para la Dynamic Island - evitar que los mensajes se corten */
+        .chat-messages {
+            padding-bottom: 100px !important; /* Espacio suficiente para la Dynamic Island */
+        }
+
+        .message-input-wrapper {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Isla flotante */
+        .message-input-area .input-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(20, 30, 45, 0.95);
+            border: 1px solid rgba(68, 229, 255, 0.18);
+            border-radius: 30px;
+            padding: 8px 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            backdrop-filter: blur(20px);
+            width: calc(100% - 80px);
+            max-width: 600px;
+            min-height: 48px;
+            z-index: 1000;
+        }
+
+        .plus-btn {
+            background: rgba(68, 229, 255, 0.1);
+            border: 1px solid rgba(68, 229, 255, 0.18);
+            color: #44e5ff;
+            font-size: 1.3rem;
+            font-weight: 900;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            width: 38px; height: 38px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .plus-btn:hover { background: rgba(68,229,255,0.2); border-color: #44e5ff; transform: scale(1.05); }
+
+        /* Campo de texto */
+        #messageInput {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            color: #fff;
+            font-size: 0.95rem;
+            resize: none;
+            max-height: 100px;
+            min-height: 20px;
+            outline: none;
+            line-height: 1.4;
+            padding: 8px 16px;
+            border-radius: 18px;
+            margin: 0 8px;
+            min-width: 0;
+            box-shadow: none;
+        }
+        #messageInput::placeholder { color: rgba(255,255,255,0.65); }
+
+        /* Botón acción (micrófono/enviar) */
+        .action-button {
+            background: #007AFF;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            width: 38px; height: 38px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .action-button:hover { background: #0056CC; transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,122,255,0.5); }
+        .action-button .send-icon { position: absolute; inset: 0; margin: auto; transform: rotate(-90deg) scale(.6); opacity: 0; transition: transform .18s ease, opacity .18s ease; }
+        .action-button .mic-icon { position: absolute; inset: 0; margin: auto; transform: rotate(0) scale(1); opacity: 1; transition: transform .18s ease, opacity .18s ease; }
+        .input-has-text .action-button .send-icon { transform: rotate(0) scale(1); opacity: 1; }
+        .input-has-text .action-button .mic-icon { transform: rotate(90deg) scale(.6); opacity: 0; }
+
+        /* Dropdown de acciones rápidas */
+        .quick-actions-dropdown {
+            position: absolute;
+            bottom: 100%; left: 50%; transform: translateX(-50%);
+            background: rgba(20,30,45,0.95);
+            border: 1px solid rgba(68,229,255,0.18);
+            border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,.5);
+            padding: 8px; margin-bottom: 8px; min-width: 200px; z-index: 1001; display: none;
+            backdrop-filter: blur(20px);
+        }
+        .quick-actions-dropdown.active { display: block; }
+        .quick-action-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; cursor: pointer; border-radius: 8px; color: #fff; }
+        .quick-action-item:hover { background: rgba(68,229,255,0.1); border: 1px solid rgba(68,229,255,0.18); }
+
+        /* Reubicar menú global al centro bajo la isla (sobre-escribe main.css) */
+        .global-menu { left: auto !important; bottom: 84px !important; transform: none !important; display: none; }
+        .global-menu.show { display: block; }
+    </style>
+</head>
+<body class="layout-notebook bg-glow-global">
+    <div class="layout-3panels">
+        <aside class="sidebar-left" id="sidebarLeft">
+            <div class="sidebar-header">
+                <h3>Herramientas</h3>
+                <button class="collapse-btn" id="collapseLeft" title="Ocultar/mostrar">⟨⟩</button>
+            </div>
+            <nav class="tool-list">
+
+                <div class="tool-group collapsible" id="livestreamSection">
+                    <div class="collapsible-header">
+                        <h4 style="margin:0">Chat en vivo</h4>
+                        <button id="livestreamToggle" class="collapsible-toggle" aria-expanded="false" aria-controls="livestreamContent" title="Mostrar/Ocultar">
+                            <i class='bx bx-chevron-down'></i>
+                        </button>
+                    </div>
+                    <div class="collapsible-content" id="livestreamContent">
+                        <!-- Chat del Livestream -->
+                        <div class="livestream-chat-container">
+                            <div class="livestream-chat-header">
+                                <h5>Chat en vivo</h5>
+                                <span class="users-count" id="livestreamUsersCount">0 usuarios</span>
+                            </div>
+                            
+                            <div class="livestream-chat-messages" id="livestreamChatMessages">
+                                <div class="welcome-message">
+                                    <i class='bx bx-message-dots'></i>
+                                    <span>¡Únete a la conversación!</span>
+                                </div>
+                            </div>
+                            
+                            <div class="livestream-chat-input">
+                                <input 
+                                    type="text" 
+                                    id="livestreamMessageInput" 
+                                    placeholder="Conectando al chat…"
+                                    maxlength="200"
+                                >
+                                <button id="livestreamSendBtn" class="livestream-send-btn" disabled title="Enviar mensaje">
+                                    <i class='bx bx-send'></i>
+                                </button>
+                            </div>
+                            
+                            <div class="livestream-connection-status" id="livestreamConnectionStatus">
+                                <span class="status-indicator offline"></span>
+                                <span class="status-text">Desconectado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            <div class="left-resizer" id="leftResizer" title="Ajustar ancho"></div>
+        </aside>
+
+        <main class="chat-main">
+            <div class="telegram-container">
+                <div class="chat-header">
+                    <button id="backToCoursesBtn" class="back-to-courses-btn" onclick="window.location.href='cursos.html'" title="Volver a Mis Talleres">
+                        <i class='bx bx-chevron-left'></i>
+                    </button>
+                    <div class="bot-avatar">
+                        <img id="botAvatarImg" src="assets/images/FOTO%20LIA.png" alt="Lia" onerror="this.onerror=null;this.src='assets/images/brain-icon.jpg'">
+                    </div>
+                    <div class="chat-info">
+                        <h3>Lia</h3>
+                        <p>En línea</p>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Los mensajes se generarán dinámicamente aquí -->
+                </div>
+
+                <!-- Dynamic Island flotante -->
+                <div class="message-input-area">
+                    <div class="message-input-wrapper">
+                        <div class="input-container" id="inputContainer">
+                            <button class="plus-btn" id="sessionMenuButton" type="button" title="Más opciones" aria-label="Más opciones" onclick="(function(){var gm=document.getElementById('globalMenu'); if(gm){ gm.classList.toggle('show'); }})();">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                            <textarea id="messageInput" placeholder="Escribe tu mensaje..." rows="1" maxlength="500"></textarea>
+                            <button id="actionButton" class="action-button" aria-label="Hablar / Enviar" title="Hablar / Enviar">
+                                <svg class="mic-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 14a3 3 0 0 0 3-3V7a3 3 0 0 0-6 0v4a3 3 0 0 0 3 3z" fill="currentColor"/>
+                                    <path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M12 18v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <svg class="send-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menú global (Sesiones e Informes) -->
+                <div class="global-menu" id="globalMenu" aria-hidden="true" style="position:fixed; bottom:84px; z-index:5000;">
+                    <div class="gm-group">
+                        <button class="gm-item" data-toggle="sessions">Sesiones</button>
+                        <div class="gm-submenu" id="gmSessions">
+                            <button class="gm-subitem" data-session="1">Sesión 1</button>
+                            <button class="gm-subitem" data-session="2">Sesión 2</button>
+                            <button class="gm-subitem" data-session="3">Sesión 3</button>
+                            <button class="gm-subitem" data-session="4">Sesión 4</button>
+                        </div>
+                    </div>
+                    <div class="gm-group">
+                        <button class="gm-item" data-toggle="reports">Informes</button>
+                        <div class="gm-submenu" id="gmReports">
+                            <button class="gm-subitem" data-report="docs">Documentos</button>
+                            <button class="gm-subitem" data-report="bonos">Bonos</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside class="studio-right" id="studioRight">
+            <div class="studio-header">
+                <h3>Studio</h3>
+                <button class="collapse-btn" id="collapseRight" title="Ocultar/mostrar">⟨⟩</button>
+            </div>
+            
+            <div class="studio-cards" id="studioCards"></div>
+            <div class="right-resizer" id="rightResizer" title="Ajustar ancho"></div>
+        </aside>
+    </div>
+
+    <div id="avatarLightbox" class="avatar-lightbox" aria-hidden="true">
+        <div class="avatar-lightbox-backdrop"></div>
+        <img id="avatarLightboxImg" src="assets/images/FOTO%20LIA.png" alt="Lia">
+        <button id="avatarLightboxClose" class="avatar-close" aria-label="Cerrar">×</button>
+    </div>
+
+    <!-- Socket.IO client: autodetecta origen del servidor en producción y permite override por localStorage -->
+    <script>
+        (function() {
+            try {
+                var current = localStorage.getItem('SOCKET_IO_ORIGIN');
+                var heroku = 'https://lia-ia-live-1da7d26ba883.herokuapp.com';
+                var host = (window.location && window.location.hostname) ? window.location.hostname : '';
+
+                // Si no hay configuración previa, elegir origen según dominio público
+                if (!current) {
+                    if (host.includes('ecosdeliderazgo.com')) {
+                        // Producción: API en Netlify, WebSocket en Heroku
+                        var netlify = 'https://bot-lia-ai.netlify.app';
+                        var heroku = 'https://lia-ia-live-1da7d26ba883.herokuapp.com';
+                        window.API_BASE = netlify;
+                        window.SOCKET_IO_ORIGIN = heroku;
+                        try { localStorage.setItem('API_BASE', netlify); } catch(_) {}
+                        try { localStorage.setItem('SOCKET_IO_ORIGIN', heroku); } catch(_) {}
+                    } else if (host.endsWith('.netlify.app')) {
+                        // Cuando se sirve desde el mismo sitio de Netlify
+                        window.SOCKET_IO_ORIGIN = '';
+                        window.API_BASE = '';
+                    } else {
+                        window.SOCKET_IO_ORIGIN = heroku;
+                        window.API_BASE = heroku;
+                    }
+                } else {
+                    if (host.includes('ecosdeliderazgo.com')) {
+                        var n = 'https://bot-lia-ai.netlify.app';
+                        var h = 'https://lia-ia-live-1da7d26ba883.herokuapp.com';
+                        window.API_BASE = n;
+                        window.SOCKET_IO_ORIGIN = h;
+                        try { localStorage.setItem('API_BASE', n); } catch(_) {}
+                        try { localStorage.setItem('SOCKET_IO_ORIGIN', h); } catch(_) {}
+                    } else {
+                        window.SOCKET_IO_ORIGIN = current;
+                        window.API_BASE = current;
+                    }
+                }
+            } catch (_) { window.SOCKET_IO_ORIGIN = window.SOCKET_IO_ORIGIN || ''; }
+        })();
+    </script>
+    <!-- Nota: Se omite 'integrity' porque el CDN puede rotar hashes; esto evitaba que el navegador bloquee la carga -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="scripts/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('messageInput');
+            const container = document.getElementById('inputContainer');
+            const sessionMenuButton = document.getElementById('sessionMenuButton');
+            const globalMenu = document.getElementById('globalMenu');
+
+            function updateState(){
+                if (!input || !container) return;
+                if (input.value.trim().length > 0) container.classList.add('input-has-text');
+                else container.classList.remove('input-has-text');
+            }
+            if (input){
+                ['input','keyup','change'].forEach(ev=> input.addEventListener(ev, updateState));
+                updateState();
+            }
+
+            // Abrir/cerrar menú global (sesiones/reportes)
+            if (sessionMenuButton && globalMenu){
+                sessionMenuButton.addEventListener('click', function(e){
+                    e.preventDefault(); e.stopPropagation();
+                    // Anclar el menú a la izquierda de la isla
+                    const island = document.getElementById('inputContainer');
+                    if (island){
+                        const rect = island.getBoundingClientRect();
+                        // 12px de margen desde el borde izquierdo de la isla
+                        globalMenu.style.left = (rect.left + 12) + 'px';
+                    }
+                    globalMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function(e){
+                    if (!e.target.closest('#globalMenu') && !e.target.closest('#sessionMenuButton')){
+                        globalMenu.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+

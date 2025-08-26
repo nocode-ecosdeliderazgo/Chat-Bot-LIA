@@ -1,7 +1,6 @@
 // Configuración del sistema de login
-// Importante: Deshabilitamos uso directo de Supabase en frontend para evitar 401 por RLS
-// Todo el login/registro pasa por el backend cuando se usa username
-const ENABLE_SUPABASE_AUTH = false;
+// Importante: Habilitamos Supabase para validación de roles
+const ENABLE_SUPABASE_AUTH = true;
 
 /**
  * Función para asegurar que todos los datos de autenticación estén sincronizados
