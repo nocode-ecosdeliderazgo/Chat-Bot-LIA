@@ -1233,6 +1233,73 @@ app.put('/api/profile', async (req, res) => {
     }
 });
 
+// Endpoint para actualizar type_rol desde el cuestionario
+app.post('/api/update-profile', async (req, res) => {
+    try {
+        const { user_id, username, email, type_rol } = req.body || {};
+        
+        // Validaciones básicas
+        if (!type_rol) {
+            return res.status(400).json({ error: 'type_rol es requerido' });
+        }
+
+        if (!user_id && !username && !email) {
+            return res.status(400).json({ error: 'Se requiere user_id, username o email para identificar al usuario' });
+        }
+
+        console.log('🔄 Actualizando type_rol:', { user_id, username, email, type_rol });
+
+        // Verificar si existe la columna type_rol
+        let hasTypeRol = false;
+        try {
+            const cols = await pool.query(`
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'users' 
+                AND column_name = 'type_rol'
+            `);
+            hasTypeRol = cols.rows.length > 0;
+        } catch (err) {
+            console.warn('⚠️ Error verificando columna type_rol:', err.message);
+        }
+
+        if (!hasTypeRol) {
+            return res.status(400).json({ error: 'La tabla users no tiene columna type_rol' });
+        }
+
+        // Construir query de actualización
+        let query, params;
+        if (user_id) {
+            query = 'UPDATE users SET type_rol = $1, updated_at = NOW() WHERE id = $2 RETURNING id, username, email, type_rol, cargo_rol';
+            params = [type_rol, user_id];
+        } else if (username) {
+            query = 'UPDATE users SET type_rol = $1, updated_at = NOW() WHERE username = $2 RETURNING id, username, email, type_rol, cargo_rol';
+            params = [type_rol, username];
+        } else if (email) {
+            query = 'UPDATE users SET type_rol = $1, updated_at = NOW() WHERE email = $2 RETURNING id, username, email, type_rol, cargo_rol';
+            params = [type_rol, email];
+        }
+
+        const result = await pool.query(query, params);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        console.log('✅ type_rol actualizado correctamente:', result.rows[0]);
+
+        return res.json({ 
+            ok: true, 
+            message: 'type_rol actualizado correctamente',
+            user: result.rows[0] 
+        });
+
+    } catch (error) {
+        console.error('❌ Error actualizando type_rol:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 // Endpoint seguro para obtener los prompts actuales
 app.get('/api/prompts', authenticateRequest, (req, res) => {
     try {
