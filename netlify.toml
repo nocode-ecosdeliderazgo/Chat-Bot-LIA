@@ -1,5 +1,6 @@
 [build]
   node_version = "18"
+  publish = "."
   
 [build.environment]
   NODE_ENV = "production"
@@ -34,6 +35,11 @@
 
 [[redirects]]
   from = "/sif-icap"
+  to   = "/sif-icap/Aprende y Aplica IA_ Programa de Capacitación para SIF ICAP.html"
+  status = 200
+
+[[redirects]]
+  from = "/sif-icap/"
   to   = "/sif-icap/Aprende y Aplica IA_ Programa de Capacitación para SIF ICAP.html"
   status = 200
 
