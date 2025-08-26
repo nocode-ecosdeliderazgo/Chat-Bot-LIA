@@ -33,6 +33,11 @@
   status = 200
 
 [[redirects]]
+  from = "/sif-icap"
+  to   = "/sif-icap/Aprende y Aplica IA_ Programa de Capacitación para SIF ICAP.html"
+  status = 200
+
+[[redirects]]
   from = "/api/*"
   to   = "/.netlify/functions/:splat"
   status = 200
