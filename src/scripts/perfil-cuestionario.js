@@ -387,8 +387,8 @@ class ProfileQuestionnaire {
         // Guardar datos de telemetría (ahora con perfilFinal correcto)
         this.saveProfileData();
 
-        const route = this.getProfileRoute(finalProfile);
-        window.location.href = route;
+        // Redirigir a la página principal después de guardar los datos
+        window.location.href = 'cursos.html';
     }
 
     getProfileRoute(profile) {
