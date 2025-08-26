@@ -1,0 +1,10 @@
+/sif-icap /sif-icap/index.html 200
+/sif-icap/ /sif-icap/index.html 200
+
+# API redirects
+/api/login /.netlify/functions/login 200
+/api/auth/issue /.netlify/functions/auth-issue 200
+/api/register /.netlify/functions/register 200
+/grafana/health /.netlify/functions/grafana-health 200
+/grafana/panel/*.png /.netlify/functions/grafana-panel 200
+/api/* /.netlify/functions/:splat 200

@@ -35,12 +35,12 @@
 
 [[redirects]]
   from = "/sif-icap"
-  to   = "/sif-icap/Aprende y Aplica IA_ Programa de Capacitación para SIF ICAP.html"
+  to   = "/sif-icap/index.html"
   status = 200
 
 [[redirects]]
   from = "/sif-icap/"
-  to   = "/sif-icap/Aprende y Aplica IA_ Programa de Capacitación para SIF ICAP.html"
+  to   = "/sif-icap/index.html"
   status = 200
 
 [[redirects]]
