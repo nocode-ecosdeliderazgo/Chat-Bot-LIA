@@ -387,8 +387,8 @@ class ProfileQuestionnaire {
         // Guardar datos de telemetría (ahora con perfilFinal correcto)
         this.saveProfileData();
 
-        const route = this.getProfileRoute(finalProfile);
-        window.location.href = route;
+        // Redirigir a la página principal después de guardar los datos
+        window.location.href = 'cursos.html';
     }
 
     getProfileRoute(profile) {
@@ -539,20 +539,84 @@ class ProfileQuestionnaire {
         if (!session || !session.user) return;
         const userId = session.user.id;
 
-        const payload = {
-            user_id: userId,
-            nivel: this.profileData.nivel,
-            area: this.profileData.area,
-            relacion: this.profileData.relacion,
-            tamano: this.profileData.tamano || null,
-            sector: this.profileData.sector || null
-        };
+        // Crear respuestas individuales para cada campo del cuestionario de perfil
+        const responses = [];
+        const timestamp = new Date().toISOString();
 
-        // Upsert por user_id (1 registro por usuario)
-        const { error } = await window.supabase
-            .from('user_profile_answers')
-            .upsert(payload, { onConflict: 'user_id' });
-        if (error) throw error;
+        // Buscar preguntas existentes en la tabla preguntas que correspondan al cuestionario de perfil
+        // Usar IDs reales que existan en la base de datos
+        const profileQuestions = [
+            { field: 'cargo', pregunta_id: 19, texto: '¿Cuál es tu cargo o puesto actual?' },
+            { field: 'area', pregunta_id: 20, texto: '¿En qué área funcional trabajas?' },
+            { field: 'nivel', pregunta_id: 21, texto: '¿Cuál es tu nivel organizacional?' },
+            { field: 'relacion', pregunta_id: 22, texto: '¿Cuál es tu relación con la empresa?' },
+            { field: 'sector', pregunta_id: 23, texto: '¿En qué sector de la industria trabajas?' },
+            { field: 'tamano', pregunta_id: 24, texto: '¿Cuál es el tamaño de tu empresa?' }
+        ];
+
+        // Crear respuestas para cada campo del formulario usando la estructura correcta
+        profileQuestions.forEach(question => {
+            const value = this.profileData[question.field];
+            if (value) {
+                responses.push({
+                    user_id: userId,
+                    pregunta_id: question.pregunta_id,
+                    valor: {
+                        respuesta: value,  // Usar 'respuesta' en lugar de 'answer' como en la imagen
+                        marca_de_tiempo: Date.now()  // Usar timestamp numérico como en la imagen
+                    }
+                });
+            }
+        });
+
+        if (responses.length === 0) {
+            console.log('⚠️ No hay respuestas para guardar en el cuestionario de perfil');
+            return;
+        }
+
+        console.log(`💾 Guardando ${responses.length} respuestas del cuestionario de perfil en tabla respuestas`);
+
+        try {
+            // Intentar guardar usando el servidor backend primero
+            const response = await fetch('/api/save-responses', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    responses: responses
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('✅ Respuestas del cuestionario de perfil guardadas a través del servidor:', result);
+            } else {
+                throw new Error(`Error del servidor: ${response.status}`);
+            }
+
+        } catch (serverError) {
+            console.warn('⚠️ Error con servidor backend, intentando Supabase directo...', serverError);
+            
+            // Fallback a Supabase directo
+            try {
+                const { error } = await window.supabase
+                    .from('respuestas')
+                    .insert(responses);
+                
+                if (error) {
+                    console.error('❌ Error detallado al guardar respuestas del perfil:', error);
+                    throw new Error(`Error guardando respuestas del perfil: ${error.message}`);
+                }
+                
+                console.log(`✅ ${responses.length} respuestas del cuestionario de perfil guardadas en tabla respuestas`);
+                
+            } catch (supabaseError) {
+                console.error('❌ Error con Supabase directo:', supabaseError);
+                throw new Error(`Error guardando respuestas del perfil: ${supabaseError.message}`);
+            }
+        }
     }
 
     backToForm() {

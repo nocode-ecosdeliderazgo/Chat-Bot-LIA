@@ -128,7 +128,76 @@ body {
     justify-content: center;
     padding: var(--spacing-md);
     position: relative;
+    z-index: 10;
+}
+
+/* ===== FONDO CON PARTÍCULAS ===== */
+.auth-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.bg-glow {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(68, 229, 255, 0.08) 0%, transparent 70%);
+    animation: glowRotate 20s linear infinite;
+}
+
+@keyframes glowRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#bgParticles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 1;
+    pointer-events: none;
+}
+
+.particles-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.floating-particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 3;
+}
+
+/* Animaciones para partículas flotantes */
+@keyframes orbitalMotion {
+    0% {
+        transform: rotate(0deg) translateX(100px) rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg) translateX(100px) rotate(-360deg);
+    }
+}
+
+@keyframes quantumFlicker {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
 }
 
 /* ===== TARJETA DE VERIFICACIÓN ===== */
@@ -144,6 +213,7 @@ body {
     animation: slideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     position: relative;
     overflow: hidden;
+    z-index: 20;
 }
 
 .verification-card::before {
@@ -527,6 +597,20 @@ body {
     background: rgba(68, 229, 255, 0.05);
 }
 
+/* ===== ESTILOS DE PARTÍCULAS PARA MODO CLARO ===== */
+[data-theme="light"] .floating-particle {
+    background: var(--course-primary);
+    box-shadow: 0 0 8px var(--course-primary);
+}
+
+[data-theme="light"] .bg-glow {
+    background: radial-gradient(circle, rgba(68, 229, 255, 0.15) 0%, transparent 70%);
+}
+
+[data-theme="light"] #bgParticles {
+    mix-blend-mode: multiply;
+}
+
 /* ===== ACCESIBILIDAD ===== */
 @media (prefers-reduced-motion: reduce) {
     * {
@@ -563,6 +647,7 @@ body {
     backdrop-filter: blur(10px);
     z-index: 1000;
     box-shadow: var(--shadow-md);
+    pointer-events: auto;
 }
 
 .theme-toggle-btn:hover {
