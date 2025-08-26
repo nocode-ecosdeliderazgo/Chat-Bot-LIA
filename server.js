@@ -3465,6 +3465,143 @@ app.get('/api/session-info', authenticateRequest, requireUserSession, async (req
 // Almacenar usuarios conectados al chat del livestream
 const livestreamUsers = new Map();
 
+// Endpoint para OpenAI API
+app.post('/api/openai', async (req, res) => {
+    console.log('[OPENAI API] 🚀 Nueva petición recibida');
+    console.log('[OPENAI API] 📝 Headers:', req.headers);
+    console.log('[OPENAI API] 📄 Body:', req.body);
+    
+    try {
+        // Verificar autenticación
+        const authHeader = req.headers.authorization;
+        const userId = req.headers['x-user-id'];
+        
+        console.log('[OPENAI API] 🔐 Auth header:', !!authHeader);
+        console.log('[OPENAI API] 👤 User ID:', userId);
+        
+        if (!authHeader || !userId) {
+            console.log('[OPENAI API] ❌ Falta autenticación');
+            return res.status(401).json({ error: 'Autenticación requerida' });
+        }
+        
+        // Verificar que tenemos la API key de OpenAI
+        if (!process.env.OPENAI_API_KEY) {
+            console.log('[OPENAI API] ❌ No hay API key de OpenAI configurada');
+            return res.status(500).json({ error: 'Configuración de OpenAI faltante' });
+        }
+        
+        const { prompt, context } = req.body;
+        
+        if (!prompt) {
+            console.log('[OPENAI API] ❌ No hay prompt en el body');
+            return res.status(400).json({ error: 'Prompt requerido' });
+        }
+        
+        console.log('[OPENAI API] 📝 Prompt recibido:', prompt);
+        console.log('[OPENAI API] 📋 Contexto:', context);
+        
+        // Construir el mensaje del sistema
+        const systemMessage = `Eres LIA (Learning Intelligence Assistant), un asistente de inteligencia artificial especializado en educación y capacitación en IA. 
+
+Tu objetivo es ayudar a los usuarios a comprender y aplicar conceptos de inteligencia artificial de manera efectiva.
+
+Personalidad:
+- Amigable pero profesional
+- Educativo y motivador
+- Práctico con ejemplos concretos
+- Adaptativo al nivel del usuario
+
+Formato de respuestas:
+- Usa emojis estratégicamente
+- Estructura con viñetas y numeración
+- Usa **negritas** para enfatizar
+- Mantén un tono positivo y motivador
+
+Contexto del usuario: ${context || 'No disponible'}`;
+
+        const messages = [
+            { role: 'system', content: systemMessage },
+            { role: 'user', content: prompt }
+        ];
+        
+        console.log('[OPENAI API] 🤖 Enviando petición a OpenAI...');
+        
+        const startTime = Date.now();
+        
+        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: process.env.CHATBOT_MODEL || 'gpt-4o-mini',
+                messages,
+                max_tokens: parseInt(process.env.CHATBOT_MAX_TOKENS || '1000', 10),
+                temperature: parseFloat(process.env.CHATBOT_TEMPERATURE || '0.7'),
+                top_p: 0.9
+            })
+        });
+        
+        const endTime = Date.now();
+        const responseTime = endTime - startTime;
+        
+        console.log('[OPENAI API] ⏱️ Tiempo de respuesta:', responseTime + 'ms');
+        console.log('[OPENAI API] 📡 Status de OpenAI:', openaiResponse.status);
+        
+        if (!openaiResponse.ok) {
+            const errorText = await openaiResponse.text();
+            console.log('[OPENAI API] ❌ Error de OpenAI:', errorText);
+            return res.status(500).json({ 
+                error: 'Error en la API de OpenAI', 
+                details: `Status ${openaiResponse.status}: ${errorText.substring(0, 200)}` 
+            });
+        }
+        
+        const data = await openaiResponse.json();
+        console.log('[OPENAI API] ✅ Respuesta de OpenAI recibida');
+        console.log('[OPENAI API] 📊 Usage:', data.usage);
+        
+        const content = data?.choices?.[0]?.message?.content;
+        
+        if (!content || !String(content).trim()) {
+            console.log('[OPENAI API] ⚠️ Respuesta vacía de OpenAI');
+            return res.status(200).json({ 
+                response: 'Lo siento, hubo un problema técnico con la respuesta.' 
+            });
+        }
+        
+        // Calcular costo estimado (aproximado)
+        const inputTokens = data.usage?.prompt_tokens || 0;
+        const outputTokens = data.usage?.completion_tokens || 0;
+        const model = process.env.CHATBOT_MODEL || 'gpt-4o-mini';
+        
+        let cost = 0;
+        if (model === 'gpt-4o-mini') {
+            cost = (inputTokens * 0.00015 + outputTokens * 0.0006) / 1000; // USD
+        } else if (model === 'gpt-3.5-turbo') {
+            cost = (inputTokens * 0.0015 + outputTokens * 0.002) / 1000; // USD
+        }
+        
+        console.log('[OPENAI API] 💰 Costo estimado: $' + cost.toFixed(6));
+        console.log('[OPENAI API] 🎯 Respuesta final:', content.substring(0, 100) + '...');
+        
+        res.json({
+            response: String(content).trim(),
+            usage: data.usage,
+            cost: cost.toFixed(6),
+            responseTime: responseTime
+        });
+        
+    } catch (error) {
+        console.error('[OPENAI API] 💥 Error:', error);
+        res.status(500).json({ 
+            error: 'Error procesando la solicitud',
+            details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+        });
+    }
+});
+
 // Configurar eventos de Socket.IO para el chat del livestream
 io.on('connection', (socket) => {
     console.log(`👤 Usuario conectado al livestream: ${socket.id}`);

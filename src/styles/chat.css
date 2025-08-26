@@ -1728,3 +1728,1170 @@ html, body {
 .live-stream-main-panel > * {
     background: rgba(20, 30, 45, 0.95) !important;
 }
+
+/* ===== RESPONSIVE DESIGN - MÓVILES Y TABLETS ===== */
+
+/* Reset básico para móviles */
+@media (max-width: 1024px) {
+    * {
+        box-sizing: border-box;
+    }
+    
+    html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .layout-3panels {
+        flex-direction: column !important;
+        height: 100vh !important;
+        width: 100vw !important;
+        overflow: hidden !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+    }
+    
+    /* Panel izquierdo - Chat en vivo */
+    .sidebar-left {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        height: auto !important;
+        max-height: 160px !important;
+        border-radius: 0 !important;
+        border-right: none !important;
+        border-bottom: 1px solid rgba(68, 229, 255, 0.15) !important;
+        flex-shrink: 0 !important;
+        order: 1 !important;
+    }
+    
+    .sidebar-left .sidebar-header {
+        padding: 8px 12px !important;
+        height: auto !important;
+        min-height: 40px !important;
+    }
+    
+    .sidebar-left .sidebar-header h3 {
+        font-size: 0.9rem !important;
+        margin: 0 !important;
+    }
+    
+    .sidebar-left .tool-list {
+        max-height: 120px !important;
+        overflow-y: auto !important;
+        padding: 8px !important;
+    }
+    
+    /* Chat en vivo compacto */
+    .livestream-chat-container {
+        max-height: 100px !important;
+        min-height: 80px !important;
+    }
+    
+    .livestream-chat-messages {
+        max-height: 50px !important;
+        min-height: 40px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    .livestream-chat-input {
+        padding: 6px !important;
+    }
+    
+    .livestream-chat-input input {
+        font-size: 0.7rem !important;
+        padding: 4px 6px !important;
+        height: 28px !important;
+    }
+    
+    .livestream-send-btn {
+        padding: 4px 6px !important;
+        font-size: 0.7rem !important;
+        height: 28px !important;
+        width: 28px !important;
+    }
+    
+    .connection-panel {
+        flex-direction: row !important;
+        gap: 4px !important;
+        padding: 4px !important;
+        flex-wrap: wrap !important;
+    }
+    
+    .toggle-btn {
+        padding: 4px 8px !important;
+        font-size: 0.7rem !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+    
+    /* Panel derecho - Studio */
+    .studio-right {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        height: auto !important;
+        max-height: 100px !important;
+        border-radius: 0 !important;
+        border-left: none !important;
+        border-top: 1px solid rgba(68, 229, 255, 0.15) !important;
+        flex-shrink: 0 !important;
+        order: 3 !important;
+    }
+    
+    .studio-right .studio-header {
+        padding: 6px 12px !important;
+        height: auto !important;
+        min-height: 30px !important;
+    }
+    
+    .studio-right .studio-header h3 {
+        font-size: 0.8rem !important;
+        margin: 0 !important;
+    }
+    
+    .studio-right .studio-cards {
+        max-height: 70px !important;
+        overflow-y: auto !important;
+        padding: 6px !important;
+    }
+    
+    /* Área principal - Live Stream y Presentación */
+    .chat-main {
+        flex: 1 !important;
+        margin: 0 !important;
+        padding: 4px !important;
+        gap: 4px !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        order: 2 !important;
+    }
+    
+    .live-stream-main-panel,
+    .presentation-main-panel {
+        height: auto !important;
+        min-height: 120px !important;
+        max-height: 45vh !important;
+        border-radius: 8px !important;
+        margin-bottom: 4px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .live-stream-main-header,
+    .presentation-main-header {
+        padding: 8px 12px !important;
+        min-height: 40px !important;
+    }
+    
+    .live-stream-main-header h3,
+    .presentation-main-header h3 {
+        font-size: 0.8rem !important;
+        margin: 0 !important;
+    }
+    
+    .live-stream-main-controls,
+    .presentation-main-controls {
+        gap: 2px !important;
+    }
+    
+    .live-stream-main-control-btn,
+    .presentation-main-control-btn {
+        padding: 4px !important;
+        border-radius: 6px !important;
+        font-size: 0.7rem !important;
+        min-width: 28px !important;
+        height: 28px !important;
+    }
+    
+    .live-stream-main-content,
+    .presentation-main-content {
+        padding: 8px !important;
+        min-height: 80px !important;
+    }
+    
+    .live-stream-main-placeholder,
+    .presentation-main-placeholder {
+        height: 80px !important;
+        min-height: 80px !important;
+        border-radius: 8px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    .live-stream-main-placeholder i,
+    .presentation-main-placeholder i {
+        font-size: 1.5rem !important;
+        margin-bottom: 4px !important;
+    }
+    
+    .live-stream-main-placeholder p,
+    .presentation-main-placeholder p {
+        font-size: 0.7rem !important;
+        margin: 0 !important;
+        text-align: center !important;
+    }
+    
+    .live-stream-main-connect-btn,
+    .load-presentation-main-btn {
+        padding: 6px 12px !important;
+        font-size: 0.7rem !important;
+        border-radius: 8px !important;
+        margin-top: 8px !important;
+    }
+    
+    /* Ocultar elementos innecesarios */
+    .left-resizer,
+    .right-resizer {
+        display: none !important;
+    }
+    
+    /* Paneles colapsados */
+    .sidebar-left.collapsed,
+    .studio-right.collapsed {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        height: 40px !important;
+        max-height: 40px !important;
+    }
+    
+    .sidebar-left.collapsed .tool-list,
+    .studio-right.collapsed .studio-cards {
+        display: none !important;
+    }
+    
+    .sidebar-left.collapsed .sidebar-header,
+    .studio-right.collapsed .studio-header {
+        height: 40px !important;
+        padding: 6px 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    .sidebar-left.collapsed .sidebar-header h3,
+    .studio-right.collapsed .studio-header h3 {
+        display: none !important;
+    }
+    
+    .sidebar-left.collapsed .collapse-btn,
+    .studio-right.collapsed .collapse-btn {
+        position: static !important;
+        margin: 0 !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* Dynamic Island responsive */
+    .message-input-area .input-container {
+        width: calc(100% - 8px) !important;
+        max-width: none !important;
+        bottom: 8px !important;
+        border-radius: 20px !important;
+        padding: 4px 8px !important;
+        min-height: 40px !important;
+        left: 4px !important;
+        transform: none !important;
+    }
+    
+    .plus-btn {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 1rem !important;
+    }
+    
+    .action-button {
+        width: 28px !important;
+        height: 28px !important;
+    }
+    
+    #messageInput {
+        font-size: 0.8rem !important;
+        padding: 4px 8px !important;
+        margin: 0 4px !important;
+        min-height: 20px !important;
+    }
+    
+    /* Ocultar chat principal en móvil */
+    .main-chat-container {
+        display: none !important;
+    }
+}
+
+/* Móviles pequeños */
+@media (max-width: 480px) {
+    .sidebar-left {
+        max-height: 140px !important;
+    }
+    
+    .sidebar-left .tool-list {
+        max-height: 100px !important;
+    }
+    
+    .livestream-chat-container {
+        max-height: 80px !important;
+        min-height: 60px !important;
+    }
+    
+    .livestream-chat-messages {
+        max-height: 40px !important;
+        min-height: 30px !important;
+    }
+    
+    .studio-right {
+        max-height: 80px !important;
+    }
+    
+    .studio-right .studio-cards {
+        max-height: 50px !important;
+    }
+    
+    .chat-main {
+        padding: 2px !important;
+        gap: 2px !important;
+    }
+    
+    .live-stream-main-panel,
+    .presentation-main-panel {
+        min-height: 100px !important;
+        max-height: 40vh !important;
+        border-radius: 6px !important;
+        margin-bottom: 2px !important;
+    }
+    
+    .live-stream-main-header,
+    .presentation-main-header {
+        padding: 6px 8px !important;
+        min-height: 35px !important;
+    }
+    
+    .live-stream-main-header h3,
+    .presentation-main-header h3 {
+        font-size: 0.7rem !important;
+    }
+    
+    .live-stream-main-controls,
+    .presentation-main-controls {
+        gap: 1px !important;
+    }
+    
+    .live-stream-main-control-btn,
+    .presentation-main-control-btn {
+        padding: 3px !important;
+        border-radius: 4px !important;
+        font-size: 0.6rem !important;
+        min-width: 24px !important;
+        height: 24px !important;
+    }
+    
+    .live-stream-main-content,
+    .presentation-main-content {
+        padding: 6px !important;
+        min-height: 60px !important;
+    }
+    
+    .live-stream-main-placeholder,
+    .presentation-main-placeholder {
+        height: 60px !important;
+        min-height: 60px !important;
+        border-radius: 6px !important;
+    }
+    
+    .live-stream-main-placeholder i,
+    .presentation-main-placeholder i {
+        font-size: 1.2rem !important;
+        margin-bottom: 2px !important;
+    }
+    
+    .live-stream-main-placeholder p,
+    .presentation-main-placeholder p {
+        font-size: 0.6rem !important;
+    }
+    
+    .live-stream-main-connect-btn,
+    .load-presentation-main-btn {
+        padding: 4px 8px !important;
+        font-size: 0.6rem !important;
+        border-radius: 6px !important;
+        margin-top: 4px !important;
+    }
+    
+    .livestream-chat-input input {
+        font-size: 0.6rem !important;
+        padding: 3px 4px !important;
+        height: 24px !important;
+    }
+    
+    .livestream-send-btn {
+        padding: 3px 4px !important;
+        font-size: 0.6rem !important;
+        height: 24px !important;
+        width: 24px !important;
+    }
+    
+    .connection-panel {
+        gap: 2px !important;
+        padding: 2px !important;
+    }
+    
+    .toggle-btn {
+        padding: 2px 4px !important;
+        font-size: 0.6rem !important;
+    }
+    
+    .message-input-area .input-container {
+        width: calc(100% - 4px) !important;
+        bottom: 4px !important;
+        border-radius: 18px !important;
+        padding: 3px 6px !important;
+        min-height: 36px !important;
+        left: 2px !important;
+    }
+    
+    .plus-btn {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 0.9rem !important;
+    }
+    
+    .action-button {
+        width: 24px !important;
+        height: 24px !important;
+    }
+    
+    #messageInput {
+        font-size: 0.7rem !important;
+        padding: 3px 6px !important;
+        margin: 0 3px !important;
+    }
+    
+    .sidebar-left.collapsed,
+    .studio-right.collapsed {
+        height: 30px !important;
+        max-height: 30px !important;
+    }
+    
+    .sidebar-left.collapsed .sidebar-header,
+    .studio-right.collapsed .studio-header {
+        height: 30px !important;
+        padding: 4px 8px !important;
+    }
+    
+    .sidebar-left.collapsed .collapse-btn,
+    .studio-right.collapsed .collapse-btn {
+        font-size: 0.7rem !important;
+    }
+}
+
+/* Pantallas muy pequeñas */
+@media (max-width: 320px) {
+    .sidebar-left {
+        max-height: 120px !important;
+    }
+    
+    .sidebar-left .tool-list {
+        max-height: 80px !important;
+    }
+    
+    .livestream-chat-container {
+        max-height: 70px !important;
+        min-height: 50px !important;
+    }
+    
+    .livestream-chat-messages {
+        max-height: 35px !important;
+        min-height: 25px !important;
+    }
+    
+    .studio-right {
+        max-height: 60px !important;
+    }
+    
+    .studio-right .studio-cards {
+        max-height: 40px !important;
+    }
+    
+    .chat-main {
+        padding: 1px !important;
+        gap: 1px !important;
+    }
+    
+    .live-stream-main-panel,
+    .presentation-main-panel {
+        min-height: 80px !important;
+        max-height: 35vh !important;
+        border-radius: 4px !important;
+        margin-bottom: 1px !important;
+    }
+    
+    .live-stream-main-header,
+    .presentation-main-header {
+        padding: 4px 6px !important;
+        min-height: 30px !important;
+    }
+    
+    .live-stream-main-header h3,
+    .presentation-main-header h3 {
+        font-size: 0.6rem !important;
+    }
+    
+    .live-stream-main-controls,
+    .presentation-main-controls {
+        gap: 1px !important;
+    }
+    
+    .live-stream-main-control-btn,
+    .presentation-main-control-btn {
+        padding: 2px !important;
+        border-radius: 3px !important;
+        font-size: 0.5rem !important;
+        min-width: 20px !important;
+        height: 20px !important;
+    }
+    
+    .live-stream-main-content,
+    .presentation-main-content {
+        padding: 4px !important;
+        min-height: 50px !important;
+    }
+    
+    .live-stream-main-placeholder,
+    .presentation-main-placeholder {
+        height: 50px !important;
+        min-height: 50px !important;
+        border-radius: 4px !important;
+    }
+    
+    .live-stream-main-placeholder i,
+    .presentation-main-placeholder i {
+        font-size: 1rem !important;
+        margin-bottom: 1px !important;
+    }
+    
+    .live-stream-main-placeholder p,
+    .presentation-main-placeholder p {
+        font-size: 0.5rem !important;
+    }
+    
+    .live-stream-main-connect-btn,
+    .load-presentation-main-btn {
+        padding: 3px 6px !important;
+        font-size: 0.5rem !important;
+        border-radius: 4px !important;
+        margin-top: 2px !important;
+    }
+    
+    .livestream-chat-input input {
+        font-size: 0.5rem !important;
+        padding: 2px 3px !important;
+        height: 20px !important;
+    }
+    
+    .livestream-send-btn {
+        padding: 2px 3px !important;
+        font-size: 0.5rem !important;
+        height: 20px !important;
+        width: 20px !important;
+    }
+    
+    .connection-panel {
+        gap: 1px !important;
+        padding: 1px !important;
+    }
+    
+    .toggle-btn {
+        padding: 1px 2px !important;
+        font-size: 0.5rem !important;
+    }
+    
+    .message-input-area .input-container {
+        width: calc(100% - 2px) !important;
+        bottom: 2px !important;
+        border-radius: 16px !important;
+        padding: 2px 4px !important;
+        min-height: 32px !important;
+        left: 1px !important;
+    }
+    
+    .plus-btn {
+        width: 20px !important;
+        height: 20px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .action-button {
+        width: 20px !important;
+        height: 20px !important;
+    }
+    
+    #messageInput {
+        font-size: 0.6rem !important;
+        padding: 2px 4px !important;
+        margin: 0 2px !important;
+    }
+    
+    .sidebar-left.collapsed,
+    .studio-right.collapsed {
+        height: 25px !important;
+        max-height: 25px !important;
+    }
+    
+    .sidebar-left.collapsed .sidebar-header,
+    .studio-right.collapsed .studio-header {
+        height: 25px !important;
+        padding: 3px 6px !important;
+    }
+    
+    .sidebar-left.collapsed .collapse-btn,
+    .studio-right.collapsed .collapse-btn {
+        font-size: 0.6rem !important;
+    }
+}
+
+/* Orientación landscape en móviles */
+@media (max-width: 768px) and (orientation: landscape) {
+    .layout-3panels {
+        flex-direction: row !important;
+        height: 100vh !important;
+    }
+    
+    .sidebar-left {
+        width: 180px !important;
+        max-width: 180px !important;
+        min-width: 180px !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        border-radius: 0 12px 12px 0 !important;
+        border-right: 1px solid rgba(68, 229, 255, 0.15) !important;
+        border-bottom: none !important;
+        order: 1 !important;
+    }
+    
+    .studio-right {
+        width: 120px !important;
+        max-width: 120px !important;
+        min-width: 120px !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        border-radius: 12px 0 0 12px !important;
+        border-left: 1px solid rgba(68, 229, 255, 0.15) !important;
+        border-top: none !important;
+        order: 3 !important;
+    }
+    
+    .chat-main {
+        flex: 1 !important;
+        margin: 0 !important;
+        padding: 6px !important;
+        gap: 6px !important;
+        min-height: 0 !important;
+        order: 2 !important;
+    }
+    
+    .live-stream-main-panel,
+    .presentation-main-panel {
+        height: 50% !important;
+        min-height: 150px !important;
+        max-height: none !important;
+    }
+    
+    .sidebar-left.collapsed {
+        width: 50px !important;
+        max-width: 50px !important;
+        min-width: 50px !important;
+    }
+    
+    .studio-right.collapsed {
+        width: 50px !important;
+        max-width: 50px !important;
+        min-width: 50px !important;
+    }
+}
+    
+    
+    
+    /* Chat en vivo responsive */
+    .livestream-chat-container {
+        max-height: 400px !important;
+        min-height: 300px !important;
+    }
+    
+    .livestream-chat-messages {
+        max-height: 250px !important;
+        min-height: 180px !important;
+    }
+    
+    .livestream-chat-input {
+        padding: 8px;
+    }
+    
+    .livestream-chat-input input {
+        font-size: 0.8rem;
+        padding: 6px 8px;
+    }
+    
+    .livestream-send-btn {
+        padding: 6px 8px;
+        font-size: 0.8rem;
+    }
+    
+    .connection-panel {
+        flex-direction: column;
+        gap: 6px;
+        padding: 6px;
+    }
+    
+    .toggle-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+    
+    /* Dynamic Island responsive */
+    .message-input-area .input-container {
+        width: calc(100% - 16px);
+        max-width: none;
+        bottom: 10px;
+        border-radius: 25px;
+        padding: 6px 12px;
+        min-height: 44px;
+    }
+    
+    .plus-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 1.1rem;
+    }
+    
+    .action-button {
+        width: 32px;
+        height: 32px;
+    }
+    
+    #messageInput {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+        margin: 0 6px;
+    }
+    
+    /* Ocultar elementos innecesarios en móvil */
+    .left-resizer,
+    .right-resizer {
+        display: none;
+    }
+    
+    .sidebar-left.collapsed,
+    .studio-right.collapsed {
+        width: 100%;
+        max-width: 100%;
+        min-width: 100%;
+        height: 50px;
+        max-height: 50px;
+    }
+    
+    .sidebar-left.collapsed .tool-list,
+    .studio-right.collapsed .studio-cards {
+        display: none;
+    }
+    
+    .sidebar-left.collapsed .sidebar-header,
+    .studio-right.collapsed .studio-header {
+        height: 50px;
+        padding: 8px 16px;
+    }
+    
+    .sidebar-left.collapsed .sidebar-header h3,
+    .studio-right.collapsed .studio-header h3 {
+        display: none;
+    }
+    
+    .sidebar-left.collapsed .collapse-btn,
+    .studio-right.collapsed .collapse-btn {
+        position: static;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+
+/* Breakpoint para móviles pequeños */
+@media (max-width: 480px) {
+    .layout-3panels {
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+    
+    .sidebar-left {
+        max-height: 150px;
+    }
+    
+    .studio-right {
+        max-height: 100px;
+    }
+    
+    .chat-main {
+        padding: 2px;
+        gap: 2px;
+    }
+    
+    .live-stream-main-panel,
+    .presentation-main-panel {
+        min-height: 120px;
+        max-height: 40vh;
+        border-radius: 8px;
+        margin-bottom: 4px;
+    }
+    
+    .live-stream-main-header,
+    .presentation-main-header {
+        padding: 8px 12px;
+    }
+    
+    .live-stream-main-header h3,
+    .presentation-main-header h3 {
+        font-size: 0.8rem;
+    }
+    
+    .live-stream-main-controls,
+    .presentation-main-controls {
+        gap: 2px;
+    }
+    
+    .live-stream-main-control-btn,
+    .presentation-main-control-btn {
+        padding: 4px;
+        border-radius: 6px;
+    }
+    
+    .live-stream-main-content,
+    .presentation-main-content {
+        padding: 8px;
+    }
+    
+    .live-stream-main-placeholder,
+    .presentation-main-placeholder {
+        height: 100px;
+        min-height: 100px;
+        border-radius: 8px;
+    }
+    
+    .live-stream-main-placeholder i,
+    .presentation-main-placeholder i {
+        font-size: 1.5rem;
+        margin-bottom: 6px;
+        
+    }
+    
+    .live-stream-main-placeholder p,
+    .presentation-main-placeholder p {
+        font-size: 0.7rem;
+    }
+    
+    .live-stream-main-connect-btn,
+    .load-presentation-main-btn {
+        padding: 6px 12px;
+        font-size: 0.7rem;
+        border-radius: 8px;
+    }
+    
+    /* Chat en vivo más compacto */
+    .livestream-chat-container {
+        max-height: 120px;
+    }
+    
+    .livestream-chat-messages {
+        max-height: 60px;
+        min-height: 50px;
+    }
+    
+    .livestream-chat-input {
+        padding: 6px;
+    }
+    
+    .livestream-chat-input input {
+        font-size: 0.7rem;
+        padding: 4px 6px;
+    }
+    
+    .livestream-send-btn {
+        padding: 4px 6px;
+        font-size: 0.7rem;
+    }
+    
+    .connection-panel {
+        gap: 4px;
+        padding: 4px;
+    }
+    
+    .toggle-btn {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+    
+    /* Dynamic Island más compacta */
+    .message-input-area .input-container {
+        width: calc(100% - 8px);
+        bottom: 8px;
+        border-radius: 22px;
+        padding: 4px 10px;
+        min-height: 40px;
+    }
+    
+    .plus-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 1rem;
+    }
+    
+    .action-button {
+        width: 28px;
+        height: 28px;
+    }
+    
+    #messageInput {
+        font-size: 0.8rem;
+        padding: 4px 10px;
+        margin: 0 4px;
+    }
+    
+    /* Paneles colapsados más compactos */
+    .sidebar-left.collapsed,
+    .studio-right.collapsed {
+        height: 40px;
+        max-height: 40px;
+    }
+    
+    .sidebar-left.collapsed .sidebar-header,
+    .studio-right.collapsed .studio-header {
+        height: 40px;
+        padding: 6px 12px;
+    }
+    
+    .sidebar-left.collapsed .collapse-btn,
+    .studio-right.collapsed .collapse-btn {
+        font-size: 0.8rem;
+    }
+}
+
+/* Orientación landscape en móviles */
+@media (max-width: 768px) and (orientation: landscape) {
+    .layout-3panels {
+        flex-direction: row;
+        height: 100vh;
+    }
+    
+    .sidebar-left {
+        width: 200px;
+        max-width: 200px;
+        min-width: 200px;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0 20px 20px 0;
+        border-right: 1px solid rgba(68, 229, 255, 0.15);
+        border-bottom: none;
+    }
+    
+    .studio-right {
+        width: 150px;
+        max-width: 150px;
+        min-width: 150px;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 20px 0 0 20px;
+        border-left: 1px solid rgba(68, 229, 255, 0.15);
+        border-top: none;
+        order: 3;
+    }
+    
+    .chat-main {
+        flex: 1;
+        margin: 0;
+        padding: 8px;
+        gap: 8px;
+        min-height: 0;
+    }
+    
+    .live-stream-main-panel,
+    .presentation-main-panel {
+        height: 50%;
+        min-height: 200px;
+        max-height: none;
+    }
+    
+    .sidebar-left.collapsed {
+        width: 60px;
+        max-width: 60px;
+        min-width: 60px;
+    }
+    
+    .studio-right.collapsed {
+        width: 60px;
+        max-width: 60px;
+        min-width: 60px;
+    }
+}
+
+/* Ajustes para pantallas muy pequeñas */
+@media (max-width: 320px) {
+    .layout-3panels {
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+    
+    .sidebar-left {
+        max-height: 120px;
+    }
+    
+    .studio-right {
+        max-height: 80px;
+    }
+    
+    .chat-main {
+        padding: 1px;
+        gap: 1px;
+    }
+    
+    .live-stream-main-panel,
+    .presentation-main-panel {
+        min-height: 100px;
+        max-height: 35vh;
+        border-radius: 6px;
+        margin-bottom: 2px;
+    }
+    
+    .live-stream-main-header,
+    .presentation-main-header {
+        padding: 6px 8px;
+    }
+    
+    .live-stream-main-header h3,
+    .presentation-main-header h3 {
+        font-size: 0.7rem;
+    }
+    
+    .live-stream-main-controls,
+    .presentation-main-controls {
+        gap: 1px;
+    }
+    
+    .live-stream-main-control-btn,
+    .presentation-main-control-btn {
+        padding: 3px;
+        border-radius: 4px;
+    }
+    
+    .live-stream-main-content,
+    .presentation-main-content {
+        padding: 6px;
+    }
+    
+    .live-stream-main-placeholder,
+    .presentation-main-placeholder {
+        height: 80px;
+        min-height: 80px;
+        border-radius: 6px;
+    }
+    
+    .live-stream-main-placeholder i,
+    .presentation-main-placeholder i {
+        font-size: 1.2rem;
+        margin-bottom: 4px;
+    }
+    
+    .live-stream-main-placeholder p,
+    .presentation-main-placeholder p {
+        font-size: 0.6rem;
+    }
+    
+    .live-stream-main-connect-btn,
+    .load-presentation-main-btn {
+        padding: 4px 8px;
+        font-size: 0.6rem;
+        border-radius: 6px;
+    }
+    
+    /* Chat en vivo ultra compacto */
+    .livestream-chat-container {
+        max-height: 100px;
+    }
+    
+    .livestream-chat-messages {
+        max-height: 50px;
+        min-height: 40px;
+    }
+    
+    .livestream-chat-input {
+        padding: 4px;
+    }
+    
+    .livestream-chat-input input {
+        font-size: 0.6rem;
+        padding: 3px 4px;
+    }
+    
+    .livestream-send-btn {
+        padding: 3px 4px;
+        font-size: 0.6rem;
+    }
+    
+    .connection-panel {
+        gap: 2px;
+        padding: 2px;
+    }
+    
+    .toggle-btn {
+        padding: 2px 4px;
+        font-size: 0.6rem;
+    }
+    
+    /* Dynamic Island ultra compacta */
+    .message-input-area .input-container {
+        width: calc(100% - 4px);
+        bottom: 4px;
+        border-radius: 20px;
+        padding: 3px 8px;
+        min-height: 36px;
+    }
+    
+    .plus-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 0.9rem;
+    }
+    
+    .action-button {
+        width: 24px;
+        height: 24px;
+    }
+    
+    #messageInput {
+        font-size: 0.7rem;
+        padding: 3px 8px;
+        margin: 0 3px;
+    }
+    
+    /* Paneles colapsados ultra compactos */
+    .sidebar-left.collapsed,
+    .studio-right.collapsed {
+        height: 30px;
+        max-height: 30px;
+    }
+    
+    .sidebar-left.collapsed .sidebar-header,
+    .studio-right.collapsed .studio-header {
+        height: 30px;
+        padding: 4px 8px;
+    }
+    
+    .sidebar-left.collapsed .collapse-btn,
+    .studio-right.collapsed .collapse-btn {
+        font-size: 0.7rem;
+    }
+}
