@@ -38,7 +38,9 @@
       "Bash(del \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\test-radar-views.js\")",
       "Bash(del \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\login\\test-credentials.html\")",
       "Bash(del \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\test-avatar-simple.html\")",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(sed:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
