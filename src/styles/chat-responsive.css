@@ -135,6 +135,38 @@
     white-space: nowrap !important;
 }
 
+/* ===== OCULTAR SELECTOR DE TIPO DE MENSAJE PARA MÁS ESPACIO ===== */
+
+/* Ocultar completamente el selector de tipo de mensaje */
+.message-type-selector {
+    display: none !important;
+}
+
+/* Ocultar el label del selector */
+.type-selector-label {
+    display: none !important;
+}
+
+/* Ocultar los botones de tipo de mensaje */
+.type-buttons-container {
+    display: none !important;
+}
+
+/* Ocultar botones individuales de tipo */
+.type-btn {
+    display: none !important;
+}
+
+/* Ajustar el input para que ocupe más espacio */
+.livestream-chat-input .input-wrapper {
+    margin-top: 0 !important;
+}
+
+/* Cambiar el placeholder del input */
+#livestreamMessageInput::placeholder {
+    content: "Escribe tu mensaje..." !important;
+}
+
 /* FORZAR QUE LOS CONTENEDORES PADRES NO LIMITEN EL ANCHO */
 .telegram-container, 
 .sidebar-left, 

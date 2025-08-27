@@ -288,7 +288,7 @@
                                     <input 
                                         type="text" 
                                         id="livestreamMessageInput" 
-                                        placeholder="Selecciona el tipo de mensaje arriba para comenzar..."
+                                        placeholder="Escribe tu mensaje..."
                                         maxlength="200"
                                     >
                                     <button id="livestreamSendBtn" class="livestream-send-btn" disabled title="Enviar mensaje">
@@ -2859,7 +2859,7 @@
                 // Inicializar sin ningún tipo de mensaje seleccionado por defecto
                 // Los usuarios deben seleccionar explícitamente el tipo de mensaje
                 if (liaMessageInput) {
-                    liaMessageInput.placeholder = 'Selecciona el tipo de mensaje arriba para comenzar...';
+                    liaMessageInput.placeholder = 'Escribe tu mensaje...';
                     liaMessageInput.disabled = true; // Deshabilitar hasta que se seleccione un tipo
                 }
                 if (liaSendBtn) {
