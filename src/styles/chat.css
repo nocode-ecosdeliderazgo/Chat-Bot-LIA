@@ -267,8 +267,8 @@ body.resizing * {
 
 .sidebar-left.collapsed ~ .chat-main .live-stream-main-panel,
 .sidebar-left.collapsed ~ .chat-main .presentation-main-panel {
-    width: calc(100% + 220px); /* 280px - 60px = 220px */
-    margin-left: -220px;
+    width: 100%; /* Usar el ancho completo disponible */
+    margin-left: 0; /* Sin margen negativo */
 }
 
 /* Ajustes específicos para el chat en vivo cuando el panel izquierdo está colapsado */
@@ -348,16 +348,16 @@ body.resizing * {
 
 .studio-right.collapsed ~ .chat-main .live-stream-main-panel,
 .studio-right.collapsed ~ .chat-main .presentation-main-panel {
-    width: calc(100% + 180px); /* 240px - 60px = 180px */
-    margin-right: -180px;
+    width: 100%; /* Usar el ancho completo disponible */
+    margin-right: 0; /* Sin margen negativo */
 }
 
 /* Cuando ambos paneles están colapsados */
 .sidebar-left.collapsed ~ .chat-main .studio-right.collapsed ~ .chat-main .live-stream-main-panel,
 .sidebar-left.collapsed ~ .chat-main .studio-right.collapsed ~ .chat-main .presentation-main-panel {
-    width: calc(100% + 400px); /* 220px + 180px = 400px */
-    margin-left: -220px;
-    margin-right: -180px;
+    width: 100%; /* Usar el ancho completo disponible */
+    margin-left: 0; /* Sin margen negativo */
+    margin-right: 0; /* Sin margen negativo */
 }
 
 /* Expansión automática cuando se colapsa un panel central */
