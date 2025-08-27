@@ -4485,6 +4485,7 @@ let livestreamChatState = {
 
 function initializeLivestreamChat() {
     console.log('[LIVESTREAM] Inicializando chat del livestream...');
+    console.log('[LIVESTREAM] Estado inicial del chat:', livestreamChatState);
     
     // Verificar que Socket.IO está disponible
     if (typeof io === 'undefined') {
@@ -4586,7 +4587,9 @@ function initializeLivestreamChat() {
 
         // Reintentar envío de pendientes
         if (livestreamChatState.pendingMessages.length > 0) {
+            console.log('[LIVESTREAM] Procesando mensajes pendientes:', livestreamChatState.pendingMessages.length);
             livestreamChatState.pendingMessages.forEach(p => {
+                console.log('[LIVESTREAM] Procesando mensaje pendiente:', p.messageType, p.message);
                 if (p.messageType === 'lia') {
                     sendMessageToLIA(p.message, p.id);
                 } else if (p.messageType) {
@@ -4598,6 +4601,13 @@ function initializeLivestreamChat() {
                 }
             });
         }
+        
+        // Verificar estado del selector después de la conexión
+        console.log('[LIVESTREAM] Estado del selector después de conexión:', {
+            messageType: livestreamChatState.messageType,
+            selectorExists: !!document.getElementById('messageTypeSelector'),
+            buttonsExist: document.querySelectorAll('#messageTypeSelector .type-btn').length
+        });
     });
 
     livestreamSocket.on('disconnect', () => {
@@ -4662,7 +4672,15 @@ function initializeLivestreamChat() {
     });
 
     // Inicializar selector de tipo de mensaje
-    initializeMessageTypeSelector();
+    console.log('[LIVESTREAM] Antes de inicializar selector...');
+    console.log('[LIVESTREAM] Elemento messageTypeSelector existe:', !!document.getElementById('messageTypeSelector'));
+    console.log('[LIVESTREAM] Elemento messageTypeSelector HTML:', document.getElementById('messageTypeSelector')?.outerHTML);
+    
+    // Esperar un poco para asegurar que el DOM esté completamente cargado
+    setTimeout(() => {
+        console.log('[LIVESTREAM] Inicializando selector después de delay...');
+        initializeMessageTypeSelector();
+    }, 100);
     
     // Eventos de la interfaz con guardas null-safe
     if (sendBtn) {
@@ -4676,32 +4694,75 @@ function initializeLivestreamChat() {
                 sendLivestreamMessage();
             }
         });
+        
+        // Agregar listener para actualizar el estado del botón cuando se escribe
+        messageInput.addEventListener('input', () => {
+            updateInputPlaceholder();
+        });
     }
 
     function initializeMessageTypeSelector() {
+        console.log('[LIVESTREAM] Inicializando selector de tipo de mensaje...');
         const typeSelector = document.getElementById('messageTypeSelector');
-        if (!typeSelector) return;
+        if (!typeSelector) {
+            console.error('[LIVESTREAM] Selector de tipo de mensaje no encontrado');
+            return;
+        }
 
         const typeBtns = typeSelector.querySelectorAll('.type-btn');
+        console.log('[LIVESTREAM] Botones encontrados:', typeBtns.length);
+        
         typeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
+            console.log('[LIVESTREAM] Configurando botón:', btn.dataset.type, 'Estado inicial:', btn.classList.contains('active'));
+            console.log('[LIVESTREAM] Botón HTML:', btn.outerHTML);
+            
+            btn.addEventListener('click', (e) => {
+                console.log('[LIVESTREAM] Botón clickeado:', btn.dataset.type);
+                console.log('[LIVESTREAM] Evento click recibido:', e);
+                e.preventDefault();
+                e.stopPropagation();
+                
                 // Remover clase active de todos los botones
-                typeBtns.forEach(b => b.classList.remove('active'));
+                typeBtns.forEach(b => {
+                    b.classList.remove('active');
+                    console.log('[LIVESTREAM] Removiendo active de:', b.dataset.type);
+                });
+                
                 // Agregar clase active al botón clickeado
                 btn.classList.add('active');
+                console.log('[LIVESTREAM] Agregando active a:', btn.dataset.type);
+                
+                // Agregar indicador visual temporal para debugging
+                btn.style.border = '2px solid red';
+                setTimeout(() => {
+                    btn.style.border = '';
+                }, 1000);
                 
                 // Actualizar el estado del tipo de mensaje
                 livestreamChatState.messageType = btn.dataset.type;
                 
-                // Actualizar placeholder del input
+                // Actualizar placeholder del input y estado del botón de envío
                 updateInputPlaceholder();
                 
                 console.log('[LIVESTREAM] Tipo de mensaje cambiado a:', livestreamChatState.messageType);
+                console.log('[LIVESTREAM] Estado actual del botón:', btn.classList.contains('active'));
             });
         });
         
         // No establecer tipo por defecto - el usuario debe seleccionar
         updateInputPlaceholder();
+        console.log('[LIVESTREAM] Selector inicializado. Estado inicial:', livestreamChatState.messageType);
+        
+        // Test: Simular un click en el botón LIA después de 2 segundos para debugging
+        setTimeout(() => {
+            const liaBtn = typeSelector.querySelector('[data-type="lia"]');
+            if (liaBtn) {
+                console.log('[LIVESTREAM] Test: Simulando click en botón LIA');
+                liaBtn.click();
+            } else {
+                console.error('[LIVESTREAM] Test: No se encontró el botón LIA');
+            }
+        }, 2000);
     }
 
     function updateInputPlaceholder() {
@@ -4715,15 +4776,71 @@ function initializeLivestreamChat() {
         messageInput.placeholder = livestreamChatState.messageType 
             ? placeholders[livestreamChatState.messageType] 
             : 'Selecciona LIA para preguntar...';
+            
+        // Actualizar estado del botón de envío
+        const sendBtn = document.getElementById('livestreamSendBtn');
+        if (sendBtn) {
+            const hasMessage = messageInput.value.trim().length > 0;
+            const hasType = livestreamChatState.messageType !== null;
+            sendBtn.disabled = !hasMessage || !hasType;
+            
+            console.log('[LIVESTREAM] Actualizando botón de envío:', {
+                hasMessage,
+                hasType,
+                disabled: sendBtn.disabled,
+                messageType: livestreamChatState.messageType
+            });
+        }
     }
+    
+    // Función global para testing desde la consola del navegador
+    window.testLiaButton = function() {
+        console.log('[TEST] Función global testLiaButton llamada');
+        const liaBtn = document.querySelector('[data-type="lia"]');
+        if (liaBtn) {
+            console.log('[TEST] Botón LIA encontrado:', liaBtn);
+            console.log('[TEST] HTML del botón:', liaBtn.outerHTML);
+            console.log('[TEST] Event listeners del botón:', liaBtn.onclick);
+            
+            // Verificar posición y elementos superpuestos
+            const rect = liaBtn.getBoundingClientRect();
+            console.log('[TEST] Posición del botón:', rect);
+            console.log('[TEST] Elementos en la posición del botón:', document.elementsFromPoint(rect.left + rect.width/2, rect.top + rect.height/2));
+            
+            // Verificar si el botón está visible
+            const style = window.getComputedStyle(liaBtn);
+            console.log('[TEST] Visibilidad del botón:', {
+                display: style.display,
+                visibility: style.visibility,
+                opacity: style.opacity,
+                pointerEvents: style.pointerEvents
+            });
+            
+            // Intentar hacer click manualmente
+            console.log('[TEST] Intentando click manual...');
+            liaBtn.click();
+            
+            // También intentar con dispatchEvent
+            console.log('[TEST] Intentando dispatchEvent...');
+            const clickEvent = new Event('click', { bubbles: true, cancelable: true });
+            liaBtn.dispatchEvent(clickEvent);
+        } else {
+            console.error('[TEST] Botón LIA no encontrado');
+        }
+    };
 
     function sendLivestreamMessage() {
+        console.log('[LIVESTREAM] Intentando enviar mensaje...');
         const message = messageInput.value.trim();
-        if (!message) return;
+        if (!message) {
+            console.log('[LIVESTREAM] Mensaje vacío, no se envía');
+            return;
+        }
 
         // Verificar que se haya seleccionado un tipo de mensaje
         if (!livestreamChatState.messageType) {
-            console.log('[LIVESTREAM] No se ha seleccionado tipo de mensaje');
+            console.log('[LIVESTREAM] No se ha seleccionado tipo de mensaje. Estado actual:', livestreamChatState.messageType);
+            alert('Por favor selecciona LIA antes de enviar un mensaje');
             return;
         }
 
