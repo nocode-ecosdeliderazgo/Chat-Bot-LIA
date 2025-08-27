@@ -28,6 +28,80 @@
     <link rel="stylesheet" href="styles/chat.css">
     <!-- Estilos responsive para móviles -->
     <link rel="stylesheet" href="styles/chat-responsive.css">
+    
+    <!-- Estilos para el selector de tipo de mensaje -->
+    <style>
+        .message-type-selector {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .type-selector-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .type-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            margin-right: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .type-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .type-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .type-btn i {
+            font-size: 14px;
+        }
+        
+        .type-btn span {
+            font-weight: 500;
+        }
+        
+        /* Estilos para modo oscuro */
+        [data-theme="dark"] .message-type-selector {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="dark"] .type-selector-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        [data-theme="dark"] .type-btn {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        [data-theme="dark"] .type-btn:hover {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
 </head>
 <body class="layout-notebook bg-glow-global">
     <!-- Header móvil con navegación -->
@@ -73,6 +147,11 @@
                             
                             <div class="livestream-chat-input">
                                 <div class="message-type-selector" id="messageTypeSelector">
+                                    <div class="type-selector-label">Selecciona el tipo de mensaje:</div>
+                                    <button class="type-btn" data-type="live" title="Enviar al chat en vivo">
+                                        <i class='bx bx-message'></i>
+                                        <span>Chat en Vivo</span>
+                                    </button>
                                     <button class="type-btn" data-type="lia" title="Enviar a LIA (Chatbot)">
                                         <i class='bx bx-brain'></i>
                                         <span>LIA</span>
@@ -82,7 +161,7 @@
                                     <input 
                                         type="text" 
                                         id="livestreamMessageInput" 
-                                        placeholder="Conectando al chat…"
+                                        placeholder="Selecciona el tipo de mensaje arriba para comenzar..."
                                         maxlength="200"
                                     >
                                     <button id="livestreamSendBtn" class="livestream-send-btn" disabled title="Enviar mensaje">
@@ -2448,20 +2527,64 @@
                     liaMessageInput.value = '';
                 }
                 
+                // Función para obtener el tipo de mensaje seleccionado
+                function getSelectedMessageType() {
+                    const activeTypeBtn = document.querySelector('.type-btn.active');
+                    return activeTypeBtn ? activeTypeBtn.dataset.type : null;
+                }
+
+                // Función para validar que se haya seleccionado un tipo de mensaje
+                function validateMessageTypeSelection() {
+                    const selectedType = getSelectedMessageType();
+                    if (!selectedType) {
+                        // Mostrar mensaje de alerta
+                        alert('Por favor, selecciona si quieres enviar el mensaje al chat en vivo o a LIA antes de enviar.');
+                        return false;
+                    }
+                    return true;
+                }
+
+                // Event listeners para los botones de tipo de mensaje
+                const typeBtns = document.querySelectorAll('.type-btn');
+                typeBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        // Remover clase active de todos los botones
+                        typeBtns.forEach(b => b.classList.remove('active'));
+                        // Agregar clase active al botón clickeado
+                        this.classList.add('active');
+                        
+                        // Log para debugging
+                        console.log('🎯 Tipo de mensaje seleccionado:', this.dataset.type);
+                        
+                        // Actualizar placeholder del input
+                        const messageType = this.dataset.type;
+                        if (messageType === 'lia') {
+                            liaMessageInput.placeholder = 'Escribe tu mensaje para LIA...';
+                        } else if (messageType === 'live') {
+                            liaMessageInput.placeholder = 'Escribe tu mensaje para el chat en vivo...';
+                        }
+                    });
+                });
+
                 // Event listeners para el chat
                 if (liaSendBtn && liaMessageInput) {
                     liaSendBtn.addEventListener('click', function() {
-                        // Determinar qué tipo de mensaje enviar basado en el modo activo
-                        const isLiaMode = btnChatLIA.classList.contains('active');
+                        // Validar que se haya seleccionado un tipo de mensaje
+                        if (!validateMessageTypeSelection()) {
+                            return;
+                        }
+
+                        // Determinar qué tipo de mensaje enviar basado en el tipo seleccionado
+                        const selectedType = getSelectedMessageType();
                         
-                        if (isLiaMode) {
+                        if (selectedType === 'lia') {
                             // Modo Chat LIA
                             const message = liaMessageInput.value.trim();
                             if (message) {
                                 sendMessageToLia(message);
                                 liaMessageInput.value = '';
                             }
-                        } else {
+                        } else if (selectedType === 'live') {
                             // Modo Chat en Vivo
                             sendLivestreamMessage();
                         }
@@ -2471,17 +2594,22 @@
                         if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
                             
-                            // Determinar qué tipo de mensaje enviar basado en el modo activo
-                            const isLiaMode = btnChatLIA.classList.contains('active');
+                            // Validar que se haya seleccionado un tipo de mensaje
+                            if (!validateMessageTypeSelection()) {
+                                return;
+                            }
                             
-                            if (isLiaMode) {
+                            // Determinar qué tipo de mensaje enviar basado en el tipo seleccionado
+                            const selectedType = getSelectedMessageType();
+                            
+                            if (selectedType === 'lia') {
                                 // Modo Chat LIA
                                 const message = liaMessageInput.value.trim();
                                 if (message) {
                                     sendMessageToLia(message);
                                     liaMessageInput.value = '';
                                 }
-                            } else {
+                            } else if (selectedType === 'live') {
                                 // Modo Chat en Vivo
                                 sendLivestreamMessage();
                             }
@@ -2502,10 +2630,11 @@
                     });
                 }
                 
-                // Inicializar con Chat LIA activado por defecto
-                toggleChatMode('lia');
+                // Inicializar sin ningún tipo de mensaje seleccionado por defecto
+                // Los usuarios deben seleccionar explícitamente el tipo de mensaje
+                liaMessageInput.placeholder = 'Selecciona el tipo de mensaje arriba para comenzar...';
                 
-                console.log('✅ Chat LIA inicializado correctamente');
+                console.log('✅ Chat inicializado - Usuario debe seleccionar tipo de mensaje');
             }
 
             // Inicializar todas las funcionalidades nuevas
