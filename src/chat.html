@@ -101,6 +101,129 @@
             background: rgba(0, 0, 0, 0.4);
             border-color: rgba(255, 255, 255, 0.2);
         }
+        
+        /* Asegurar que el input esté visible en paneles angostos */
+        .livestream-chat-input .input-wrapper {
+            display: flex !important;
+            gap: 8px !important;
+            align-items: flex-end !important;
+            margin-top: 12px !important;
+            width: 100% !important;
+        }
+        
+        .livestream-chat-input input {
+            flex: 1 !important;
+            min-width: 0 !important;
+            background: rgba(30, 41, 59, 0.8) !important;
+            border: 1px solid rgba(68, 229, 255, 0.2) !important;
+            border-radius: 8px !important;
+            padding: 10px !important;
+            color: #e2e8f0 !important;
+            font-size: 0.8rem !important;
+        }
+        
+        .livestream-send-btn {
+            flex-shrink: 0 !important;
+            background: linear-gradient(135deg, #44e5ff 0%, #1e40af 100%) !important;
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 10px !important;
+            color: white !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+            cursor: pointer !important;
+        }
+        
+        .livestream-send-btn:disabled {
+            background: #666 !important;
+            cursor: not-allowed !important;
+            opacity: 0.5 !important;
+        }
+        
+        /* Botones de tipo responsive */
+        .type-buttons-container {
+            display: flex !important;
+            gap: 6px !important;
+            flex-wrap: wrap !important;
+        }
+        
+        .type-btn {
+            flex: 1 !important;
+            min-width: 100px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            padding: 8px 12px !important;
+            font-size: 0.75rem !important;
+            white-space: nowrap !important;
+        }
+        
+        /* Panel izquierdo y estructura flex */
+        .sidebar-left {
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100vh !important;
+        }
+        
+        .tool-list {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow-y: auto !important;
+        }
+        
+        .tool-group.collapsible {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        
+        .collapsible-content {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        
+        /* Contenedor de chat usa todo el espacio restante */
+        .livestream-chat-container {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
+            min-height: 0 !important;
+        }
+        
+        /* Área de mensajes con más espacio */
+        .livestream-chat-messages {
+            flex: 1 !important;
+            min-height: 150px !important;
+            overflow-y: auto !important;
+        }
+        
+        /* Forzar visibilidad en pantallas angostas */
+        @media (max-width: 1200px) {
+            .type-buttons-container {
+                flex-direction: column !important;
+            }
+            
+            .type-btn {
+                width: 100% !important;
+                min-width: auto !important;
+            }
+            
+            .livestream-chat-container {
+                min-height: 450px !important;
+                max-height: 550px !important;
+            }
+        }
+        
+        @media (max-width: 1000px) {
+            .livestream-chat-container {
+                min-height: 400px !important;
+                max-height: 500px !important;
+            }
+        }
     </style>
 </head>
 <body class="layout-notebook bg-glow-global">
@@ -115,24 +238,24 @@
     </div>
     
     <div class="layout-3panels">
-        <aside class="sidebar-left" id="sidebarLeft">
+        <aside class="sidebar-left" id="sidebarLeft" style="display: flex !important; flex-direction: column !important; height: 100vh !important;">
             <div class="sidebar-header">
                 <h3>Herramientas</h3>
                 <button class="mobile-close-btn" id="mobileToolsClose" style="display: none;">Cerrar</button>
                 <button class="collapse-btn" id="collapseLeft" title="Ocultar/mostrar">⟨⟩</button>
             </div>
-            <nav class="tool-list">
+            <nav class="tool-list" style="flex: 1 !important; display: flex !important; flex-direction: column !important; overflow-y: auto !important;">
 
-                <div class="tool-group collapsible" id="livestreamSection">
+                <div class="tool-group collapsible" id="livestreamSection" style="flex: 1 !important; display: flex !important; flex-direction: column !important;">
                     <div class="collapsible-header">
                         <h4 style="margin:0">Chat en vivo</h4>
                         <button id="livestreamToggle" class="collapsible-toggle" aria-expanded="true" aria-controls="livestreamContent" title="Mostrar/Ocultar">
                             <i class='bx bx-chevron-up'></i>
                         </button>
                     </div>
-                    <div class="collapsible-content" id="livestreamContent" style="display: block;">
+                    <div class="collapsible-content" id="livestreamContent" style="display: flex !important; flex: 1 !important; flex-direction: column !important;">
                         <!-- Chat del Livestream -->
-                        <div class="livestream-chat-container">
+                        <div class="livestream-chat-container" style="height: 100% !important; min-height: 100% !important; display: flex !important; flex-direction: column !important; flex: 1 !important;">
                             <div class="livestream-chat-header">
                                 <h5>Chat en vivo</h5>
                                 <span class="users-count" id="livestreamUsersCount">0 usuarios</span>
@@ -147,15 +270,19 @@
                             
                             <div class="livestream-chat-input">
                                 <div class="message-type-selector" id="messageTypeSelector">
-                                    <div class="type-selector-label">Selecciona el tipo de mensaje:</div>
-                                    <button class="type-btn" data-type="live" title="Enviar al chat en vivo">
-                                        <i class='bx bx-message'></i>
-                                        <span>Chat en Vivo</span>
-                                    </button>
-                                    <button class="type-btn" data-type="lia" title="Enviar a LIA (Chatbot)">
-                                        <i class='bx bx-brain'></i>
-                                        <span>LIA</span>
-                                    </button>
+                                    <div class="type-selector-label" style="display: block; text-align: center; font-size: 0.8rem; margin-bottom: 8px; color: #44e5ff;">
+                                        Selecciona el tipo de mensaje:
+                                    </div>
+                                    <div class="type-buttons-container" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                        <button class="type-btn" data-type="live" title="Enviar al chat en vivo" style="flex: 1; min-width: 120px;">
+                                            <i class='bx bx-message'></i>
+                                            <span>Chat en Vivo</span>
+                                        </button>
+                                        <button class="type-btn" data-type="lia" title="Enviar a LIA (Chatbot)" style="flex: 1; min-width: 120px;">
+                                            <i class='bx bx-brain'></i>
+                                            <span>LIA</span>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="input-wrapper">
                                     <input 

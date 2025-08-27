@@ -200,8 +200,8 @@
         margin-bottom: 16px !important;
         display: flex !important;
         flex-direction: column !important;
-        min-height: 300px !important;
-        max-height: 400px !important;
+        min-height: 500px !important;
+        max-height: 600px !important;
     }
     
     .livestream-chat-header {
@@ -1051,6 +1051,131 @@
     
     .chat-main {
         margin-top: 0 !important;
+    }
+}
+
+/* ===== CORRECCIÓN PARA PANELES ANGOSTOS ===== */
+
+/* Cuando el panel izquierdo es menor a 300px */
+@media (max-width: 1200px) {
+    .sidebar-left {
+        min-width: 280px !important;
+    }
+    
+    /* Hacer el selector de tipo más compacto */
+    .message-type-selector {
+        flex-direction: column !important;
+        gap: 6px !important;
+        padding: 8px !important;
+    }
+    
+    .type-selector-label {
+        font-size: 0.75rem !important;
+        text-align: center !important;
+        margin-bottom: 4px !important;
+    }
+    
+    .type-btn {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 10px 8px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .type-btn span {
+        display: inline !important;
+    }
+    
+    .type-btn i {
+        margin-right: 6px !important;
+    }
+    
+    /* Asegurar que el input sea visible */
+    .livestream-chat-input .input-wrapper {
+        display: flex !important;
+        gap: 6px !important;
+        margin-top: 8px !important;
+    }
+    
+    .livestream-chat-input input {
+        min-width: 0 !important;
+        flex: 1 !important;
+        font-size: 0.8rem !important;
+        padding: 10px !important;
+    }
+    
+    .livestream-send-btn {
+        min-width: 40px !important;
+        padding: 10px !important;
+    }
+    
+    /* Contenedor de botones más compacto */
+    .contenedor-botones {
+        flex-direction: column !important;
+        gap: 8px !important;
+        margin-top: 12px !important;
+    }
+    
+    .contenedor-botones .toggle-btn,
+    .contenedor-botones .livestream-connection-status {
+        width: 100% !important;
+        min-width: auto !important;
+        font-size: 0.8rem !important;
+        padding: 10px !important;
+        min-height: 44px !important;
+    }
+}
+
+/* Para pantallas muy angostas o DevTools abierto */
+@media (max-width: 1000px) {
+    .sidebar-left {
+        width: 260px !important;
+        min-width: 260px !important;
+    }
+    
+    .livestream-chat-container {
+        padding: 8px !important;
+        min-height: 450px !important;
+        max-height: 550px !important;
+    }
+    
+    .message-type-selector {
+        flex-direction: column !important;
+    }
+    
+    .type-selector-label {
+        font-size: 0.7rem !important;
+        margin-bottom: 6px !important;
+        text-align: center !important;
+    }
+    
+    .type-btn {
+        width: 100% !important;
+        padding: 8px !important;
+        font-size: 0.7rem !important;
+        gap: 4px !important;
+    }
+    
+    .livestream-chat-input input {
+        font-size: 0.75rem !important;
+        padding: 8px !important;
+    }
+    
+    .livestream-send-btn {
+        min-width: 36px !important;
+        padding: 8px !important;
+    }
+    
+    .contenedor-botones .toggle-btn,
+    .contenedor-botones .livestream-connection-status {
+        font-size: 0.75rem !important;
+        padding: 8px 6px !important;
+        min-height: 40px !important;
+        gap: 6px !important;
+    }
+    
+    .contenedor-botones .toggle-btn i {
+        font-size: 1rem !important;
     }
 }
 
