@@ -319,7 +319,8 @@ app.get('/grafana/health', (req, res) => {
 // Ruta para servir imágenes de Grafana con cache y mejoras de conectividad
 app.get('/grafana/panel/:panelId.png', async (req, res) => {
     const panelId = req.params.panelId;
-    const cacheKey = `panel_${panelId}`;
+    const sessionId = req.query.session_id; // Obtener session_id del query parameter
+    const cacheKey = `panel_${panelId}_${sessionId || 'general'}`; // Incluir session_id en cache
     
     // Función para servir imagen estática como fallback
     const serveStaticFallback = () => {
@@ -368,7 +369,7 @@ app.get('/grafana/panel/:panelId.png', async (req, res) => {
             const fetch = (await import('node-fetch')).default;
             console.log(`🖼️ Solicitando panel de Grafana ${panelId}`);
 
-            // Configurar URL de renderizado de Grafana (sin session_id por ahora)
+            // Configurar URL de renderizado de Grafana
             const url = new URL(`${GRAFANA_URL}/render/d-solo/${DASH_UID}/${DASH_SLUG}`);
             url.searchParams.set("orgId", "1");
             url.searchParams.set("panelId", panelId);
@@ -377,6 +378,14 @@ app.get('/grafana/panel/:panelId.png', async (req, res) => {
             url.searchParams.set("theme", "dark");
             url.searchParams.set("width", "800");
             url.searchParams.set("height", "400");
+            
+            // Si se proporciona session_id, agregarlo como variable de Grafana
+            if (sessionId) {
+                url.searchParams.set("var-session_id", sessionId);
+                console.log(`👤 Usando session_id personalizado: ${sessionId}`);
+            } else {
+                console.log(`⚠️ No se proporcionó session_id, usando datos generales`);
+            }
 
             console.log(`🌐 Fetching: ${url.toString()}`);
 
@@ -1308,6 +1317,89 @@ app.get('/api/prompts', authenticateRequest, (req, res) => {
     } catch (error) {
         console.error('Error obteniendo prompts:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Endpoint para obtener session_id del usuario para personalización de Grafana
+app.get('/api/user/session', async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
+        
+        // Obtener user_id de los query parameters o headers
+        const userId = req.query.user_id || req.headers['x-user-id'] || req.headers['authorization']?.replace('Bearer ', '');
+
+        if (!userId) {
+            return res.status(400).json({ 
+                error: 'user_id requerido',
+                message: 'Proporciona user_id como query parameter o en el header x-user-id'
+            });
+        }
+
+        console.log(`🔍 Buscando session_id para usuario: ${userId}`);
+
+        // Buscar la sesión de cuestionario más reciente del usuario
+        const query = `
+            SELECT 
+                uqs.id as session_id,
+                uqs.user_id,
+                uqs.perfil,
+                uqs.area,
+                uqs.started_at,
+                uqs.completed_at,
+                COUNT(uqr.id) as responses_count
+            FROM user_questionnaire_sessions uqs
+            LEFT JOIN user_question_responses uqr ON uqs.id = uqr.session_id
+            WHERE uqs.user_id = $1
+            GROUP BY uqs.id, uqs.user_id, uqs.perfil, uqs.area, uqs.started_at, uqs.completed_at
+            ORDER BY uqs.started_at DESC
+            LIMIT 1
+        `;
+
+        const result = await pool.query(query, [userId]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ 
+                error: 'No se encontró cuestionario para este usuario',
+                user_id: userId,
+                suggestion: 'El usuario debe completar el cuestionario primero'
+            });
+        }
+
+        const sessionData = result.rows[0];
+
+        // Verificar si el cuestionario está completo
+        const isCompleted = sessionData.completed_at !== null;
+        const hasResponses = parseInt(sessionData.responses_count) > 0;
+
+        console.log(`✅ Sesión encontrada: ${sessionData.session_id}`);
+        console.log(`📊 Cuestionario completo: ${isCompleted ? 'Sí' : 'No'}`);
+        console.log(`📝 Respuestas: ${sessionData.responses_count}`);
+
+        return res.json({
+            session_id: sessionData.session_id,
+            user_id: sessionData.user_id,
+            perfil: sessionData.perfil,
+            area: sessionData.area,
+            started_at: sessionData.started_at,
+            completed_at: sessionData.completed_at,
+            is_completed: isCompleted,
+            responses_count: parseInt(sessionData.responses_count),
+            has_data: hasResponses,
+            grafana_ready: isCompleted && hasResponses,
+            debug: {
+                query_executed: true,
+                timestamp: new Date().toISOString()
+            }
+        });
+
+    } catch (error) {
+        console.error('💥 Error obteniendo session_id:', error);
+        
+        return res.status(500).json({ 
+            error: 'Error interno del servidor',
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
     }
 });
 
@@ -3748,5 +3840,452 @@ server.listen(PORT, () => {
     // Iniciar servicio de limpieza automática de OTPs
     otpCleanupService.startAutoCleanup(15); // Limpiar cada 15 minutos
 });
+
+// Endpoint temporal para verificar perfiles disponibles en questions_catalog
+app.get('/api/debug/profiles', async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+        
+        const result = await pool.query(`
+            SELECT DISTINCT perfil, COUNT(*) as count
+            FROM questions_catalog 
+            WHERE active = true 
+            GROUP BY perfil 
+            ORDER BY perfil
+        `);
+        
+        res.json({
+            profiles: result.rows,
+            total_profiles: result.rows.length
+        });
+        
+    } catch (error) {
+        console.error('Error obteniendo perfiles:', error);
+        res.status(500).json({ 
+            error: 'Error obteniendo perfiles',
+            details: error.message
+        });
+    }
+});
+
+// ============================================================================
+// VIDEO SDK ENDPOINTS - APR-31: Endpoints para iniciar/detener grabación
+// ============================================================================
+
+// Configuración del Video SDK
+const VIDEO_SDK_API_KEY = process.env.VIDEO_SDK_API_KEY;
+const VIDEO_SDK_SECRET_KEY = process.env.VIDEO_SDK_SECRET_KEY;
+const VIDEO_SDK_BASE_URL = 'https://api.videosdk.live';
+
+// Función para autenticar con Video SDK API
+async function authenticateVideoSDK() {
+    if (!VIDEO_SDK_API_KEY || !VIDEO_SDK_SECRET_KEY) {
+        throw new Error('Video SDK credentials not configured');
+    }
+    
+    // En un entorno real, aquí podrías implementar un sistema de tokens
+    // Por ahora, usamos las credenciales directamente
+    return {
+        apiKey: VIDEO_SDK_API_KEY,
+        secretKey: VIDEO_SDK_SECRET_KEY
+    };
+}
+
+// Función para hacer requests a la API del Video SDK
+async function makeVideoSDKRequest(endpoint, method = 'GET', body = null) {
+    try {
+        const credentials = await authenticateVideoSDK();
+        const url = `${VIDEO_SDK_BASE_URL}${endpoint}`;
+        
+        const options = {
+            method,
+            headers: {
+                'Authorization': `Bearer ${credentials.apiKey}`,
+                'Content-Type': 'application/json'
+            }
+        };
+        
+        if (body && method !== 'GET') {
+            options.body = JSON.stringify(body);
+        }
+        
+        const response = await fetch(url, options);
+        
+        if (!response.ok) {
+            throw new Error(`Video SDK API error: ${response.status} ${response.statusText}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error en Video SDK request:', error);
+        throw error;
+    }
+}
+
+// Función para registrar logs de auditoría
+async function logRecordingEvent(event, sessionId, userId, details = {}) {
+    try {
+        const logEntry = {
+            event,
+            sessionId,
+            userId,
+            timestamp: new Date().toISOString(),
+            details,
+            ip: req?.ip || 'unknown'
+        };
+        
+        console.log(`📹 [VIDEO SDK] ${event}:`, logEntry);
+        
+        // Aquí podrías guardar en base de datos si es necesario
+        // await pool.query('INSERT INTO recording_logs (event, session_id, user_id, details) VALUES ($1, $2, $3, $4)', 
+        //     [event, sessionId, userId, JSON.stringify(details)]);
+        
+    } catch (error) {
+        console.error('Error logging recording event:', error);
+    }
+}
+
+// Endpoint para iniciar grabación
+app.post('/api/videosdk/recording/start', authenticateRequest, async (req, res) => {
+    try {
+        const { sessionId, userId } = req.body;
+        
+        if (!sessionId) {
+            return res.status(400).json({ 
+                error: 'sessionId es requerido',
+                code: 'MISSING_SESSION_ID'
+            });
+        }
+        
+        // Validar que el usuario tiene permisos para iniciar grabación
+        const user = req.user;
+        if (!user || !user.id) {
+            return res.status(401).json({ 
+                error: 'Usuario no autenticado',
+                code: 'UNAUTHORIZED'
+            });
+        }
+        
+        console.log(`🎬 Iniciando grabación para sesión: ${sessionId}, usuario: ${user.id}`);
+        
+        // Llamar a la API del Video SDK para iniciar grabación
+        const recordingData = await makeVideoSDKRequest('/v2/recordings/start', 'POST', {
+            sessionId: sessionId,
+            // Otros parámetros según la documentación del Video SDK
+        });
+        
+        // Registrar el evento
+        await logRecordingEvent('recording_started', sessionId, user.id, {
+            recordingId: recordingData.recordingId,
+            status: recordingData.status
+        });
+        
+        res.json({
+            success: true,
+            message: 'Grabación iniciada exitosamente',
+            recordingId: recordingData.recordingId,
+            status: recordingData.status,
+            sessionId: sessionId
+        });
+        
+    } catch (error) {
+        console.error('Error iniciando grabación:', error);
+        
+        // Registrar el error
+        await logRecordingEvent('recording_start_error', req.body.sessionId, req.user?.id, {
+            error: error.message
+        });
+        
+        res.status(500).json({
+            error: 'Error al iniciar la grabación',
+            details: error.message,
+            code: 'RECORDING_START_ERROR'
+        });
+    }
+});
+
+// Endpoint para detener grabación
+app.post('/api/videosdk/recording/stop', authenticateRequest, async (req, res) => {
+    try {
+        const { sessionId, recordingId, userId } = req.body;
+        
+        if (!sessionId || !recordingId) {
+            return res.status(400).json({ 
+                error: 'sessionId y recordingId son requeridos',
+                code: 'MISSING_PARAMETERS'
+            });
+        }
+        
+        // Validar que el usuario tiene permisos para detener grabación
+        const user = req.user;
+        if (!user || !user.id) {
+            return res.status(401).json({ 
+                error: 'Usuario no autenticado',
+                code: 'UNAUTHORIZED'
+            });
+        }
+        
+        console.log(`⏹️ Deteniendo grabación: ${recordingId}, sesión: ${sessionId}, usuario: ${user.id}`);
+        
+        // Llamar a la API del Video SDK para detener grabación
+        const stopData = await makeVideoSDKRequest(`/v2/recordings/${recordingId}/stop`, 'POST', {
+            sessionId: sessionId
+        });
+        
+        // Registrar el evento
+        await logRecordingEvent('recording_stopped', sessionId, user.id, {
+            recordingId: recordingId,
+            status: stopData.status,
+            downloadUrl: stopData.downloadUrl
+        });
+        
+        res.json({
+            success: true,
+            message: 'Grabación detenida exitosamente',
+            recordingId: recordingId,
+            status: stopData.status,
+            downloadUrl: stopData.downloadUrl,
+            sessionId: sessionId
+        });
+        
+    } catch (error) {
+        console.error('Error deteniendo grabación:', error);
+        
+        // Registrar el error
+        await logRecordingEvent('recording_stop_error', req.body.sessionId, req.user?.id, {
+            error: error.message,
+            recordingId: req.body.recordingId
+        });
+        
+        res.status(500).json({
+            error: 'Error al detener la grabación',
+            details: error.message,
+            code: 'RECORDING_STOP_ERROR'
+        });
+    }
+});
+
+// Endpoint para obtener estado de grabación
+app.get('/api/videosdk/recording/status/:recordingId', authenticateRequest, async (req, res) => {
+    try {
+        const { recordingId } = req.params;
+        
+        if (!recordingId) {
+            return res.status(400).json({ 
+                error: 'recordingId es requerido',
+                code: 'MISSING_RECORDING_ID'
+            });
+        }
+        
+        // Validar autenticación
+        const user = req.user;
+        if (!user || !user.id) {
+            return res.status(401).json({ 
+                error: 'Usuario no autenticado',
+                code: 'UNAUTHORIZED'
+            });
+        }
+        
+        console.log(`📊 Consultando estado de grabación: ${recordingId}`);
+        
+        // Llamar a la API del Video SDK para obtener estado
+        const statusData = await makeVideoSDKRequest(`/v2/recordings/${recordingId}`);
+        
+        res.json({
+            success: true,
+            recordingId: recordingId,
+            status: statusData.status,
+            downloadUrl: statusData.downloadUrl,
+            duration: statusData.duration,
+            createdAt: statusData.createdAt,
+            updatedAt: statusData.updatedAt
+        });
+        
+    } catch (error) {
+        console.error('Error obteniendo estado de grabación:', error);
+        
+        res.status(500).json({
+            error: 'Error al obtener el estado de la grabación',
+            details: error.message,
+            code: 'RECORDING_STATUS_ERROR'
+        });
+    }
+});
+
+// Endpoint para listar grabaciones de una sesión
+app.get('/api/videosdk/recordings/:sessionId', authenticateRequest, async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        
+        if (!sessionId) {
+            return res.status(400).json({ 
+                error: 'sessionId es requerido',
+                code: 'MISSING_SESSION_ID'
+            });
+        }
+        
+        // Validar autenticación
+        const user = req.user;
+        if (!user || !user.id) {
+            return res.status(401).json({ 
+                error: 'Usuario no autenticado',
+                code: 'UNAUTHORIZED'
+            });
+        }
+        
+        console.log(`📋 Listando grabaciones para sesión: ${sessionId}`);
+        
+        // Llamar a la API del Video SDK para listar grabaciones
+        const recordingsData = await makeVideoSDKRequest(`/v2/recordings?sessionId=${sessionId}`);
+        
+        res.json({
+            success: true,
+            sessionId: sessionId,
+            recordings: recordingsData.recordings || [],
+            total: recordingsData.total || 0
+        });
+        
+    } catch (error) {
+        console.error('Error listando grabaciones:', error);
+        
+        res.status(500).json({
+            error: 'Error al listar las grabaciones',
+            details: error.message,
+            code: 'RECORDINGS_LIST_ERROR'
+        });
+    }
+});
+
+// ============================================================================
+// VIDEO SDK JWT ENDPOINT - APR-28: Endpoint para generar JWT con role_type
+// ============================================================================
+
+// Endpoint para generar JWT de Video SDK
+app.post('/api/videosdk/jwt', async (req, res) => {
+    try {
+        const { sessionName, userName, roleType = 0 } = req.body;
+        
+        // Validar parámetros requeridos
+        if (!sessionName || !userName) {
+            return res.status(400).json({ 
+                error: 'sessionName y userName son requeridos',
+                code: 'MISSING_PARAMETERS'
+            });
+        }
+        
+        // Validar que el usuario está autenticado
+        const user = req.user;
+        if (!user || !user.id) {
+            return res.status(401).json({ 
+                error: 'Usuario no autenticado',
+                code: 'UNAUTHORIZED'
+            });
+        }
+        
+        // Validar roleType (0 = user, 1 = host)
+        if (roleType !== 0 && roleType !== 1) {
+            return res.status(400).json({ 
+                error: 'roleType debe ser 0 (user) o 1 (host)',
+                code: 'INVALID_ROLE_TYPE'
+            });
+        }
+        
+        // Verificar permisos para role_type:1 (host)
+        if (roleType === 1) {
+            // Aquí puedes agregar lógica para verificar si el usuario tiene permisos de host
+            // Por ejemplo, verificar si es instructor, administrador, etc.
+            const hasHostPermissions = await checkHostPermissions(user.id);
+            if (!hasHostPermissions) {
+                return res.status(403).json({ 
+                    error: 'No tienes permisos para ser host',
+                    code: 'INSUFFICIENT_PERMISSIONS'
+                });
+            }
+        }
+        
+        console.log(`🔐 Generando JWT para sesión: ${sessionName}, usuario: ${userName}, rol: ${roleType}`);
+        
+        // Generar passcode aleatorio para la sesión
+        const sessionPasscode = generateSessionPasscode();
+        
+        // Crear payload del JWT según especificación del Video SDK
+        const now = Math.floor(Date.now() / 1000);
+        const payload = {
+            app_key: VIDEO_SDK_API_KEY,
+            tpc: sessionName,
+            role_type: roleType,
+            iat: now,
+            exp: now + 3600, // Expira en 1 hora
+            version: 2
+        };
+        
+        // Firmar el JWT con el secret key del Video SDK
+        const jwtToken = jwt.sign(payload, VIDEO_SDK_SECRET_KEY, { 
+            algorithm: 'HS256',
+            expiresIn: '1h'
+        });
+        
+        // Registrar el evento de generación de JWT
+        console.log(`✅ JWT generado exitosamente para usuario: ${user.id}, sesión: ${sessionName}`);
+        
+        res.json({
+            success: true,
+            jwt: jwtToken,
+            sessionName: sessionName,
+            userName: userName,
+            sessionPasscode: sessionPasscode,
+            roleType: roleType,
+            expiresAt: new Date((now + 3600) * 1000).toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Error generando JWT de Video SDK:', error);
+        
+        res.status(500).json({
+            error: 'Error al generar el JWT',
+            details: error.message,
+            code: 'JWT_GENERATION_ERROR'
+        });
+    }
+});
+
+// Función para verificar permisos de host
+async function checkHostPermissions(userId) {
+    try {
+        // Verificar si el usuario tiene permisos de host en la base de datos
+        if (!pool) {
+            console.warn('⚠️ Base de datos no disponible, permitiendo host por defecto');
+            return true; // En desarrollo, permitir por defecto
+        }
+        
+        const result = await pool.query(`
+            SELECT cargo_rol 
+            FROM users 
+            WHERE id = $1 AND active = true
+        `, [userId]);
+        
+        if (result.rows.length === 0) {
+            return false;
+        }
+        
+        const userRole = result.rows[0].cargo_rol;
+        
+        // Permitir host a instructores y administradores
+        const allowedRoles = ['instructor', 'administrador', 'admin'];
+        return allowedRoles.includes(userRole?.toLowerCase());
+        
+    } catch (error) {
+        console.error('Error verificando permisos de host:', error);
+        return false;
+    }
+}
+
+// Función para generar passcode de sesión
+function generateSessionPasscode() {
+    // Generar un passcode de 6 dígitos
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 module.exports = app;

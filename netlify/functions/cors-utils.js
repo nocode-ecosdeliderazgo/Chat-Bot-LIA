@@ -103,7 +103,26 @@ function createCorsResponse(status, data, event = null, includeCredentials = fal
     };
 }
 
+function getCorsHeaders(event) {
+    const origin = event && (event.headers['origin'] || event.headers['Origin']);
+    const originAllowed = isOriginAllowed(origin);
+    
+    if (!originAllowed) {
+        return {
+            'Content-Type': 'application/json'
+        };
+    }
+    
+    return {
+        'Access-Control-Allow-Origin': origin || '*',
+        'Vary': 'Origin',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With, Authorization, X-User-Id, X-API-Key',
+        'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,PUT,DELETE'
+    };
+}
+
 module.exports = {
     isOriginAllowed,
-    createCorsResponse
+    createCorsResponse,
+    getCorsHeaders
 };

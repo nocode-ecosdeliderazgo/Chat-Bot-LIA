@@ -387,8 +387,9 @@ class ProfileQuestionnaire {
         // Guardar datos de telemetría (ahora con perfilFinal correcto)
         this.saveProfileData();
 
-        // Redirigir a la página principal después de guardar los datos
-        window.location.href = 'cursos.html';
+        // Redirigir al cuestionario GenAI para que complete el cuestionario
+        const route = this.getProfileRoute(finalProfile);
+        window.location.href = route;
     }
 
     getProfileRoute(profile) {
