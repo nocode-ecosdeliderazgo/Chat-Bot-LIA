@@ -2401,6 +2401,12 @@
                         btnChatLIA.classList.add('active');
                         btnChatEnVivo.classList.remove('active');
                         
+                        // Actualizar también los botones de tipo de mensaje ocultos para compatibilidad
+                        const typeBtns = document.querySelectorAll('.type-btn');
+                        typeBtns.forEach(btn => btn.classList.remove('active'));
+                        const liaTypeBtn = document.querySelector('.type-btn[data-type="lia"]');
+                        if (liaTypeBtn) liaTypeBtn.classList.add('active');
+                        
                         // Desconectar del chat en vivo si está conectado
                         if (window.livestreamSocket && window.livestreamSocket.connected) {
                             console.log('📡 Desconectando del chat en vivo...');
@@ -2450,16 +2456,22 @@
                         btnChatLIA.classList.remove('active');
                         btnChatEnVivo.classList.add('active');
                         
+                        // Actualizar también los botones de tipo de mensaje ocultos para compatibilidad
+                        const typeBtns = document.querySelectorAll('.type-btn');
+                        typeBtns.forEach(btn => btn.classList.remove('active'));
+                        const liveTypeBtn = document.querySelector('.type-btn[data-type="live"]');
+                        if (liveTypeBtn) liveTypeBtn.classList.add('active');
+                        
                         // Conectar al chat en vivo
                         console.log('📡 Conectando al chat en vivo...');
                         
-                        // Cambiar placeholder y deshabilitar input temporalmente
+                        // Cambiar placeholder y habilitar input inmediatamente
                         if (liaMessageInput) {
-                            liaMessageInput.placeholder = 'Conectando al chat en vivo...';
-                            liaMessageInput.disabled = true;
+                            liaMessageInput.placeholder = 'Escribe un mensaje para el chat en vivo...';
+                            liaMessageInput.disabled = false;
                         }
                         if (liaSendBtn) {
-                            liaSendBtn.disabled = true;
+                            liaSendBtn.disabled = false;
                         }
                         
                         // Limpiar mensajes y mostrar mensaje de conexión
@@ -2710,7 +2722,23 @@
                 // Función para enviar mensaje al chat en vivo
                 function sendLivestreamMessage() {
                     const message = liaMessageInput.value.trim();
-                    if (!message || !window.livestreamSocket || !window.livestreamSocket.connected) return;
+                    if (!message) return;
+                    
+                    // Si no hay socket o no está conectado, mostrar mensaje de error
+                    if (!window.livestreamSocket || !window.livestreamSocket.connected) {
+                        addLivestreamMessage({
+                            username: 'Sistema',
+                            message: 'No se pudo enviar el mensaje. Intentando reconectar...',
+                            timestamp: new Date().toISOString(),
+                            type: 'system'
+                        });
+                        
+                        // Intentar reconectar
+                        if (typeof initializeLivestreamSocket === 'function') {
+                            initializeLivestreamSocket();
+                        }
+                        return;
+                    }
                     
                     const clientMessageId = `c_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
                     
@@ -2734,6 +2762,15 @@
                 
                 // Función para obtener el tipo de mensaje seleccionado
                 function getSelectedMessageType() {
+                    // Primero verificar si hay un botón toggle activo
+                    const activeToggleBtn = document.querySelector('.toggle-btn.active');
+                    if (activeToggleBtn) {
+                        const target = activeToggleBtn.dataset.target;
+                        if (target === 'lia-chat') return 'lia';
+                        if (target === 'live-chat') return 'live';
+                    }
+                    
+                    // Fallback: verificar botones de tipo de mensaje (para compatibilidad)
                     const activeTypeBtn = document.querySelector('.type-btn.active');
                     return activeTypeBtn ? activeTypeBtn.dataset.type : null;
                 }
@@ -2742,9 +2779,12 @@
                 function validateMessageTypeSelection() {
                     const selectedType = getSelectedMessageType();
                     if (!selectedType) {
-                        // Mostrar mensaje de alerta
-                        alert('Por favor, selecciona si quieres enviar el mensaje al chat en vivo o a LIA antes de enviar.');
-                        return false;
+                        // Mostrar mensaje de alerta solo si no hay un botón toggle activo
+                        const activeToggleBtn = document.querySelector('.toggle-btn.active');
+                        if (!activeToggleBtn) {
+                            alert('Por favor, selecciona si quieres enviar el mensaje al chat en vivo o a LIA antes de enviar.');
+                            return false;
+                        }
                     }
                     return true;
                 }
@@ -2856,15 +2896,19 @@
                     });
                 }
                 
-                // Inicializar sin ningún tipo de mensaje seleccionado por defecto
-                // Los usuarios deben seleccionar explícitamente el tipo de mensaje
+                // Inicializar con Chat LIA activo por defecto
+                // El botón Chat LIA ya tiene la clase 'active' en el HTML
                 if (liaMessageInput) {
-                    liaMessageInput.placeholder = 'Escribe tu mensaje...';
-                    liaMessageInput.disabled = true; // Deshabilitar hasta que se seleccione un tipo
+                    liaMessageInput.placeholder = 'Escribe tu pregunta para LIA...';
+                    liaMessageInput.disabled = false; // Habilitar por defecto
                 }
                 if (liaSendBtn) {
-                    liaSendBtn.disabled = true; // Mantener botón deshabilitado
+                    liaSendBtn.disabled = false; // Habilitar por defecto
                 }
+                
+                // Asegurar que el botón de tipo de mensaje LIA esté activo para compatibilidad
+                const liaTypeBtn = document.querySelector('.type-btn[data-type="lia"]');
+                if (liaTypeBtn) liaTypeBtn.classList.add('active');
                 
                 console.log('✅ Chat inicializado - Usuario debe seleccionar tipo de mensaje');
                 console.log('🔧 VERSIÓN CORREGIDA - Timestamp:', new Date().toLocaleTimeString());
