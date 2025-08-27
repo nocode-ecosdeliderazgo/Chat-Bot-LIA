@@ -144,9 +144,177 @@ body.layout-notebook { padding: 1px; align-items: stretch; justify-content: stre
 }
 /* Cuando el panel izquierdo esté colapsado, elimina por completo su columna para que el chat no quede "cortado" */
 /* Mantener columna mínima al colapsar (no desaparecer), pero ocultar widgets pesados */
-body.left-collapsed #livestreamSection { display: none; }
+body.left-collapsed #livestreamSection { 
+    display: none !important; 
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
 body.left-collapsed #glossarySection { display: none; }
 body.left-collapsed #videosSection { display: none; }
+
+/* Reglas adicionales para asegurar que todo el contenido del chat se oculte completamente */
+body.left-collapsed .tool-group.collapsible {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .collapsible-content {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .livestream-chat-container {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .livestream-chat-messages {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .livestream-chat-input {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .contenedor-botones {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .botones-principales {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .toggle-btn {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .livestream-connection-status {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .message-type-selector {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .type-buttons-container {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .type-btn {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .input-wrapper {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .livestream-send-btn {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .livestream-chat-header {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .welcome-message {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .type-selector-label {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .status-indicator {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .status-text {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.left-collapsed .users-count {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
 .studio-rail { display:none; gap:8px; padding: 8px; }
 .rail-btn { width: 44px; height: 44px; border-radius: 10px; border: 1px solid rgba(68,229,255,.25); background: rgba(255,255,255,.04); color: var(--text-on-dark); cursor: pointer; }
 .rail-btn i { font-size: 20px; }

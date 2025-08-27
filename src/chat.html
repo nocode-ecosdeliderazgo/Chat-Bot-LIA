@@ -22,8 +22,6 @@
     
     <!-- Global theme setup - Configuración global del tema -->
     <script src="scripts/global-theme-setup.js"></script>
-    <!-- Socket.IO para chat en vivo -->
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <!-- Enlazar archivo CSS separado -->
     <link rel="stylesheet" href="styles/chat.css">
     <!-- Estilos responsive para móviles -->
@@ -557,7 +555,9 @@
         })();
     </script>
     <!-- Nota: Se omite 'integrity' porque el CDN puede rotar hashes; esto evitaba que el navegador bloquee la carga -->
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" 
+            onload="console.log('✅ Socket.IO script loaded successfully')"
+            onerror="console.error('❌ Failed to load Socket.IO from CDN')"></script>
     <script src="scripts/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -2609,7 +2609,8 @@
                     }
                     
                     // Inicializar conexión Socket.IO si no existe
-                    if (typeof io !== 'undefined') {
+                    console.log('🔍 Verificando disponibilidad de Socket.IO:', typeof io);
+                    if (typeof io !== 'undefined' && io) {
                         try {
                             const ioOrigin = (typeof window !== 'undefined' && window.SOCKET_IO_ORIGIN) ? window.SOCKET_IO_ORIGIN : '';
                             window.livestreamSocket = io(ioOrigin || undefined, {

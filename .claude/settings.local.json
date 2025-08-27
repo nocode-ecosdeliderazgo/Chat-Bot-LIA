@@ -40,7 +40,8 @@
       "Bash(del \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\src\\test-avatar-simple.html\")",
       "Bash(find:*)",
       "Bash(grep:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

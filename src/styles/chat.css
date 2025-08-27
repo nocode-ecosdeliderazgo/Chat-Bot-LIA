@@ -67,6 +67,55 @@ body.layout-notebook {
     display: none !important;
 }
 
+/* Ocultar completamente todos los elementos del chat cuando está colapsado */
+.sidebar-left.collapsed .livestream-chat-input {
+    display: none !important;
+}
+
+.sidebar-left.collapsed .message-type-selector {
+    display: none !important;
+}
+
+.sidebar-left.collapsed .type-buttons-container {
+    display: none !important;
+}
+
+.sidebar-left.collapsed .type-btn {
+    display: none !important;
+}
+
+.sidebar-left.collapsed .input-wrapper {
+    display: none !important;
+}
+
+.sidebar-left.collapsed .livestream-send-btn {
+    display: none !important;
+}
+
+.sidebar-left.collapsed .contenedor-botones {
+    display: none !important;
+}
+
+.sidebar-left.collapsed .botones-principales {
+    display: none !important;
+}
+
+.sidebar-left.collapsed .toggle-btn {
+    display: none !important;
+}
+
+.sidebar-left.collapsed .livestream-connection-status {
+    display: none !important;
+}
+
+.sidebar-left.collapsed .status-indicator {
+    display: none !important;
+}
+
+.sidebar-left.collapsed .status-text {
+    display: none !important;
+}
+
 /* Mostrar solo un indicador simple cuando está colapsado */
 .sidebar-left.collapsed .collapsible-header h4 {
     display: none !important;
@@ -84,6 +133,25 @@ body.layout-notebook {
     text-align: center;
     padding: 10px 0;
     color: #44e5ff;
+}
+
+/* Ocultar completamente el contenido del chat cuando está colapsado */
+.sidebar-left.collapsed .collapsible-content {
+    display: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+.sidebar-left.collapsed .livestream-chat-messages {
+    display: none !important;
+}
+
+.sidebar-left.collapsed .welcome-message {
+    display: none !important;
+}
+
+.sidebar-left.collapsed .type-selector-label {
+    display: none !important;
 }
 
 /* Panel derecho - Studio */
@@ -389,6 +457,14 @@ body.resizing * {
 /* Espacio para la Dynamic Island - evitar que los mensajes se corten */
 .chat-messages {
     padding-bottom: 100px !important; /* Espacio suficiente para la Dynamic Island */
+    overflow-y: auto !important;
+    max-height: calc(100vh - 200px) !important;
+    height: calc(100vh - 200px) !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(68, 229, 255, 0.3) transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 /* ===== NUEVOS ESTILOS PARA REESTRUCTURACIÓN ===== */
@@ -3362,4 +3438,110 @@ html, body {
     .studio-right.collapsed .collapse-btn {
         font-size: 0.7rem;
     }
+}
+
+/* ===== ESTILOS DE SCROLLBAR PERSONALIZADOS ===== */
+
+/* Ocultar scrollbar en Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(68, 229, 255, 0.3) transparent;
+}
+
+/* Ocultar scrollbar en WebKit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(68, 229, 255, 0.4), rgba(0, 119, 166, 0.4));
+    border-radius: 4px;
+    border: 1px solid rgba(68, 229, 255, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(68, 229, 255, 0.6), rgba(0, 119, 166, 0.6));
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Asegurar que todos los elementos con overflow tengan scrollbar personalizado */
+.livestream-chat-messages,
+.chat-messages,
+.live-stream-main-content,
+.presentation-main-content,
+.studio-cards,
+.tool-list,
+.lia-chat-messages {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(68, 229, 255, 0.3) transparent;
+}
+
+/* Scrollbar específico para elementos con overflow */
+.livestream-chat-messages::-webkit-scrollbar,
+.chat-messages::-webkit-scrollbar,
+.live-stream-main-content::-webkit-scrollbar,
+.presentation-main-content::-webkit-scrollbar,
+.studio-cards::-webkit-scrollbar,
+.tool-list::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.livestream-chat-messages::-webkit-scrollbar-thumb,
+.chat-messages::-webkit-scrollbar-thumb,
+.live-stream-main-content::-webkit-scrollbar-thumb,
+.presentation-main-content::-webkit-scrollbar-thumb,
+.studio-cards::-webkit-scrollbar-thumb,
+.tool-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(68, 229, 255, 0.3), rgba(0, 119, 166, 0.3));
+    border-radius: 3px;
+    border: 1px solid rgba(68, 229, 255, 0.1);
+}
+
+.livestream-chat-messages::-webkit-scrollbar-thumb:hover,
+.chat-messages::-webkit-scrollbar-thumb:hover,
+.live-stream-main-content::-webkit-scrollbar-thumb:hover,
+.presentation-main-content::-webkit-scrollbar-thumb:hover,
+.studio-cards::-webkit-scrollbar-thumb:hover,
+.tool-list::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(68, 229, 255, 0.5), rgba(0, 119, 166, 0.5));
+}
+
+/* Ocultar scrollbar completamente en elementos específicos si es necesario */
+.livestream-chat-messages.hide-scrollbar,
+.chat-messages.hide-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.livestream-chat-messages.hide-scrollbar::-webkit-scrollbar,
+.chat-messages.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Estilos para modo oscuro */
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(68, 229, 255, 0.2), rgba(0, 119, 166, 0.2));
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(68, 229, 255, 0.4), rgba(0, 119, 166, 0.4));
+}
+
+/* Estilos para modo claro */
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(68, 229, 255, 0.5), rgba(0, 119, 166, 0.5));
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(68, 229, 255, 0.7), rgba(0, 119, 166, 0.7));
 }
