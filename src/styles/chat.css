@@ -1217,6 +1217,278 @@ body.resizing * {
     transform: rotate(180deg);
 }
 
+/* ===== CONTROLES DE GRABACIÓN ===== */
+
+/* Contenedor de controles de grabación */
+.recording-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 8px;
+    padding-left: 8px;
+    border-left: 1px solid rgba(68, 229, 255, 0.2);
+}
+
+/* Botones de control de grabación */
+.recording-control-btn {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(68, 229, 255, 0.2);
+    border-radius: 10px;
+    padding: 6px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    min-width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.recording-control-btn:hover {
+    background: linear-gradient(145deg, rgba(68, 229, 255, 0.2), rgba(68, 229, 255, 0.1));
+    color: #44e5ff;
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 16px rgba(68, 229, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.recording-control-btn:active {
+    transform: translateY(0);
+}
+
+/* Botón de live stream fusionado */
+.live-stream-main-control-btn#liveStreamMainToggleBtn {
+    transition: all 0.3s ease;
+}
+
+.live-stream-main-control-btn#liveStreamMainToggleBtn.connected {
+    background: linear-gradient(145deg, rgba(255, 71, 87, 0.2), rgba(255, 71, 87, 0.1));
+    color: #ff4757;
+    border-color: rgba(255, 71, 87, 0.3);
+}
+
+.live-stream-main-control-btn#liveStreamMainToggleBtn.connected:hover {
+    background: linear-gradient(145deg, rgba(255, 71, 87, 0.3), rgba(255, 71, 87, 0.2));
+    box-shadow: 
+        0 6px 16px rgba(255, 71, 87, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Botón de inicio de grabación */
+.recording-control-btn#recordingStartBtn {
+    color: #ff4757;
+    border-color: rgba(255, 71, 87, 0.3);
+}
+
+.recording-control-btn#recordingStartBtn:hover {
+    background: linear-gradient(145deg, rgba(255, 71, 87, 0.2), rgba(255, 71, 87, 0.1));
+    color: #ff4757;
+    box-shadow: 
+        0 6px 16px rgba(255, 71, 87, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Botón de pausa */
+.recording-control-btn#recordingPauseBtn {
+    color: #ffa502;
+    border-color: rgba(255, 165, 2, 0.3);
+}
+
+.recording-control-btn#recordingPauseBtn:hover {
+    background: linear-gradient(145deg, rgba(255, 165, 2, 0.2), rgba(255, 165, 2, 0.1));
+    color: #ffa502;
+    box-shadow: 
+        0 6px 16px rgba(255, 165, 2, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Botón de reanudar */
+.recording-control-btn#recordingResumeBtn {
+    color: #2ed573;
+    border-color: rgba(46, 213, 115, 0.3);
+}
+
+.recording-control-btn#recordingResumeBtn:hover {
+    background: linear-gradient(145deg, rgba(46, 213, 115, 0.2), rgba(46, 213, 115, 0.1));
+    color: #2ed573;
+    box-shadow: 
+        0 6px 16px rgba(46, 213, 115, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Botón de detener grabación */
+.recording-control-btn.recording-stop {
+    color: #ff4757;
+    border-color: rgba(255, 71, 87, 0.3);
+}
+
+.recording-control-btn.recording-stop:hover {
+    background: linear-gradient(145deg, rgba(255, 71, 87, 0.2), rgba(255, 71, 87, 0.1));
+    color: #ff4757;
+    box-shadow: 
+        0 6px 16px rgba(255, 71, 87, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Estados deshabilitados */
+.recording-control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.recording-control-btn:disabled:hover {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    color: #94a3b8;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* ===== BANNER DE ESTADO DE GRABACIÓN ===== */
+
+.recording-status-banner {
+    background: linear-gradient(135deg, rgba(255, 71, 87, 0.15), rgba(255, 71, 87, 0.08));
+    border: 1px solid rgba(255, 71, 87, 0.25);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    backdrop-filter: blur(10px);
+    box-shadow: 
+        0 4px 12px rgba(255, 71, 87, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    animation: recordingPulse 2s ease-in-out infinite;
+}
+
+@keyframes recordingPulse {
+    0%, 100% {
+        box-shadow: 
+            0 4px 12px rgba(255, 71, 87, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    }
+    50% {
+        box-shadow: 
+            0 4px 12px rgba(255, 71, 87, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    }
+}
+
+.recording-status-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.recording-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.recording-dot {
+    width: 12px;
+    height: 12px;
+    background: #ff4757;
+    border-radius: 50%;
+    animation: recordingBlink 1s ease-in-out infinite;
+}
+
+@keyframes recordingBlink {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+}
+
+.recording-status-text {
+    color: #ff4757;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.recording-timer {
+    color: #ff4757;
+    font-weight: 700;
+    font-size: 1rem;
+    font-family: 'Courier New', monospace;
+    background: rgba(255, 71, 87, 0.1);
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 71, 87, 0.2);
+}
+
+/* Estados de grabación */
+.recording-status-banner.paused {
+    background: linear-gradient(135deg, rgba(255, 165, 2, 0.15), rgba(255, 165, 2, 0.08));
+    border-color: rgba(255, 165, 2, 0.25);
+    animation: none;
+}
+
+.recording-status-banner.paused .recording-dot {
+    background: #ffa502;
+    animation: none;
+    opacity: 0.7;
+}
+
+.recording-status-banner.paused .recording-status-text {
+    color: #ffa502;
+}
+
+.recording-status-banner.paused .recording-timer {
+    color: #ffa502;
+    background: rgba(255, 165, 2, 0.1);
+    border-color: rgba(255, 165, 2, 0.2);
+}
+
+.recording-status-banner.error {
+    background: linear-gradient(135deg, rgba(255, 71, 87, 0.2), rgba(255, 71, 87, 0.1));
+    border-color: rgba(255, 71, 87, 0.4);
+    animation: errorShake 0.5s ease-in-out;
+}
+
+@keyframes errorShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+.recording-status-banner.error .recording-dot {
+    background: #ff4757;
+    animation: none;
+}
+
+.recording-status-banner.error .recording-status-text {
+    color: #ff4757;
+}
+
+.recording-status-banner.error .recording-timer {
+    color: #ff4757;
+    background: rgba(255, 71, 87, 0.15);
+    border-color: rgba(255, 71, 87, 0.3);
+}
+
 .live-stream-main-content {
     padding: 16px;
     flex: 1;
@@ -1908,6 +2180,39 @@ html, body {
         min-width: 28px !important;
         height: 28px !important;
     }
+
+    /* Controles de grabación responsive */
+    .recording-controls {
+        gap: 4px !important;
+        margin-left: 6px !important;
+        padding-left: 6px !important;
+    }
+
+    .recording-control-btn {
+        padding: 4px !important;
+        border-radius: 6px !important;
+        min-width: 24px !important;
+        height: 24px !important;
+    }
+
+    .recording-control-btn i {
+        font-size: 0.8rem !important;
+    }
+
+    /* Banner de grabación responsive */
+    .recording-status-banner {
+        padding: 8px 12px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .recording-status-text {
+        font-size: 0.8rem !important;
+    }
+
+    .recording-timer {
+        font-size: 0.9rem !important;
+        padding: 3px 6px !important;
+    }
     
     .live-stream-main-content,
     .presentation-main-content {
@@ -2089,6 +2394,39 @@ html, body {
         font-size: 0.6rem !important;
         min-width: 24px !important;
         height: 24px !important;
+    }
+
+    /* Controles de grabación responsive para móviles pequeños */
+    .recording-controls {
+        gap: 2px !important;
+        margin-left: 4px !important;
+        padding-left: 4px !important;
+    }
+
+    .recording-control-btn {
+        padding: 3px !important;
+        border-radius: 4px !important;
+        min-width: 20px !important;
+        height: 20px !important;
+    }
+
+    .recording-control-btn i {
+        font-size: 0.7rem !important;
+    }
+
+    /* Banner de grabación responsive para móviles pequeños */
+    .recording-status-banner {
+        padding: 6px 8px !important;
+        margin-bottom: 6px !important;
+    }
+
+    .recording-status-text {
+        font-size: 0.7rem !important;
+    }
+
+    .recording-timer {
+        font-size: 0.8rem !important;
+        padding: 2px 4px !important;
     }
     
     .live-stream-main-content,

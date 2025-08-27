@@ -185,12 +185,25 @@
                         Live Stream
                     </h3>
                     <div class="live-stream-main-controls">
-                        <button class="live-stream-main-control-btn" id="liveStreamMainConnectBtn" title="Iniciar Stream">
-                            <i class='bx bx-broadcast'></i>
+                        <button class="live-stream-main-control-btn" id="liveStreamMainToggleBtn" title="Iniciar/Detener Stream">
+                            <i class='bx bx-broadcast' id="liveStreamIcon"></i>
                         </button>
-                        <button class="live-stream-main-control-btn" id="liveStreamMainDisconnectBtn" title="Detener Stream">
-                            <i class='bx bx-stop-circle'></i>
-                        </button>
+
+                        <!-- Controles de grabación -->
+                        <div class="recording-controls" id="recordingControls" style="display: none;">
+                            <button class="recording-control-btn" id="recordingStartBtn" title="Iniciar grabación">
+                                <i class='bx bx-video-recording'></i>
+                            </button>
+                            <button class="recording-control-btn" id="recordingPauseBtn" title="Pausar grabación" style="display: none;">
+                                <i class='bx bx-pause-circle'></i>
+                            </button>
+                            <button class="recording-control-btn" id="recordingResumeBtn" title="Reanudar grabación" style="display: none;">
+                                <i class='bx bx-play-circle'></i>
+                            </button>
+                            <button class="recording-control-btn recording-stop" id="recordingStopBtn" title="Detener grabación" style="display: none;">
+                                <i class='bx bx-stop-circle'></i>
+                            </button>
+                        </div>
 
                         <button class="live-stream-main-collapse-btn" id="liveStreamMainCollapseBtn" title="Colapsar/Expandir">
                             <i class='bx bx-chevron-up'></i>
@@ -198,6 +211,17 @@
                     </div>
                 </div>
                 <div class="live-stream-main-content">
+                    <!-- Banner de estado de grabación -->
+                    <div class="recording-status-banner" id="recordingStatusBanner" style="display: none;">
+                        <div class="recording-status-content">
+                            <div class="recording-status-indicator">
+                                <div class="recording-dot" id="recordingDot"></div>
+                                <span class="recording-status-text" id="recordingStatusText">Grabando...</span>
+                            </div>
+                            <div class="recording-timer" id="recordingTimer">00:00</div>
+                        </div>
+                    </div>
+
                     <div class="live-stream-main-placeholder" id="liveStreamMainPlaceholder">
                         <i class='bx bx-broadcast'></i>
                         <p>Inicia el Live Stream para comenzar la transmisión</p>

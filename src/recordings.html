@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grabaciones</title>
+    <link rel="stylesheet" href="styles/recordings.css">
+    <link rel="icon" type="image/x-icon" href="assets/images/icono.png">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <!-- Global theme setup -->
+    <script src="scripts/global-theme-setup.js"></script>
+    
+    <!-- Auth Guard -->
+    <script src="utils/auth-guard.js"></script>
+</head>
+<body class="bg-glow-global">
+    <div class="particles-container"></div>
+
+    <!-- Theme toggle button -->
+    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">
+        <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <!-- Navigation Bar -->
+    <header class="catalog-header">
+        <div class="container">
+            <!-- Navbar de pestañas superior (a todo lo ancho) -->
+            <div class="course-tabs">
+                <button class="tab-button" onclick="location.href='cursos.html'">
+                    <i class='bx bx-collection'></i>
+                    Talleres
+                </button>
+                <button class="tab-button" onclick="location.href='coming-soon.html'">
+                    <i class='bx bx-group'></i>
+                    Comunidad
+                </button>
+                <button class="tab-button" onclick="location.href='coming-soon.html'">
+                    <i class='bx bx-news'></i>
+                    Noticias
+                </button>
+            </div>
+
+            <button class="header-profile">
+                <img src="assets/images/icono.png" alt="Perfil" />
+            </button>
+            <div id="profileMenu" class="profile-menu">
+                <div class="pm-header">
+                    <div class="pm-avatar"><img src="assets/images/icono.png" alt="Perfil"/></div>
+                    <div>
+                        <div class="pm-name" id="pmName">Usuario</div>
+                        <div class="pm-email" id="pmEmail">user@example.com</div>
+                    </div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" onclick="location.href='estadisticas.html'"><i class='bx bx-bar-chart-alt-2'></i> Mis Estadísticas</div>
+                    <div class="pm-item" onclick="location.href='courses.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" onclick="location.href='profile.html'"><i class='bx bx-user'></i> Editar perfil</div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" id="themeToggle" onclick="toggleTheme()">
+                        <i class='bx bx-sun theme-icon-sun'></i>
+                        <i class='bx bx-moon theme-icon-moon'></i>
+                        Cambiar tema
+                    </div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" onclick="location.href='index.html'"><i class='bx bx-log-out'></i> Cerrar sesión</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <div class="hero-content">
+                    <div class="hero-icon">
+                        <i class='bx bx-video'></i>
+                    </div>
+                    <div class="hero-text">
+                        <h1>Biblioteca de Grabaciones</h1>
+                        <p>Accede y gestiona todas tus sesiones grabadas con controles avanzados de reproducción</p>
+                    </div>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class='bx bx-play-circle'></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="totalRecordings">-</span>
+                            <span class="stat-label">Grabaciones</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class='bx bx-time-five'></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="totalDuration">-</span>
+                            <span class="stat-label">Horas totales</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class='bx bx-cloud-download'></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="availableDownloads">-</span>
+                            <span class="stat-label">Disponibles</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Filters -->
+            <div class="advanced-filters">
+                <div class="filters-header">
+                    <h3><i class='bx bx-filter'></i> Filtros Avanzados</h3>
+                    <div class="view-toggles">
+                        <button class="view-toggle active" data-view="cards" onclick="switchView('cards')" title="Vista de tarjetas">
+                            <i class='bx bx-grid-alt'></i>
+                        </button>
+                        <button class="view-toggle" data-view="table" onclick="switchView('table')" title="Vista de tabla">
+                            <i class='bx bx-table'></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="filters-grid">
+                    <div class="filter-item">
+                        <label for="session-filter">
+                            <i class='bx bx-collection'></i>
+                            Sesión
+                        </label>
+                        <select id="session-filter" onchange="filterBySession()">
+                            <option value="">Todas las sesiones</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-item">
+                        <label for="date-filter">
+                            <i class='bx bx-calendar'></i>
+                            Fecha
+                        </label>
+                        <input type="date" id="date-filter" onchange="filterByDate()">
+                    </div>
+                    
+                    <div class="filter-item">
+                        <label for="status-filter">
+                            <i class='bx bx-check-circle'></i>
+                            Estado
+                        </label>
+                        <select id="status-filter" onchange="filterByStatus()">
+                            <option value="">Todos los estados</option>
+                            <option value="available">Disponible</option>
+                            <option value="processing">Procesando</option>
+                            <option value="recording">Grabando</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-item search-filter">
+                        <label for="search-input">
+                            <i class='bx bx-search'></i>
+                            Buscar
+                        </label>
+                        <div class="search-wrapper">
+                            <input type="text" id="search-input" placeholder="Buscar por nombre o sesión..." onkeyup="searchRecordings()">
+                            <button class="clear-search" onclick="clearSearch()" style="display: none;">
+                                <i class='bx bx-x'></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section">
+                <div class="results-header">
+                    <div class="results-count">
+                        <span id="resultsCount">0</span> grabaciones encontradas
+                    </div>
+                    <div class="sort-options">
+                        <label for="sort-select">Ordenar por:</label>
+                        <select id="sort-select" onchange="sortRecordings()">
+                            <option value="date-desc">Fecha (Más reciente)</option>
+                            <option value="date-asc">Fecha (Más antiguo)</option>
+                            <option value="duration-desc">Duración (Mayor)</option>
+                            <option value="duration-asc">Duración (Menor)</option>
+                            <option value="size-desc">Tamaño (Mayor)</option>
+                            <option value="size-asc">Tamaño (Menor)</option>
+                            <option value="name-asc">Nombre (A-Z)</option>
+                            <option value="name-desc">Nombre (Z-A)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Cards View -->
+                <div class="recordings-grid" id="recordingsGrid">
+                    <!-- Cards will be loaded dynamically -->
+                </div>
+
+                <!-- Table View -->
+                <div class="recordings-table-container" id="recordingsTableContainer" style="display: none;">
+                    <table class="recordings-table" id="recordingsTable">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTableColumn('date')">
+                                    <span>Fecha</span>
+                                    <i class='bx bx-sort sort-icon'></i>
+                                </th>
+                                <th onclick="sortTableColumn('session')">
+                                    <span>Sesión</span>
+                                    <i class='bx bx-sort sort-icon'></i>
+                                </th>
+                                <th onclick="sortTableColumn('duration')">
+                                    <span>Duración</span>
+                                    <i class='bx bx-sort sort-icon'></i>
+                                </th>
+                                <th onclick="sortTableColumn('size')">
+                                    <span>Tamaño</span>
+                                    <i class='bx bx-sort sort-icon'></i>
+                                </th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordingsTableBody">
+                            <!-- Recordings will be loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="loadingState">
+                    <div class="loading-content">
+                        <div class="loading-spinner">
+                            <div class="spinner-ring"></div>
+                            <div class="spinner-ring"></div>
+                            <div class="spinner-ring"></div>
+                        </div>
+                        <h3>Cargando grabaciones...</h3>
+                        <p>Obteniendo la lista de sesiones disponibles</p>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-content">
+                        <div class="empty-icon">
+                            <i class='bx bx-video-off'></i>
+                        </div>
+                        <h3>No hay grabaciones disponibles</h3>
+                        <p>No se encontraron grabaciones que coincidan con tus filtros</p>
+                        <button class="btn-primary" onclick="clearAllFilters()">
+                            <i class='bx bx-refresh'></i>
+                            Limpiar filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Video Player Modal -->
+    <div class="video-modal" id="videoModal" onclick="closeModal(event)">
+        <div class="video-modal-content">
+            <!-- Modal Header -->
+            <div class="video-modal-header">
+                <div class="modal-title-section">
+                    <div class="modal-session-badge" id="modalSessionBadge">
+                        <i class='bx bx-collection'></i>
+                        <span id="modalSessionName">Sesión</span>
+                    </div>
+                    <h2 id="modalTitle">Reproducir Grabación</h2>
+                    <div class="modal-meta">
+                        <span id="modalDate">-</span>
+                        <span class="separator">•</span>
+                        <span id="modalDuration">-</span>
+                        <span class="separator">•</span>
+                        <span id="modalSize">-</span>
+                    </div>
+                </div>
+                <button class="modal-close-btn" onclick="closeVideoModal()">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+
+            <!-- Video Player Container -->
+            <div class="video-player-wrapper">
+                <div class="video-container">
+                    <video id="videoPlayer" preload="metadata">
+                        <source id="videoSource" src="" type="video/mp4">
+                        Tu navegador no soporta la reproducción de videos.
+                    </video>
+                    
+                    <!-- Custom Video Overlay -->
+                    <div class="video-overlay" id="videoOverlay">
+                        <div class="play-button-overlay" onclick="togglePlayPause()">
+                            <i class='bx bx-play'></i>
+                        </div>
+                    </div>
+
+                    <!-- Loading Overlay -->
+                    <div class="video-loading" id="videoLoading">
+                        <div class="loading-spinner-small">
+                            <div class="spinner-ring"></div>
+                            <div class="spinner-ring"></div>
+                            <div class="spinner-ring"></div>
+                        </div>
+                        <span>Cargando video...</span>
+                    </div>
+                </div>
+
+                <!-- Enhanced Video Controls -->
+                <div class="video-controls-panel">
+                    <!-- Progress Bar -->
+                    <div class="progress-section">
+                        <div class="progress-bar" onclick="seekVideo(event)">
+                            <div class="progress-buffer" id="progressBuffer"></div>
+                            <div class="progress-played" id="progressPlayed"></div>
+                            <div class="progress-handle" id="progressHandle"></div>
+                        </div>
+                    </div>
+
+                    <!-- Control Buttons -->
+                    <div class="controls-section">
+                        <div class="controls-left">
+                            <button class="control-btn play-pause" onclick="togglePlayPause()" id="playPauseBtn">
+                                <i class='bx bx-play'></i>
+                            </button>
+                            
+                            <button class="control-btn skip-back" onclick="skipBackward()" title="Retroceder 10s">
+                                <i class='bx bx-rewind'></i>
+                                <span>10</span>
+                            </button>
+                            
+                            <button class="control-btn skip-forward" onclick="skipForward()" title="Avanzar 10s">
+                                <i class='bx bx-fast-forward'></i>
+                                <span>10</span>
+                            </button>
+
+                            <div class="volume-section">
+                                <button class="control-btn volume" onclick="toggleMute()" id="muteBtn">
+                                    <i class='bx bx-volume-full'></i>
+                                </button>
+                                <div class="volume-slider-container">
+                                    <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="100" onchange="setVolume()">
+                                </div>
+                            </div>
+
+                            <div class="time-display-section">
+                                <span class="time-current" id="timeCurrent">00:00</span>
+                                <span class="time-separator">/</span>
+                                <span class="time-total" id="timeTotal">00:00</span>
+                            </div>
+                        </div>
+
+                        <div class="controls-right">
+                            <div class="speed-control">
+                                <button class="control-btn speed" onclick="toggleSpeedMenu()" id="speedBtn" title="Velocidad">
+                                    <i class='bx bx-tachometer'></i>
+                                    <span id="speedText">1x</span>
+                                </button>
+                                <div class="speed-menu" id="speedMenu">
+                                    <div class="speed-option" onclick="setPlaybackSpeed(0.5)">0.5x</div>
+                                    <div class="speed-option" onclick="setPlaybackSpeed(0.75)">0.75x</div>
+                                    <div class="speed-option active" onclick="setPlaybackSpeed(1)">1x</div>
+                                    <div class="speed-option" onclick="setPlaybackSpeed(1.25)">1.25x</div>
+                                    <div class="speed-option" onclick="setPlaybackSpeed(1.5)">1.5x</div>
+                                    <div class="speed-option" onclick="setPlaybackSpeed(2)">2x</div>
+                                </div>
+                            </div>
+
+                            <button class="control-btn quality" onclick="toggleQualityMenu()" title="Calidad" id="qualityBtn">
+                                <i class='bx bx-hd'></i>
+                                <span>HD</span>
+                            </button>
+
+                            <button class="control-btn pip" onclick="togglePictureInPicture()" title="Picture in Picture" id="pipBtn">
+                                <i class='bx bx-movie'></i>
+                            </button>
+
+                            <button class="control-btn fullscreen" onclick="toggleFullscreen()" id="fullscreenBtn" title="Pantalla completa">
+                                <i class='bx bx-fullscreen'></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video Actions -->
+            <div class="video-actions">
+                <div class="action-group">
+                    <button class="action-btn secondary" onclick="shareRecording()" id="shareBtn">
+                        <i class='bx bx-share'></i>
+                        Compartir
+                    </button>
+                    <button class="action-btn primary" onclick="downloadCurrentRecording()" id="downloadBtn">
+                        <i class='bx bx-download'></i>
+                        Descargar
+                    </button>
+                </div>
+                <div class="recording-info">
+                    <div class="info-item">
+                        <i class='bx bx-calendar'></i>
+                        <span id="recordingDate">-</span>
+                    </div>
+                    <div class="info-item">
+                        <i class='bx bx-user'></i>
+                        <span id="recordingInstructor">Instructor</span>
+                    </div>
+                    <div class="info-item">
+                        <i class='bx bx-group'></i>
+                        <span id="recordingParticipants">- participantes</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/supabase-client.js"></script>
+    <script src="scripts/theme-manager.js"></script>
+    <script src="scripts/particles.js"></script>
+    <script src="scripts/recordings.js"></script>
+    
+    <!-- Profile Menu Script -->
+    <script>
+        // Profile menu functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileBtn = document.querySelector('.header-profile');
+            const profileMenu = document.getElementById('profileMenu');
+            
+            if (profileBtn && profileMenu) {
+                // Toggle menu on click
+                profileBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    profileMenu.classList.toggle('show');
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
+                        profileMenu.classList.remove('show');
+                    }
+                });
+                
+                // Close menu on escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        profileMenu.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

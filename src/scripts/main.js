@@ -4800,3 +4800,427 @@ window.refreshUserAvatarsInChat = refreshUserAvatarsInChat;
 window.getCurrentUserProfilePicture = getCurrentUserProfilePicture;
 
 // Inicializar chat del livestream cuando se carga la página
+
+// ===== SISTEMA DE GRABACIÓN =====
+
+// Estado de grabación
+let recordingState = {
+    isRecording: false,
+    isPaused: false,
+    startTime: null,
+    pauseTime: null,
+    totalPausedTime: 0,
+    timer: null,
+    recordingClient: null,
+    isHost: false // Se determinará dinámicamente
+};
+
+// Elementos del DOM para live stream y grabación
+const liveStreamToggleBtn = document.getElementById('liveStreamMainToggleBtn');
+const liveStreamIcon = document.getElementById('liveStreamIcon');
+const recordingControls = document.getElementById('recordingControls');
+const recordingStartBtn = document.getElementById('recordingStartBtn');
+const recordingPauseBtn = document.getElementById('recordingPauseBtn');
+const recordingResumeBtn = document.getElementById('recordingResumeBtn');
+const recordingStopBtn = document.getElementById('recordingStopBtn');
+const recordingStatusBanner = document.getElementById('recordingStatusBanner');
+const recordingStatusText = document.getElementById('recordingStatusText');
+const recordingTimer = document.getElementById('recordingTimer');
+const recordingDot = document.getElementById('recordingDot');
+
+// Estado del live stream
+let liveStreamState = {
+    isConnected: false
+};
+
+// Inicializar controles de live stream y grabación
+function initializeStreamAndRecordingControls() {
+    console.log('🎥 Inicializando controles de live stream y grabación...');
+    
+    // Inicializar botón de live stream fusionado
+    if (liveStreamToggleBtn) {
+        liveStreamToggleBtn.addEventListener('click', toggleLiveStream);
+        console.log('✅ Botón de live stream fusionado inicializado');
+    }
+    
+    // Verificar si el usuario es host (esto se puede determinar por el rol o permisos)
+    recordingState.isHost = checkIfUserIsHost();
+    
+    if (recordingState.isHost) {
+        console.log('✅ Usuario es host, mostrando controles de grabación');
+        recordingControls.style.display = 'flex';
+        
+        // Agregar event listeners para grabación
+        recordingStartBtn.addEventListener('click', startRecording);
+        recordingPauseBtn.addEventListener('click', pauseRecording);
+        recordingResumeBtn.addEventListener('click', resumeRecording);
+        recordingStopBtn.addEventListener('click', stopRecording);
+        
+        // Verificar si ya hay una grabación en curso
+        checkExistingRecording();
+    } else {
+        console.log('❌ Usuario no es host, ocultando controles de grabación');
+        recordingControls.style.display = 'none';
+    }
+}
+
+// Función para alternar el estado del live stream
+async function toggleLiveStream() {
+    try {
+        if (liveStreamState.isConnected) {
+            // Desconectar stream
+            await disconnectLiveStream();
+        } else {
+            // Conectar stream
+            await connectLiveStream();
+        }
+    } catch (error) {
+        console.error('❌ Error al alternar live stream:', error);
+    }
+}
+
+// Conectar live stream
+async function connectLiveStream() {
+    try {
+        console.log('📡 Conectando live stream...');
+        
+        // Aquí iría la lógica real de conexión
+        // Por ahora simulamos la conexión
+        
+        liveStreamState.isConnected = true;
+        updateLiveStreamUI();
+        
+        console.log('✅ Live stream conectado');
+        
+    } catch (error) {
+        console.error('❌ Error al conectar live stream:', error);
+    }
+}
+
+// Desconectar live stream
+async function disconnectLiveStream() {
+    try {
+        console.log('📡 Desconectando live stream...');
+        
+        // Aquí iría la lógica real de desconexión
+        // Por ahora simulamos la desconexión
+        
+        liveStreamState.isConnected = false;
+        updateLiveStreamUI();
+        
+        console.log('✅ Live stream desconectado');
+        
+    } catch (error) {
+        console.error('❌ Error al desconectar live stream:', error);
+    }
+}
+
+// Actualizar UI del live stream
+function updateLiveStreamUI() {
+    if (liveStreamState.isConnected) {
+        // Estado conectado - mostrar icono de stop
+        liveStreamIcon.className = 'bx bx-stop-circle';
+        liveStreamToggleBtn.className = 'live-stream-main-control-btn connected';
+        liveStreamToggleBtn.title = 'Detener Stream';
+    } else {
+        // Estado desconectado - mostrar icono de broadcast
+        liveStreamIcon.className = 'bx bx-broadcast';
+        liveStreamToggleBtn.className = 'live-stream-main-control-btn';
+        liveStreamToggleBtn.title = 'Iniciar Stream';
+    }
+}
+
+// Verificar si el usuario es host
+function checkIfUserIsHost() {
+    // Esta función debe implementarse según la lógica de tu aplicación
+    // Por ahora, asumimos que todos los usuarios son host para testing
+    return true;
+    
+    // Ejemplo de implementación real:
+    // const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    // return currentUser.role === 'host' || currentUser.isHost === true;
+}
+
+// Verificar si ya hay una grabación en curso
+async function checkExistingRecording() {
+    try {
+        // Aquí deberías verificar con tu RecordingClient si hay una grabación activa
+        // Por ahora, asumimos que no hay grabación activa
+        console.log('🔍 Verificando grabación existente...');
+        
+        // Si hay grabación activa, actualizar el estado
+        // recordingState.isRecording = true;
+        // updateRecordingUI();
+    } catch (error) {
+        console.error('❌ Error al verificar grabación existente:', error);
+    }
+}
+
+// Iniciar grabación
+async function startRecording() {
+    try {
+        console.log('🎬 Iniciando grabación...');
+        
+        // Verificar permisos
+        if (!await checkRecordingPermissions()) {
+            showRecordingError('No tienes permisos para grabar');
+            return;
+        }
+        
+        // Inicializar RecordingClient si no existe
+        if (!recordingState.recordingClient) {
+            recordingState.recordingClient = await initializeRecordingClient();
+        }
+        
+        // Iniciar grabación
+        await recordingState.recordingClient.start();
+        
+        // Actualizar estado
+        recordingState.isRecording = true;
+        recordingState.isPaused = false;
+        recordingState.startTime = Date.now();
+        recordingState.totalPausedTime = 0;
+        
+        // Actualizar UI
+        updateRecordingUI();
+        
+        // Iniciar timer
+        startRecordingTimer();
+        
+        console.log('✅ Grabación iniciada correctamente');
+        
+    } catch (error) {
+        console.error('❌ Error al iniciar grabación:', error);
+        showRecordingError('Error al iniciar grabación: ' + error.message);
+    }
+}
+
+// Pausar grabación
+async function pauseRecording() {
+    try {
+        console.log('⏸️ Pausando grabación...');
+        
+        if (recordingState.recordingClient) {
+            await recordingState.recordingClient.pause();
+        }
+        
+        recordingState.isPaused = true;
+        recordingState.pauseTime = Date.now();
+        
+        updateRecordingUI();
+        pauseRecordingTimer();
+        
+        console.log('✅ Grabación pausada');
+        
+    } catch (error) {
+        console.error('❌ Error al pausar grabación:', error);
+        showRecordingError('Error al pausar grabación: ' + error.message);
+    }
+}
+
+// Reanudar grabación
+async function resumeRecording() {
+    try {
+        console.log('▶️ Reanudando grabación...');
+        
+        if (recordingState.recordingClient) {
+            await recordingState.recordingClient.resume();
+        }
+        
+        recordingState.isPaused = false;
+        recordingState.totalPausedTime += Date.now() - recordingState.pauseTime;
+        
+        updateRecordingUI();
+        resumeRecordingTimer();
+        
+        console.log('✅ Grabación reanudada');
+        
+    } catch (error) {
+        console.error('❌ Error al reanudar grabación:', error);
+        showRecordingError('Error al reanudar grabación: ' + error.message);
+    }
+}
+
+// Detener grabación
+async function stopRecording() {
+    try {
+        console.log('⏹️ Deteniendo grabación...');
+        
+        if (recordingState.recordingClient) {
+            await recordingState.recordingClient.stop();
+        }
+        
+        // Resetear estado
+        recordingState.isRecording = false;
+        recordingState.isPaused = false;
+        recordingState.startTime = null;
+        recordingState.pauseTime = null;
+        recordingState.totalPausedTime = 0;
+        
+        // Detener timer
+        stopRecordingTimer();
+        
+        // Actualizar UI
+        updateRecordingUI();
+        
+        console.log('✅ Grabación detenida');
+        
+    } catch (error) {
+        console.error('❌ Error al detener grabación:', error);
+        showRecordingError('Error al detener grabación: ' + error.message);
+    }
+}
+
+// Verificar permisos de grabación
+async function checkRecordingPermissions() {
+    try {
+        // Verificar permisos de pantalla
+        const screenPermission = await navigator.permissions.query({ name: 'display-capture' });
+        if (screenPermission.state === 'denied') {
+            return false;
+        }
+        
+        // Verificar permisos de micrófono
+        const micPermission = await navigator.permissions.query({ name: 'microphone' });
+        if (micPermission.state === 'denied') {
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('❌ Error al verificar permisos:', error);
+        return false;
+    }
+}
+
+// Inicializar RecordingClient
+async function initializeRecordingClient() {
+    // Esta función debe implementarse según tu RecordingClient
+    // Por ahora, retornamos un mock
+    console.log('🔧 Inicializando RecordingClient...');
+    
+    return {
+        start: async () => {
+            console.log('🎬 Mock: Iniciando grabación...');
+            // Simular delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        },
+        pause: async () => {
+            console.log('⏸️ Mock: Pausando grabación...');
+            await new Promise(resolve => setTimeout(resolve, 500));
+        },
+        resume: async () => {
+            console.log('▶️ Mock: Reanudando grabación...');
+            await new Promise(resolve => setTimeout(resolve, 500));
+        },
+        stop: async () => {
+            console.log('⏹️ Mock: Deteniendo grabación...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+    };
+}
+
+// Actualizar UI de grabación
+function updateRecordingUI() {
+    if (recordingState.isRecording) {
+        // Mostrar banner de estado
+        recordingStatusBanner.style.display = 'block';
+        
+        // Actualizar botones
+        recordingStartBtn.style.display = 'none';
+        recordingPauseBtn.style.display = recordingState.isPaused ? 'none' : 'flex';
+        recordingResumeBtn.style.display = recordingState.isPaused ? 'flex' : 'none';
+        recordingStopBtn.style.display = 'flex';
+        
+        // Actualizar estado del banner
+        if (recordingState.isPaused) {
+            recordingStatusBanner.className = 'recording-status-banner paused';
+            recordingStatusText.textContent = 'Grabación pausada';
+        } else {
+            recordingStatusBanner.className = 'recording-status-banner';
+            recordingStatusText.textContent = 'Grabando...';
+        }
+        
+    } else {
+        // Ocultar banner de estado
+        recordingStatusBanner.style.display = 'none';
+        
+        // Resetear botones
+        recordingStartBtn.style.display = 'flex';
+        recordingPauseBtn.style.display = 'none';
+        recordingResumeBtn.style.display = 'none';
+        recordingStopBtn.style.display = 'none';
+    }
+}
+
+// Timer de grabación
+function startRecordingTimer() {
+    stopRecordingTimer(); // Detener timer anterior si existe
+    
+    recordingState.timer = setInterval(() => {
+        if (recordingState.startTime) {
+            const elapsed = Date.now() - recordingState.startTime - recordingState.totalPausedTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            recordingTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+    }, 1000);
+}
+
+function pauseRecordingTimer() {
+    if (recordingState.timer) {
+        clearInterval(recordingState.timer);
+        recordingState.timer = null;
+    }
+}
+
+function resumeRecordingTimer() {
+    startRecordingTimer();
+}
+
+function stopRecordingTimer() {
+    if (recordingState.timer) {
+        clearInterval(recordingState.timer);
+        recordingState.timer = null;
+    }
+    recordingTimer.textContent = '00:00';
+}
+
+// Mostrar error de grabación
+function showRecordingError(message) {
+    console.error('❌ Error de grabación:', message);
+    
+    // Actualizar banner con estado de error
+    recordingStatusBanner.className = 'recording-status-banner error';
+    recordingStatusText.textContent = 'Error: ' + message;
+    recordingStatusBanner.style.display = 'block';
+    
+    // Ocultar error después de 5 segundos
+    setTimeout(() => {
+        if (recordingStatusBanner.classList.contains('error')) {
+            recordingStatusBanner.style.display = 'none';
+        }
+    }, 5000);
+}
+
+// Inicializar controles de live stream y grabación cuando se carga la página
+document.addEventListener('DOMContentLoaded', () => {
+    // Esperar un poco para que todos los elementos estén cargados
+    setTimeout(initializeStreamAndRecordingControls, 1000);
+});
+
+// Exportar funciones para uso global
+window.recordingControls = {
+    start: startRecording,
+    pause: pauseRecording,
+    resume: resumeRecording,
+    stop: stopRecording,
+    getState: () => recordingState
+};
+
+window.liveStreamControls = {
+    connect: connectLiveStream,
+    disconnect: disconnectLiveStream,
+    toggle: toggleLiveStream,
+    getState: () => liveStreamState
+};
