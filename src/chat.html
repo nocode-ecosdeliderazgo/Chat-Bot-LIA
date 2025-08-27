@@ -299,18 +299,20 @@
                             
                             <!-- Panel de Estado - Toggle entre Chat en Vivo y Chat con LIA -->
                             <div class="contenedor-botones">
-                                <button class="toggle-btn active" data-target="lia-chat" id="btnChatLIA">
-                                    <i class='bx bx-brain'></i>
-                                    Chat LIA
-                                </button>
+                                <div class="botones-principales">
+                                    <button class="toggle-btn active" data-target="lia-chat" id="btnChatLIA">
+                                        <i class='bx bx-brain'></i>
+                                        <span>Chat LIA</span>
+                                    </button>
+                                    <button class="toggle-btn" data-target="live-chat" id="btnChatEnVivo">
+                                        <i class='bx bx-broadcast'></i>
+                                        <span>Chat en Vivo</span>
+                                    </button>
+                                </div>
                                 <div class="livestream-connection-status" id="btnDesconectar">
                                     <span class="status-indicator offline"></span>
                                     <span class="status-text">Desconectado</span>
                                 </div>
-                                <button class="toggle-btn" data-target="live-chat" id="btnChatEnVivo">
-                                    <i class='bx bx-broadcast'></i>
-                                    Chat en Vivo
-                                </button>
                             </div>
                         </div>
                     </div>
