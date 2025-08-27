@@ -1,136 +1,128 @@
-# 🎯 Selector de Tipo de Mensaje - Chat en Vivo
+# Selector de Tipo de Mensaje - Chat del Livestream
 
-## 📋 Descripción
+## Descripción
+Implementación de un selector de tipo de mensaje para el chat en vivo del livestream, que permite a los usuarios decidir si su mensaje es para LIA (el chatbot) o para otros usuarios del chat.
 
-Se ha implementado una nueva funcionalidad en el chat en vivo que permite a los usuarios elegir si su mensaje es para el **chatbot LIA** o para los **demás usuarios** del chat en vivo.
+## Características Implementadas
 
-## ✨ Características Implementadas
+### ✅ Funcionalidades Actuales
+- **Selector de Tipo de Mensaje**: Botón único para LIA (se eliminó el botón "Usuarios")
+- **Estado por Defecto**: El botón LIA NO está seleccionado por defecto
+- **Activación Explícita**: LIA solo responde cuando el usuario presiona explícitamente el botón LIA
+- **Placeholder Dinámico**: El input muestra diferentes textos según el estado de selección
+- **Validación**: No se pueden enviar mensajes sin seleccionar un tipo
+- **Diferenciación Visual**: Los mensajes se muestran con diferentes estilos según su tipo
+- **Estados de LIA**: Indicadores de "pensando", respuesta y error
+- **Responsive Design**: Adaptado para dispositivos móviles
 
-### 🎛️ Selector Visual
-- **Botón LIA**: Envía mensajes al chatbot para obtener respuestas
-- **Botón Usuarios**: Envía mensajes al chat en vivo con otros participantes
-- **Indicadores visuales**: Iconos y colores distintivos para cada tipo
-- **Estado activo**: El botón seleccionado se resalta visualmente
+### 🔄 Cambios Recientes
+- **Eliminación del botón "Usuarios"**: Ya no está disponible la opción de enviar mensajes a otros usuarios
+- **Estado por defecto modificado**: El botón LIA no está activo por defecto
+- **Activación manual requerida**: El usuario debe presionar explícitamente el botón LIA para activarlo
+- **Validación mejorada**: Se verifica que se haya seleccionado un tipo antes de enviar mensajes
 
-### 🎨 Diferenciación Visual de Mensajes
-- **Badges de tipo**: Cada mensaje muestra un badge indicando su destino
-  - 🔵 **LIA**: Mensajes enviados al chatbot
-  - 🟢 **Usuarios**: Mensajes enviados al chat en vivo
-  - 🔴 **Error**: Mensajes de error del sistema
-- **Colores distintivos**: Bordes de diferentes colores según el tipo
-- **Estados especiales**: 
-  - "Pensando..." con animación para respuestas de LIA
-  - Respuestas de LIA con fondo especial
-  - Mensajes de error con estilo distintivo
+## Implementación Técnica
 
-### 🔄 Placeholders Dinámicos
-- **LIA**: "Pregunta algo a LIA..."
-- **Usuarios**: "Escribe un mensaje para los usuarios..."
+### Archivos Modificados
 
-## 🛠️ Implementación Técnica
-
-### 📁 Archivos Modificados
-
-#### `src/chat.html`
+#### 1. `src/chat.html`
 ```html
-<!-- Selector de tipo de mensaje -->
-<div class="message-type-selector" id="messageTypeSelector">
-    <button class="type-btn active" data-type="lia" title="Enviar a LIA (Chatbot)">
-        <i class='bx bx-brain'></i>
-        <span>LIA</span>
-    </button>
-    <button class="type-btn" data-type="users" title="Enviar a usuarios">
-        <i class='bx bx-group'></i>
-        <span>Usuarios</span>
-    </button>
+<div class="livestream-chat-input">
+    <div class="message-type-selector" id="messageTypeSelector">
+        <button class="type-btn" data-type="lia" title="Enviar a LIA (Chatbot)">
+            <i class='bx bx-brain'></i>
+            <span>LIA</span>
+        </button>
+    </div>
+    <div class="input-wrapper">
+        <input 
+            type="text" 
+            id="livestreamMessageInput" 
+            placeholder="Selecciona LIA para preguntar..."
+            maxlength="200"
+        >
+        <button id="livestreamSendBtn" class="livestream-send-btn" disabled title="Enviar mensaje">
+            <i class='bx bx-send'></i>
+        </button>
+    </div>
 </div>
 ```
 
-#### `src/scripts/main.js`
-- **`initializeMessageTypeSelector()`**: Inicializa el selector y maneja eventos
-- **`updateInputPlaceholder()`**: Actualiza el placeholder según el tipo seleccionado
-- **`sendMessageToLIA()`**: Maneja el envío de mensajes al chatbot
-- **`sendLivestreamMessage()`**: Modificada para manejar ambos tipos de mensaje
-- **`addLivestreamMessage()`**: Mejorada para mostrar diferentes estilos según el tipo
+#### 2. `src/scripts/main.js`
 
-#### `src/styles/chat.css` y `src/styles/chat-responsive.css`
-- Estilos para el selector de tipo de mensaje
-- Estilos para badges de tipo de mensaje
-- Estilos para diferentes tipos de mensajes (LIA, usuarios, errores)
-- Animaciones y estados visuales
-
-### 🔧 Funcionalidades Clave
-
-#### 1. Selección de Tipo de Mensaje
+**Estado del Chat:**
 ```javascript
-function initializeMessageTypeSelector() {
-    const typeBtns = typeSelector.querySelectorAll('.type-btn');
-    typeBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            // Cambiar tipo activo
-            typeBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            // Actualizar estado
-            livestreamChatState.messageType = btn.dataset.type;
-            updateInputPlaceholder();
-        });
-    });
+let livestreamChatState = {
+    isConnected: false,
+    username: '',
+    messageType: null, // Sin tipo por defecto - el usuario debe seleccionar
+    messages: [],
+    connectedUsers: [],
+    pendingMessages: []
+};
+```
+
+**Función de Placeholder:**
+```javascript
+function updateInputPlaceholder() {
+    if (!messageInput) return;
+    
+    const placeholders = {
+        'lia': 'Pregunta algo a LIA...'
+    };
+    
+    messageInput.placeholder = livestreamChatState.messageType 
+        ? placeholders[livestreamChatState.messageType] 
+        : 'Selecciona LIA para preguntar...';
 }
 ```
 
-#### 2. Envío Inteligente de Mensajes
+**Función de Envío con Validación:**
 ```javascript
 function sendLivestreamMessage() {
-    const messageType = livestreamChatState.messageType || 'lia';
-    
-    if (messageType === 'lia') {
-        // Enviar a LIA (chatbot)
-        sendMessageToLIA(message, clientMessageId);
-    } else {
-        // Enviar a usuarios del chat
-        livestreamSocket.emit('livestream-message', { 
-            message, 
-            clientMessageId,
-            messageType 
-        });
+    const message = messageInput.value.trim();
+    if (!message) return;
+
+    // Verificar que se haya seleccionado un tipo de mensaje
+    if (!livestreamChatState.messageType) {
+        console.log('[LIVESTREAM] No se ha seleccionado tipo de mensaje');
+        return;
     }
+
+    const messageType = livestreamChatState.messageType;
+    // ... resto de la lógica
 }
 ```
 
-#### 3. Integración con Chatbot LIA
-```javascript
-async function sendMessageToLIA(message, clientMessageId) {
-    // Mostrar indicador de "pensando"
-    addLivestreamMessage({
-        username: 'LIA',
-        message: 'Pensando...',
-        type: 'lia-thinking'
-    });
-
-    // Obtener respuesta usando la función existente
-    const response = await getGeneralAnswer(message);
-    
-    // Mostrar respuesta
-    addLivestreamMessage({
-        username: 'LIA',
-        message: response,
-        type: 'lia-response'
-    });
-}
-```
-
-## 🎨 Estilos Visuales
-
-### Selector de Tipo
+#### 3. `src/styles/chat.css`
 ```css
+/* Selector de tipo de mensaje */
 .message-type-selector {
     display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.type-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 4px;
-    padding: 4px;
-    background: rgba(68, 229, 255, 0.05);
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    border: 1px solid rgba(68, 229, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.type-btn:hover {
+    background: rgba(68, 229, 255, 0.1);
+    color: var(--text-on-dark);
 }
 
 .type-btn.active {
@@ -141,74 +133,123 @@ async function sendMessageToLIA(message, clientMessageId) {
 }
 ```
 
-### Badges de Tipo
+#### 4. `src/styles/chat-responsive.css`
 ```css
-.message-type-badge.lia {
-    background: rgba(68, 229, 255, 0.2);
-    color: #44e5ff;
-    border: 1px solid rgba(68, 229, 255, 0.3);
-}
-
-.message-type-badge.users {
-    background: rgba(34, 197, 94, 0.2);
-    color: #22c55e;
-    border: 1px solid rgba(34, 197, 94, 0.3);
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .livestream-chat-input {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .message-type-selector {
+        justify-content: center;
+        gap: 6px;
+    }
+    
+    .type-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
 }
 ```
 
-## 📱 Responsive Design
+### Funciones Principales
 
-- **Desktop**: Selector horizontal con iconos y texto
-- **Móvil**: Selector optimizado con tamaños reducidos
-- **Touch-friendly**: Botones con tamaño mínimo de 44px para móviles
+#### `initializeMessageTypeSelector()`
+- Inicializa los eventos de click en los botones del selector
+- No establece ningún tipo por defecto
+- Actualiza el placeholder del input
 
-## 🧪 Testing
+#### `updateInputPlaceholder()`
+- Cambia dinámicamente el placeholder del input según el tipo seleccionado
+- Muestra "Selecciona LIA para preguntar..." cuando no hay tipo seleccionado
 
-### Archivo de Prueba: `test-livestream-chat.html`
-- Simula la funcionalidad completa del selector
-- Permite probar la interfaz sin necesidad del backend
-- Incluye instrucciones de uso
+#### `sendLivestreamMessage()`
+- Valida que se haya seleccionado un tipo de mensaje antes de enviar
+- Enruta el mensaje a LIA si el tipo es 'lia'
+- Previene el envío si no hay tipo seleccionado
+
+#### `sendMessageToLIA(message, clientMessageId)`
+- Maneja la comunicación con LIA
+- Muestra indicador de "pensando"
+- Procesa la respuesta usando `getGeneralAnswer()`
+- Maneja errores y estados
+
+## Flujo de Usuario
+
+### 1. Estado Inicial
+- El botón LIA no está seleccionado (sin clase `active`)
+- El placeholder dice "Selecciona LIA para preguntar..."
+- El botón de envío está deshabilitado
+
+### 2. Selección de Tipo
+- El usuario hace click en el botón LIA
+- El botón se activa visualmente (clase `active`)
+- El placeholder cambia a "Pregunta algo a LIA..."
+- El botón de envío se habilita (si hay texto en el input)
+
+### 3. Envío de Mensaje
+- El usuario escribe un mensaje
+- Presiona Enter o el botón de envío
+- Se valida que haya un tipo seleccionado
+- El mensaje se envía a LIA
+- Se muestra la respuesta de LIA
+
+### 4. Estados de LIA
+- **Pensando**: Indicador visual mientras LIA procesa
+- **Respuesta**: Mensaje de LIA con estilo diferenciado
+- **Error**: Mensaje de error si algo falla
+
+## Estilos Visuales
+
+### Tipos de Mensaje
+- **LIA**: Borde azul, badge azul, fondo azul claro
+- **Error**: Borde rojo, badge rojo, fondo rojo claro
+
+### Estados del Botón
+- **Inactivo**: Fondo gris, texto gris
+- **Hover**: Fondo azul claro, texto blanco
+- **Activo**: Fondo azul, texto negro, sombra azul
+
+## Testing
+
+### Archivo de Prueba
+Se incluye `test-livestream-chat-updated.html` para probar la funcionalidad de forma aislada.
 
 ### Casos de Prueba
-1. ✅ Cambio entre tipos de mensaje
-2. ✅ Actualización de placeholders
-3. ✅ Estilos visuales correctos
-4. ✅ Responsive design
-5. ✅ Integración con chatbot LIA
-6. ✅ Manejo de errores
+1. **Estado inicial**: Verificar que no hay tipo seleccionado
+2. **Selección de LIA**: Verificar que el botón se activa
+3. **Envío sin selección**: Verificar que no se envía el mensaje
+4. **Envío con selección**: Verificar que se envía correctamente
+5. **Cambio de placeholder**: Verificar que cambia según el estado
 
-## 🚀 Uso
+## Mejoras Futuras
 
-### Para Usuarios
-1. **Seleccionar tipo**: Hacer clic en "LIA" o "Usuarios"
-2. **Escribir mensaje**: El placeholder indica el destino
-3. **Enviar**: Presionar Enter o hacer clic en el botón de envío
-4. **Ver resultado**: Los mensajes se muestran con badges distintivos
+### Posibles Extensiones
+- **Reintroducción del chat entre usuarios**: Si se requiere en el futuro
+- **Múltiples tipos de chatbot**: Diferentes asistentes especializados
+- **Historial de conversaciones**: Guardar conversaciones con LIA
+- **Configuración de usuario**: Preferencias de tipo de mensaje por defecto
 
-### Para Desarrolladores
-1. **Configurar**: El selector se inicializa automáticamente
-2. **Personalizar**: Modificar estilos en `chat.css`
-3. **Extender**: Agregar nuevos tipos de mensaje si es necesario
-4. **Integrar**: Conectar con diferentes servicios de chatbot
+### Optimizaciones
+- **Debounce en el input**: Para mejorar el rendimiento
+- **Cache de respuestas**: Para respuestas frecuentes
+- **Indicadores de estado**: Más detallados para el usuario
 
-## 🔮 Próximas Mejoras
+## Notas de Implementación
 
-- [ ] **Atajos de teclado**: Ctrl+L para LIA, Ctrl+U para usuarios
-- [ ] **Historial de tipos**: Recordar la última selección del usuario
-- [ ] **Más tipos**: Agregar soporte para otros destinos (moderador, instructor)
-- [ ] **Analytics**: Seguimiento de uso de cada tipo de mensaje
-- [ ] **Notificaciones**: Alertas cuando hay respuestas de LIA
+### Consideraciones de UX
+- El usuario debe ser consciente de que debe seleccionar LIA explícitamente
+- El placeholder guía al usuario sobre qué hacer
+- La validación previene envíos accidentales
 
-## 📊 Métricas de Uso
+### Compatibilidad
+- Funciona con el sistema de Socket.IO existente
+- Compatible con el sistema de autenticación
+- Responsive para todos los dispositivos
 
-La funcionalidad permite:
-- **Separación clara** entre preguntas al chatbot y conversación social
-- **Mejor experiencia** al evitar confusión sobre el destino de los mensajes
-- **Análisis de uso** para entender patrones de comunicación
-- **Escalabilidad** para agregar más tipos de mensaje en el futuro
-
----
-
-**Estado**: ✅ **Implementado y Funcional**
-**Versión**: 1.0.0
-**Fecha**: Diciembre 2024
+### Seguridad
+- Validación en el frontend y backend
+- Sanitización de mensajes
+- Control de acceso por roles

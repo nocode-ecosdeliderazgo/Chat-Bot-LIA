@@ -4477,7 +4477,7 @@ let livestreamSocket = null;
 let livestreamChatState = {
     isConnected: false,
     username: '',
-    messageType: 'lia', // Tipo por defecto: 'lia' o 'users'
+    messageType: null, // Sin tipo por defecto - el usuario debe seleccionar
     messages: [],
     connectedUsers: [],
     pendingMessages: []
@@ -4589,7 +4589,7 @@ function initializeLivestreamChat() {
             livestreamChatState.pendingMessages.forEach(p => {
                 if (p.messageType === 'lia') {
                     sendMessageToLIA(p.message, p.id);
-                } else {
+                } else if (p.messageType) {
                     livestreamSocket.emit('livestream-message', { 
                         message: p.message, 
                         clientMessageId: p.id,
@@ -4700,8 +4700,7 @@ function initializeLivestreamChat() {
             });
         });
         
-        // Establecer tipo por defecto
-        livestreamChatState.messageType = 'lia';
+        // No establecer tipo por defecto - el usuario debe seleccionar
         updateInputPlaceholder();
     }
 
@@ -4713,14 +4712,22 @@ function initializeLivestreamChat() {
             'users': 'Escribe un mensaje para los usuarios...'
         };
         
-        messageInput.placeholder = placeholders[livestreamChatState.messageType] || 'Escribe un mensaje...';
+        messageInput.placeholder = livestreamChatState.messageType 
+            ? placeholders[livestreamChatState.messageType] 
+            : 'Selecciona LIA para preguntar...';
     }
 
     function sendLivestreamMessage() {
         const message = messageInput.value.trim();
         if (!message) return;
 
-        const messageType = livestreamChatState.messageType || 'lia';
+        // Verificar que se haya seleccionado un tipo de mensaje
+        if (!livestreamChatState.messageType) {
+            console.log('[LIVESTREAM] No se ha seleccionado tipo de mensaje');
+            return;
+        }
+
+        const messageType = livestreamChatState.messageType;
         const clientMessageId = `c_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
 
         // Render inmediato
