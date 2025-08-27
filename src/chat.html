@@ -2585,6 +2585,82 @@
                     }
                 }
                 
+                // Función para inicializar conexión Socket.IO del chat en vivo
+                function initializeLivestreamSocket() {
+                    // Si ya existe y está conectado, no hacer nada
+                    if (window.livestreamSocket && window.livestreamSocket.connected) {
+                        console.log('📡 Socket.IO ya está conectado');
+                        liaMessageInput.placeholder = 'Escribe un mensaje...';
+                        return;
+                    }
+                    
+                    // Inicializar conexión Socket.IO si no existe
+                    if (typeof io !== 'undefined') {
+                        try {
+                            const ioOrigin = (typeof window !== 'undefined' && window.SOCKET_IO_ORIGIN) ? window.SOCKET_IO_ORIGIN : '';
+                            window.livestreamSocket = io(ioOrigin || undefined, {
+                                transports: ['websocket', 'polling'],
+                                timeout: 10000,
+                                withCredentials: false
+                            });
+                            
+                            // Configurar eventos del socket
+                            window.livestreamSocket.on('connect', () => {
+                                console.log('📡 Socket.IO conectado para chat en vivo');
+                                
+                                // Habilitar input
+                                if (liaMessageInput) {
+                                    liaMessageInput.placeholder = 'Escribe un mensaje...';
+                                    liaMessageInput.disabled = false;
+                                }
+                                if (liaSendBtn) {
+                                    liaSendBtn.disabled = false;
+                                }
+                                
+                                // Unirse al chat
+                                window.livestreamSocket.emit('join-livestream-chat', {
+                                    username: getCurrentUser()?.display_name || getCurrentUser()?.first_name || 'Usuario'
+                                });
+                            });
+                            
+                            window.livestreamSocket.on('disconnect', () => {
+                                console.log('📡 Socket.IO desconectado del chat en vivo');
+                            });
+                            
+                            // Eventos de mensajes
+                            window.livestreamSocket.on('new-livestream-message', (messageData) => {
+                                addLivestreamMessage(messageData);
+                            });
+                            
+                            window.livestreamSocket.on('user-joined', (data) => {
+                                addLivestreamMessage(data);
+                            });
+                            
+                            window.livestreamSocket.on('user-left', (data) => {
+                                addLivestreamMessage(data);
+                            });
+                            
+                        } catch (error) {
+                            console.error('❌ Error conectando Socket.IO:', error);
+                            
+                            // Mostrar error y habilitar input para retry
+                            if (liaMessageInput) {
+                                liaMessageInput.placeholder = 'Error de conexión. Intenta de nuevo...';
+                                liaMessageInput.disabled = false;
+                            }
+                            if (liaSendBtn) {
+                                liaSendBtn.disabled = false;
+                            }
+                        }
+                    } else {
+                        console.error('❌ Socket.IO no está disponible');
+                        if (liaMessageInput) {
+                            liaMessageInput.placeholder = 'Socket.IO no disponible...';
+                            liaMessageInput.disabled = false;
+                        }
+                    }
+                }
+                
                 // Función para agregar mensajes del chat en vivo
                 function addLivestreamMessage(messageData) {
                     if (!liaChatMessages) return;
@@ -2694,12 +2770,22 @@
                             console.log('✅ Botón habilitado:', !liaSendBtn.disabled);
                         }
                         
-                        // Actualizar placeholder del input
+                        // Actualizar placeholder del input y configurar conexión
                         const messageType = this.dataset.type;
                         if (messageType === 'lia') {
                             liaMessageInput.placeholder = 'Escribe tu mensaje para LIA...';
+                            
+                            // Desconectar del chat en vivo si está conectado
+                            if (window.livestreamSocket && window.livestreamSocket.connected) {
+                                console.log('📡 Desconectando del chat en vivo para usar LIA...');
+                                window.livestreamSocket.disconnect();
+                            }
                         } else if (messageType === 'live') {
-                            liaMessageInput.placeholder = 'Escribe tu mensaje para el chat en vivo...';
+                            liaMessageInput.placeholder = 'Conectando al chat en vivo...';
+                            
+                            // Inicializar conexión Socket.IO para chat en vivo
+                            console.log('📡 Inicializando conexión al chat en vivo...');
+                            initializeLivestreamSocket();
                         }
                     });
                 });
