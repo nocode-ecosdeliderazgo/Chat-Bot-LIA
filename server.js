@@ -4158,6 +4158,214 @@ app.get('/api/videosdk/recordings/:sessionId', authenticateRequest, async (req, 
     }
 });
 
+// Endpoint para listar todas las grabaciones con permisos
+app.get('/api/videosdk/recordings', authenticateRequest, async (req, res) => {
+    try {
+        // Validar autenticación
+        const user = req.user;
+        if (!user || !user.id) {
+            return res.status(401).json({ 
+                error: 'Usuario no autenticado',
+                code: 'UNAUTHORIZED'
+            });
+        }
+
+        console.log(`📋 Listando todas las grabaciones para usuario: ${user.id}`);
+        
+        // Obtener el perfil del usuario para determinar permisos
+        const userPermissions = await getUserRecordingPermissions(user.id);
+        
+        // Mock data con permisos aplicados - reemplazar con llamadas reales al Video SDK
+        const allRecordings = await getRecordingsWithPermissions(user.id, userPermissions);
+        
+        res.json({
+            success: true,
+            recordings: allRecordings,
+            total: allRecordings.length,
+            permissions: userPermissions
+        });
+        
+    } catch (error) {
+        console.error('Error listando grabaciones:', error);
+        
+        res.status(500).json({
+            error: 'Error al listar las grabaciones',
+            details: error.message,
+            code: 'RECORDINGS_LIST_ERROR'
+        });
+    }
+});
+
+// Endpoint para descargar grabación con verificación de permisos
+app.get('/api/videosdk/recording/:recordingId/download', authenticateRequest, async (req, res) => {
+    try {
+        const { recordingId } = req.params;
+        
+        if (!recordingId) {
+            return res.status(400).json({ 
+                error: 'recordingId es requerido',
+                code: 'MISSING_RECORDING_ID'
+            });
+        }
+
+        // Validar autenticación
+        const user = req.user;
+        if (!user || !user.id) {
+            return res.status(401).json({ 
+                error: 'Usuario no autenticado',
+                code: 'UNAUTHORIZED'
+            });
+        }
+
+        console.log(`📥 Solicitud de descarga para grabación: ${recordingId}, usuario: ${user.id}`);
+        
+        // Verificar permisos de descarga
+        const hasDownloadPermission = await checkDownloadPermission(user.id, recordingId);
+        if (!hasDownloadPermission) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para descargar esta grabación',
+                code: 'DOWNLOAD_PERMISSION_DENIED'
+            });
+        }
+
+        // Obtener información de la grabación desde Video SDK
+        const recordingData = await makeVideoSDKRequest(`/v2/recordings/${recordingId}`);
+        
+        if (!recordingData.downloadUrl) {
+            return res.status(404).json({ 
+                error: 'URL de descarga no disponible',
+                code: 'DOWNLOAD_URL_NOT_AVAILABLE'
+            });
+        }
+
+        // Log de descarga para auditoría
+        await logRecordingEvent('recording_downloaded', recordingData.sessionId, user.id, {
+            recordingId: recordingId,
+            downloadUrl: recordingData.downloadUrl
+        });
+
+        res.json({
+            success: true,
+            recordingId: recordingId,
+            downloadUrl: recordingData.downloadUrl,
+            filename: `recording_${recordingId}.mp4`,
+            message: 'Descarga autorizada'
+        });
+        
+    } catch (error) {
+        console.error('Error procesando descarga:', error);
+        
+        res.status(500).json({
+            error: 'Error al procesar la descarga',
+            details: error.message,
+            code: 'DOWNLOAD_PROCESSING_ERROR'
+        });
+    }
+});
+
+// Función helper para obtener permisos de grabación del usuario
+async function getUserRecordingPermissions(userId) {
+    try {
+        // Obtener perfil del usuario desde Supabase
+        if (!supabase) return { canView: true, canDownload: false, role: 'student' };
+        
+        const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('role, permissions')
+            .eq('user_id', userId)
+            .single();
+        
+        const userRole = profile?.role || 'student';
+        
+        // Definir permisos basados en el rol
+        const permissions = {
+            canView: true, // Todos los usuarios autenticados pueden ver
+            canDownload: ['admin', 'instructor', 'premium'].includes(userRole),
+            role: userRole,
+            canViewAll: ['admin', 'instructor'].includes(userRole) // Solo admin e instructor ven todas las grabaciones
+        };
+        
+        return permissions;
+    } catch (error) {
+        console.error('Error obteniendo permisos de usuario:', error);
+        // Permisos por defecto en caso de error
+        return { canView: true, canDownload: false, role: 'student', canViewAll: false };
+    }
+}
+
+// Función helper para obtener grabaciones con permisos aplicados
+async function getRecordingsWithPermissions(userId, permissions) {
+    try {
+        // Mock data - en producción, llamar a Video SDK API
+        const mockRecordings = [
+            {
+                recordingId: 'rec_001',
+                sessionId: 'ses_chatbot_101',
+                sessionName: 'Sesión Chatbot IA - Módulo 1',
+                date: new Date('2024-01-15T14:30:00Z').toISOString(),
+                duration: 3600,
+                size: 245760000,
+                status: 'available',
+                downloadUrl: 'https://example.com/recordings/rec_001.mp4',
+                thumbnailUrl: 'https://example.com/thumbnails/rec_001.jpg'
+            },
+            {
+                recordingId: 'rec_002',
+                sessionId: 'ses_genai_201',
+                sessionName: 'GenAI Workshop - Avanzado',
+                date: new Date('2024-01-14T10:00:00Z').toISOString(),
+                duration: 5400,
+                size: 367001600,
+                status: 'available',
+                downloadUrl: 'https://example.com/recordings/rec_002.mp4',
+                thumbnailUrl: 'https://example.com/thumbnails/rec_002.jpg'
+            },
+            {
+                recordingId: 'rec_003',
+                sessionId: 'ses_workshop_301',
+                sessionName: 'Taller Práctico IA',
+                date: new Date('2024-01-13T16:15:00Z').toISOString(),
+                duration: 2700,
+                status: 'processing',
+                size: 0,
+                downloadUrl: null,
+                thumbnailUrl: null
+            }
+        ];
+
+        // Aplicar permisos a cada grabación
+        return mockRecordings.map(recording => ({
+            ...recording,
+            canDownload: permissions.canDownload && recording.status === 'available' && recording.downloadUrl,
+            canView: permissions.canView && recording.status === 'available'
+        }));
+    } catch (error) {
+        console.error('Error obteniendo grabaciones:', error);
+        return [];
+    }
+}
+
+// Función helper para verificar permisos de descarga específicos
+async function checkDownloadPermission(userId, recordingId) {
+    try {
+        // Obtener permisos del usuario
+        const permissions = await getUserRecordingPermissions(userId);
+        
+        if (!permissions.canDownload) {
+            return false;
+        }
+
+        // Verificar que la grabación existe y está disponible
+        // En producción, verificar con Video SDK API
+        const recordingData = { status: 'available', downloadUrl: 'https://example.com/recording.mp4' };
+        
+        return recordingData.status === 'available' && recordingData.downloadUrl;
+    } catch (error) {
+        console.error('Error verificando permisos de descarga:', error);
+        return false;
+    }
+}
+
 // ============================================================================
 // VIDEO SDK JWT ENDPOINT - APR-28: Endpoint para generar JWT con role_type
 // ============================================================================
