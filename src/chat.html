@@ -2556,6 +2556,14 @@
                         // Log para debugging
                         console.log('🎯 Tipo de mensaje seleccionado:', this.dataset.type);
                         
+                        // Habilitar input y botón de envío
+                        if (liaMessageInput) {
+                            liaMessageInput.disabled = false;
+                        }
+                        if (liaSendBtn) {
+                            liaSendBtn.disabled = false;
+                        }
+                        
                         // Actualizar placeholder del input
                         const messageType = this.dataset.type;
                         if (messageType === 'lia') {
@@ -2632,7 +2640,13 @@
                 
                 // Inicializar sin ningún tipo de mensaje seleccionado por defecto
                 // Los usuarios deben seleccionar explícitamente el tipo de mensaje
-                liaMessageInput.placeholder = 'Selecciona el tipo de mensaje arriba para comenzar...';
+                if (liaMessageInput) {
+                    liaMessageInput.placeholder = 'Selecciona el tipo de mensaje arriba para comenzar...';
+                    liaMessageInput.disabled = true; // Deshabilitar hasta que se seleccione un tipo
+                }
+                if (liaSendBtn) {
+                    liaSendBtn.disabled = true; // Mantener botón deshabilitado
+                }
                 
                 console.log('✅ Chat inicializado - Usuario debe seleccionar tipo de mensaje');
             }

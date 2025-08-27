@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Chat - Localhost</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .type-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px;
+        }
+        
+        .type-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .type-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .message-input-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        #messageInput {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+        
+        #messageInput::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        #messageInput:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .send-btn {
+            padding: 15px 20px;
+            background: #667eea;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .send-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        .send-btn:hover:not(:disabled) {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+        
+        .status-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-value {
+            font-weight: bold;
+        }
+        
+        .messages-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .success {
+            color: #4CAF50;
+        }
+        
+        .error {
+            color: #f44336;
+        }
+        
+        .warning {
+            color: #ff9800;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Chat - Localhost:3000</h1>
+        <p>Prueba de funcionalidad del chat en entorno de desarrollo</p>
+        
+        <div class="selector-section">
+            <h3>1. Seleccionar Tipo de Mensaje</h3>
+            <button class="type-btn" data-type="live" title="Enviar al chat en vivo">
+                <i class='bx bx-message'></i>
+                <span>Chat en Vivo</span>
+            </button>
+            <button class="type-btn" data-type="lia" title="Enviar a LIA (Chatbot)">
+                <i class='bx bx-brain'></i>
+                <span>LIA</span>
+            </button>
+        </div>
+        
+        <div class="input-section">
+            <h3>2. Escribir Mensaje</h3>
+            <div class="message-input-container">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    placeholder="Selecciona un tipo de mensaje primero..."
+                    disabled
+                >
+                <button id="sendBtn" class="send-btn" disabled>
+                    <i class='bx bx-send'></i> Enviar
+                </button>
+            </div>
+        </div>
+        
+        <div class="status-panel">
+            <h3>🔍 Estado del Sistema</h3>
+            <div class="status-item">
+                <span>Servidor:</span>
+                <span class="status-value" id="serverStatus">Verificando...</span>
+            </div>
+            <div class="status-item">
+                <span>Socket.IO:</span>
+                <span class="status-value" id="socketStatus">Verificando...</span>
+            </div>
+            <div class="status-item">
+                <span>Tipo Seleccionado:</span>
+                <span class="status-value" id="selectedType">Ninguno</span>
+            </div>
+            <div class="status-item">
+                <span>Input Habilitado:</span>
+                <span class="status-value" id="inputEnabled">No</span>
+            </div>
+            <div class="status-item">
+                <span>Botón Habilitado:</span>
+                <span class="status-value" id="buttonEnabled">No</span>
+            </div>
+        </div>
+        
+        <div class="messages-panel">
+            <h3>📝 Log de Eventos</h3>
+            <div id="messagesLog"></div>
+        </div>
+    </div>
+
+    <script>
+        // Elementos del DOM
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typeBtns = document.querySelectorAll('.type-btn');
+        const messagesLog = document.getElementById('messagesLog');
+        
+        // Status elements
+        const serverStatus = document.getElementById('serverStatus');
+        const socketStatus = document.getElementById('socketStatus');
+        const selectedTypeSpan = document.getElementById('selectedType');
+        const inputEnabledSpan = document.getElementById('inputEnabled');
+        const buttonEnabledSpan = document.getElementById('buttonEnabled');
+        
+        // Socket connection
+        let socket = null;
+        
+        function log(message, type = 'info') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            messagesLog.appendChild(messageDiv);
+            messagesLog.scrollTop = messagesLog.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function updateStatus() {
+            const selectedType = getSelectedMessageType();
+            selectedTypeSpan.textContent = selectedType || 'Ninguno';
+            inputEnabledSpan.textContent = messageInput.disabled ? 'No' : 'Sí';
+            buttonEnabledSpan.textContent = sendBtn.disabled ? 'No' : 'Sí';
+        }
+        
+        function getSelectedMessageType() {
+            const activeTypeBtn = document.querySelector('.type-btn.active');
+            return activeTypeBtn ? activeTypeBtn.dataset.type : null;
+        }
+        
+        // Verificar servidor
+        async function checkServer() {
+            try {
+                const response = await fetch('http://localhost:3000/api/health');
+                if (response.ok) {
+                    serverStatus.textContent = '✅ Conectado';
+                    serverStatus.className = 'status-value success';
+                    log('Servidor disponible en localhost:3000', 'success');
+                    return true;
+                } else {
+                    throw new Error('Server not responding');
+                }
+            } catch (error) {
+                serverStatus.textContent = '❌ Desconectado';
+                serverStatus.className = 'status-value error';
+                log(`Error conectando al servidor: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        // Inicializar Socket.IO
+        function initSocket() {
+            try {
+                socket = io('http://localhost:3000', {
+                    transports: ['websocket', 'polling'],
+                    timeout: 10000,
+                    withCredentials: false
+                });
+                
+                socket.on('connect', () => {
+                    socketStatus.textContent = '✅ Conectado';
+                    socketStatus.className = 'status-value success';
+                    log('Socket.IO conectado exitosamente', 'success');
+                });
+                
+                socket.on('disconnect', () => {
+                    socketStatus.textContent = '❌ Desconectado';
+                    socketStatus.className = 'status-value error';
+                    log('Socket.IO desconectado', 'warning');
+                });
+                
+                socket.on('connect_error', (error) => {
+                    socketStatus.textContent = '❌ Error';
+                    socketStatus.className = 'status-value error';
+                    log(`Error de conexión Socket.IO: ${error.message}`, 'error');
+                });
+                
+            } catch (error) {
+                socketStatus.textContent = '❌ Error';
+                socketStatus.className = 'status-value error';
+                log(`Error inicializando Socket.IO: ${error.message}`, 'error');
+            }
+        }
+        
+        // Event listeners para botones de tipo
+        typeBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                log(`Botón ${this.dataset.type} clickeado`, 'info');
+                
+                // Remover clase active de todos los botones
+                typeBtns.forEach(b => b.classList.remove('active'));
+                // Agregar clase active al botón clickeado
+                this.classList.add('active');
+                
+                // Habilitar input y botón
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                
+                // Actualizar placeholder
+                const messageType = this.dataset.type;
+                if (messageType === 'lia') {
+                    messageInput.placeholder = 'Escribe tu mensaje para LIA...';
+                } else if (messageType === 'live') {
+                    messageInput.placeholder = 'Escribe tu mensaje para el chat en vivo...';
+                }
+                
+                log(`Tipo de mensaje seleccionado: ${messageType}`, 'success');
+                updateStatus();
+            });
+        });
+        
+        // Event listener para botón de envío
+        sendBtn.addEventListener('click', function() {
+            const selectedType = getSelectedMessageType();
+            const message = messageInput.value.trim();
+            
+            if (!selectedType) {
+                alert('Por favor, selecciona un tipo de mensaje primero.');
+                log('Error: No se ha seleccionado tipo de mensaje', 'error');
+                return;
+            }
+            
+            if (!message) {
+                alert('Por favor, escribe un mensaje.');
+                log('Error: Mensaje vacío', 'error');
+                return;
+            }
+            
+            log(`Enviando mensaje a ${selectedType}: "${message}"`, 'success');
+            
+            if (selectedType === 'lia') {
+                // Simular envío a LIA
+                log('Simulando envío a LIA...', 'info');
+                messageInput.value = '';
+            } else if (selectedType === 'live') {
+                // Envío real al chat en vivo
+                if (socket && socket.connected) {
+                    socket.emit('livestream-message', { 
+                        message: message,
+                        clientMessageId: Date.now()
+                    });
+                    log('Mensaje enviado al chat en vivo via Socket.IO', 'success');
+                    messageInput.value = '';
+                } else {
+                    log('Error: Socket.IO no está conectado', 'error');
+                }
+            }
+        });
+        
+        // Event listener para Enter
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendBtn.click();
+            }
+        });
+        
+        // Inicialización
+        async function init() {
+            log('Inicializando test de chat...', 'info');
+            
+            const serverOk = await checkServer();
+            if (serverOk) {
+                initSocket();
+            }
+            
+            updateStatus();
+            log('Test inicializado correctamente', 'success');
+        }
+        
+        // Iniciar cuando la página cargue
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
