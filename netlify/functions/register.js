@@ -49,18 +49,22 @@ exports.handler = async (event) => {
     let hasPassword = false;
     let hasCargoRol = false;
     let hasTypeRol = false;
+    let hasGoogleId = false;
+    let hasAuthProvider = false;
     
     try {
       const cols = await pool.query(`
         SELECT column_name 
         FROM information_schema.columns 
         WHERE table_name = 'users' 
-        AND column_name IN ('password_hash', 'cargo_rol', 'type_rol')
+        AND column_name IN ('password_hash', 'cargo_rol', 'type_rol', 'google_id', 'auth_provider')
       `);
       const columnNames = cols.rows.map(row => row.column_name);
       hasPassword = columnNames.includes('password_hash');
       hasCargoRol = columnNames.includes('cargo_rol');
       hasTypeRol = columnNames.includes('type_rol');
+      hasGoogleId = columnNames.includes('google_id');
+      hasAuthProvider = columnNames.includes('auth_provider');
     } catch (_) {}
 
     if (!hasPassword) {
@@ -89,6 +93,12 @@ exports.handler = async (event) => {
       insertCols.push('type_rol');
       insertValues.push('NULL'); // type_rol debe estar NULL para usuarios nuevos
       selectCols.push('type_rol');
+    }
+    
+    if (hasAuthProvider) {
+      insertCols.push('auth_provider');
+      insertValues.push("'email'"); // Registro tradicional es 'email'
+      selectCols.push('auth_provider');
     }
     
     query = `INSERT INTO users (${insertCols.join(', ')}) 
