@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Chat en Vivo con Selector</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #041326;
+            color: #e2e8f0;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(25, 35, 50, 0.95);
+            border-radius: 12px;
+            border: 1px solid rgba(68, 229, 255, 0.15);
+            overflow: hidden;
+        }
+        
+        .test-header {
+            background: rgba(68, 229, 255, 0.1);
+            padding: 16px;
+            border-bottom: 1px solid rgba(68, 229, 255, 0.15);
+        }
+        
+        .test-header h2 {
+            margin: 0;
+            color: #44e5ff;
+            font-size: 1.2rem;
+        }
+        
+        .test-content {
+            padding: 16px;
+        }
+        
+        /* Copiar estilos del chat en vivo */
+        .livestream-chat-input {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .livestream-chat-input .input-wrapper {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        
+        .livestream-chat-input input {
+            font-size: 0.8rem;
+            padding: 6px 8px;
+            flex: 1;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(68, 229, 255, 0.2);
+            border-radius: 8px;
+            color: #e2e8f0;
+            outline: none;
+        }
+        
+        .livestream-send-btn {
+            background: linear-gradient(135deg, #44e5ff 0%, #1e40af 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 8px;
+            color: white;
+            cursor: pointer;
+            min-width: 36px;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .message-type-selector {
+            display: flex;
+            gap: 4px;
+            padding: 4px;
+            background: rgba(68, 229, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(68, 229, 255, 0.1);
+        }
+        
+        .type-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 6px 8px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            color: #94a3b8;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .type-btn:hover {
+            background: rgba(68, 229, 255, 0.1);
+            color: #e2e8f0;
+        }
+        
+        .type-btn.active {
+            background: #44e5ff;
+            color: #041326;
+            border-color: #44e5ff;
+            box-shadow: 0 2px 8px rgba(68, 229, 255, 0.3);
+        }
+        
+        .type-btn i {
+            font-size: 0.9rem;
+        }
+        
+        .type-btn span {
+            font-size: 0.7rem;
+        }
+        
+        .test-info {
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(68, 229, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(68, 229, 255, 0.1);
+            font-size: 0.8rem;
+        }
+        
+        .test-info h3 {
+            margin: 0 0 8px 0;
+            color: #44e5ff;
+            font-size: 0.9rem;
+        }
+        
+        .test-info ul {
+            margin: 0;
+            padding-left: 16px;
+        }
+        
+        .test-info li {
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h2>🧪 Test - Selector de Tipo de Mensaje</h2>
+        </div>
+        
+        <div class="test-content">
+            <div class="livestream-chat-input">
+                <div class="message-type-selector" id="messageTypeSelector">
+                    <button class="type-btn active" data-type="lia" title="Enviar a LIA (Chatbot)">
+                        <i class='bx bx-brain'></i>
+                        <span>LIA</span>
+                    </button>
+                    <button class="type-btn" data-type="users" title="Enviar a usuarios">
+                        <i class='bx bx-group'></i>
+                        <span>Usuarios</span>
+                    </button>
+                </div>
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        id="livestreamMessageInput" 
+                        placeholder="Pregunta algo a LIA..."
+                        maxlength="200"
+                    >
+                    <button id="livestreamSendBtn" class="livestream-send-btn" title="Enviar mensaje">
+                        <i class='bx bx-send'></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="test-info">
+                <h3>📋 Instrucciones de Prueba:</h3>
+                <ul>
+                    <li><strong>LIA:</strong> Los mensajes se envían al chatbot y obtienen respuesta</li>
+                    <li><strong>Usuarios:</strong> Los mensajes se envían al chat en vivo con otros usuarios</li>
+                    <li>Cambia entre los dos modos usando los botones de arriba</li>
+                    <li>El placeholder del input cambia según el modo seleccionado</li>
+                    <li>Los mensajes se muestran con badges visuales para distinguir el tipo</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simular la funcionalidad del selector de tipo de mensaje
+        let currentMessageType = 'lia';
+        
+        function initializeMessageTypeSelector() {
+            const typeSelector = document.getElementById('messageTypeSelector');
+            const messageInput = document.getElementById('livestreamMessageInput');
+            const sendBtn = document.getElementById('livestreamSendBtn');
+            
+            if (!typeSelector || !messageInput || !sendBtn) return;
+            
+            const typeBtns = typeSelector.querySelectorAll('.type-btn');
+            
+            typeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remover clase active de todos los botones
+                    typeBtns.forEach(b => b.classList.remove('active'));
+                    // Agregar clase active al botón clickeado
+                    btn.classList.add('active');
+                    
+                    // Actualizar el tipo de mensaje
+                    currentMessageType = btn.dataset.type;
+                    
+                    // Actualizar placeholder
+                    updateInputPlaceholder();
+                    
+                    console.log('Tipo de mensaje cambiado a:', currentMessageType);
+                });
+            });
+            
+            // Evento de envío
+            sendBtn.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+        
+        function updateInputPlaceholder() {
+            const messageInput = document.getElementById('livestreamMessageInput');
+            if (!messageInput) return;
+            
+            const placeholders = {
+                'lia': 'Pregunta algo a LIA...',
+                'users': 'Escribe un mensaje para los usuarios...'
+            };
+            
+            messageInput.placeholder = placeholders[currentMessageType] || 'Escribe un mensaje...';
+        }
+        
+        function sendMessage() {
+            const messageInput = document.getElementById('livestreamMessageInput');
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+            
+            console.log(`Mensaje enviado (${currentMessageType}):`, message);
+            
+            // Simular envío
+            if (currentMessageType === 'lia') {
+                console.log('🤖 Enviando a LIA...');
+                // Aquí se simularía la llamada al chatbot
+                setTimeout(() => {
+                    console.log('🤖 Respuesta de LIA: "Gracias por tu pregunta. Estoy aquí para ayudarte."');
+                }, 1000);
+            } else {
+                console.log('👥 Enviando a usuarios del chat...');
+                // Aquí se simularía el envío al chat en vivo
+            }
+            
+            messageInput.value = '';
+        }
+        
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeMessageTypeSelector();
+            updateInputPlaceholder();
+        });
+    </script>
+</body>
+</html>

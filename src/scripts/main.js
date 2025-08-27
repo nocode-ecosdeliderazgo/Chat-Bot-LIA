@@ -4477,6 +4477,7 @@ let livestreamSocket = null;
 let livestreamChatState = {
     isConnected: false,
     username: '',
+    messageType: 'lia', // Tipo por defecto: 'lia' o 'users'
     messages: [],
     connectedUsers: [],
     pendingMessages: []
@@ -4568,7 +4569,7 @@ function initializeLivestreamChat() {
 
         // Habilitar interfaz con guardas null-safe
         if (messageInput) {
-        messageInput.placeholder = 'Escribe un mensaje...';
+            updateInputPlaceholder();
             messageInput.disabled = false;
         }
         if (sendBtn) {
@@ -4586,7 +4587,15 @@ function initializeLivestreamChat() {
         // Reintentar envío de pendientes
         if (livestreamChatState.pendingMessages.length > 0) {
             livestreamChatState.pendingMessages.forEach(p => {
-                livestreamSocket.emit('livestream-message', { message: p.message, clientMessageId: p.id });
+                if (p.messageType === 'lia') {
+                    sendMessageToLIA(p.message, p.id);
+                } else {
+                    livestreamSocket.emit('livestream-message', { 
+                        message: p.message, 
+                        clientMessageId: p.id,
+                        messageType: p.messageType 
+                    });
+                }
             });
         }
     });
@@ -4652,24 +4661,66 @@ function initializeLivestreamChat() {
         } catch (_) {}
     });
 
+    // Inicializar selector de tipo de mensaje
+    initializeMessageTypeSelector();
+    
     // Eventos de la interfaz con guardas null-safe
     if (sendBtn) {
-    sendBtn.addEventListener('click', sendLivestreamMessage);
+        sendBtn.addEventListener('click', sendLivestreamMessage);
     }
     
     if (messageInput) {
-    messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendLivestreamMessage();
-        }
-    });
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendLivestreamMessage();
+            }
+        });
+    }
+
+    function initializeMessageTypeSelector() {
+        const typeSelector = document.getElementById('messageTypeSelector');
+        if (!typeSelector) return;
+
+        const typeBtns = typeSelector.querySelectorAll('.type-btn');
+        typeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remover clase active de todos los botones
+                typeBtns.forEach(b => b.classList.remove('active'));
+                // Agregar clase active al botón clickeado
+                btn.classList.add('active');
+                
+                // Actualizar el estado del tipo de mensaje
+                livestreamChatState.messageType = btn.dataset.type;
+                
+                // Actualizar placeholder del input
+                updateInputPlaceholder();
+                
+                console.log('[LIVESTREAM] Tipo de mensaje cambiado a:', livestreamChatState.messageType);
+            });
+        });
+        
+        // Establecer tipo por defecto
+        livestreamChatState.messageType = 'lia';
+        updateInputPlaceholder();
+    }
+
+    function updateInputPlaceholder() {
+        if (!messageInput) return;
+        
+        const placeholders = {
+            'lia': 'Pregunta algo a LIA...',
+            'users': 'Escribe un mensaje para los usuarios...'
+        };
+        
+        messageInput.placeholder = placeholders[livestreamChatState.messageType] || 'Escribe un mensaje...';
     }
 
     function sendLivestreamMessage() {
         const message = messageInput.value.trim();
         if (!message) return;
 
+        const messageType = livestreamChatState.messageType || 'lia';
         const clientMessageId = `c_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
 
         // Render inmediato
@@ -4678,17 +4729,84 @@ function initializeLivestreamChat() {
             message,
             timestamp: new Date().toISOString(),
             type: 'user',
+            messageType: messageType,
             clientMessageId,
             pending: !livestreamChatState.isConnected
         });
 
         if (!livestreamChatState.isConnected) {
-            livestreamChatState.pendingMessages.push({ id: clientMessageId, message });
+            livestreamChatState.pendingMessages.push({ 
+                id: clientMessageId, 
+                message, 
+                messageType 
+            });
         } else {
-            livestreamSocket.emit('livestream-message', { message, clientMessageId });
+            // Enviar mensaje según el tipo
+            if (messageType === 'lia') {
+                // Enviar a LIA (chatbot)
+                sendMessageToLIA(message, clientMessageId);
+            } else {
+                // Enviar a usuarios del chat
+                livestreamSocket.emit('livestream-message', { 
+                    message, 
+                    clientMessageId,
+                    messageType 
+                });
+            }
         }
 
         messageInput.value = '';
+    }
+
+    async function sendMessageToLIA(message, clientMessageId) {
+        try {
+            console.log('[LIVESTREAM] Enviando mensaje a LIA:', message);
+            
+            // Mostrar indicador de que LIA está pensando
+            addLivestreamMessage({
+                username: 'LIA',
+                message: 'Pensando...',
+                timestamp: new Date().toISOString(),
+                type: 'lia-thinking',
+                clientMessageId: `lia_${clientMessageId}`
+            });
+
+            // Obtener respuesta de LIA usando la función existente
+            const response = await getGeneralAnswer(message);
+            
+            // Remover mensaje de "pensando"
+            const thinkingMessage = document.querySelector(`[data-client-message-id="lia_${clientMessageId}"]`);
+            if (thinkingMessage) {
+                thinkingMessage.remove();
+            }
+
+            // Mostrar respuesta de LIA
+            addLivestreamMessage({
+                username: 'LIA',
+                message: response,
+                timestamp: new Date().toISOString(),
+                type: 'lia-response',
+                clientMessageId: `lia_response_${clientMessageId}`
+            });
+
+        } catch (error) {
+            console.error('[LIVESTREAM] Error al obtener respuesta de LIA:', error);
+            
+            // Remover mensaje de "pensando"
+            const thinkingMessage = document.querySelector(`[data-client-message-id="lia_${clientMessageId}"]`);
+            if (thinkingMessage) {
+                thinkingMessage.remove();
+            }
+
+            // Mostrar mensaje de error
+            addLivestreamMessage({
+                username: 'LIA',
+                message: 'Lo siento, no pude procesar tu pregunta en este momento. ¿Podrías intentarlo de nuevo?',
+                timestamp: new Date().toISOString(),
+                type: 'lia-error',
+                clientMessageId: `lia_error_${clientMessageId}`
+            });
+        }
     }
 
     function addLivestreamMessage(messageData) {
@@ -4712,21 +4830,90 @@ function initializeLivestreamChat() {
             minute: '2-digit'
         });
 
+        // Determinar el tipo de mensaje y aplicar estilos correspondientes
+        let messageTypeClass = '';
+        let messageTypeIcon = '';
+        
+        if (messageData.type === 'system') {
+            messageTypeClass = 'system';
+            messageTypeIcon = 'bx-info-circle';
+        } else if (messageData.type === 'lia-thinking') {
+            messageTypeClass = 'lia-thinking';
+            messageTypeIcon = 'bx-loader-alt';
+        } else if (messageData.type === 'lia-response') {
+            messageTypeClass = 'lia-response';
+            messageTypeIcon = 'bx-brain';
+        } else if (messageData.type === 'lia-error') {
+            messageTypeClass = 'lia-error';
+            messageTypeIcon = 'bx-error-circle';
+        } else if (messageData.type === 'user') {
+            // Verificar si es mensaje para LIA o para usuarios
+            if (messageData.messageType === 'lia') {
+                messageTypeClass = 'user-to-lia';
+                messageTypeIcon = 'bx-brain';
+            } else {
+                messageTypeClass = 'user-to-users';
+                messageTypeIcon = 'bx-group';
+            }
+        }
+
+        const isOwnMessage = messageData.username === livestreamChatState.username;
+
         if (messageData.type === 'system') {
             messageElement.innerHTML = `
                 <div class="message-content system">
-                    <i class='bx bx-info-circle'></i>
+                    <i class='bx ${messageTypeIcon}'></i>
                     <span>${messageData.message}</span>
                     <span class="timestamp">${time}</span>
                 </div>
             `;
-        } else {
-            const isOwnMessage = messageData.username === livestreamChatState.username;
+        } else if (messageData.type === 'lia-thinking') {
             messageElement.innerHTML = `
-                <div class="message-content user ${isOwnMessage ? 'own' : ''} ${messageData.pending ? 'pending' : ''}">
+                <div class="message-content lia-thinking">
                     <div class="message-header">
                         <span class="username">${messageData.username}</span>
                         <span class="timestamp">${time}</span>
+                    </div>
+                    <div class="message-text">
+                        <i class='bx bx-loader-alt'></i>
+                        <span>${messageData.message}</span>
+                    </div>
+                </div>
+            `;
+        } else if (messageData.type === 'lia-response') {
+            messageElement.innerHTML = `
+                <div class="message-content lia-response">
+                    <div class="message-header">
+                        <span class="username">${messageData.username}</span>
+                        <span class="timestamp">${time}</span>
+                        <span class="message-type-badge">LIA</span>
+                    </div>
+                    <div class="message-text">${messageData.message}</div>
+                </div>
+            `;
+        } else if (messageData.type === 'lia-error') {
+            messageElement.innerHTML = `
+                <div class="message-content lia-error">
+                    <div class="message-header">
+                        <span class="username">${messageData.username}</span>
+                        <span class="timestamp">${time}</span>
+                        <span class="message-type-badge error">Error</span>
+                    </div>
+                    <div class="message-text">${messageData.message}</div>
+                </div>
+            `;
+        } else {
+            // Mensajes de usuario
+            const typeBadge = messageData.messageType === 'lia' ? 
+                '<span class="message-type-badge lia">LIA</span>' : 
+                '<span class="message-type-badge users">Usuarios</span>';
+            
+            messageElement.innerHTML = `
+                <div class="message-content user ${isOwnMessage ? 'own' : ''} ${messageData.pending ? 'pending' : ''} ${messageTypeClass}">
+                    <div class="message-header">
+                        <span class="username">${messageData.username}</span>
+                        <span class="timestamp">${time}</span>
+                        ${typeBadge}
                     </div>
                     <div class="message-text">${messageData.message}</div>
                     ${messageData.pending ? '<div class="message-status">Pendiente…</div>' : ''}

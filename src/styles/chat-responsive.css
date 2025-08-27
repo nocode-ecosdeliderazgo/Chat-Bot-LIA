@@ -263,9 +263,15 @@
     
     .livestream-chat-input {
         display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .livestream-chat-input .input-wrapper {
+        display: flex !important;
         gap: 8px !important;
         align-items: flex-end !important;
-        flex-shrink: 0 !important;
     }
     
     .livestream-chat-input input {
@@ -279,6 +285,118 @@
         outline: none !important;
         transition: border-color 0.2s ease !important;
         min-height: 44px !important;
+    }
+    
+    /* Selector de tipo de mensaje responsive */
+    .message-type-selector {
+        display: flex !important;
+        gap: 4px !important;
+        padding: 6px !important;
+        background: rgba(68, 229, 255, 0.05) !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(68, 229, 255, 0.1) !important;
+    }
+    
+    .type-btn {
+        flex: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        padding: 8px 6px !important;
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        border-radius: 6px !important;
+        color: rgba(226, 232, 240, 0.6) !important;
+        font-size: 0.7rem !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        white-space: nowrap !important;
+        min-height: 36px !important;
+    }
+    
+    .type-btn:hover {
+        background: rgba(68, 229, 255, 0.1) !important;
+        color: #e2e8f0 !important;
+    }
+    
+    .type-btn.active {
+        background: rgba(68, 229, 255, 0.2) !important;
+        color: #44e5ff !important;
+        border-color: rgba(68, 229, 255, 0.3) !important;
+        box-shadow: 0 2px 8px rgba(68, 229, 255, 0.2) !important;
+    }
+    
+    .type-btn i {
+        font-size: 0.9rem !important;
+    }
+    
+    .type-btn span {
+        font-size: 0.65rem !important;
+    }
+    
+    /* Estilos responsive para badges de tipo de mensaje */
+    .message-type-badge {
+        display: inline-block !important;
+        padding: 1px 4px !important;
+        border-radius: 3px !important;
+        font-size: 0.5rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        margin-left: 4px !important;
+    }
+    
+    .message-type-badge.lia {
+        background: rgba(68, 229, 255, 0.2) !important;
+        color: #44e5ff !important;
+        border: 1px solid rgba(68, 229, 255, 0.3) !important;
+    }
+    
+    .message-type-badge.users {
+        background: rgba(34, 197, 94, 0.2) !important;
+        color: #22c55e !important;
+        border: 1px solid rgba(34, 197, 94, 0.3) !important;
+    }
+    
+    .message-type-badge.error {
+        background: rgba(239, 68, 68, 0.2) !important;
+        color: #ef4444 !important;
+        border: 1px solid rgba(239, 68, 68, 0.3) !important;
+    }
+    
+    /* Estilos responsive para mensajes de LIA */
+    .message-content.lia-thinking {
+        background: rgba(68, 229, 255, 0.05) !important;
+        border-left: 2px solid #44e5ff !important;
+    }
+    
+    .message-content.lia-thinking .message-text {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        color: #44e5ff !important;
+        font-style: italic !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .message-content.lia-response {
+        background: rgba(68, 229, 255, 0.08) !important;
+        border-left: 2px solid #44e5ff !important;
+    }
+    
+    .message-content.lia-error {
+        background: rgba(239, 68, 68, 0.08) !important;
+        border-left: 2px solid #ef4444 !important;
+    }
+    
+    /* Estilos responsive para mensajes de usuario según tipo */
+    .message-content.user-to-lia {
+        border-left: 2px solid rgba(68, 229, 255, 0.3) !important;
+    }
+    
+    .message-content.user-to-users {
+        border-left: 2px solid rgba(34, 197, 94, 0.3) !important;
     }
     
     .livestream-chat-input input:focus {

@@ -2768,11 +2768,141 @@ html, body {
     
     .livestream-chat-input {
         padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .livestream-chat-input .input-wrapper {
+        display: flex;
+        gap: 6px;
+        align-items: center;
     }
     
     .livestream-chat-input input {
         font-size: 0.8rem;
         padding: 6px 8px;
+        flex: 1;
+    }
+    
+    /* Selector de tipo de mensaje */
+    .message-type-selector {
+        display: flex;
+        gap: 4px;
+        padding: 4px;
+        background: rgba(68, 229, 255, 0.05);
+        border-radius: 8px;
+        border: 1px solid rgba(68, 229, 255, 0.1);
+    }
+    
+    .type-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 6px 8px;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    
+    .type-btn:hover {
+        background: rgba(68, 229, 255, 0.1);
+        color: var(--text-on-dark);
+    }
+    
+    .type-btn.active {
+        background: var(--color-primary);
+        color: var(--color-bg-1);
+        border-color: var(--color-primary);
+        box-shadow: 0 2px 8px rgba(68, 229, 255, 0.3);
+    }
+    
+    .type-btn i {
+        font-size: 0.9rem;
+    }
+    
+    .type-btn span {
+        font-size: 0.7rem;
+    }
+    
+    /* Estilos para diferentes tipos de mensajes */
+    .message-type-badge {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.6rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-left: 6px;
+    }
+    
+    .message-type-badge.lia {
+        background: rgba(68, 229, 255, 0.2);
+        color: #44e5ff;
+        border: 1px solid rgba(68, 229, 255, 0.3);
+    }
+    
+    .message-type-badge.users {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    
+    .message-type-badge.error {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    
+    /* Estilos para mensajes de LIA */
+    .message-content.lia-thinking {
+        background: rgba(68, 229, 255, 0.05);
+        border-left: 3px solid #44e5ff;
+    }
+    
+    .message-content.lia-thinking .message-text {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #44e5ff;
+        font-style: italic;
+    }
+    
+    .message-content.lia-thinking .message-text i {
+        animation: spin 1s linear infinite;
+    }
+    
+    .message-content.lia-response {
+        background: rgba(68, 229, 255, 0.08);
+        border-left: 3px solid #44e5ff;
+    }
+    
+    .message-content.lia-error {
+        background: rgba(239, 68, 68, 0.08);
+        border-left: 3px solid #ef4444;
+    }
+    
+    /* Estilos para mensajes de usuario según tipo */
+    .message-content.user-to-lia {
+        border-left: 2px solid rgba(68, 229, 255, 0.3);
+    }
+    
+    .message-content.user-to-users {
+        border-left: 2px solid rgba(34, 197, 94, 0.3);
+    }
+    
+    /* Animación de spinner */
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
     }
     
     .livestream-send-btn {

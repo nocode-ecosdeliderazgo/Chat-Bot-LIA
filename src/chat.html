@@ -72,15 +72,27 @@
                             </div>
                             
                             <div class="livestream-chat-input">
-                                <input 
-                                    type="text" 
-                                    id="livestreamMessageInput" 
-                                    placeholder="Conectando al chat…"
-                                    maxlength="200"
-                                >
-                                <button id="livestreamSendBtn" class="livestream-send-btn" disabled title="Enviar mensaje">
-                                    <i class='bx bx-send'></i>
-                                </button>
+                                <div class="message-type-selector" id="messageTypeSelector">
+                                    <button class="type-btn active" data-type="lia" title="Enviar a LIA (Chatbot)">
+                                        <i class='bx bx-brain'></i>
+                                        <span>LIA</span>
+                                    </button>
+                                    <button class="type-btn" data-type="users" title="Enviar a usuarios">
+                                        <i class='bx bx-group'></i>
+                                        <span>Usuarios</span>
+                                    </button>
+                                </div>
+                                <div class="input-wrapper">
+                                    <input 
+                                        type="text" 
+                                        id="livestreamMessageInput" 
+                                        placeholder="Conectando al chat…"
+                                        maxlength="200"
+                                    >
+                                    <button id="livestreamSendBtn" class="livestream-send-btn" disabled title="Enviar mensaje">
+                                        <i class='bx bx-send'></i>
+                                    </button>
+                                </div>
                             </div>
                             
                             <!-- Panel de Estado - Toggle entre Chat en Vivo y Chat con LIA -->
