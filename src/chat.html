@@ -126,11 +126,11 @@
                 <div class="tool-group collapsible" id="livestreamSection">
                     <div class="collapsible-header">
                         <h4 style="margin:0">Chat en vivo</h4>
-                        <button id="livestreamToggle" class="collapsible-toggle" aria-expanded="false" aria-controls="livestreamContent" title="Mostrar/Ocultar">
-                            <i class='bx bx-chevron-down'></i>
+                        <button id="livestreamToggle" class="collapsible-toggle" aria-expanded="true" aria-controls="livestreamContent" title="Mostrar/Ocultar">
+                            <i class='bx bx-chevron-up'></i>
                         </button>
                     </div>
-                    <div class="collapsible-content" id="livestreamContent">
+                    <div class="collapsible-content" id="livestreamContent" style="display: block;">
                         <!-- Chat del Livestream -->
                         <div class="livestream-chat-container">
                             <div class="livestream-chat-header">
@@ -2555,13 +2555,16 @@
                         
                         // Log para debugging
                         console.log('🎯 Tipo de mensaje seleccionado:', this.dataset.type);
+                        console.log('🎯 Habilitando input y botón...');
                         
                         // Habilitar input y botón de envío
                         if (liaMessageInput) {
                             liaMessageInput.disabled = false;
+                            console.log('✅ Input habilitado:', !liaMessageInput.disabled);
                         }
                         if (liaSendBtn) {
                             liaSendBtn.disabled = false;
+                            console.log('✅ Botón habilitado:', !liaSendBtn.disabled);
                         }
                         
                         // Actualizar placeholder del input
@@ -2649,6 +2652,7 @@
                 }
                 
                 console.log('✅ Chat inicializado - Usuario debe seleccionar tipo de mensaje');
+                console.log('🔧 VERSIÓN CORREGIDA - Timestamp:', new Date().toLocaleTimeString());
             }
 
             // Inicializar todas las funcionalidades nuevas
