@@ -54,6 +54,23 @@
     </nav>
 
     <main class="main-content" style="padding-top:10px">
+        <!-- Banner de la comunidad -->
+        <div class="community-banner" id="communityBanner">
+            <div class="community-banner-image" id="communityBannerImage"></div>
+            <div class="community-banner-overlay">
+                <div class="community-banner-content">
+                    <div class="community-banner-icon" id="communityBannerIcon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="community-banner-info">
+                        <h1 class="community-banner-title" id="communityBannerTitle">Comunidad</h1>
+                        <p class="community-banner-desc" id="communityBannerDesc">Descripción de la comunidad</p>
+                        <div class="community-banner-meta" id="communityBannerMeta">• Members • Free</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <section id="tab-community" class="feed-section">
             <div class="container">
                 <div class="feed-main">
@@ -498,14 +515,35 @@
                 const rawPost = localStorage.getItem('community.view.post');
                 const detail = rawCommunity ? JSON.parse(rawCommunity) : (rawPost ? JSON.parse(rawPost) : null);
                 if(detail){
-                    document.getElementById('detailTitle').textContent = detail.title || detail.user || 'Detalle';
-                    document.getElementById('detailDesc').textContent = detail.desc || detail.content || '';
+                    // Actualizar banner de la comunidad
+                    const bannerTitle = document.getElementById('communityBannerTitle');
+                    const bannerDesc = document.getElementById('communityBannerDesc');
+                    const bannerMeta = document.getElementById('communityBannerMeta');
+                    const bannerIcon = document.getElementById('communityBannerIcon');
+                    const bannerImage = document.getElementById('communityBannerImage');
+                    
+                    if(bannerTitle) bannerTitle.textContent = detail.title || detail.user || 'Comunidad';
+                    if(bannerDesc) bannerDesc.textContent = detail.desc || detail.content || '';
+                    
                     const metaParts = [];
                     if(detail.members) metaParts.push(`${detail.members} Members`);
                     if(detail.price) metaParts.push(detail.price);
                     if(detail.category) metaParts.push(detail.category);
-                    document.getElementById('detailMeta').textContent = metaParts.join(' • ');
-                    if(detail.icon){ document.getElementById('detailIcon').className = detail.icon; }
+                    if(bannerMeta) bannerMeta.textContent = metaParts.join(' • ');
+                    
+                    if(detail.icon && bannerIcon) {
+                        bannerIcon.innerHTML = `<i class="${detail.icon}"></i>`;
+                    }
+                    
+                    // Cargar imagen del banner si existe
+                    if(detail.thumb && bannerImage) {
+                        bannerImage.style.backgroundImage = `url(${detail.thumb})`;
+                        bannerImage.style.display = 'block';
+                    } else if(bannerImage) {
+                        bannerImage.style.display = 'none';
+                    }
+                    
+                    // Actualizar título de la sección "Acerca de"
                     document.getElementById('aboutTitle').textContent = detail.title || 'Acerca de';
                 }
             }catch(e){ console.error(e); }
