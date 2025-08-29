@@ -529,8 +529,11 @@
             const composerInput = document.getElementById('composerInput');
             const publishPostBtn = document.getElementById('publishPostBtn');
             function renderPosts(category='all'){
+                console.log('Renderizando posts para categoría:', category);
+                console.log('Posts disponibles:', posts);
                 const list = document.getElementById('postsList');
                 const filtered = category==='all' ? posts : posts.filter(p=>p.category===category);
+                console.log('Posts filtrados:', filtered);
                 list.innerHTML = filtered.map(p=>`
                     <div class="post-card" data-open-post="${p.id}">
                         <div class="post-avatar"><i class="${p.avatar}"></i></div>
@@ -742,52 +745,63 @@
             });
             
             function handleAttachmentType(type) {
+                console.log('Manejando tipo de adjunto:', type);
                 switch(type) {
                     case 'image':
+                        console.log('Abriendo selector de imagen');
                         document.getElementById('attachImage').click();
                         break;
                     case 'document':
+                        console.log('Abriendo selector de documento');
                         document.getElementById('attachDocument').click();
                         break;
                     case 'link':
+                        console.log('Abriendo modal de enlace');
                         document.getElementById('linkModal').classList.add('show');
                         break;
                     case 'youtube':
+                        console.log('Abriendo modal de YouTube');
                         document.getElementById('youtubeModal').classList.add('show');
                         break;
                     case 'location':
+                        console.log('Abriendo modal de ubicación');
                         document.getElementById('locationModal').classList.add('show');
                         break;
                     case 'poll':
+                        console.log('Abriendo modal de encuesta');
                         document.getElementById('pollModal').classList.add('show');
                         break;
                 }
             }
             document.getElementById('attachImage').addEventListener('change', (e)=>{
+                console.log('Archivo de imagen seleccionado:', e.target.files?.[0]);
                 const file = e.target.files?.[0];
                 if(!file) return;
                 if(bytesToMB(file.size) > 10){ alert('Imagen supera 10MB'); return; }
+                console.log('Procesando imagen:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
                 const reader = new FileReader();
-                reader.onload = ()=>{ pendingAttachments.push({ type:'image', src: reader.result }); addPreviewImage(reader.result); };
+                reader.onload = ()=>{
+                    console.log('Imagen procesada, agregando adjunto');
+                    pendingAttachments.push({ type:'image', src: reader.result }); 
+                    addPreviewImage(reader.result); 
+                };
                 reader.readAsDataURL(file);
                 e.target.value='';
             });
-            document.getElementById('attachPdf').addEventListener('change', (e)=>{
-                const file = e.target.files?.[0];
-                if(!file) return;
-                if(bytesToMB(file.size) > 10){ alert('PDF supera 10MB'); return; }
-                const reader = new FileReader();
-                reader.onload = ()=>{ pendingAttachments.push({ type:'pdf', name: file.name, dataUrl: reader.result }); addPreviewPdf(file.name); };
-                reader.readAsDataURL(file);
-                e.target.value='';
-            });
+            // Remover esta línea ya que no existe el input attachPdf
             
             document.getElementById('attachDocument').addEventListener('change', (e)=>{
+                console.log('Archivo de documento seleccionado:', e.target.files?.[0]);
                 const file = e.target.files?.[0];
                 if(!file) return;
                 if(bytesToMB(file.size) > 10){ alert('Documento supera 10MB'); return; }
+                console.log('Procesando documento:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
                 const reader = new FileReader();
-                reader.onload = ()=>{ pendingAttachments.push({ type:'document', name: file.name, dataUrl: reader.result }); addPreviewDocument(file.name); };
+                reader.onload = ()=>{
+                    console.log('Documento procesado, agregando adjunto');
+                    pendingAttachments.push({ type:'document', name: file.name, dataUrl: reader.result }); 
+                    addPreviewDocument(file.name); 
+                };
                 reader.readAsDataURL(file);
                 e.target.value='';
             });
@@ -880,14 +894,46 @@
                     publishPostBtn.classList.toggle('enabled', ok);
                 });
                 publishPostBtn.addEventListener('click', ()=>{
+                    console.log('Botón de publicar clickeado');
                     const txt = composerInput.value.trim();
-                    if(!txt) return;
-                    posts.unshift({ id: Date.now(), user:'Tú', avatar:'fas fa-user', category:(document.querySelector('.feed-chip.active')?.dataset.category||'ia'), minutesAgo:0, content:txt, comments:[], reactions:{like:0, heart:0, wow:0, laugh:0, sad:0}, attachments: pendingAttachments.slice(0), reacted: null });
+                    if(!txt) {
+                        console.log('Texto vacío, no se puede publicar');
+                        return;
+                    }
+                    
+                    console.log('Creando publicación con texto:', txt);
+                    console.log('Adjuntos pendientes:', pendingAttachments);
+                    
+                    // Crear nueva publicación
+                    const newPost = { 
+                        id: Date.now(), 
+                        user:'Tú', 
+                        avatar:'fas fa-user', 
+                        category:(document.querySelector('.feed-chip.active')?.dataset.category||'general'), 
+                        minutesAgo:0, 
+                        content:txt, 
+                        comments:[], 
+                        reactions:{like:0, heart:0, wow:0, laugh:0, sad:0}, 
+                        attachments: [...pendingAttachments], 
+                        reacted: null 
+                    };
+                    
+                    console.log('Nueva publicación creada:', newPost);
+                    posts.unshift(newPost);
                     composerInput.value='';
                     publishPostBtn.disabled = true;
                     publishPostBtn.classList.remove('enabled');
-                    pendingAttachments = []; document.getElementById('attachmentsPreview').innerHTML='';
+                    
+                    // Limpiar adjuntos
+                    pendingAttachments = []; 
+                    document.getElementById('attachmentsPreview').innerHTML='';
+                    
+                    // Re-renderizar posts
                     renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all');
+                    
+                    // Mostrar confirmación
+                    alert('¡Publicación creada exitosamente!');
+                    console.log('Publicación completada');
                 });
             }
             renderPosts('all');
@@ -1394,20 +1440,41 @@
                     linkInput.value = '';
                 }
 
-                confirmLink.addEventListener('click', () => {
-                    const url = linkInput.value.trim();
-                    if (url) {
-                        pendingAttachments.push({ type: 'link', url });
-                        addPreviewLink(url);
-                        closeLinkModalFunc();
-                    }
-                });
+                if (confirmLink) {
+                    confirmLink.addEventListener('click', () => {
+                        console.log('Botón confirmar enlace clickeado');
+                        const url = linkInput.value.trim();
+                        console.log('URL ingresada:', url);
+                        if (url) {
+                            try {
+                                // Validar URL
+                                new URL(url);
+                                console.log('URL válida, agregando adjunto');
+                                pendingAttachments.push({ type: 'link', url });
+                                addPreviewLink(url);
+                                closeLinkModalFunc();
+                            } catch (e) {
+                                console.log('URL inválida:', e);
+                                alert('Por favor ingresa una URL válida (ej: https://ejemplo.com)');
+                            }
+                        } else {
+                            console.log('URL vacía');
+                            alert('Por favor ingresa una URL');
+                        }
+                    });
+                }
 
-                cancelLink.addEventListener('click', closeLinkModalFunc);
-                closeLinkModal.addEventListener('click', closeLinkModalFunc);
-                linkModal.addEventListener('click', (e) => {
-                    if (e.target === linkModal) closeLinkModalFunc();
-                });
+                if (cancelLink) {
+                    cancelLink.addEventListener('click', closeLinkModalFunc);
+                }
+                if (closeLinkModal) {
+                    closeLinkModal.addEventListener('click', closeLinkModalFunc);
+                }
+                if (linkModal) {
+                    linkModal.addEventListener('click', (e) => {
+                        if (e.target === linkModal) closeLinkModalFunc();
+                    });
+                }
 
                 // Modal de YouTube
                 const youtubeModal = document.getElementById('youtubeModal');
@@ -1421,25 +1488,35 @@
                     youtubeInput.value = '';
                 }
 
-                confirmYoutube.addEventListener('click', () => {
-                    const ytUrl = youtubeInput.value.trim();
-                    if (ytUrl) {
-                        const embed = youtubeEmbed(ytUrl);
-                        if (embed) {
-                            pendingAttachments.push({ type: 'youtube', embed });
-                            addPreviewYoutube(embed);
-                            closeYoutubeModalFunc();
+                if (confirmYoutube) {
+                    confirmYoutube.addEventListener('click', () => {
+                        const ytUrl = youtubeInput.value.trim();
+                        if (ytUrl) {
+                            const embed = youtubeEmbed(ytUrl);
+                            if (embed) {
+                                pendingAttachments.push({ type: 'youtube', embed });
+                                addPreviewYoutube(embed);
+                                closeYoutubeModalFunc();
+                            } else {
+                                alert('Enlace de YouTube inválido. Asegúrate de que sea una URL válida de YouTube');
+                            }
                         } else {
-                            alert('Enlace de YouTube inválido');
+                            alert('Por favor ingresa una URL de YouTube');
                         }
-                    }
-                });
+                    });
+                }
 
-                cancelYoutube.addEventListener('click', closeYoutubeModalFunc);
-                closeYoutubeModal.addEventListener('click', closeYoutubeModalFunc);
-                youtubeModal.addEventListener('click', (e) => {
-                    if (e.target === youtubeModal) closeYoutubeModalFunc();
-                });
+                if (cancelYoutube) {
+                    cancelYoutube.addEventListener('click', closeYoutubeModalFunc);
+                }
+                if (closeYoutubeModal) {
+                    closeYoutubeModal.addEventListener('click', closeYoutubeModalFunc);
+                }
+                if (youtubeModal) {
+                    youtubeModal.addEventListener('click', (e) => {
+                        if (e.target === youtubeModal) closeYoutubeModalFunc();
+                    });
+                }
 
                 // Modal de ubicación
                 const locationModal = document.getElementById('locationModal');
@@ -1453,20 +1530,30 @@
                     locationInput.value = '';
                 }
 
-                confirmLocation.addEventListener('click', () => {
-                    const location = locationInput.value.trim();
-                    if (location) {
-                        pendingAttachments.push({ type: 'location', text: location });
-                        addPreviewLocation(location);
-                        closeLocationModalFunc();
-                    }
-                });
+                if (confirmLocation) {
+                    confirmLocation.addEventListener('click', () => {
+                        const location = locationInput.value.trim();
+                        if (location) {
+                            pendingAttachments.push({ type: 'location', text: location });
+                            addPreviewLocation(location);
+                            closeLocationModalFunc();
+                        } else {
+                            alert('Por favor ingresa una ubicación');
+                        }
+                    });
+                }
 
-                cancelLocation.addEventListener('click', closeLocationModalFunc);
-                closeLocationModal.addEventListener('click', closeLocationModalFunc);
-                locationModal.addEventListener('click', (e) => {
-                    if (e.target === locationModal) closeLocationModalFunc();
-                });
+                if (cancelLocation) {
+                    cancelLocation.addEventListener('click', closeLocationModalFunc);
+                }
+                if (closeLocationModal) {
+                    closeLocationModal.addEventListener('click', closeLocationModalFunc);
+                }
+                if (locationModal) {
+                    locationModal.addEventListener('click', (e) => {
+                        if (e.target === locationModal) closeLocationModalFunc();
+                    });
+                }
 
                 // Modal de encuesta
                 const pollModal = document.getElementById('pollModal');
@@ -1482,34 +1569,52 @@
                     pollOptions.value = '';
                 }
 
-                confirmPoll.addEventListener('click', () => {
-                    const question = pollQuestion.value.trim();
-                    const options = pollOptions.value.trim();
-                    if (question && options) {
-                        const pollOptionsArray = options.split(',').map(opt => opt.trim()).filter(opt => opt);
-                        if (pollOptionsArray.length >= 2) {
-                            pendingAttachments.push({ 
-                                type: 'poll', 
-                                question, 
-                                options: pollOptionsArray 
-                            });
-                            addPreviewPoll(question, pollOptionsArray);
-                            closePollModalFunc();
+                if (confirmPoll) {
+                    confirmPoll.addEventListener('click', () => {
+                        const question = pollQuestion.value.trim();
+                        const options = pollOptions.value.trim();
+                        if (question && options) {
+                            const pollOptionsArray = options.split(',').map(opt => opt.trim()).filter(opt => opt);
+                            if (pollOptionsArray.length >= 2) {
+                                pendingAttachments.push({ 
+                                    type: 'poll', 
+                                    question, 
+                                    options: pollOptionsArray 
+                                });
+                                addPreviewPoll(question, pollOptionsArray);
+                                closePollModalFunc();
+                            } else {
+                                alert('Necesitas al menos 2 opciones para la encuesta');
+                            }
                         } else {
-                            alert('Necesitas al menos 2 opciones para la encuesta');
+                            alert('Por favor completa tanto la pregunta como las opciones');
                         }
-                    }
-                });
+                    });
+                }
 
-                cancelPoll.addEventListener('click', closePollModalFunc);
-                closePollModal.addEventListener('click', closePollModalFunc);
-                pollModal.addEventListener('click', (e) => {
-                    if (e.target === pollModal) closePollModalFunc();
-                });
+                if (cancelPoll) {
+                    cancelPoll.addEventListener('click', closePollModalFunc);
+                }
+                if (closePollModal) {
+                    closePollModal.addEventListener('click', closePollModalFunc);
+                }
+                if (pollModal) {
+                    pollModal.addEventListener('click', (e) => {
+                        if (e.target === pollModal) closePollModalFunc();
+                    });
+                }
             }
 
             // Inicializar modales de entrada
             setupInputModals();
+            
+            // Debug: verificar que los elementos existan
+            console.log('Elementos de publicación:', {
+                composerInput: !!document.getElementById('composerInput'),
+                publishPostBtn: !!document.getElementById('publishPostBtn'),
+                attachMenuBtn: !!document.getElementById('attachMenuBtn'),
+                attachModal: !!document.getElementById('attachModal')
+            });
             
             // Escuchar cambios en el localStorage para actualizar la foto de perfil
             window.addEventListener('storage', function(e) {
