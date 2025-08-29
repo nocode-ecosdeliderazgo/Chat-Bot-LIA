@@ -557,12 +557,80 @@
                     document.getElementById('tab-'+tab).style.display='block';
                 });
             });
-            // Feed mock
-            const posts = [
-                { id:1, user:'Nate Herk', avatar:'fas fa-user', category:'ia', minutesAgo:60, content:'Nuevo video: cómo construir un agente IA con n8n.', comments:[], reactions:{like:12, heart:3}, attachments:[], reacted: null },
-                { id:2, user:'Ana Martínez', avatar:'fas fa-user', category:'datos', minutesAgo:5, content:'¿Qué herramienta recomiendan para orquestar pipelines?', comments:[], reactions:{like:2, heart:1}, attachments:[], reacted: null },
-                { id:3, user:'Carlos López', avatar:'fas fa-user', category:'desarrollo', minutesAgo:15, content:'Comparto un boilerplate para APIs serverless.', comments:[], reactions:{like:1, heart:0}, attachments:[], reacted: null }
-            ];
+                         // Feed mock con persistencia
+             let posts = [];
+             
+             // Limpiar posts muy antiguos (más de 30 días)
+             function cleanupOldPosts() {
+                 const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+                 posts = posts.filter(post => {
+                     if (post.timestamp) {
+                         return post.timestamp > thirtyDaysAgo;
+                     }
+                     return true; // Mantener posts sin timestamp (posts iniciales)
+                 });
+             }
+             
+             // Cargar posts guardados
+             function loadPosts() {
+                 const savedPosts = localStorage.getItem('communityPosts');
+                 if (savedPosts) {
+                     try {
+                         posts = JSON.parse(savedPosts);
+                         console.log('Posts cargados desde localStorage:', posts);
+                     } catch (e) {
+                         console.error('Error cargando posts:', e);
+                         posts = [];
+                     }
+                 } else {
+                     // Posts iniciales si no hay nada guardado
+                     posts = [
+                         { id:1, user:'Nate Herk', avatar:'fas fa-user', category:'ia', minutesAgo:60, content:'Nuevo video: cómo construir un agente IA con n8n.', comments:[], reactions:{like:12, heart:3}, attachments:[], reacted: null },
+                         { id:2, user:'Ana Martínez', avatar:'fas fa-user', category:'datos', minutesAgo:5, content:'¿Qué herramienta recomiendan para orquestar pipelines?', comments:[], reactions:{like:2, heart:1}, attachments:[], reacted: null },
+                         { id:3, user:'Carlos López', avatar:'fas fa-user', category:'desarrollo', minutesAgo:15, content:'Comparto un boilerplate para APIs serverless.', comments:[], reactions:{like:1, heart:0}, attachments:[], reacted: null }
+                     ];
+                 }
+             }
+             
+             // Guardar posts
+             function savePosts() {
+                 try {
+                     localStorage.setItem('communityPosts', JSON.stringify(posts));
+                     console.log('Posts guardados en localStorage');
+                 } catch (e) {
+                     console.error('Error guardando posts:', e);
+                 }
+             }
+             
+             // Actualizar timestamps de posts
+             function updatePostTimestamps() {
+                 const now = Date.now();
+                 posts.forEach(post => {
+                     if (post.timestamp) {
+                         const diffMinutes = Math.floor((now - post.timestamp) / (1000 * 60));
+                         post.minutesAgo = diffMinutes;
+                     }
+                 });
+             }
+             
+             // Cargar posts al iniciar
+             loadPosts();
+             
+             // Limpiar posts antiguos
+             cleanupOldPosts();
+             
+             // Actualizar timestamps al cargar
+             updatePostTimestamps();
+             
+             // Actualizar timestamps cada minuto
+             setInterval(() => {
+                 updatePostTimestamps();
+                 // Re-renderizar solo si hay posts visibles
+                 const activeCategory = document.querySelector('.feed-chip.active')?.dataset.category || 'all';
+                 if (document.getElementById('postsList').children.length > 0) {
+                     renderPosts(activeCategory);
+                 }
+             }, 60000); // Cada minuto
             let pendingAttachments = [];
             const composerInput = document.getElementById('composerInput');
             const publishPostBtn = document.getElementById('publishPostBtn');
@@ -632,9 +700,13 @@
                         const type = el.getAttribute('data-react');
                         const post = posts.find(p=>p.id===id);
                         if(post.reacted){ return; }
-                        post.reactions[type] = (post.reactions[type]||0) + 1;
-                        post.reacted = type;
-                        renderPosts(category);
+                                                 post.reactions[type] = (post.reactions[type]||0) + 1;
+                         post.reacted = type;
+                         
+                         // Guardar cambios en localStorage
+                         savePosts();
+                         
+                         renderPosts(category);
                     });
                 });
                 // compartir
@@ -908,15 +980,19 @@
                         </div>
                     </div>
                 `;
-                // comentar desde modal
-                document.getElementById('modalSendComment').onclick = ()=>{
-                    const input = document.getElementById('modalCommentInput');
-                    const txt = (input.value||'').trim();
-                    if(!txt) return;
-                    post.comments.push({ user:'Tú', time:'ahora', text: txt });
-                    input.value='';
-                    document.getElementById('modalComments').innerHTML = (post.comments||[]).map(c=>commentTemplate(c)).join('');
-                };
+                                 // comentar desde modal
+                 document.getElementById('modalSendComment').onclick = ()=>{
+                     const input = document.getElementById('modalCommentInput');
+                     const txt = (input.value||'').trim();
+                     if(!txt) return;
+                     post.comments.push({ user:'Tú', time:'ahora', text: txt });
+                     
+                     // Guardar cambios en localStorage
+                     savePosts();
+                     
+                     input.value='';
+                     document.getElementById('modalComments').innerHTML = (post.comments||[]).map(c=>commentTemplate(c)).join('');
+                 };
                 document.getElementById('closePostModal').onclick = ()=> modal.classList.remove('show');
                 modal.classList.add('show');
             }
@@ -942,36 +1018,41 @@
                     console.log('Creando publicación con texto:', txt);
                     console.log('Adjuntos pendientes:', pendingAttachments);
                     
-                    // Crear nueva publicación
-                    const newPost = { 
-                        id: Date.now(), 
-                        user:'Tú', 
-                        avatar:'fas fa-user', 
-                        category:(document.querySelector('.feed-chip.active')?.dataset.category||'general'), 
-                        minutesAgo:0, 
-                        content:txt, 
-                        comments:[], 
-                        reactions:{like:0, heart:0, wow:0, laugh:0, sad:0}, 
-                        attachments: [...pendingAttachments], 
-                        reacted: null 
-                    };
+                                         // Crear nueva publicación
+                     const newPost = { 
+                         id: Date.now(), 
+                         user:'Tú', 
+                         avatar:'fas fa-user', 
+                         category:(document.querySelector('.feed-chip.active')?.dataset.category||'general'), 
+                         minutesAgo:0, 
+                         timestamp: Date.now(), // Agregar timestamp
+                         content:txt, 
+                         comments:[], 
+                         reactions:{like:0, heart:0, wow:0, laugh:0, sad:0}, 
+                         attachments: [...pendingAttachments], 
+                         reacted: null 
+                     };
                     
-                    console.log('Nueva publicación creada:', newPost);
-                    posts.unshift(newPost);
-                    composerInput.value='';
-                    publishPostBtn.disabled = true;
-                    publishPostBtn.classList.remove('enabled');
-                    
-                    // Limpiar adjuntos
-                    pendingAttachments = []; 
-                    document.getElementById('attachmentsPreview').innerHTML='';
-                    
-                    // Re-renderizar posts
-                    renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all');
-                    
-                    // Mostrar confirmación
-                    alert('¡Publicación creada exitosamente!');
-                    console.log('Publicación completada');
+                                         console.log('Nueva publicación creada:', newPost);
+                     posts.unshift(newPost);
+                     
+                     // Guardar posts en localStorage
+                     savePosts();
+                     
+                     composerInput.value='';
+                     publishPostBtn.disabled = true;
+                     publishPostBtn.classList.remove('enabled');
+                     
+                     // Limpiar adjuntos
+                     pendingAttachments = []; 
+                     document.getElementById('attachmentsPreview').innerHTML='';
+                     
+                     // Re-renderizar posts
+                     renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all');
+                     
+                     // Mostrar confirmación
+                     alert('¡Publicación creada exitosamente!');
+                     console.log('Publicación completada');
                 });
             }
             renderPosts('all');
