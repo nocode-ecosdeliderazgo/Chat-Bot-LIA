@@ -54,6 +54,23 @@
     </nav>
 
     <main class="main-content" style="padding-top:10px">
+        <!-- Banner de la comunidad -->
+        <div class="community-banner" id="communityBanner">
+            <div class="community-banner-image" id="communityBannerImage"></div>
+            <div class="community-banner-overlay">
+                <div class="community-banner-content">
+                    <div class="community-banner-icon" id="communityBannerIcon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="community-banner-info">
+                        <h1 class="community-banner-title" id="communityBannerTitle">Comunidad</h1>
+                        <p class="community-banner-desc" id="communityBannerDesc">Descripción de la comunidad</p>
+                        <div class="community-banner-meta" id="communityBannerMeta">• Members • Free</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <section id="tab-community" class="feed-section">
             <div class="container">
                 <div class="feed-main">
@@ -76,6 +93,7 @@
                     <div class="attachments-preview" id="attachmentsPreview"></div>
                     <div class="feed-filters" id="feedFilters">
                         <button class="feed-chip active" data-category="all">Todos</button>
+                        <button class="feed-chip" data-category="general">General</button>
                         <button class="feed-chip" data-category="ia">IA</button>
                         <button class="feed-chip" data-category="datos">Datos</button>
                         <button class="feed-chip" data-category="desarrollo">Desarrollo</button>
@@ -497,14 +515,35 @@
                 const rawPost = localStorage.getItem('community.view.post');
                 const detail = rawCommunity ? JSON.parse(rawCommunity) : (rawPost ? JSON.parse(rawPost) : null);
                 if(detail){
-                    document.getElementById('detailTitle').textContent = detail.title || detail.user || 'Detalle';
-                    document.getElementById('detailDesc').textContent = detail.desc || detail.content || '';
+                    // Actualizar banner de la comunidad
+                    const bannerTitle = document.getElementById('communityBannerTitle');
+                    const bannerDesc = document.getElementById('communityBannerDesc');
+                    const bannerMeta = document.getElementById('communityBannerMeta');
+                    const bannerIcon = document.getElementById('communityBannerIcon');
+                    const bannerImage = document.getElementById('communityBannerImage');
+                    
+                    if(bannerTitle) bannerTitle.textContent = detail.title || detail.user || 'Comunidad';
+                    if(bannerDesc) bannerDesc.textContent = detail.desc || detail.content || '';
+                    
                     const metaParts = [];
                     if(detail.members) metaParts.push(`${detail.members} Members`);
                     if(detail.price) metaParts.push(detail.price);
                     if(detail.category) metaParts.push(detail.category);
-                    document.getElementById('detailMeta').textContent = metaParts.join(' • ');
-                    if(detail.icon){ document.getElementById('detailIcon').className = detail.icon; }
+                    if(bannerMeta) bannerMeta.textContent = metaParts.join(' • ');
+                    
+                    if(detail.icon && bannerIcon) {
+                        bannerIcon.innerHTML = `<i class="${detail.icon}"></i>`;
+                    }
+                    
+                    // Cargar imagen del banner si existe
+                    if(detail.thumb && bannerImage) {
+                        bannerImage.style.backgroundImage = `url(${detail.thumb})`;
+                        bannerImage.style.display = 'block';
+                    } else if(bannerImage) {
+                        bannerImage.style.display = 'none';
+                    }
+                    
+                    // Actualizar título de la sección "Acerca de"
                     document.getElementById('aboutTitle').textContent = detail.title || 'Acerca de';
                 }
             }catch(e){ console.error(e); }
@@ -518,18 +557,89 @@
                     document.getElementById('tab-'+tab).style.display='block';
                 });
             });
-            // Feed mock
-            const posts = [
-                { id:1, user:'Nate Herk', avatar:'fas fa-user', category:'ia', minutesAgo:60, content:'Nuevo video: cómo construir un agente IA con n8n.', comments:[], reactions:{like:12, heart:3}, attachments:[], reacted: null },
-                { id:2, user:'Ana Martínez', avatar:'fas fa-user', category:'datos', minutesAgo:5, content:'¿Qué herramienta recomiendan para orquestar pipelines?', comments:[], reactions:{like:2, heart:1}, attachments:[], reacted: null },
-                { id:3, user:'Carlos López', avatar:'fas fa-user', category:'desarrollo', minutesAgo:15, content:'Comparto un boilerplate para APIs serverless.', comments:[], reactions:{like:1, heart:0}, attachments:[], reacted: null }
-            ];
+                         // Feed mock con persistencia
+             let posts = [];
+             
+             // Limpiar posts muy antiguos (más de 30 días)
+             function cleanupOldPosts() {
+                 const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+                 posts = posts.filter(post => {
+                     if (post.timestamp) {
+                         return post.timestamp > thirtyDaysAgo;
+                     }
+                     return true; // Mantener posts sin timestamp (posts iniciales)
+                 });
+             }
+             
+             // Cargar posts guardados
+             function loadPosts() {
+                 const savedPosts = localStorage.getItem('communityPosts');
+                 if (savedPosts) {
+                     try {
+                         posts = JSON.parse(savedPosts);
+                         console.log('Posts cargados desde localStorage:', posts);
+                     } catch (e) {
+                         console.error('Error cargando posts:', e);
+                         posts = [];
+                     }
+                 } else {
+                     // Posts iniciales si no hay nada guardado
+                     posts = [
+                         { id:1, user:'Nate Herk', avatar:'fas fa-user', category:'ia', minutesAgo:60, content:'Nuevo video: cómo construir un agente IA con n8n.', comments:[], reactions:{like:12, heart:3}, attachments:[], reacted: null },
+                         { id:2, user:'Ana Martínez', avatar:'fas fa-user', category:'datos', minutesAgo:5, content:'¿Qué herramienta recomiendan para orquestar pipelines?', comments:[], reactions:{like:2, heart:1}, attachments:[], reacted: null },
+                         { id:3, user:'Carlos López', avatar:'fas fa-user', category:'desarrollo', minutesAgo:15, content:'Comparto un boilerplate para APIs serverless.', comments:[], reactions:{like:1, heart:0}, attachments:[], reacted: null }
+                     ];
+                 }
+             }
+             
+             // Guardar posts
+             function savePosts() {
+                 try {
+                     localStorage.setItem('communityPosts', JSON.stringify(posts));
+                     console.log('Posts guardados en localStorage');
+                 } catch (e) {
+                     console.error('Error guardando posts:', e);
+                 }
+             }
+             
+             // Actualizar timestamps de posts
+             function updatePostTimestamps() {
+                 const now = Date.now();
+                 posts.forEach(post => {
+                     if (post.timestamp) {
+                         const diffMinutes = Math.floor((now - post.timestamp) / (1000 * 60));
+                         post.minutesAgo = diffMinutes;
+                     }
+                 });
+             }
+             
+             // Cargar posts al iniciar
+             loadPosts();
+             
+             // Limpiar posts antiguos
+             cleanupOldPosts();
+             
+             // Actualizar timestamps al cargar
+             updatePostTimestamps();
+             
+             // Actualizar timestamps cada minuto
+             setInterval(() => {
+                 updatePostTimestamps();
+                 // Re-renderizar solo si hay posts visibles
+                 const activeCategory = document.querySelector('.feed-chip.active')?.dataset.category || 'all';
+                 if (document.getElementById('postsList').children.length > 0) {
+                     renderPosts(activeCategory);
+                 }
+             }, 60000); // Cada minuto
             let pendingAttachments = [];
             const composerInput = document.getElementById('composerInput');
             const publishPostBtn = document.getElementById('publishPostBtn');
             function renderPosts(category='all'){
+                console.log('Renderizando posts para categoría:', category);
+                console.log('Posts disponibles:', posts);
                 const list = document.getElementById('postsList');
                 const filtered = category==='all' ? posts : posts.filter(p=>p.category===category);
+                console.log('Posts filtrados:', filtered);
                 list.innerHTML = filtered.map(p=>`
                     <div class="post-card" data-open-post="${p.id}">
                         <div class="post-avatar"><i class="${p.avatar}"></i></div>
@@ -590,9 +700,13 @@
                         const type = el.getAttribute('data-react');
                         const post = posts.find(p=>p.id===id);
                         if(post.reacted){ return; }
-                        post.reactions[type] = (post.reactions[type]||0) + 1;
-                        post.reacted = type;
-                        renderPosts(category);
+                                                 post.reactions[type] = (post.reactions[type]||0) + 1;
+                         post.reacted = type;
+                         
+                         // Guardar cambios en localStorage
+                         savePosts();
+                         
+                         renderPosts(category);
                     });
                 });
                 // compartir
@@ -741,52 +855,63 @@
             });
             
             function handleAttachmentType(type) {
+                console.log('Manejando tipo de adjunto:', type);
                 switch(type) {
                     case 'image':
+                        console.log('Abriendo selector de imagen');
                         document.getElementById('attachImage').click();
                         break;
                     case 'document':
+                        console.log('Abriendo selector de documento');
                         document.getElementById('attachDocument').click();
                         break;
                     case 'link':
+                        console.log('Abriendo modal de enlace');
                         document.getElementById('linkModal').classList.add('show');
                         break;
                     case 'youtube':
+                        console.log('Abriendo modal de YouTube');
                         document.getElementById('youtubeModal').classList.add('show');
                         break;
                     case 'location':
+                        console.log('Abriendo modal de ubicación');
                         document.getElementById('locationModal').classList.add('show');
                         break;
                     case 'poll':
+                        console.log('Abriendo modal de encuesta');
                         document.getElementById('pollModal').classList.add('show');
                         break;
                 }
             }
             document.getElementById('attachImage').addEventListener('change', (e)=>{
+                console.log('Archivo de imagen seleccionado:', e.target.files?.[0]);
                 const file = e.target.files?.[0];
                 if(!file) return;
                 if(bytesToMB(file.size) > 10){ alert('Imagen supera 10MB'); return; }
+                console.log('Procesando imagen:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
                 const reader = new FileReader();
-                reader.onload = ()=>{ pendingAttachments.push({ type:'image', src: reader.result }); addPreviewImage(reader.result); };
+                reader.onload = ()=>{
+                    console.log('Imagen procesada, agregando adjunto');
+                    pendingAttachments.push({ type:'image', src: reader.result }); 
+                    addPreviewImage(reader.result); 
+                };
                 reader.readAsDataURL(file);
                 e.target.value='';
             });
-            document.getElementById('attachPdf').addEventListener('change', (e)=>{
-                const file = e.target.files?.[0];
-                if(!file) return;
-                if(bytesToMB(file.size) > 10){ alert('PDF supera 10MB'); return; }
-                const reader = new FileReader();
-                reader.onload = ()=>{ pendingAttachments.push({ type:'pdf', name: file.name, dataUrl: reader.result }); addPreviewPdf(file.name); };
-                reader.readAsDataURL(file);
-                e.target.value='';
-            });
+            // Remover esta línea ya que no existe el input attachPdf
             
             document.getElementById('attachDocument').addEventListener('change', (e)=>{
+                console.log('Archivo de documento seleccionado:', e.target.files?.[0]);
                 const file = e.target.files?.[0];
                 if(!file) return;
                 if(bytesToMB(file.size) > 10){ alert('Documento supera 10MB'); return; }
+                console.log('Procesando documento:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
                 const reader = new FileReader();
-                reader.onload = ()=>{ pendingAttachments.push({ type:'document', name: file.name, dataUrl: reader.result }); addPreviewDocument(file.name); };
+                reader.onload = ()=>{
+                    console.log('Documento procesado, agregando adjunto');
+                    pendingAttachments.push({ type:'document', name: file.name, dataUrl: reader.result }); 
+                    addPreviewDocument(file.name); 
+                };
                 reader.readAsDataURL(file);
                 e.target.value='';
             });
@@ -855,15 +980,19 @@
                         </div>
                     </div>
                 `;
-                // comentar desde modal
-                document.getElementById('modalSendComment').onclick = ()=>{
-                    const input = document.getElementById('modalCommentInput');
-                    const txt = (input.value||'').trim();
-                    if(!txt) return;
-                    post.comments.push({ user:'Tú', time:'ahora', text: txt });
-                    input.value='';
-                    document.getElementById('modalComments').innerHTML = (post.comments||[]).map(c=>commentTemplate(c)).join('');
-                };
+                                 // comentar desde modal
+                 document.getElementById('modalSendComment').onclick = ()=>{
+                     const input = document.getElementById('modalCommentInput');
+                     const txt = (input.value||'').trim();
+                     if(!txt) return;
+                     post.comments.push({ user:'Tú', time:'ahora', text: txt });
+                     
+                     // Guardar cambios en localStorage
+                     savePosts();
+                     
+                     input.value='';
+                     document.getElementById('modalComments').innerHTML = (post.comments||[]).map(c=>commentTemplate(c)).join('');
+                 };
                 document.getElementById('closePostModal').onclick = ()=> modal.classList.remove('show');
                 modal.classList.add('show');
             }
@@ -879,14 +1008,51 @@
                     publishPostBtn.classList.toggle('enabled', ok);
                 });
                 publishPostBtn.addEventListener('click', ()=>{
+                    console.log('Botón de publicar clickeado');
                     const txt = composerInput.value.trim();
-                    if(!txt) return;
-                    posts.unshift({ id: Date.now(), user:'Tú', avatar:'fas fa-user', category:(document.querySelector('.feed-chip.active')?.dataset.category||'ia'), minutesAgo:0, content:txt, comments:[], reactions:{like:0, heart:0, wow:0, laugh:0, sad:0}, attachments: pendingAttachments.slice(0), reacted: null });
-                    composerInput.value='';
-                    publishPostBtn.disabled = true;
-                    publishPostBtn.classList.remove('enabled');
-                    pendingAttachments = []; document.getElementById('attachmentsPreview').innerHTML='';
-                    renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all');
+                    if(!txt) {
+                        console.log('Texto vacío, no se puede publicar');
+                        return;
+                    }
+                    
+                    console.log('Creando publicación con texto:', txt);
+                    console.log('Adjuntos pendientes:', pendingAttachments);
+                    
+                                         // Crear nueva publicación
+                     const newPost = { 
+                         id: Date.now(), 
+                         user:'Tú', 
+                         avatar:'fas fa-user', 
+                         category:(document.querySelector('.feed-chip.active')?.dataset.category||'general'), 
+                         minutesAgo:0, 
+                         timestamp: Date.now(), // Agregar timestamp
+                         content:txt, 
+                         comments:[], 
+                         reactions:{like:0, heart:0, wow:0, laugh:0, sad:0}, 
+                         attachments: [...pendingAttachments], 
+                         reacted: null 
+                     };
+                    
+                                         console.log('Nueva publicación creada:', newPost);
+                     posts.unshift(newPost);
+                     
+                     // Guardar posts en localStorage
+                     savePosts();
+                     
+                     composerInput.value='';
+                     publishPostBtn.disabled = true;
+                     publishPostBtn.classList.remove('enabled');
+                     
+                     // Limpiar adjuntos
+                     pendingAttachments = []; 
+                     document.getElementById('attachmentsPreview').innerHTML='';
+                     
+                     // Re-renderizar posts
+                     renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all');
+                     
+                     // Mostrar confirmación
+                     alert('¡Publicación creada exitosamente!');
+                     console.log('Publicación completada');
                 });
             }
             renderPosts('all');
@@ -1393,20 +1559,41 @@
                     linkInput.value = '';
                 }
 
-                confirmLink.addEventListener('click', () => {
-                    const url = linkInput.value.trim();
-                    if (url) {
-                        pendingAttachments.push({ type: 'link', url });
-                        addPreviewLink(url);
-                        closeLinkModalFunc();
-                    }
-                });
+                if (confirmLink) {
+                    confirmLink.addEventListener('click', () => {
+                        console.log('Botón confirmar enlace clickeado');
+                        const url = linkInput.value.trim();
+                        console.log('URL ingresada:', url);
+                        if (url) {
+                            try {
+                                // Validar URL
+                                new URL(url);
+                                console.log('URL válida, agregando adjunto');
+                                pendingAttachments.push({ type: 'link', url });
+                                addPreviewLink(url);
+                                closeLinkModalFunc();
+                            } catch (e) {
+                                console.log('URL inválida:', e);
+                                alert('Por favor ingresa una URL válida (ej: https://ejemplo.com)');
+                            }
+                        } else {
+                            console.log('URL vacía');
+                            alert('Por favor ingresa una URL');
+                        }
+                    });
+                }
 
-                cancelLink.addEventListener('click', closeLinkModalFunc);
-                closeLinkModal.addEventListener('click', closeLinkModalFunc);
-                linkModal.addEventListener('click', (e) => {
-                    if (e.target === linkModal) closeLinkModalFunc();
-                });
+                if (cancelLink) {
+                    cancelLink.addEventListener('click', closeLinkModalFunc);
+                }
+                if (closeLinkModal) {
+                    closeLinkModal.addEventListener('click', closeLinkModalFunc);
+                }
+                if (linkModal) {
+                    linkModal.addEventListener('click', (e) => {
+                        if (e.target === linkModal) closeLinkModalFunc();
+                    });
+                }
 
                 // Modal de YouTube
                 const youtubeModal = document.getElementById('youtubeModal');
@@ -1420,25 +1607,35 @@
                     youtubeInput.value = '';
                 }
 
-                confirmYoutube.addEventListener('click', () => {
-                    const ytUrl = youtubeInput.value.trim();
-                    if (ytUrl) {
-                        const embed = youtubeEmbed(ytUrl);
-                        if (embed) {
-                            pendingAttachments.push({ type: 'youtube', embed });
-                            addPreviewYoutube(embed);
-                            closeYoutubeModalFunc();
+                if (confirmYoutube) {
+                    confirmYoutube.addEventListener('click', () => {
+                        const ytUrl = youtubeInput.value.trim();
+                        if (ytUrl) {
+                            const embed = youtubeEmbed(ytUrl);
+                            if (embed) {
+                                pendingAttachments.push({ type: 'youtube', embed });
+                                addPreviewYoutube(embed);
+                                closeYoutubeModalFunc();
+                            } else {
+                                alert('Enlace de YouTube inválido. Asegúrate de que sea una URL válida de YouTube');
+                            }
                         } else {
-                            alert('Enlace de YouTube inválido');
+                            alert('Por favor ingresa una URL de YouTube');
                         }
-                    }
-                });
+                    });
+                }
 
-                cancelYoutube.addEventListener('click', closeYoutubeModalFunc);
-                closeYoutubeModal.addEventListener('click', closeYoutubeModalFunc);
-                youtubeModal.addEventListener('click', (e) => {
-                    if (e.target === youtubeModal) closeYoutubeModalFunc();
-                });
+                if (cancelYoutube) {
+                    cancelYoutube.addEventListener('click', closeYoutubeModalFunc);
+                }
+                if (closeYoutubeModal) {
+                    closeYoutubeModal.addEventListener('click', closeYoutubeModalFunc);
+                }
+                if (youtubeModal) {
+                    youtubeModal.addEventListener('click', (e) => {
+                        if (e.target === youtubeModal) closeYoutubeModalFunc();
+                    });
+                }
 
                 // Modal de ubicación
                 const locationModal = document.getElementById('locationModal');
@@ -1452,20 +1649,30 @@
                     locationInput.value = '';
                 }
 
-                confirmLocation.addEventListener('click', () => {
-                    const location = locationInput.value.trim();
-                    if (location) {
-                        pendingAttachments.push({ type: 'location', text: location });
-                        addPreviewLocation(location);
-                        closeLocationModalFunc();
-                    }
-                });
+                if (confirmLocation) {
+                    confirmLocation.addEventListener('click', () => {
+                        const location = locationInput.value.trim();
+                        if (location) {
+                            pendingAttachments.push({ type: 'location', text: location });
+                            addPreviewLocation(location);
+                            closeLocationModalFunc();
+                        } else {
+                            alert('Por favor ingresa una ubicación');
+                        }
+                    });
+                }
 
-                cancelLocation.addEventListener('click', closeLocationModalFunc);
-                closeLocationModal.addEventListener('click', closeLocationModalFunc);
-                locationModal.addEventListener('click', (e) => {
-                    if (e.target === locationModal) closeLocationModalFunc();
-                });
+                if (cancelLocation) {
+                    cancelLocation.addEventListener('click', closeLocationModalFunc);
+                }
+                if (closeLocationModal) {
+                    closeLocationModal.addEventListener('click', closeLocationModalFunc);
+                }
+                if (locationModal) {
+                    locationModal.addEventListener('click', (e) => {
+                        if (e.target === locationModal) closeLocationModalFunc();
+                    });
+                }
 
                 // Modal de encuesta
                 const pollModal = document.getElementById('pollModal');
@@ -1481,34 +1688,52 @@
                     pollOptions.value = '';
                 }
 
-                confirmPoll.addEventListener('click', () => {
-                    const question = pollQuestion.value.trim();
-                    const options = pollOptions.value.trim();
-                    if (question && options) {
-                        const pollOptionsArray = options.split(',').map(opt => opt.trim()).filter(opt => opt);
-                        if (pollOptionsArray.length >= 2) {
-                            pendingAttachments.push({ 
-                                type: 'poll', 
-                                question, 
-                                options: pollOptionsArray 
-                            });
-                            addPreviewPoll(question, pollOptionsArray);
-                            closePollModalFunc();
+                if (confirmPoll) {
+                    confirmPoll.addEventListener('click', () => {
+                        const question = pollQuestion.value.trim();
+                        const options = pollOptions.value.trim();
+                        if (question && options) {
+                            const pollOptionsArray = options.split(',').map(opt => opt.trim()).filter(opt => opt);
+                            if (pollOptionsArray.length >= 2) {
+                                pendingAttachments.push({ 
+                                    type: 'poll', 
+                                    question, 
+                                    options: pollOptionsArray 
+                                });
+                                addPreviewPoll(question, pollOptionsArray);
+                                closePollModalFunc();
+                            } else {
+                                alert('Necesitas al menos 2 opciones para la encuesta');
+                            }
                         } else {
-                            alert('Necesitas al menos 2 opciones para la encuesta');
+                            alert('Por favor completa tanto la pregunta como las opciones');
                         }
-                    }
-                });
+                    });
+                }
 
-                cancelPoll.addEventListener('click', closePollModalFunc);
-                closePollModal.addEventListener('click', closePollModalFunc);
-                pollModal.addEventListener('click', (e) => {
-                    if (e.target === pollModal) closePollModalFunc();
-                });
+                if (cancelPoll) {
+                    cancelPoll.addEventListener('click', closePollModalFunc);
+                }
+                if (closePollModal) {
+                    closePollModal.addEventListener('click', closePollModalFunc);
+                }
+                if (pollModal) {
+                    pollModal.addEventListener('click', (e) => {
+                        if (e.target === pollModal) closePollModalFunc();
+                    });
+                }
             }
 
             // Inicializar modales de entrada
             setupInputModals();
+            
+            // Debug: verificar que los elementos existan
+            console.log('Elementos de publicación:', {
+                composerInput: !!document.getElementById('composerInput'),
+                publishPostBtn: !!document.getElementById('publishPostBtn'),
+                attachMenuBtn: !!document.getElementById('attachMenuBtn'),
+                attachModal: !!document.getElementById('attachModal')
+            });
             
             // Escuchar cambios en el localStorage para actualizar la foto de perfil
             window.addEventListener('storage', function(e) {
