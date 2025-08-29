@@ -184,10 +184,12 @@ class CommunityPage {
 
     loadMockData() {
         // Estadísticas
-        this.communityStats = { totalMembers: 1247, totalPosts: 0 };
+        this.communityStats = { totalMembers: 2103, totalPosts: 0 };
 
         // Grid Discover (categorías solicitadas)
         this.communities = [
+            { id:0, rank:0, title:'Comunidad General', category:'general', members:'1.2k', price:'Free', desc:'Comunidad principal para todos los miembros. Comparte experiencias, haz preguntas y conecta con otros estudiantes.', thumb:'', icon:'fas fa-globe' },
+            { id:-1, rank:-1, title:'Openminder', category:'general', members:'856', price:'Free', desc:'Comunidad para mentes abiertas. Explora nuevas ideas, comparte perspectivas únicas y expande tu horizonte mental.', thumb:'', icon:'fas fa-lightbulb' },
             { id:1, rank:1, title:'Skoolers', category:'negocios', members:'74.3k', price:'Free', desc:"Private club for skool owners. Let's build communities together.", thumb:'', icon:'fas fa-users' },
             { id:2, rank:2, title:'AI Automation Agency Hub', category:'ia', members:'225.4k', price:'Free', desc:'Start Your AI Automation Agency — plantillas y recursos.', thumb:'', icon:'fas fa-robot' },
             { id:3, rank:3, title:'AI Automation (A-Z)', category:'ia', members:'87.4k', price:'Free', desc:'Learn to build and scale your agency.', thumb:'', icon:'fas fa-microchip' },
