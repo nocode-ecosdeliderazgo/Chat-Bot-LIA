@@ -399,11 +399,30 @@
                         Live Stream
                     </h3>
                     <div class="live-stream-main-controls">
-                        <button class="live-stream-main-control-btn" id="liveStreamMainToggleBtn" title="Iniciar/Detener Stream">
-                            <i class='bx bx-broadcast' id="liveStreamIcon"></i>
+                        <button class="live-stream-main-control-btn" id="liveStreamMainToggleBtn" title="Unirse a Sesión de Video">
+                            <i class='bx bx-video' id="liveStreamIcon"></i>
                         </button>
 
-                        <!-- Controles de grabación -->
+                        <!-- Controles de video diferenciados por rol -->
+                        <div class="video-basic-controls" id="videoBasicControls" style="display: none;">
+                            <!-- Controles SOLO para HOSTS (transmiten) -->
+                            <button class="video-control-btn host-only" id="cameraToggleBtn" title="Encender/Apagar Cámara" style="display: none;">
+                                <i class='bx bx-video'></i>
+                            </button>
+                            <button class="video-control-btn host-only" id="microphoneToggleBtn" title="Silenciar/Activar Micrófono" style="display: none;">
+                                <i class='bx bx-microphone'></i>
+                            </button>
+                            
+                            <!-- Controles para TODOS (participantes y hosts) -->
+                            <button class="video-control-btn" id="volumeControlBtn" title="Control de Volumen">
+                                <i class='bx bx-volume-full'></i>
+                            </button>
+                            <button class="video-control-btn" id="fullscreenToggleBtn" title="Pantalla Completa">
+                                <i class='bx bx-fullscreen'></i>
+                            </button>
+                        </div>
+
+                        <!-- Controles de grabación (solo hosts) -->
                         <div class="recording-controls" id="recordingControls" style="display: none;">
                             <button class="recording-control-btn" id="recordingStartBtn" title="Iniciar grabación">
                                 <i class='bx bx-video-recording'></i>
@@ -437,15 +456,27 @@
                     </div>
 
                     <div class="live-stream-main-placeholder" id="liveStreamMainPlaceholder">
-                        <i class='bx bx-broadcast'></i>
-                        <p>Inicia el Live Stream para comenzar la transmisión</p>
+                        <i class='bx bx-video'></i>
+                        <p>Únete a una sesión de video para comenzar</p>
                         <button class="live-stream-main-connect-btn" id="liveStreamMainConnectBtnLarge">
-                            <i class='bx bx-broadcast'></i>
-                            Iniciar Live Stream
+                            <i class='bx bx-video'></i>
+                            Unirse a Video Sesión
                         </button>
                     </div>
                     
-                    <!-- Contenedor para Live Stream -->
+                    <!-- Contenedor principal de Zoom Video SDK -->
+                    <div id="zoom-video-container" class="zoom-video-wrapper" style="display: none;">
+                        <div id="zoom-video-canvas" class="zoom-video-canvas"></div>
+                        <!-- Overlay para controles -->
+                        <div class="zoom-controls-overlay" id="zoomControlsOverlay">
+                            <div class="zoom-participant-info">
+                                <span class="participant-count" id="participantCount">0 participantes</span>
+                                <span class="connection-status" id="connectionStatus">Conectando...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contenedor para Live Stream (mantener compatibilidad) -->
                     <div class="live-stream-main-embed-container" id="liveStreamMainEmbedContainer" style="display: none; background: rgba(20, 30, 45, 0.95);">
                         <iframe id="liveStreamMainIframe" src="" frameborder="0" allowfullscreen></iframe>
                     </div>
@@ -558,6 +589,27 @@
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" 
             onload="console.log('✅ Socket.IO script loaded successfully')"
             onerror="console.error('❌ Failed to load Socket.IO from CDN')"></script>
+            
+    <!-- Zoom Video SDK - CDN -->
+    <script src="https://source.zoom.us/2.18.0/lib/vendor/react.min.js"
+            onload="console.log('✅ Zoom React dependency loaded')"
+            onerror="console.error('❌ Failed to load Zoom React dependency')"></script>
+    <script src="https://source.zoom.us/2.18.0/lib/vendor/react-dom.min.js"
+            onload="console.log('✅ Zoom ReactDOM dependency loaded')"
+            onerror="console.error('❌ Failed to load Zoom ReactDOM dependency')"></script>
+    <script src="https://source.zoom.us/2.18.0/lib/vendor/redux.min.js"
+            onload="console.log('✅ Zoom Redux dependency loaded')"
+            onerror="console.error('❌ Failed to load Zoom Redux dependency')"></script>
+    <script src="https://source.zoom.us/2.18.0/lib/vendor/lodash.min.js"
+            onload="console.log('✅ Zoom Lodash dependency loaded')"
+            onerror="console.error('❌ Failed to load Zoom Lodash dependency')"></script>
+    <script src="https://source.zoom.us/2.18.0/lib/av/zoom-video.umd.min.js"
+            onload="console.log('✅ Zoom Video SDK loaded successfully')"
+            onerror="console.error('❌ Failed to load Zoom Video SDK')"></script>
+            
+    <!-- Zoom Video Integration - Nuestro código -->
+    <script src="scripts/zoom-video-integration.js"></script>
+    
     <script src="scripts/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

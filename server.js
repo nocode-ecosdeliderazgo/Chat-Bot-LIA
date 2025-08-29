@@ -4496,4 +4496,259 @@ function generateSessionPasscode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+// ===== ZOOM VIDEO SDK ENDPOINTS ===== 
+
+// Obtener configuración de sesión de Zoom
+app.get('/api/zoom/session-config', authenticateRequest, async (req, res) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ error: 'Usuario no autenticado' });
+        }
+
+        // Verificar rol de usuario para Zoom
+        const userRole = await getUserZoomRole(user.id);
+        
+        // Por ahora, generar configuración mock para desarrollo
+        // TODO: Implementar generación real de JWT signature para Zoom SDK
+        const sessionConfig = {
+            signature: generateZoomSignature('test-session', userRole === 'host' ? 1 : 0),
+            meetingNumber: 'test-meeting-123',
+            userName: user.username || user.display_name || 'Usuario',
+            topic: 'Sesión de Coach LIA',
+            passWord: '',
+            userRole: userRole
+        };
+
+        console.log(`📹 Configuración de sesión Zoom generada para usuario: ${user.id}, rol: ${userRole}`);
+        
+        res.json(sessionConfig);
+        
+    } catch (error) {
+        console.error('Error obteniendo configuración de sesión Zoom:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Verificar permisos de usuario para Zoom
+app.get('/api/zoom/user-permissions/:userId', authenticateRequest, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const requestingUser = req.user;
+        
+        // Verificar que el usuario puede acceder a esta información
+        if (requestingUser.id !== parseInt(userId) && await getUserZoomRole(requestingUser.id) !== 'host') {
+            return res.status(403).json({ error: 'No tienes permisos para acceder a esta información' });
+        }
+
+        const userRole = await getUserZoomRole(userId);
+        const isHost = userRole === 'host';
+        
+        res.json({
+            canRecord: isHost,
+            canMuteOthers: isHost,
+            canScreenShare: isHost,
+            canManageParticipants: isHost,
+            userRole: userRole
+        });
+        
+    } catch (error) {
+        console.error('Error verificando permisos de usuario:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Crear nueva sesión de Zoom
+app.post('/api/zoom/session', authenticateRequest, async (req, res) => {
+    try {
+        const { title, description, startTime } = req.body;
+        const hostId = req.user.id;
+        
+        // Verificar que el usuario sea host
+        const userRole = await getUserZoomRole(hostId);
+        if (userRole !== 'host') {
+            return res.status(403).json({ error: 'Solo los hosts pueden crear sesiones' });
+        }
+        
+        const sessionId = `zoom_${Date.now()}`;
+        
+        // Si hay base de datos disponible, guardar la sesión
+        if (pool) {
+            try {
+                const result = await pool.query(`
+                    INSERT INTO zoom_sessions (session_id, host_id, title, description, start_time, status)
+                    VALUES ($1, $2, $3, $4, $5, 'scheduled') RETURNING *
+                `, [sessionId, hostId, title, description, startTime || new Date()]);
+                
+                console.log(`📹 Sesión de Zoom creada: ${sessionId} por usuario: ${hostId}`);
+                res.json(result.rows[0]);
+                
+            } catch (dbError) {
+                console.warn('⚠️ Error guardando sesión en BD, continuando sin persistencia:', dbError.message);
+                // Continuar sin base de datos
+                res.json({
+                    session_id: sessionId,
+                    host_id: hostId,
+                    title: title,
+                    description: description,
+                    start_time: startTime || new Date(),
+                    status: 'scheduled'
+                });
+            }
+        } else {
+            // Sin base de datos, devolver configuración temporal
+            res.json({
+                session_id: sessionId,
+                host_id: hostId,
+                title: title,
+                description: description,
+                start_time: startTime || new Date(),
+                status: 'scheduled'
+            });
+        }
+        
+    } catch (error) {
+        console.error('Error creando sesión de Zoom:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Unirse a sesión de Zoom
+app.post('/api/zoom/join/:sessionId', authenticateRequest, async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const userId = req.user.id;
+        
+        // Verificar si la sesión existe (si hay BD disponible)
+        if (pool) {
+            try {
+                const session = await pool.query('SELECT * FROM zoom_sessions WHERE session_id = $1', [sessionId]);
+                if (session.rows.length === 0) {
+                    return res.status(404).json({ error: 'Sesión no encontrada' });
+                }
+                
+                // Registrar participación
+                await pool.query(`
+                    INSERT INTO zoom_participants (session_id, user_id, join_time)
+                    VALUES ($1, $2, NOW()) ON CONFLICT (session_id, user_id) DO NOTHING
+                `, [sessionId, userId]);
+                
+            } catch (dbError) {
+                console.warn('⚠️ Error accediendo a BD para sesión, continuando:', dbError.message);
+            }
+        }
+        
+        console.log(`📹 Usuario ${userId} se unió a sesión: ${sessionId}`);
+        res.json({ message: 'Unido a la sesión', sessionId });
+        
+    } catch (error) {
+        console.error('Error uniéndose a sesión:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Iniciar grabación (solo hosts)
+app.post('/api/zoom/recording/start', authenticateRequest, async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        const userId = req.user.id;
+        
+        // Verificar permisos de host
+        const userRole = await getUserZoomRole(userId);
+        if (userRole !== 'host') {
+            return res.status(403).json({ error: 'Solo los hosts pueden grabar' });
+        }
+        
+        const recordingId = `rec_${sessionId}_${Date.now()}`;
+        
+        // Guardar en BD si está disponible
+        if (pool) {
+            try {
+                await pool.query(`
+                    INSERT INTO zoom_recordings (recording_id, session_id, host_id, start_time, status)
+                    VALUES ($1, $2, $3, NOW(), 'recording')
+                `, [recordingId, sessionId, userId]);
+            } catch (dbError) {
+                console.warn('⚠️ Error guardando grabación en BD:', dbError.message);
+            }
+        }
+        
+        console.log(`🎥 Grabación iniciada: ${recordingId} por usuario: ${userId}`);
+        res.json({ recordingId, status: 'recording_started' });
+        
+    } catch (error) {
+        console.error('Error iniciando grabación:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Detener grabación
+app.post('/api/zoom/recording/stop', authenticateRequest, async (req, res) => {
+    try {
+        const { recordingId } = req.body;
+        const userId = req.user.id;
+        
+        // Verificar permisos
+        const userRole = await getUserZoomRole(userId);
+        if (userRole !== 'host') {
+            return res.status(403).json({ error: 'Solo los hosts pueden controlar grabaciones' });
+        }
+        
+        // Actualizar en BD si está disponible
+        if (pool) {
+            try {
+                await pool.query(`
+                    UPDATE zoom_recordings 
+                    SET end_time = NOW(), status = 'completed' 
+                    WHERE recording_id = $1 AND host_id = $2
+                `, [recordingId, userId]);
+            } catch (dbError) {
+                console.warn('⚠️ Error actualizando grabación en BD:', dbError.message);
+            }
+        }
+        
+        console.log(`🎥 Grabación finalizada: ${recordingId}`);
+        res.json({ recordingId, status: 'recording_stopped' });
+        
+    } catch (error) {
+        console.error('Error deteniendo grabación:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Función para obtener rol de Zoom del usuario
+async function getUserZoomRole(userId) {
+    try {
+        if (!pool) {
+            console.warn('⚠️ BD no disponible, asignando rol participant por defecto');
+            return 'participant'; // Por defecto en modo desarrollo
+        }
+        
+        const result = await pool.query('SELECT role_zoom FROM users WHERE id = $1', [userId]);
+        
+        if (result.rows.length === 0) {
+            return 'participant'; // Por defecto si no existe el usuario
+        }
+        
+        return result.rows[0].role_zoom || 'participant';
+        
+    } catch (error) {
+        console.error('Error obteniendo rol de Zoom:', error);
+        return 'participant'; // Por defecto en caso de error
+    }
+}
+
+// Función mock para generar signature de Zoom (temporal)
+function generateZoomSignature(sessionName, roleType) {
+    // Esta es una implementación temporal para desarrollo
+    // En producción, necesitarás implementar la generación real del JWT signature
+    // usando tu Zoom SDK Key y Secret
+    
+    const timestamp = Date.now();
+    const mockSignature = `mock_signature_${timestamp}_${sessionName}_${roleType}`;
+    
+    console.log(`🔐 Generando signature mock de Zoom: ${mockSignature}`);
+    return mockSignature;
+}
+
 module.exports = app;
