@@ -879,7 +879,7 @@
                 });
                 // aplicar reacción
                 list.querySelectorAll('.reaction-item').forEach(el=>{
-                    el.addEventListener('click', ()=>{
+                    el.addEventListener('click', async ()=>{
                         const id = Number(el.getAttribute('data-id'));
                         const type = el.getAttribute('data-react');
                         const post = posts.find(p=>p.id===id);
@@ -892,7 +892,7 @@
                          
                          // Agregar puntos por reaccionar
                          if (window.pointsSystem) {
-                             window.pointsSystem.addPoints('Tú', 'react');
+                             await window.pointsSystem.addPoints('Tú', 'react');
                          }
                          
                         renderPosts(category);
@@ -1245,7 +1245,7 @@
                     </div>
                 `;
                 // comentar desde modal
-                document.getElementById('modalSendComment').onclick = ()=>{
+                document.getElementById('modalSendComment').onclick = async ()=>{
                     const input = document.getElementById('modalCommentInput');
                     const txt = (input.value||'').trim();
                     if(!txt) return;
@@ -1256,7 +1256,7 @@
                      
                      // Agregar puntos por comentar
                      if (window.pointsSystem) {
-                         window.pointsSystem.addPoints('Tú', 'comment');
+                         await window.pointsSystem.addPoints('Tú', 'comment');
                      }
                      
                     input.value='';
@@ -1276,7 +1276,7 @@
                     publishPostBtn.disabled = !ok;
                     publishPostBtn.classList.toggle('enabled', ok);
                 });
-                publishPostBtn.addEventListener('click', ()=>{
+                publishPostBtn.addEventListener('click', async ()=>{
                     console.log('Botón de publicar clickeado');
                     const txt = composerInput.value.trim();
                     if(!txt) {
@@ -1310,7 +1310,7 @@
                      
                      // Agregar puntos por publicar
                      if (window.pointsSystem) {
-                         window.pointsSystem.addPoints('Tú', 'publish');
+                         await window.pointsSystem.addPoints('Tú', 'publish');
                      }
                      
                     composerInput.value='';
@@ -2374,6 +2374,7 @@
      </script>
      
     <script src="../scripts/theme-toggle.js"></script>
+    <script src="../scripts/supabase-client.js"></script>
 
     <script>
         // Sistema de notificaciones elegante
@@ -2470,13 +2471,18 @@
                     master: { name: 'Maestro', minPoints: 2000, maxPoints: Infinity, color: '#ff6b6b', icon: 'fas fa-trophy' }
                 };
                 
-                this.users = this.loadUsers();
-                this.currentUser = this.getCurrentUser();
+                this.users = [];
+                this.currentUser = null;
                 this.init();
             }
             
-            init() {
+            async init() {
                 console.log('PointsSystem initializing...');
+                
+                // Cargar usuarios de forma asíncrona
+                this.users = await this.loadUsers();
+                this.currentUser = await this.getCurrentUser();
+                
                 console.log('Current user:', this.currentUser);
                 this.setupEventListeners();
                 this.updateCurrentUserDisplay();
@@ -2485,7 +2491,48 @@
                 console.log('PointsSystem initialized');
             }
             
-            loadUsers() {
+            async loadUsers() {
+                try {
+                    // Intentar cargar desde Supabase primero
+                    if (window.supabase) {
+                        const { data: users, error } = await window.supabase
+                            .from('users')
+                            .select('id, username, display_name, first_name, points')
+                            .not('points', 'is', null);
+                        
+                        if (!error && users && users.length > 0) {
+                            // Convertir datos de Supabase al formato esperado
+                            const formattedUsers = users.map(user => ({
+                                id: user.id,
+                                name: user.display_name || user.first_name || user.username || 'Usuario',
+                                points: user.points || 0,
+                                posts: 0, // Estos campos no están en la BD, se mantienen en localStorage
+                                comments: 0,
+                                reactions: 0
+                            }));
+                            
+                            // Cargar estadísticas adicionales desde localStorage
+                            const savedStats = localStorage.getItem('communityUsersStats');
+                            if (savedStats) {
+                                const stats = JSON.parse(savedStats);
+                                formattedUsers.forEach(user => {
+                                    const userStats = stats.find(s => s.name === user.name);
+                                    if (userStats) {
+                                        user.posts = userStats.posts || 0;
+                                        user.comments = userStats.comments || 0;
+                                        user.reactions = userStats.reactions || 0;
+                                    }
+                                });
+                            }
+                            
+                            return formattedUsers;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading users from Supabase:', error);
+                }
+                
+                // Fallback a localStorage si Supabase no está disponible
                 const saved = localStorage.getItem('communityUsers');
                 if (saved) {
                     return JSON.parse(saved);
@@ -2510,12 +2557,75 @@
                 return initialUsers;
             }
             
-            saveUsers() {
+            async saveUsers() {
+                // Guardar en localStorage como respaldo
                 localStorage.setItem('communityUsers', JSON.stringify(this.users));
+                
+                // Guardar estadísticas adicionales en localStorage
+                const stats = this.users.map(user => ({
+                    name: user.name,
+                    posts: user.posts,
+                    comments: user.comments,
+                    reactions: user.reactions
+                }));
+                localStorage.setItem('communityUsersStats', JSON.stringify(stats));
+                
+                // Intentar guardar en Supabase
+                try {
+                    if (window.supabase) {
+                        // Actualizar puntos de usuarios existentes
+                        for (const user of this.users) {
+                            if (user.id) { // Solo usuarios que tienen ID de Supabase
+                                const { error } = await window.supabase
+                                    .from('users')
+                                    .update({ points: user.points })
+                                    .eq('id', user.id);
+                                
+                                if (error) {
+                                    console.error(`Error updating user ${user.name}:`, error);
+                                } else {
+                                    console.log(`✅ Points updated in Supabase for user ${user.name}: ${user.points} points`);
+                                }
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error saving users to Supabase:', error);
+                }
             }
             
-            getCurrentUser() {
-                // Simular usuario actual (en una app real vendría del sistema de auth)
+            async getCurrentUser() {
+                try {
+                    // Intentar obtener usuario actual desde Supabase
+                    if (window.supabase) {
+                        const { data: { user }, error } = await window.supabase.auth.getUser();
+                        
+                        if (!error && user) {
+                            // Buscar el usuario en la lista local
+                            let localUser = this.users.find(u => u.id === user.id);
+                            
+                            if (!localUser) {
+                                // Crear usuario local si no existe
+                                localUser = {
+                                    id: user.id,
+                                    name: user.user_metadata?.full_name || user.user_metadata?.name || user.email || 'Tú',
+                                    points: user.user_metadata?.points || 0,
+                                    posts: 0,
+                                    comments: 0,
+                                    reactions: 0
+                                };
+                                this.users.push(localUser);
+                                await this.saveUsers();
+                            }
+                            
+                            return localUser;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error getting current user from Supabase:', error);
+                }
+                
+                // Fallback a localStorage
                 const currentUserName = localStorage.getItem('currentUserName') || 'Tú';
                 let user = this.users.find(u => u.name === currentUserName);
                 
@@ -2534,10 +2644,11 @@
                 return user;
             }
             
-            addPoints(userName, action, extraPoints = 0) {
+            async addPoints(userName, action, extraPoints = 0) {
                 console.log('PointsSystem.addPoints called:', { userName, action, extraPoints });
-                const user = this.users.find(u => u.name === userName);
+                let user = this.users.find(u => u.name === userName);
                 console.log('User found:', user);
+                
                 if (!user) {
                     console.log('User not found, creating new user');
                     const newUser = {
@@ -2548,7 +2659,7 @@
                         reactions: 0
                     };
                     this.users.push(newUser);
-                    this.saveUsers();
+                    await this.saveUsers();
                     return this.addPoints(userName, action, extraPoints);
                 }
                 
@@ -2571,7 +2682,7 @@
                         break;
                 }
                 
-                this.saveUsers();
+                await this.saveUsers();
                 console.log('Points updated, user now has:', user.points, 'points');
                 this.updateCurrentUserDisplay();
                 this.renderLeaderboard();
@@ -2743,42 +2854,88 @@
         const pointsSystem = new PointsSystem();
         window.pointsSystem = pointsSystem; // Hacer disponible globalmente
         
+        // Función para sincronizar datos con Supabase
+        async function syncWithSupabase() {
+            try {
+                if (window.supabase) {
+                    console.log('🔄 Syncing with Supabase...');
+                    
+                    // Obtener usuarios de Supabase
+                    const { data: users, error } = await window.supabase
+                        .from('users')
+                        .select('id, username, display_name, first_name, points')
+                        .not('points', 'is', null);
+                    
+                    if (!error && users) {
+                        console.log(`📊 Found ${users.length} users in Supabase`);
+                        
+                        // Actualizar puntos en localStorage
+                        const localUsers = JSON.parse(localStorage.getItem('communityUsers') || '[]');
+                        const updatedUsers = localUsers.map(localUser => {
+                            const supabaseUser = users.find(u => 
+                                u.display_name === localUser.name || 
+                                u.first_name === localUser.name || 
+                                u.username === localUser.name
+                            );
+                            
+                            if (supabaseUser) {
+                                return {
+                                    ...localUser,
+                                    id: supabaseUser.id,
+                                    points: supabaseUser.points || localUser.points
+                                };
+                            }
+                            
+                            return localUser;
+                        });
+                        
+                        localStorage.setItem('communityUsers', JSON.stringify(updatedUsers));
+                        console.log('✅ Data synced with Supabase');
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error syncing with Supabase:', error);
+            }
+        }
+        
         // Integrar con el sistema existente
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Sincronizar con Supabase al cargar la página
+            await syncWithSupabase();
             // Sobrescribir funciones existentes para agregar puntos
             
             // Función original de publicar posts
             const originalPublishPost = window.publishPost;
-            window.publishPost = function() {
+            window.publishPost = async function() {
                 const result = originalPublishPost ? originalPublishPost() : null;
                 
                 // Agregar puntos por publicar
                 const currentUser = pointsSystem.currentUser;
-                pointsSystem.addPoints(currentUser.name, 'publish');
+                await pointsSystem.addPoints(currentUser.name, 'publish');
                 
                 return result;
             };
             
             // Función original de agregar comentarios
             const originalAddComment = window.addComment;
-            window.addComment = function(postId, commentText) {
+            window.addComment = async function(postId, commentText) {
                 const result = originalAddComment ? originalAddComment(postId, commentText) : null;
                 
                 // Agregar puntos por comentar
                 const currentUser = pointsSystem.currentUser;
-                pointsSystem.addPoints(currentUser.name, 'comment');
+                await pointsSystem.addPoints(currentUser.name, 'comment');
                 
                 return result;
             };
             
             // Función original de reaccionar
             const originalReactToPost = window.reactToPost;
-            window.reactToPost = function(postId, reactionType) {
+            window.reactToPost = async function(postId, reactionType) {
                 const result = originalReactToPost ? originalReactToPost(postId, reactionType) : null;
                 
                 // Agregar puntos por reaccionar
                 const currentUser = pointsSystem.currentUser;
-                pointsSystem.addPoints(currentUser.name, 'react');
+                await pointsSystem.addPoints(currentUser.name, 'react');
                 
                 return result;
             };
