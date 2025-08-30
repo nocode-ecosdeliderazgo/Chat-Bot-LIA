@@ -1131,6 +1131,18 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
+// Endpoint de prueba para verificar que el servidor está funcionando
+app.get('/api/test', (req, res) => {
+    res.json({
+        status: 'success',
+        message: 'Servidor funcionando correctamente',
+        timestamp: new Date().toISOString(),
+        socketio: 'habilitado',
+        environment: process.env.NODE_ENV || 'development',
+        port: process.env.PORT || 3000
+    });
+});
+
 // Endpoint seguro para obtener configuración
 app.get('/api/config', authenticateRequest, (req, res) => {
     try {

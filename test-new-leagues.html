@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Nuevo Sistema de 3 Ligas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .league-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .current-league {
+            background: #fff3e0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .league-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .league-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            border: 3px solid;
+        }
+        .league-info-text h2 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        .league-info-text p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 20px;
+            position: relative;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .btn-publish { background: #4caf50; color: white; }
+        .btn-comment { background: #2196f3; color: white; }
+        .btn-react { background: #ff9800; color: white; }
+        .btn-reset { background: #f44336; color: white; }
+        .btn-test { background: #9c27b0; color: white; }
+        
+        .leagues-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .league-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .league-card.active {
+            border-color: #4caf50;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        .league-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+        .league-card .points-range {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .league-card .color-preview {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin: 0 auto 10px auto;
+            border: 2px solid #ddd;
+        }
+        
+        .log {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+        .info { color: #2196f3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 Test Nuevo Sistema de 3 Ligas</h1>
+        
+        <div class="league-info">
+            <h3>📊 Información del Sistema</h3>
+            <p><strong>Ligas:</strong> Oro (0-499), Platino (500-999), Diamante (1000+)</p>
+            <p><strong>Puntos por acción:</strong> Publicar (+10), Comentar (+5), Reaccionar (+2)</p>
+            <p><strong>Objetivo:</strong> Sistema simplificado y fácil de entender</p>
+        </div>
+        
+        <div class="current-league">
+            <div class="league-display">
+                <div class="league-avatar" id="leagueAvatar">🥇</div>
+                <div class="league-info-text">
+                    <h2 id="currentLeagueName">Liga Oro</h2>
+                    <p><strong>Puntos:</strong> <span id="currentPoints">0</span></p>
+                    <p><strong>Progreso:</strong> <span id="progressText">0% (500 puntos para subir)</span></p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="leagues-overview">
+            <div class="league-card" id="oroCard">
+                <div class="color-preview" style="background: #FFD700;"></div>
+                <h3>🥇 Liga Oro</h3>
+                <div class="points-range">0 - 499 puntos</div>
+                <p>Liga inicial para todos los usuarios</p>
+            </div>
+            <div class="league-card" id="platinoCard">
+                <div class="color-preview" style="background: #E5E4E2;"></div>
+                <h3>🥈 Liga Platino</h3>
+                <div class="points-range">500 - 999 puntos</div>
+                <p>Liga intermedia para usuarios activos</p>
+            </div>
+            <div class="league-card" id="diamanteCard">
+                <div class="color-preview" style="background: #B9F2FF;"></div>
+                <h3>💎 Liga Diamante</h3>
+                <div class="points-range">1000+ puntos</div>
+                <p>Liga máxima para usuarios expertos</p>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button class="btn-publish" onclick="addPoints('publish')">📝 Publicar (+10)</button>
+            <button class="btn-comment" onclick="addPoints('comment')">💬 Comentar (+5)</button>
+            <button class="btn-react" onclick="addPoints('react')">👍 Reaccionar (+2)</button>
+            <button class="btn-test" onclick="testLeagues()">🧪 Probar Todas las Ligas</button>
+            <button class="btn-reset" onclick="resetPoints()">🔄 Reiniciar Puntos</button>
+        </div>
+        
+        <div class="log">
+            <h3>📋 Log de Actividad</h3>
+            <div id="logContent">Iniciando sistema...</div>
+        </div>
+    </div>
+
+    <script>
+        // Sistema de puntos simplificado para testing
+        class PointsSystem {
+            constructor() {
+                this.currentUser = {
+                    id: 'test-user',
+                    name: 'Usuario de Prueba',
+                    points: 0
+                };
+                this.init();
+            }
+
+            async init() {
+                this.log('🎯 Inicializando sistema de 3 ligas...');
+                this.updateDisplay();
+                this.log('✅ Sistema inicializado');
+            }
+
+            addPoints(action) {
+                let pointsToAdd = 0;
+                switch (action) {
+                    case 'publish': pointsToAdd = 10; break;
+                    case 'comment': pointsToAdd = 5; break;
+                    case 'react': pointsToAdd = 2; break;
+                    default: pointsToAdd = 0;
+                }
+
+                this.currentUser.points += pointsToAdd;
+                this.log(`💰 Added ${pointsToAdd} points for ${action}. Total: ${this.currentUser.points}`, 'success');
+                this.updateDisplay();
+                return pointsToAdd;
+            }
+
+            getLeague(points) {
+                if (points >= 1000) return { 
+                    name: 'Liga Diamante', 
+                    color: '#B9F2FF', 
+                    minPoints: 1000, 
+                    maxPoints: Infinity,
+                    emoji: '💎'
+                };
+                if (points >= 500) return { 
+                    name: 'Liga Platino', 
+                    color: '#E5E4E2', 
+                    minPoints: 500, 
+                    maxPoints: 999,
+                    emoji: '🥈'
+                };
+                return { 
+                    name: 'Liga Oro', 
+                    color: '#FFD700', 
+                    minPoints: 0, 
+                    maxPoints: 499,
+                    emoji: '🥇'
+                };
+            }
+
+            getProgressToNextLeague(points) {
+                const currentLeague = this.getLeague(points);
+                const nextLeague = this.getNextLeague(points);
+                
+                if (!nextLeague) return { progress: 100, pointsNeeded: 0 };
+                
+                const pointsInCurrentLeague = points - currentLeague.minPoints;
+                const pointsNeededForNextLeague = nextLeague.minPoints - currentLeague.minPoints;
+                const progress = Math.min(100, (pointsInCurrentLeague / pointsNeededForNextLeague) * 100);
+                
+                return {
+                    progress: Math.round(progress),
+                    pointsNeeded: nextLeague.minPoints - points
+                };
+            }
+
+            getNextLeague(points) {
+                if (points >= 1000) return null; // Ya está en la máxima liga
+                if (points >= 500) return { name: 'Liga Diamante', minPoints: 1000 };
+                return { name: 'Liga Platino', minPoints: 500 };
+            }
+
+            updateDisplay() {
+                const league = this.getLeague(this.currentUser.points);
+                const progress = this.getProgressToNextLeague(this.currentUser.points);
+                
+                // Actualizar elementos principales
+                document.getElementById('currentLeagueName').textContent = league.name;
+                document.getElementById('currentPoints').textContent = this.currentUser.points;
+                document.getElementById('leagueAvatar').textContent = league.emoji;
+                document.getElementById('leagueAvatar').style.borderColor = league.color;
+                
+                // Actualizar barra de progreso
+                document.getElementById('progressFill').style.width = `${progress.progress}%`;
+                
+                // Actualizar texto de progreso
+                if (progress.pointsNeeded > 0) {
+                    document.getElementById('progressText').textContent = 
+                        `${progress.progress}% (${progress.pointsNeeded} puntos para subir)`;
+                } else {
+                    document.getElementById('progressText').textContent = 
+                        '100% (¡Liga máxima alcanzada!)';
+                }
+                
+                // Actualizar tarjetas de ligas
+                this.updateLeagueCards(league.name);
+                
+                this.log(`🏆 Updated display: ${league.name} (${this.currentUser.points} puntos)`, 'info');
+            }
+
+            updateLeagueCards(currentLeagueName) {
+                // Remover clase active de todas las tarjetas
+                document.querySelectorAll('.league-card').forEach(card => {
+                    card.classList.remove('active');
+                });
+                
+                // Agregar clase active a la liga actual
+                if (currentLeagueName === 'Liga Oro') {
+                    document.getElementById('oroCard').classList.add('active');
+                } else if (currentLeagueName === 'Liga Platino') {
+                    document.getElementById('platinoCard').classList.add('active');
+                } else if (currentLeagueName === 'Liga Diamante') {
+                    document.getElementById('diamanteCard').classList.add('active');
+                }
+            }
+
+            setPoints(points) {
+                this.currentUser.points = points;
+                this.log(`🎯 Points set to: ${points}`, 'info');
+                this.updateDisplay();
+            }
+
+            log(message, type = 'info') {
+                const logContent = document.getElementById('logContent');
+                const timestamp = new Date().toLocaleTimeString();
+                const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info';
+                
+                const logEntry = document.createElement('div');
+                logEntry.className = className;
+                logEntry.innerHTML = `[${timestamp}] ${message}`;
+                
+                logContent.appendChild(logEntry);
+                logContent.scrollTop = logContent.scrollHeight;
+                
+                console.log(`[${type.toUpperCase()}]`, message);
+            }
+        }
+
+        // Inicializar sistema
+        let pointsSystem;
+        
+        function initSystem() {
+            pointsSystem = new PointsSystem();
+        }
+        
+        function addPoints(action) {
+            if (pointsSystem) {
+                pointsSystem.addPoints(action);
+            } else {
+                alert('Sistema no inicializado');
+            }
+        }
+        
+        function testLeagues() {
+            if (pointsSystem) {
+                pointsSystem.log('🧪 Testing all leagues...', 'info');
+                
+                // Test Liga Oro
+                pointsSystem.setPoints(250);
+                setTimeout(() => {
+                    // Test Liga Platino
+                    pointsSystem.setPoints(750);
+                    setTimeout(() => {
+                        // Test Liga Diamante
+                        pointsSystem.setPoints(1200);
+                        setTimeout(() => {
+                            // Volver a 0
+                            pointsSystem.setPoints(0);
+                            pointsSystem.log('✅ League testing completed', 'success');
+                        }, 1000);
+                    }, 1000);
+                }, 1000);
+            } else {
+                alert('Sistema no inicializado');
+            }
+        }
+        
+        function resetPoints() {
+            if (pointsSystem) {
+                pointsSystem.setPoints(0);
+                pointsSystem.log('🔄 Points reset to 0', 'warning');
+            } else {
+                alert('Sistema no inicializado');
+            }
+        }
+        
+        // Inicializar al cargar la página
+        document.addEventListener('DOMContentLoaded', initSystem);
+    </script>
+</body>
+</html>
