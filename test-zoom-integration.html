@@ -3,500 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test - Zoom Video SDK Integration</title>
+    <title>Test Zoom Integration</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(145deg, #041326, #070F1D);
-            color: white;
-            margin: 0;
             padding: 20px;
-            min-height: 100vh;
+            background: #1a1a1a;
+            color: white;
         }
-        
         .test-container {
             max-width: 800px;
             margin: 0 auto;
+            background: #2d2d2d;
             padding: 20px;
-            background: rgba(25, 35, 50, 0.95);
-            border-radius: 20px;
-            border: 1px solid rgba(68, 229, 255, 0.15);
+            border-radius: 10px;
         }
-        
-        .test-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .test-header h1 {
-            color: #44e5ff;
-            margin-bottom: 10px;
-        }
-        
-        .test-section {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(15, 25, 40, 0.8);
-            border-radius: 12px;
-            border: 1px solid rgba(68, 229, 255, 0.1);
-        }
-        
-        .test-section h3 {
-            color: #44e5ff;
-            margin-top: 0;
-        }
-        
         .test-button {
-            background: linear-gradient(145deg, rgba(68, 229, 255, 0.25), rgba(68, 229, 255, 0.15));
-            border: 1px solid rgba(68, 229, 255, 0.3);
-            color: #44e5ff;
+            background: #007bff;
+            color: white;
+            border: none;
             padding: 10px 20px;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
-            margin: 5px;
-            transition: all 0.3s ease;
+            margin: 10px;
+            font-size: 16px;
         }
-        
         .test-button:hover {
-            background: linear-gradient(145deg, rgba(68, 229, 255, 0.35), rgba(68, 229, 255, 0.25));
-            transform: translateY(-1px);
+            background: #0056b3;
         }
-        
-        .test-log {
-            background: rgba(0, 0, 0, 0.3);
+        .log-container {
+            background: #000;
             padding: 15px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            max-height: 200px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-family: monospace;
+            max-height: 400px;
             overflow-y: auto;
-            margin-top: 10px;
-            border: 1px solid rgba(68, 229, 255, 0.2);
         }
-        
-        .status {
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            display: inline-block;
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        .host-only {
+            display: none !important;
+        }
+        .zoom-user-host .host-only {
+            display: flex !important;
+        }
+        .video-control-btn {
+            background: #444;
+            color: white;
+            border: 1px solid #666;
+            padding: 8px 12px;
             margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
         }
-        
-        .status.success { background: rgba(16, 185, 129, 0.2); color: #10b981; }
-        .status.error { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-        .status.warning { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-        .status.info { background: rgba(68, 229, 255, 0.2); color: #44e5ff; }
-        
-        .video-container {
-            width: 100%;
-            height: 300px;
-            background: rgba(15, 20, 30, 0.95);
-            border-radius: 12px;
-            border: 1px solid rgba(68, 229, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 15px 0;
-            position: relative;
-        }
-        
-        .controls-panel {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 15px;
+        .video-control-btn:hover {
+            background: #555;
         }
     </style>
 </head>
 <body>
     <div class="test-container">
-        <div class="test-header">
-            <h1>🧪 Test - Zoom Video SDK Integration</h1>
-            <p>Pruebas de la integración básica del Zoom Video SDK (Fase 1)</p>
-        </div>
-
+        <h1>🧪 Test Zoom Video SDK Integration</h1>
+        
         <div class="test-section">
-            <h3>1. Estado de la Integración</h3>
-            <div id="integrationStatus">
-                <span class="status info">Verificando...</span>
-            </div>
-            <button class="test-button" onclick="checkIntegrationStatus()">Verificar Estado</button>
+            <h2>Botones del Sistema</h2>
             
-            <h4>🔄 Streaming Unidireccional (Host → Participants)</h4>
-            <ul style="margin-top: 10px; color: #94a3b8; font-size: 0.9rem;">
-                <li><strong>Hosts:</strong> Pueden transmitir video + audio</li>
-                <li><strong>Participants:</strong> Solo pueden recibir (no transmiten)</li>
-                <li><strong>Controles diferenciados por rol</strong></li>
-            </ul>
-        </div>
-
-        <div class="test-section">
-            <h3>2. Configuración del Servidor</h3>
-            <div id="serverConfigStatus">
-                <span class="status info">No verificado</span>
-            </div>
-            <button class="test-button" onclick="testServerConfig()">Probar Configuración</button>
-            <div class="test-log" id="serverConfigLog"></div>
-        </div>
-
-        <div class="test-section">
-            <h3>3. Inicialización del SDK</h3>
-            <div id="sdkStatus">
-                <span class="status info">No inicializado</span>
-            </div>
-            <button class="test-button" onclick="testSDKInitialization()">Inicializar SDK</button>
-            <div class="test-log" id="sdkLog"></div>
-        </div>
-
-        <div class="test-section">
-            <h3>4. Prueba de Video Container</h3>
-            <div class="video-container" id="testVideoContainer">
-                <p>📹 Contenedor de Video de Prueba</p>
-            </div>
-            <div class="controls-panel">
-                <button class="test-button" onclick="testVideoContainer()">Probar Container</button>
-                <button class="test-button" onclick="testCameraToggle()">Probar Cámara (Host)</button>
-                <button class="test-button" onclick="testMicrophoneToggle()">Probar Micrófono (Host)</button>
-                <button class="test-button" onclick="testVolumeToggle()">Probar Volumen</button>
-                <button class="test-button" onclick="testFullscreen()">Probar Pantalla Completa</button>
-            </div>
-            <div id="videoTestStatus">
-                <span class="status info">Listo para pruebas</span>
+            <!-- Botones idénticos al chat.html -->
+            <button class="test-button" id="liveStreamMainToggleBtn">
+                <i>🎥</i> Botón Pequeño (Unirse a Video Sesión)
+            </button>
+            
+            <button class="test-button" id="liveStreamMainConnectBtnLarge">
+                <i>📹</i> Botón Grande (Unirse a Video Sesión)
+            </button>
+            
+            <div id="zoom-video-container" style="display: none;">
+                <div class="zoom-controls-overlay">
+                    <!-- Controles básicos para todos -->
+                    <button class="video-control-btn" id="volumeControlBtn">🔊 Volumen</button>
+                    <button class="video-control-btn" id="fullscreenToggleBtn">⛶ Pantalla Completa</button>
+                    
+                    <!-- Controles solo para hosts -->
+                    <div class="host-only">
+                        <button class="video-control-btn" id="cameraToggleBtn">📷 Cámara</button>
+                        <button class="video-control-btn" id="microphoneToggleBtn">🎤 Micrófono</button>
+                        <button class="video-control-btn" id="screenShareBtn">🖥️ Compartir Pantalla</button>
+                        <button class="video-control-btn" id="recordingToggleBtn">🎥 Grabar</button>
+                    </div>
+                    
+                    <!-- Indicador de rol -->
+                    <div id="userRoleIndicator">
+                        <span id="roleBadge">Participant</span>
+                    </div>
+                </div>
             </div>
         </div>
-
+        
         <div class="test-section">
-            <h3>5. Log Completo</h3>
-            <button class="test-button" onclick="clearLogs()">Limpiar Logs</button>
-            <button class="test-button" onclick="downloadLogs()">Descargar Logs</button>
-            <div class="test-log" id="mainLog" style="max-height: 300px;"></div>
+            <h2>Tests Manuales</h2>
+            <button class="test-button" onclick="testBasicFunctionality()">🔧 Test Funcionalidad Básica</button>
+            <button class="test-button" onclick="debugZoomButton()">🔍 Debug Botones</button>
+            <button class="test-button" onclick="testZoomJoin()">🚀 Test Zoom Join</button>
+            <button class="test-button" onclick="toggleUserRole()">👑 Toggle Host/Participant</button>
+            <button class="test-button" onclick="clearLogs()">🗑️ Limpiar Logs</button>
+        </div>
+        
+        <div class="log-container" id="logContainer">
+            <div class="log-entry">📋 Logs aparecerán aquí...</div>
         </div>
     </div>
 
+    <!-- Mock Zoom Video SDK -->
     <script>
-        // Sistema de logging
-        const logs = [];
+        // Mock del Zoom Video SDK para testing
+        window.ZoomVideo = {
+            createClient: () => ({
+                join: async (topic, signature, meeting, user, pass) => {
+                    console.log('📞 Mock: Uniendo a sesión:', { topic, meeting, user });
+                    return { success: true };
+                },
+                leave: async () => {
+                    console.log('👋 Mock: Saliendo de sesión');
+                    return { success: true };
+                },
+                on: (event, callback) => {
+                    console.log('👂 Mock: Escuchando evento:', event);
+                },
+                getMediaStream: () => ({
+                    startVideo: async () => console.log('📹 Mock: Video iniciado'),
+                    stopVideo: async () => console.log('📹 Mock: Video detenido'),
+                    muteAudio: async () => console.log('🔇 Mock: Audio silenciado'),
+                    unmuteAudio: async () => console.log('🔊 Mock: Audio activado')
+                }),
+                getAllUser: () => [{ id: 1, name: 'Test User' }]
+            })
+        };
         
-        function log(message, type = 'info') {
-            const timestamp = new Date().toLocaleTimeString();
-            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
-            logs.push(logEntry);
+        console.log('✅ Zoom Video SDK Mock inicializado');
+    </script>
+    
+    <!-- Nuestro script de zoom -->
+    <script src="src/scripts/zoom-video-integration.js"></script>
+    
+    <script>
+        // Override console.log para mostrar en pantalla
+        const logContainer = document.getElementById('logContainer');
+        const originalLog = console.log;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
             
-            const mainLog = document.getElementById('mainLog');
-            const logDiv = document.createElement('div');
-            logDiv.textContent = logEntry;
-            logDiv.style.color = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : '#94a3b8';
-            mainLog.appendChild(logDiv);
-            mainLog.scrollTop = mainLog.scrollHeight;
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = args.join(' ');
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        };
+        
+        let isHost = false;
+        
+        function testBasicFunctionality() {
+            console.log('🧪 === TEST FUNCIONALIDAD BÁSICA ===');
+            console.log('DOM ready state:', document.readyState);
             
-            console.log(logEntry);
+            const smallBtn = document.getElementById('liveStreamMainToggleBtn');
+            const largeBtn = document.getElementById('liveStreamMainConnectBtnLarge');
+            
+            console.log('Botón pequeño existe:', !!smallBtn);
+            console.log('Botón grande existe:', !!largeBtn);
+            
+            if (window.ZoomVideoIntegration) {
+                console.log('✅ ZoomVideoIntegration disponible');
+                console.log('Config:', window.ZoomVideoIntegration.getConfig());
+            } else {
+                console.log('❌ ZoomVideoIntegration NO disponible');
+            }
         }
         
-        function updateStatus(elementId, text, type) {
-            const element = document.getElementById(elementId);
-            const statusElement = element.querySelector('.status') || element;
-            if (statusElement) {
-                statusElement.textContent = text;
-                statusElement.className = `status ${type}`;
+        function toggleUserRole() {
+            isHost = !isHost;
+            const container = document.getElementById('zoom-video-container');
+            const badge = document.getElementById('roleBadge');
+            
+            if (isHost) {
+                container.classList.add('zoom-user-host');
+                badge.textContent = 'Host';
+                console.log('👑 Cambiado a HOST - controles visibles');
+            } else {
+                container.classList.remove('zoom-user-host');
+                badge.textContent = 'Participant';
+                console.log('👥 Cambiado a PARTICIPANT - controles ocultos');
             }
+            
+            container.style.display = 'block';
         }
         
-        function logToSection(sectionId, message) {
-            const section = document.getElementById(sectionId);
-            if (section) {
-                section.innerHTML += `<div style="color: #94a3b8; font-size: 11px;">[${new Date().toLocaleTimeString()}] ${message}</div>`;
-                section.scrollTop = section.scrollHeight;
-            }
-        }
-
-        // Test 1: Verificar estado de la integración
-        function checkIntegrationStatus() {
-            log('Verificando estado de la integración...', 'info');
-            
-            try {
-                // Verificar si el SDK de Zoom está disponible
-                if (typeof ZoomVideo !== 'undefined') {
-                    updateStatus('integrationStatus', '✅ Zoom Video SDK cargado', 'success');
-                    log('Zoom Video SDK detectado correctamente', 'success');
-                } else {
-                    updateStatus('integrationStatus', '❌ Zoom Video SDK no encontrado', 'error');
-                    log('ERROR: Zoom Video SDK no está disponible', 'error');
-                    return;
-                }
-                
-                // Verificar si la integración personalizada está disponible
-                if (typeof ZoomVideoIntegration !== 'undefined') {
-                    updateStatus('integrationStatus', '✅ Integración completa', 'success');
-                    log('Integración personalizada disponible', 'success');
-                } else {
-                    updateStatus('integrationStatus', '⚠️ Integración parcial', 'warning');
-                    log('ADVERTENCIA: Integración personalizada no encontrada', 'warning');
-                }
-                
-            } catch (error) {
-                updateStatus('integrationStatus', '❌ Error en verificación', 'error');
-                log(`ERROR verificando integración: ${error.message}`, 'error');
-            }
-        }
-
-        // Test 2: Probar configuración del servidor
-        async function testServerConfig() {
-            log('Probando configuración del servidor...', 'info');
-            updateStatus('serverConfigStatus', '⏳ Probando...', 'info');
-            
-            try {
-                const response = await fetch('/api/zoom/session-config', {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-                
-                logToSection('serverConfigLog', `Response status: ${response.status}`);
-                
-                if (response.ok) {
-                    const config = await response.json();
-                    updateStatus('serverConfigStatus', '✅ Configuración OK', 'success');
-                    log('Configuración del servidor obtenida exitosamente', 'success');
-                    logToSection('serverConfigLog', `Config: ${JSON.stringify(config, null, 2)}`);
-                } else if (response.status === 401) {
-                    updateStatus('serverConfigStatus', '🔐 Requiere autenticación', 'warning');
-                    log('ADVERTENCIA: Se requiere autenticación', 'warning');
-                    logToSection('serverConfigLog', 'Usuario no autenticado - esto es normal para pruebas');
-                } else {
-                    updateStatus('serverConfigStatus', '❌ Error del servidor', 'error');
-                    log(`ERROR del servidor: ${response.status}`, 'error');
-                    logToSection('serverConfigLog', `Error: ${response.statusText}`);
-                }
-                
-            } catch (error) {
-                updateStatus('serverConfigStatus', '❌ Error de conexión', 'error');
-                log(`ERROR conectando al servidor: ${error.message}`, 'error');
-                logToSection('serverConfigLog', `Connection error: ${error.message}`);
-            }
-        }
-
-        // Test 3: Probar inicialización del SDK
-        async function testSDKInitialization() {
-            log('Probando inicialización del SDK...', 'info');
-            updateStatus('sdkStatus', '⏳ Inicializando...', 'info');
-            
-            try {
-                if (typeof ZoomVideo === 'undefined') {
-                    throw new Error('Zoom Video SDK no disponible');
-                }
-                
-                // Intentar crear un cliente
-                const testClient = ZoomVideo.createClient();
-                if (testClient) {
-                    updateStatus('sdkStatus', '✅ SDK inicializado', 'success');
-                    log('Cliente Zoom Video SDK creado exitosamente', 'success');
-                    logToSection('sdkLog', 'Cliente creado: ' + typeof testClient);
-                    
-                    // Probar funcionalidades básicas
-                    const mediaStream = testClient.getMediaStream();
-                    logToSection('sdkLog', 'MediaStream disponible: ' + (mediaStream ? 'SÍ' : 'NO'));
-                    
-                } else {
-                    throw new Error('No se pudo crear el cliente');
-                }
-                
-            } catch (error) {
-                updateStatus('sdkStatus', '❌ Error de inicialización', 'error');
-                log(`ERROR inicializando SDK: ${error.message}`, 'error');
-                logToSection('sdkLog', `Error: ${error.message}`);
-            }
-        }
-
-        // Test 4: Probar contenedor de video
-        function testVideoContainer() {
-            log('Probando contenedor de video...', 'info');
-            const container = document.getElementById('testVideoContainer');
-            
-            try {
-                // Simular activación del contenedor
-                container.style.background = 'linear-gradient(145deg, rgba(68, 229, 255, 0.1), rgba(15, 20, 30, 0.95))';
-                container.innerHTML = '<p>📹 Contenedor ACTIVO - Simulando video</p>';
-                
-                setTimeout(() => {
-                    container.style.background = 'rgba(15, 20, 30, 0.95)';
-                    container.innerHTML = '<p>📹 Contenedor de Video de Prueba</p>';
-                }, 2000);
-                
-                updateStatus('videoTestStatus', '✅ Contenedor funcional', 'success');
-                log('Contenedor de video probado exitosamente', 'success');
-                
-            } catch (error) {
-                updateStatus('videoTestStatus', '❌ Error en contenedor', 'error');
-                log(`ERROR probando contenedor: ${error.message}`, 'error');
-            }
-        }
-
-        // Test 5: Probar toggle de cámara (solo hosts)
-        function testCameraToggle() {
-            log('Probando toggle de cámara (solo hosts)...', 'info');
-            const button = event.target;
-            const originalText = button.textContent;
-            
-            try {
-                // Simular verificación de rol
-                log('Verificando rol de usuario: HOST', 'info');
-                
-                button.textContent = '📹 Cámara ON (Host)';
-                button.style.background = 'linear-gradient(145deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.15))';
-                button.style.color = '#10b981';
-                
-                setTimeout(() => {
-                    button.textContent = '📹 Cámara OFF (Host)';
-                    button.style.background = 'linear-gradient(145deg, rgba(239, 68, 68, 0.25), rgba(239, 68, 68, 0.15))';
-                    button.style.color = '#ef4444';
-                }, 1500);
-                
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.style.background = '';
-                    button.style.color = '';
-                }, 3000);
-                
-                log('Toggle de cámara (host) simulado exitosamente', 'success');
-                
-            } catch (error) {
-                log(`ERROR en toggle de cámara: ${error.message}`, 'error');
-            }
-        }
-
-        // Test 6: Probar toggle de micrófono (solo hosts)
-        function testMicrophoneToggle() {
-            log('Probando toggle de micrófono (solo hosts)...', 'info');
-            const button = event.target;
-            const originalText = button.textContent;
-            
-            try {
-                // Simular verificación de rol
-                log('Verificando rol de usuario: HOST', 'info');
-                
-                button.textContent = '🎤 Micrófono ON';
-                button.style.background = 'linear-gradient(145deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.15))';
-                button.style.color = '#10b981';
-                
-                setTimeout(() => {
-                    button.textContent = '🎤 Micrófono OFF';
-                    button.style.background = 'linear-gradient(145deg, rgba(239, 68, 68, 0.25), rgba(239, 68, 68, 0.15))';
-                    button.style.color = '#ef4444';
-                }, 1500);
-                
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.style.background = '';
-                    button.style.color = '';
-                }, 3000);
-                
-                log('Toggle de micrófono (host) simulado exitosamente', 'success');
-                
-            } catch (error) {
-                log(`ERROR en toggle de micrófono: ${error.message}`, 'error');
-            }
-        }
-
-        // Test 7: Probar control de volumen (todos los usuarios)
-        function testVolumeToggle() {
-            log('Probando control de volumen (todos los usuarios)...', 'info');
-            const button = event.target;
-            const originalText = button.textContent;
-            
-            try {
-                button.textContent = '🔊 Volumen Alto';
-                button.style.background = 'linear-gradient(145deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.15))';
-                button.style.color = '#10b981';
-                
-                setTimeout(() => {
-                    button.textContent = '🔇 Silenciado';
-                    button.style.background = 'linear-gradient(145deg, rgba(245, 158, 11, 0.25), rgba(245, 158, 11, 0.15))';
-                    button.style.color = '#f59e0b';
-                }, 1500);
-                
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.style.background = '';
-                    button.style.color = '';
-                }, 3000);
-                
-                log('Control de volumen simulado exitosamente', 'success');
-                
-            } catch (error) {
-                log(`ERROR en control de volumen: ${error.message}`, 'error');
-            }
-        }
-
-        // Test 6: Probar pantalla completa
-        function testFullscreen() {
-            log('Probando pantalla completa...', 'info');
-            const container = document.getElementById('testVideoContainer');
-            
-            try {
-                if (!document.fullscreenElement) {
-                    if (container.requestFullscreen) {
-                        container.requestFullscreen().then(() => {
-                            log('Modo pantalla completa activado', 'success');
-                        }).catch(err => {
-                            log(`Error activando pantalla completa: ${err.message}`, 'warning');
-                        });
-                    } else {
-                        log('Pantalla completa no soportada en este navegador', 'warning');
-                    }
-                } else {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen().then(() => {
-                            log('Modo pantalla completa desactivado', 'success');
-                        });
-                    }
-                }
-                
-            } catch (error) {
-                log(`ERROR con pantalla completa: ${error.message}`, 'error');
-            }
-        }
-
-        // Utilidades
         function clearLogs() {
-            logs.length = 0;
-            document.getElementById('mainLog').innerHTML = '';
-            log('Logs limpiados', 'info');
+            logContainer.innerHTML = '<div class="log-entry">📋 Logs limpiados...</div>';
         }
         
-        function downloadLogs() {
-            const logText = logs.join('\n');
-            const blob = new Blob([logText], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `zoom-integration-test-${new Date().toISOString()}.log`;
-            a.click();
-            URL.revokeObjectURL(url);
-            log('Logs descargados', 'success');
-        }
-
-        // Inicialización automática
-        document.addEventListener('DOMContentLoaded', function() {
-            log('Página de pruebas cargada', 'info');
-            log('Iniciando verificaciones automáticas...', 'info');
-            
-            setTimeout(() => {
-                checkIntegrationStatus();
-            }, 1000);
-            
-            setTimeout(() => {
-                testServerConfig();
-            }, 2000);
-        });
-        
-        // Interceptar errores globales
-        window.addEventListener('error', function(event) {
-            log(`ERROR GLOBAL: ${event.error?.message || event.message}`, 'error');
-        });
-        
-        // Interceptar errores de promesas
-        window.addEventListener('unhandledrejection', function(event) {
-            log(`PROMISE ERROR: ${event.reason}`, 'error');
-        });
+        // Test automático al cargar
+        setTimeout(() => {
+            console.log('🚀 Iniciando test automático...');
+            testBasicFunctionality();
+        }, 1000);
     </script>
 </body>
 </html>

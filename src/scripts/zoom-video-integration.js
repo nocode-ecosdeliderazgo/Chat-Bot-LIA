@@ -1,7 +1,9 @@
 /**
- * Zoom Video SDK Integration - Fase 1
- * Integración básica del Zoom Video SDK con funcionalidades limitadas según especificación
+ * Zoom Video SDK Integration - Fase 2
+ * Integración con roles diferenciados según especificación
  */
+
+console.log('📹 [ZOOM] Script cargando...');
 
 // Configuración global del Zoom Video SDK
 const ZoomVideoConfig = {
@@ -22,6 +24,10 @@ const ZoomVideoConfig = {
     volume: 50,
     previousVolume: 50,
     participantCount: 0,
+    isScreenSharing: false,
+    isRecording: false,
+    currentRecordingId: null,
+    currentSessionId: null,
     
     // Referencias DOM
     elements: {
@@ -47,6 +53,13 @@ let zoomVideoClient = null;
  */
 async function initZoomVideoIntegration() {
     console.log('🔧 Inicializando Zoom Video SDK Integration...');
+    console.log('🔍 Verificando conflictos con main.js...');
+    
+    // Verificar si main.js ya configuró los botones
+    const mainButton = document.getElementById('liveStreamMainToggleBtn');
+    if (mainButton && mainButton._listeners) {
+        console.warn('⚠️ main.js ya configuró event listeners - esto podría causar conflictos');
+    }
     
     try {
         // Verificar si Zoom Video SDK está disponible
@@ -91,16 +104,26 @@ function initDOMReferences() {
         microphoneToggleBtn: document.getElementById('microphoneToggleBtn'),
         volumeControlBtn: document.getElementById('volumeControlBtn'),
         fullscreenToggleBtn: document.getElementById('fullscreenToggleBtn'),
+        screenShareBtn: document.getElementById('screenShareBtn'),
+        recordingToggleBtn: document.getElementById('recordingToggleBtn'),
         joinButton: document.getElementById('liveStreamMainToggleBtn'),
-        videoBasicControls: document.getElementById('videoBasicControls')
+        joinButtonLarge: document.getElementById('liveStreamMainConnectBtnLarge'),
+        videoBasicControls: document.getElementById('videoBasicControls'),
+        roleBadge: document.getElementById('roleBadge'),
+        zoomContainer: document.getElementById('zoom-video-container')
     };
     
-    // Validar que los elementos existan
-    const requiredElements = ['videoContainer', 'videoCanvas', 'joinButton'];
+    // Validar que los elementos existan (al menos uno de los botones debe existir)
+    const requiredElements = ['videoContainer', 'videoCanvas'];
+    const joinButtonExists = ZoomVideoConfig.elements.joinButton || ZoomVideoConfig.elements.joinButtonLarge;
     for (const elementKey of requiredElements) {
         if (!ZoomVideoConfig.elements[elementKey]) {
             throw new Error(`Elemento DOM requerido no encontrado: ${elementKey}`);
         }
+    }
+    
+    if (!joinButtonExists) {
+        throw new Error('No se encontró ningún botón de conexión (pequeño o grande)');
     }
 }
 
@@ -108,9 +131,22 @@ function initDOMReferences() {
  * Configurar event listeners
  */
 function setupEventListeners() {
-    // Botón principal de unirse/salir
+    console.log('🎛️ Configurando event listeners para Zoom Video SDK...');
+    
+    // Botón principal de unirse/salir (pequeño)
     if (ZoomVideoConfig.elements.joinButton) {
         ZoomVideoConfig.elements.joinButton.addEventListener('click', handleJoinToggle);
+        console.log('✅ Event listener agregado al botón pequeño');
+    } else {
+        console.warn('⚠️ Botón pequeño no encontrado');
+    }
+    
+    // Botón principal de unirse/salir (grande)
+    if (ZoomVideoConfig.elements.joinButtonLarge) {
+        ZoomVideoConfig.elements.joinButtonLarge.addEventListener('click', handleJoinToggle);
+        console.log('✅ Event listener agregado al botón grande');
+    } else {
+        console.warn('⚠️ Botón grande no encontrado');
     }
     
     // Controles de cámara (solo hosts)
@@ -133,6 +169,16 @@ function setupEventListeners() {
         ZoomVideoConfig.elements.fullscreenToggleBtn.addEventListener('click', handleFullscreenToggle);
     }
     
+    // Screen sharing (solo hosts)
+    if (ZoomVideoConfig.elements.screenShareBtn) {
+        ZoomVideoConfig.elements.screenShareBtn.addEventListener('click', handleScreenShare);
+    }
+    
+    // Grabación (solo hosts)
+    if (ZoomVideoConfig.elements.recordingToggleBtn) {
+        ZoomVideoConfig.elements.recordingToggleBtn.addEventListener('click', handleRecordingToggle);
+    }
+    
     // Event listeners para cambios de pantalla completa
     document.addEventListener('fullscreenchange', updateFullscreenButton);
     document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
@@ -143,7 +189,13 @@ function setupEventListeners() {
 /**
  * Manejar clic en botón de unirse/salir
  */
-async function handleJoinToggle() {
+async function handleJoinToggle(event) {
+    console.log('🖱️ Botón de Zoom clickeado!', event.target);
+    console.log('📊 Estado actual:', {
+        isConnected: ZoomVideoConfig.isConnected,
+        userRole: ZoomVideoConfig.userRole
+    });
+    
     try {
         if (!ZoomVideoConfig.isConnected) {
             await joinZoomSession();
@@ -483,6 +535,9 @@ async function getSessionConfigFromServer() {
         ZoomVideoConfig.userRole = sessionConfig.userRole || 'participant';
         console.log(`👤 Rol de usuario configurado: ${ZoomVideoConfig.userRole}`);
         
+        // Actualizar controles basados en el rol
+        updateRoleBasedControls();
+        
         return sessionConfig;
         
     } catch (error) {
@@ -695,6 +750,170 @@ function showConnectionStatus(text, status) {
 }
 
 /**
+ * Manejar screen sharing (solo hosts)
+ */
+async function handleScreenShare() {
+    try {
+        // Verificar que sea host
+        if (ZoomVideoConfig.userRole !== 'host') {
+            console.warn('⚠️ Solo los hosts pueden compartir pantalla');
+            return;
+        }
+        
+        const button = ZoomVideoConfig.elements.screenShareBtn;
+        const icon = button?.querySelector('i');
+        
+        if (ZoomVideoConfig.isScreenSharing) {
+            // Detener screen sharing
+            if (zoomVideoClient) {
+                const mediaStream = zoomVideoClient.getMediaStream();
+                if (mediaStream && mediaStream.stopShareScreen) {
+                    await mediaStream.stopShareScreen();
+                }
+            }
+            
+            ZoomVideoConfig.isScreenSharing = false;
+            if (button) button.classList.remove('screen-sharing');
+            if (icon) icon.className = 'bx bx-desktop';
+            if (button) button.title = 'Compartir pantalla';
+            console.log('🖥️ Screen sharing detenido');
+            
+        } else {
+            // Iniciar screen sharing
+            if (zoomVideoClient) {
+                const mediaStream = zoomVideoClient.getMediaStream();
+                if (mediaStream && mediaStream.startShareScreen) {
+                    await mediaStream.startShareScreen(ZoomVideoConfig.elements.videoCanvas);
+                } else {
+                    // Mock implementation
+                    console.log('🧪 Mock: Iniciando screen sharing');
+                }
+            }
+            
+            ZoomVideoConfig.isScreenSharing = true;
+            if (button) button.classList.add('screen-sharing');
+            if (icon) icon.className = 'bx bx-desktop bx-tada';
+            if (button) button.title = 'Detener pantalla compartida';
+            console.log('🖥️ Screen sharing iniciado');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error en screen sharing:', error);
+    }
+}
+
+/**
+ * Manejar grabación (solo hosts)
+ */
+async function handleRecordingToggle() {
+    try {
+        // Verificar que sea host
+        if (ZoomVideoConfig.userRole !== 'host') {
+            console.warn('⚠️ Solo los hosts pueden grabar');
+            return;
+        }
+        
+        const button = ZoomVideoConfig.elements.recordingToggleBtn;
+        const icon = button?.querySelector('i');
+        
+        if (ZoomVideoConfig.isRecording) {
+            // Detener grabación
+            try {
+                const response = await fetch('/api/zoom/recording/stop', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ 
+                        recordingId: ZoomVideoConfig.currentRecordingId 
+                    })
+                });
+                
+                const result = await response.json();
+                if (response.ok) {
+                    console.log('🎥 Grabación detenida:', result);
+                } else {
+                    console.warn('⚠️ Error deteniendo grabación:', result.error);
+                }
+            } catch (error) {
+                console.warn('⚠️ Error en API de grabación:', error.message);
+            }
+            
+            ZoomVideoConfig.isRecording = false;
+            ZoomVideoConfig.currentRecordingId = null;
+            if (button) button.classList.remove('recording-active');
+            if (icon) icon.className = 'bx bx-video-recording';
+            if (button) button.title = 'Iniciar grabación';
+            console.log('⏹️ Grabación detenida');
+            
+        } else {
+            // Iniciar grabación
+            try {
+                const response = await fetch('/api/zoom/recording/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ 
+                        sessionId: ZoomVideoConfig.currentSessionId || 'mock-session-id'
+                    })
+                });
+                
+                const result = await response.json();
+                if (response.ok) {
+                    ZoomVideoConfig.currentRecordingId = result.recordingId;
+                    console.log('🎥 Grabación iniciada:', result);
+                } else {
+                    console.warn('⚠️ Error iniciando grabación:', result.error);
+                    return;
+                }
+            } catch (error) {
+                console.warn('⚠️ Error en API de grabación:', error.message);
+                // Continuar con mock para desarrollo
+                ZoomVideoConfig.currentRecordingId = `mock-rec-${Date.now()}`;
+            }
+            
+            ZoomVideoConfig.isRecording = true;
+            if (button) button.classList.add('recording-active');
+            if (icon) icon.className = 'bx bx-video-recording bx-flashing';
+            if (button) button.title = 'Detener grabación';
+            console.log('🔴 Grabación iniciada');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error en toggle de grabación:', error);
+    }
+}
+
+/**
+ * Actualizar indicador de rol y controles de host
+ */
+function updateRoleBasedControls() {
+    const isHost = ZoomVideoConfig.userRole === 'host';
+    const container = ZoomVideoConfig.elements.zoomContainer;
+    const roleBadge = ZoomVideoConfig.elements.roleBadge;
+    
+    // Agregar/remover clase CSS para mostrar controles de host
+    if (container) {
+        if (isHost) {
+            container.classList.add('zoom-user-host');
+        } else {
+            container.classList.remove('zoom-user-host');
+        }
+    }
+    
+    // Actualizar badge de rol
+    if (roleBadge) {
+        roleBadge.textContent = isHost ? 'Host' : 'Participant';
+        roleBadge.className = `role-badge ${isHost ? 'host-badge' : 'participant-badge'}`;
+    }
+    
+    console.log(`🎭 Controles configurados para rol: ${isHost ? 'HOST' : 'PARTICIPANT'}`);
+}
+
+/**
  * Limpiar recursos al salir
  */
 function cleanup() {
@@ -713,8 +932,62 @@ function cleanup() {
 }
 
 // Event listeners globales
-document.addEventListener('DOMContentLoaded', initZoomVideoIntegration);
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM Content Loaded - Iniciando Zoom Video Integration');
+    setTimeout(() => {
+        console.log('🔄 Intentando inicializar Zoom Video Integration con delay...');
+        initZoomVideoIntegration();
+    }, 500); // Delay para asegurar que main.js termine primero
+});
+
+// También intentar inicialización inmediata si el DOM ya está listo
+if (document.readyState === 'loading') {
+    console.log('📄 DOM aún cargando, esperando...');
+} else {
+    console.log('📄 DOM ya listo, iniciando inmediatamente...');
+    setTimeout(() => {
+        initZoomVideoIntegration();
+    }, 100);
+}
+
 window.addEventListener('beforeunload', cleanup);
+
+// Función de debug para DevTools
+window.debugZoomButton = function() {
+    console.log('🔍 DEBUG DEL BOTÓN ZOOM:');
+    
+    const smallButton = document.getElementById('liveStreamMainToggleBtn');
+    const largeButton = document.getElementById('liveStreamMainConnectBtnLarge');
+    
+    console.log('Botón pequeño:', smallButton);
+    console.log('Botón grande:', largeButton);
+    
+    if (smallButton) {
+        console.log('👆 Eventos del botón pequeño:', getEventListeners(smallButton));
+        console.log('🎯 Añadiendo click handler de emergencia...');
+        smallButton.onclick = function(e) {
+            console.log('🖱️ CLICK MANUAL DETECTADO!', e);
+            handleJoinToggle(e);
+        };
+    }
+    
+    if (largeButton) {
+        console.log('👆 Eventos del botón grande:', getEventListeners(largeButton));
+        console.log('🎯 Añadiendo click handler de emergencia...');
+        largeButton.onclick = function(e) {
+            console.log('🖱️ CLICK MANUAL DETECTADO!', e);
+            handleJoinToggle(e);
+        };
+    }
+    
+    console.log('📊 Config Zoom:', ZoomVideoConfig);
+};
+
+// Test manual para DevTools
+window.testZoomJoin = function() {
+    console.log('🧪 TEST MANUAL: Simulando clic en botón...');
+    handleJoinToggle({ target: { id: 'manual-test' } });
+};
 
 // Exportar funciones para uso global
 window.ZoomVideoIntegration = {
@@ -724,7 +997,9 @@ window.ZoomVideoIntegration = {
     toggleCamera: handleCameraToggle,
     toggleFullscreen: handleFullscreenToggle,
     cleanup: cleanup,
-    getConfig: () => ZoomVideoConfig
+    getConfig: () => ZoomVideoConfig,
+    debug: window.debugZoomButton,
+    test: window.testZoomJoin
 };
 
 console.log('📹 Zoom Video Integration módulo cargado');
