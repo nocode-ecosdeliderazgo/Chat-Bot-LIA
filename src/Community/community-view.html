@@ -57,18 +57,23 @@
         }
         
         .league-range-icon {
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-right: 15px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            background: var(--surface);
         }
         
-        .league-range-icon i {
-            font-size: 1.5rem;
+        .league-icon-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
         }
         
         .league-range-info h5 {
@@ -96,13 +101,14 @@
             }
             
             .league-range-icon {
-                width: 40px;
-                height: 40px;
+                width: 50px;
+                height: 50px;
                 margin-right: 12px;
             }
             
-            .league-range-icon i {
-                font-size: 1.2rem;
+            .league-icon-img {
+                width: 100%;
+                height: 100%;
             }
         }
     </style>
@@ -310,8 +316,8 @@
                     <h4 class="league-ranges-title">Rangos de Puntos por Liga</h4>
                     <div class="league-ranges-grid">
                         <div class="league-range-card">
-                            <div class="league-range-icon" style="background: linear-gradient(135deg, #FFD700, #FFA500);">
-                                <i class="fas fa-crown" style="color: #8B4513;"></i>
+                            <div class="league-range-icon">
+                                <img src="images/liga-oro.png" alt="Liga Oro" class="league-icon-img">
                             </div>
                             <div class="league-range-info">
                                 <h5>Liga Oro</h5>
@@ -319,8 +325,8 @@
                             </div>
                         </div>
                         <div class="league-range-card">
-                            <div class="league-range-icon" style="background: linear-gradient(135deg, #E5E4E2, #C0C0C0);">
-                                <i class="fas fa-gem" style="color: #4A4A4A;"></i>
+                            <div class="league-range-icon">
+                                <img src="images/liga-platino.png" alt="Liga Platino" class="league-icon-img">
                             </div>
                             <div class="league-range-info">
                                 <h5>Liga Platino</h5>
@@ -328,8 +334,8 @@
                             </div>
                         </div>
                         <div class="league-range-card">
-                            <div class="league-range-icon" style="background: linear-gradient(135deg, #B9F2FF, #87CEEB);">
-                                <i class="fas fa-diamond" style="color: #4169E1;"></i>
+                            <div class="league-range-icon">
+                                <img src="images/liga-diamante.png" alt="Liga Diamante" class="league-icon-img">
                             </div>
                             <div class="league-range-info">
                                 <h5>Liga Diamante</h5>
