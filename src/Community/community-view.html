@@ -110,15 +110,148 @@
             border-radius: 50%;
         }
         
+        /* Layout de dos columnas superiores */
+        .leagues-top-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            align-items: start;
+            margin-bottom: 30px;
+        }
+
+        .league-ranges-sidebar {
+            background: var(--gradient-card);
+            border: 1px solid rgba(68, 229, 255, 0.2);
+            border-radius: var(--border-radius-lg);
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-medium);
+            height: fit-content;
+        }
+
+        .league-ranges-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .league-ranges-vertical .league-range-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(68, 229, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(68, 229, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .league-ranges-vertical .league-range-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(68, 229, 255, 0.2);
+        }
+
+        .league-ranges-vertical .league-range-icon {
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+        }
+
+        .league-ranges-vertical .league-range-info h4 {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .league-ranges-vertical .league-range-points {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Sidebar de puntos por acción */
+        .points-sidebar {
+            background: var(--gradient-card);
+            border: 1px solid rgba(68, 229, 255, 0.2);
+            border-radius: var(--border-radius-lg);
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-medium);
+            height: fit-content;
+        }
+
+        .points-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+
+        .points-grid-2x2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .points-grid-2x2 .points-info-card {
+            background: rgba(68, 229, 255, 0.05);
+            border: 1px solid rgba(68, 229, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .points-grid-2x2 .points-info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(68, 229, 255, 0.2);
+        }
+
+        .points-grid-2x2 .points-info-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px auto;
+            color: white;
+            font-size: 16px;
+        }
+
+        .points-grid-2x2 h4 {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .points-grid-2x2 p {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Panel de clasificación a ancho completo */
+        .leaderboard-full-width {
+            width: 100%;
+        }
+
         /* Estilos para la tabla de clasificación */
         .leaderboard-table {
             margin-top: 20px;
-            min-height: 300px;
+            min-height: 500px;
+            max-height: 600px;
             background: rgba(68, 229, 255, 0.05);
             border: 2px dashed rgba(68, 229, 255, 0.3);
             border-radius: 8px;
             padding: 20px;
             position: relative;
+            overflow-y: auto;
         }
 
         .leaderboard-table:empty::before {
@@ -130,6 +263,24 @@
             color: var(--text-secondary);
             font-size: 1.1rem;
             text-align: center;
+        }
+
+        /* Responsive para el layout de ligas */
+        @media (max-width: 1024px) {
+            .leagues-top-layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .points-grid-2x2 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .points-grid-2x2 {
+                grid-template-columns: 1fr;
+            }
         }
 
         .leaderboard-row {
@@ -428,87 +579,90 @@
                 </div>
 
                 <!-- Información de puntos -->
-                <div class="points-info-grid">
-                    <div class="points-info-card">
-                        <div class="points-info-icon">
-                            <i class="fas fa-edit"></i>
+                <!-- Layout de dos columnas superiores -->
+                <div class="leagues-top-layout">
+                    <!-- Columna izquierda: Rangos de liga -->
+                    <div class="league-ranges-sidebar">
+                        <h3 class="league-ranges-title">Rangos de Puntos por Liga</h3>
+                        <div class="league-ranges-vertical">
+                            <div class="league-range-card">
+                                <div class="league-range-icon">
+                                    <img src="images/liga-oro.png" alt="Liga Oro" class="league-icon-img">
+                                </div>
+                                <div class="league-range-info">
+                                    <h4>LIGA ORO</h4>
+                                    <p class="league-range-points">0 - 499 puntos</p>
+                                </div>
+                            </div>
+                            <div class="league-range-card">
+                                <div class="league-range-icon">
+                                    <img src="images/liga-platino.png" alt="Liga Platino" class="league-icon-img">
+                                </div>
+                                <div class="league-range-info">
+                                    <h4>LIGA PLATINO</h4>
+                                    <p class="league-range-points">500 - 999 puntos</p>
+                                </div>
+                            </div>
+                            <div class="league-range-card">
+                                <div class="league-range-icon">
+                                    <img src="images/liga-diamante.png" alt="Liga Diamante" class="league-icon-img">
+                                </div>
+                                <div class="league-range-info">
+                                    <h4>LIGA DIAMANTE</h4>
+                                    <p class="league-range-points">1000+ puntos</p>
+                                </div>
+                            </div>
                         </div>
-                        <h4>Publicar</h4>
-                        <p>+10 puntos</p>
                     </div>
-                    <div class="points-info-card">
-                        <div class="points-info-icon">
-                            <i class="fas fa-comment"></i>
+
+                    <!-- Columna derecha: Puntos por acción en matriz 2x2 -->
+                    <div class="points-sidebar">
+                        <h3 class="points-title">Puntos por Acción</h3>
+                        <div class="points-grid-2x2">
+                            <div class="points-info-card">
+                                <div class="points-info-icon">
+                                    <i class="fas fa-edit"></i>
+                                </div>
+                                <h4>Publicar</h4>
+                                <p>+10 puntos</p>
+                            </div>
+                            <div class="points-info-card">
+                                <div class="points-info-icon">
+                                    <i class="fas fa-comment"></i>
+                                </div>
+                                <h4>Comentar</h4>
+                                <p>+5 puntos</p>
+                            </div>
+                            <div class="points-info-card">
+                                <div class="points-info-icon">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <h4>Reaccionar</h4>
+                                <p>+2 puntos</p>
+                            </div>
+                            <div class="points-info-card">
+                                <div class="points-info-icon">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <h4>Post Popular</h4>
+                                <p>+15 puntos extra</p>
+                            </div>
                         </div>
-                        <h4>Comentar</h4>
-                        <p>+5 puntos</p>
-                    </div>
-                    <div class="points-info-card">
-                        <div class="points-info-icon">
-                            <i class="fas fa-heart"></i>
-                        </div>
-                        <h4>Reaccionar</h4>
-                        <p>+2 puntos</p>
-                    </div>
-                    <div class="points-info-card">
-                        <div class="points-info-icon">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <h4>Post Popular</h4>
-                        <p>+15 puntos extra</p>
                     </div>
                 </div>
 
-                <!-- Espacio vertical adicional -->
-                <div style="height: 40px;"></div>
-
-                <!-- Rangos de Ligas -->
-                <div class="league-ranges-container">
-                    <h4 class="league-ranges-title">Rangos de Puntos por Liga</h4>
-                    <div class="league-ranges-grid">
-                        <div class="league-range-card">
-                            <div class="league-range-icon">
-                                <img src="images/liga-oro.png" alt="Liga Oro" class="league-icon-img">
-                            </div>
-                            <div class="league-range-info">
-                                <h5>Liga Oro</h5>
-                                <p class="league-range-points">0 - 499 puntos</p>
+                <!-- Panel de clasificación global a ancho completo -->
+                <div class="leaderboard-full-width">
+                    <div class="leaderboard-container">
+                        <div class="leaderboard-header">
+                            <h3>Clasificación Global</h3>
+                            <div class="leaderboard-stats">
+                                <span id="totalParticipants">0 participantes</span>
                             </div>
                         </div>
-                        <div class="league-range-card">
-                            <div class="league-range-icon">
-                                <img src="images/liga-platino.png" alt="Liga Platino" class="league-icon-img">
-                            </div>
-                            <div class="league-range-info">
-                                <h5>Liga Platino</h5>
-                                <p class="league-range-points">500 - 999 puntos</p>
-                            </div>
+                        <div class="leaderboard-table" id="leaderboardTable">
+                            <!-- La tabla se llenará dinámicamente -->
                         </div>
-                        <div class="league-range-card">
-                            <div class="league-range-icon">
-                                <img src="images/liga-diamante.png" alt="Liga Diamante" class="league-icon-img">
-                            </div>
-                            <div class="league-range-info">
-                                <h5>Liga Diamante</h5>
-                                <p class="league-range-points">1000+ puntos</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tabla de clasificación -->
-                <div class="leaderboard-container">
-                    <div class="leaderboard-header">
-                        <h3>Clasificación Global</h3>
-                        <div class="leaderboard-stats">
-                            <span id="totalParticipants">0 participantes</span>
-                            <button id="debugLoadUsers" style="margin-left: 10px; padding: 5px 10px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" onclick="console.log('🔍 Botón Debug clickeado directamente!');">
-                                🔍 Debug
-                            </button>
-                        </div>
-                    </div>
-                    <div class="leaderboard-table" id="leaderboardTable">
-                        <!-- La tabla se llenará dinámicamente -->
                     </div>
                 </div>
             </div>
@@ -976,25 +1130,7 @@
                             window.leagueFilterSystem.updateLeaderboard();
                         }
 
-                        // Asegurar que el botón de debug esté configurado
-                        setTimeout(() => {
-                            const debugButton = document.getElementById('debugLoadUsers');
-                            if (debugButton && !debugButton.hasAttribute('data-listener-added')) {
-                                console.log('🔍 Configurando botón Debug en pestaña Ligas...');
-                                debugButton.setAttribute('data-listener-added', 'true');
-                                debugButton.addEventListener('click', async function() {
-                                    console.log('🔍 Botón Debug clickeado desde pestaña Ligas...');
-                                    
-                                    if (window.leagueFilterSystem) {
-                                        console.log('✅ LeagueFilterSystem disponible, cargando usuarios...');
-                                        await window.leagueFilterSystem.loadAllUsers();
-                                        window.leagueFilterSystem.updateLeaderboard();
-                                    } else {
-                                        console.error('❌ LeagueFilterSystem no está disponible');
-                                    }
-                                });
-                            }
-                        }, 100);
+
                     }
                 });
             });
@@ -3885,24 +4021,7 @@
             // Sincronizar con Supabase al cargar la página
             await syncWithSupabase();
 
-            // Event listener para el botón de debug
-            const debugButton = document.getElementById('debugLoadUsers');
-            if (debugButton) {
-                console.log('🔍 Botón Debug encontrado, agregando event listener...');
-                debugButton.addEventListener('click', async function() {
-                    console.log('🔍 Botón Debug clickeado - Forzando carga de usuarios...');
-                    
-                    if (window.leagueFilterSystem) {
-                        console.log('✅ LeagueFilterSystem disponible, cargando usuarios...');
-                        await window.leagueFilterSystem.loadAllUsers();
-                        window.leagueFilterSystem.updateLeaderboard();
-                    } else {
-                        console.error('❌ LeagueFilterSystem no está disponible');
-                    }
-                });
-            } else {
-                console.error('❌ No se encontró el botón Debug');
-            }
+
             
             // Inicializar sistema de filtros de liga
             if (window.leagueFilterSystem) {
