@@ -667,12 +667,23 @@
             }catch(e){ console.error(e); }
             // Tabs
             document.querySelectorAll('.subnav-link').forEach(btn=>{
-                btn.addEventListener('click', ()=>{
+                btn.addEventListener('click', async ()=>{
                     document.querySelectorAll('.subnav-link').forEach(b=>b.classList.remove('active'));
                     btn.classList.add('active');
                     const tab = btn.getAttribute('data-tab');
                     document.querySelectorAll('main > section').forEach(s=>s.style.display='none');
                     document.getElementById('tab-'+tab).style.display='block';
+                    
+                    // Si es la pestaña de ligas, actualizar el display de puntos
+                    if (tab === 'leagues') {
+                        console.log('🏆 Cambiando a pestaña ligas...');
+                        
+                        // Forzar actualización del display de ligas
+                        if (window.pointsSystem) {
+                            await window.pointsSystem.getCurrentUser();
+                            window.pointsSystem.updateLeagueDisplay();
+                        }
+                    }
                 });
             });
                          // Feed mock con persistencia
@@ -3144,34 +3155,152 @@
             }
 
             updateLeagueDisplay() {
-                if (!this.currentUser) return;
+                if (!this.currentUser) {
+                    console.log('⚠️ No current user for league display update');
+                    return;
+                }
+                
+                console.log('🏆 Updating league display for user:', this.currentUser);
                 
                 const league = this.getLeague(this.currentUser.points);
                 const progress = this.getProgressToNextLeague(this.currentUser.points);
                 
-                const leagueElement = document.getElementById('userLeague');
-                const progressElement = document.getElementById('leagueProgress');
-                const pointsElement = document.getElementById('userPoints');
+                // Actualizar elementos de la interfaz con los IDs correctos
+                const leagueElement = document.getElementById('currentUserLeague');
+                const progressElement = document.getElementById('leagueProgressFill');
+                const pointsElement = document.getElementById('currentUserPoints');
+                const progressTextElement = document.getElementById('leagueProgressText');
                 
                 if (leagueElement) {
                     leagueElement.textContent = league.name;
                     leagueElement.style.color = league.color;
+                    console.log('✅ League element updated:', league.name);
                 }
                 
                 if (progressElement) {
                     progressElement.style.width = `${progress.progress}%`;
                     progressElement.setAttribute('aria-valuenow', progress.progress);
+                    console.log('✅ Progress element updated:', progress.progress + '%');
                 }
                 
                 if (pointsElement) {
-                    pointsElement.textContent = this.currentUser.points;
+                    pointsElement.textContent = `${this.currentUser.points} puntos`;
+                    console.log('✅ Points element updated:', this.currentUser.points);
                 }
+                
+                if (progressTextElement) {
+                    if (progress.pointsNeeded > 0) {
+                        progressTextElement.textContent = `${progress.pointsNeeded} puntos para subir`;
+                    } else {
+                        progressTextElement.textContent = '¡Liga máxima alcanzada!';
+                    }
+                    console.log('✅ Progress text updated');
+                }
+                
+                console.log('✅ League display update completed');
             }
         }
 
         // Inicializar sistemas
         window.pointsSystem = new PointsSystem();
         window.communitySystem = new CommunitySystem();
+
+        // Integrar con el sistema existente
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 DOMContentLoaded - Initializing community system...');
+            
+            // Verificar estado de Supabase
+            await checkSupabaseStatus();
+            
+            // Sincronizar con Supabase al cargar la página
+            await syncWithSupabase();
+            
+            console.log('✅ Community system initialized');
+            
+            // Actualizar el display de ligas cada 30 segundos para mantener sincronización
+            setInterval(async () => {
+                if (window.pointsSystem) {
+                    await window.pointsSystem.getCurrentUser();
+                    window.pointsSystem.updateLeagueDisplay();
+                }
+            }, 30000); // 30 segundos
+        });
+
+        // Función para verificar el estado de Supabase
+        async function checkSupabaseStatus() {
+            console.log('🔍 Checking Supabase status...');
+            console.log('window.supabase available:', !!window.supabase);
+
+            if (window.supabase) {
+                console.log('Supabase client details:', {
+                    url: window.supabase.supabaseUrl,
+                    key: window.supabase.supabaseKey ? 'Present' : 'Missing'
+                });
+
+                try {
+                    // Verificar conexión intentando obtener usuarios
+                    const { data: users, error } = await window.supabase
+                        .from('users')
+                        .select('id, username, display_name, first_name, points')
+                        .limit(1);
+
+                    if (error) {
+                        console.error('❌ Supabase connection error:', error);
+                    } else {
+                        console.log('✅ Supabase connection successful');
+                        console.log('Sample users from database:', users);
+                    }
+                } catch (error) {
+                    console.error('❌ Error testing Supabase connection:', error);
+                }
+            } else {
+                console.log('⚠️ Supabase client not initialized');
+            }
+        }
+
+        // Función para sincronizar datos con Supabase
+        async function syncWithSupabase() {
+            try {
+                if (window.supabase) {
+                    console.log('🔄 Syncing with Supabase...');
+
+                    // Obtener usuarios de Supabase
+                    const { data: users, error } = await window.supabase
+                        .from('users')
+                        .select('id, username, display_name, first_name, points')
+                        .not('points', 'is', null);
+
+                    if (!error && users) {
+                        console.log(`📊 Found ${users.length} users in Supabase`);
+
+                        // Actualizar puntos en localStorage
+                        const localUsers = JSON.parse(localStorage.getItem('communityUsers') || '[]');
+                        const updatedUsers = localUsers.map(localUser => {
+                            const supabaseUser = users.find(u =>
+                                u.display_name === localUser.name ||
+                                u.first_name === localUser.name ||
+                                u.username === localUser.name
+                            );
+
+                            if (supabaseUser) {
+                                return {
+                                    ...localUser,
+                                    id: supabaseUser.id,
+                                    points: supabaseUser.points || localUser.points
+                                };
+                            }
+
+                            return localUser;
+                        });
+
+                        localStorage.setItem('communityUsers', JSON.stringify(updatedUsers));
+                        console.log('✅ Data synced with Supabase');
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error syncing with Supabase:', error);
+            }
+        }
     </script>
 </body>
 </html>
