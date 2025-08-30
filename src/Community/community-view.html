@@ -681,6 +681,7 @@
                         // Forzar actualización del display de ligas
                         if (window.pointsSystem) {
                             await window.pointsSystem.getCurrentUser();
+                            await window.pointsSystem.refreshPointsFromDatabase();
                             window.pointsSystem.updateLeagueDisplay();
                         }
                     }
@@ -2876,7 +2877,33 @@
                 console.log('🎯 Inicializando sistema de puntos...');
                 await this.loadUsers();
                 await this.getCurrentUser();
+                this.updateLeagueDisplay();
                 console.log('✅ Sistema de puntos inicializado');
+            }
+
+            async refreshPointsFromDatabase() {
+                console.log('🔄 Refreshing points from database...');
+                if (this.currentUser && this.currentUser.id) {
+                    try {
+                        const { data: userData, error } = await window.supabase
+                            .from('users')
+                            .select('points')
+                            .eq('id', this.currentUser.id)
+                            .single();
+                        
+                        if (!error && userData) {
+                            console.log('✅ Points refreshed from database:', userData.points);
+                            this.currentUser.points = userData.points || 0;
+                            this.updateLeagueDisplay();
+                            return true;
+                        } else {
+                            console.error('❌ Error refreshing points:', error);
+                        }
+                    } catch (error) {
+                        console.error('❌ Error refreshing points from database:', error);
+                    }
+                }
+                return false;
             }
 
             async loadUsers() {
@@ -3018,27 +3045,51 @@
 
             async getCurrentUser() {
                 console.log('🔄 PointsSystem.getCurrentUser() called');
+                
                 try {
+                    // Primero intentar obtener usuario autenticado de Supabase
                     if (window.supabase) {
                         console.log('🔗 Checking Supabase authentication...');
                         const { data: { user }, error } = await window.supabase.auth.getUser();
+                        
                         if (!error && user) {
                             console.log('✅ Authenticated user found:', user);
-                            let localUser = this.users.find(u => u.id === user.id);
-                            if (!localUser) {
-                                localUser = {
-                                    id: user.id,
-                                    name: user.user_metadata?.full_name || user.user_metadata?.name || user.email || 'Tú',
-                                    points: user.user_metadata?.points || 0,
-                                    posts: 0,
-                                    comments: 0,
-                                    reactions: 0
-                                };
-                                this.users.push(localUser);
-                                await this.saveUsers();
+                            
+                            // Obtener datos completos del usuario desde la base de datos
+                            const { data: userData, error: userError } = await window.supabase
+                                .from('users')
+                                .select('id, username, display_name, first_name, email, points')
+                                .eq('id', user.id)
+                                .single();
+                            
+                            if (!userError && userData) {
+                                console.log('✅ User data from database:', userData);
+                                
+                                // Buscar si ya existe en la lista local
+                                let localUser = this.users.find(u => u.id === userData.id);
+                                if (!localUser) {
+                                    localUser = {
+                                        id: userData.id,
+                                        name: userData.display_name || userData.first_name || userData.username || userData.email || 'Usuario',
+                                        points: userData.points || 0,
+                                        posts: 0,
+                                        comments: 0,
+                                        reactions: 0
+                                    };
+                                    this.users.push(localUser);
+                                } else {
+                                    // Actualizar puntos desde la base de datos
+                                    localUser.points = userData.points || 0;
+                                    localUser.name = userData.display_name || userData.first_name || userData.username || userData.email || 'Usuario';
+                                }
+                                
+                                // IMPORTANTE: Asignar al currentUser
+                                this.currentUser = localUser;
+                                console.log('👤 Current user (from database):', this.currentUser);
+                                return this.currentUser;
+                            } else {
+                                console.error('❌ Error getting user data from database:', userError);
                             }
-                            console.log('👤 Current user:', localUser);
-                            return localUser;
                         } else {
                             console.log('⚠️ No authenticated user found in Supabase');
                         }
@@ -3048,32 +3099,69 @@
                 } catch (error) {
                     console.error('❌ Error getting current user from Supabase:', error);
                 }
-                // Fallback: check localStorage for userData/currentUser
+                
+                // Fallback: usar datos del localStorage
+                console.log('🔄 Falling back to localStorage...');
                 const userData = localStorage.getItem('userData');
                 const currentUser = localStorage.getItem('currentUser');
+                
                 let userInfo = null;
-                if (userData) { try { userInfo = JSON.parse(userData); } catch (e) { console.error('Error parsing userData:', e); } }
-                else if (currentUser) { try { userInfo = JSON.parse(currentUser); } catch (e) { console.error('Error parsing currentUser:', e); } }
+                if (userData) {
+                    try { 
+                        userInfo = JSON.parse(userData); 
+                    } catch (e) { 
+                        console.error('Error parsing userData:', e); 
+                    }
+                } else if (currentUser) {
+                    try { 
+                        userInfo = JSON.parse(currentUser); 
+                    } catch (e) { 
+                        console.error('Error parsing currentUser:', e); 
+                    }
+                }
+                
                 if (userInfo && userInfo.id) {
+                    console.log('👤 User info from localStorage:', userInfo);
+                    
+                    // Buscar si ya existe en la lista local
                     let localUser = this.users.find(u => u.id === userInfo.id);
                     if (!localUser) {
-                        localUser = { id: userInfo.id, name: userInfo.user_metadata?.full_name || userInfo.user_metadata?.name || userInfo.email || 'Tú', points: userInfo.user_metadata?.points || 0, posts: 0, comments: 0, reactions: 0 };
+                        localUser = {
+                            id: userInfo.id,
+                            name: userInfo.user_metadata?.full_name || userInfo.user_metadata?.name || userInfo.email || 'Usuario',
+                            points: userInfo.user_metadata?.points || 0,
+                            posts: 0,
+                            comments: 0,
+                            reactions: 0
+                        };
                         this.users.push(localUser);
-                        await this.saveUsers();
                     }
-                    console.log('👤 Current user (from localStorage):', localUser);
-                    return localUser;
+                    
+                    // IMPORTANTE: Asignar al currentUser
+                    this.currentUser = localUser;
+                    console.log('👤 Current user (from localStorage):', this.currentUser);
+                    return this.currentUser;
                 }
-                // Last fallback: generic user
+                
+                // Último fallback: usuario genérico
                 const currentUserName = localStorage.getItem('currentUserName') || 'Tú';
                 let user = this.users.find(u => u.name === currentUserName);
                 if (!user) {
-                    user = { id: null, name: currentUserName, points: 0, posts: 0, comments: 0, reactions: 0 };
+                    user = { 
+                        id: null, 
+                        name: currentUserName, 
+                        points: 0, 
+                        posts: 0, 
+                        comments: 0, 
+                        reactions: 0 
+                    };
                     this.users.push(user);
-                    await this.saveUsers();
                 }
-                console.log('👤 Current user (generic fallback):', user);
-                return user;
+                
+                // IMPORTANTE: Asignar al currentUser
+                this.currentUser = user;
+                console.log('👤 Current user (generic fallback):', this.currentUser);
+                return this.currentUser;
             }
 
             async addPoints(userName, action, extraPoints = 0) {
@@ -3215,12 +3303,23 @@
             // Sincronizar con Supabase al cargar la página
             await syncWithSupabase();
             
+            // Forzar actualización del display de ligas después de un breve delay
+            setTimeout(async () => {
+                if (window.pointsSystem) {
+                    console.log('🔄 Forcing league display update after page load...');
+                    await window.pointsSystem.getCurrentUser();
+                    await window.pointsSystem.refreshPointsFromDatabase();
+                    window.pointsSystem.updateLeagueDisplay();
+                }
+            }, 1000); // 1 segundo de delay
+            
             console.log('✅ Community system initialized');
             
             // Actualizar el display de ligas cada 30 segundos para mantener sincronización
             setInterval(async () => {
                 if (window.pointsSystem) {
                     await window.pointsSystem.getCurrentUser();
+                    await window.pointsSystem.refreshPointsFromDatabase();
                     window.pointsSystem.updateLeagueDisplay();
                 }
             }, 30000); // 30 segundos
