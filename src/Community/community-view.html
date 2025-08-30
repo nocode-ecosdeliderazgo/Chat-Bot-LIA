@@ -2459,121 +2459,455 @@
         const notifications = new NotificationSystem();
     </script>
 
+    <script src="../scripts/community-database.js"></script>
     <script>
-        // Sistema de Puntos y Ligas
+        // Sistema de comunidad con base de datos
+        class CommunitySystem {
+            constructor() {
+                this.db = new CommunityDatabase();
+                this.currentCommunity = null;
+                this.posts = [];
+                this.comments = {};
+                this.reactions = {};
+                this.members = [];
+                this.init();
+            }
+
+            async init() {
+                console.log('🚀 Inicializando sistema de comunidad...');
+                await this.db.initialize();
+                
+                // Obtener comunidad actual desde URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const communitySlug = urlParams.get('community') || 'general';
+                
+                await this.loadCommunity(communitySlug);
+                await this.loadPosts();
+                await this.loadMembers();
+                
+                console.log('✅ Sistema de comunidad inicializado');
+            }
+
+            async loadCommunity(slug) {
+                console.log(`🏘️ Cargando comunidad: ${slug}`);
+                this.currentCommunity = await this.db.getCommunityBySlug(slug);
+                
+                if (this.currentCommunity) {
+                    document.getElementById('communityName').textContent = this.currentCommunity.name;
+                    document.getElementById('communityDescription').textContent = this.currentCommunity.description;
+                    document.getElementById('memberCount').textContent = this.currentCommunity.member_count;
+                }
+            }
+
+            async loadPosts() {
+                if (!this.currentCommunity) return;
+                
+                console.log('📝 Cargando publicaciones...');
+                this.posts = await this.db.getPosts(this.currentCommunity.id);
+                this.renderPosts();
+            }
+
+            async loadMembers() {
+                if (!this.currentCommunity) return;
+                
+                console.log('👥 Cargando miembros...');
+                this.members = await this.db.getCommunityMembers(this.currentCommunity.id);
+                this.renderMembers();
+            }
+
+            async createPost(content, title = null, attachmentUrl = null, attachmentType = null) {
+                if (!this.currentCommunity) return null;
+                
+                console.log('📝 Creando nueva publicación...');
+                const post = await this.db.createPost(
+                    this.currentCommunity.id,
+                    content,
+                    title,
+                    attachmentUrl,
+                    attachmentType
+                );
+                
+                if (post) {
+                    // Agregar puntos al usuario
+                    if (window.pointsSystem) {
+                        await window.pointsSystem.addPoints(null, 'publish');
+                    }
+                    
+                    // Recargar publicaciones
+                    await this.loadPosts();
+                    
+                    // Mostrar notificación
+                    this.showNotification('Publicación creada exitosamente', 'success');
+                } else {
+                    this.showNotification('Error al crear la publicación', 'error');
+                }
+                
+                return post;
+            }
+
+            async createComment(postId, content) {
+                console.log('💬 Creando nuevo comentario...');
+                const comment = await this.db.createComment(postId, content);
+                
+                if (comment) {
+                    // Agregar puntos al usuario
+                    if (window.pointsSystem) {
+                        await window.pointsSystem.addPoints(null, 'comment');
+                    }
+                    
+                    // Recargar comentarios del post
+                    await this.loadComments(postId);
+                    
+                    // Mostrar notificación
+                    this.showNotification('Comentario agregado', 'success');
+                } else {
+                    this.showNotification('Error al agregar comentario', 'error');
+                }
+                
+                return comment;
+            }
+
+            async toggleReaction(postId, reactionType = 'like') {
+                console.log(`👍 Alternando reacción: ${reactionType}`);
+                const success = await this.db.toggleReaction(postId, null, reactionType);
+                
+                if (success) {
+                    // Agregar puntos al usuario
+                    if (window.pointsSystem) {
+                        await window.pointsSystem.addPoints(null, 'react');
+                    }
+                    
+                    // Recargar reacciones del post
+                    await this.loadReactions(postId);
+                    
+                    // Mostrar notificación
+                    this.showNotification('Reacción actualizada', 'success');
+                } else {
+                    this.showNotification('Error al actualizar reacción', 'error');
+                }
+                
+                return success;
+            }
+
+            async loadComments(postId) {
+                console.log(`💬 Cargando comentarios para post ${postId}...`);
+                this.comments[postId] = await this.db.getComments(postId);
+                this.renderComments(postId);
+            }
+
+            async loadReactions(postId) {
+                console.log(`👍 Cargando reacciones para post ${postId}...`);
+                this.reactions[postId] = await this.db.getReactions(postId);
+                this.renderReactions(postId);
+            }
+
+            renderPosts() {
+                const postsContainer = document.getElementById('postsContainer');
+                if (!postsContainer) return;
+                
+                postsContainer.innerHTML = '';
+                
+                this.posts.forEach(post => {
+                    const postElement = this.createPostElement(post);
+                    postsContainer.appendChild(postElement);
+                });
+            }
+
+            createPostElement(post) {
+                const postDiv = document.createElement('div');
+                postDiv.className = 'post';
+                postDiv.dataset.postId = post.id;
+                
+                const userName = post.users?.display_name || post.users?.first_name || post.users?.username || 'Usuario';
+                const timestamp = this.db.formatTimestamp(post.created_at);
+                
+                postDiv.innerHTML = `
+                    <div class="post-header">
+                        <div class="post-user">
+                            <img src="${post.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}" class="user-avatar">
+                            <div class="user-info">
+                                <div class="user-name">${userName}</div>
+                                <div class="post-time">${timestamp}</div>
+                            </div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn" onclick="communitySystem.showPostMenu('${post.id}')">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        ${post.title ? `<h3 class="post-title">${post.title}</h3>` : ''}
+                        <p>${post.content}</p>
+                        ${post.attachment_url ? this.renderAttachment(post) : ''}
+                    </div>
+                    <div class="post-footer">
+                        <div class="post-stats">
+                            <button class="reaction-btn" onclick="communitySystem.toggleReaction('${post.id}', 'like')">
+                                <i class="fas fa-heart"></i>
+                                <span class="reaction-count" id="reaction-count-${post.id}">${post.likes_count || 0}</span>
+                            </button>
+                            <button class="comment-btn" onclick="communitySystem.showComments('${post.id}')">
+                                <i class="fas fa-comment"></i>
+                                <span class="comment-count" id="comment-count-${post.id}">${post.comments_count || 0}</span>
+                            </button>
+                        </div>
+                        <div class="post-actions">
+                            <button class="share-btn" onclick="communitySystem.sharePost('${post.id}')">
+                                <i class="fas fa-share"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="comments-section" id="comments-${post.id}" style="display: none;">
+                        <div class="comment-input">
+                            <textarea placeholder="Escribe un comentario..." id="comment-input-${post.id}"></textarea>
+                            <button onclick="communitySystem.submitComment('${post.id}')">Comentar</button>
+                        </div>
+                        <div class="comments-list" id="comments-list-${post.id}"></div>
+                    </div>
+                `;
+                
+                return postDiv;
+            }
+
+            renderAttachment(post) {
+                if (!post.attachment_url) return '';
+                
+                switch (post.attachment_type) {
+                    case 'image':
+                        return `<img src="${post.attachment_url}" alt="Imagen adjunta" class="post-attachment">`;
+                    case 'video':
+                        return `<video src="${post.attachment_url}" controls class="post-attachment"></video>`;
+                    case 'document':
+                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                            <i class="fas fa-file"></i> Ver documento
+                        </a>`;
+                    case 'link':
+                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                            <i class="fas fa-link"></i> ${post.attachment_url}
+                        </a>`;
+                    default:
+                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                            <i class="fas fa-paperclip"></i> Ver adjunto
+                        </a>`;
+                }
+            }
+
+            renderComments(postId) {
+                const commentsList = document.getElementById(`comments-list-${postId}`);
+                if (!commentsList) return;
+                
+                const comments = this.comments[postId] || [];
+                commentsList.innerHTML = '';
+                
+                comments.forEach(comment => {
+                    const commentElement = this.createCommentElement(comment);
+                    commentsList.appendChild(commentElement);
+                });
+            }
+
+            createCommentElement(comment) {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comment';
+                
+                const userName = comment.users?.display_name || comment.users?.first_name || comment.users?.username || 'Usuario';
+                const timestamp = this.db.formatTimestamp(comment.created_at);
+                
+                commentDiv.innerHTML = `
+                    <div class="comment-header">
+                        <img src="${comment.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}" class="user-avatar small">
+                        <div class="comment-info">
+                            <div class="user-name">${userName}</div>
+                            <div class="comment-time">${timestamp}</div>
+                        </div>
+                    </div>
+                    <div class="comment-content">
+                        <p>${comment.content}</p>
+                    </div>
+                    <div class="comment-actions">
+                        <button class="reaction-btn small" onclick="communitySystem.toggleReaction(null, '${comment.id}', 'like')">
+                            <i class="fas fa-heart"></i>
+                            <span class="reaction-count">${comment.likes_count || 0}</span>
+                        </button>
+                    </div>
+                `;
+                
+                return commentDiv;
+            }
+
+            renderReactions(postId) {
+                const reactions = this.reactions[postId] || [];
+                const reactionCount = reactions.length;
+                
+                const countElement = document.getElementById(`reaction-count-${postId}`);
+                if (countElement) {
+                    countElement.textContent = reactionCount;
+                }
+            }
+
+            renderMembers() {
+                const membersContainer = document.getElementById('membersList');
+                if (!membersContainer) return;
+                
+                membersContainer.innerHTML = '';
+                
+                this.members.forEach(member => {
+                    const memberElement = this.createMemberElement(member);
+                    membersContainer.appendChild(memberElement);
+                });
+            }
+
+            createMemberElement(member) {
+                const memberDiv = document.createElement('div');
+                memberDiv.className = 'member-item';
+                
+                const userName = member.users?.display_name || member.users?.first_name || member.users?.username || 'Usuario';
+                const points = member.users?.points || 0;
+                
+                memberDiv.innerHTML = `
+                    <div class="member-avatar">
+                        <img src="${member.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}">
+                        <div class="online-indicator"></div>
+                    </div>
+                    <div class="member-info">
+                        <div class="member-name">${userName}</div>
+                        <div class="member-points">${points} puntos</div>
+                    </div>
+                `;
+                
+                return memberDiv;
+            }
+
+            async showComments(postId) {
+                const commentsSection = document.getElementById(`comments-${postId}`);
+                if (!commentsSection) return;
+                
+                if (commentsSection.style.display === 'none') {
+                    commentsSection.style.display = 'block';
+                    await this.loadComments(postId);
+                } else {
+                    commentsSection.style.display = 'none';
+                }
+            }
+
+            async submitComment(postId) {
+                const commentInput = document.getElementById(`comment-input-${postId}`);
+                if (!commentInput) return;
+                
+                const content = commentInput.value.trim();
+                if (!content) return;
+                
+                await this.createComment(postId, content);
+                commentInput.value = '';
+            }
+
+            showPostMenu(postId) {
+                // Implementar menú de opciones del post
+                console.log('Mostrando menú del post:', postId);
+            }
+
+            sharePost(postId) {
+                // Implementar compartir post
+                console.log('Compartiendo post:', postId);
+            }
+
+            showNotification(message, type = 'info') {
+                // Implementar sistema de notificaciones
+                console.log(`${type.toUpperCase()}: ${message}`);
+            }
+        }
+
+        // Sistema de puntos mejorado
         class PointsSystem {
             constructor() {
-                this.points = {
-                    publish: 10,
-                    comment: 5,
-                    react: 2,
-                    popularPost: 15
-                };
-                
-                this.leagues = {
-                    bronze: { name: 'Bronce', minPoints: 0, maxPoints: 99, color: '#cd7f32', icon: 'fas fa-medal' },
-                    silver: { name: 'Plata', minPoints: 100, maxPoints: 299, color: '#c0c0c0', icon: 'fas fa-medal' },
-                    gold: { name: 'Oro', minPoints: 300, maxPoints: 599, color: '#ffd700', icon: 'fas fa-medal' },
-                    platinum: { name: 'Platino', minPoints: 600, maxPoints: 999, color: '#e5e4e2', icon: 'fas fa-crown' },
-                    diamond: { name: 'Diamante', minPoints: 1000, maxPoints: 1999, color: '#b9f2ff', icon: 'fas fa-gem' },
-                    master: { name: 'Maestro', minPoints: 2000, maxPoints: Infinity, color: '#ff6b6b', icon: 'fas fa-trophy' }
-                };
-                
                 this.users = [];
                 this.currentUser = null;
                 this.init();
             }
-            
+
             async init() {
-                console.log('PointsSystem initializing...');
-                
-                // Cargar usuarios de forma asíncrona
-                this.users = await this.loadUsers();
-                this.currentUser = await this.getCurrentUser();
-                
-                console.log('Current user:', this.currentUser);
-                this.setupEventListeners();
-                this.updateCurrentUserDisplay();
-                this.renderLeaderboard();
-                this.updateLeaderboardStats();
-                console.log('PointsSystem initialized');
+                console.log('🎯 Inicializando sistema de puntos...');
+                await this.loadUsers();
+                await this.getCurrentUser();
+                console.log('✅ Sistema de puntos inicializado');
             }
-            
+
             async loadUsers() {
+                console.log('👥 Cargando usuarios...');
                 try {
-                    // Intentar cargar desde Supabase primero
                     if (window.supabase) {
-                        const { data: users, error } = await window.supabase
+                        console.log('🔗 Intentando cargar usuarios desde Supabase...');
+                        const { data, error } = await window.supabase
                             .from('users')
-                            .select('id, username, display_name, first_name, points')
-                            .not('points', 'is', null);
+                            .select('id, username, display_name, first_name, points');
                         
-                        if (!error && users && users.length > 0) {
-                            // Convertir datos de Supabase al formato esperado
-                            const formattedUsers = users.map(user => ({
+                        if (!error && data && data.length > 0) {
+                            console.log('✅ Usuarios cargados desde Supabase:', data);
+                            // Formatear usuarios para compatibilidad
+                            this.users = data.map(user => ({
                                 id: user.id,
                                 name: user.display_name || user.first_name || user.username || 'Usuario',
                                 points: user.points || 0,
-                                posts: 0, // Estos campos no están en la BD, se mantienen en localStorage
+                                posts: 0,
                                 comments: 0,
                                 reactions: 0
                             }));
                             
-                            // Cargar estadísticas adicionales desde localStorage
-                            const savedStats = localStorage.getItem('communityUsersStats');
-                            if (savedStats) {
-                                const stats = JSON.parse(savedStats);
-                                formattedUsers.forEach(user => {
-                                    const userStats = stats.find(s => s.name === user.name);
-                                    if (userStats) {
-                                        user.posts = userStats.posts || 0;
-                                        user.comments = userStats.comments || 0;
-                                        user.reactions = userStats.reactions || 0;
-                                    }
-                                });
-                            }
-                            
-                            return formattedUsers;
+                            // Cargar estadísticas desde localStorage
+                            const stats = JSON.parse(localStorage.getItem('communityUsersStats') || '[]');
+                            this.users.forEach(user => {
+                                const userStats = stats.find(s => s.name === user.name);
+                                if (userStats) {
+                                    user.posts = userStats.posts || 0;
+                                    user.comments = userStats.comments || 0;
+                                    user.reactions = userStats.reactions || 0;
+                                }
+                            });
+                        } else {
+                            console.log('⚠️ No se pudieron cargar usuarios desde Supabase, usando localStorage');
+                            this.loadFromLocalStorage();
                         }
+                    } else {
+                        console.log('⚠️ Supabase no disponible, usando localStorage');
+                        this.loadFromLocalStorage();
                     }
                 } catch (error) {
-                    console.error('Error loading users from Supabase:', error);
+                    console.error('❌ Error cargando usuarios:', error);
+                    this.loadFromLocalStorage();
                 }
-                
-                // Fallback a localStorage si Supabase no está disponible
-                const saved = localStorage.getItem('communityUsers');
-                if (saved) {
-                    return JSON.parse(saved);
-                }
-                
-                // Usuarios iniciales con puntos
-                const initialUsers = [
-                    { name: 'Tú', points: 0, posts: 0, comments: 0, reactions: 0 },
-                    { name: 'María González', points: 245, posts: 12, comments: 18, reactions: 45 },
-                    { name: 'Carlos López', points: 189, posts: 8, comments: 25, reactions: 32 },
-                    { name: 'Ana Martínez', points: 156, posts: 6, comments: 20, reactions: 28 },
-                    { name: 'Alejandro Torres', points: 134, posts: 5, comments: 15, reactions: 22 },
-                    { name: 'Sofia Rodríguez', points: 98, posts: 4, comments: 12, reactions: 18 },
-                    { name: 'Diego Morales', points: 87, posts: 3, comments: 10, reactions: 16 },
-                    { name: 'Valentina Silva', points: 76, posts: 3, comments: 8, reactions: 14 },
-                    { name: 'Roberto Jiménez', points: 65, posts: 2, comments: 7, reactions: 12 },
-                    { name: 'Camila Herrera', points: 54, posts: 2, comments: 6, reactions: 10 },
-                    { name: 'Andrés Vargas', points: 43, posts: 1, comments: 5, reactions: 8 }
-                ];
-                
-                localStorage.setItem('communityUsers', JSON.stringify(initialUsers));
-                return initialUsers;
             }
-            
+
+            loadFromLocalStorage() {
+                console.log('📦 Cargando usuarios desde localStorage...');
+                const users = JSON.parse(localStorage.getItem('communityUsers') || '[]');
+                if (users.length === 0) {
+                    // Crear usuarios iniciales
+                    this.users = [
+                        { id: null, name: 'Tú', points: 0, posts: 0, comments: 0, reactions: 0 },
+                        { id: null, name: 'María García', points: 1250, posts: 15, comments: 42, reactions: 89 },
+                        { id: null, name: 'Carlos López', points: 890, posts: 8, comments: 23, reactions: 67 },
+                        { id: null, name: 'Ana Martínez', points: 2100, posts: 22, comments: 67, reactions: 145 },
+                        { id: null, name: 'Luis Rodríguez', points: 750, posts: 6, comments: 18, reactions: 34 },
+                        { id: null, name: 'Sofia Pérez', points: 1800, posts: 19, comments: 51, reactions: 112 },
+                        { id: null, name: 'Diego Torres', points: 650, posts: 5, comments: 12, reactions: 28 },
+                        { id: null, name: 'Valentina Silva', points: 1450, posts: 14, comments: 38, reactions: 76 },
+                        { id: null, name: 'Andrés Morales', points: 950, posts: 9, comments: 25, reactions: 45 },
+                        { id: null, name: 'Camila Herrera', points: 1650, posts: 17, comments: 44, reactions: 98 }
+                    ];
+                    this.saveUsers();
+                } else {
+                    this.users = users;
+                }
+                console.log('✅ Usuarios cargados desde localStorage:', this.users);
+            }
+
             async saveUsers() {
                 console.log('🔄 PointsSystem.saveUsers() called');
                 console.log('Current users:', this.users);
-                
-                // Guardar en localStorage como respaldo
                 localStorage.setItem('communityUsers', JSON.stringify(this.users));
                 console.log('✅ Saved to localStorage');
                 
-                // Guardar estadísticas adicionales en localStorage
+                // Guardar estadísticas por separado
                 const stats = this.users.map(user => ({
                     name: user.name,
                     posts: user.posts,
@@ -2581,23 +2915,19 @@
                     reactions: user.reactions
                 }));
                 localStorage.setItem('communityUsersStats', JSON.stringify(stats));
-                
-                // Intentar guardar en Supabase
+                console.log('✅ Stats saved to localStorage');
+
                 try {
                     if (window.supabase) {
                         console.log('🔗 Supabase client available, attempting to save...');
-                        
-                        // Actualizar puntos de usuarios existentes
                         for (const user of this.users) {
-                            if (user.id) { // Solo usuarios que tienen ID de Supabase
+                            if (user.id) {
                                 console.log(`📝 Updating user ${user.name} (ID: ${user.id}) with ${user.points} points`);
-                                
                                 const { data, error } = await window.supabase
                                     .from('users')
                                     .update({ points: user.points })
                                     .eq('id', user.id)
                                     .select();
-                                
                                 if (error) {
                                     console.error(`❌ Error updating user ${user.name}:`, error);
                                 } else {
@@ -2608,47 +2938,26 @@
                                 console.log(`⚠️ User ${user.name} has no Supabase ID, skipping database update`);
                             }
                         }
-                        
-                        // Si el usuario actual no tiene ID pero tiene datos en localStorage, intentar crear/actualizar
+                        // New logic for current user without ID but with localStorage data
                         if (this.currentUser && !this.currentUser.id) {
                             console.log('🔄 Attempting to sync current user with Supabase...');
-                            
-                            // Obtener datos del usuario actual del localStorage
                             const userData = localStorage.getItem('userData');
                             const currentUser = localStorage.getItem('currentUser');
-                            
                             let userInfo = null;
-                            if (userData) {
-                                try {
-                                    userInfo = JSON.parse(userData);
-                                } catch (e) {
-                                    console.error('Error parsing userData:', e);
-                                }
-                            } else if (currentUser) {
-                                try {
-                                    userInfo = JSON.parse(currentUser);
-                                } catch (e) {
-                                    console.error('Error parsing currentUser:', e);
-                                }
-                            }
-                            
+                            if (userData) { try { userInfo = JSON.parse(userData); } catch (e) { console.error('Error parsing userData:', e); } }
+                            else if (currentUser) { try { userInfo = JSON.parse(currentUser); } catch (e) { console.error('Error parsing currentUser:', e); } }
                             if (userInfo && userInfo.id) {
                                 console.log(`📝 Updating current user in Supabase (ID: ${userInfo.id}) with ${this.currentUser.points} points`);
-                                
                                 const { data, error } = await window.supabase
                                     .from('users')
                                     .update({ points: this.currentUser.points })
                                     .eq('id', userInfo.id)
                                     .select();
-                                
-                                if (error) {
-                                    console.error(`❌ Error updating current user in Supabase:`, error);
-                                } else {
+                                if (error) { console.error(`❌ Error updating current user in Supabase:`, error); }
+                                else {
                                     console.log(`✅ Current user points updated in Supabase: ${this.currentUser.points} points`);
                                     console.log('Supabase response:', data);
-                                    
-                                    // Actualizar el ID del usuario actual
-                                    this.currentUser.id = userInfo.id;
+                                    this.currentUser.id = userInfo.id; // Update local ID
                                 }
                             }
                         }
@@ -2659,25 +2968,17 @@
                     console.error('❌ Error saving users to Supabase:', error);
                 }
             }
-            
+
             async getCurrentUser() {
                 console.log('🔄 PointsSystem.getCurrentUser() called');
-                
                 try {
-                    // Intentar obtener usuario actual desde Supabase
                     if (window.supabase) {
                         console.log('🔗 Checking Supabase authentication...');
                         const { data: { user }, error } = await window.supabase.auth.getUser();
-                        
                         if (!error && user) {
                             console.log('✅ Authenticated user found:', user);
-                            
-                            // Buscar el usuario en la lista local
                             let localUser = this.users.find(u => u.id === user.id);
-                            
                             if (!localUser) {
-                                console.log('📝 Creating new local user for authenticated user');
-                                // Crear usuario local si no existe
                                 localUser = {
                                     id: user.id,
                                     name: user.user_metadata?.full_name || user.user_metadata?.name || user.email || 'Tú',
@@ -2689,7 +2990,6 @@
                                 this.users.push(localUser);
                                 await this.saveUsers();
                             }
-                            
                             console.log('👤 Current user:', localUser);
                             return localUser;
                         } else {
@@ -2701,374 +3001,141 @@
                 } catch (error) {
                     console.error('❌ Error getting current user from Supabase:', error);
                 }
-                
-                // Fallback: obtener usuario del localStorage (como funciona en el login)
-                console.log('🔄 Falling back to localStorage user');
+                // Fallback: check localStorage for userData/currentUser
                 const userData = localStorage.getItem('userData');
                 const currentUser = localStorage.getItem('currentUser');
-                
                 let userInfo = null;
-                if (userData) {
-                    try {
-                        userInfo = JSON.parse(userData);
-                        console.log('📊 User data from localStorage:', userInfo);
-                    } catch (e) {
-                        console.error('Error parsing userData:', e);
-                    }
-                } else if (currentUser) {
-                    try {
-                        userInfo = JSON.parse(currentUser);
-                        console.log('📊 Current user from localStorage:', userInfo);
-                    } catch (e) {
-                        console.error('Error parsing currentUser:', e);
-                    }
-                }
-                
+                if (userData) { try { userInfo = JSON.parse(userData); } catch (e) { console.error('Error parsing userData:', e); } }
+                else if (currentUser) { try { userInfo = JSON.parse(currentUser); } catch (e) { console.error('Error parsing currentUser:', e); } }
                 if (userInfo && userInfo.id) {
-                    // Buscar usuario en la lista local por ID
                     let localUser = this.users.find(u => u.id === userInfo.id);
-                    
                     if (!localUser) {
-                        console.log('📝 Creating new local user from localStorage data');
-                        localUser = {
-                            id: userInfo.id,
-                            name: userInfo.user_metadata?.full_name || userInfo.user_metadata?.name || userInfo.email || 'Tú',
-                            points: userInfo.user_metadata?.points || 0,
-                            posts: 0,
-                            comments: 0,
-                            reactions: 0
-                        };
+                        localUser = { id: userInfo.id, name: userInfo.user_metadata?.full_name || userInfo.user_metadata?.name || userInfo.email || 'Tú', points: userInfo.user_metadata?.points || 0, posts: 0, comments: 0, reactions: 0 };
                         this.users.push(localUser);
                         await this.saveUsers();
                     }
-                    
                     console.log('👤 Current user (from localStorage):', localUser);
                     return localUser;
                 }
-                
-                // Último fallback: usuario genérico
-                console.log('🔄 Using generic user fallback');
+                // Last fallback: generic user
                 const currentUserName = localStorage.getItem('currentUserName') || 'Tú';
                 let user = this.users.find(u => u.name === currentUserName);
-                
                 if (!user) {
-                    console.log('📝 Creating new generic user');
-                    user = {
-                        name: currentUserName,
-                        points: 0,
-                        posts: 0,
-                        comments: 0,
-                        reactions: 0
-                    };
+                    user = { id: null, name: currentUserName, points: 0, posts: 0, comments: 0, reactions: 0 };
                     this.users.push(user);
                     await this.saveUsers();
                 }
-                
                 console.log('👤 Current user (generic fallback):', user);
                 return user;
             }
-            
+
             async addPoints(userName, action, extraPoints = 0) {
                 console.log('🎯 PointsSystem.addPoints called:', { userName, action, extraPoints });
-                
-                // Usar el usuario actual del sistema en lugar de buscar por nombre
                 let user = this.currentUser;
-                
                 if (!user) {
                     console.log('⚠️ No current user found, getting current user...');
                     user = await this.getCurrentUser();
                     this.currentUser = user;
                 }
-                
                 console.log('👤 User to add points to:', user);
-                
-                if (!user) {
-                    console.error('❌ No user found to add points to');
-                    return 0;
-                }
-                
-                const basePoints = this.points[action] || 0;
-                const totalPoints = basePoints + extraPoints;
-                
-                console.log('➕ Adding points:', { basePoints, totalPoints, currentPoints: user.points });
-                user.points += totalPoints;
-                
-                // Actualizar contadores específicos
-                switch(action) {
+                if (!user) { console.error('❌ No user found to add points to'); return 0; }
+
+                let pointsToAdd = 0;
+                switch (action) {
                     case 'publish':
+                        pointsToAdd = 10;
                         user.posts++;
-                        console.log('📝 Incremented posts counter');
                         break;
                     case 'comment':
+                        pointsToAdd = 5;
                         user.comments++;
-                        console.log('💬 Incremented comments counter');
                         break;
                     case 'react':
+                        pointsToAdd = 2;
                         user.reactions++;
-                        console.log('❤️ Incremented reactions counter');
                         break;
+                    case 'popularPost':
+                        pointsToAdd = 15;
+                        break;
+                    default:
+                        pointsToAdd = extraPoints;
                 }
-                
+
+                user.points += pointsToAdd;
+                console.log(`💰 Added ${pointsToAdd} points for ${action}. User now has ${user.points} points`);
                 console.log('💾 Saving users to database...');
                 await this.saveUsers();
                 console.log('✅ Points updated, user now has:', user.points, 'points');
-                
-                this.updateCurrentUserDisplay();
-                this.renderLeaderboard();
-                this.updateLeaderboardStats();
-                
-                // Mostrar notificación de puntos ganados
-                const league = this.getUserLeague(user.points);
-                notifications.success(`¡+${totalPoints} puntos! Ahora tienes ${user.points} puntos (${league.name})`);
-                
-                return totalPoints;
+                this.updateLeagueDisplay();
+                return pointsToAdd;
             }
-            
-            getUserLeague(points) {
-                for (const [key, league] of Object.entries(this.leagues)) {
-                    if (points >= league.minPoints && points <= league.maxPoints) {
-                        return league;
-                    }
-                }
-                return this.leagues.bronze;
+
+            getLeague(points) {
+                if (points >= 5000) return { name: 'Liga Legendaria', color: '#FFD700', minPoints: 5000, maxPoints: Infinity };
+                if (points >= 3000) return { name: 'Liga Élite', color: '#C0C0C0', minPoints: 3000, maxPoints: 4999 };
+                if (points >= 1500) return { name: 'Liga Dorada', color: '#FFD700', minPoints: 1500, maxPoints: 2999 };
+                if (points >= 800) return { name: 'Liga Plateada', color: '#C0C0C0', minPoints: 800, maxPoints: 1499 };
+                if (points >= 400) return { name: 'Liga Bronce', color: '#CD7F32', minPoints: 400, maxPoints: 799 };
+                if (points >= 200) return { name: 'Liga Hierro', color: '#A19D94', minPoints: 200, maxPoints: 399 };
+                if (points >= 100) return { name: 'Liga Cobre', color: '#B87333', minPoints: 100, maxPoints: 199 };
+                return { name: 'Liga Novato', color: '#6C757D', minPoints: 0, maxPoints: 99 };
             }
-            
-            getLeagueProgress(points) {
-                const currentLeague = this.getUserLeague(points);
-                const nextLeague = this.getNextLeague(currentLeague);
-                
-                if (!nextLeague) {
-                    return { current: points, required: points, percentage: 100 };
-                }
+
+            getProgressToNextLeague(points) {
+                const currentLeague = this.getLeague(points);
+                const nextLeague = this.getNextLeague(points);
+                if (!nextLeague) return { progress: 100, pointsNeeded: 0 };
                 
                 const pointsInCurrentLeague = points - currentLeague.minPoints;
                 const pointsNeededForNextLeague = nextLeague.minPoints - currentLeague.minPoints;
-                const percentage = Math.min(100, (pointsInCurrentLeague / pointsNeededForNextLeague) * 100);
+                const progress = Math.min(100, (pointsInCurrentLeague / pointsNeededForNextLeague) * 100);
                 
                 return {
-                    current: pointsInCurrentLeague,
-                    required: pointsNeededForNextLeague,
-                    percentage: percentage
+                    progress: Math.round(progress),
+                    pointsNeeded: nextLeague.minPoints - points
                 };
             }
-            
-            getNextLeague(currentLeague) {
-                const leagueOrder = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'master'];
-                const currentIndex = leagueOrder.findIndex(league => this.leagues[league].name === currentLeague.name);
-                
-                if (currentIndex === -1 || currentIndex === leagueOrder.length - 1) {
-                    return null;
-                }
-                
-                return this.leagues[leagueOrder[currentIndex + 1]];
+
+            getNextLeague(points) {
+                if (points >= 5000) return null; // Ya está en la máxima liga
+                if (points >= 3000) return { name: 'Liga Legendaria', minPoints: 5000 };
+                if (points >= 1500) return { name: 'Liga Élite', minPoints: 3000 };
+                if (points >= 800) return { name: 'Liga Dorada', minPoints: 1500 };
+                if (points >= 400) return { name: 'Liga Plateada', minPoints: 800 };
+                if (points >= 200) return { name: 'Liga Bronce', minPoints: 400 };
+                if (points >= 100) return { name: 'Liga Hierro', minPoints: 200 };
+                return { name: 'Liga Cobre', minPoints: 100 };
             }
-            
-            updateCurrentUserDisplay() {
-                const user = this.currentUser;
-                const league = this.getUserLeague(user.points);
-                const progress = this.getLeagueProgress(user.points);
+
+            updateLeagueDisplay() {
+                if (!this.currentUser) return;
                 
-                // Actualizar elementos del DOM
-                const nameElement = document.getElementById('currentUserName');
-                const pointsElement = document.getElementById('currentUserPoints');
-                const leagueElement = document.getElementById('currentUserLeague');
-                const badgeElement = document.getElementById('currentUserBadge');
-                const progressFill = document.getElementById('leagueProgressFill');
-                const progressText = document.getElementById('leagueProgressText');
+                const league = this.getLeague(this.currentUser.points);
+                const progress = this.getProgressToNextLeague(this.currentUser.points);
                 
-                if (nameElement) nameElement.textContent = user.name;
-                if (pointsElement) pointsElement.textContent = `${user.points} puntos`;
+                const leagueElement = document.getElementById('userLeague');
+                const progressElement = document.getElementById('leagueProgress');
+                const pointsElement = document.getElementById('userPoints');
+                
                 if (leagueElement) {
                     leagueElement.textContent = league.name;
                     leagueElement.style.color = league.color;
                 }
-                if (badgeElement) {
-                    badgeElement.innerHTML = `<i class="${league.icon}"></i>`;
-                    badgeElement.style.color = league.color;
-                }
-                if (progressFill) {
-                    progressFill.style.width = `${progress.percentage}%`;
-                    progressFill.style.backgroundColor = league.color;
-                }
-                if (progressText) {
-                    const nextLeague = this.getNextLeague(league);
-                    if (nextLeague) {
-                        progressText.textContent = `${progress.current} / ${progress.required} puntos para ${nextLeague.name}`;
-                    } else {
-                        progressText.textContent = `¡Liga máxima alcanzada!`;
-                    }
+                
+                if (progressElement) {
+                    progressElement.style.width = `${progress.progress}%`;
+                    progressElement.setAttribute('aria-valuenow', progress.progress);
                 }
                 
+                if (pointsElement) {
+                    pointsElement.textContent = this.currentUser.points;
+                }
+            }
+        }
 
-            }
-            
-
-            
-            renderLeaderboard(filterLeague = 'all') {
-                const table = document.getElementById('leaderboardTable');
-                if (!table) return;
-                
-                let filteredUsers = [...this.users];
-                
-                if (filterLeague !== 'all') {
-                    filteredUsers = filteredUsers.filter(user => {
-                        const league = this.getUserLeague(user.points);
-                        return league.name.toLowerCase().includes(filterLeague);
-                    });
-                }
-                
-                // Ordenar por puntos (descendente)
-                filteredUsers.sort((a, b) => b.points - a.points);
-                
-                table.innerHTML = filteredUsers.map((user, index) => {
-                    const league = this.getUserLeague(user.points);
-                    const isCurrentUser = user.name === this.currentUser.name;
-                    
-                    return `
-                        <div class="leaderboard-row ${isCurrentUser ? 'current-user' : ''}">
-                            <div class="leaderboard-position">
-                                ${index + 1}
-                            </div>
-                            <div class="leaderboard-user">
-                                <div class="leaderboard-avatar">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <div class="leaderboard-info">
-                                    <div class="leaderboard-name">
-                                        ${user.name}
-                                        ${isCurrentUser ? '<span class="current-user-badge">Tú</span>' : ''}
-                                    </div>
-                                    <div class="leaderboard-stats">
-                                        <span class="leaderboard-league" style="color: ${league.color}">
-                                            <i class="${league.icon}"></i> ${league.name}
-                                        </span>
-                                        <span class="leaderboard-activity">
-                                            ${user.posts} posts • ${user.comments} comentarios • ${user.reactions} reacciones
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="leaderboard-points">
-                                ${user.points} pts
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-            
-            updateLeaderboardStats() {
-                const statsElement = document.getElementById('totalParticipants');
-                if (statsElement) {
-                    statsElement.textContent = `${this.users.length} participantes`;
-                }
-            }
-            
-            setupEventListeners() {
-                // Filtros de liga
-                document.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('league-filter')) {
-                        document.querySelectorAll('.league-filter').forEach(btn => btn.classList.remove('active'));
-                        e.target.classList.add('active');
-                        
-                        const filterLeague = e.target.dataset.league;
-                        this.renderLeaderboard(filterLeague);
-                    }
-                });
-            }
-        }
-        
-        // Instanciar sistema de puntos
-        const pointsSystem = new PointsSystem();
-        window.pointsSystem = pointsSystem; // Hacer disponible globalmente
-        
-        // Función para verificar el estado de Supabase
-        async function checkSupabaseStatus() {
-            console.log('🔍 Checking Supabase status...');
-            console.log('window.supabase available:', !!window.supabase);
-            
-            if (window.supabase) {
-                console.log('Supabase client details:', {
-                    url: window.supabase.supabaseUrl,
-                    key: window.supabase.supabaseKey ? 'Present' : 'Missing'
-                });
-                
-                try {
-                    // Verificar conexión intentando obtener usuarios
-                    const { data: users, error } = await window.supabase
-                        .from('users')
-                        .select('id, username, display_name, first_name, points')
-                        .limit(1);
-                    
-                    if (error) {
-                        console.error('❌ Supabase connection error:', error);
-                    } else {
-                        console.log('✅ Supabase connection successful');
-                        console.log('Sample users from database:', users);
-                    }
-                } catch (error) {
-                    console.error('❌ Error testing Supabase connection:', error);
-                }
-            } else {
-                console.log('⚠️ Supabase client not initialized');
-            }
-        }
-        
-        // Función para sincronizar datos con Supabase
-        async function syncWithSupabase() {
-            try {
-                if (window.supabase) {
-                    console.log('🔄 Syncing with Supabase...');
-                    
-                    // Obtener usuarios de Supabase
-                    const { data: users, error } = await window.supabase
-                        .from('users')
-                        .select('id, username, display_name, first_name, points')
-                        .not('points', 'is', null);
-                    
-                    if (!error && users) {
-                        console.log(`📊 Found ${users.length} users in Supabase`);
-                        
-                        // Actualizar puntos en localStorage
-                        const localUsers = JSON.parse(localStorage.getItem('communityUsers') || '[]');
-                        const updatedUsers = localUsers.map(localUser => {
-                            const supabaseUser = users.find(u => 
-                                u.display_name === localUser.name || 
-                                u.first_name === localUser.name || 
-                                u.username === localUser.name
-                            );
-                            
-                            if (supabaseUser) {
-                                return {
-                                    ...localUser,
-                                    id: supabaseUser.id,
-                                    points: supabaseUser.points || localUser.points
-                                };
-                            }
-                            
-                            return localUser;
-                        });
-                        
-                        localStorage.setItem('communityUsers', JSON.stringify(updatedUsers));
-                        console.log('✅ Data synced with Supabase');
-                    }
-                }
-            } catch (error) {
-                console.error('❌ Error syncing with Supabase:', error);
-            }
-        }
-        
-        // Integrar con el sistema existente
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 DOMContentLoaded - Initializing community system...');
-            
-            // Verificar estado de Supabase
-            await checkSupabaseStatus();
-            
-            // Sincronizar con Supabase al cargar la página
-            await syncWithSupabase();
-            
-            console.log('✅ Community system initialized');
-        });
+        // Inicializar sistemas
+        window.pointsSystem = new PointsSystem();
+        window.communitySystem = new CommunitySystem();
     </script>
 </body>
 </html>
