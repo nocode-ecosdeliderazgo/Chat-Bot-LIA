@@ -90,6 +90,26 @@
             font-weight: 500;
         }
         
+        /* Estilos para el badge de liga del usuario */
+        .league-profile-badge {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: var(--surface);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .league-badge-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .league-ranges-grid {
@@ -259,7 +279,7 @@
                             </div>
                         </div>
                         <div class="league-profile-badge" id="currentUserBadge">
-                            <i class="fas fa-medal"></i>
+                            <img src="images/liga-oro.png" alt="Liga Actual" id="currentUserLeagueImage" class="league-badge-img">
                         </div>
                     </div>
                     <div class="league-progress-bar">
@@ -3378,11 +3398,29 @@
                 const progressElement = document.getElementById('leagueProgressFill');
                 const pointsElement = document.getElementById('currentUserPoints');
                 const progressTextElement = document.getElementById('leagueProgressText');
+                const leagueImageElement = document.getElementById('currentUserLeagueImage');
                 
                 if (leagueElement) {
                     leagueElement.textContent = league.name;
                     leagueElement.style.color = league.color;
                     console.log('✅ League element updated:', league.name);
+                }
+                
+                // Actualizar imagen de la liga
+                if (leagueImageElement) {
+                    let leagueImagePath = 'images/liga-oro.png'; // Default
+                    
+                    if (this.currentUser.points >= 1000) {
+                        leagueImagePath = 'images/liga-diamante.png';
+                    } else if (this.currentUser.points >= 500) {
+                        leagueImagePath = 'images/liga-platino.png';
+                    } else {
+                        leagueImagePath = 'images/liga-oro.png';
+                    }
+                    
+                    leagueImageElement.src = leagueImagePath;
+                    leagueImageElement.alt = `Liga ${league.name}`;
+                    console.log('✅ League image updated:', leagueImagePath);
                 }
                 
                 if (progressElement) {
