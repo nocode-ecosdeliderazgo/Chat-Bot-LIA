@@ -16,6 +16,96 @@
     <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
     <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY
 ">
+    
+    <style>
+        /* Estilos para los rangos de ligas */
+        .league-ranges-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .league-ranges-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .league-ranges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .league-range-card {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: var(--background);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .league-range-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .league-range-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .league-range-icon i {
+            font-size: 1.5rem;
+        }
+        
+        .league-range-info h5 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 5px 0;
+        }
+        
+        .league-range-points {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: 0;
+            font-weight: 500;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .league-ranges-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .league-range-card {
+                padding: 12px;
+            }
+            
+            .league-range-icon {
+                width: 40px;
+                height: 40px;
+                margin-right: 12px;
+            }
+            
+            .league-range-icon i {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
 </head>
 <body class="bg-glow-global">
     <div class="particles-container"></div>
@@ -214,6 +304,40 @@
 
                 <!-- Espacio vertical adicional -->
                 <div style="height: 40px;"></div>
+
+                <!-- Rangos de Ligas -->
+                <div class="league-ranges-container">
+                    <h4 class="league-ranges-title">Rangos de Puntos por Liga</h4>
+                    <div class="league-ranges-grid">
+                        <div class="league-range-card">
+                            <div class="league-range-icon" style="background: linear-gradient(135deg, #FFD700, #FFA500);">
+                                <i class="fas fa-crown" style="color: #8B4513;"></i>
+                            </div>
+                            <div class="league-range-info">
+                                <h5>Liga Oro</h5>
+                                <p class="league-range-points">0 - 499 puntos</p>
+                            </div>
+                        </div>
+                        <div class="league-range-card">
+                            <div class="league-range-icon" style="background: linear-gradient(135deg, #E5E4E2, #C0C0C0);">
+                                <i class="fas fa-gem" style="color: #4A4A4A;"></i>
+                            </div>
+                            <div class="league-range-info">
+                                <h5>Liga Platino</h5>
+                                <p class="league-range-points">500 - 999 puntos</p>
+                            </div>
+                        </div>
+                        <div class="league-range-card">
+                            <div class="league-range-icon" style="background: linear-gradient(135deg, #B9F2FF, #87CEEB);">
+                                <i class="fas fa-diamond" style="color: #4169E1;"></i>
+                            </div>
+                            <div class="league-range-info">
+                                <h5>Liga Diamante</h5>
+                                <p class="league-range-points">1000+ puntos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Tabla de clasificación -->
                 <div class="leaderboard-container">
