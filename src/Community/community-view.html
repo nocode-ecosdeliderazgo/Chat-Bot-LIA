@@ -4,11 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comunidad - Detalle</title>
+    
+
+    
     <link rel="stylesheet" href="community.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
     <!-- Global theme setup -->
     <script src="../scripts/global-theme-setup.js"></script>
+
+    <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
+    <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY
+">
 </head>
 <body class="bg-glow-global">
     <div class="particles-container"></div>
@@ -22,7 +29,7 @@
     </button>
 
     <!-- Botón de cambio de tema -->
-    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">
+     <button class="theme-toggle-btn" id="themeToggleBtn" title="Cambiar tema">
         <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="5"></circle>
             <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -44,6 +51,7 @@
             <div class="subnav-tabs">
                 <button class="subnav-link active" data-tab="community">Comunidad</button>
                 <button class="subnav-link" data-tab="members">Miembros</button>
+                <button class="subnav-link" data-tab="leagues">Ligas</button>
                 <button class="subnav-link" data-tab="about">Acerca de</button>
             </div>
             <div class="subnav-search">
@@ -53,7 +61,40 @@
         </div>
     </nav>
 
-    <main class="main-content" style="padding-top:10px">
+         <main class="main-content" id="main-content" style="padding-top:10px">
+        <!-- Banner de la comunidad -->
+        <div class="community-banner" id="communityBanner">
+            <div class="community-banner-image" id="communityBannerImage"></div>
+            <div class="community-banner-overlay">
+                <div class="community-banner-content">
+                    <div class="community-banner-icon" id="communityBannerIcon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="community-banner-info">
+                        <h1 class="community-banner-title" id="communityBannerTitle">Comunidad</h1>
+                        <p class="community-banner-desc" id="communityBannerDesc">Descripción de la comunidad</p>
+                        <div class="community-banner-meta" id="communityBannerMeta">• Members • Free</div>
+                     <div class="community-stats" id="communityStats">
+                         <div class="stat-item">
+                             <span class="stat-number" id="totalPosts">0</span>
+                             <span class="stat-label">Posts</span>
+                         </div>
+                         <div class="stat-item">
+                             <span class="stat-number" id="totalComments">0</span>
+                             <span class="stat-label">Comentarios</span>
+                         </div>
+                         <div class="stat-item">
+                             <span class="stat-number" id="totalReactions">0</span>
+                             <span class="stat-label">Reacciones</span>
+                         </div>
+                     </div>
+                     
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <section id="tab-community" class="feed-section">
             <div class="container">
                 <div class="feed-main">
@@ -76,6 +117,7 @@
                     <div class="attachments-preview" id="attachmentsPreview"></div>
                     <div class="feed-filters" id="feedFilters">
                         <button class="feed-chip active" data-category="all">Todos</button>
+                        <button class="feed-chip" data-category="general">General</button>
                         <button class="feed-chip" data-category="ia">IA</button>
                         <button class="feed-chip" data-category="datos">Datos</button>
                         <button class="feed-chip" data-category="desarrollo">Desarrollo</button>
@@ -97,6 +139,94 @@
                     <button class="members-chip" data-filter="admins">Admins</button>
                 </div>
                 <div id="membersList"></div>
+            </div>
+        </section>
+
+        <section id="tab-leagues" class="leagues-section" style="display:none">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Sistema de Ligas</h2>
+                    <p class="section-subtitle">Gana puntos participando y sube de liga</p>
+                </div>
+                
+                <!-- Tu perfil de liga -->
+                <div class="league-profile-card">
+                    <div class="league-profile-header">
+                        <div class="league-profile-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="league-profile-info">
+                            <h3 class="league-profile-name" id="currentUserName">Tu Nombre</h3>
+                            <div class="league-profile-stats">
+                                <span class="league-profile-points" id="currentUserPoints">0 puntos</span>
+                                <span class="league-profile-league" id="currentUserLeague">Oro</span>
+                            </div>
+                        </div>
+                        <div class="league-profile-badge" id="currentUserBadge">
+                            <i class="fas fa-medal"></i>
+                        </div>
+                    </div>
+                    <div class="league-progress-bar">
+                        <div class="league-progress-fill" id="leagueProgressFill"></div>
+                        <span class="league-progress-text" id="leagueProgressText">0 / 100 puntos para subir</span>
+                    </div>
+                </div>
+
+                <!-- Filtros de liga -->
+                <div class="leagues-filters">
+                    <button class="league-filter active" data-league="all">Todas las Ligas</button>
+                    <button class="league-filter" data-league="gold">Oro</button>
+                    <button class="league-filter" data-league="platinum">Platino</button>
+                    <button class="league-filter" data-league="diamond">Diamante</button>
+                </div>
+
+                <!-- Información de puntos -->
+                <div class="points-info-grid">
+                    <div class="points-info-card">
+                        <div class="points-info-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <h4>Publicar</h4>
+                        <p>+10 puntos</p>
+                    </div>
+                    <div class="points-info-card">
+                        <div class="points-info-icon">
+                            <i class="fas fa-comment"></i>
+                        </div>
+                        <h4>Comentar</h4>
+                        <p>+5 puntos</p>
+                    </div>
+                    <div class="points-info-card">
+                        <div class="points-info-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h4>Reaccionar</h4>
+                        <p>+2 puntos</p>
+                    </div>
+                    <div class="points-info-card">
+                        <div class="points-info-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h4>Post Popular</h4>
+                        <p>+15 puntos extra</p>
+                    </div>
+                </div>
+
+                <!-- Espacio vertical adicional -->
+                <div style="height: 40px;"></div>
+
+                <!-- Tabla de clasificación -->
+                <div class="leaderboard-container">
+                    <div class="leaderboard-header">
+                        <h3>Clasificación Global</h3>
+                        <div class="leaderboard-stats">
+                            <span id="totalParticipants">0 participantes</span>
+                        </div>
+                    </div>
+                    <div class="leaderboard-table" id="leaderboardTable">
+                        <!-- La tabla se llenará dinámicamente -->
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -147,6 +277,9 @@
                 <button class="chat-action-btn" id="chatSettings" title="Configuración">
                     <i class="fas fa-cog"></i>
                 </button>
+                 <button class="chat-action-btn" id="exportData" title="Exportar datos">
+                     <i class="fas fa-download"></i>
+                 </button>
                 <button class="chat-action-btn" id="closeChat" title="Cerrar">
                     <i class="fas fa-times"></i>
                 </button>
@@ -459,6 +592,9 @@
         </div>
     </div>
 
+    <!-- Sistema de Notificaciones -->
+    <div id="notificationContainer" class="notification-container"></div>
+
     <script>
         (function(){
             try{
@@ -497,46 +633,248 @@
                 const rawPost = localStorage.getItem('community.view.post');
                 const detail = rawCommunity ? JSON.parse(rawCommunity) : (rawPost ? JSON.parse(rawPost) : null);
                 if(detail){
-                    document.getElementById('detailTitle').textContent = detail.title || detail.user || 'Detalle';
-                    document.getElementById('detailDesc').textContent = detail.desc || detail.content || '';
+                    // Actualizar banner de la comunidad
+                    const bannerTitle = document.getElementById('communityBannerTitle');
+                    const bannerDesc = document.getElementById('communityBannerDesc');
+                    const bannerMeta = document.getElementById('communityBannerMeta');
+                    const bannerIcon = document.getElementById('communityBannerIcon');
+                    const bannerImage = document.getElementById('communityBannerImage');
+                    
+                    if(bannerTitle) bannerTitle.textContent = detail.title || detail.user || 'Comunidad';
+                    if(bannerDesc) bannerDesc.textContent = detail.desc || detail.content || '';
+                    
                     const metaParts = [];
                     if(detail.members) metaParts.push(`${detail.members} Members`);
                     if(detail.price) metaParts.push(detail.price);
                     if(detail.category) metaParts.push(detail.category);
-                    document.getElementById('detailMeta').textContent = metaParts.join(' • ');
-                    if(detail.icon){ document.getElementById('detailIcon').className = detail.icon; }
+                    if(bannerMeta) bannerMeta.textContent = metaParts.join(' • ');
+                    
+                    if(detail.icon && bannerIcon) {
+                        bannerIcon.innerHTML = `<i class="${detail.icon}"></i>`;
+                    }
+                    
+                    // Cargar imagen del banner si existe
+                    if(detail.thumb && bannerImage) {
+                        bannerImage.style.backgroundImage = `url(${detail.thumb})`;
+                        bannerImage.style.display = 'block';
+                    } else if(bannerImage) {
+                        bannerImage.style.display = 'none';
+                    }
+                    
+                    // Actualizar título de la sección "Acerca de"
                     document.getElementById('aboutTitle').textContent = detail.title || 'Acerca de';
                 }
             }catch(e){ console.error(e); }
             // Tabs
             document.querySelectorAll('.subnav-link').forEach(btn=>{
-                btn.addEventListener('click', ()=>{
+                btn.addEventListener('click', async ()=>{
                     document.querySelectorAll('.subnav-link').forEach(b=>b.classList.remove('active'));
                     btn.classList.add('active');
                     const tab = btn.getAttribute('data-tab');
                     document.querySelectorAll('main > section').forEach(s=>s.style.display='none');
                     document.getElementById('tab-'+tab).style.display='block';
+                    
+                    // Si es la pestaña de ligas, actualizar el display de puntos
+                    if (tab === 'leagues') {
+                        console.log('🏆 Cambiando a pestaña ligas...');
+                        
+                        // Forzar actualización del display de ligas
+                        if (window.pointsSystem) {
+                            await window.pointsSystem.getCurrentUser();
+                            await window.pointsSystem.refreshPointsFromDatabase();
+                            window.pointsSystem.updateLeagueDisplay();
+                        }
+                    }
                 });
             });
-            // Feed mock
-            const posts = [
-                { id:1, user:'Nate Herk', avatar:'fas fa-user', category:'ia', minutesAgo:60, content:'Nuevo video: cómo construir un agente IA con n8n.', comments:[], reactions:{like:12, heart:3}, attachments:[], reacted: null },
-                { id:2, user:'Ana Martínez', avatar:'fas fa-user', category:'datos', minutesAgo:5, content:'¿Qué herramienta recomiendan para orquestar pipelines?', comments:[], reactions:{like:2, heart:1}, attachments:[], reacted: null },
-                { id:3, user:'Carlos López', avatar:'fas fa-user', category:'desarrollo', minutesAgo:15, content:'Comparto un boilerplate para APIs serverless.', comments:[], reactions:{like:1, heart:0}, attachments:[], reacted: null }
-            ];
+                         // Feed mock con persistencia
+             let posts = [];
+             
+             // Limpiar posts muy antiguos (más de 30 días)
+             function cleanupOldPosts() {
+                 const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+                 posts = posts.filter(post => {
+                     if (post.timestamp) {
+                         return post.timestamp > thirtyDaysAgo;
+                     }
+                     return true; // Mantener posts sin timestamp (posts iniciales)
+                 });
+             }
+             
+             // Función para limpiar datos falsos y mantener solo posts reales
+             function cleanupFakeData() {
+                 // Identificar posts que fueron creados por el usuario (tienen timestamp real)
+                 const realPosts = posts.filter(post => {
+                     // Posts con timestamp son reales
+                     if (post.timestamp) return true;
+                     
+                     // Posts iniciales de ejemplo (los mantenemos por ahora)
+                     const initialPostIds = [Date.now() - 3600000, Date.now() - 1800000];
+                     return initialPostIds.includes(post.id);
+                 });
+                 
+                 if (realPosts.length !== posts.length) {
+                     posts = realPosts;
+                     savePosts();
+                     console.log('Datos falsos limpiados, manteniendo solo posts reales');
+                 }
+             }
+             
+             // Cargar posts guardados
+             function loadPosts() {
+                 const savedPosts = localStorage.getItem('communityPosts');
+                 if (savedPosts) {
+                     try {
+                         posts = JSON.parse(savedPosts);
+                         console.log('Posts cargados desde localStorage:', posts);
+                     } catch (e) {
+                         console.error('Error cargando posts:', e);
+                         posts = [];
+                     }
+                 } else {
+                     // Generar posts iniciales más realistas si no hay nada guardado
+                     const initialPosts = [
+                         {
+                             id: Date.now() - 3600000, // 1 hora atrás
+                             user: 'María González',
+                             avatar: 'fas fa-user',
+                             category: 'general',
+                             minutesAgo: 60,
+                             timeAgo: 'Hace 1 hora',
+                             timestamp: Date.now() - 3600000,
+                             content: '¡Hola comunidad! Me alegra estar aquí compartiendo experiencias y aprendiendo de todos ustedes. ¿Cómo están sus proyectos?',
+                             comments: [
+                                 { user: 'Carlos López', content: '¡Bienvenida María! Me alegra verte por aquí', timestamp: Date.now() - 3500000 }
+                             ],
+                             reactions: { like: 8, heart: 3 },
+                             attachments: [],
+                             reacted: null
+                         },
+                         {
+                             id: Date.now() - 1800000, // 30 minutos atrás
+                             user: 'Alejandro Torres',
+                             avatar: 'fas fa-user',
+                             category: 'desarrollo',
+                             minutesAgo: 30,
+                             timeAgo: 'Hace 30 minutos',
+                             timestamp: Date.now() - 1800000,
+                             content: 'Acabo de terminar un proyecto interesante usando React y Node.js. ¿Alguien más está trabajando con estas tecnologías?',
+                             comments: [
+                                 { user: 'Ana Martínez', content: '¡Excelente! Yo también uso React. ¿Qué librerías de estado prefieres?', timestamp: Date.now() - 1700000 },
+                                 { user: 'Alejandro Torres', content: 'Principalmente Redux Toolkit, pero también he probado Zustand', timestamp: Date.now() - 1600000 }
+                             ],
+                             reactions: { like: 12, heart: 5, wow: 2 },
+                             attachments: [],
+                             reacted: null
+                         }
+                     ];
+                     posts = initialPosts;
+                     // Guardar los posts iniciales
+                     savePosts();
+                 }
+             }
+             
+             // Guardar posts
+             function savePosts() {
+                 try {
+                     localStorage.setItem('communityPosts', JSON.stringify(posts));
+                     console.log('Posts guardados en localStorage');
+                 } catch (e) {
+                     console.error('Error guardando posts:', e);
+                 }
+             }
+             
+             // Actualizar timestamps de posts
+             function updatePostTimestamps() {
+                 const now = Date.now();
+                 posts.forEach(post => {
+                     if (post.timestamp) {
+                         // Usar la nueva función formatTimestamp para calcular el tiempo correctamente
+                         const diffSeconds = Math.floor((now - post.timestamp) / 1000);
+                         
+                         if (diffSeconds < 60) {
+                             post.timeAgo = 'Ahora mismo';
+                         } else if (diffSeconds < 3600) {
+                             const minutes = Math.floor(diffSeconds / 60);
+                             post.timeAgo = `Hace ${minutes} minuto${minutes > 1 ? 's' : ''}`;
+                         } else if (diffSeconds < 86400) {
+                             const hours = Math.floor(diffSeconds / 3600);
+                             post.timeAgo = `Hace ${hours} hora${hours > 1 ? 's' : ''}`;
+                         } else if (diffSeconds < 2592000) {
+                             const days = Math.floor(diffSeconds / 86400);
+                             post.timeAgo = `Hace ${days} día${days > 1 ? 's' : ''}`;
+                         } else {
+                             const date = new Date(post.timestamp);
+                             post.timeAgo = date.toLocaleDateString('es-ES', {
+                                 year: 'numeric',
+                                 month: 'short',
+                                 day: 'numeric'
+                             });
+                         }
+                         
+                         // Mantener minutesAgo para compatibilidad
+                         post.minutesAgo = Math.floor(diffSeconds / 60);
+                     }
+                 });
+             }
+             
+             // Cargar posts al iniciar
+             loadPosts();
+             
+             // Limpiar posts antiguos
+             cleanupOldPosts();
+             
+             // Limpiar datos falsos
+             cleanupFakeData();
+             
+             // Actualizar timestamps al cargar
+             updatePostTimestamps();
+             
+             // Función para actualizar estadísticas
+             function updateStats() {
+                 const totalPosts = posts.length;
+                 const totalComments = posts.reduce((sum, post) => sum + (post.comments?.length || 0), 0);
+                 const totalReactions = posts.reduce((sum, post) => {
+                     if (post.reactions) {
+                         return sum + Object.values(post.reactions).reduce((a, b) => a + (b || 0), 0);
+                     }
+                     return sum;
+                 }, 0);
+                 
+                 document.getElementById('totalPosts').textContent = totalPosts;
+                 document.getElementById('totalComments').textContent = totalComments;
+                 document.getElementById('totalReactions').textContent = totalReactions;
+             }
+             
+             // Actualizar timestamps cada minuto
+             setInterval(() => {
+                 updatePostTimestamps();
+                 updateStats();
+                 // Re-renderizar solo si hay posts visibles
+                 const activeCategory = document.querySelector('.feed-chip.active')?.dataset.category || 'all';
+                 if (document.getElementById('postsList').children.length > 0) {
+                     renderPosts(activeCategory);
+                 }
+             }, 60000); // Cada minuto
+             
+             // Actualizar estadísticas iniciales
+             updateStats();
             let pendingAttachments = [];
             const composerInput = document.getElementById('composerInput');
             const publishPostBtn = document.getElementById('publishPostBtn');
             function renderPosts(category='all'){
+                console.log('Renderizando posts para categoría:', category);
+                console.log('Posts disponibles:', posts);
                 const list = document.getElementById('postsList');
                 const filtered = category==='all' ? posts : posts.filter(p=>p.category===category);
+                console.log('Posts filtrados:', filtered);
                 list.innerHTML = filtered.map(p=>`
                     <div class="post-card" data-open-post="${p.id}">
                         <div class="post-avatar"><i class="${p.avatar}"></i></div>
                         <div class="post-body">
                             <div class="post-header">
                                 <span class="post-name">${p.user}</span>
-                                <span class="post-meta">• ${p.minutesAgo} min • ${p.category}</span>
+                                <span class="post-meta">• ${p.timeAgo || `${p.minutesAgo} min`} • ${p.category}</span>
                             </div>
                             <div class="post-content">${p.content}</div>
                             ${renderAttachments(p.attachments)}
@@ -585,13 +923,22 @@
                 });
                 // aplicar reacción
                 list.querySelectorAll('.reaction-item').forEach(el=>{
-                    el.addEventListener('click', ()=>{
+                    el.addEventListener('click', async ()=>{
                         const id = Number(el.getAttribute('data-id'));
                         const type = el.getAttribute('data-react');
                         const post = posts.find(p=>p.id===id);
                         if(post.reacted){ return; }
                         post.reactions[type] = (post.reactions[type]||0) + 1;
                         post.reacted = type;
+                         
+                         // Guardar cambios en localStorage
+                         savePosts();
+                         
+                         // Agregar puntos por reaccionar
+                         if (window.pointsSystem) {
+                             await window.pointsSystem.addPoints(null, 'react');
+                         }
+                         
                         renderPosts(category);
                     });
                 });
@@ -600,10 +947,85 @@
                     el.addEventListener('click', async ()=>{
                         const id = Number(el.getAttribute('data-share'));
                         const post = posts.find(p=>p.id===id);
-                        try{
-                            await navigator.clipboard.writeText(post.content);
-                            alert('Enlace/copete copiado al portapapeles.');
-                        }catch(e){ alert('No se pudo copiar.'); }
+                         
+                         // Crear menú de compartir
+                         const shareMenu = document.createElement('div');
+                         shareMenu.className = 'share-menu';
+                         shareMenu.innerHTML = `
+                             <div class="share-menu-content">
+                                 <h4>Compartir publicación</h4>
+                                 <div class="share-options">
+                                     <button class="share-option" data-action="copy">
+                                         <i class="fas fa-copy"></i>
+                                         <span>Copiar texto</span>
+                                     </button>
+                                     <button class="share-option" data-action="twitter">
+                                         <i class="fab fa-twitter"></i>
+                                         <span>Twitter</span>
+                                     </button>
+                                     <button class="share-option" data-action="facebook">
+                                         <i class="fab fa-facebook"></i>
+                                         <span>Facebook</span>
+                                     </button>
+                                     <button class="share-option" data-action="linkedin">
+                                         <i class="fab fa-linkedin"></i>
+                                         <span>LinkedIn</span>
+                                     </button>
+                                     <button class="share-option" data-action="whatsapp">
+                                         <i class="fab fa-whatsapp"></i>
+                                         <span>WhatsApp</span>
+                                     </button>
+                                 </div>
+                                 <button class="share-close">Cancelar</button>
+                             </div>
+                         `;
+                         
+                         document.body.appendChild(shareMenu);
+                         
+                         // Eventos del menú de compartir
+                         shareMenu.querySelectorAll('.share-option').forEach(btn => {
+                             btn.addEventListener('click', async () => {
+                                 const action = btn.dataset.action;
+                                 const text = post.content;
+                                 const url = window.location.href;
+                                 
+                                 switch(action) {
+                                     case 'copy':
+                                         try {
+                                             await navigator.clipboard.writeText(text);
+                                             notifications.success('Contenido copiado al portapapeles');
+                                         } catch(e) {
+                                             notifications.error('No se pudo copiar al portapapeles');
+                                         }
+                                         break;
+                                     case 'twitter':
+                                         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+                                         break;
+                                     case 'facebook':
+                                         window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`, '_blank');
+                                         break;
+                                     case 'linkedin':
+                                         window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
+                                         break;
+                                     case 'whatsapp':
+                                         window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+                                         break;
+                                 }
+                                 
+                                 shareMenu.remove();
+                             });
+                         });
+                         
+                         shareMenu.querySelector('.share-close').addEventListener('click', () => {
+                             shareMenu.remove();
+                         });
+                         
+                         // Cerrar al hacer clic fuera
+                         shareMenu.addEventListener('click', (e) => {
+                             if (e.target === shareMenu) {
+                                 shareMenu.remove();
+                             }
+                         });
                     });
                 });
             }
@@ -741,52 +1163,63 @@
             });
             
             function handleAttachmentType(type) {
+                console.log('Manejando tipo de adjunto:', type);
                 switch(type) {
                     case 'image':
+                        console.log('Abriendo selector de imagen');
                         document.getElementById('attachImage').click();
                         break;
                     case 'document':
+                        console.log('Abriendo selector de documento');
                         document.getElementById('attachDocument').click();
                         break;
                     case 'link':
+                        console.log('Abriendo modal de enlace');
                         document.getElementById('linkModal').classList.add('show');
                         break;
                     case 'youtube':
+                        console.log('Abriendo modal de YouTube');
                         document.getElementById('youtubeModal').classList.add('show');
                         break;
                     case 'location':
+                        console.log('Abriendo modal de ubicación');
                         document.getElementById('locationModal').classList.add('show');
                         break;
                     case 'poll':
+                        console.log('Abriendo modal de encuesta');
                         document.getElementById('pollModal').classList.add('show');
                         break;
                 }
             }
             document.getElementById('attachImage').addEventListener('change', (e)=>{
+                console.log('Archivo de imagen seleccionado:', e.target.files?.[0]);
                 const file = e.target.files?.[0];
                 if(!file) return;
-                if(bytesToMB(file.size) > 10){ alert('Imagen supera 10MB'); return; }
+                                 if(bytesToMB(file.size) > 10){ notifications.warning('Imagen supera 10MB'); return; }
+                console.log('Procesando imagen:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
                 const reader = new FileReader();
-                reader.onload = ()=>{ pendingAttachments.push({ type:'image', src: reader.result }); addPreviewImage(reader.result); };
+                reader.onload = ()=>{
+                    console.log('Imagen procesada, agregando adjunto');
+                    pendingAttachments.push({ type:'image', src: reader.result }); 
+                    addPreviewImage(reader.result); 
+                };
                 reader.readAsDataURL(file);
                 e.target.value='';
             });
-            document.getElementById('attachPdf').addEventListener('change', (e)=>{
-                const file = e.target.files?.[0];
-                if(!file) return;
-                if(bytesToMB(file.size) > 10){ alert('PDF supera 10MB'); return; }
-                const reader = new FileReader();
-                reader.onload = ()=>{ pendingAttachments.push({ type:'pdf', name: file.name, dataUrl: reader.result }); addPreviewPdf(file.name); };
-                reader.readAsDataURL(file);
-                e.target.value='';
-            });
+            // Remover esta línea ya que no existe el input attachPdf
             
             document.getElementById('attachDocument').addEventListener('change', (e)=>{
+                console.log('Archivo de documento seleccionado:', e.target.files?.[0]);
                 const file = e.target.files?.[0];
                 if(!file) return;
-                if(bytesToMB(file.size) > 10){ alert('Documento supera 10MB'); return; }
+                                 if(bytesToMB(file.size) > 10){ notifications.warning('Documento supera 10MB'); return; }
+                console.log('Procesando documento:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
                 const reader = new FileReader();
-                reader.onload = ()=>{ pendingAttachments.push({ type:'document', name: file.name, dataUrl: reader.result }); addPreviewDocument(file.name); };
+                reader.onload = ()=>{
+                    console.log('Documento procesado, agregando adjunto');
+                    pendingAttachments.push({ type:'document', name: file.name, dataUrl: reader.result }); 
+                    addPreviewDocument(file.name); 
+                };
                 reader.readAsDataURL(file);
                 e.target.value='';
             });
@@ -799,8 +1232,8 @@
             function renderAttachments(att){
                 if(!att || att.length===0) return '';
                 return `<div class='attachments-preview'>` + att.map(a=>{
-                    if(a.type==='image') return `<img src='${a.src}' class='preview-thumb'>`;
-                    if(a.type==='youtube') return `<iframe width='240' height='135' src='${a.embed}' frameborder='0' allowfullscreen></iframe>`;
+                     if(a.type==='image') return `<img src='${a.src}' class='preview-thumb' loading='lazy' alt='Imagen adjunta'>`;
+                     if(a.type==='youtube') return `<iframe width='240' height='135' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe>`;
                     if(a.type==='pdf') return `<a href='${a.dataUrl}' target='_blank' class='pdf-chip'><i class='fas fa-file-pdf'></i> ${a.name}</a>`;
                     if(a.type==='document') return `<a href='${a.dataUrl}' target='_blank' class='document-chip'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a>`;
                     if(a.type==='link') return `<a href='${a.url}' target='_blank' class='link-chip'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a>`;
@@ -841,7 +1274,7 @@
                         <div class="post-body">
                             <div class="post-header">
                                 <span class="post-name">${post.user}</span>
-                                <span class="post-meta">${post.minutesAgo} min <span>•</span> ${post.category}</span>
+                                <span class="post-meta">${post.timeAgo || `${post.minutesAgo} min`} <span>•</span> ${post.category}</span>
                             </div>
                             <div class="post-content">${post.content}</div>
                             ${renderAttachments(post.attachments)}
@@ -856,11 +1289,20 @@
                     </div>
                 `;
                 // comentar desde modal
-                document.getElementById('modalSendComment').onclick = ()=>{
+                document.getElementById('modalSendComment').onclick = async ()=>{
                     const input = document.getElementById('modalCommentInput');
                     const txt = (input.value||'').trim();
                     if(!txt) return;
                     post.comments.push({ user:'Tú', time:'ahora', text: txt });
+                     
+                     // Guardar cambios en localStorage
+                     savePosts();
+                     
+                     // Agregar puntos por comentar
+                     if (window.pointsSystem) {
+                         await window.pointsSystem.addPoints(null, 'comment');
+                     }
+                     
                     input.value='';
                     document.getElementById('modalComments').innerHTML = (post.comments||[]).map(c=>commentTemplate(c)).join('');
                 };
@@ -878,46 +1320,230 @@
                     publishPostBtn.disabled = !ok;
                     publishPostBtn.classList.toggle('enabled', ok);
                 });
-                publishPostBtn.addEventListener('click', ()=>{
+                publishPostBtn.addEventListener('click', async ()=>{
+                    console.log('Botón de publicar clickeado');
                     const txt = composerInput.value.trim();
-                    if(!txt) return;
-                    posts.unshift({ id: Date.now(), user:'Tú', avatar:'fas fa-user', category:(document.querySelector('.feed-chip.active')?.dataset.category||'ia'), minutesAgo:0, content:txt, comments:[], reactions:{like:0, heart:0, wow:0, laugh:0, sad:0}, attachments: pendingAttachments.slice(0), reacted: null });
+                    if(!txt) {
+                        console.log('Texto vacío, no se puede publicar');
+                        return;
+                    }
+                    
+                    console.log('Creando publicación con texto:', txt);
+                    console.log('Adjuntos pendientes:', pendingAttachments);
+                    
+                                         // Crear nueva publicación
+                     const newPost = { 
+                         id: Date.now(), 
+                         user:'Tú', 
+                         avatar:'fas fa-user', 
+                         category:(document.querySelector('.feed-chip.active')?.dataset.category||'general'), 
+                         minutesAgo:0, 
+                         timeAgo: 'Ahora mismo',
+                         timestamp: Date.now(), // Agregar timestamp
+                         content:txt, 
+                         comments:[], 
+                         reactions:{like:0, heart:0, wow:0, laugh:0, sad:0}, 
+                         attachments: [...pendingAttachments], 
+                         reacted: null 
+                     };
+                    
+                                         console.log('Nueva publicación creada:', newPost);
+                     posts.unshift(newPost);
+                     
+                     // Guardar posts en localStorage
+                     savePosts();
+                     
+                     // Agregar puntos por publicar
+                     if (window.pointsSystem) {
+                         console.log('🎯 Adding points for publication...');
+                         await window.pointsSystem.addPoints(null, 'publish');
+                     }
+                     
                     composerInput.value='';
                     publishPostBtn.disabled = true;
                     publishPostBtn.classList.remove('enabled');
-                    pendingAttachments = []; document.getElementById('attachmentsPreview').innerHTML='';
+                     
+                     // Limpiar adjuntos
+                     pendingAttachments = []; 
+                     document.getElementById('attachmentsPreview').innerHTML='';
+                     
+                     // Re-renderizar posts
                     renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all');
+                     
+                                           // Mostrar confirmación
+                      notifications.success('¡Publicación creada exitosamente!');
+                     console.log('Publicación completada');
                 });
             }
             renderPosts('all');
 
-            // Members mock
-            const mockMembers = Array.from({length: 20}).map((_,i)=>({
-                id: i+1,
-                name: ['Titus Blair','Michael W.','Laura F.','Ana Martínez','Carlos López','María González'][i%6] + ' ' + (i+1),
-                online: i%3!==0,
-                admin: i%10===0,
-                location: ['CDMX','Madrid','Buenos Aires','Bogotá'][i%4],
-                joined: '2025-01-1'+(i%9),
-            }));
+            // Generar datos de miembros más realistas
+            function generateRealisticMembers() {
+                const realNames = [
+                    'María González', 'Carlos López', 'Ana Martínez', 'Alejandro Torres',
+                    'Sofia Rodríguez', 'Diego Morales', 'Valentina Silva', 'Roberto Jiménez',
+                    'Camila Herrera', 'Andrés Vargas', 'Isabella Castro', 'Miguel Ruiz',
+                    'Daniela Moreno', 'Javier Paredes', 'Gabriela Soto', 'Fernando Rojas',
+                    'Natalia Vega', 'Ricardo Mendoza', 'Paula Guzmán', 'Eduardo Fuentes'
+                ];
+                
+                const locations = [
+                    'Ciudad de México', 'Buenos Aires', 'Bogotá', 'Santiago',
+                    'Lima', 'Caracas', 'Quito', 'Guayaquil', 'Medellín', 'Montevideo'
+                ];
+                
+                const currentTime = Date.now();
+                const onlineProbability = 0.4; // 40% de probabilidad de estar online
+                
+                return Array.from({length: 24}).map((_, i) => {
+                    const isOnline = Math.random() < onlineProbability;
+                    const isAdmin = i < 3; // Primeros 3 son admins
+                    const joinDate = new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
+                    
+                    return {
+                        id: i + 1,
+                        name: realNames[i % realNames.length],
+                        online: isOnline,
+                        admin: isAdmin,
+                        location: locations[i % locations.length],
+                        joined: joinDate.toISOString().split('T')[0],
+                        lastSeen: isOnline ? 'Ahora' : `${Math.floor(Math.random() * 60)} min`,
+                        avatar: `fas fa-user`,
+                        status: isOnline ? 'online' : 'offline'
+                    };
+                });
+            }
+            
+            const mockMembers = generateRealisticMembers();
+            
+            // Función para simular actividad real en la comunidad
+            function simulateCommunityActivity() {
+                // Ocasionalmente agregar un nuevo miembro
+                if (Math.random() < 0.05 && mockMembers.length < 50) { // 5% de probabilidad
+                    const newNames = [
+                        'Lucía Fernández', 'Mateo Ríos', 'Valeria Cruz', 'Sebastián Mora',
+                        'Emma Torres', 'Lucas Herrera', 'Sara Jiménez', 'Adrián Vega'
+                    ];
+                    
+                    const newMember = {
+                        id: mockMembers.length + 1,
+                        name: newNames[Math.floor(Math.random() * newNames.length)],
+                        online: true,
+                        admin: false,
+                        location: ['Ciudad de México', 'Buenos Aires', 'Bogotá', 'Santiago'][Math.floor(Math.random() * 4)],
+                        joined: new Date().toISOString().split('T')[0],
+                        lastSeen: 'Ahora',
+                        avatar: 'fas fa-user',
+                        status: 'online'
+                    };
+                    
+                    mockMembers.push(newMember);
+                    
+                    // Mostrar notificación de nuevo miembro
+                    if (document.getElementById('tab-members').style.display !== 'none') {
+                        notifications.info(`¡${newMember.name} se unió a la comunidad!`);
+                    }
+                }
+                
+                // Simular actividad de posts (ocasionalmente)
+                if (Math.random() < 0.02) { // 2% de probabilidad
+                    const activityMessages = [
+                        'Alguien reaccionó a una publicación',
+                        'Nuevo comentario en la comunidad',
+                        'Se compartió un recurso interesante'
+                    ];
+                    
+                    const message = activityMessages[Math.floor(Math.random() * activityMessages.length)];
+                    notifications.info(message);
+                }
+            }
+            
+            // Ejecutar simulación de actividad cada 2 minutos
+            setInterval(simulateCommunityActivity, 120000);
             function renderMembers(filter='all', q=''){
                 const list = document.getElementById('membersList');
                 let data = [...mockMembers];
+                
+                // Actualizar estados online dinámicamente
+                data.forEach(member => {
+                    if (!member.online) {
+                        // Simular cambios de estado offline
+                        const lastSeenMinutes = Math.floor(Math.random() * 120); // 0-120 minutos
+                        member.lastSeen = lastSeenMinutes === 0 ? 'Ahora' : `${lastSeenMinutes} min`;
+                    }
+                });
+                
                 if(filter==='online') data = data.filter(m=>m.online);
                 if(filter==='admins') data = data.filter(m=>m.admin);
                 if(q) data = data.filter(m => (m.name+ ' ' + m.location).toLowerCase().includes(q.toLowerCase()));
+                
+                // Ordenar: online primero, luego por nombre
+                data.sort((a, b) => {
+                    if (a.online && !b.online) return -1;
+                    if (!a.online && b.online) return 1;
+                    return a.name.localeCompare(b.name);
+                });
+                
                 list.innerHTML = data.map(m=>`
                     <div class="member-card">
                         <div class="member-avatar">
                             <i class="fas fa-user"></i>
                             ${m.online ? '<span class="member-status"></span>' : ''}
                         </div>
-                        <div>
-                            <div class="member-name">${m.name} ${m.admin ? '<span class="post-tag">admin</span>':''}</div>
-                            <div class="member-meta"><span>${m.online? 'Online now':'Offline'}</span> • <span>${m.location}</span> • <span>Joined ${m.joined}</span></div>
+                        <div class="member-info">
+                            <div class="member-name">
+                                ${m.name} 
+                                ${m.admin ? '<span class="member-badge admin">Admin</span>':''}
+                                ${m.online ? '<span class="member-badge online">En línea</span>':''}
+                            </div>
+                            <div class="member-meta">
+                                <span class="member-location"><i class="fas fa-map-marker-alt"></i> ${m.location}</span>
+                                <span class="member-status-text">
+                                    ${m.online ? '<i class="fas fa-circle online-dot"></i> En línea' : `<i class="fas fa-clock"></i> Visto ${m.lastSeen}`}
+                                </span>
+                                <span class="member-joined"><i class="fas fa-calendar"></i> Se unió ${formatJoinDate(m.joined)}</span>
+                            </div>
                         </div>
                     </div>
                 `).join('');
+                
+                // Mostrar contador de miembros
+                const onlineCount = data.filter(m => m.online).length;
+                const totalCount = data.length;
+                const membersHeader = document.querySelector('.members-section .container');
+                if (membersHeader && !document.querySelector('.members-count')) {
+                    const countElement = document.createElement('div');
+                    countElement.className = 'members-count';
+                    countElement.innerHTML = `
+                        <div class="count-info">
+                            <span class="online-count">${onlineCount} en línea</span>
+                            <span class="total-count">• ${totalCount} miembros total</span>
+                        </div>
+                    `;
+                    membersHeader.insertBefore(countElement, membersHeader.firstChild);
+                } else if (document.querySelector('.members-count')) {
+                    const countElement = document.querySelector('.members-count');
+                    countElement.innerHTML = `
+                        <div class="count-info">
+                            <span class="online-count">${onlineCount} en línea</span>
+                            <span class="total-count">• ${totalCount} miembros total</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Función para formatear fechas de unión
+            function formatJoinDate(dateString) {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffTime = Math.abs(now - date);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 1) return 'hoy';
+                if (diffDays <= 7) return `hace ${diffDays} días`;
+                if (diffDays <= 30) return `hace ${Math.floor(diffDays / 7)} semanas`;
+                if (diffDays <= 365) return `hace ${Math.floor(diffDays / 30)} meses`;
+                return `hace ${Math.floor(diffDays / 365)} años`;
             }
             document.querySelectorAll('.members-chip').forEach(btn=>{
                 btn.addEventListener('click', ()=>{
@@ -927,11 +1553,100 @@
                 });
             });
             const search = document.getElementById('viewSearch');
+             let searchTimeout;
+             
             search.addEventListener('input', ()=>{
+                 clearTimeout(searchTimeout);
+                 searchTimeout = setTimeout(() => {
                 const active = document.querySelector('.members-chip.active');
                 renderMembers(active?active.dataset.filter:'all', search.value);
+                 }, 300); // Debounce de 300ms
+             });
+             
+             // Búsqueda en posts
+             search.addEventListener('keypress', (e) => {
+                 if (e.key === 'Enter') {
+                     const query = search.value.trim();
+                     if (query) {
+                         // Cambiar a la pestaña de comunidad y buscar en posts
+                         document.querySelectorAll('.subnav-link').forEach(btn => btn.classList.remove('active'));
+                         document.querySelector('[data-tab="community"]').classList.add('active');
+                         document.querySelectorAll('main > section').forEach(s => s.style.display = 'none');
+                         document.getElementById('tab-community').style.display = 'block';
+                         
+                         // Filtrar posts por búsqueda
+                         const filteredPosts = posts.filter(post => 
+                             post.content.toLowerCase().includes(query.toLowerCase()) ||
+                             post.user.toLowerCase().includes(query.toLowerCase()) ||
+                             post.category.toLowerCase().includes(query.toLowerCase())
+                         );
+                         
+                         // Mostrar resultados
+                         const list = document.getElementById('postsList');
+                         if (filteredPosts.length > 0) {
+                             list.innerHTML = filteredPosts.map(p => `
+                                 <div class="post-card" data-open-post="${p.id}">
+                                     <div class="post-avatar"><i class="${p.avatar}"></i></div>
+                                     <div class="post-body">
+                                         <div class="post-header">
+                                             <span class="post-name">${p.user}</span>
+                                             <span class="post-meta">• ${p.timeAgo || `${p.minutesAgo} min`} • ${p.category}</span>
+                                         </div>
+                                         <div class="post-content">${p.content}</div>
+                                         ${renderAttachments(p.attachments)}
+                                         <div class="post-actions">
+                                             <span class="post-action" data-action="comment" data-id="${p.id}"><i class="fas fa-comment"></i> Comentar</span>
+                                             <span class="post-action shares" data-share="${p.id}"><i class="fas fa-share"></i> Compartir</span>
+                                             <span class="react-area">
+                                                 <button class="react-btn" data-react-toggle="${p.id}" title="Reaccionar">👍</button>
+                                                 <div class="reaction-picker" id="picker-${p.id}">
+                                                     <div class="reaction-item" data-react="like" data-id="${p.id}">👍</div>
+                                                     <div class="reaction-item" data-react="heart" data-id="${p.id}">❤️</div>
+                                                     <div class="reaction-item" data-react="wow" data-id="${p.id}">😮</div>
+                                                     <div class="reaction-item" data-react="laugh" data-id="${p.id}">😂</div>
+                                                     <div class="reaction-item" data-react="sad" data-id="${p.id}">😢</div>
+                                                 </div>
+                                                 <span class="reaction-summary">${reactionSummary(p.reactions)}</span>
+                                             </span>
+                                         </div>
+                                     </div>
+                                 </div>
+                             `).join('');
+                             
+                             notifications.info(`Se encontraron ${filteredPosts.length} resultados para "${query}"`);
+                         } else {
+                             list.innerHTML = `
+                                 <div class="no-results">
+                                     <i class="fas fa-search"></i>
+                                     <h3>No se encontraron resultados</h3>
+                                     <p>No hay posts que coincidan con "${query}"</p>
+                                 </div>
+                             `;
+                         }
+                     }
+                 }
             });
             renderMembers();
+            
+            // Actualizar estados de miembros dinámicamente
+            setInterval(() => {
+                // Simular cambios de estado online/offline
+                mockMembers.forEach(member => {
+                    if (Math.random() < 0.1) { // 10% de probabilidad de cambiar estado
+                        member.online = !member.online;
+                        if (!member.online) {
+                            member.lastSeen = 'Ahora';
+                        }
+                    }
+                });
+                
+                // Re-renderizar si estamos en la pestaña de miembros
+                const membersSection = document.getElementById('tab-members');
+                if (membersSection && membersSection.style.display !== 'none') {
+                    const activeFilter = document.querySelector('.members-chip.active')?.dataset.filter || 'all';
+                    renderMembers(activeFilter, document.getElementById('viewSearch').value);
+                }
+            }, 30000); // Cada 30 segundos
 
             // Enhanced Chat System
             class ChatSystem {
@@ -1007,6 +1722,9 @@
                     document.getElementById('closeChat').addEventListener('click', () => this.closeChat());
                     document.getElementById('chatSettings').addEventListener('click', () => this.openSettings());
                     document.getElementById('closeChatSettings').addEventListener('click', () => this.closeSettings());
+                     
+                     // Exportar datos
+                     document.getElementById('exportData').addEventListener('click', () => this.exportData());
 
                     // Message input
                     const chatInput = document.getElementById('chatInput');
@@ -1374,6 +2092,28 @@
                 saveSettings() {
                     localStorage.setItem('chatSettings', JSON.stringify(this.settings));
                 }
+                 
+                 exportData() {
+                     const data = {
+                         posts: posts,
+                         chatMessages: this.messages,
+                         settings: this.settings,
+                         exportDate: new Date().toISOString(),
+                         version: '1.0'
+                     };
+                     
+                     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                     const url = URL.createObjectURL(blob);
+                     const a = document.createElement('a');
+                     a.href = url;
+                     a.download = `community-data-${new Date().toISOString().split('T')[0]}.json`;
+                     document.body.appendChild(a);
+                     a.click();
+                     document.body.removeChild(a);
+                     URL.revokeObjectURL(url);
+                     
+                     notifications.success('Datos exportados exitosamente');
+                 }
             }
 
             // Initialize chat system
@@ -1393,20 +2133,41 @@
                     linkInput.value = '';
                 }
 
+                if (confirmLink) {
                 confirmLink.addEventListener('click', () => {
+                        console.log('Botón confirmar enlace clickeado');
                     const url = linkInput.value.trim();
+                        console.log('URL ingresada:', url);
                     if (url) {
+                            try {
+                                // Validar URL
+                                new URL(url);
+                                console.log('URL válida, agregando adjunto');
                         pendingAttachments.push({ type: 'link', url });
                         addPreviewLink(url);
                         closeLinkModalFunc();
-                    }
-                });
+                                                         } catch (e) {
+                                 console.log('URL inválida:', e);
+                                 notifications.error('Por favor ingresa una URL válida (ej: https://ejemplo.com)');
+                             }
+                         } else {
+                             console.log('URL vacía');
+                             notifications.warning('Por favor ingresa una URL');
+                         }
+                    });
+                }
 
+                if (cancelLink) {
                 cancelLink.addEventListener('click', closeLinkModalFunc);
+                }
+                if (closeLinkModal) {
                 closeLinkModal.addEventListener('click', closeLinkModalFunc);
+                }
+                if (linkModal) {
                 linkModal.addEventListener('click', (e) => {
                     if (e.target === linkModal) closeLinkModalFunc();
                 });
+                }
 
                 // Modal de YouTube
                 const youtubeModal = document.getElementById('youtubeModal');
@@ -1420,6 +2181,7 @@
                     youtubeInput.value = '';
                 }
 
+                if (confirmYoutube) {
                 confirmYoutube.addEventListener('click', () => {
                     const ytUrl = youtubeInput.value.trim();
                     if (ytUrl) {
@@ -1429,16 +2191,25 @@
                             addPreviewYoutube(embed);
                             closeYoutubeModalFunc();
                         } else {
-                            alert('Enlace de YouTube inválido');
+                                 notifications.error('Enlace de YouTube inválido. Asegúrate de que sea una URL válida de YouTube');
                         }
+                         } else {
+                             notifications.warning('Por favor ingresa una URL de YouTube');
                     }
                 });
+                }
 
+                if (cancelYoutube) {
                 cancelYoutube.addEventListener('click', closeYoutubeModalFunc);
+                }
+                if (closeYoutubeModal) {
                 closeYoutubeModal.addEventListener('click', closeYoutubeModalFunc);
+                }
+                if (youtubeModal) {
                 youtubeModal.addEventListener('click', (e) => {
                     if (e.target === youtubeModal) closeYoutubeModalFunc();
                 });
+                }
 
                 // Modal de ubicación
                 const locationModal = document.getElementById('locationModal');
@@ -1452,20 +2223,30 @@
                     locationInput.value = '';
                 }
 
+                if (confirmLocation) {
                 confirmLocation.addEventListener('click', () => {
                     const location = locationInput.value.trim();
                     if (location) {
                         pendingAttachments.push({ type: 'location', text: location });
                         addPreviewLocation(location);
                         closeLocationModalFunc();
+                                                 } else {
+                             notifications.warning('Por favor ingresa una ubicación');
                     }
                 });
+                }
 
+                if (cancelLocation) {
                 cancelLocation.addEventListener('click', closeLocationModalFunc);
+                }
+                if (closeLocationModal) {
                 closeLocationModal.addEventListener('click', closeLocationModalFunc);
+                }
+                if (locationModal) {
                 locationModal.addEventListener('click', (e) => {
                     if (e.target === locationModal) closeLocationModalFunc();
                 });
+                }
 
                 // Modal de encuesta
                 const pollModal = document.getElementById('pollModal');
@@ -1481,6 +2262,7 @@
                     pollOptions.value = '';
                 }
 
+                if (confirmPoll) {
                 confirmPoll.addEventListener('click', () => {
                     const question = pollQuestion.value.trim();
                     const options = pollOptions.value.trim();
@@ -1495,20 +2277,39 @@
                             addPreviewPoll(question, pollOptionsArray);
                             closePollModalFunc();
                         } else {
-                            alert('Necesitas al menos 2 opciones para la encuesta');
+                                 notifications.warning('Necesitas al menos 2 opciones para la encuesta');
                         }
+                         } else {
+                             notifications.error('Por favor completa tanto la pregunta como las opciones');
                     }
                 });
+                }
 
+                if (cancelPoll) {
                 cancelPoll.addEventListener('click', closePollModalFunc);
+                }
+                if (closePollModal) {
                 closePollModal.addEventListener('click', closePollModalFunc);
+                }
+                if (pollModal) {
                 pollModal.addEventListener('click', (e) => {
                     if (e.target === pollModal) closePollModalFunc();
                 });
+                }
             }
 
             // Inicializar modales de entrada
             setupInputModals();
+            
+            // Verificar que los elementos existan (solo en desarrollo)
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                console.log('Elementos de publicación:', {
+                    composerInput: !!document.getElementById('composerInput'),
+                    publishPostBtn: !!document.getElementById('publishPostBtn'),
+                    attachMenuBtn: !!document.getElementById('attachMenuBtn'),
+                    attachModal: !!document.getElementById('attachModal')
+                });
+            }
             
             // Escuchar cambios en el localStorage para actualizar la foto de perfil
             window.addEventListener('storage', function(e) {
@@ -1525,9 +2326,1071 @@
                     loadUserProfilePicture();
                 }
             };
+             
+             // Mejorar el sistema de cambio de tema
+             document.getElementById('themeToggleBtn').addEventListener('click', () => {
+                 const currentTheme = document.documentElement.getAttribute('data-theme');
+                 const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                 
+                 document.documentElement.setAttribute('data-theme', newTheme);
+                 localStorage.setItem('theme', newTheme);
+                 
+                 // Animación suave del cambio
+                 document.body.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+                 setTimeout(() => {
+                     document.body.style.transition = '';
+                 }, 300);
+                 
+                 notifications.info(`Tema cambiado a ${newTheme === 'light' ? 'claro' : 'oscuro'}`);
+             });
         })();
     </script>
+         <!-- Funcionalidades de accesibilidad -->
+     <script>
+         // Mejoras de accesibilidad
+         document.addEventListener('DOMContentLoaded', function() {
+             // Navegación por teclado
+             document.addEventListener('keydown', function(e) {
+                 // ESC para cerrar modales
+                 if (e.key === 'Escape') {
+                     const modals = document.querySelectorAll('.attach-modal.show, .input-modal.show, .post-modal.show, .chat-settings-modal.show');
+                     modals.forEach(modal => modal.classList.remove('show'));
+                 }
+                 
+                 // Ctrl/Cmd + K para buscar
+                 if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                     e.preventDefault();
+                     const searchInput = document.getElementById('viewSearch');
+                     if (searchInput) {
+                         searchInput.focus();
+                     }
+                 }
+                 
+                 // Ctrl/Cmd + Enter para publicar
+                 if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                     const publishBtn = document.getElementById('publishPostBtn');
+                     if (publishBtn && !publishBtn.disabled) {
+                         publishBtn.click();
+                     }
+                 }
+             });
+             
+             // Mejorar focus visible
+             const focusableElements = document.querySelectorAll('button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
+             focusableElements.forEach(element => {
+                 element.addEventListener('focus', function() {
+                     this.style.outline = '2px solid var(--primary-color)';
+                     this.style.outlineOffset = '2px';
+                 });
+                 
+                 element.addEventListener('blur', function() {
+                     this.style.outline = '';
+                     this.style.outlineOffset = '';
+                 });
+             });
+             
+             // Skip to main content
+             const skipLink = document.createElement('a');
+             skipLink.href = '#main-content';
+             skipLink.textContent = 'Saltar al contenido principal';
+             skipLink.className = 'skip-link';
+             skipLink.style.cssText = `
+                 position: absolute;
+                 top: -40px;
+                 left: 6px;
+                 background: var(--primary-color);
+                 color: white;
+                 padding: 8px 16px;
+                 text-decoration: none;
+                 border-radius: 4px;
+                 z-index: 10000;
+                 transition: top 0.3s;
+             `;
+             
+             skipLink.addEventListener('focus', function() {
+                 this.style.top = '6px';
+             });
+             
+             skipLink.addEventListener('blur', function() {
+                 this.style.top = '-40px';
+             });
+             
+             document.body.insertBefore(skipLink, document.body.firstChild);
+         });
+     </script>
+     
     <script src="../scripts/theme-toggle.js"></script>
+    <script src="../scripts/supabase-client.js"></script>
+
+    <script>
+        // Sistema de notificaciones elegante
+        class NotificationSystem {
+            constructor() {
+                this.container = document.getElementById('notificationContainer');
+                if (!this.container) {
+                    this.container = document.createElement('div');
+                    this.container.id = 'notificationContainer';
+                    this.container.className = 'notification-container';
+                    document.body.appendChild(this.container);
+                }
+            }
+
+            show(message, type = 'info', duration = 4000) {
+                const notification = document.createElement('div');
+                notification.className = `notification notification-${type}`;
+                
+                const icon = this.getIcon(type);
+                notification.innerHTML = `
+                    <div class="notification-icon">${icon}</div>
+                    <div class="notification-content">
+                        <div class="notification-message">${message}</div>
+                    </div>
+                    <button class="notification-close" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                this.container.appendChild(notification);
+
+                // Animación de entrada
+                setTimeout(() => notification.classList.add('show'), 10);
+
+                // Auto-remover
+                if (duration > 0) {
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                        setTimeout(() => notification.remove(), 300);
+                    }, duration);
+                }
+
+                return notification;
+            }
+
+            success(message, duration = 4000) {
+                return this.show(message, 'success', duration);
+            }
+
+            error(message, duration = 6000) {
+                return this.show(message, 'error', duration);
+            }
+
+            warning(message, duration = 5000) {
+                return this.show(message, 'warning', duration);
+            }
+
+            info(message, duration = 4000) {
+                return this.show(message, 'info', duration);
+            }
+
+            getIcon(type) {
+                const icons = {
+                    success: '<i class="fas fa-check-circle"></i>',
+                    error: '<i class="fas fa-exclamation-circle"></i>',
+                    warning: '<i class="fas fa-exclamation-triangle"></i>',
+                    info: '<i class="fas fa-info-circle"></i>'
+                };
+                return icons[type] || icons.info;
+            }
+        }
+
+        // Instanciar sistema de notificaciones
+        const notifications = new NotificationSystem();
+    </script>
+
+    <script src="../scripts/community-database.js"></script>
+    <script>
+        // Sistema de comunidad con base de datos
+        class CommunitySystem {
+            constructor() {
+                this.db = new CommunityDatabase();
+                this.currentCommunity = null;
+                this.posts = [];
+                this.comments = {};
+                this.reactions = {};
+                this.members = [];
+                this.init();
+            }
+
+            async init() {
+                console.log('🚀 Inicializando sistema de comunidad...');
+                await this.db.initialize();
+                
+                // Obtener comunidad actual desde URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const communitySlug = urlParams.get('community') || 'general';
+                
+                await this.loadCommunity(communitySlug);
+                await this.loadPosts();
+                await this.loadMembers();
+                
+                console.log('✅ Sistema de comunidad inicializado');
+            }
+
+            async loadCommunity(slug) {
+                console.log(`🏘️ Cargando comunidad: ${slug}`);
+                this.currentCommunity = await this.db.getCommunityBySlug(slug);
+                
+                if (this.currentCommunity) {
+                    document.getElementById('communityName').textContent = this.currentCommunity.name;
+                    document.getElementById('communityDescription').textContent = this.currentCommunity.description;
+                    document.getElementById('memberCount').textContent = this.currentCommunity.member_count;
+                }
+            }
+
+            async loadPosts() {
+                if (!this.currentCommunity) return;
+                
+                console.log('📝 Cargando publicaciones...');
+                this.posts = await this.db.getPosts(this.currentCommunity.id);
+                this.renderPosts();
+            }
+
+            async loadMembers() {
+                if (!this.currentCommunity) return;
+                
+                console.log('👥 Cargando miembros...');
+                this.members = await this.db.getCommunityMembers(this.currentCommunity.id);
+                this.renderMembers();
+            }
+
+            async createPost(content, title = null, attachmentUrl = null, attachmentType = null) {
+                if (!this.currentCommunity) return null;
+                
+                console.log('📝 Creando nueva publicación...');
+                const post = await this.db.createPost(
+                    this.currentCommunity.id,
+                    content,
+                    title,
+                    attachmentUrl,
+                    attachmentType
+                );
+                
+                if (post) {
+                    // Agregar puntos al usuario
+                    if (window.pointsSystem) {
+                        await window.pointsSystem.addPoints(null, 'publish');
+                    }
+                    
+                    // Recargar publicaciones
+                    await this.loadPosts();
+                    
+                    // Mostrar notificación
+                    this.showNotification('Publicación creada exitosamente', 'success');
+                } else {
+                    this.showNotification('Error al crear la publicación', 'error');
+                }
+                
+                return post;
+            }
+
+            async createComment(postId, content) {
+                console.log('💬 Creando nuevo comentario...');
+                const comment = await this.db.createComment(postId, content);
+                
+                if (comment) {
+                    // Agregar puntos al usuario
+                    if (window.pointsSystem) {
+                        await window.pointsSystem.addPoints(null, 'comment');
+                    }
+                    
+                    // Recargar comentarios del post
+                    await this.loadComments(postId);
+                    
+                    // Mostrar notificación
+                    this.showNotification('Comentario agregado', 'success');
+                } else {
+                    this.showNotification('Error al agregar comentario', 'error');
+                }
+                
+                return comment;
+            }
+
+            async toggleReaction(postId, reactionType = 'like') {
+                console.log(`👍 Alternando reacción: ${reactionType}`);
+                const success = await this.db.toggleReaction(postId, null, reactionType);
+                
+                if (success) {
+                    // Agregar puntos al usuario
+                    if (window.pointsSystem) {
+                        await window.pointsSystem.addPoints(null, 'react');
+                    }
+                    
+                    // Recargar reacciones del post
+                    await this.loadReactions(postId);
+                    
+                    // Mostrar notificación
+                    this.showNotification('Reacción actualizada', 'success');
+                } else {
+                    this.showNotification('Error al actualizar reacción', 'error');
+                }
+                
+                return success;
+            }
+
+            async loadComments(postId) {
+                console.log(`💬 Cargando comentarios para post ${postId}...`);
+                this.comments[postId] = await this.db.getComments(postId);
+                this.renderComments(postId);
+            }
+
+            async loadReactions(postId) {
+                console.log(`👍 Cargando reacciones para post ${postId}...`);
+                this.reactions[postId] = await this.db.getReactions(postId);
+                this.renderReactions(postId);
+            }
+
+            renderPosts() {
+                const postsContainer = document.getElementById('postsContainer');
+                if (!postsContainer) return;
+                
+                postsContainer.innerHTML = '';
+                
+                this.posts.forEach(post => {
+                    const postElement = this.createPostElement(post);
+                    postsContainer.appendChild(postElement);
+                });
+            }
+
+            createPostElement(post) {
+                const postDiv = document.createElement('div');
+                postDiv.className = 'post';
+                postDiv.dataset.postId = post.id;
+                
+                const userName = post.users?.display_name || post.users?.first_name || post.users?.username || 'Usuario';
+                
+                // Usar la nueva función formatTimestamp para formatear correctamente el tiempo
+                let timestamp;
+                if (post.created_at) {
+                    timestamp = this.db.formatTimestamp(post.created_at);
+                } else if (post.timestamp) {
+                    // Para posts del sistema anterior que usan timestamp en milisegundos
+                    timestamp = this.db.formatTimestamp(post.timestamp);
+                } else {
+                    timestamp = 'Recién publicado';
+                }
+                
+                postDiv.innerHTML = `
+                    <div class="post-header">
+                        <div class="post-user">
+                            <img src="${post.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}" class="user-avatar">
+                            <div class="user-info">
+                                <div class="user-name">${userName}</div>
+                                <div class="post-time">${timestamp}</div>
+                            </div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn" onclick="communitySystem.showPostMenu('${post.id}')">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        ${post.title ? `<h3 class="post-title">${post.title}</h3>` : ''}
+                        <p>${post.content}</p>
+                        ${post.attachment_url ? this.renderAttachment(post) : ''}
+                    </div>
+                    <div class="post-footer">
+                        <div class="post-stats">
+                            <button class="reaction-btn" onclick="communitySystem.toggleReaction('${post.id}', 'like')">
+                                <i class="fas fa-heart"></i>
+                                <span class="reaction-count" id="reaction-count-${post.id}">${post.likes_count || 0}</span>
+                            </button>
+                            <button class="comment-btn" onclick="communitySystem.showComments('${post.id}')">
+                                <i class="fas fa-comment"></i>
+                                <span class="comment-count" id="comment-count-${post.id}">${post.comments_count || 0}</span>
+                            </button>
+                        </div>
+                        <div class="post-actions">
+                            <button class="share-btn" onclick="communitySystem.sharePost('${post.id}')">
+                                <i class="fas fa-share"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="comments-section" id="comments-${post.id}" style="display: none;">
+                        <div class="comment-input">
+                            <textarea placeholder="Escribe un comentario..." id="comment-input-${post.id}"></textarea>
+                            <button onclick="communitySystem.submitComment('${post.id}')">Comentar</button>
+                        </div>
+                        <div class="comments-list" id="comments-list-${post.id}"></div>
+                    </div>
+                `;
+                
+                return postDiv;
+            }
+
+            renderAttachment(post) {
+                if (!post.attachment_url) return '';
+                
+                switch (post.attachment_type) {
+                    case 'image':
+                        return `<img src="${post.attachment_url}" alt="Imagen adjunta" class="post-attachment">`;
+                    case 'video':
+                        return `<video src="${post.attachment_url}" controls class="post-attachment"></video>`;
+                    case 'document':
+                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                            <i class="fas fa-file"></i> Ver documento
+                        </a>`;
+                    case 'link':
+                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                            <i class="fas fa-link"></i> ${post.attachment_url}
+                        </a>`;
+                    default:
+                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                            <i class="fas fa-paperclip"></i> Ver adjunto
+                        </a>`;
+                }
+            }
+
+            renderComments(postId) {
+                const commentsList = document.getElementById(`comments-list-${postId}`);
+                if (!commentsList) return;
+                
+                const comments = this.comments[postId] || [];
+                commentsList.innerHTML = '';
+                
+                comments.forEach(comment => {
+                    const commentElement = this.createCommentElement(comment);
+                    commentsList.appendChild(commentElement);
+                });
+            }
+
+            createCommentElement(comment) {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comment';
+                
+                const userName = comment.users?.display_name || comment.users?.first_name || comment.users?.username || 'Usuario';
+                const timestamp = this.db.formatTimestamp(comment.created_at);
+                
+                commentDiv.innerHTML = `
+                    <div class="comment-header">
+                        <img src="${comment.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}" class="user-avatar small">
+                        <div class="comment-info">
+                            <div class="user-name">${userName}</div>
+                            <div class="comment-time">${timestamp}</div>
+                        </div>
+                    </div>
+                    <div class="comment-content">
+                        <p>${comment.content}</p>
+                    </div>
+                    <div class="comment-actions">
+                        <button class="reaction-btn small" onclick="communitySystem.toggleReaction(null, '${comment.id}', 'like')">
+                            <i class="fas fa-heart"></i>
+                            <span class="reaction-count">${comment.likes_count || 0}</span>
+                        </button>
+                    </div>
+                `;
+                
+                return commentDiv;
+            }
+
+            renderReactions(postId) {
+                const reactions = this.reactions[postId] || [];
+                const reactionCount = reactions.length;
+                
+                const countElement = document.getElementById(`reaction-count-${postId}`);
+                if (countElement) {
+                    countElement.textContent = reactionCount;
+                }
+            }
+
+            renderMembers() {
+                const membersContainer = document.getElementById('membersList');
+                if (!membersContainer) return;
+                
+                membersContainer.innerHTML = '';
+                
+                this.members.forEach(member => {
+                    const memberElement = this.createMemberElement(member);
+                    membersContainer.appendChild(memberElement);
+                });
+            }
+
+            createMemberElement(member) {
+                const memberDiv = document.createElement('div');
+                memberDiv.className = 'member-item';
+                
+                const userName = member.users?.display_name || member.users?.first_name || member.users?.username || 'Usuario';
+                const points = member.users?.points || 0;
+                
+                memberDiv.innerHTML = `
+                    <div class="member-avatar">
+                        <img src="${member.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}">
+                        <div class="online-indicator"></div>
+                    </div>
+                    <div class="member-info">
+                        <div class="member-name">${userName}</div>
+                        <div class="member-points">${points} puntos</div>
+                    </div>
+                `;
+                
+                return memberDiv;
+            }
+
+            async showComments(postId) {
+                const commentsSection = document.getElementById(`comments-${postId}`);
+                if (!commentsSection) return;
+                
+                if (commentsSection.style.display === 'none') {
+                    commentsSection.style.display = 'block';
+                    await this.loadComments(postId);
+                } else {
+                    commentsSection.style.display = 'none';
+                }
+            }
+
+            async submitComment(postId) {
+                const commentInput = document.getElementById(`comment-input-${postId}`);
+                if (!commentInput) return;
+                
+                const content = commentInput.value.trim();
+                if (!content) return;
+                
+                await this.createComment(postId, content);
+                commentInput.value = '';
+            }
+
+            showPostMenu(postId) {
+                // Implementar menú de opciones del post
+                console.log('Mostrando menú del post:', postId);
+            }
+
+            sharePost(postId) {
+                // Implementar compartir post
+                console.log('Compartiendo post:', postId);
+            }
+
+            showNotification(message, type = 'info') {
+                // Implementar sistema de notificaciones
+                console.log(`${type.toUpperCase()}: ${message}`);
+            }
+        }
+
+        // Sistema de puntos mejorado
+        class PointsSystem {
+            constructor() {
+                this.users = [];
+                this.currentUser = null;
+                this.init();
+            }
+
+            async init() {
+                console.log('🎯 Inicializando sistema de puntos...');
+                await this.loadUsers();
+                await this.getCurrentUser();
+                this.updateLeagueDisplay();
+                console.log('✅ Sistema de puntos inicializado');
+            }
+
+            async refreshPointsFromDatabase() {
+                console.log('🔄 Refreshing points from database...');
+                if (this.currentUser && this.currentUser.id) {
+                    try {
+                        const { data: userData, error } = await window.supabase
+                            .from('users')
+                            .select('points')
+                            .eq('id', this.currentUser.id)
+                            .single();
+                        
+                        if (!error && userData) {
+                            console.log('✅ Points refreshed from database:', userData.points);
+                            this.currentUser.points = userData.points || 0;
+                            this.updateLeagueDisplay();
+                            return true;
+                        } else {
+                            console.error('❌ Error refreshing points:', error);
+                        }
+                    } catch (error) {
+                        console.error('❌ Error refreshing points from database:', error);
+                    }
+                }
+                return false;
+            }
+
+            async loadUsers() {
+                console.log('👥 Cargando usuarios...');
+                try {
+                    if (window.supabase) {
+                        console.log('🔗 Intentando cargar usuarios desde Supabase...');
+                        const { data, error } = await window.supabase
+                            .from('users')
+                            .select('id, username, display_name, first_name, points');
+                        
+                        if (!error && data && data.length > 0) {
+                            console.log('✅ Usuarios cargados desde Supabase:', data);
+                            // Formatear usuarios para compatibilidad
+                            this.users = data.map(user => ({
+                                id: user.id,
+                                name: user.display_name || user.first_name || user.username || 'Usuario',
+                                points: user.points || 0,
+                                posts: 0,
+                                comments: 0,
+                                reactions: 0
+                            }));
+                            
+                            // Cargar estadísticas desde localStorage
+                            const stats = JSON.parse(localStorage.getItem('communityUsersStats') || '[]');
+                            this.users.forEach(user => {
+                                const userStats = stats.find(s => s.name === user.name);
+                                if (userStats) {
+                                    user.posts = userStats.posts || 0;
+                                    user.comments = userStats.comments || 0;
+                                    user.reactions = userStats.reactions || 0;
+                                }
+                            });
+                        } else {
+                            console.log('⚠️ No se pudieron cargar usuarios desde Supabase, usando localStorage');
+                            this.loadFromLocalStorage();
+                        }
+                    } else {
+                        console.log('⚠️ Supabase no disponible, usando localStorage');
+                        this.loadFromLocalStorage();
+                    }
+                } catch (error) {
+                    console.error('❌ Error cargando usuarios:', error);
+                    this.loadFromLocalStorage();
+                }
+            }
+
+            loadFromLocalStorage() {
+                console.log('📦 Cargando usuarios desde localStorage...');
+                const users = JSON.parse(localStorage.getItem('communityUsers') || '[]');
+                if (users.length === 0) {
+                    // Crear usuarios iniciales
+                    this.users = [
+                        { id: null, name: 'Tú', points: 0, posts: 0, comments: 0, reactions: 0 },
+                        { id: null, name: 'María García', points: 1250, posts: 15, comments: 42, reactions: 89 },
+                        { id: null, name: 'Carlos López', points: 890, posts: 8, comments: 23, reactions: 67 },
+                        { id: null, name: 'Ana Martínez', points: 2100, posts: 22, comments: 67, reactions: 145 },
+                        { id: null, name: 'Luis Rodríguez', points: 750, posts: 6, comments: 18, reactions: 34 },
+                        { id: null, name: 'Sofia Pérez', points: 1800, posts: 19, comments: 51, reactions: 112 },
+                        { id: null, name: 'Diego Torres', points: 650, posts: 5, comments: 12, reactions: 28 },
+                        { id: null, name: 'Valentina Silva', points: 1450, posts: 14, comments: 38, reactions: 76 },
+                        { id: null, name: 'Andrés Morales', points: 950, posts: 9, comments: 25, reactions: 45 },
+                        { id: null, name: 'Camila Herrera', points: 1650, posts: 17, comments: 44, reactions: 98 }
+                    ];
+                    this.saveUsers();
+                } else {
+                    this.users = users;
+                }
+                console.log('✅ Usuarios cargados desde localStorage:', this.users);
+            }
+
+            async saveUsers() {
+                console.log('🔄 PointsSystem.saveUsers() called');
+                console.log('Current users:', this.users);
+                localStorage.setItem('communityUsers', JSON.stringify(this.users));
+                console.log('✅ Saved to localStorage');
+                
+                // Guardar estadísticas por separado
+                const stats = this.users.map(user => ({
+                    name: user.name,
+                    posts: user.posts,
+                    comments: user.comments,
+                    reactions: user.reactions
+                }));
+                localStorage.setItem('communityUsersStats', JSON.stringify(stats));
+                console.log('✅ Stats saved to localStorage');
+
+                try {
+                    if (window.supabase) {
+                        console.log('🔗 Supabase client available, attempting to save...');
+                        for (const user of this.users) {
+                            if (user.id) {
+                                console.log(`📝 Updating user ${user.name} (ID: ${user.id}) with ${user.points} points`);
+                                const { data, error } = await window.supabase
+                                    .from('users')
+                                    .update({ points: user.points })
+                                    .eq('id', user.id)
+                                    .select();
+                                if (error) {
+                                    console.error(`❌ Error updating user ${user.name}:`, error);
+                                } else {
+                                    console.log(`✅ Points updated in Supabase for user ${user.name}: ${user.points} points`);
+                                    console.log('Supabase response:', data);
+                                }
+                            } else {
+                                console.log(`⚠️ User ${user.name} has no Supabase ID, skipping database update`);
+                            }
+                        }
+                        // New logic for current user without ID but with localStorage data
+                        if (this.currentUser && !this.currentUser.id) {
+                            console.log('🔄 Attempting to sync current user with Supabase...');
+                            const userData = localStorage.getItem('userData');
+                            const currentUser = localStorage.getItem('currentUser');
+                            let userInfo = null;
+                            if (userData) { try { userInfo = JSON.parse(userData); } catch (e) { console.error('Error parsing userData:', e); } }
+                            else if (currentUser) { try { userInfo = JSON.parse(currentUser); } catch (e) { console.error('Error parsing currentUser:', e); } }
+                            if (userInfo && userInfo.id) {
+                                console.log(`📝 Updating current user in Supabase (ID: ${userInfo.id}) with ${this.currentUser.points} points`);
+                                const { data, error } = await window.supabase
+                                    .from('users')
+                                    .update({ points: this.currentUser.points })
+                                    .eq('id', userInfo.id)
+                                    .select();
+                                if (error) { console.error(`❌ Error updating current user in Supabase:`, error); }
+                                else {
+                                    console.log(`✅ Current user points updated in Supabase: ${this.currentUser.points} points`);
+                                    console.log('Supabase response:', data);
+                                    this.currentUser.id = userInfo.id; // Update local ID
+                                }
+                            }
+                        }
+                    } else {
+                        console.log('⚠️ Supabase client not available');
+                    }
+                } catch (error) {
+                    console.error('❌ Error saving users to Supabase:', error);
+                }
+            }
+
+            async getCurrentUser() {
+                console.log('🔄 PointsSystem.getCurrentUser() called');
+                
+                try {
+                    // Primero intentar obtener usuario autenticado de Supabase
+                    if (window.supabase) {
+                        console.log('🔗 Checking Supabase authentication...');
+                        const { data: { user }, error } = await window.supabase.auth.getUser();
+                        
+                        if (!error && user) {
+                            console.log('✅ Authenticated user found:', user);
+                            
+                            // Obtener datos completos del usuario desde la base de datos
+                            const { data: userData, error: userError } = await window.supabase
+                                .from('users')
+                                .select('id, username, display_name, first_name, email, points')
+                                .eq('id', user.id)
+                                .single();
+                            
+                            if (!userError && userData) {
+                                console.log('✅ User data from database:', userData);
+                                
+                                // Buscar si ya existe en la lista local
+                                let localUser = this.users.find(u => u.id === userData.id);
+                                if (!localUser) {
+                                    localUser = {
+                                        id: userData.id,
+                                        name: userData.display_name || userData.first_name || userData.username || userData.email || 'Usuario',
+                                        points: userData.points || 0,
+                                        posts: 0,
+                                        comments: 0,
+                                        reactions: 0
+                                    };
+                                    this.users.push(localUser);
+                                } else {
+                                    // Actualizar puntos desde la base de datos
+                                    localUser.points = userData.points || 0;
+                                    localUser.name = userData.display_name || userData.first_name || userData.username || userData.email || 'Usuario';
+                                }
+                                
+                                // IMPORTANTE: Asignar al currentUser
+                                this.currentUser = localUser;
+                                console.log('👤 Current user (from database):', this.currentUser);
+                                return this.currentUser;
+                            } else {
+                                console.error('❌ Error getting user data from database:', userError);
+                            }
+                        } else {
+                            console.log('⚠️ No authenticated user found in Supabase');
+                        }
+                    } else {
+                        console.log('⚠️ Supabase client not available');
+                    }
+                } catch (error) {
+                    console.error('❌ Error getting current user from Supabase:', error);
+                }
+                
+                // Fallback: usar datos del localStorage
+                console.log('🔄 Falling back to localStorage...');
+                const userData = localStorage.getItem('userData');
+                const currentUser = localStorage.getItem('currentUser');
+                
+                let userInfo = null;
+                if (userData) {
+                    try { 
+                        userInfo = JSON.parse(userData); 
+                    } catch (e) { 
+                        console.error('Error parsing userData:', e); 
+                    }
+                } else if (currentUser) {
+                    try { 
+                        userInfo = JSON.parse(currentUser); 
+                    } catch (e) { 
+                        console.error('Error parsing currentUser:', e); 
+                    }
+                }
+                
+                if (userInfo && userInfo.id) {
+                    console.log('👤 User info from localStorage:', userInfo);
+                    
+                    // Buscar si ya existe en la lista local
+                    let localUser = this.users.find(u => u.id === userInfo.id);
+                    if (!localUser) {
+                        localUser = {
+                            id: userInfo.id,
+                            name: userInfo.user_metadata?.full_name || userInfo.user_metadata?.name || userInfo.email || 'Usuario',
+                            points: userInfo.user_metadata?.points || 0,
+                            posts: 0,
+                            comments: 0,
+                            reactions: 0
+                        };
+                        this.users.push(localUser);
+                    }
+                    
+                    // IMPORTANTE: Asignar al currentUser
+                    this.currentUser = localUser;
+                    console.log('👤 Current user (from localStorage):', this.currentUser);
+                    return this.currentUser;
+                }
+                
+                // Último fallback: usuario genérico
+                const currentUserName = localStorage.getItem('currentUserName') || 'Tú';
+                let user = this.users.find(u => u.name === currentUserName);
+                if (!user) {
+                    user = { 
+                        id: null, 
+                        name: currentUserName, 
+                        points: 0, 
+                        posts: 0, 
+                        comments: 0, 
+                        reactions: 0 
+                    };
+                    this.users.push(user);
+                }
+                
+                // IMPORTANTE: Asignar al currentUser
+                this.currentUser = user;
+                console.log('👤 Current user (generic fallback):', this.currentUser);
+                return this.currentUser;
+            }
+
+            async addPoints(userName, action, extraPoints = 0) {
+                console.log('🎯 PointsSystem.addPoints called:', { userName, action, extraPoints });
+                let user = this.currentUser;
+                if (!user) {
+                    console.log('⚠️ No current user found, getting current user...');
+                    user = await this.getCurrentUser();
+                    this.currentUser = user;
+                }
+                console.log('👤 User to add points to:', user);
+                if (!user) { console.error('❌ No user found to add points to'); return 0; }
+
+                let pointsToAdd = 0;
+                switch (action) {
+                    case 'publish':
+                        pointsToAdd = 10;
+                        user.posts++;
+                        break;
+                    case 'comment':
+                        pointsToAdd = 5;
+                        user.comments++;
+                        break;
+                    case 'react':
+                        pointsToAdd = 2;
+                        user.reactions++;
+                        break;
+                    case 'popularPost':
+                        pointsToAdd = 15;
+                        break;
+                    default:
+                        pointsToAdd = extraPoints;
+                }
+
+                user.points += pointsToAdd;
+                console.log(`💰 Added ${pointsToAdd} points for ${action}. User now has ${user.points} points`);
+                console.log('💾 Saving users to database...');
+                await this.saveUsers();
+                console.log('✅ Points updated, user now has:', user.points, 'points');
+                this.updateLeagueDisplay();
+                return pointsToAdd;
+            }
+
+            getLeague(points) {
+                if (points >= 1000) return { name: 'Liga Diamante', color: '#B9F2FF', minPoints: 1000, maxPoints: Infinity };
+                if (points >= 500) return { name: 'Liga Platino', color: '#E5E4E2', minPoints: 500, maxPoints: 999 };
+                return { name: 'Liga Oro', color: '#FFD700', minPoints: 0, maxPoints: 499 };
+            }
+
+            getProgressToNextLeague(points) {
+                const currentLeague = this.getLeague(points);
+                const nextLeague = this.getNextLeague(points);
+                if (!nextLeague) return { progress: 100, pointsNeeded: 0 };
+                
+                const pointsInCurrentLeague = points - currentLeague.minPoints;
+                const pointsNeededForNextLeague = nextLeague.minPoints - currentLeague.minPoints;
+                const progress = Math.min(100, (pointsInCurrentLeague / pointsNeededForNextLeague) * 100);
+                
+                return {
+                    progress: Math.round(progress),
+                    pointsNeeded: nextLeague.minPoints - points
+                };
+            }
+
+            getNextLeague(points) {
+                if (points >= 1000) return null; // Ya está en la máxima liga
+                if (points >= 500) return { name: 'Liga Diamante', minPoints: 1000 };
+                return { name: 'Liga Platino', minPoints: 500 };
+            }
+
+            updateLeagueDisplay() {
+                if (!this.currentUser) {
+                    console.log('⚠️ No current user for league display update');
+                    return;
+                }
+                
+                console.log('🏆 Updating league display for user:', this.currentUser);
+                
+                const league = this.getLeague(this.currentUser.points);
+                const progress = this.getProgressToNextLeague(this.currentUser.points);
+                
+                // Actualizar elementos de la interfaz con los IDs correctos
+                const leagueElement = document.getElementById('currentUserLeague');
+                const progressElement = document.getElementById('leagueProgressFill');
+                const pointsElement = document.getElementById('currentUserPoints');
+                const progressTextElement = document.getElementById('leagueProgressText');
+                
+                if (leagueElement) {
+                    leagueElement.textContent = league.name;
+                    leagueElement.style.color = league.color;
+                    console.log('✅ League element updated:', league.name);
+                }
+                
+                if (progressElement) {
+                    progressElement.style.width = `${progress.progress}%`;
+                    progressElement.setAttribute('aria-valuenow', progress.progress);
+                    console.log('✅ Progress element updated:', progress.progress + '%');
+                }
+                
+                if (pointsElement) {
+                    pointsElement.textContent = `${this.currentUser.points} puntos`;
+                    console.log('✅ Points element updated:', this.currentUser.points);
+                }
+                
+                if (progressTextElement) {
+                    if (progress.pointsNeeded > 0) {
+                        progressTextElement.textContent = `${progress.pointsNeeded} puntos para subir`;
+                    } else {
+                        progressTextElement.textContent = '¡Liga máxima alcanzada!';
+                    }
+                    console.log('✅ Progress text updated');
+                }
+                
+                console.log('✅ League display update completed');
+            }
+        }
+
+        // Inicializar sistemas
+        window.pointsSystem = new PointsSystem();
+        window.communitySystem = new CommunitySystem();
+
+        // Integrar con el sistema existente
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 DOMContentLoaded - Initializing community system...');
+            
+            // Verificar estado de Supabase
+            await checkSupabaseStatus();
+            
+            // Sincronizar con Supabase al cargar la página
+            await syncWithSupabase();
+            
+            // Forzar actualización del display de ligas después de un breve delay
+            setTimeout(async () => {
+                if (window.pointsSystem) {
+                    console.log('🔄 Forcing league display update after page load...');
+                    await window.pointsSystem.getCurrentUser();
+                    await window.pointsSystem.refreshPointsFromDatabase();
+                    window.pointsSystem.updateLeagueDisplay();
+                }
+            }, 1000); // 1 segundo de delay
+            
+            console.log('✅ Community system initialized');
+            
+            // Actualizar el display de ligas cada 30 segundos para mantener sincronización
+            setInterval(async () => {
+                if (window.pointsSystem) {
+                    await window.pointsSystem.getCurrentUser();
+                    await window.pointsSystem.refreshPointsFromDatabase();
+                    window.pointsSystem.updateLeagueDisplay();
+                }
+            }, 30000); // 30 segundos
+        });
+
+        // Función para verificar el estado de Supabase
+        async function checkSupabaseStatus() {
+            console.log('🔍 Checking Supabase status...');
+            console.log('window.supabase available:', !!window.supabase);
+
+            if (window.supabase) {
+                console.log('Supabase client details:', {
+                    url: window.supabase.supabaseUrl,
+                    key: window.supabase.supabaseKey ? 'Present' : 'Missing'
+                });
+
+                try {
+                    // Verificar conexión intentando obtener usuarios
+                    const { data: users, error } = await window.supabase
+                        .from('users')
+                        .select('id, username, display_name, first_name, points')
+                        .limit(1);
+
+                    if (error) {
+                        console.error('❌ Supabase connection error:', error);
+                    } else {
+                        console.log('✅ Supabase connection successful');
+                        console.log('Sample users from database:', users);
+                    }
+                } catch (error) {
+                    console.error('❌ Error testing Supabase connection:', error);
+                }
+            } else {
+                console.log('⚠️ Supabase client not initialized');
+            }
+        }
+
+        // Función para sincronizar datos con Supabase
+        async function syncWithSupabase() {
+            try {
+                if (window.supabase) {
+                    console.log('🔄 Syncing with Supabase...');
+
+                    // Obtener usuarios de Supabase
+                    const { data: users, error } = await window.supabase
+                        .from('users')
+                        .select('id, username, display_name, first_name, points')
+                        .not('points', 'is', null);
+
+                    if (!error && users) {
+                        console.log(`📊 Found ${users.length} users in Supabase`);
+
+                        // Actualizar puntos en localStorage
+                        const localUsers = JSON.parse(localStorage.getItem('communityUsers') || '[]');
+                        const updatedUsers = localUsers.map(localUser => {
+                            const supabaseUser = users.find(u =>
+                                u.display_name === localUser.name ||
+                                u.first_name === localUser.name ||
+                                u.username === localUser.name
+                            );
+
+                            if (supabaseUser) {
+                                return {
+                                    ...localUser,
+                                    id: supabaseUser.id,
+                                    points: supabaseUser.points || localUser.points
+                                };
+                            }
+
+                            return localUser;
+                        });
+
+                        localStorage.setItem('communityUsers', JSON.stringify(updatedUsers));
+                        console.log('✅ Data synced with Supabase');
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error syncing with Supabase:', error);
+            }
+        }
+    </script>
 </body>
 </html>
 
