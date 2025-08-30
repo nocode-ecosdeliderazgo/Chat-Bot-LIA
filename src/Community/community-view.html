@@ -110,6 +110,110 @@
             border-radius: 50%;
         }
         
+        /* Estilos para la tabla de clasificación */
+        .leaderboard-table {
+            margin-top: 20px;
+            min-height: 300px;
+            background: rgba(68, 229, 255, 0.05);
+            border: 2px dashed rgba(68, 229, 255, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .leaderboard-table:empty::before {
+            content: "🔍 Debug: Esperando datos de usuarios...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .leaderboard-row {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard-row:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .leaderboard-position {
+            width: 60px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .leaderboard-user {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .user-league {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .leaderboard-points {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .empty-leaderboard {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-leaderboard i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-leaderboard p {
+            font-size: 1.1rem;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .league-ranges-grid {
@@ -129,6 +233,33 @@
             .league-icon-img {
                 width: 100%;
                 height: 100%;
+            }
+
+            .leaderboard-row {
+                padding: 12px;
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+
+            .leaderboard-position {
+                width: auto;
+                order: 1;
+            }
+
+            .leaderboard-user {
+                order: 2;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .leaderboard-points {
+                order: 3;
+            }
+
+            .user-avatar {
+                width: 50px;
+                height: 50px;
             }
         }
     </style>
@@ -371,6 +502,9 @@
                         <h3>Clasificación Global</h3>
                         <div class="leaderboard-stats">
                             <span id="totalParticipants">0 participantes</span>
+                            <button id="debugLoadUsers" style="margin-left: 10px; padding: 5px 10px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" onclick="console.log('🔍 Botón Debug clickeado directamente!');">
+                                🔍 Debug
+                            </button>
                         </div>
                     </div>
                     <div class="leaderboard-table" id="leaderboardTable">
@@ -834,6 +968,33 @@
                             await window.pointsSystem.refreshPointsFromDatabase();
                             window.pointsSystem.updateLeagueDisplay();
                         }
+                        
+                        // Cargar y mostrar la clasificación global
+                        if (window.leagueFilterSystem) {
+                            console.log('🏆 Cargando clasificación global...');
+                            await window.leagueFilterSystem.loadAllUsers();
+                            window.leagueFilterSystem.updateLeaderboard();
+                        }
+
+                        // Asegurar que el botón de debug esté configurado
+                        setTimeout(() => {
+                            const debugButton = document.getElementById('debugLoadUsers');
+                            if (debugButton && !debugButton.hasAttribute('data-listener-added')) {
+                                console.log('🔍 Configurando botón Debug en pestaña Ligas...');
+                                debugButton.setAttribute('data-listener-added', 'true');
+                                debugButton.addEventListener('click', async function() {
+                                    console.log('🔍 Botón Debug clickeado desde pestaña Ligas...');
+                                    
+                                    if (window.leagueFilterSystem) {
+                                        console.log('✅ LeagueFilterSystem disponible, cargando usuarios...');
+                                        await window.leagueFilterSystem.loadAllUsers();
+                                        window.leagueFilterSystem.updateLeaderboard();
+                                    } else {
+                                        console.error('❌ LeagueFilterSystem no está disponible');
+                                    }
+                                });
+                            }
+                        }, 100);
                     }
                 });
             });
@@ -3454,9 +3615,262 @@
             }
         }
 
+        // Sistema de filtros de liga
+        class LeagueFilterSystem {
+            constructor() {
+                this.currentFilter = 'all';
+                this.allUsers = [];
+                this.init();
+            }
+
+            async init() {
+                console.log('🏆 Inicializando sistema de filtros de liga...');
+                await this.loadAllUsers();
+                this.setupEventListeners();
+                this.updateLeaderboard();
+                console.log('✅ Sistema de filtros de liga inicializado');
+            }
+
+            async loadAllUsers() {
+                console.log('👥 Cargando todos los usuarios para clasificación...');
+                
+                if (!window.supabase) {
+                    console.error('❌ Supabase no está disponible');
+                    return;
+                }
+
+                try {
+                    console.log('🔍 Haciendo consulta a la tabla users...');
+                    
+                    // Consulta directa a la tabla users - igual que para obtener tu información
+                    const { data: users, error } = await window.supabase
+                        .from('users')
+                        .select('id, username, display_name, first_name, email, points')
+                        .order('points', { ascending: false });
+
+                    console.log('📊 Respuesta de Supabase:', { users, error });
+
+                    if (error) {
+                        console.error('❌ Error en consulta Supabase:', error);
+                        return;
+                    }
+
+                    if (users && users.length > 0) {
+                        console.log(`✅ Encontrados ${users.length} usuarios en la base de datos`);
+                        
+                        this.allUsers = users.map(user => {
+                            const userData = {
+                                id: user.id,
+                                name: user.username || user.display_name || user.first_name || user.email || 'Usuario',
+                                points: user.points || 0,
+                                league: this.getUserLeague(user.points || 0)
+                            };
+                            console.log('👤 Usuario procesado:', userData);
+                            return userData;
+                        });
+                        
+                        console.log(`✅ Cargados ${this.allUsers.length} usuarios desde Supabase`);
+                        console.log('📋 Lista completa de usuarios:', this.allUsers);
+                    } else {
+                        console.log('⚠️ No se encontraron usuarios en la base de datos');
+                        this.allUsers = [];
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error cargando usuarios:', error);
+                    this.allUsers = [];
+                }
+                
+                console.log(`📊 Total de usuarios cargados: ${this.allUsers.length}`);
+            }
+
+            getUserLeague(points) {
+                if (points >= 1000) return 'diamond';
+                if (points >= 500) return 'platinum';
+                return 'gold';
+            }
+
+            setupEventListeners() {
+                const filterButtons = document.querySelectorAll('.league-filter');
+                filterButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const league = button.dataset.league;
+                        this.setActiveFilter(league);
+                    });
+                });
+            }
+
+            setActiveFilter(league) {
+                this.currentFilter = league;
+                
+                // Actualizar botones activos
+                document.querySelectorAll('.league-filter').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-league="${league}"]`)?.classList.add('active');
+                
+                this.updateLeaderboard();
+            }
+
+            updateLeaderboard() {
+                console.log('🏆 Actualizando tabla de clasificación...');
+                console.log('📊 Usuarios disponibles:', this.allUsers);
+                console.log('🔍 Filtro actual:', this.currentFilter);
+                
+                const leaderboardTable = document.getElementById('leaderboardTable');
+                const totalParticipants = document.getElementById('totalParticipants');
+                
+                if (!leaderboardTable) {
+                    console.error('❌ No se encontró el elemento leaderboardTable');
+                    return;
+                }
+
+                console.log('🎯 Elemento leaderboardTable encontrado:', leaderboardTable);
+                console.log('📏 Dimensiones del elemento:', {
+                    offsetHeight: leaderboardTable.offsetHeight,
+                    clientHeight: leaderboardTable.clientHeight,
+                    scrollHeight: leaderboardTable.scrollHeight,
+                    innerHTML: leaderboardTable.innerHTML.substring(0, 100) + '...'
+                });
+
+                // Filtrar usuarios según la liga seleccionada
+                let filteredUsers = this.allUsers;
+                if (this.currentFilter !== 'all') {
+                    filteredUsers = this.allUsers.filter(user => user.league === this.currentFilter);
+                }
+
+                console.log('📋 Usuarios filtrados:', filteredUsers);
+
+                // Ordenar por puntos (mayor a menor)
+                filteredUsers.sort((a, b) => b.points - a.points);
+
+                // Actualizar contador de participantes
+                if (totalParticipants) {
+                    totalParticipants.textContent = `${filteredUsers.length} participantes`;
+                    console.log('📊 Contador actualizado:', `${filteredUsers.length} participantes`);
+                }
+
+                // Generar HTML de la tabla
+                if (filteredUsers.length === 0) {
+                    console.log('⚠️ No hay usuarios para mostrar');
+                    leaderboardTable.innerHTML = `
+                        <div class="empty-leaderboard">
+                            <i class="fas fa-trophy"></i>
+                            <p>No hay participantes en esta liga</p>
+                        </div>
+                    `;
+                } else {
+                    console.log('✅ Generando tabla con usuarios...');
+                    const tableHTML = filteredUsers.map((user, index) => {
+                        const position = index + 1;
+                        const medal = position <= 3 ? this.getMedalIcon(position) : '';
+                        const leagueIcon = this.getLeagueIcon(user.league);
+                        
+                        const rowHTML = `
+                            <div class="leaderboard-row">
+                                <div class="leaderboard-position">
+                                    ${medal}${position}
+                                </div>
+                                <div class="leaderboard-user">
+                                    <div class="user-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">${user.name}</div>
+                                        <div class="user-league">
+                                            ${leagueIcon} ${this.getLeagueName(user.league)}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="leaderboard-points">
+                                    ${user.points} puntos
+                                </div>
+                            </div>
+                        `;
+                        console.log(`👤 Fila ${position}: ${user.name} - ${user.points} puntos`);
+                        return rowHTML;
+                    }).join('');
+                    
+                    leaderboardTable.innerHTML = tableHTML;
+                    console.log('✅ Tabla de clasificación actualizada');
+                }
+            }
+
+            getMedalIcon(position) {
+                const medals = ['🥇', '🥈', '🥉'];
+                return position <= 3 ? medals[position - 1] + ' ' : '';
+            }
+
+            getLeagueIcon(league) {
+                const icons = {
+                    'gold': '🥇',
+                    'platinum': '🥈', 
+                    'diamond': '💎'
+                };
+                return icons[league] || '🏆';
+            }
+
+            getLeagueName(league) {
+                const names = {
+                    'gold': 'Oro',
+                    'platinum': 'Platino',
+                    'diamond': 'Diamante'
+                };
+                return names[league] || 'Desconocida';
+            }
+        }
+
         // Inicializar sistemas
         window.pointsSystem = new PointsSystem();
         window.communitySystem = new CommunitySystem();
+        window.leagueFilterSystem = new LeagueFilterSystem();
+
+        // Event listener para el botón de debug - se moverá dentro de DOMContentLoaded
+
+        // Función global para debug manual
+        window.debugLoadUsers = async function() {
+            console.log('🔍 Función debugLoadUsers llamada manualmente...');
+            
+            if (window.leagueFilterSystem) {
+                console.log('✅ LeagueFilterSystem disponible, cargando usuarios...');
+                await window.leagueFilterSystem.loadAllUsers();
+                window.leagueFilterSystem.updateLeaderboard();
+            } else {
+                console.error('❌ LeagueFilterSystem no está disponible');
+            }
+        };
+
+        // Función de prueba para verificar la conexión a Supabase
+        async function testSupabaseConnection() {
+            console.log('🧪 Probando conexión a Supabase...');
+            
+            if (!window.supabase) {
+                console.error('❌ Supabase no está disponible');
+                return false;
+            }
+
+            try {
+                // Hacer una consulta simple para verificar la conexión
+                const { data, error } = await window.supabase
+                    .from('users')
+                    .select('count')
+                    .limit(1);
+
+                if (error) {
+                    console.error('❌ Error en conexión a Supabase:', error);
+                    return false;
+                }
+
+                console.log('✅ Conexión a Supabase exitosa');
+                console.log('📊 Datos de prueba:', data);
+                return true;
+            } catch (error) {
+                console.error('❌ Error probando conexión:', error);
+                return false;
+            }
+        }
+
+        // Sistema de filtros de liga - CLASE DUPLICADA ELIMINADA COMPLETAMENTE
 
         // Integrar con el sistema existente
         document.addEventListener('DOMContentLoaded', async function() {
@@ -3465,8 +3879,37 @@
             // Verificar estado de Supabase
             await checkSupabaseStatus();
             
+            // Probar conexión a Supabase
+            await testSupabaseConnection();
+            
             // Sincronizar con Supabase al cargar la página
             await syncWithSupabase();
+
+            // Event listener para el botón de debug
+            const debugButton = document.getElementById('debugLoadUsers');
+            if (debugButton) {
+                console.log('🔍 Botón Debug encontrado, agregando event listener...');
+                debugButton.addEventListener('click', async function() {
+                    console.log('🔍 Botón Debug clickeado - Forzando carga de usuarios...');
+                    
+                    if (window.leagueFilterSystem) {
+                        console.log('✅ LeagueFilterSystem disponible, cargando usuarios...');
+                        await window.leagueFilterSystem.loadAllUsers();
+                        window.leagueFilterSystem.updateLeaderboard();
+                    } else {
+                        console.error('❌ LeagueFilterSystem no está disponible');
+                    }
+                });
+            } else {
+                console.error('❌ No se encontró el botón Debug');
+            }
+            
+            // Inicializar sistema de filtros de liga
+            if (window.leagueFilterSystem) {
+                console.log('🏆 Inicializando sistema de filtros de liga...');
+                await window.leagueFilterSystem.loadAllUsers();
+                window.leagueFilterSystem.updateLeaderboard();
+            }
             
             // Forzar actualización del display de ligas después de un breve delay
             setTimeout(async () => {
@@ -3475,6 +3918,13 @@
                     await window.pointsSystem.getCurrentUser();
                     await window.pointsSystem.refreshPointsFromDatabase();
                     window.pointsSystem.updateLeagueDisplay();
+                }
+                
+                // Actualizar también la clasificación global
+                if (window.leagueFilterSystem) {
+                    console.log('🔄 Actualizando clasificación global...');
+                    await window.leagueFilterSystem.loadAllUsers();
+                    window.leagueFilterSystem.updateLeaderboard();
                 }
             }, 1000); // 1 segundo de delay
             
@@ -3486,6 +3936,12 @@
                     await window.pointsSystem.getCurrentUser();
                     await window.pointsSystem.refreshPointsFromDatabase();
                     window.pointsSystem.updateLeagueDisplay();
+                }
+                
+                // Actualizar también la clasificación global
+                if (window.leagueFilterSystem) {
+                    await window.leagueFilterSystem.loadAllUsers();
+                    window.leagueFilterSystem.updateLeaderboard();
                 }
             }, 30000); // 30 segundos
         });
