@@ -899,7 +899,7 @@
                          
                          // Agregar puntos por reaccionar
                          if (window.pointsSystem) {
-                             await window.pointsSystem.addPoints('Tú', 'react');
+                             await window.pointsSystem.addPoints(null, 'react');
                          }
                          
                         renderPosts(category);
@@ -1263,7 +1263,7 @@
                      
                      // Agregar puntos por comentar
                      if (window.pointsSystem) {
-                         await window.pointsSystem.addPoints('Tú', 'comment');
+                         await window.pointsSystem.addPoints(null, 'comment');
                      }
                      
                     input.value='';
@@ -1317,7 +1317,8 @@
                      
                      // Agregar puntos por publicar
                      if (window.pointsSystem) {
-                         await window.pointsSystem.addPoints('Tú', 'publish');
+                         console.log('🎯 Adding points for publication...');
+                         await window.pointsSystem.addPoints(null, 'publish');
                      }
                      
                     composerInput.value='';
@@ -2607,6 +2608,50 @@
                                 console.log(`⚠️ User ${user.name} has no Supabase ID, skipping database update`);
                             }
                         }
+                        
+                        // Si el usuario actual no tiene ID pero tiene datos en localStorage, intentar crear/actualizar
+                        if (this.currentUser && !this.currentUser.id) {
+                            console.log('🔄 Attempting to sync current user with Supabase...');
+                            
+                            // Obtener datos del usuario actual del localStorage
+                            const userData = localStorage.getItem('userData');
+                            const currentUser = localStorage.getItem('currentUser');
+                            
+                            let userInfo = null;
+                            if (userData) {
+                                try {
+                                    userInfo = JSON.parse(userData);
+                                } catch (e) {
+                                    console.error('Error parsing userData:', e);
+                                }
+                            } else if (currentUser) {
+                                try {
+                                    userInfo = JSON.parse(currentUser);
+                                } catch (e) {
+                                    console.error('Error parsing currentUser:', e);
+                                }
+                            }
+                            
+                            if (userInfo && userInfo.id) {
+                                console.log(`📝 Updating current user in Supabase (ID: ${userInfo.id}) with ${this.currentUser.points} points`);
+                                
+                                const { data, error } = await window.supabase
+                                    .from('users')
+                                    .update({ points: this.currentUser.points })
+                                    .eq('id', userInfo.id)
+                                    .select();
+                                
+                                if (error) {
+                                    console.error(`❌ Error updating current user in Supabase:`, error);
+                                } else {
+                                    console.log(`✅ Current user points updated in Supabase: ${this.currentUser.points} points`);
+                                    console.log('Supabase response:', data);
+                                    
+                                    // Actualizar el ID del usuario actual
+                                    this.currentUser.id = userInfo.id;
+                                }
+                            }
+                        }
                     } else {
                         console.log('⚠️ Supabase client not available');
                     }
@@ -2657,13 +2702,57 @@
                     console.error('❌ Error getting current user from Supabase:', error);
                 }
                 
-                // Fallback a localStorage
+                // Fallback: obtener usuario del localStorage (como funciona en el login)
                 console.log('🔄 Falling back to localStorage user');
+                const userData = localStorage.getItem('userData');
+                const currentUser = localStorage.getItem('currentUser');
+                
+                let userInfo = null;
+                if (userData) {
+                    try {
+                        userInfo = JSON.parse(userData);
+                        console.log('📊 User data from localStorage:', userInfo);
+                    } catch (e) {
+                        console.error('Error parsing userData:', e);
+                    }
+                } else if (currentUser) {
+                    try {
+                        userInfo = JSON.parse(currentUser);
+                        console.log('📊 Current user from localStorage:', userInfo);
+                    } catch (e) {
+                        console.error('Error parsing currentUser:', e);
+                    }
+                }
+                
+                if (userInfo && userInfo.id) {
+                    // Buscar usuario en la lista local por ID
+                    let localUser = this.users.find(u => u.id === userInfo.id);
+                    
+                    if (!localUser) {
+                        console.log('📝 Creating new local user from localStorage data');
+                        localUser = {
+                            id: userInfo.id,
+                            name: userInfo.user_metadata?.full_name || userInfo.user_metadata?.name || userInfo.email || 'Tú',
+                            points: userInfo.user_metadata?.points || 0,
+                            posts: 0,
+                            comments: 0,
+                            reactions: 0
+                        };
+                        this.users.push(localUser);
+                        await this.saveUsers();
+                    }
+                    
+                    console.log('👤 Current user (from localStorage):', localUser);
+                    return localUser;
+                }
+                
+                // Último fallback: usuario genérico
+                console.log('🔄 Using generic user fallback');
                 const currentUserName = localStorage.getItem('currentUserName') || 'Tú';
                 let user = this.users.find(u => u.name === currentUserName);
                 
                 if (!user) {
-                    console.log('📝 Creating new user for localStorage fallback');
+                    console.log('📝 Creating new generic user');
                     user = {
                         name: currentUserName,
                         points: 0,
@@ -2675,27 +2764,27 @@
                     await this.saveUsers();
                 }
                 
-                console.log('👤 Current user (fallback):', user);
+                console.log('👤 Current user (generic fallback):', user);
                 return user;
             }
             
             async addPoints(userName, action, extraPoints = 0) {
                 console.log('🎯 PointsSystem.addPoints called:', { userName, action, extraPoints });
-                let user = this.users.find(u => u.name === userName);
-                console.log('👤 User found:', user);
+                
+                // Usar el usuario actual del sistema en lugar de buscar por nombre
+                let user = this.currentUser;
                 
                 if (!user) {
-                    console.log('📝 User not found, creating new user');
-                    const newUser = {
-                        name: userName,
-                        points: 0,
-                        posts: 0,
-                        comments: 0,
-                        reactions: 0
-                    };
-                    this.users.push(newUser);
-                    user = newUser;
-                    console.log('✅ New user created:', newUser);
+                    console.log('⚠️ No current user found, getting current user...');
+                    user = await this.getCurrentUser();
+                    this.currentUser = user;
+                }
+                
+                console.log('👤 User to add points to:', user);
+                
+                if (!user) {
+                    console.error('❌ No user found to add points to');
+                    return 0;
                 }
                 
                 const basePoints = this.points[action] || 0;
@@ -2729,10 +2818,8 @@
                 this.updateLeaderboardStats();
                 
                 // Mostrar notificación de puntos ganados
-                if (this.currentUser && userName === this.currentUser.name) {
-                    const league = this.getUserLeague(user.points);
-                    notifications.success(`¡+${totalPoints} puntos! Ahora tienes ${user.points} puntos (${league.name})`);
-                }
+                const league = this.getUserLeague(user.points);
+                notifications.success(`¡+${totalPoints} puntos! Ahora tienes ${user.points} puntos (${league.name})`);
                 
                 return totalPoints;
             }
