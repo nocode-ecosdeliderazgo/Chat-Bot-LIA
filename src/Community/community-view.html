@@ -728,6 +728,7 @@
                              avatar: 'fas fa-user',
                              category: 'general',
                              minutesAgo: 60,
+                             timeAgo: 'Hace 1 hora',
                              timestamp: Date.now() - 3600000,
                              content: '¡Hola comunidad! Me alegra estar aquí compartiendo experiencias y aprendiendo de todos ustedes. ¿Cómo están sus proyectos?',
                              comments: [
@@ -743,6 +744,7 @@
                              avatar: 'fas fa-user',
                              category: 'desarrollo',
                              minutesAgo: 30,
+                             timeAgo: 'Hace 30 minutos',
                              timestamp: Date.now() - 1800000,
                              content: 'Acabo de terminar un proyecto interesante usando React y Node.js. ¿Alguien más está trabajando con estas tecnologías?',
                              comments: [
@@ -775,8 +777,31 @@
                  const now = Date.now();
                  posts.forEach(post => {
                      if (post.timestamp) {
-                         const diffMinutes = Math.floor((now - post.timestamp) / (1000 * 60));
-                         post.minutesAgo = diffMinutes;
+                         // Usar la nueva función formatTimestamp para calcular el tiempo correctamente
+                         const diffSeconds = Math.floor((now - post.timestamp) / 1000);
+                         
+                         if (diffSeconds < 60) {
+                             post.timeAgo = 'Ahora mismo';
+                         } else if (diffSeconds < 3600) {
+                             const minutes = Math.floor(diffSeconds / 60);
+                             post.timeAgo = `Hace ${minutes} minuto${minutes > 1 ? 's' : ''}`;
+                         } else if (diffSeconds < 86400) {
+                             const hours = Math.floor(diffSeconds / 3600);
+                             post.timeAgo = `Hace ${hours} hora${hours > 1 ? 's' : ''}`;
+                         } else if (diffSeconds < 2592000) {
+                             const days = Math.floor(diffSeconds / 86400);
+                             post.timeAgo = `Hace ${days} día${days > 1 ? 's' : ''}`;
+                         } else {
+                             const date = new Date(post.timestamp);
+                             post.timeAgo = date.toLocaleDateString('es-ES', {
+                                 year: 'numeric',
+                                 month: 'short',
+                                 day: 'numeric'
+                             });
+                         }
+                         
+                         // Mantener minutesAgo para compatibilidad
+                         post.minutesAgo = Math.floor(diffSeconds / 60);
                      }
                  });
              }
@@ -837,7 +862,7 @@
                         <div class="post-body">
                             <div class="post-header">
                                 <span class="post-name">${p.user}</span>
-                                <span class="post-meta">• ${p.minutesAgo} min • ${p.category}</span>
+                                <span class="post-meta">• ${p.timeAgo || `${p.minutesAgo} min`} • ${p.category}</span>
                             </div>
                             <div class="post-content">${p.content}</div>
                             ${renderAttachments(p.attachments)}
@@ -1237,7 +1262,7 @@
                         <div class="post-body">
                             <div class="post-header">
                                 <span class="post-name">${post.user}</span>
-                                <span class="post-meta">${post.minutesAgo} min <span>•</span> ${post.category}</span>
+                                <span class="post-meta">${post.timeAgo || `${post.minutesAgo} min`} <span>•</span> ${post.category}</span>
                             </div>
                             <div class="post-content">${post.content}</div>
                             ${renderAttachments(post.attachments)}
@@ -1301,6 +1326,7 @@
                          avatar:'fas fa-user', 
                          category:(document.querySelector('.feed-chip.active')?.dataset.category||'general'), 
                          minutesAgo:0, 
+                         timeAgo: 'Ahora mismo',
                          timestamp: Date.now(), // Agregar timestamp
                          content:txt, 
                          comments:[], 
@@ -1552,7 +1578,7 @@
                                      <div class="post-body">
                                          <div class="post-header">
                                              <span class="post-name">${p.user}</span>
-                                             <span class="post-meta">• ${p.minutesAgo} min • ${p.category}</span>
+                                             <span class="post-meta">• ${p.timeAgo || `${p.minutesAgo} min`} • ${p.category}</span>
                                          </div>
                                          <div class="post-content">${p.content}</div>
                                          ${renderAttachments(p.attachments)}
@@ -2619,7 +2645,17 @@
                 postDiv.dataset.postId = post.id;
                 
                 const userName = post.users?.display_name || post.users?.first_name || post.users?.username || 'Usuario';
-                const timestamp = this.db.formatTimestamp(post.created_at);
+                
+                // Usar la nueva función formatTimestamp para formatear correctamente el tiempo
+                let timestamp;
+                if (post.created_at) {
+                    timestamp = this.db.formatTimestamp(post.created_at);
+                } else if (post.timestamp) {
+                    // Para posts del sistema anterior que usan timestamp en milisegundos
+                    timestamp = this.db.formatTimestamp(post.timestamp);
+                } else {
+                    timestamp = 'Recién publicado';
+                }
                 
                 postDiv.innerHTML = `
                     <div class="post-header">

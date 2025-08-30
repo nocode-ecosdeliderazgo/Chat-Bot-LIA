@@ -567,15 +567,23 @@ class CommunityDatabase {
         if (diffInSeconds < 60) {
             return 'Ahora mismo';
         } else if (diffInSeconds < 3600) {
+            // Menos de 1 hora: mostrar en minutos
             const minutes = Math.floor(diffInSeconds / 60);
             return `Hace ${minutes} minuto${minutes > 1 ? 's' : ''}`;
         } else if (diffInSeconds < 86400) {
+            // Menos de 1 día: mostrar en horas
             const hours = Math.floor(diffInSeconds / 3600);
             return `Hace ${hours} hora${hours > 1 ? 's' : ''}`;
         } else if (diffInSeconds < 2592000) {
+            // Menos de 30 días: mostrar en días
             const days = Math.floor(diffInSeconds / 86400);
             return `Hace ${days} día${days > 1 ? 's' : ''}`;
+        } else if (diffInSeconds < 31536000) {
+            // Menos de 1 año: mostrar en meses
+            const months = Math.floor(diffInSeconds / 2592000);
+            return `Hace ${months} mes${months > 1 ? 'es' : ''}`;
         } else {
+            // Más de 1 año: mostrar fecha completa
             return date.toLocaleDateString('es-ES', {
                 year: 'numeric',
                 month: 'short',
