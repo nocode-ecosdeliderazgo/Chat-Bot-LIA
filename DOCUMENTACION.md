@@ -284,16 +284,11 @@ CREATE TABLE public.community_members (
 
 #### Sistema de Ligas
 ```javascript
-// Ligas disponibles (estilo Clash Royale)
+// Ligas disponibles (sistema simplificado)
 const LEAGUES = [
-    { name: 'Liga Novato', minPoints: 0, maxPoints: 99, color: '#6C757D' },
-    { name: 'Liga Cobre', minPoints: 100, maxPoints: 199, color: '#B87333' },
-    { name: 'Liga Hierro', minPoints: 200, maxPoints: 399, color: '#A19D94' },
-    { name: 'Liga Bronce', minPoints: 400, maxPoints: 799, color: '#CD7F32' },
-    { name: 'Liga Plateada', minPoints: 800, maxPoints: 1499, color: '#C0C0C0' },
-    { name: 'Liga Dorada', minPoints: 1500, maxPoints: 2999, color: '#FFD700' },
-    { name: 'Liga Élite', minPoints: 3000, maxPoints: 4999, color: '#C0C0C0' },
-    { name: 'Liga Legendaria', minPoints: 5000, maxPoints: Infinity, color: '#FFD700' }
+    { name: 'Liga Oro', minPoints: 0, maxPoints: 499, color: '#FFD700' },
+    { name: 'Liga Platino', minPoints: 500, maxPoints: 999, color: '#E5E4E2' },
+    { name: 'Liga Diamante', minPoints: 1000, maxPoints: Infinity, color: '#B9F2FF' }
 ];
 
 // Puntos por acción
@@ -778,14 +773,9 @@ ALTER TABLE public.users ADD COLUMN points INTEGER DEFAULT 0;
 
 | Liga | Rango de Puntos | Color | Progreso |
 |------|-----------------|-------|----------|
-| Novato | 0-99 | Gris | Base |
-| Cobre | 100-199 | Marrón | 100 puntos |
-| Hierro | 200-399 | Plateado | 200 puntos |
-| Bronce | 400-799 | Bronce | 400 puntos |
-| Plateada | 800-1499 | Plateado | 800 puntos |
-| Dorada | 1500-2999 | Dorado | 1500 puntos |
-| Élite | 3000-4999 | Plateado | 3000 puntos |
-| Legendaria | 5000+ | Dorado | Máxima |
+| Oro | 0-499 | Dorado (#FFD700) | Base |
+| Platino | 500-999 | Plateado (#E5E4E2) | 500 puntos |
+| Diamante | 1000+ | Diamante (#B9F2FF) | Máxima |
 
 ---
 

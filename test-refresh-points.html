@@ -242,14 +242,9 @@
             }
 
             getLeague(points) {
-                if (points >= 5000) return { name: 'Liga Legendaria', color: '#FFD700', minPoints: 5000, maxPoints: Infinity };
-                if (points >= 3000) return { name: 'Liga Élite', color: '#C0C0C0', minPoints: 3000, maxPoints: 4999 };
-                if (points >= 1500) return { name: 'Liga Dorada', color: '#FFD700', minPoints: 1500, maxPoints: 2999 };
-                if (points >= 800) return { name: 'Liga Plateada', color: '#C0C0C0', minPoints: 800, maxPoints: 1499 };
-                if (points >= 400) return { name: 'Liga Bronce', color: '#CD7F32', minPoints: 400, maxPoints: 799 };
-                if (points >= 200) return { name: 'Liga Hierro', color: '#A19D94', minPoints: 200, maxPoints: 399 };
-                if (points >= 100) return { name: 'Liga Cobre', color: '#B87333', minPoints: 100, maxPoints: 199 };
-                return { name: 'Liga Novato', color: '#6C757D', minPoints: 0, maxPoints: 99 };
+                if (points >= 1000) return { name: 'Liga Diamante', color: '#B9F2FF', minPoints: 1000, maxPoints: Infinity };
+                if (points >= 500) return { name: 'Liga Platino', color: '#E5E4E2', minPoints: 500, maxPoints: 999 };
+                return { name: 'Liga Oro', color: '#FFD700', minPoints: 0, maxPoints: 499 };
             }
 
             getProgressToNextLeague(points) {
@@ -268,14 +263,9 @@
             }
 
             getNextLeague(points) {
-                if (points >= 5000) return null; // Ya está en la máxima liga
-                if (points >= 3000) return { name: 'Liga Legendaria', minPoints: 5000 };
-                if (points >= 1500) return { name: 'Liga Élite', minPoints: 3000 };
-                if (points >= 800) return { name: 'Liga Dorada', minPoints: 1500 };
-                if (points >= 400) return { name: 'Liga Plateada', minPoints: 800 };
-                if (points >= 200) return { name: 'Liga Bronce', minPoints: 400 };
-                if (points >= 100) return { name: 'Liga Hierro', minPoints: 200 };
-                return { name: 'Liga Cobre', minPoints: 100 };
+                if (points >= 1000) return null; // Ya está en la máxima liga
+                if (points >= 500) return { name: 'Liga Diamante', minPoints: 1000 };
+                return { name: 'Liga Platino', minPoints: 500 };
             }
 
             updateDisplay() {
