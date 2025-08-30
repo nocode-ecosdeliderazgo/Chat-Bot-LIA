@@ -523,6 +523,7 @@ npm run setup         # Configuración inicial completa
 # - test-league-display.html
 # - test-initial-points.html  
 # - test-refresh-points.html
+# - test-new-leagues.html
 ```
 
 ### Estructura de Commits
