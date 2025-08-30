@@ -217,6 +217,101 @@ Chat-Bot-LIA/
 - **Storage**: Almacenamiento de archivos y multimedia
 - **Edge Functions**: Funciones serverless adicionales
 
+### Sistema de Puntos y Ligas (Gamificación)
+
+#### Tabla `users` (Actualizada)
+```sql
+- id (UUID, PK)
+- email (VARCHAR, UNIQUE)
+- password_hash (TEXT)
+- full_name (VARCHAR)
+- profile_picture (TEXT)
+- points (INTEGER, DEFAULT 0)  -- NUEVO: Sistema de puntos
+- created_at (TIMESTAMP)
+- updated_at (TIMESTAMP)
+```
+
+#### Tablas de Comunidad
+```sql
+-- Tabla de comunidades
+CREATE TABLE public.communities (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabla de publicaciones
+CREATE TABLE public.community_posts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    community_id UUID REFERENCES public.communities(id),
+    user_id UUID REFERENCES public.users(id),
+    content TEXT NOT NULL,
+    title VARCHAR(255),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabla de comentarios
+CREATE TABLE public.community_comments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    post_id UUID REFERENCES public.community_posts(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.users(id),
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabla de reacciones
+CREATE TABLE public.community_reactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    post_id UUID REFERENCES public.community_posts(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.users(id),
+    reaction_type VARCHAR(50) NOT NULL, -- 'like', 'love', 'laugh', etc.
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(post_id, user_id, reaction_type)
+);
+
+-- Tabla de miembros de comunidad
+CREATE TABLE public.community_members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    community_id UUID REFERENCES public.communities(id),
+    user_id UUID REFERENCES public.users(id),
+    joined_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(community_id, user_id)
+);
+```
+
+#### Sistema de Ligas
+```javascript
+// Ligas disponibles (estilo Clash Royale)
+const LEAGUES = [
+    { name: 'Liga Novato', minPoints: 0, maxPoints: 99, color: '#6C757D' },
+    { name: 'Liga Cobre', minPoints: 100, maxPoints: 199, color: '#B87333' },
+    { name: 'Liga Hierro', minPoints: 200, maxPoints: 399, color: '#A19D94' },
+    { name: 'Liga Bronce', minPoints: 400, maxPoints: 799, color: '#CD7F32' },
+    { name: 'Liga Plateada', minPoints: 800, maxPoints: 1499, color: '#C0C0C0' },
+    { name: 'Liga Dorada', minPoints: 1500, maxPoints: 2999, color: '#FFD700' },
+    { name: 'Liga Élite', minPoints: 3000, maxPoints: 4999, color: '#C0C0C0' },
+    { name: 'Liga Legendaria', minPoints: 5000, maxPoints: Infinity, color: '#FFD700' }
+];
+
+// Puntos por acción
+const POINTS_SYSTEM = {
+    publish: 10,    // Publicar contenido
+    comment: 5,     // Comentar
+    react: 2,       // Reaccionar
+    popularPost: 15 // Post popular (bonus)
+};
+```
+
+#### Funcionalidades del Sistema
+- **Persistencia en Supabase**: Todos los puntos se guardan en la base de datos
+- **Sincronización Automática**: Los puntos se actualizan en tiempo real
+- **Display de Ligas**: Interfaz visual con progreso hacia la siguiente liga
+- **Sistema de Recompensas**: Puntos por diferentes acciones en la comunidad
+- **Fallback a localStorage**: Sistema de respaldo para casos de error
+
 ---
 
 ## 🛡️ Seguridad
@@ -427,6 +522,12 @@ npm run security-check # Auditoría de seguridad
 # Utilidades
 npm run port:kill     # Matar proceso puerto 3000
 npm run setup         # Configuración inicial completa
+
+# Sistema de Puntos y Ligas
+# Archivos de prueba disponibles:
+# - test-league-display.html
+# - test-initial-points.html  
+# - test-refresh-points.html
 ```
 
 ### Estructura de Commits
@@ -474,10 +575,38 @@ cp .env.example .env
 
 # 4. Setup base de datos
 # Ejecutar supabase.sql en tu instancia PostgreSQL
+# Incluye tablas para sistema de puntos y comunidad
 
-# 5. Ejecutar en desarrollo
+# 5. Configurar sistema de puntos
+# Verificar que la columna 'points' existe en tabla 'users'
+# Si no existe: ALTER TABLE public.users ADD COLUMN points INTEGER DEFAULT 0;
+
+# 6. Ejecutar en desarrollo
 npm run dev
 ```
+
+### Configuración del Sistema de Puntos
+
+#### 1. Base de Datos
+```sql
+-- Agregar columna de puntos si no existe
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS points INTEGER DEFAULT 0;
+
+-- Crear tablas de comunidad (incluidas en supabase.sql)
+-- Ejecutar el archivo supabase.sql completo
+```
+
+#### 2. Variables de Entorno
+```env
+# Supabase (requerido para sistema de puntos)
+SUPABASE_URL=your-supabase-url
+SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+#### 3. Archivos de Configuración
+- **`scripts/extract-supabase-config.js`**: Extrae credenciales de `.env` a meta tags
+- **`src/scripts/supabase-client.js`**: Cliente de Supabase para el frontend
+- **`src/scripts/community-database.js`**: Operaciones CRUD para comunidad
 
 ### Extensiones VS Code Recomendadas
 - **ESLint**: Linting JavaScript
@@ -488,9 +617,215 @@ npm run dev
 
 ---
 
+## 🏆 Sistema de Puntos y Ligas - Implementación y Solución de Problemas
+
+### 📋 Resumen de Implementación
+
+El sistema de puntos y ligas fue implementado como una funcionalidad de gamificación completa que integra con la comunidad de usuarios. El sistema incluye:
+
+#### ✅ Funcionalidades Implementadas
+1. **Sistema de Puntos Persistente**: Los puntos se guardan en la columna `points` de la tabla `users` en Supabase
+2. **Sistema de Ligas**: 8 ligas diferentes con colores y rangos de puntos específicos
+3. **Comunidad Interactiva**: Publicaciones, comentarios y reacciones que generan puntos
+4. **Display Visual**: Interfaz que muestra la liga actual, progreso y puntos del usuario
+5. **Sincronización Automática**: Los puntos se actualizan en tiempo real
+
+#### 🔧 Problemas Resueltos
+
+##### 1. **Problema: Puntos no se mostraban al cargar la página**
+**Síntomas**: Los puntos aparecían como 0 hasta que se hacía una acción
+**Causa**: El sistema no obtenía los puntos desde la base de datos al inicializar
+**Solución**:
+```javascript
+// En getCurrentUser() - Obtener puntos desde la base de datos
+const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('id, username, display_name, first_name, email, points')
+    .eq('id', user.id)
+    .single();
+
+if (!userError && userData) {
+    this.currentUser = {
+        id: userData.id,
+        name: userData.display_name || userData.first_name || userData.username || userData.email || 'Usuario',
+        points: userData.points || 0, // Puntos desde la base de datos
+        // ... otros campos
+    };
+}
+```
+
+##### 2. **Problema: Puntos se perdían después del refresh**
+**Síntomas**: Al hacer refresh de la página, los puntos volvían a 0
+**Causa**: `this.currentUser` no se asignaba correctamente desde la base de datos
+**Solución**:
+```javascript
+// Asignar correctamente this.currentUser en todos los casos
+this.currentUser = localUser; // En getCurrentUser()
+this.currentUser = userInfo;  // En fallback localStorage
+this.currentUser = user;      // En fallback genérico
+```
+
+##### 3. **Problema: Display no se actualizaba automáticamente**
+**Síntomas**: Los cambios en puntos no se reflejaban en la interfaz
+**Causa**: Faltaban llamadas a `updateLeagueDisplay()` en momentos clave
+**Solución**:
+```javascript
+// Agregar actualización automática en varios puntos
+async init() {
+    await this.getCurrentUser();
+    this.updateLeagueDisplay(); // Actualizar display al inicializar
+}
+
+// Actualización periódica cada 30 segundos
+setInterval(async () => {
+    if (window.pointsSystem) {
+        await window.pointsSystem.getCurrentUser();
+        await window.pointsSystem.refreshPointsFromDatabase();
+        window.pointsSystem.updateLeagueDisplay();
+    }
+}, 30000);
+```
+
+#### 🛠️ Funciones Clave Implementadas
+
+##### `refreshPointsFromDatabase()`
+```javascript
+async refreshPointsFromDatabase() {
+    if (this.currentUser && this.currentUser.id) {
+        const { data: userData, error } = await supabase
+            .from('users')
+            .select('points')
+            .eq('id', this.currentUser.id)
+            .single();
+        
+        if (!error && userData) {
+            this.currentUser.points = userData.points || 0;
+            this.updateLeagueDisplay();
+            return true;
+        }
+    }
+    return false;
+}
+```
+
+##### `updateLeagueDisplay()`
+```javascript
+updateLeagueDisplay() {
+    if (!this.currentUser) return;
+    
+    const league = this.getLeague(this.currentUser.points);
+    const progress = this.getProgressToNextLeague(this.currentUser.points);
+    
+    // Actualizar elementos DOM con IDs correctos
+    document.getElementById('currentUserLeague').textContent = league.name;
+    document.getElementById('currentUserPoints').textContent = this.currentUser.points;
+    document.getElementById('leagueProgressFill').style.width = `${progress.progress}%`;
+    // ... más actualizaciones
+}
+```
+
+#### 📊 Estructura de Base de Datos
+
+##### Tabla `users` (Actualizada)
+```sql
+ALTER TABLE public.users ADD COLUMN points INTEGER DEFAULT 0;
+```
+
+##### Tablas de Comunidad
+```sql
+-- Ejecutar supabase.sql completo para crear todas las tablas
+-- Incluye: communities, community_posts, community_comments, 
+-- community_reactions, community_members
+```
+
+#### 🧪 Archivos de Prueba Creados
+
+1. **`test-league-display.html`**: Prueba del display de ligas
+2. **`test-initial-points.html`**: Prueba de carga inicial de puntos
+3. **`test-refresh-points.html`**: Prueba de persistencia después del refresh
+
+#### 🔄 Flujo de Sincronización
+
+1. **Al cargar la página**:
+   - `getCurrentUser()` obtiene usuario autenticado
+   - Consulta puntos desde `users.points` en Supabase
+   - Asigna a `this.currentUser`
+   - Llama a `updateLeagueDisplay()`
+
+2. **Al hacer una acción** (publicar, comentar, reaccionar):
+   - `addPoints()` suma puntos localmente
+   - Actualiza `users.points` en Supabase
+   - Llama a `updateLeagueDisplay()`
+
+3. **Al cambiar a pestaña de ligas**:
+   - `refreshPointsFromDatabase()` obtiene puntos actualizados
+   - `updateLeagueDisplay()` actualiza la interfaz
+
+4. **Cada 30 segundos**:
+   - Sincronización automática de puntos
+   - Actualización del display
+
+#### 🎯 Puntos por Acción
+
+| Acción | Puntos | Descripción |
+|--------|--------|-------------|
+| Publicar | +10 | Crear una nueva publicación |
+| Comentar | +5 | Agregar comentario a publicación |
+| Reaccionar | +2 | Dar like, love, laugh, etc. |
+| Post Popular | +15 | Bonus por publicación viral |
+
+#### 🏅 Sistema de Ligas
+
+| Liga | Rango de Puntos | Color | Progreso |
+|------|-----------------|-------|----------|
+| Novato | 0-99 | Gris | Base |
+| Cobre | 100-199 | Marrón | 100 puntos |
+| Hierro | 200-399 | Plateado | 200 puntos |
+| Bronce | 400-799 | Bronce | 400 puntos |
+| Plateada | 800-1499 | Plateado | 800 puntos |
+| Dorada | 1500-2999 | Dorado | 1500 puntos |
+| Élite | 3000-4999 | Plateado | 3000 puntos |
+| Legendaria | 5000+ | Dorado | Máxima |
+
+---
+
 ## 🚨 Troubleshooting
 
 ### Problemas Comunes
+
+#### Sistema de Puntos y Ligas
+
+##### ❌ Puntos no se muestran al cargar la página
+**Síntomas**: Los puntos aparecen como 0 hasta hacer una acción
+**Solución**:
+1. Verificar que la columna `points` existe en la tabla `users`
+2. Ejecutar: `ALTER TABLE public.users ADD COLUMN points INTEGER DEFAULT 0;`
+3. Verificar que `getCurrentUser()` obtiene datos desde Supabase
+4. Revisar logs de consola para errores de conexión
+
+##### ❌ Puntos se pierden después del refresh
+**Síntomas**: Al hacer refresh, los puntos vuelven a 0
+**Solución**:
+1. Verificar que `this.currentUser` se asigna correctamente
+2. Asegurar que `refreshPointsFromDatabase()` se llama
+3. Verificar que el usuario está autenticado en Supabase
+4. Revisar que `updateLeagueDisplay()` se ejecuta
+
+##### ❌ Display de ligas no se actualiza
+**Síntomas**: Los cambios en puntos no se reflejan en la interfaz
+**Solución**:
+1. Verificar IDs de elementos DOM en `updateLeagueDisplay()`
+2. Asegurar que `refreshPointsFromDatabase()` funciona
+3. Verificar que `setInterval` está activo
+4. Revisar logs de consola para errores
+
+##### ❌ Error de conexión a Supabase
+**Síntomas**: Errores en consola sobre Supabase
+**Solución**:
+1. Verificar credenciales en `.env`
+2. Asegurar que `extract-supabase-config.js` se ejecuta
+3. Verificar que las credenciales están en meta tags del HTML
+4. Revisar que Supabase está disponible
 
 #### Puerto 3000 en uso
 ```bash
@@ -573,12 +908,19 @@ netlify dev --live   # Desarrollo local con functions
 - **MINOR**: Nueva funcionalidad compatible (v1.1.0)
 - **PATCH**: Bug fixes y mejoras menores (v1.0.1)
 
+### Funcionalidades Implementadas
+- **Sistema de Puntos y Ligas**: Gamificación completa con persistencia en Supabase
+- **Comunidad Interactiva**: Publicaciones, comentarios y reacciones
+- **Sistema de Autenticación**: Login/registro con verificación OTP
+- **Chat Inteligente**: Integración con OpenAI GPT
+- **Gestión de Cursos**: Catálogo dinámico con progreso de usuario
+
 ### Próximas Funcionalidades
 - **Mobile App**: React Native/Flutter
 - **Advanced Analytics**: Dashboard instructores
 - **Multi-tenancy**: Soporte para múltiples organizaciones
 - **AI Voice**: Integración con síntesis de voz
-- **Gamification**: Sistema de puntos y logros
+- **Notificaciones Push**: Sistema de alertas en tiempo real
 
 ---
 
