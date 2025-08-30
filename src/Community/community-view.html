@@ -82,31 +82,7 @@
                          </div>
                      </div>
                      
-                     <!-- Tu progreso de liga -->
-                     <div class="user-league-progress" id="userLeagueProgress">
-                         <div class="league-progress-header">
-                             <div class="league-progress-avatar">
-                                 <i class="fas fa-trophy"></i>
-                             </div>
-                             <div class="league-progress-info">
-                                 <h4 class="league-progress-name">Tu Progreso</h4>
-                                 <div class="league-progress-stats">
-                                     <span class="league-progress-points" id="userCurrentPoints">0</span>
-                                     <span class="league-progress-label">puntos</span>
-                                 </div>
-                             </div>
-                         </div>
-                         <div class="league-progress-bar-container">
-                             <div class="league-progress-bar">
-                                 <div class="league-progress-fill" id="userProgressFill"></div>
-                             </div>
-                             <div class="league-progress-text">
-                                 <span class="current-league" id="userCurrentLeague">Bronce</span>
-                                 <span class="progress-text" id="userProgressText">0/100</span>
-                                 <span class="next-league" id="userNextLeague">Plata</span>
-                             </div>
-                         </div>
-                     </div>
+
                     </div>
                 </div>
             </div>
@@ -2504,7 +2480,6 @@
                 console.log('Current user:', this.currentUser);
                 this.setupEventListeners();
                 this.updateCurrentUserDisplay();
-                this.updateBannerProgress();
                 this.renderLeaderboard();
                 this.updateLeaderboardStats();
                 console.log('PointsSystem initialized');
@@ -2599,7 +2574,6 @@
                 this.saveUsers();
                 console.log('Points updated, user now has:', user.points, 'points');
                 this.updateCurrentUserDisplay();
-                this.updateBannerProgress();
                 this.renderLeaderboard();
                 this.updateLeaderboardStats();
                 
@@ -2687,66 +2661,10 @@
                     }
                 }
                 
-                // Actualizar también el progreso en el banner
-                this.updateBannerProgress();
+
             }
             
-            updateBannerProgress() {
-                console.log('Updating banner progress...');
-                const user = this.currentUser;
-                const league = this.getUserLeague(user.points);
-                const progress = this.getLeagueProgress(user.points);
-                const nextLeague = this.getNextLeague(league);
-                
-                console.log('Banner update data:', { user, league, progress, nextLeague });
-                
-                // Actualizar elementos del banner
-                const userPointsElement = document.getElementById('userCurrentPoints');
-                const userCurrentLeagueElement = document.getElementById('userCurrentLeague');
-                const userProgressFillElement = document.getElementById('userProgressFill');
-                const userProgressTextElement = document.getElementById('userProgressText');
-                const userNextLeagueElement = document.getElementById('userNextLeague');
-                
-                console.log('Banner elements found:', {
-                    userPointsElement: !!userPointsElement,
-                    userCurrentLeagueElement: !!userCurrentLeagueElement,
-                    userProgressFillElement: !!userProgressFillElement,
-                    userProgressTextElement: !!userProgressTextElement,
-                    userNextLeagueElement: !!userNextLeagueElement
-                });
-                
-                if (userPointsElement) {
-                    userPointsElement.textContent = user.points;
-                }
-                
-                if (userCurrentLeagueElement) {
-                    userCurrentLeagueElement.textContent = league.name;
-                    userCurrentLeagueElement.style.color = league.color;
-                }
-                
-                if (userProgressFillElement) {
-                    userProgressFillElement.style.width = `${progress.percentage}%`;
-                    userProgressFillElement.style.background = `linear-gradient(90deg, ${league.color}, ${league.color}dd)`;
-                }
-                
-                if (userProgressTextElement) {
-                    if (nextLeague) {
-                        userProgressTextElement.textContent = `${progress.current}/${progress.required}`;
-                    } else {
-                        userProgressTextElement.textContent = '¡Máximo!';
-                    }
-                }
-                
-                if (userNextLeagueElement) {
-                    if (nextLeague) {
-                        userNextLeagueElement.textContent = nextLeague.name;
-                        userNextLeagueElement.style.color = nextLeague.color;
-                    } else {
-                        userNextLeagueElement.textContent = '¡Liga máxima!';
-                        userNextLeagueElement.style.color = league.color;
-                    }
-                }
-            }
+
             
             renderLeaderboard(filterLeague = 'all') {
                 const table = document.getElementById('leaderboardTable');
