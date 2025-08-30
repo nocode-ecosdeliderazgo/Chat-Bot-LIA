@@ -21,7 +21,7 @@
         <span>Volver</span>
     </button>
 
-         <!-- Botón de cambio de tema -->
+    <!-- Botón de cambio de tema -->
      <button class="theme-toggle-btn" id="themeToggleBtn" title="Cambiar tema">
         <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="5"></circle>
@@ -44,6 +44,7 @@
             <div class="subnav-tabs">
                 <button class="subnav-link active" data-tab="community">Comunidad</button>
                 <button class="subnav-link" data-tab="members">Miembros</button>
+                <button class="subnav-link" data-tab="leagues">Ligas</button>
                 <button class="subnav-link" data-tab="about">Acerca de</button>
             </div>
             <div class="subnav-search">
@@ -132,6 +133,94 @@
             </div>
         </section>
 
+        <section id="tab-leagues" class="leagues-section" style="display:none">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Sistema de Ligas</h2>
+                    <p class="section-subtitle">Gana puntos participando y sube de liga</p>
+                </div>
+                
+                <!-- Tu perfil de liga -->
+                <div class="league-profile-card">
+                    <div class="league-profile-header">
+                        <div class="league-profile-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="league-profile-info">
+                            <h3 class="league-profile-name" id="currentUserName">Tu Nombre</h3>
+                            <div class="league-profile-stats">
+                                <span class="league-profile-points" id="currentUserPoints">0 puntos</span>
+                                <span class="league-profile-league" id="currentUserLeague">Bronce</span>
+                            </div>
+                        </div>
+                        <div class="league-profile-badge" id="currentUserBadge">
+                            <i class="fas fa-medal"></i>
+                        </div>
+                    </div>
+                    <div class="league-progress-bar">
+                        <div class="league-progress-fill" id="leagueProgressFill"></div>
+                        <span class="league-progress-text" id="leagueProgressText">0 / 100 puntos para subir</span>
+                    </div>
+                </div>
+
+                <!-- Filtros de liga -->
+                <div class="leagues-filters">
+                    <button class="league-filter active" data-league="all">Todas las Ligas</button>
+                    <button class="league-filter" data-league="bronze">Bronce</button>
+                    <button class="league-filter" data-league="silver">Plata</button>
+                    <button class="league-filter" data-league="gold">Oro</button>
+                    <button class="league-filter" data-league="platinum">Platino</button>
+                    <button class="league-filter" data-league="diamond">Diamante</button>
+                    <button class="league-filter" data-league="master">Maestro</button>
+                </div>
+
+                <!-- Tabla de clasificación -->
+                <div class="leaderboard-container">
+                    <div class="leaderboard-header">
+                        <h3>Clasificación Global</h3>
+                        <div class="leaderboard-stats">
+                            <span id="totalParticipants">0 participantes</span>
+                        </div>
+                    </div>
+                    <div class="leaderboard-table" id="leaderboardTable">
+                        <!-- La tabla se llenará dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Información de puntos -->
+                <div class="points-info-grid">
+                    <div class="points-info-card">
+                        <div class="points-info-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <h4>Publicar</h4>
+                        <p>+10 puntos</p>
+                    </div>
+                    <div class="points-info-card">
+                        <div class="points-info-icon">
+                            <i class="fas fa-comment"></i>
+                        </div>
+                        <h4>Comentar</h4>
+                        <p>+5 puntos</p>
+                    </div>
+                    <div class="points-info-card">
+                        <div class="points-info-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h4>Reaccionar</h4>
+                        <p>+2 puntos</p>
+                    </div>
+                    <div class="points-info-card">
+                        <div class="points-info-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h4>Post Popular</h4>
+                        <p>+15 puntos extra</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section id="tab-about" class="guidelines-section" style="display:none">
             <div class="container">
                 <div class="section-header">
@@ -176,9 +265,9 @@
                 </div>
             </div>
             <div class="chat-head-actions">
-                                 <button class="chat-action-btn" id="chatSettings" title="Configuración">
-                     <i class="fas fa-cog"></i>
-                 </button>
+                <button class="chat-action-btn" id="chatSettings" title="Configuración">
+                    <i class="fas fa-cog"></i>
+                </button>
                  <button class="chat-action-btn" id="exportData" title="Exportar datos">
                      <i class="fas fa-download"></i>
                  </button>
@@ -793,20 +882,25 @@
                         const type = el.getAttribute('data-react');
                         const post = posts.find(p=>p.id===id);
                         if(post.reacted){ return; }
-                                                 post.reactions[type] = (post.reactions[type]||0) + 1;
-                         post.reacted = type;
+                        post.reactions[type] = (post.reactions[type]||0) + 1;
+                        post.reacted = type;
                          
                          // Guardar cambios en localStorage
                          savePosts();
                          
-                         renderPosts(category);
+                         // Agregar puntos por reaccionar
+                         if (window.pointsSystem) {
+                             window.pointsSystem.addPoints('Tú', 'react');
+                         }
+                         
+                        renderPosts(category);
                     });
                 });
-                                 // compartir
-                 list.querySelectorAll('[data-share]').forEach(el=>{
-                     el.addEventListener('click', async ()=>{
-                         const id = Number(el.getAttribute('data-share'));
-                         const post = posts.find(p=>p.id===id);
+                // compartir
+                list.querySelectorAll('[data-share]').forEach(el=>{
+                    el.addEventListener('click', async ()=>{
+                        const id = Number(el.getAttribute('data-share'));
+                        const post = posts.find(p=>p.id===id);
                          
                          // Crear menú de compartir
                          const shareMenu = document.createElement('div');
@@ -886,8 +980,8 @@
                                  shareMenu.remove();
                              }
                          });
-                     });
-                 });
+                    });
+                });
             }
             document.querySelectorAll('.feed-chip').forEach(chip=>{
                 chip.addEventListener('click', ()=>{
@@ -1089,19 +1183,19 @@
                 return m ? `https://www.youtube.com/embed/${m[1]}` : null;
             }
 
-                         function renderAttachments(att){
-                 if(!att || att.length===0) return '';
-                 return `<div class='attachments-preview'>` + att.map(a=>{
+            function renderAttachments(att){
+                if(!att || att.length===0) return '';
+                return `<div class='attachments-preview'>` + att.map(a=>{
                      if(a.type==='image') return `<img src='${a.src}' class='preview-thumb' loading='lazy' alt='Imagen adjunta'>`;
                      if(a.type==='youtube') return `<iframe width='240' height='135' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe>`;
-                     if(a.type==='pdf') return `<a href='${a.dataUrl}' target='_blank' class='pdf-chip'><i class='fas fa-file-pdf'></i> ${a.name}</a>`;
-                     if(a.type==='document') return `<a href='${a.dataUrl}' target='_blank' class='document-chip'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a>`;
-                     if(a.type==='link') return `<a href='${a.url}' target='_blank' class='link-chip'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a>`;
-                     if(a.type==='location') return `<div class='location-chip'><i class='fas fa-map-marker-alt'></i> ${a.text}</div>`;
-                     if(a.type==='poll') return `<div class='poll-chip'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div>`;
-                     return '';
-                 }).join('') + `</div>`;
-             }
+                    if(a.type==='pdf') return `<a href='${a.dataUrl}' target='_blank' class='pdf-chip'><i class='fas fa-file-pdf'></i> ${a.name}</a>`;
+                    if(a.type==='document') return `<a href='${a.dataUrl}' target='_blank' class='document-chip'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a>`;
+                    if(a.type==='link') return `<a href='${a.url}' target='_blank' class='link-chip'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a>`;
+                    if(a.type==='location') return `<div class='location-chip'><i class='fas fa-map-marker-alt'></i> ${a.text}</div>`;
+                    if(a.type==='poll') return `<div class='poll-chip'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div>`;
+                    return '';
+                }).join('') + `</div>`;
+            }
 
             // resumen de reacciones
             function reactionSummary(r){
@@ -1148,19 +1242,24 @@
                         </div>
                     </div>
                 `;
-                                 // comentar desde modal
-                 document.getElementById('modalSendComment').onclick = ()=>{
-                     const input = document.getElementById('modalCommentInput');
-                     const txt = (input.value||'').trim();
-                     if(!txt) return;
-                     post.comments.push({ user:'Tú', time:'ahora', text: txt });
+                // comentar desde modal
+                document.getElementById('modalSendComment').onclick = ()=>{
+                    const input = document.getElementById('modalCommentInput');
+                    const txt = (input.value||'').trim();
+                    if(!txt) return;
+                    post.comments.push({ user:'Tú', time:'ahora', text: txt });
                      
                      // Guardar cambios en localStorage
                      savePosts();
                      
-                     input.value='';
-                     document.getElementById('modalComments').innerHTML = (post.comments||[]).map(c=>commentTemplate(c)).join('');
-                 };
+                     // Agregar puntos por comentar
+                     if (window.pointsSystem) {
+                         window.pointsSystem.addPoints('Tú', 'comment');
+                     }
+                     
+                    input.value='';
+                    document.getElementById('modalComments').innerHTML = (post.comments||[]).map(c=>commentTemplate(c)).join('');
+                };
                 document.getElementById('closePostModal').onclick = ()=> modal.classList.remove('show');
                 modal.classList.add('show');
             }
@@ -1207,16 +1306,21 @@
                      // Guardar posts en localStorage
                      savePosts();
                      
-                     composerInput.value='';
-                     publishPostBtn.disabled = true;
-                     publishPostBtn.classList.remove('enabled');
+                     // Agregar puntos por publicar
+                     if (window.pointsSystem) {
+                         window.pointsSystem.addPoints('Tú', 'publish');
+                     }
+                     
+                    composerInput.value='';
+                    publishPostBtn.disabled = true;
+                    publishPostBtn.classList.remove('enabled');
                      
                      // Limpiar adjuntos
                      pendingAttachments = []; 
                      document.getElementById('attachmentsPreview').innerHTML='';
                      
                      // Re-renderizar posts
-                     renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all');
+                    renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all');
                      
                                            // Mostrar confirmación
                       notifications.success('¡Publicación creada exitosamente!');
@@ -1400,14 +1504,14 @@
                     renderMembers(btn.dataset.filter, document.getElementById('viewSearch').value);
                 });
             });
-                         const search = document.getElementById('viewSearch');
+            const search = document.getElementById('viewSearch');
              let searchTimeout;
              
-             search.addEventListener('input', ()=>{
+            search.addEventListener('input', ()=>{
                  clearTimeout(searchTimeout);
                  searchTimeout = setTimeout(() => {
-                     const active = document.querySelector('.members-chip.active');
-                     renderMembers(active?active.dataset.filter:'all', search.value);
+                const active = document.querySelector('.members-chip.active');
+                renderMembers(active?active.dataset.filter:'all', search.value);
                  }, 300); // Debounce de 300ms
              });
              
@@ -1473,7 +1577,7 @@
                          }
                      }
                  }
-             });
+            });
             renderMembers();
             
             // Actualizar estados de miembros dinámicamente
@@ -1567,9 +1671,9 @@
                 setupEventListeners() {
                     // Chat panel controls
                     document.getElementById('openChat').addEventListener('click', () => this.openChat());
-                                         document.getElementById('closeChat').addEventListener('click', () => this.closeChat());
-                     document.getElementById('chatSettings').addEventListener('click', () => this.openSettings());
-                     document.getElementById('closeChatSettings').addEventListener('click', () => this.closeSettings());
+                    document.getElementById('closeChat').addEventListener('click', () => this.closeChat());
+                    document.getElementById('chatSettings').addEventListener('click', () => this.openSettings());
+                    document.getElementById('closeChatSettings').addEventListener('click', () => this.closeSettings());
                      
                      // Exportar datos
                      document.getElementById('exportData').addEventListener('click', () => this.exportData());
@@ -1937,9 +2041,9 @@
                     localStorage.setItem('communityChatMessages', JSON.stringify(this.messages));
                 }
 
-                                 saveSettings() {
-                     localStorage.setItem('chatSettings', JSON.stringify(this.settings));
-                 }
+                saveSettings() {
+                    localStorage.setItem('chatSettings', JSON.stringify(this.settings));
+                }
                  
                  exportData() {
                      const data = {
@@ -1982,18 +2086,18 @@
                 }
 
                 if (confirmLink) {
-                    confirmLink.addEventListener('click', () => {
+                confirmLink.addEventListener('click', () => {
                         console.log('Botón confirmar enlace clickeado');
-                        const url = linkInput.value.trim();
+                    const url = linkInput.value.trim();
                         console.log('URL ingresada:', url);
-                        if (url) {
+                    if (url) {
                             try {
                                 // Validar URL
                                 new URL(url);
                                 console.log('URL válida, agregando adjunto');
-                                pendingAttachments.push({ type: 'link', url });
-                                addPreviewLink(url);
-                                closeLinkModalFunc();
+                        pendingAttachments.push({ type: 'link', url });
+                        addPreviewLink(url);
+                        closeLinkModalFunc();
                                                          } catch (e) {
                                  console.log('URL inválida:', e);
                                  notifications.error('Por favor ingresa una URL válida (ej: https://ejemplo.com)');
@@ -2006,15 +2110,15 @@
                 }
 
                 if (cancelLink) {
-                    cancelLink.addEventListener('click', closeLinkModalFunc);
+                cancelLink.addEventListener('click', closeLinkModalFunc);
                 }
                 if (closeLinkModal) {
-                    closeLinkModal.addEventListener('click', closeLinkModalFunc);
+                closeLinkModal.addEventListener('click', closeLinkModalFunc);
                 }
                 if (linkModal) {
-                    linkModal.addEventListener('click', (e) => {
-                        if (e.target === linkModal) closeLinkModalFunc();
-                    });
+                linkModal.addEventListener('click', (e) => {
+                    if (e.target === linkModal) closeLinkModalFunc();
+                });
                 }
 
                 // Modal de YouTube
@@ -2030,33 +2134,33 @@
                 }
 
                 if (confirmYoutube) {
-                    confirmYoutube.addEventListener('click', () => {
-                        const ytUrl = youtubeInput.value.trim();
-                        if (ytUrl) {
-                            const embed = youtubeEmbed(ytUrl);
-                            if (embed) {
-                                pendingAttachments.push({ type: 'youtube', embed });
-                                addPreviewYoutube(embed);
-                                closeYoutubeModalFunc();
-                                                         } else {
+                confirmYoutube.addEventListener('click', () => {
+                    const ytUrl = youtubeInput.value.trim();
+                    if (ytUrl) {
+                        const embed = youtubeEmbed(ytUrl);
+                        if (embed) {
+                            pendingAttachments.push({ type: 'youtube', embed });
+                            addPreviewYoutube(embed);
+                            closeYoutubeModalFunc();
+                        } else {
                                  notifications.error('Enlace de YouTube inválido. Asegúrate de que sea una URL válida de YouTube');
-                             }
+                        }
                          } else {
                              notifications.warning('Por favor ingresa una URL de YouTube');
-                         }
-                    });
+                    }
+                });
                 }
 
                 if (cancelYoutube) {
-                    cancelYoutube.addEventListener('click', closeYoutubeModalFunc);
+                cancelYoutube.addEventListener('click', closeYoutubeModalFunc);
                 }
                 if (closeYoutubeModal) {
-                    closeYoutubeModal.addEventListener('click', closeYoutubeModalFunc);
+                closeYoutubeModal.addEventListener('click', closeYoutubeModalFunc);
                 }
                 if (youtubeModal) {
-                    youtubeModal.addEventListener('click', (e) => {
-                        if (e.target === youtubeModal) closeYoutubeModalFunc();
-                    });
+                youtubeModal.addEventListener('click', (e) => {
+                    if (e.target === youtubeModal) closeYoutubeModalFunc();
+                });
                 }
 
                 // Modal de ubicación
@@ -2072,28 +2176,28 @@
                 }
 
                 if (confirmLocation) {
-                    confirmLocation.addEventListener('click', () => {
-                        const location = locationInput.value.trim();
-                        if (location) {
-                            pendingAttachments.push({ type: 'location', text: location });
-                            addPreviewLocation(location);
-                            closeLocationModalFunc();
+                confirmLocation.addEventListener('click', () => {
+                    const location = locationInput.value.trim();
+                    if (location) {
+                        pendingAttachments.push({ type: 'location', text: location });
+                        addPreviewLocation(location);
+                        closeLocationModalFunc();
                                                  } else {
                              notifications.warning('Por favor ingresa una ubicación');
-                         }
-                    });
+                    }
+                });
                 }
 
                 if (cancelLocation) {
-                    cancelLocation.addEventListener('click', closeLocationModalFunc);
+                cancelLocation.addEventListener('click', closeLocationModalFunc);
                 }
                 if (closeLocationModal) {
-                    closeLocationModal.addEventListener('click', closeLocationModalFunc);
+                closeLocationModal.addEventListener('click', closeLocationModalFunc);
                 }
                 if (locationModal) {
-                    locationModal.addEventListener('click', (e) => {
-                        if (e.target === locationModal) closeLocationModalFunc();
-                    });
+                locationModal.addEventListener('click', (e) => {
+                    if (e.target === locationModal) closeLocationModalFunc();
+                });
                 }
 
                 // Modal de encuesta
@@ -2111,38 +2215,38 @@
                 }
 
                 if (confirmPoll) {
-                    confirmPoll.addEventListener('click', () => {
-                        const question = pollQuestion.value.trim();
-                        const options = pollOptions.value.trim();
-                        if (question && options) {
-                            const pollOptionsArray = options.split(',').map(opt => opt.trim()).filter(opt => opt);
-                            if (pollOptionsArray.length >= 2) {
-                                pendingAttachments.push({ 
-                                    type: 'poll', 
-                                    question, 
-                                    options: pollOptionsArray 
-                                });
-                                addPreviewPoll(question, pollOptionsArray);
-                                closePollModalFunc();
-                                                         } else {
+                confirmPoll.addEventListener('click', () => {
+                    const question = pollQuestion.value.trim();
+                    const options = pollOptions.value.trim();
+                    if (question && options) {
+                        const pollOptionsArray = options.split(',').map(opt => opt.trim()).filter(opt => opt);
+                        if (pollOptionsArray.length >= 2) {
+                            pendingAttachments.push({ 
+                                type: 'poll', 
+                                question, 
+                                options: pollOptionsArray 
+                            });
+                            addPreviewPoll(question, pollOptionsArray);
+                            closePollModalFunc();
+                        } else {
                                  notifications.warning('Necesitas al menos 2 opciones para la encuesta');
-                             }
+                        }
                          } else {
                              notifications.error('Por favor completa tanto la pregunta como las opciones');
-                         }
-                    });
+                    }
+                });
                 }
 
                 if (cancelPoll) {
-                    cancelPoll.addEventListener('click', closePollModalFunc);
+                cancelPoll.addEventListener('click', closePollModalFunc);
                 }
                 if (closePollModal) {
-                    closePollModal.addEventListener('click', closePollModalFunc);
+                closePollModal.addEventListener('click', closePollModalFunc);
                 }
                 if (pollModal) {
-                    pollModal.addEventListener('click', (e) => {
-                        if (e.target === pollModal) closePollModalFunc();
-                    });
+                pollModal.addEventListener('click', (e) => {
+                    if (e.target === pollModal) closePollModalFunc();
+                });
                 }
             }
 
@@ -2166,14 +2270,14 @@
                 }
             });
             
-                         // También escuchar cambios locales (misma pestaña)
-             const originalSetItem = localStorage.setItem;
-             localStorage.setItem = function(key, value) {
-                 originalSetItem.apply(this, arguments);
-                 if (key === 'avatarData' || key === 'userProfile') {
-                     loadUserProfilePicture();
-                 }
-             };
+            // También escuchar cambios locales (misma pestaña)
+            const originalSetItem = localStorage.setItem;
+            localStorage.setItem = function(key, value) {
+                originalSetItem.apply(this, arguments);
+                if (key === 'avatarData' || key === 'userProfile') {
+                    loadUserProfilePicture();
+                }
+            };
              
              // Mejorar el sistema de cambio de tema
              document.getElementById('themeToggleBtn').addEventListener('click', () => {
@@ -2267,7 +2371,7 @@
          });
      </script>
      
-     <script src="../scripts/theme-toggle.js"></script>
+    <script src="../scripts/theme-toggle.js"></script>
 
     <script>
         // Sistema de notificaciones elegante
@@ -2342,6 +2446,317 @@
 
         // Instanciar sistema de notificaciones
         const notifications = new NotificationSystem();
+    </script>
+
+    <script>
+        // Sistema de Puntos y Ligas
+        class PointsSystem {
+            constructor() {
+                this.points = {
+                    publish: 10,
+                    comment: 5,
+                    react: 2,
+                    popularPost: 15
+                };
+                
+                this.leagues = {
+                    bronze: { name: 'Bronce', minPoints: 0, maxPoints: 99, color: '#cd7f32', icon: 'fas fa-medal' },
+                    silver: { name: 'Plata', minPoints: 100, maxPoints: 299, color: '#c0c0c0', icon: 'fas fa-medal' },
+                    gold: { name: 'Oro', minPoints: 300, maxPoints: 599, color: '#ffd700', icon: 'fas fa-medal' },
+                    platinum: { name: 'Platino', minPoints: 600, maxPoints: 999, color: '#e5e4e2', icon: 'fas fa-crown' },
+                    diamond: { name: 'Diamante', minPoints: 1000, maxPoints: 1999, color: '#b9f2ff', icon: 'fas fa-gem' },
+                    master: { name: 'Maestro', minPoints: 2000, maxPoints: Infinity, color: '#ff6b6b', icon: 'fas fa-trophy' }
+                };
+                
+                this.users = this.loadUsers();
+                this.currentUser = this.getCurrentUser();
+                this.init();
+            }
+            
+            init() {
+                this.setupEventListeners();
+                this.updateCurrentUserDisplay();
+                this.renderLeaderboard();
+                this.updateLeaderboardStats();
+            }
+            
+            loadUsers() {
+                const saved = localStorage.getItem('communityUsers');
+                if (saved) {
+                    return JSON.parse(saved);
+                }
+                
+                // Usuarios iniciales con puntos
+                const initialUsers = [
+                    { name: 'María González', points: 245, posts: 12, comments: 18, reactions: 45 },
+                    { name: 'Carlos López', points: 189, posts: 8, comments: 25, reactions: 32 },
+                    { name: 'Ana Martínez', points: 156, posts: 6, comments: 20, reactions: 28 },
+                    { name: 'Alejandro Torres', points: 134, posts: 5, comments: 15, reactions: 22 },
+                    { name: 'Sofia Rodríguez', points: 98, posts: 4, comments: 12, reactions: 18 },
+                    { name: 'Diego Morales', points: 87, posts: 3, comments: 10, reactions: 16 },
+                    { name: 'Valentina Silva', points: 76, posts: 3, comments: 8, reactions: 14 },
+                    { name: 'Roberto Jiménez', points: 65, posts: 2, comments: 7, reactions: 12 },
+                    { name: 'Camila Herrera', points: 54, posts: 2, comments: 6, reactions: 10 },
+                    { name: 'Andrés Vargas', points: 43, posts: 1, comments: 5, reactions: 8 }
+                ];
+                
+                localStorage.setItem('communityUsers', JSON.stringify(initialUsers));
+                return initialUsers;
+            }
+            
+            saveUsers() {
+                localStorage.setItem('communityUsers', JSON.stringify(this.users));
+            }
+            
+            getCurrentUser() {
+                // Simular usuario actual (en una app real vendría del sistema de auth)
+                const currentUserName = localStorage.getItem('currentUserName') || 'Usuario Actual';
+                let user = this.users.find(u => u.name === currentUserName);
+                
+                if (!user) {
+                    user = {
+                        name: currentUserName,
+                        points: 0,
+                        posts: 0,
+                        comments: 0,
+                        reactions: 0
+                    };
+                    this.users.push(user);
+                    this.saveUsers();
+                }
+                
+                return user;
+            }
+            
+            addPoints(userName, action, extraPoints = 0) {
+                const user = this.users.find(u => u.name === userName);
+                if (!user) return;
+                
+                const basePoints = this.points[action] || 0;
+                const totalPoints = basePoints + extraPoints;
+                
+                user.points += totalPoints;
+                
+                // Actualizar contadores específicos
+                switch(action) {
+                    case 'publish':
+                        user.posts++;
+                        break;
+                    case 'comment':
+                        user.comments++;
+                        break;
+                    case 'react':
+                        user.reactions++;
+                        break;
+                }
+                
+                this.saveUsers();
+                this.updateCurrentUserDisplay();
+                this.renderLeaderboard();
+                this.updateLeaderboardStats();
+                
+                // Mostrar notificación de puntos ganados
+                if (userName === this.currentUser.name) {
+                    const league = this.getUserLeague(user.points);
+                    notifications.success(`¡+${totalPoints} puntos! Ahora tienes ${user.points} puntos (${league.name})`);
+                }
+                
+                return totalPoints;
+            }
+            
+            getUserLeague(points) {
+                for (const [key, league] of Object.entries(this.leagues)) {
+                    if (points >= league.minPoints && points <= league.maxPoints) {
+                        return league;
+                    }
+                }
+                return this.leagues.bronze;
+            }
+            
+            getLeagueProgress(points) {
+                const currentLeague = this.getUserLeague(points);
+                const nextLeague = this.getNextLeague(currentLeague);
+                
+                if (!nextLeague) {
+                    return { current: points, required: points, percentage: 100 };
+                }
+                
+                const pointsInCurrentLeague = points - currentLeague.minPoints;
+                const pointsNeededForNextLeague = nextLeague.minPoints - currentLeague.minPoints;
+                const percentage = Math.min(100, (pointsInCurrentLeague / pointsNeededForNextLeague) * 100);
+                
+                return {
+                    current: pointsInCurrentLeague,
+                    required: pointsNeededForNextLeague,
+                    percentage: percentage
+                };
+            }
+            
+            getNextLeague(currentLeague) {
+                const leagueOrder = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'master'];
+                const currentIndex = leagueOrder.findIndex(league => this.leagues[league].name === currentLeague.name);
+                
+                if (currentIndex === -1 || currentIndex === leagueOrder.length - 1) {
+                    return null;
+                }
+                
+                return this.leagues[leagueOrder[currentIndex + 1]];
+            }
+            
+            updateCurrentUserDisplay() {
+                const user = this.currentUser;
+                const league = this.getUserLeague(user.points);
+                const progress = this.getLeagueProgress(user.points);
+                
+                // Actualizar elementos del DOM
+                const nameElement = document.getElementById('currentUserName');
+                const pointsElement = document.getElementById('currentUserPoints');
+                const leagueElement = document.getElementById('currentUserLeague');
+                const badgeElement = document.getElementById('currentUserBadge');
+                const progressFill = document.getElementById('leagueProgressFill');
+                const progressText = document.getElementById('leagueProgressText');
+                
+                if (nameElement) nameElement.textContent = user.name;
+                if (pointsElement) pointsElement.textContent = `${user.points} puntos`;
+                if (leagueElement) {
+                    leagueElement.textContent = league.name;
+                    leagueElement.style.color = league.color;
+                }
+                if (badgeElement) {
+                    badgeElement.innerHTML = `<i class="${league.icon}"></i>`;
+                    badgeElement.style.color = league.color;
+                }
+                if (progressFill) {
+                    progressFill.style.width = `${progress.percentage}%`;
+                    progressFill.style.backgroundColor = league.color;
+                }
+                if (progressText) {
+                    const nextLeague = this.getNextLeague(league);
+                    if (nextLeague) {
+                        progressText.textContent = `${progress.current} / ${progress.required} puntos para ${nextLeague.name}`;
+                    } else {
+                        progressText.textContent = `¡Liga máxima alcanzada!`;
+                    }
+                }
+            }
+            
+            renderLeaderboard(filterLeague = 'all') {
+                const table = document.getElementById('leaderboardTable');
+                if (!table) return;
+                
+                let filteredUsers = [...this.users];
+                
+                if (filterLeague !== 'all') {
+                    filteredUsers = filteredUsers.filter(user => {
+                        const league = this.getUserLeague(user.points);
+                        return league.name.toLowerCase().includes(filterLeague);
+                    });
+                }
+                
+                // Ordenar por puntos (descendente)
+                filteredUsers.sort((a, b) => b.points - a.points);
+                
+                table.innerHTML = filteredUsers.map((user, index) => {
+                    const league = this.getUserLeague(user.points);
+                    const isCurrentUser = user.name === this.currentUser.name;
+                    
+                    return `
+                        <div class="leaderboard-row ${isCurrentUser ? 'current-user' : ''}">
+                            <div class="leaderboard-position">
+                                ${index + 1}
+                            </div>
+                            <div class="leaderboard-user">
+                                <div class="leaderboard-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="leaderboard-info">
+                                    <div class="leaderboard-name">
+                                        ${user.name}
+                                        ${isCurrentUser ? '<span class="current-user-badge">Tú</span>' : ''}
+                                    </div>
+                                    <div class="leaderboard-stats">
+                                        <span class="leaderboard-league" style="color: ${league.color}">
+                                            <i class="${league.icon}"></i> ${league.name}
+                                        </span>
+                                        <span class="leaderboard-activity">
+                                            ${user.posts} posts • ${user.comments} comentarios • ${user.reactions} reacciones
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="leaderboard-points">
+                                ${user.points} pts
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            updateLeaderboardStats() {
+                const statsElement = document.getElementById('totalParticipants');
+                if (statsElement) {
+                    statsElement.textContent = `${this.users.length} participantes`;
+                }
+            }
+            
+            setupEventListeners() {
+                // Filtros de liga
+                document.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('league-filter')) {
+                        document.querySelectorAll('.league-filter').forEach(btn => btn.classList.remove('active'));
+                        e.target.classList.add('active');
+                        
+                        const filterLeague = e.target.dataset.league;
+                        this.renderLeaderboard(filterLeague);
+                    }
+                });
+            }
+        }
+        
+        // Instanciar sistema de puntos
+        const pointsSystem = new PointsSystem();
+        window.pointsSystem = pointsSystem; // Hacer disponible globalmente
+        
+        // Integrar con el sistema existente
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sobrescribir funciones existentes para agregar puntos
+            
+            // Función original de publicar posts
+            const originalPublishPost = window.publishPost;
+            window.publishPost = function() {
+                const result = originalPublishPost ? originalPublishPost() : null;
+                
+                // Agregar puntos por publicar
+                const currentUser = pointsSystem.currentUser;
+                pointsSystem.addPoints(currentUser.name, 'publish');
+                
+                return result;
+            };
+            
+            // Función original de agregar comentarios
+            const originalAddComment = window.addComment;
+            window.addComment = function(postId, commentText) {
+                const result = originalAddComment ? originalAddComment(postId, commentText) : null;
+                
+                // Agregar puntos por comentar
+                const currentUser = pointsSystem.currentUser;
+                pointsSystem.addPoints(currentUser.name, 'comment');
+                
+                return result;
+            };
+            
+            // Función original de reaccionar
+            const originalReactToPost = window.reactToPost;
+            window.reactToPost = function(postId, reactionType) {
+                const result = originalReactToPost ? originalReactToPost(postId, reactionType) : null;
+                
+                // Agregar puntos por reaccionar
+                const currentUser = pointsSystem.currentUser;
+                pointsSystem.addPoints(currentUser.name, 'react');
+                
+                return result;
+            };
+        });
     </script>
 </body>
 </html>
