@@ -591,6 +591,25 @@
                  });
              }
              
+             // Función para limpiar datos falsos y mantener solo posts reales
+             function cleanupFakeData() {
+                 // Identificar posts que fueron creados por el usuario (tienen timestamp real)
+                 const realPosts = posts.filter(post => {
+                     // Posts con timestamp son reales
+                     if (post.timestamp) return true;
+                     
+                     // Posts iniciales de ejemplo (los mantenemos por ahora)
+                     const initialPostIds = [Date.now() - 3600000, Date.now() - 1800000];
+                     return initialPostIds.includes(post.id);
+                 });
+                 
+                 if (realPosts.length !== posts.length) {
+                     posts = realPosts;
+                     savePosts();
+                     console.log('Datos falsos limpiados, manteniendo solo posts reales');
+                 }
+             }
+             
              // Cargar posts guardados
              function loadPosts() {
                  const savedPosts = localStorage.getItem('communityPosts');
@@ -603,12 +622,43 @@
                          posts = [];
                      }
                  } else {
-                     // Posts iniciales si no hay nada guardado
-                     posts = [
-                         { id:1, user:'Nate Herk', avatar:'fas fa-user', category:'ia', minutesAgo:60, content:'Nuevo video: cómo construir un agente IA con n8n.', comments:[], reactions:{like:12, heart:3}, attachments:[], reacted: null },
-                         { id:2, user:'Ana Martínez', avatar:'fas fa-user', category:'datos', minutesAgo:5, content:'¿Qué herramienta recomiendan para orquestar pipelines?', comments:[], reactions:{like:2, heart:1}, attachments:[], reacted: null },
-                         { id:3, user:'Carlos López', avatar:'fas fa-user', category:'desarrollo', minutesAgo:15, content:'Comparto un boilerplate para APIs serverless.', comments:[], reactions:{like:1, heart:0}, attachments:[], reacted: null }
+                     // Generar posts iniciales más realistas si no hay nada guardado
+                     const initialPosts = [
+                         {
+                             id: Date.now() - 3600000, // 1 hora atrás
+                             user: 'María González',
+                             avatar: 'fas fa-user',
+                             category: 'general',
+                             minutesAgo: 60,
+                             timestamp: Date.now() - 3600000,
+                             content: '¡Hola comunidad! Me alegra estar aquí compartiendo experiencias y aprendiendo de todos ustedes. ¿Cómo están sus proyectos?',
+                             comments: [
+                                 { user: 'Carlos López', content: '¡Bienvenida María! Me alegra verte por aquí', timestamp: Date.now() - 3500000 }
+                             ],
+                             reactions: { like: 8, heart: 3 },
+                             attachments: [],
+                             reacted: null
+                         },
+                         {
+                             id: Date.now() - 1800000, // 30 minutos atrás
+                             user: 'Alejandro Torres',
+                             avatar: 'fas fa-user',
+                             category: 'desarrollo',
+                             minutesAgo: 30,
+                             timestamp: Date.now() - 1800000,
+                             content: 'Acabo de terminar un proyecto interesante usando React y Node.js. ¿Alguien más está trabajando con estas tecnologías?',
+                             comments: [
+                                 { user: 'Ana Martínez', content: '¡Excelente! Yo también uso React. ¿Qué librerías de estado prefieres?', timestamp: Date.now() - 1700000 },
+                                 { user: 'Alejandro Torres', content: 'Principalmente Redux Toolkit, pero también he probado Zustand', timestamp: Date.now() - 1600000 }
+                             ],
+                             reactions: { like: 12, heart: 5, wow: 2 },
+                             attachments: [],
+                             reacted: null
+                         }
                      ];
+                     posts = initialPosts;
+                     // Guardar los posts iniciales
+                     savePosts();
                  }
              }
              
@@ -638,6 +688,9 @@
              
              // Limpiar posts antiguos
              cleanupOldPosts();
+             
+             // Limpiar datos falsos
+             cleanupFakeData();
              
              // Actualizar timestamps al cargar
              updatePostTimestamps();
@@ -1172,33 +1225,173 @@
             }
             renderPosts('all');
 
-            // Members mock
-            const mockMembers = Array.from({length: 20}).map((_,i)=>({
-                id: i+1,
-                name: ['Titus Blair','Michael W.','Laura F.','Ana Martínez','Carlos López','María González'][i%6] + ' ' + (i+1),
-                online: i%3!==0,
-                admin: i%10===0,
-                location: ['CDMX','Madrid','Buenos Aires','Bogotá'][i%4],
-                joined: '2025-01-1'+(i%9),
-            }));
+            // Generar datos de miembros más realistas
+            function generateRealisticMembers() {
+                const realNames = [
+                    'María González', 'Carlos López', 'Ana Martínez', 'Alejandro Torres',
+                    'Sofia Rodríguez', 'Diego Morales', 'Valentina Silva', 'Roberto Jiménez',
+                    'Camila Herrera', 'Andrés Vargas', 'Isabella Castro', 'Miguel Ruiz',
+                    'Daniela Moreno', 'Javier Paredes', 'Gabriela Soto', 'Fernando Rojas',
+                    'Natalia Vega', 'Ricardo Mendoza', 'Paula Guzmán', 'Eduardo Fuentes'
+                ];
+                
+                const locations = [
+                    'Ciudad de México', 'Buenos Aires', 'Bogotá', 'Santiago',
+                    'Lima', 'Caracas', 'Quito', 'Guayaquil', 'Medellín', 'Montevideo'
+                ];
+                
+                const currentTime = Date.now();
+                const onlineProbability = 0.4; // 40% de probabilidad de estar online
+                
+                return Array.from({length: 24}).map((_, i) => {
+                    const isOnline = Math.random() < onlineProbability;
+                    const isAdmin = i < 3; // Primeros 3 son admins
+                    const joinDate = new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
+                    
+                    return {
+                        id: i + 1,
+                        name: realNames[i % realNames.length],
+                        online: isOnline,
+                        admin: isAdmin,
+                        location: locations[i % locations.length],
+                        joined: joinDate.toISOString().split('T')[0],
+                        lastSeen: isOnline ? 'Ahora' : `${Math.floor(Math.random() * 60)} min`,
+                        avatar: `fas fa-user`,
+                        status: isOnline ? 'online' : 'offline'
+                    };
+                });
+            }
+            
+            const mockMembers = generateRealisticMembers();
+            
+            // Función para simular actividad real en la comunidad
+            function simulateCommunityActivity() {
+                // Ocasionalmente agregar un nuevo miembro
+                if (Math.random() < 0.05 && mockMembers.length < 50) { // 5% de probabilidad
+                    const newNames = [
+                        'Lucía Fernández', 'Mateo Ríos', 'Valeria Cruz', 'Sebastián Mora',
+                        'Emma Torres', 'Lucas Herrera', 'Sara Jiménez', 'Adrián Vega'
+                    ];
+                    
+                    const newMember = {
+                        id: mockMembers.length + 1,
+                        name: newNames[Math.floor(Math.random() * newNames.length)],
+                        online: true,
+                        admin: false,
+                        location: ['Ciudad de México', 'Buenos Aires', 'Bogotá', 'Santiago'][Math.floor(Math.random() * 4)],
+                        joined: new Date().toISOString().split('T')[0],
+                        lastSeen: 'Ahora',
+                        avatar: 'fas fa-user',
+                        status: 'online'
+                    };
+                    
+                    mockMembers.push(newMember);
+                    
+                    // Mostrar notificación de nuevo miembro
+                    if (document.getElementById('tab-members').style.display !== 'none') {
+                        notifications.info(`¡${newMember.name} se unió a la comunidad!`);
+                    }
+                }
+                
+                // Simular actividad de posts (ocasionalmente)
+                if (Math.random() < 0.02) { // 2% de probabilidad
+                    const activityMessages = [
+                        'Alguien reaccionó a una publicación',
+                        'Nuevo comentario en la comunidad',
+                        'Se compartió un recurso interesante'
+                    ];
+                    
+                    const message = activityMessages[Math.floor(Math.random() * activityMessages.length)];
+                    notifications.info(message);
+                }
+            }
+            
+            // Ejecutar simulación de actividad cada 2 minutos
+            setInterval(simulateCommunityActivity, 120000);
             function renderMembers(filter='all', q=''){
                 const list = document.getElementById('membersList');
                 let data = [...mockMembers];
+                
+                // Actualizar estados online dinámicamente
+                data.forEach(member => {
+                    if (!member.online) {
+                        // Simular cambios de estado offline
+                        const lastSeenMinutes = Math.floor(Math.random() * 120); // 0-120 minutos
+                        member.lastSeen = lastSeenMinutes === 0 ? 'Ahora' : `${lastSeenMinutes} min`;
+                    }
+                });
+                
                 if(filter==='online') data = data.filter(m=>m.online);
                 if(filter==='admins') data = data.filter(m=>m.admin);
                 if(q) data = data.filter(m => (m.name+ ' ' + m.location).toLowerCase().includes(q.toLowerCase()));
+                
+                // Ordenar: online primero, luego por nombre
+                data.sort((a, b) => {
+                    if (a.online && !b.online) return -1;
+                    if (!a.online && b.online) return 1;
+                    return a.name.localeCompare(b.name);
+                });
+                
                 list.innerHTML = data.map(m=>`
                     <div class="member-card">
                         <div class="member-avatar">
                             <i class="fas fa-user"></i>
                             ${m.online ? '<span class="member-status"></span>' : ''}
                         </div>
-                        <div>
-                            <div class="member-name">${m.name} ${m.admin ? '<span class="post-tag">admin</span>':''}</div>
-                            <div class="member-meta"><span>${m.online? 'Online now':'Offline'}</span> • <span>${m.location}</span> • <span>Joined ${m.joined}</span></div>
+                        <div class="member-info">
+                            <div class="member-name">
+                                ${m.name} 
+                                ${m.admin ? '<span class="member-badge admin">Admin</span>':''}
+                                ${m.online ? '<span class="member-badge online">En línea</span>':''}
+                            </div>
+                            <div class="member-meta">
+                                <span class="member-location"><i class="fas fa-map-marker-alt"></i> ${m.location}</span>
+                                <span class="member-status-text">
+                                    ${m.online ? '<i class="fas fa-circle online-dot"></i> En línea' : `<i class="fas fa-clock"></i> Visto ${m.lastSeen}`}
+                                </span>
+                                <span class="member-joined"><i class="fas fa-calendar"></i> Se unió ${formatJoinDate(m.joined)}</span>
+                            </div>
                         </div>
                     </div>
                 `).join('');
+                
+                // Mostrar contador de miembros
+                const onlineCount = data.filter(m => m.online).length;
+                const totalCount = data.length;
+                const membersHeader = document.querySelector('.members-section .container');
+                if (membersHeader && !document.querySelector('.members-count')) {
+                    const countElement = document.createElement('div');
+                    countElement.className = 'members-count';
+                    countElement.innerHTML = `
+                        <div class="count-info">
+                            <span class="online-count">${onlineCount} en línea</span>
+                            <span class="total-count">• ${totalCount} miembros total</span>
+                        </div>
+                    `;
+                    membersHeader.insertBefore(countElement, membersHeader.firstChild);
+                } else if (document.querySelector('.members-count')) {
+                    const countElement = document.querySelector('.members-count');
+                    countElement.innerHTML = `
+                        <div class="count-info">
+                            <span class="online-count">${onlineCount} en línea</span>
+                            <span class="total-count">• ${totalCount} miembros total</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Función para formatear fechas de unión
+            function formatJoinDate(dateString) {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffTime = Math.abs(now - date);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 1) return 'hoy';
+                if (diffDays <= 7) return `hace ${diffDays} días`;
+                if (diffDays <= 30) return `hace ${Math.floor(diffDays / 7)} semanas`;
+                if (diffDays <= 365) return `hace ${Math.floor(diffDays / 30)} meses`;
+                return `hace ${Math.floor(diffDays / 365)} años`;
             }
             document.querySelectorAll('.members-chip').forEach(btn=>{
                 btn.addEventListener('click', ()=>{
@@ -1282,6 +1475,26 @@
                  }
              });
             renderMembers();
+            
+            // Actualizar estados de miembros dinámicamente
+            setInterval(() => {
+                // Simular cambios de estado online/offline
+                mockMembers.forEach(member => {
+                    if (Math.random() < 0.1) { // 10% de probabilidad de cambiar estado
+                        member.online = !member.online;
+                        if (!member.online) {
+                            member.lastSeen = 'Ahora';
+                        }
+                    }
+                });
+                
+                // Re-renderizar si estamos en la pestaña de miembros
+                const membersSection = document.getElementById('tab-members');
+                if (membersSection && membersSection.style.display !== 'none') {
+                    const activeFilter = document.querySelector('.members-chip.active')?.dataset.filter || 'all';
+                    renderMembers(activeFilter, document.getElementById('viewSearch').value);
+                }
+            }, 30000); // Cada 30 segundos
 
             // Enhanced Chat System
             class ChatSystem {
