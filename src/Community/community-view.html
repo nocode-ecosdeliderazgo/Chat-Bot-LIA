@@ -2500,11 +2500,14 @@
             }
             
             init() {
+                console.log('PointsSystem initializing...');
+                console.log('Current user:', this.currentUser);
                 this.setupEventListeners();
                 this.updateCurrentUserDisplay();
                 this.updateBannerProgress();
                 this.renderLeaderboard();
                 this.updateLeaderboardStats();
+                console.log('PointsSystem initialized');
             }
             
             loadUsers() {
@@ -2515,6 +2518,7 @@
                 
                 // Usuarios iniciales con puntos
                 const initialUsers = [
+                    { name: 'Tú', points: 0, posts: 0, comments: 0, reactions: 0 },
                     { name: 'María González', points: 245, posts: 12, comments: 18, reactions: 45 },
                     { name: 'Carlos López', points: 189, posts: 8, comments: 25, reactions: 32 },
                     { name: 'Ana Martínez', points: 156, posts: 6, comments: 20, reactions: 28 },
@@ -2537,7 +2541,7 @@
             
             getCurrentUser() {
                 // Simular usuario actual (en una app real vendría del sistema de auth)
-                const currentUserName = localStorage.getItem('currentUserName') || 'Usuario Actual';
+                const currentUserName = localStorage.getItem('currentUserName') || 'Tú';
                 let user = this.users.find(u => u.name === currentUserName);
                 
                 if (!user) {
@@ -2556,12 +2560,27 @@
             }
             
             addPoints(userName, action, extraPoints = 0) {
+                console.log('PointsSystem.addPoints called:', { userName, action, extraPoints });
                 const user = this.users.find(u => u.name === userName);
-                if (!user) return;
+                console.log('User found:', user);
+                if (!user) {
+                    console.log('User not found, creating new user');
+                    const newUser = {
+                        name: userName,
+                        points: 0,
+                        posts: 0,
+                        comments: 0,
+                        reactions: 0
+                    };
+                    this.users.push(newUser);
+                    this.saveUsers();
+                    return this.addPoints(userName, action, extraPoints);
+                }
                 
                 const basePoints = this.points[action] || 0;
                 const totalPoints = basePoints + extraPoints;
                 
+                console.log('Adding points:', { basePoints, totalPoints, currentPoints: user.points });
                 user.points += totalPoints;
                 
                 // Actualizar contadores específicos
@@ -2578,6 +2597,7 @@
                 }
                 
                 this.saveUsers();
+                console.log('Points updated, user now has:', user.points, 'points');
                 this.updateCurrentUserDisplay();
                 this.updateBannerProgress();
                 this.renderLeaderboard();
@@ -2672,10 +2692,13 @@
             }
             
             updateBannerProgress() {
+                console.log('Updating banner progress...');
                 const user = this.currentUser;
                 const league = this.getUserLeague(user.points);
                 const progress = this.getLeagueProgress(user.points);
                 const nextLeague = this.getNextLeague(league);
+                
+                console.log('Banner update data:', { user, league, progress, nextLeague });
                 
                 // Actualizar elementos del banner
                 const userPointsElement = document.getElementById('userCurrentPoints');
@@ -2683,6 +2706,14 @@
                 const userProgressFillElement = document.getElementById('userProgressFill');
                 const userProgressTextElement = document.getElementById('userProgressText');
                 const userNextLeagueElement = document.getElementById('userNextLeague');
+                
+                console.log('Banner elements found:', {
+                    userPointsElement: !!userPointsElement,
+                    userCurrentLeagueElement: !!userCurrentLeagueElement,
+                    userProgressFillElement: !!userProgressFillElement,
+                    userProgressTextElement: !!userProgressTextElement,
+                    userNextLeagueElement: !!userNextLeagueElement
+                });
                 
                 if (userPointsElement) {
                     userPointsElement.textContent = user.points;
