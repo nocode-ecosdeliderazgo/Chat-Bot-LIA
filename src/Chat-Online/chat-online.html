@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Online - Cursos Asincrónicos | LIA</title>
+    
+    <!-- CSS Principal y Neumorphism -->
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="chat-online.css">
+    
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+</head>
+<body class="layout-notebook bg-glow-global">
+    
+    <!-- Sin Header - Layout directo -->
+
+    <!-- Contenedor Principal con 3 Paneles -->
+    <main class="layout-3panels">
+        
+        <!-- Panel Izquierdo - Material del Curso -->
+        <aside class="left-panel neo-panel">
+            <!-- Navegación superior -->
+            <div class="panel-navigation">
+                <button class="neo-btn neo-btn-small back-btn" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
+            
+            <!-- Información del Curso -->
+            <div class="course-header neo-inset">
+                <div class="course-info">
+                    <h1 class="course-title">Introducción a la IA</h1>
+                    <p class="course-instructor">por Dr. Google AI</p>
+                </div>
+                <div class="progress-indicator">
+                    <div class="progress-bar neo-inset">
+                        <div class="progress-fill" style="width: 65%"></div>
+                    </div>
+                    <span class="progress-text">Módulo 3 de 5 • 65% completado</span>
+                </div>
+            </div>
+            
+            <div class="panel-header">
+                <h3><i class="fas fa-book-open"></i> Material del Curso</h3>
+                <button class="neo-btn neo-btn-small collapse-panel" data-panel="left">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <!-- Navegación de Módulos -->
+            <div class="modules-nav neo-inset">
+                <div class="module-item active" data-module="1">
+                    <div class="module-icon neo-circle">
+                        <i class="fas fa-play"></i>
+                    </div>
+                    <div class="module-info">
+                        <h4>¿Qué es la IA?</h4>
+                        <span class="module-duration">15 min</span>
+                    </div>
+                    <div class="module-status completed">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+                
+                <div class="module-item active" data-module="2">
+                    <div class="module-icon neo-circle">
+                        <i class="fas fa-play"></i>
+                    </div>
+                    <div class="module-info">
+                        <h4>Historia de la IA</h4>
+                        <span class="module-duration">22 min</span>
+                    </div>
+                    <div class="module-status completed">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+                
+                <div class="module-item current" data-module="3">
+                    <div class="module-icon neo-circle active">
+                        <i class="fas fa-play"></i>
+                    </div>
+                    <div class="module-info">
+                        <h4>Fundamentos del ML</h4>
+                        <span class="module-duration">18 min</span>
+                    </div>
+                    <div class="module-status in-progress">
+                        <div class="progress-ring">
+                            <svg class="progress-ring-svg" width="20" height="20">
+                                <circle class="progress-ring-circle" cx="10" cy="10" r="8" fill="transparent" stroke="#44E5FF" stroke-width="2" stroke-dasharray="50.26" stroke-dashoffset="20"></circle>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="module-item" data-module="4">
+                    <div class="module-icon neo-circle">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="module-info">
+                        <h4>Redes Neuronales</h4>
+                        <span class="module-duration">25 min</span>
+                    </div>
+                    <div class="module-status locked">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                </div>
+                
+                <div class="module-item" data-module="5">
+                    <div class="module-icon neo-circle">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="module-info">
+                        <h4>IA en el Futuro</h4>
+                        <span class="module-duration">20 min</span>
+                    </div>
+                    <div class="module-status locked">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reproductor de Video -->
+            <div class="video-container neo-inset">
+                <div class="video-header">
+                    <h4>Video Actual</h4>
+                    <div class="video-controls">
+                        <button class="neo-btn neo-btn-small" id="toggleVideo">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="video-player">
+                    <video id="courseVideo" controls poster="../assets/images/video-poster.jpg">
+                        <source src="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4" type="video/mp4">
+                        Tu navegador no soporta el elemento video.
+                    </video>
+                    <div class="video-overlay">
+                        <div class="video-progress neo-inset">
+                            <div class="progress-track"></div>
+                        </div>
+                        <div class="video-time">
+                            <span id="currentTime">00:00</span> / <span id="totalTime">18:30</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recursos Adicionales -->
+            <div class="resources-section">
+                <h4><i class="fas fa-file-alt"></i> Recursos</h4>
+                <div class="resources-list">
+                    <div class="resource-item neo-card">
+                        <div class="resource-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <div class="resource-info">
+                            <h5>Guía ML Básico</h5>
+                            <span>PDF • 2.5 MB</span>
+                        </div>
+                        <button class="neo-btn neo-btn-small">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="resource-item neo-card">
+                        <div class="resource-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <div class="resource-info">
+                            <h5>Ejemplos de Código</h5>
+                            <span>ZIP • 1.2 MB</span>
+                        </div>
+                        <button class="neo-btn neo-btn-small">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="resource-item neo-card">
+                        <div class="resource-icon">
+                            <i class="fas fa-external-link-alt"></i>
+                        </div>
+                        <div class="resource-info">
+                            <h5>Documentación</h5>
+                            <span>Enlace externo</span>
+                        </div>
+                        <button class="neo-btn neo-btn-small">
+                            <i class="fas fa-external-link-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Panel Central - Contenido del Curso -->
+        <section class="center-panel">
+            <div class="course-content neo-panel">
+                <!-- Pestañas del Contenido -->
+                <div class="content-tabs neo-inset">
+                    <button class="tab-btn active neo-btn" data-tab="video">
+                        <i class="fas fa-play-circle"></i>
+                        <span>Video</span>
+                    </button>
+                    <button class="tab-btn neo-btn" data-tab="materials">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Materiales</span>
+                    </button>
+                    <button class="tab-btn neo-btn" data-tab="quiz">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Quiz</span>
+                    </button>
+                </div>
+
+                <!-- Contenido de Video -->
+                <div class="tab-content active" id="video-tab">
+                    <div class="video-section">
+                        <!-- Video Player -->
+                        <div class="video-container neo-inset">
+                            <div class="video-player" id="videoPlayer">
+                                <video controls>
+                                    <source src="#" type="video/mp4">
+                                    Tu navegador no soporta el elemento video.
+                                </video>
+                                <div class="video-overlay">
+                                    <button class="play-btn neo-btn neo-btn-circle">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Controles del Video -->
+                            <div class="video-controls neo-panel">
+                                <div class="video-info">
+                                    <h3>Módulo 3: Redes Neuronales Básicas</h3>
+                                    <p>Duración: 15:30 • Visto: 8:45</p>
+                                </div>
+                                <div class="video-actions">
+                                    <button class="neo-btn neo-btn-small">
+                                        <i class="fas fa-backward"></i>
+                                    </button>
+                                    <button class="neo-btn neo-btn-small">
+                                        <i class="fas fa-pause"></i>
+                                    </button>
+                                    <button class="neo-btn neo-btn-small">
+                                        <i class="fas fa-forward"></i>
+                                    </button>
+                                    <button class="neo-btn neo-btn-small">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Transcripción y Notas -->
+                        <div class="video-content-tabs neo-inset">
+                            <button class="tab-btn active neo-btn" data-content="transcript">
+                                <i class="fas fa-file-text"></i>
+                                Transcripción
+                            </button>
+                            <button class="tab-btn neo-btn" data-content="summary">
+                                <i class="fas fa-list-ul"></i>
+                                Resumen
+                            </button>
+                            <button class="tab-btn neo-btn" data-content="resources">
+                                <i class="fas fa-download"></i>
+                                Recursos
+                            </button>
+                        </div>
+
+                        <div class="video-content-area neo-inset">
+                            <div class="transcript-content">
+                                <p>En este módulo vamos a explorar los conceptos fundamentales de las redes neuronales. Comenzaremos con una introducción a los perceptrones simples...</p>
+                                <p>Las redes neuronales artificiales están inspiradas en el funcionamiento del cerebro humano. Cada neurona artificial recibe señales de entrada...</p>
+                                <p>La función de activación es crucial para determinar si una neurona se activa o no. Las funciones más comunes son sigmoid, tanh y ReLU...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido de Materiales -->
+                <div class="tab-content" id="materials-tab">
+                    <div class="materials-section">
+                        <h3>Materiales del Módulo 3</h3>
+                        <div class="materials-grid">
+                            <div class="material-item neo-panel">
+                                <div class="material-icon">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <div class="material-info">
+                                    <h4>Guía de Redes Neuronales.pdf</h4>
+                                    <span>PDF • 2.5 MB</span>
+                                </div>
+                                <button class="neo-btn neo-btn-small">
+                                    <i class="fas fa-download"></i> Descargar
+                                </button>
+                            </div>
+                            <div class="material-item neo-panel">
+                                <div class="material-icon">
+                                    <i class="fas fa-code"></i>
+                                </div>
+                                <div class="material-info">
+                                    <h4>Código de Ejemplo.py</h4>
+                                    <span>Python • 15 KB</span>
+                                </div>
+                                <button class="neo-btn neo-btn-small">
+                                    <i class="fas fa-eye"></i> Ver
+                                </button>
+                            </div>
+                            <div class="material-item neo-panel">
+                                <div class="material-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="material-info">
+                                    <h4>Dataset de Práctica.csv</h4>
+                                    <span>CSV • 890 KB</span>
+                                </div>
+                                <button class="neo-btn neo-btn-small">
+                                    <i class="fas fa-download"></i> Descargar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido de Quiz -->
+                <div class="tab-content" id="quiz-tab">
+                    <div class="quiz-section">
+                        <div class="quiz-header">
+                            <h3>Quiz del Módulo 3: Redes Neuronales</h3>
+                            <p>Evalúa tu comprensión de los conceptos fundamentales de las redes neuronales.</p>
+                        </div>
+                        <div class="quiz-stats neo-inset">
+                            <div class="stat-item">
+                                <span class="stat-number">8</span>
+                                <span class="stat-label">Preguntas</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">15</span>
+                                <span class="stat-label">Minutos</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">70%</span>
+                                <span class="stat-label">Para aprobar</span>
+                            </div>
+                        </div>
+                        <button class="neo-btn neo-btn-primary quiz-start-btn">
+                            <i class="fas fa-play"></i> Iniciar Quiz
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Panel Derecho - Herramientas y Notas -->
+        <aside class="right-panel neo-panel">
+            <!-- Controles de usuario -->
+            <div class="panel-user-controls">
+                <div class="user-avatar neo-circle">
+                    <img src="../assets/images/default-avatar.jpg" alt="Usuario" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                    <div class="avatar-fallback">U</div>
+                </div>
+                <div class="user-controls">
+                    <button class="neo-btn neo-btn-small" id="settingsBtn">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <button class="neo-btn neo-btn-small" id="fullscreenBtn">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="panel-header">
+                <h3><i class="fas fa-robot"></i> LIA Assistant</h3>
+                <button class="neo-btn neo-btn-small collapse-panel" data-panel="right">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <!-- LIA Chat Extendido -->
+            <div class="lia-chat-container">
+                <!-- Header de LIA -->
+                <div class="lia-header neo-inset">
+                    <div class="lia-avatar neo-circle">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="lia-info">
+                        <h4>LIA Assistant</h4>
+                        <div class="lia-status">
+                            <div class="status-indicator online"></div>
+                            <span>En línea • Listo para ayudar</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mensajes de LIA -->
+                <div class="lia-messages" id="liaMessages">
+                    <!-- Mensaje de Bienvenida -->
+                    <div class="message lia-message">
+                        <div class="message-avatar neo-circle">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content neo-card">
+                            <div class="message-text">
+                                ¡Hola! Soy LIA, tu asistente de aprendizaje. 
+                                
+                                Puedo ayudarte con:
+                                • Conceptos del video
+                                • Ejercicios prácticos  
+                                • Resúmenes de temas
+                                
+                                ¿En qué puedo ayudarte?
+                            </div>
+                            <div class="message-time">ahora</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sugerencias Rápidas -->
+                <div class="lia-suggestions">
+                    <button class="suggestion neo-btn neo-btn-small" data-text="Explícame las redes neuronales">
+                        <i class="fas fa-brain"></i> Explica tema
+                    </button>
+                    <button class="suggestion neo-btn neo-btn-small" data-text="Resumen del video">
+                        <i class="fas fa-video"></i> Resumen
+                    </button>
+                    <button class="suggestion neo-btn neo-btn-small" data-text="Dame ejercicios">
+                        <i class="fas fa-dumbbell"></i> Ejercicios
+                    </button>
+                    <button class="suggestion neo-btn neo-btn-small" data-text="Aplicaciones ML">
+                        <i class="fas fa-lightbulb"></i> Ejemplos
+                    </button>
+                </div>
+                
+                <!-- Input de LIA -->
+                <div class="lia-input-container">
+                    <div class="input-wrapper neo-inset">
+                        <textarea 
+                            id="liaMessageInput" 
+                            placeholder="Pregunta a LIA..."
+                            rows="2"
+                            maxlength="1000"
+                        ></textarea>
+                        <div class="input-actions">
+                            <button class="neo-btn neo-btn-small" id="attachFile">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            <button class="neo-btn neo-btn-small" id="voiceInput">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <button class="neo-btn neo-btn-primary" id="sendLiaMessage">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+
+        </aside>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="../utils/helpers.js"></script>
+    <script src="components/course-viewer.js"></script>
+    <script src="components/video-player.js"></script>
+    <script src="components/lia-chat.js"></script>
+    <script src="chat-online.js"></script>
+</body>
+</html>
