@@ -48,6 +48,7 @@ function extractSupabaseConfig() {
             updateHtmlMeta(path.join(__dirname, '..', 'src', 'login', 'new-auth.html'), supabaseUrl, anonKey);
             updateHtmlMeta(path.join(__dirname, '..', 'src', 'q', 'form.html'), supabaseUrl, anonKey);
             updateHtmlMeta(path.join(__dirname, '..', 'src', 'perfil-cuestionario.html'), supabaseUrl, anonKey);
+            updateHtmlMeta(path.join(__dirname, '..', 'src', 'Community', 'community-view.html'), supabaseUrl, anonKey);
             console.log('\n✅ Metas actualizadas en archivos HTML clave.');
         } else {
             console.log('\nℹ️  No se actualizaron metas porque falta SUPABASE_URL o la ANON KEY es inválida.');

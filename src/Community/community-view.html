@@ -4,11 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comunidad - Detalle</title>
+    
+
+    
     <link rel="stylesheet" href="community.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
     <!-- Global theme setup -->
     <script src="../scripts/global-theme-setup.js"></script>
+
+    <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
+    <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY
+">
 </head>
 <body class="bg-glow-global">
     <div class="particles-container"></div>
@@ -2558,8 +2565,12 @@
             }
             
             async saveUsers() {
+                console.log('🔄 PointsSystem.saveUsers() called');
+                console.log('Current users:', this.users);
+                
                 // Guardar en localStorage como respaldo
                 localStorage.setItem('communityUsers', JSON.stringify(this.users));
+                console.log('✅ Saved to localStorage');
                 
                 // Guardar estadísticas adicionales en localStorage
                 const stats = this.users.map(user => ({
@@ -2573,38 +2584,54 @@
                 // Intentar guardar en Supabase
                 try {
                     if (window.supabase) {
+                        console.log('🔗 Supabase client available, attempting to save...');
+                        
                         // Actualizar puntos de usuarios existentes
                         for (const user of this.users) {
                             if (user.id) { // Solo usuarios que tienen ID de Supabase
-                                const { error } = await window.supabase
+                                console.log(`📝 Updating user ${user.name} (ID: ${user.id}) with ${user.points} points`);
+                                
+                                const { data, error } = await window.supabase
                                     .from('users')
                                     .update({ points: user.points })
-                                    .eq('id', user.id);
+                                    .eq('id', user.id)
+                                    .select();
                                 
                                 if (error) {
-                                    console.error(`Error updating user ${user.name}:`, error);
+                                    console.error(`❌ Error updating user ${user.name}:`, error);
                                 } else {
                                     console.log(`✅ Points updated in Supabase for user ${user.name}: ${user.points} points`);
+                                    console.log('Supabase response:', data);
                                 }
+                            } else {
+                                console.log(`⚠️ User ${user.name} has no Supabase ID, skipping database update`);
                             }
                         }
+                    } else {
+                        console.log('⚠️ Supabase client not available');
                     }
                 } catch (error) {
-                    console.error('Error saving users to Supabase:', error);
+                    console.error('❌ Error saving users to Supabase:', error);
                 }
             }
             
             async getCurrentUser() {
+                console.log('🔄 PointsSystem.getCurrentUser() called');
+                
                 try {
                     // Intentar obtener usuario actual desde Supabase
                     if (window.supabase) {
+                        console.log('🔗 Checking Supabase authentication...');
                         const { data: { user }, error } = await window.supabase.auth.getUser();
                         
                         if (!error && user) {
+                            console.log('✅ Authenticated user found:', user);
+                            
                             // Buscar el usuario en la lista local
                             let localUser = this.users.find(u => u.id === user.id);
                             
                             if (!localUser) {
+                                console.log('📝 Creating new local user for authenticated user');
                                 // Crear usuario local si no existe
                                 localUser = {
                                     id: user.id,
@@ -2618,18 +2645,25 @@
                                 await this.saveUsers();
                             }
                             
+                            console.log('👤 Current user:', localUser);
                             return localUser;
+                        } else {
+                            console.log('⚠️ No authenticated user found in Supabase');
                         }
+                    } else {
+                        console.log('⚠️ Supabase client not available');
                     }
                 } catch (error) {
-                    console.error('Error getting current user from Supabase:', error);
+                    console.error('❌ Error getting current user from Supabase:', error);
                 }
                 
                 // Fallback a localStorage
+                console.log('🔄 Falling back to localStorage user');
                 const currentUserName = localStorage.getItem('currentUserName') || 'Tú';
                 let user = this.users.find(u => u.name === currentUserName);
                 
                 if (!user) {
+                    console.log('📝 Creating new user for localStorage fallback');
                     user = {
                         name: currentUserName,
                         points: 0,
@@ -2638,19 +2672,20 @@
                         reactions: 0
                     };
                     this.users.push(user);
-                    this.saveUsers();
+                    await this.saveUsers();
                 }
                 
+                console.log('👤 Current user (fallback):', user);
                 return user;
             }
             
             async addPoints(userName, action, extraPoints = 0) {
-                console.log('PointsSystem.addPoints called:', { userName, action, extraPoints });
+                console.log('🎯 PointsSystem.addPoints called:', { userName, action, extraPoints });
                 let user = this.users.find(u => u.name === userName);
-                console.log('User found:', user);
+                console.log('👤 User found:', user);
                 
                 if (!user) {
-                    console.log('User not found, creating new user');
+                    console.log('📝 User not found, creating new user');
                     const newUser = {
                         name: userName,
                         points: 0,
@@ -2659,37 +2694,42 @@
                         reactions: 0
                     };
                     this.users.push(newUser);
-                    await this.saveUsers();
-                    return this.addPoints(userName, action, extraPoints);
+                    user = newUser;
+                    console.log('✅ New user created:', newUser);
                 }
                 
                 const basePoints = this.points[action] || 0;
                 const totalPoints = basePoints + extraPoints;
                 
-                console.log('Adding points:', { basePoints, totalPoints, currentPoints: user.points });
+                console.log('➕ Adding points:', { basePoints, totalPoints, currentPoints: user.points });
                 user.points += totalPoints;
                 
                 // Actualizar contadores específicos
                 switch(action) {
                     case 'publish':
                         user.posts++;
+                        console.log('📝 Incremented posts counter');
                         break;
                     case 'comment':
                         user.comments++;
+                        console.log('💬 Incremented comments counter');
                         break;
                     case 'react':
                         user.reactions++;
+                        console.log('❤️ Incremented reactions counter');
                         break;
                 }
                 
+                console.log('💾 Saving users to database...');
                 await this.saveUsers();
-                console.log('Points updated, user now has:', user.points, 'points');
+                console.log('✅ Points updated, user now has:', user.points, 'points');
+                
                 this.updateCurrentUserDisplay();
                 this.renderLeaderboard();
                 this.updateLeaderboardStats();
                 
                 // Mostrar notificación de puntos ganados
-                if (userName === this.currentUser.name) {
+                if (this.currentUser && userName === this.currentUser.name) {
                     const league = this.getUserLeague(user.points);
                     notifications.success(`¡+${totalPoints} puntos! Ahora tienes ${user.points} puntos (${league.name})`);
                 }
@@ -2854,6 +2894,38 @@
         const pointsSystem = new PointsSystem();
         window.pointsSystem = pointsSystem; // Hacer disponible globalmente
         
+        // Función para verificar el estado de Supabase
+        async function checkSupabaseStatus() {
+            console.log('🔍 Checking Supabase status...');
+            console.log('window.supabase available:', !!window.supabase);
+            
+            if (window.supabase) {
+                console.log('Supabase client details:', {
+                    url: window.supabase.supabaseUrl,
+                    key: window.supabase.supabaseKey ? 'Present' : 'Missing'
+                });
+                
+                try {
+                    // Verificar conexión intentando obtener usuarios
+                    const { data: users, error } = await window.supabase
+                        .from('users')
+                        .select('id, username, display_name, first_name, points')
+                        .limit(1);
+                    
+                    if (error) {
+                        console.error('❌ Supabase connection error:', error);
+                    } else {
+                        console.log('✅ Supabase connection successful');
+                        console.log('Sample users from database:', users);
+                    }
+                } catch (error) {
+                    console.error('❌ Error testing Supabase connection:', error);
+                }
+            } else {
+                console.log('⚠️ Supabase client not initialized');
+            }
+        }
+        
         // Función para sincronizar datos con Supabase
         async function syncWithSupabase() {
             try {
@@ -2900,45 +2972,15 @@
         
         // Integrar con el sistema existente
         document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 DOMContentLoaded - Initializing community system...');
+            
+            // Verificar estado de Supabase
+            await checkSupabaseStatus();
+            
             // Sincronizar con Supabase al cargar la página
             await syncWithSupabase();
-            // Sobrescribir funciones existentes para agregar puntos
             
-            // Función original de publicar posts
-            const originalPublishPost = window.publishPost;
-            window.publishPost = async function() {
-                const result = originalPublishPost ? originalPublishPost() : null;
-                
-                // Agregar puntos por publicar
-                const currentUser = pointsSystem.currentUser;
-                await pointsSystem.addPoints(currentUser.name, 'publish');
-                
-                return result;
-            };
-            
-            // Función original de agregar comentarios
-            const originalAddComment = window.addComment;
-            window.addComment = async function(postId, commentText) {
-                const result = originalAddComment ? originalAddComment(postId, commentText) : null;
-                
-                // Agregar puntos por comentar
-                const currentUser = pointsSystem.currentUser;
-                await pointsSystem.addPoints(currentUser.name, 'comment');
-                
-                return result;
-            };
-            
-            // Función original de reaccionar
-            const originalReactToPost = window.reactToPost;
-            window.reactToPost = async function(postId, reactionType) {
-                const result = originalReactToPost ? originalReactToPost(postId, reactionType) : null;
-                
-                // Agregar puntos por reaccionar
-                const currentUser = pointsSystem.currentUser;
-                await pointsSystem.addPoints(currentUser.name, 'react');
-                
-                return result;
-            };
+            console.log('✅ Community system initialized');
         });
     </script>
 </body>
