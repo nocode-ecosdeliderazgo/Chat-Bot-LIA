@@ -255,20 +255,48 @@ class ProfileManager {
             });
         }
 
-        // Cambiar foto de perfil
+        // Cambiar foto de perfil - Manejo centralizado para evitar duplicados
         const changeAvatarBtn = document.getElementById('changeAvatarBtn');
-        if (changeAvatarBtn) {
-            changeAvatarBtn.addEventListener('click', () => {
-                document.getElementById('profilePicture').click();
-            });
-        }
-
-        // Avatar click
         const avatar = document.getElementById('currentAvatar');
-        if (avatar) {
-            avatar.addEventListener('click', () => {
-                document.getElementById('profilePicture').click();
-            });
+        const profilePictureInput = document.getElementById('profilePicture');
+        
+        if (profilePictureInput) {
+            // Función reutilizable para abrir el file chooser
+            const openFileChooser = (event) => {
+                // Prevenir propagación para evitar eventos duplicados
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                
+                // Verificar que no hay diálogos abiertos
+                if (document.querySelector('.password-required-notification') || 
+                    document.querySelector('.email-not-confirmed-notification')) {
+                    console.log('⚠️ Hay un diálogo abierto, cancelando file chooser');
+                    return;
+                }
+                
+                console.log('📸 Abriendo selector de imagen de perfil...');
+                profilePictureInput.click();
+            };
+            
+            // Botón "Cambiar foto"
+            if (changeAvatarBtn) {
+                // Remover listeners previos para evitar duplicados
+                const newBtn = changeAvatarBtn.cloneNode(true);
+                changeAvatarBtn.parentNode.replaceChild(newBtn, changeAvatarBtn);
+                
+                newBtn.addEventListener('click', openFileChooser);
+            }
+            
+            // Avatar clickeable
+            if (avatar) {
+                // Remover listeners previos para evitar duplicados
+                const newAvatar = avatar.cloneNode(true);
+                avatar.parentNode.replaceChild(newAvatar, avatar);
+                
+                newAvatar.addEventListener('click', openFileChooser);
+            }
         }
 
         // Subida de archivos
@@ -287,26 +315,9 @@ class ProfileManager {
     }
 
     setupFileUploads() {
-        // Foto de perfil
-        const profilePictureInput = document.getElementById('profilePicture');
-        if (profilePictureInput) {
-            profilePictureInput.addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                if (!this.validateFile(file, 'profile_picture')) return;
-                // Preview inmediata
-                this.showImagePreview(file);
-                try {
-                    const url = await this.uploadToServer(file);
-                    if (url) {
-                        // Persistir URL en backend
-                        await this.persistPartial({ profile_picture_url: url });
-                    }
-                } catch (err) {
-                    this.showError('No se pudo subir la foto');
-                }
-            });
-        }
+        // NOTA: La foto de perfil ahora es manejada completamente por file-upload-manager.js
+        // Esto evita duplicación de event listeners y conflictos
+        console.log('📝 ProfileManager: file-upload-manager.js se encarga del upload de imágenes');
 
         // Curriculum
         const curriculumInput = document.getElementById('curriculum');
@@ -314,18 +325,39 @@ class ProfileManager {
         const curriculumName = document.getElementById('curriculumName');
 
         if (curriculumInput && curriculumBtn) {
-            curriculumBtn.addEventListener('click', (event) => {
+            // Prevenir clics duplicados con flag de protección
+            let cvClickInProgress = false;
+            
+            // Remover listeners previos clonando el elemento
+            const newCvBtn = curriculumBtn.cloneNode(true);
+            curriculumBtn.parentNode.replaceChild(newCvBtn, curriculumBtn);
+            
+            newCvBtn.addEventListener('click', (event) => {
+                // Prevenir clics duplicados
+                if (cvClickInProgress) {
+                    console.log('⚠️ Click ya en progreso, ignorando...');
+                    event.preventDefault();
+                    return;
+                }
+                
                 // VERIFICAR QUE ES UNA ACTIVACIÓN DEL USUARIO
                 if (!event.isTrusted) {
                     console.error('❌ Error: File chooser requiere activación del usuario');
                     return;
                 }
                 
+                // Prevenir propagación de eventos
+                event.preventDefault();
+                event.stopPropagation();
+                
                 // Verificar que no haya otros diálogos abiertos
-                if (document.querySelector('.password-required-notification')) {
+                if (document.querySelector('.password-required-notification') || 
+                    document.querySelector('.email-not-confirmed-notification')) {
                     console.log('⚠️ Diálogo de notificación abierto, esperando...');
                     return;
                 }
+                
+                cvClickInProgress = true;
                 
                 try {
                     console.log('📝 Abriendo selector de archivos para CV...');
@@ -336,11 +368,17 @@ class ProfileManager {
                             curriculumInput.click();
                         } catch (error) {
                             console.error('❌ Error en setTimeout click:', error);
+                        } finally {
+                            // Resetear flag después de un tiempo
+                            setTimeout(() => {
+                                cvClickInProgress = false;
+                            }, 1000);
                         }
                     }, 0);
                     
                 } catch (error) {
                     console.error('❌ Error abriendo file chooser:', error);
+                    cvClickInProgress = false;
                     // No mostrar alert inmediatamente, puede interferir
                     setTimeout(() => {
                         alert('Error al abrir el selector de archivos. Por favor, intenta de nuevo.');

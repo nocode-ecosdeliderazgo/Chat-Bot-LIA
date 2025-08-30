@@ -302,17 +302,31 @@ class FileUploadManager {
 
     setupEventListeners() {
         // Event listener para cambio de foto de perfil
-        const changeAvatarBtn = document.getElementById('changeAvatarBtn');
+        // NOTA: El botón changeAvatarBtn ya es manejado por profile-manager.js
+        // Solo configuramos el listener del input para evitar duplicación
         const profilePictureInput = document.getElementById('profilePicture');
         
-        if (changeAvatarBtn && profilePictureInput) {
-            changeAvatarBtn.addEventListener('click', () => {
-                profilePictureInput.click();
-            });
-
-            profilePictureInput.addEventListener('change', (e) => {
-                this.handleProfilePictureUpload(e.target.files[0]);
-            });
+        if (profilePictureInput) {
+            // Remover listener existente si ya existe para evitar duplicados
+            profilePictureInput.removeEventListener('change', this.handleProfilePictureChange);
+            
+            // Crear función bound para poder removerla después
+            this.handleProfilePictureChange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                console.log('📸 Archivo seleccionado:', file.name, file.size, 'bytes');
+                
+                // Mostrar preview inmediato si profile-manager está disponible
+                if (window.profileManager && typeof window.profileManager.showImagePreview === 'function') {
+                    window.profileManager.showImagePreview(file);
+                }
+                
+                // Procesar el upload
+                this.handleProfilePictureUpload(file);
+            };
+            
+            profilePictureInput.addEventListener('change', this.handleProfilePictureChange);
         }
 
         // Event listener para subida de curriculum
