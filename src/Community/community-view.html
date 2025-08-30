@@ -21,8 +21,8 @@
         <span>Volver</span>
     </button>
 
-    <!-- Botón de cambio de tema -->
-    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">
+         <!-- Botón de cambio de tema -->
+     <button class="theme-toggle-btn" id="themeToggleBtn" title="Cambiar tema">
         <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="5"></circle>
             <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -53,7 +53,7 @@
         </div>
     </nav>
 
-    <main class="main-content" style="padding-top:10px">
+         <main class="main-content" id="main-content" style="padding-top:10px">
         <!-- Banner de la comunidad -->
         <div class="community-banner" id="communityBanner">
             <div class="community-banner-image" id="communityBannerImage"></div>
@@ -66,6 +66,20 @@
                         <h1 class="community-banner-title" id="communityBannerTitle">Comunidad</h1>
                         <p class="community-banner-desc" id="communityBannerDesc">Descripción de la comunidad</p>
                         <div class="community-banner-meta" id="communityBannerMeta">• Members • Free</div>
+                     <div class="community-stats" id="communityStats">
+                         <div class="stat-item">
+                             <span class="stat-number" id="totalPosts">0</span>
+                             <span class="stat-label">Posts</span>
+                         </div>
+                         <div class="stat-item">
+                             <span class="stat-number" id="totalComments">0</span>
+                             <span class="stat-label">Comentarios</span>
+                         </div>
+                         <div class="stat-item">
+                             <span class="stat-number" id="totalReactions">0</span>
+                             <span class="stat-label">Reacciones</span>
+                         </div>
+                     </div>
                     </div>
                 </div>
             </div>
@@ -162,9 +176,12 @@
                 </div>
             </div>
             <div class="chat-head-actions">
-                <button class="chat-action-btn" id="chatSettings" title="Configuración">
-                    <i class="fas fa-cog"></i>
-                </button>
+                                 <button class="chat-action-btn" id="chatSettings" title="Configuración">
+                     <i class="fas fa-cog"></i>
+                 </button>
+                 <button class="chat-action-btn" id="exportData" title="Exportar datos">
+                     <i class="fas fa-download"></i>
+                 </button>
                 <button class="chat-action-btn" id="closeChat" title="Cerrar">
                     <i class="fas fa-times"></i>
                 </button>
@@ -477,6 +494,9 @@
         </div>
     </div>
 
+    <!-- Sistema de Notificaciones -->
+    <div id="notificationContainer" class="notification-container"></div>
+
     <script>
         (function(){
             try{
@@ -622,15 +642,35 @@
              // Actualizar timestamps al cargar
              updatePostTimestamps();
              
+             // Función para actualizar estadísticas
+             function updateStats() {
+                 const totalPosts = posts.length;
+                 const totalComments = posts.reduce((sum, post) => sum + (post.comments?.length || 0), 0);
+                 const totalReactions = posts.reduce((sum, post) => {
+                     if (post.reactions) {
+                         return sum + Object.values(post.reactions).reduce((a, b) => a + (b || 0), 0);
+                     }
+                     return sum;
+                 }, 0);
+                 
+                 document.getElementById('totalPosts').textContent = totalPosts;
+                 document.getElementById('totalComments').textContent = totalComments;
+                 document.getElementById('totalReactions').textContent = totalReactions;
+             }
+             
              // Actualizar timestamps cada minuto
              setInterval(() => {
                  updatePostTimestamps();
+                 updateStats();
                  // Re-renderizar solo si hay posts visibles
                  const activeCategory = document.querySelector('.feed-chip.active')?.dataset.category || 'all';
                  if (document.getElementById('postsList').children.length > 0) {
                      renderPosts(activeCategory);
                  }
              }, 60000); // Cada minuto
+             
+             // Actualizar estadísticas iniciales
+             updateStats();
             let pendingAttachments = [];
             const composerInput = document.getElementById('composerInput');
             const publishPostBtn = document.getElementById('publishPostBtn');
@@ -709,17 +749,92 @@
                          renderPosts(category);
                     });
                 });
-                // compartir
-                list.querySelectorAll('[data-share]').forEach(el=>{
-                    el.addEventListener('click', async ()=>{
-                        const id = Number(el.getAttribute('data-share'));
-                        const post = posts.find(p=>p.id===id);
-                        try{
-                            await navigator.clipboard.writeText(post.content);
-                            alert('Enlace/copete copiado al portapapeles.');
-                        }catch(e){ alert('No se pudo copiar.'); }
-                    });
-                });
+                                 // compartir
+                 list.querySelectorAll('[data-share]').forEach(el=>{
+                     el.addEventListener('click', async ()=>{
+                         const id = Number(el.getAttribute('data-share'));
+                         const post = posts.find(p=>p.id===id);
+                         
+                         // Crear menú de compartir
+                         const shareMenu = document.createElement('div');
+                         shareMenu.className = 'share-menu';
+                         shareMenu.innerHTML = `
+                             <div class="share-menu-content">
+                                 <h4>Compartir publicación</h4>
+                                 <div class="share-options">
+                                     <button class="share-option" data-action="copy">
+                                         <i class="fas fa-copy"></i>
+                                         <span>Copiar texto</span>
+                                     </button>
+                                     <button class="share-option" data-action="twitter">
+                                         <i class="fab fa-twitter"></i>
+                                         <span>Twitter</span>
+                                     </button>
+                                     <button class="share-option" data-action="facebook">
+                                         <i class="fab fa-facebook"></i>
+                                         <span>Facebook</span>
+                                     </button>
+                                     <button class="share-option" data-action="linkedin">
+                                         <i class="fab fa-linkedin"></i>
+                                         <span>LinkedIn</span>
+                                     </button>
+                                     <button class="share-option" data-action="whatsapp">
+                                         <i class="fab fa-whatsapp"></i>
+                                         <span>WhatsApp</span>
+                                     </button>
+                                 </div>
+                                 <button class="share-close">Cancelar</button>
+                             </div>
+                         `;
+                         
+                         document.body.appendChild(shareMenu);
+                         
+                         // Eventos del menú de compartir
+                         shareMenu.querySelectorAll('.share-option').forEach(btn => {
+                             btn.addEventListener('click', async () => {
+                                 const action = btn.dataset.action;
+                                 const text = post.content;
+                                 const url = window.location.href;
+                                 
+                                 switch(action) {
+                                     case 'copy':
+                                         try {
+                                             await navigator.clipboard.writeText(text);
+                                             notifications.success('Contenido copiado al portapapeles');
+                                         } catch(e) {
+                                             notifications.error('No se pudo copiar al portapapeles');
+                                         }
+                                         break;
+                                     case 'twitter':
+                                         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+                                         break;
+                                     case 'facebook':
+                                         window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`, '_blank');
+                                         break;
+                                     case 'linkedin':
+                                         window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
+                                         break;
+                                     case 'whatsapp':
+                                         window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+                                         break;
+                                 }
+                                 
+                                 shareMenu.remove();
+                             });
+                         });
+                         
+                         shareMenu.querySelector('.share-close').addEventListener('click', () => {
+                             shareMenu.remove();
+                         });
+                         
+                         // Cerrar al hacer clic fuera
+                         shareMenu.addEventListener('click', (e) => {
+                             if (e.target === shareMenu) {
+                                 shareMenu.remove();
+                             }
+                         });
+                     });
+                 });
             }
             document.querySelectorAll('.feed-chip').forEach(chip=>{
                 chip.addEventListener('click', ()=>{
@@ -887,7 +1002,7 @@
                 console.log('Archivo de imagen seleccionado:', e.target.files?.[0]);
                 const file = e.target.files?.[0];
                 if(!file) return;
-                if(bytesToMB(file.size) > 10){ alert('Imagen supera 10MB'); return; }
+                                 if(bytesToMB(file.size) > 10){ notifications.warning('Imagen supera 10MB'); return; }
                 console.log('Procesando imagen:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
                 const reader = new FileReader();
                 reader.onload = ()=>{
@@ -904,7 +1019,7 @@
                 console.log('Archivo de documento seleccionado:', e.target.files?.[0]);
                 const file = e.target.files?.[0];
                 if(!file) return;
-                if(bytesToMB(file.size) > 10){ alert('Documento supera 10MB'); return; }
+                                 if(bytesToMB(file.size) > 10){ notifications.warning('Documento supera 10MB'); return; }
                 console.log('Procesando documento:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
                 const reader = new FileReader();
                 reader.onload = ()=>{
@@ -921,19 +1036,19 @@
                 return m ? `https://www.youtube.com/embed/${m[1]}` : null;
             }
 
-            function renderAttachments(att){
-                if(!att || att.length===0) return '';
-                return `<div class='attachments-preview'>` + att.map(a=>{
-                    if(a.type==='image') return `<img src='${a.src}' class='preview-thumb'>`;
-                    if(a.type==='youtube') return `<iframe width='240' height='135' src='${a.embed}' frameborder='0' allowfullscreen></iframe>`;
-                    if(a.type==='pdf') return `<a href='${a.dataUrl}' target='_blank' class='pdf-chip'><i class='fas fa-file-pdf'></i> ${a.name}</a>`;
-                    if(a.type==='document') return `<a href='${a.dataUrl}' target='_blank' class='document-chip'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a>`;
-                    if(a.type==='link') return `<a href='${a.url}' target='_blank' class='link-chip'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a>`;
-                    if(a.type==='location') return `<div class='location-chip'><i class='fas fa-map-marker-alt'></i> ${a.text}</div>`;
-                    if(a.type==='poll') return `<div class='poll-chip'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div>`;
-                    return '';
-                }).join('') + `</div>`;
-            }
+                         function renderAttachments(att){
+                 if(!att || att.length===0) return '';
+                 return `<div class='attachments-preview'>` + att.map(a=>{
+                     if(a.type==='image') return `<img src='${a.src}' class='preview-thumb' loading='lazy' alt='Imagen adjunta'>`;
+                     if(a.type==='youtube') return `<iframe width='240' height='135' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe>`;
+                     if(a.type==='pdf') return `<a href='${a.dataUrl}' target='_blank' class='pdf-chip'><i class='fas fa-file-pdf'></i> ${a.name}</a>`;
+                     if(a.type==='document') return `<a href='${a.dataUrl}' target='_blank' class='document-chip'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a>`;
+                     if(a.type==='link') return `<a href='${a.url}' target='_blank' class='link-chip'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a>`;
+                     if(a.type==='location') return `<div class='location-chip'><i class='fas fa-map-marker-alt'></i> ${a.text}</div>`;
+                     if(a.type==='poll') return `<div class='poll-chip'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div>`;
+                     return '';
+                 }).join('') + `</div>`;
+             }
 
             // resumen de reacciones
             function reactionSummary(r){
@@ -1050,8 +1165,8 @@
                      // Re-renderizar posts
                      renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all');
                      
-                     // Mostrar confirmación
-                     alert('¡Publicación creada exitosamente!');
+                                           // Mostrar confirmación
+                      notifications.success('¡Publicación creada exitosamente!');
                      console.log('Publicación completada');
                 });
             }
@@ -1092,11 +1207,80 @@
                     renderMembers(btn.dataset.filter, document.getElementById('viewSearch').value);
                 });
             });
-            const search = document.getElementById('viewSearch');
-            search.addEventListener('input', ()=>{
-                const active = document.querySelector('.members-chip.active');
-                renderMembers(active?active.dataset.filter:'all', search.value);
-            });
+                         const search = document.getElementById('viewSearch');
+             let searchTimeout;
+             
+             search.addEventListener('input', ()=>{
+                 clearTimeout(searchTimeout);
+                 searchTimeout = setTimeout(() => {
+                     const active = document.querySelector('.members-chip.active');
+                     renderMembers(active?active.dataset.filter:'all', search.value);
+                 }, 300); // Debounce de 300ms
+             });
+             
+             // Búsqueda en posts
+             search.addEventListener('keypress', (e) => {
+                 if (e.key === 'Enter') {
+                     const query = search.value.trim();
+                     if (query) {
+                         // Cambiar a la pestaña de comunidad y buscar en posts
+                         document.querySelectorAll('.subnav-link').forEach(btn => btn.classList.remove('active'));
+                         document.querySelector('[data-tab="community"]').classList.add('active');
+                         document.querySelectorAll('main > section').forEach(s => s.style.display = 'none');
+                         document.getElementById('tab-community').style.display = 'block';
+                         
+                         // Filtrar posts por búsqueda
+                         const filteredPosts = posts.filter(post => 
+                             post.content.toLowerCase().includes(query.toLowerCase()) ||
+                             post.user.toLowerCase().includes(query.toLowerCase()) ||
+                             post.category.toLowerCase().includes(query.toLowerCase())
+                         );
+                         
+                         // Mostrar resultados
+                         const list = document.getElementById('postsList');
+                         if (filteredPosts.length > 0) {
+                             list.innerHTML = filteredPosts.map(p => `
+                                 <div class="post-card" data-open-post="${p.id}">
+                                     <div class="post-avatar"><i class="${p.avatar}"></i></div>
+                                     <div class="post-body">
+                                         <div class="post-header">
+                                             <span class="post-name">${p.user}</span>
+                                             <span class="post-meta">• ${p.minutesAgo} min • ${p.category}</span>
+                                         </div>
+                                         <div class="post-content">${p.content}</div>
+                                         ${renderAttachments(p.attachments)}
+                                         <div class="post-actions">
+                                             <span class="post-action" data-action="comment" data-id="${p.id}"><i class="fas fa-comment"></i> Comentar</span>
+                                             <span class="post-action shares" data-share="${p.id}"><i class="fas fa-share"></i> Compartir</span>
+                                             <span class="react-area">
+                                                 <button class="react-btn" data-react-toggle="${p.id}" title="Reaccionar">👍</button>
+                                                 <div class="reaction-picker" id="picker-${p.id}">
+                                                     <div class="reaction-item" data-react="like" data-id="${p.id}">👍</div>
+                                                     <div class="reaction-item" data-react="heart" data-id="${p.id}">❤️</div>
+                                                     <div class="reaction-item" data-react="wow" data-id="${p.id}">😮</div>
+                                                     <div class="reaction-item" data-react="laugh" data-id="${p.id}">😂</div>
+                                                     <div class="reaction-item" data-react="sad" data-id="${p.id}">😢</div>
+                                                 </div>
+                                                 <span class="reaction-summary">${reactionSummary(p.reactions)}</span>
+                                             </span>
+                                         </div>
+                                     </div>
+                                 </div>
+                             `).join('');
+                             
+                             notifications.info(`Se encontraron ${filteredPosts.length} resultados para "${query}"`);
+                         } else {
+                             list.innerHTML = `
+                                 <div class="no-results">
+                                     <i class="fas fa-search"></i>
+                                     <h3>No se encontraron resultados</h3>
+                                     <p>No hay posts que coincidan con "${query}"</p>
+                                 </div>
+                             `;
+                         }
+                     }
+                 }
+             });
             renderMembers();
 
             // Enhanced Chat System
@@ -1170,9 +1354,12 @@
                 setupEventListeners() {
                     // Chat panel controls
                     document.getElementById('openChat').addEventListener('click', () => this.openChat());
-                    document.getElementById('closeChat').addEventListener('click', () => this.closeChat());
-                    document.getElementById('chatSettings').addEventListener('click', () => this.openSettings());
-                    document.getElementById('closeChatSettings').addEventListener('click', () => this.closeSettings());
+                                         document.getElementById('closeChat').addEventListener('click', () => this.closeChat());
+                     document.getElementById('chatSettings').addEventListener('click', () => this.openSettings());
+                     document.getElementById('closeChatSettings').addEventListener('click', () => this.closeSettings());
+                     
+                     // Exportar datos
+                     document.getElementById('exportData').addEventListener('click', () => this.exportData());
 
                     // Message input
                     const chatInput = document.getElementById('chatInput');
@@ -1537,9 +1724,31 @@
                     localStorage.setItem('communityChatMessages', JSON.stringify(this.messages));
                 }
 
-                saveSettings() {
-                    localStorage.setItem('chatSettings', JSON.stringify(this.settings));
-                }
+                                 saveSettings() {
+                     localStorage.setItem('chatSettings', JSON.stringify(this.settings));
+                 }
+                 
+                 exportData() {
+                     const data = {
+                         posts: posts,
+                         chatMessages: this.messages,
+                         settings: this.settings,
+                         exportDate: new Date().toISOString(),
+                         version: '1.0'
+                     };
+                     
+                     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                     const url = URL.createObjectURL(blob);
+                     const a = document.createElement('a');
+                     a.href = url;
+                     a.download = `community-data-${new Date().toISOString().split('T')[0]}.json`;
+                     document.body.appendChild(a);
+                     a.click();
+                     document.body.removeChild(a);
+                     URL.revokeObjectURL(url);
+                     
+                     notifications.success('Datos exportados exitosamente');
+                 }
             }
 
             // Initialize chat system
@@ -1572,14 +1781,14 @@
                                 pendingAttachments.push({ type: 'link', url });
                                 addPreviewLink(url);
                                 closeLinkModalFunc();
-                            } catch (e) {
-                                console.log('URL inválida:', e);
-                                alert('Por favor ingresa una URL válida (ej: https://ejemplo.com)');
-                            }
-                        } else {
-                            console.log('URL vacía');
-                            alert('Por favor ingresa una URL');
-                        }
+                                                         } catch (e) {
+                                 console.log('URL inválida:', e);
+                                 notifications.error('Por favor ingresa una URL válida (ej: https://ejemplo.com)');
+                             }
+                         } else {
+                             console.log('URL vacía');
+                             notifications.warning('Por favor ingresa una URL');
+                         }
                     });
                 }
 
@@ -1616,12 +1825,12 @@
                                 pendingAttachments.push({ type: 'youtube', embed });
                                 addPreviewYoutube(embed);
                                 closeYoutubeModalFunc();
-                            } else {
-                                alert('Enlace de YouTube inválido. Asegúrate de que sea una URL válida de YouTube');
-                            }
-                        } else {
-                            alert('Por favor ingresa una URL de YouTube');
-                        }
+                                                         } else {
+                                 notifications.error('Enlace de YouTube inválido. Asegúrate de que sea una URL válida de YouTube');
+                             }
+                         } else {
+                             notifications.warning('Por favor ingresa una URL de YouTube');
+                         }
                     });
                 }
 
@@ -1656,9 +1865,9 @@
                             pendingAttachments.push({ type: 'location', text: location });
                             addPreviewLocation(location);
                             closeLocationModalFunc();
-                        } else {
-                            alert('Por favor ingresa una ubicación');
-                        }
+                                                 } else {
+                             notifications.warning('Por favor ingresa una ubicación');
+                         }
                     });
                 }
 
@@ -1702,12 +1911,12 @@
                                 });
                                 addPreviewPoll(question, pollOptionsArray);
                                 closePollModalFunc();
-                            } else {
-                                alert('Necesitas al menos 2 opciones para la encuesta');
-                            }
-                        } else {
-                            alert('Por favor completa tanto la pregunta como las opciones');
-                        }
+                                                         } else {
+                                 notifications.warning('Necesitas al menos 2 opciones para la encuesta');
+                             }
+                         } else {
+                             notifications.error('Por favor completa tanto la pregunta como las opciones');
+                         }
                     });
                 }
 
@@ -1727,13 +1936,15 @@
             // Inicializar modales de entrada
             setupInputModals();
             
-            // Debug: verificar que los elementos existan
-            console.log('Elementos de publicación:', {
-                composerInput: !!document.getElementById('composerInput'),
-                publishPostBtn: !!document.getElementById('publishPostBtn'),
-                attachMenuBtn: !!document.getElementById('attachMenuBtn'),
-                attachModal: !!document.getElementById('attachModal')
-            });
+            // Verificar que los elementos existan (solo en desarrollo)
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                console.log('Elementos de publicación:', {
+                    composerInput: !!document.getElementById('composerInput'),
+                    publishPostBtn: !!document.getElementById('publishPostBtn'),
+                    attachMenuBtn: !!document.getElementById('attachMenuBtn'),
+                    attachModal: !!document.getElementById('attachModal')
+                });
+            }
             
             // Escuchar cambios en el localStorage para actualizar la foto de perfil
             window.addEventListener('storage', function(e) {
@@ -1742,17 +1953,183 @@
                 }
             });
             
-            // También escuchar cambios locales (misma pestaña)
-            const originalSetItem = localStorage.setItem;
-            localStorage.setItem = function(key, value) {
-                originalSetItem.apply(this, arguments);
-                if (key === 'avatarData' || key === 'userProfile') {
-                    loadUserProfilePicture();
-                }
-            };
+                         // También escuchar cambios locales (misma pestaña)
+             const originalSetItem = localStorage.setItem;
+             localStorage.setItem = function(key, value) {
+                 originalSetItem.apply(this, arguments);
+                 if (key === 'avatarData' || key === 'userProfile') {
+                     loadUserProfilePicture();
+                 }
+             };
+             
+             // Mejorar el sistema de cambio de tema
+             document.getElementById('themeToggleBtn').addEventListener('click', () => {
+                 const currentTheme = document.documentElement.getAttribute('data-theme');
+                 const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                 
+                 document.documentElement.setAttribute('data-theme', newTheme);
+                 localStorage.setItem('theme', newTheme);
+                 
+                 // Animación suave del cambio
+                 document.body.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+                 setTimeout(() => {
+                     document.body.style.transition = '';
+                 }, 300);
+                 
+                 notifications.info(`Tema cambiado a ${newTheme === 'light' ? 'claro' : 'oscuro'}`);
+             });
         })();
     </script>
-    <script src="../scripts/theme-toggle.js"></script>
+         <!-- Funcionalidades de accesibilidad -->
+     <script>
+         // Mejoras de accesibilidad
+         document.addEventListener('DOMContentLoaded', function() {
+             // Navegación por teclado
+             document.addEventListener('keydown', function(e) {
+                 // ESC para cerrar modales
+                 if (e.key === 'Escape') {
+                     const modals = document.querySelectorAll('.attach-modal.show, .input-modal.show, .post-modal.show, .chat-settings-modal.show');
+                     modals.forEach(modal => modal.classList.remove('show'));
+                 }
+                 
+                 // Ctrl/Cmd + K para buscar
+                 if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                     e.preventDefault();
+                     const searchInput = document.getElementById('viewSearch');
+                     if (searchInput) {
+                         searchInput.focus();
+                     }
+                 }
+                 
+                 // Ctrl/Cmd + Enter para publicar
+                 if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                     const publishBtn = document.getElementById('publishPostBtn');
+                     if (publishBtn && !publishBtn.disabled) {
+                         publishBtn.click();
+                     }
+                 }
+             });
+             
+             // Mejorar focus visible
+             const focusableElements = document.querySelectorAll('button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
+             focusableElements.forEach(element => {
+                 element.addEventListener('focus', function() {
+                     this.style.outline = '2px solid var(--primary-color)';
+                     this.style.outlineOffset = '2px';
+                 });
+                 
+                 element.addEventListener('blur', function() {
+                     this.style.outline = '';
+                     this.style.outlineOffset = '';
+                 });
+             });
+             
+             // Skip to main content
+             const skipLink = document.createElement('a');
+             skipLink.href = '#main-content';
+             skipLink.textContent = 'Saltar al contenido principal';
+             skipLink.className = 'skip-link';
+             skipLink.style.cssText = `
+                 position: absolute;
+                 top: -40px;
+                 left: 6px;
+                 background: var(--primary-color);
+                 color: white;
+                 padding: 8px 16px;
+                 text-decoration: none;
+                 border-radius: 4px;
+                 z-index: 10000;
+                 transition: top 0.3s;
+             `;
+             
+             skipLink.addEventListener('focus', function() {
+                 this.style.top = '6px';
+             });
+             
+             skipLink.addEventListener('blur', function() {
+                 this.style.top = '-40px';
+             });
+             
+             document.body.insertBefore(skipLink, document.body.firstChild);
+         });
+     </script>
+     
+     <script src="../scripts/theme-toggle.js"></script>
+
+    <script>
+        // Sistema de notificaciones elegante
+        class NotificationSystem {
+            constructor() {
+                this.container = document.getElementById('notificationContainer');
+                if (!this.container) {
+                    this.container = document.createElement('div');
+                    this.container.id = 'notificationContainer';
+                    this.container.className = 'notification-container';
+                    document.body.appendChild(this.container);
+                }
+            }
+
+            show(message, type = 'info', duration = 4000) {
+                const notification = document.createElement('div');
+                notification.className = `notification notification-${type}`;
+                
+                const icon = this.getIcon(type);
+                notification.innerHTML = `
+                    <div class="notification-icon">${icon}</div>
+                    <div class="notification-content">
+                        <div class="notification-message">${message}</div>
+                    </div>
+                    <button class="notification-close" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                this.container.appendChild(notification);
+
+                // Animación de entrada
+                setTimeout(() => notification.classList.add('show'), 10);
+
+                // Auto-remover
+                if (duration > 0) {
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                        setTimeout(() => notification.remove(), 300);
+                    }, duration);
+                }
+
+                return notification;
+            }
+
+            success(message, duration = 4000) {
+                return this.show(message, 'success', duration);
+            }
+
+            error(message, duration = 6000) {
+                return this.show(message, 'error', duration);
+            }
+
+            warning(message, duration = 5000) {
+                return this.show(message, 'warning', duration);
+            }
+
+            info(message, duration = 4000) {
+                return this.show(message, 'info', duration);
+            }
+
+            getIcon(type) {
+                const icons = {
+                    success: '<i class="fas fa-check-circle"></i>',
+                    error: '<i class="fas fa-exclamation-circle"></i>',
+                    warning: '<i class="fas fa-exclamation-triangle"></i>',
+                    info: '<i class="fas fa-info-circle"></i>'
+                };
+                return icons[type] || icons.info;
+            }
+        }
+
+        // Instanciar sistema de notificaciones
+        const notifications = new NotificationSystem();
+    </script>
 </body>
 </html>
 
