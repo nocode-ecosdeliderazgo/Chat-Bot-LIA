@@ -16,6 +16,474 @@
     <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
     <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY
 ">
+    
+    <style>
+        /* Estilos para los rangos de ligas */
+        .league-ranges-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .league-ranges-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .league-ranges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .league-range-card {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: var(--background);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .league-range-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .league-range-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            background: var(--surface);
+        }
+        
+        .league-icon-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .league-range-info h5 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 5px 0;
+        }
+        
+        .league-range-points {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: 0;
+            font-weight: 500;
+        }
+        
+        /* Estilos para el badge de liga del usuario */
+        .league-profile-badge {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: var(--surface);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .league-badge-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        /* Layout de dos columnas superiores */
+        .leagues-top-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            align-items: start;
+            margin-bottom: 30px;
+        }
+
+        .league-ranges-sidebar {
+            background: var(--gradient-card);
+            border: 1px solid rgba(68, 229, 255, 0.2);
+            border-radius: var(--border-radius-lg);
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-medium);
+            height: fit-content;
+        }
+
+        .league-ranges-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .league-ranges-vertical .league-range-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(68, 229, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(68, 229, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .league-ranges-vertical .league-range-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(68, 229, 255, 0.2);
+        }
+
+        .league-ranges-vertical .league-range-icon {
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+        }
+
+        .league-ranges-vertical .league-range-info h4 {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .league-ranges-vertical .league-range-points {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Sidebar de puntos por acción */
+        .points-sidebar {
+            background: var(--gradient-card);
+            border: 1px solid rgba(68, 229, 255, 0.2);
+            border-radius: var(--border-radius-lg);
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-medium);
+            height: fit-content;
+        }
+
+        .points-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+
+        .points-grid-2x2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .points-grid-2x2 .points-info-card {
+            background: rgba(68, 229, 255, 0.05);
+            border: 1px solid rgba(68, 229, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .points-grid-2x2 .points-info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(68, 229, 255, 0.2);
+        }
+
+        .points-grid-2x2 .points-info-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px auto;
+            color: white;
+            font-size: 16px;
+        }
+
+        .points-grid-2x2 h4 {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .points-grid-2x2 p {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Panel de clasificación a ancho completo */
+        .leaderboard-full-width {
+            width: 100%;
+        }
+
+        /* Estilos para la tabla de clasificación */
+        .leaderboard-table {
+            margin-top: 20px;
+            min-height: 500px;
+            max-height: 600px;
+            background: rgba(68, 229, 255, 0.05);
+            border: 2px dashed rgba(68, 229, 255, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            overflow-y: auto;
+            
+            /* Scrollbar personalizada */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(68, 229, 255, 0.5) rgba(68, 229, 255, 0.1);
+        }
+
+        /* Scrollbar personalizada para Webkit (Chrome, Safari, Edge) */
+        .leaderboard-table::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .leaderboard-table::-webkit-scrollbar-track {
+            background: rgba(68, 229, 255, 0.1);
+            border-radius: 4px;
+            margin: 4px 0;
+        }
+
+        .leaderboard-table::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(68, 229, 255, 0.6), rgba(68, 229, 255, 0.3));
+            border-radius: 4px;
+            border: 1px solid rgba(68, 229, 255, 0.2);
+        }
+
+        .leaderboard-table::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, rgba(68, 229, 255, 0.8), rgba(68, 229, 255, 0.5));
+            box-shadow: 0 0 8px rgba(68, 229, 255, 0.4);
+        }
+
+        .leaderboard-table::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+
+        .leaderboard-table:empty::before {
+            content: "🔍 Debug: Esperando datos de usuarios...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        /* Responsive para el layout de ligas */
+        @media (max-width: 1024px) {
+            .leagues-top-layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .points-grid-2x2 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .points-grid-2x2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Estilos para el header del leaderboard con filtros */
+        .leaderboard-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .leagues-filters {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .league-filter {
+            padding: 8px 16px;
+            background: rgba(68, 229, 255, 0.1);
+            border: 1px solid rgba(68, 229, 255, 0.3);
+            border-radius: 20px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .league-filter:hover {
+            background: rgba(68, 229, 255, 0.2);
+            border-color: rgba(68, 229, 255, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .league-filter.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(68, 229, 255, 0.3);
+        }
+
+        .leaderboard-row {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard-row:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .leaderboard-position {
+            width: 60px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .leaderboard-user {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .user-league {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .leaderboard-points {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .empty-leaderboard {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-leaderboard i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-leaderboard p {
+            font-size: 1.1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .league-ranges-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .league-range-card {
+                padding: 12px;
+            }
+            
+            .league-range-icon {
+                width: 50px;
+                height: 50px;
+                margin-right: 12px;
+            }
+            
+            .league-icon-img {
+                width: 100%;
+                height: 100%;
+            }
+
+            .leaderboard-row {
+                padding: 12px;
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+
+            .leaderboard-position {
+                width: auto;
+                order: 1;
+            }
+
+            .leaderboard-user {
+                order: 2;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .leaderboard-points {
+                order: 3;
+            }
+
+            .user-avatar {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
 </head>
 <body class="bg-glow-global">
     <div class="particles-container"></div>
@@ -163,7 +631,7 @@
                             </div>
                         </div>
                         <div class="league-profile-badge" id="currentUserBadge">
-                            <i class="fas fa-medal"></i>
+                            <img src="images/liga-oro.png" alt="Liga Actual" id="currentUserLeagueImage" class="league-badge-img">
                         </div>
                     </div>
                     <div class="league-progress-bar">
@@ -172,59 +640,102 @@
                     </div>
                 </div>
 
-                <!-- Filtros de liga -->
-                <div class="leagues-filters">
-                    <button class="league-filter active" data-league="all">Todas las Ligas</button>
-                    <button class="league-filter" data-league="gold">Oro</button>
-                    <button class="league-filter" data-league="platinum">Platino</button>
-                    <button class="league-filter" data-league="diamond">Diamante</button>
-                </div>
+
 
                 <!-- Información de puntos -->
-                <div class="points-info-grid">
-                    <div class="points-info-card">
-                        <div class="points-info-icon">
-                            <i class="fas fa-edit"></i>
+                <!-- Layout de dos columnas superiores -->
+                <div class="leagues-top-layout">
+                    <!-- Columna izquierda: Rangos de liga -->
+                    <div class="league-ranges-sidebar">
+                        <h3 class="league-ranges-title">Rangos de Puntos por Liga</h3>
+                        <div class="league-ranges-vertical">
+                            <div class="league-range-card">
+                                <div class="league-range-icon">
+                                    <img src="images/liga-oro.png" alt="Liga Oro" class="league-icon-img">
+                                </div>
+                                <div class="league-range-info">
+                                    <h4>LIGA ORO</h4>
+                                    <p class="league-range-points">0 - 499 puntos</p>
+                                </div>
+                            </div>
+                            <div class="league-range-card">
+                                <div class="league-range-icon">
+                                    <img src="images/liga-platino.png" alt="Liga Platino" class="league-icon-img">
+                                </div>
+                                <div class="league-range-info">
+                                    <h4>LIGA PLATINO</h4>
+                                    <p class="league-range-points">500 - 999 puntos</p>
+                                </div>
+                            </div>
+                            <div class="league-range-card">
+                                <div class="league-range-icon">
+                                    <img src="images/liga-diamante.png" alt="Liga Diamante" class="league-icon-img">
+                                </div>
+                                <div class="league-range-info">
+                                    <h4>LIGA DIAMANTE</h4>
+                                    <p class="league-range-points">1000+ puntos</p>
+                                </div>
+                            </div>
                         </div>
-                        <h4>Publicar</h4>
-                        <p>+10 puntos</p>
                     </div>
-                    <div class="points-info-card">
-                        <div class="points-info-icon">
-                            <i class="fas fa-comment"></i>
+
+                    <!-- Columna derecha: Puntos por acción en matriz 2x2 -->
+                    <div class="points-sidebar">
+                        <h3 class="points-title">Puntos por Acción</h3>
+                        <div class="points-grid-2x2">
+                            <div class="points-info-card">
+                                <div class="points-info-icon">
+                                    <i class="fas fa-edit"></i>
+                                </div>
+                                <h4>Publicar</h4>
+                                <p>+10 puntos</p>
+                            </div>
+                            <div class="points-info-card">
+                                <div class="points-info-icon">
+                                    <i class="fas fa-comment"></i>
+                                </div>
+                                <h4>Comentar</h4>
+                                <p>+5 puntos</p>
+                            </div>
+                            <div class="points-info-card">
+                                <div class="points-info-icon">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <h4>Reaccionar</h4>
+                                <p>+2 puntos</p>
+                            </div>
+                            <div class="points-info-card">
+                                <div class="points-info-icon">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <h4>Post Popular</h4>
+                                <p>+15 puntos extra</p>
+                            </div>
                         </div>
-                        <h4>Comentar</h4>
-                        <p>+5 puntos</p>
-                    </div>
-                    <div class="points-info-card">
-                        <div class="points-info-icon">
-                            <i class="fas fa-heart"></i>
-                        </div>
-                        <h4>Reaccionar</h4>
-                        <p>+2 puntos</p>
-                    </div>
-                    <div class="points-info-card">
-                        <div class="points-info-icon">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <h4>Post Popular</h4>
-                        <p>+15 puntos extra</p>
                     </div>
                 </div>
 
-                <!-- Espacio vertical adicional -->
-                <div style="height: 40px;"></div>
-
-                <!-- Tabla de clasificación -->
-                <div class="leaderboard-container">
-                    <div class="leaderboard-header">
-                        <h3>Clasificación Global</h3>
-                        <div class="leaderboard-stats">
-                            <span id="totalParticipants">0 participantes</span>
+                <!-- Panel de clasificación global a ancho completo -->
+                <div class="leaderboard-full-width">
+                    <div class="leaderboard-container">
+                        <div class="leaderboard-header">
+                            <div class="leaderboard-header-top">
+                                <h3>Clasificación Global</h3>
+                                <div class="leaderboard-stats">
+                                    <span id="totalParticipants">0 participantes</span>
+                                </div>
+                            </div>
+                            <!-- Filtros de liga -->
+                            <div class="leagues-filters">
+                                <button class="league-filter active" data-league="all">Todas las Ligas</button>
+                                <button class="league-filter" data-league="gold">Oro</button>
+                                <button class="league-filter" data-league="platinum">Platino</button>
+                                <button class="league-filter" data-league="diamond">Diamante</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="leaderboard-table" id="leaderboardTable">
-                        <!-- La tabla se llenará dinámicamente -->
+                        <div class="leaderboard-table" id="leaderboardTable">
+                            <!-- La tabla se llenará dinámicamente -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -684,6 +1195,15 @@
                             await window.pointsSystem.refreshPointsFromDatabase();
                             window.pointsSystem.updateLeagueDisplay();
                         }
+                        
+                        // Cargar y mostrar la clasificación global
+                        if (window.leagueFilterSystem) {
+                            console.log('🏆 Cargando clasificación global...');
+                            await window.leagueFilterSystem.loadAllUsers();
+                            window.leagueFilterSystem.updateLeaderboard();
+                        }
+
+
                     }
                 });
             });
@@ -2920,7 +3440,7 @@
                             // Formatear usuarios para compatibilidad
                             this.users = data.map(user => ({
                                 id: user.id,
-                                name: user.display_name || user.first_name || user.username || 'Usuario',
+                                name: user.username || user.display_name || user.first_name || 'Usuario',
                                 points: user.points || 0,
                                 posts: 0,
                                 comments: 0,
@@ -3070,7 +3590,7 @@
                                 if (!localUser) {
                                     localUser = {
                                         id: userData.id,
-                                        name: userData.display_name || userData.first_name || userData.username || userData.email || 'Usuario',
+                                        name: userData.username || userData.display_name || userData.first_name || userData.email || 'Usuario',
                                         points: userData.points || 0,
                                         posts: 0,
                                         comments: 0,
@@ -3080,7 +3600,7 @@
                                 } else {
                                     // Actualizar puntos desde la base de datos
                                     localUser.points = userData.points || 0;
-                                    localUser.name = userData.display_name || userData.first_name || userData.username || userData.email || 'Usuario';
+                                    localUser.name = userData.username || userData.display_name || userData.first_name || userData.email || 'Usuario';
                                 }
                                 
                                 // IMPORTANTE: Asignar al currentUser
@@ -3248,11 +3768,36 @@
                 const progressElement = document.getElementById('leagueProgressFill');
                 const pointsElement = document.getElementById('currentUserPoints');
                 const progressTextElement = document.getElementById('leagueProgressText');
+                const leagueImageElement = document.getElementById('currentUserLeagueImage');
+                const userNameElement = document.getElementById('currentUserName');
                 
                 if (leagueElement) {
                     leagueElement.textContent = league.name;
                     leagueElement.style.color = league.color;
                     console.log('✅ League element updated:', league.name);
+                }
+                
+                // Actualizar nombre del usuario
+                if (userNameElement && this.currentUser.name) {
+                    userNameElement.textContent = this.currentUser.name;
+                    console.log('✅ User name updated:', this.currentUser.name);
+                }
+                
+                // Actualizar imagen de la liga
+                if (leagueImageElement) {
+                    let leagueImagePath = 'images/liga-oro.png'; // Default
+                    
+                    if (this.currentUser.points >= 1000) {
+                        leagueImagePath = 'images/liga-diamante.png';
+                    } else if (this.currentUser.points >= 500) {
+                        leagueImagePath = 'images/liga-platino.png';
+                    } else {
+                        leagueImagePath = 'images/liga-oro.png';
+                    }
+                    
+                    leagueImageElement.src = leagueImagePath;
+                    leagueImageElement.alt = `Liga ${league.name}`;
+                    console.log('✅ League image updated:', leagueImagePath);
                 }
                 
                 if (progressElement) {
@@ -3279,9 +3824,262 @@
             }
         }
 
+        // Sistema de filtros de liga
+        class LeagueFilterSystem {
+            constructor() {
+                this.currentFilter = 'all';
+                this.allUsers = [];
+                this.init();
+            }
+
+            async init() {
+                console.log('🏆 Inicializando sistema de filtros de liga...');
+                await this.loadAllUsers();
+                this.setupEventListeners();
+                this.updateLeaderboard();
+                console.log('✅ Sistema de filtros de liga inicializado');
+            }
+
+            async loadAllUsers() {
+                console.log('👥 Cargando todos los usuarios para clasificación...');
+                
+                if (!window.supabase) {
+                    console.error('❌ Supabase no está disponible');
+                    return;
+                }
+
+                try {
+                    console.log('🔍 Haciendo consulta a la tabla users...');
+                    
+                    // Consulta directa a la tabla users - igual que para obtener tu información
+                    const { data: users, error } = await window.supabase
+                        .from('users')
+                        .select('id, username, display_name, first_name, email, points')
+                        .order('points', { ascending: false });
+
+                    console.log('📊 Respuesta de Supabase:', { users, error });
+
+                    if (error) {
+                        console.error('❌ Error en consulta Supabase:', error);
+                        return;
+                    }
+
+                    if (users && users.length > 0) {
+                        console.log(`✅ Encontrados ${users.length} usuarios en la base de datos`);
+                        
+                        this.allUsers = users.map(user => {
+                            const userData = {
+                                id: user.id,
+                                name: user.username || user.display_name || user.first_name || user.email || 'Usuario',
+                                points: user.points || 0,
+                                league: this.getUserLeague(user.points || 0)
+                            };
+                            console.log('👤 Usuario procesado:', userData);
+                            return userData;
+                        });
+                        
+                        console.log(`✅ Cargados ${this.allUsers.length} usuarios desde Supabase`);
+                        console.log('📋 Lista completa de usuarios:', this.allUsers);
+                    } else {
+                        console.log('⚠️ No se encontraron usuarios en la base de datos');
+                        this.allUsers = [];
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error cargando usuarios:', error);
+                    this.allUsers = [];
+                }
+                
+                console.log(`📊 Total de usuarios cargados: ${this.allUsers.length}`);
+            }
+
+            getUserLeague(points) {
+                if (points >= 1000) return 'diamond';
+                if (points >= 500) return 'platinum';
+                return 'gold';
+            }
+
+            setupEventListeners() {
+                const filterButtons = document.querySelectorAll('.league-filter');
+                filterButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const league = button.dataset.league;
+                        this.setActiveFilter(league);
+                    });
+                });
+            }
+
+            setActiveFilter(league) {
+                this.currentFilter = league;
+                
+                // Actualizar botones activos
+                document.querySelectorAll('.league-filter').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-league="${league}"]`)?.classList.add('active');
+                
+                this.updateLeaderboard();
+            }
+
+            updateLeaderboard() {
+                console.log('🏆 Actualizando tabla de clasificación...');
+                console.log('📊 Usuarios disponibles:', this.allUsers);
+                console.log('🔍 Filtro actual:', this.currentFilter);
+                
+                const leaderboardTable = document.getElementById('leaderboardTable');
+                const totalParticipants = document.getElementById('totalParticipants');
+                
+                if (!leaderboardTable) {
+                    console.error('❌ No se encontró el elemento leaderboardTable');
+                    return;
+                }
+
+                console.log('🎯 Elemento leaderboardTable encontrado:', leaderboardTable);
+                console.log('📏 Dimensiones del elemento:', {
+                    offsetHeight: leaderboardTable.offsetHeight,
+                    clientHeight: leaderboardTable.clientHeight,
+                    scrollHeight: leaderboardTable.scrollHeight,
+                    innerHTML: leaderboardTable.innerHTML.substring(0, 100) + '...'
+                });
+
+                // Filtrar usuarios según la liga seleccionada
+                let filteredUsers = this.allUsers;
+                if (this.currentFilter !== 'all') {
+                    filteredUsers = this.allUsers.filter(user => user.league === this.currentFilter);
+                }
+
+                console.log('📋 Usuarios filtrados:', filteredUsers);
+
+                // Ordenar por puntos (mayor a menor)
+                filteredUsers.sort((a, b) => b.points - a.points);
+
+                // Actualizar contador de participantes
+                if (totalParticipants) {
+                    totalParticipants.textContent = `${filteredUsers.length} participantes`;
+                    console.log('📊 Contador actualizado:', `${filteredUsers.length} participantes`);
+                }
+
+                // Generar HTML de la tabla
+                if (filteredUsers.length === 0) {
+                    console.log('⚠️ No hay usuarios para mostrar');
+                    leaderboardTable.innerHTML = `
+                        <div class="empty-leaderboard">
+                            <i class="fas fa-trophy"></i>
+                            <p>No hay participantes en esta liga</p>
+                        </div>
+                    `;
+                } else {
+                    console.log('✅ Generando tabla con usuarios...');
+                    const tableHTML = filteredUsers.map((user, index) => {
+                        const position = index + 1;
+                        const medal = position <= 3 ? this.getMedalIcon(position) : '';
+                        const leagueIcon = this.getLeagueIcon(user.league);
+                        
+                        const rowHTML = `
+                            <div class="leaderboard-row">
+                                <div class="leaderboard-position">
+                                    ${medal}${position}
+                                </div>
+                                <div class="leaderboard-user">
+                                    <div class="user-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">${user.name}</div>
+                                        <div class="user-league">
+                                            ${leagueIcon} ${this.getLeagueName(user.league)}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="leaderboard-points">
+                                    ${user.points} puntos
+                                </div>
+                            </div>
+                        `;
+                        console.log(`👤 Fila ${position}: ${user.name} - ${user.points} puntos`);
+                        return rowHTML;
+                    }).join('');
+                    
+                    leaderboardTable.innerHTML = tableHTML;
+                    console.log('✅ Tabla de clasificación actualizada');
+                }
+            }
+
+            getMedalIcon(position) {
+                const medals = ['🥇', '🥈', '🥉'];
+                return position <= 3 ? medals[position - 1] + ' ' : '';
+            }
+
+            getLeagueIcon(league) {
+                const icons = {
+                    'gold': '🥇',
+                    'platinum': '🥈', 
+                    'diamond': '💎'
+                };
+                return icons[league] || '🏆';
+            }
+
+            getLeagueName(league) {
+                const names = {
+                    'gold': 'Oro',
+                    'platinum': 'Platino',
+                    'diamond': 'Diamante'
+                };
+                return names[league] || 'Desconocida';
+            }
+        }
+
         // Inicializar sistemas
         window.pointsSystem = new PointsSystem();
         window.communitySystem = new CommunitySystem();
+        window.leagueFilterSystem = new LeagueFilterSystem();
+
+        // Event listener para el botón de debug - se moverá dentro de DOMContentLoaded
+
+        // Función global para debug manual
+        window.debugLoadUsers = async function() {
+            console.log('🔍 Función debugLoadUsers llamada manualmente...');
+            
+            if (window.leagueFilterSystem) {
+                console.log('✅ LeagueFilterSystem disponible, cargando usuarios...');
+                await window.leagueFilterSystem.loadAllUsers();
+                window.leagueFilterSystem.updateLeaderboard();
+            } else {
+                console.error('❌ LeagueFilterSystem no está disponible');
+            }
+        };
+
+        // Función de prueba para verificar la conexión a Supabase
+        async function testSupabaseConnection() {
+            console.log('🧪 Probando conexión a Supabase...');
+            
+            if (!window.supabase) {
+                console.error('❌ Supabase no está disponible');
+                return false;
+            }
+
+            try {
+                // Hacer una consulta simple para verificar la conexión
+                const { data, error } = await window.supabase
+                    .from('users')
+                    .select('count')
+                    .limit(1);
+
+                if (error) {
+                    console.error('❌ Error en conexión a Supabase:', error);
+                    return false;
+                }
+
+                console.log('✅ Conexión a Supabase exitosa');
+                console.log('📊 Datos de prueba:', data);
+                return true;
+            } catch (error) {
+                console.error('❌ Error probando conexión:', error);
+                return false;
+            }
+        }
+
+        // Sistema de filtros de liga - CLASE DUPLICADA ELIMINADA COMPLETAMENTE
 
         // Integrar con el sistema existente
         document.addEventListener('DOMContentLoaded', async function() {
@@ -3290,8 +4088,20 @@
             // Verificar estado de Supabase
             await checkSupabaseStatus();
             
+            // Probar conexión a Supabase
+            await testSupabaseConnection();
+            
             // Sincronizar con Supabase al cargar la página
             await syncWithSupabase();
+
+
+            
+            // Inicializar sistema de filtros de liga
+            if (window.leagueFilterSystem) {
+                console.log('🏆 Inicializando sistema de filtros de liga...');
+                await window.leagueFilterSystem.loadAllUsers();
+                window.leagueFilterSystem.updateLeaderboard();
+            }
             
             // Forzar actualización del display de ligas después de un breve delay
             setTimeout(async () => {
@@ -3300,6 +4110,13 @@
                     await window.pointsSystem.getCurrentUser();
                     await window.pointsSystem.refreshPointsFromDatabase();
                     window.pointsSystem.updateLeagueDisplay();
+                }
+                
+                // Actualizar también la clasificación global
+                if (window.leagueFilterSystem) {
+                    console.log('🔄 Actualizando clasificación global...');
+                    await window.leagueFilterSystem.loadAllUsers();
+                    window.leagueFilterSystem.updateLeaderboard();
                 }
             }, 1000); // 1 segundo de delay
             
@@ -3311,6 +4128,12 @@
                     await window.pointsSystem.getCurrentUser();
                     await window.pointsSystem.refreshPointsFromDatabase();
                     window.pointsSystem.updateLeagueDisplay();
+                }
+                
+                // Actualizar también la clasificación global
+                if (window.leagueFilterSystem) {
+                    await window.leagueFilterSystem.loadAllUsers();
+                    window.leagueFilterSystem.updateLeaderboard();
                 }
             }, 30000); // 30 segundos
         });
