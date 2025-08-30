@@ -283,6 +283,46 @@
             }
         }
 
+        /* Estilos para el header del leaderboard con filtros */
+        .leaderboard-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .leagues-filters {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .league-filter {
+            padding: 8px 16px;
+            background: rgba(68, 229, 255, 0.1);
+            border: 1px solid rgba(68, 229, 255, 0.3);
+            border-radius: 20px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .league-filter:hover {
+            background: rgba(68, 229, 255, 0.2);
+            border-color: rgba(68, 229, 255, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .league-filter.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(68, 229, 255, 0.3);
+        }
+
         .leaderboard-row {
             display: flex;
             align-items: center;
@@ -570,13 +610,7 @@
                     </div>
                 </div>
 
-                <!-- Filtros de liga -->
-                <div class="leagues-filters">
-                    <button class="league-filter active" data-league="all">Todas las Ligas</button>
-                    <button class="league-filter" data-league="gold">Oro</button>
-                    <button class="league-filter" data-league="platinum">Platino</button>
-                    <button class="league-filter" data-league="diamond">Diamante</button>
-                </div>
+
 
                 <!-- Información de puntos -->
                 <!-- Layout de dos columnas superiores -->
@@ -655,9 +689,18 @@
                 <div class="leaderboard-full-width">
                     <div class="leaderboard-container">
                         <div class="leaderboard-header">
-                            <h3>Clasificación Global</h3>
-                            <div class="leaderboard-stats">
-                                <span id="totalParticipants">0 participantes</span>
+                            <div class="leaderboard-header-top">
+                                <h3>Clasificación Global</h3>
+                                <div class="leaderboard-stats">
+                                    <span id="totalParticipants">0 participantes</span>
+                                </div>
+                            </div>
+                            <!-- Filtros de liga -->
+                            <div class="leagues-filters">
+                                <button class="league-filter active" data-league="all">Todas las Ligas</button>
+                                <button class="league-filter" data-league="gold">Oro</button>
+                                <button class="league-filter" data-league="platinum">Platino</button>
+                                <button class="league-filter" data-league="diamond">Diamante</button>
                             </div>
                         </div>
                         <div class="leaderboard-table" id="leaderboardTable">
