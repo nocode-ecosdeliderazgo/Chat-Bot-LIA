@@ -3070,7 +3070,7 @@
                             // Formatear usuarios para compatibilidad
                             this.users = data.map(user => ({
                                 id: user.id,
-                                name: user.display_name || user.first_name || user.username || 'Usuario',
+                                name: user.username || user.display_name || user.first_name || 'Usuario',
                                 points: user.points || 0,
                                 posts: 0,
                                 comments: 0,
@@ -3220,7 +3220,7 @@
                                 if (!localUser) {
                                     localUser = {
                                         id: userData.id,
-                                        name: userData.display_name || userData.first_name || userData.username || userData.email || 'Usuario',
+                                        name: userData.username || userData.display_name || userData.first_name || userData.email || 'Usuario',
                                         points: userData.points || 0,
                                         posts: 0,
                                         comments: 0,
@@ -3230,7 +3230,7 @@
                                 } else {
                                     // Actualizar puntos desde la base de datos
                                     localUser.points = userData.points || 0;
-                                    localUser.name = userData.display_name || userData.first_name || userData.username || userData.email || 'Usuario';
+                                    localUser.name = userData.username || userData.display_name || userData.first_name || userData.email || 'Usuario';
                                 }
                                 
                                 // IMPORTANTE: Asignar al currentUser
@@ -3399,11 +3399,18 @@
                 const pointsElement = document.getElementById('currentUserPoints');
                 const progressTextElement = document.getElementById('leagueProgressText');
                 const leagueImageElement = document.getElementById('currentUserLeagueImage');
+                const userNameElement = document.getElementById('currentUserName');
                 
                 if (leagueElement) {
                     leagueElement.textContent = league.name;
                     leagueElement.style.color = league.color;
                     console.log('✅ League element updated:', league.name);
+                }
+                
+                // Actualizar nombre del usuario
+                if (userNameElement && this.currentUser.name) {
+                    userNameElement.textContent = this.currentUser.name;
+                    console.log('✅ User name updated:', this.currentUser.name);
                 }
                 
                 // Actualizar imagen de la liga
