@@ -40,6 +40,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/openai"
+  to   = "/.netlify/functions/openai"
+  status = 200
+
+[[redirects]]
   from = "/grafana/health"
   to   = "/.netlify/functions/grafana-health"
   status = 200

@@ -5,6 +5,7 @@
 
 class ChatOnline {
     constructor() {
+        console.log('[DEBUG] Constructor ChatOnline ejecutado');
         this.currentModule = 3;
         this.chatHistory = [];
         this.isTyping = false;
@@ -13,6 +14,7 @@ class ChatOnline {
         this.liaChat = null;
         
         this.init();
+        console.log('[DEBUG] Constructor ChatOnline completado');
     }
 
     /**
@@ -34,8 +36,11 @@ class ChatOnline {
      */
     initializeComponents() {
         // Inicializar reproductor de video
-        if (typeof VideoPlayer !== 'undefined') {
+        // Temporalmente deshabilitado para evitar errores
+        if (typeof VideoPlayer !== 'undefined' && false) {
             this.videoPlayer = new VideoPlayer('courseVideo');
+        } else {
+            console.log('[DEBUG] Video player deshabilitado temporalmente para evitar conflictos con el chat');
         }
 
         // Inicializar visor de curso
@@ -53,6 +58,8 @@ class ChatOnline {
      * Configurar event listeners
      */
     setupEventListeners() {
+        console.log('[DEBUG] setupEventListeners iniciado');
+        
         // Header buttons
         this.setupHeaderButtons();
         
@@ -63,6 +70,7 @@ class ChatOnline {
         this.setupModuleNavigation();
         
         // Chat functionality
+        console.log('[DEBUG] Configurando chat controls...');
         this.setupChatControls();
         
         // Tools tabs
@@ -139,8 +147,8 @@ class ChatOnline {
      * Configurar controles del chat
      */
     setupChatControls() {
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendMessage');
+        const messageInput = document.getElementById('liaMessageInput');
+        const sendButton = document.getElementById('sendLiaMessage');
         const clearButton = document.getElementById('clearChat');
         const voiceButton = document.getElementById('voiceInput');
         const attachButton = document.getElementById('attachFile');
@@ -167,8 +175,11 @@ class ChatOnline {
         // Botón de envío
         if (sendButton) {
             sendButton.addEventListener('click', () => {
+                console.log('[DEBUG] Botón de envío clickeado');
                 this.sendMessage();
             });
+        } else {
+            console.error('[DEBUG] No se encontró el botón sendLiaMessage');
         }
 
         // Limpiar chat
@@ -192,14 +203,7 @@ class ChatOnline {
             });
         }
 
-        // Sugerencias rápidas
-        const suggestions = document.querySelectorAll('.suggestion');
-        suggestions.forEach(suggestion => {
-            suggestion.addEventListener('click', (e) => {
-                const text = e.currentTarget.getAttribute('data-text');
-                this.selectSuggestion(text);
-            });
-        });
+        // Sugerencias rápidas eliminadas
 
         // Botones de acción en mensajes
         document.addEventListener('click', (e) => {
@@ -432,11 +436,23 @@ class ChatOnline {
      * Enviar mensaje
      */
     async sendMessage() {
-        const messageInput = document.getElementById('messageInput');
-        if (!messageInput) return;
+        console.log('[DEBUG] sendMessage() llamado');
+        
+        const messageInput = document.getElementById('liaMessageInput');
+        if (!messageInput) {
+            console.error('[DEBUG] No se encontró liaMessageInput');
+            return;
+        }
 
         const message = messageInput.value.trim();
-        if (!message) return;
+        console.log('[DEBUG] Mensaje obtenido:', message);
+        
+        if (!message) {
+            console.log('[DEBUG] Mensaje vacío, cancelando');
+            return;
+        }
+
+        console.log('[LIA] 💬 Enviando mensaje:', message);
 
         // Limpiar input
         messageInput.value = '';
@@ -473,7 +489,7 @@ class ChatOnline {
      * Añadir mensaje del usuario
      */
     addUserMessage(message) {
-        const chatMessages = document.getElementById('chatMessages');
+        const chatMessages = document.getElementById('liaMessages');
         if (!chatMessages) return;
 
         const messageEl = this.createMessageElement({
@@ -491,7 +507,7 @@ class ChatOnline {
      * Añadir mensaje de LIA
      */
     addLiaMessage(message, actions = null) {
-        const chatMessages = document.getElementById('chatMessages');
+        const chatMessages = document.getElementById('liaMessages');
         if (!chatMessages) return;
 
         const messageEl = this.createMessageElement({
@@ -562,13 +578,127 @@ class ChatOnline {
     }
 
     /**
-     * Obtener respuesta de LIA (simulada)
+     * Obtener respuesta de LIA usando la API real
      */
     async getLiaResponse(message) {
-        // Simular delay de red
-        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+        console.log('[LIA] 🚀 Generando respuesta para:', message);
         
-        // Respuestas basadas en contexto
+        try {
+            // Obtener información del usuario actual
+            const currentUser = this.getCurrentUser();
+            
+            // Obtener contexto del curso actual
+            const context = this.getCourseContext();
+            
+            // Preparar prompt con contexto
+            const prompt = `Usuario: ${message}\n\nContexto: El usuario está en el curso "Aprende y Aplica IA" - Chat Online. ${context}`;
+            
+            console.log('[LIA] 🔄 Enviando solicitud a API...');
+            
+            // Llamar a la API de OpenAI
+            const response = await fetch('/api/openai', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getAuthToken()}`,
+                    'X-User-Id': currentUser?.id || 'chat-online-user'
+                },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    context: `Información del usuario: ${JSON.stringify(currentUser || {})}`
+                })
+            });
+            
+            console.log('[LIA] 📡 Respuesta del servidor:', response.status);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('[LIA] ✅ Respuesta recibida exitosamente');
+                
+                if (data.response) {
+                    return data.response;
+                } else {
+                    console.log('[LIA] ⚠️ Respuesta vacía de la API');
+                    return this.getFallbackResponse(message);
+                }
+            } else {
+                const errorText = await response.text();
+                console.log('[LIA] ❌ Error de API:', response.status, errorText);
+                return this.getFallbackResponse(message);
+            }
+            
+        } catch (error) {
+            console.error('[LIA] 💥 Error al conectar con API:', error);
+            return this.getFallbackResponse(message);
+        }
+    }
+
+    /**
+     * Obtener información del usuario actual
+     */
+    getCurrentUser() {
+        try {
+            // Intentar obtener del localStorage
+            const userData = localStorage.getItem('userData');
+            if (userData) {
+                return JSON.parse(userData);
+            }
+            
+            // Fallback para desarrollo
+            return {
+                id: 'chat-online-user',
+                username: 'Usuario',
+                email: 'usuario@ejemplo.com'
+            };
+        } catch (error) {
+            console.log('[LIA] Error obteniendo usuario:', error);
+            return {
+                id: 'chat-online-user',
+                username: 'Usuario',
+                email: 'usuario@ejemplo.com'
+            };
+        }
+    }
+    
+    /**
+     * Obtener contexto del curso actual
+     */
+    getCourseContext() {
+        try {
+            // Obtener información del módulo actual
+            const currentModule = document.querySelector('.module-item.current .module-info h4')?.textContent || 'Módulo desconocido';
+            
+            // Obtener tiempo del video si está disponible
+            const videoTime = document.getElementById('currentTime')?.textContent || '00:00';
+            
+            // Obtener contenido de la transcripción visible
+            const transcript = document.querySelector('.transcript-content p')?.textContent?.substring(0, 200) || '';
+            
+            return `Módulo actual: ${currentModule}. Tiempo del video: ${videoTime}. ${transcript ? 'Transcripción: ' + transcript + '...' : ''}`;
+        } catch (error) {
+            console.log('[LIA] Error obteniendo contexto:', error);
+            return 'Contexto no disponible';
+        }
+    }
+    
+    /**
+     * Obtener token de autenticación
+     */
+    getAuthToken() {
+        // Intentar obtener token real
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            return token;
+        }
+        
+        // Token de desarrollo para testing
+        return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaGF0LW9ubGluZS11c2VyIiwidXNlcm5hbWUiOiJVc3VhcmlvIiwiaWF0IjoxNzAwMDAwMDAwfQ.fake-signature-for-dev-testing-only';
+    }
+    
+    /**
+     * Obtener respuesta de fallback cuando la API falla
+     */
+    getFallbackResponse(message) {
         const responses = this.generateContextualResponse(message);
         return responses[Math.floor(Math.random() * responses.length)];
     }
@@ -657,17 +787,7 @@ class ChatOnline {
         });
     }
 
-    /**
-     * Seleccionar sugerencia rápida
-     */
-    selectSuggestion(text) {
-        const messageInput = document.getElementById('messageInput');
-        if (messageInput) {
-            messageInput.value = text;
-            messageInput.focus();
-            this.handleInputChange({ target: messageInput });
-        }
-    }
+
 
     /**
      * Manejar acciones de mensaje
@@ -1203,5 +1323,68 @@ function seekToTime(seconds) {
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('[DEBUG] DOM cargado, inicializando ChatOnline');
     window.chatOnline = new ChatOnline();
+    
+            // Debugging adicional - event listener directo
+        setTimeout(() => {
+            const sendBtn = document.getElementById('sendLiaMessage');
+            const input = document.getElementById('liaMessageInput');
+            
+            console.log('[DEBUG] Botón encontrado:', !!sendBtn);
+            console.log('[DEBUG] Input encontrado:', !!input);
+            
+            if (sendBtn && input) {
+                // Test simple
+                sendBtn.onclick = function() {
+                    console.log('[DEBUG] onclick directo ejecutado');
+                    const msg = input.value.trim();
+                    if (msg) {
+                        console.log('[DEBUG] Mensaje a enviar:', msg);
+                        // Agregar mensaje directamente al chat
+                        const chatMessages = document.getElementById('liaMessages');
+                        if (chatMessages) {
+                            const messageDiv = document.createElement('div');
+                            messageDiv.className = 'message user-message';
+                            messageDiv.innerHTML = `
+                                <div class="message-avatar neo-circle">
+                                    <span>U</span>
+                                </div>
+                                <div class="message-content neo-card">
+                                    <div class="message-text">${msg}</div>
+                                    <div class="message-time">ahora</div>
+                                </div>
+                            `;
+                            chatMessages.appendChild(messageDiv);
+                            input.value = '';
+                            
+                            // Respuesta automática de prueba
+                            setTimeout(() => {
+                                const liaDiv = document.createElement('div');
+                                liaDiv.className = 'message lia-message';
+                                liaDiv.innerHTML = `
+                                    <div class="message-avatar neo-circle">
+                                        <i class="fas fa-robot"></i>
+                                    </div>
+                                    <div class="message-content neo-card">
+                                        <div class="message-text">¡Hola! Recibí tu mensaje: "${msg}". El chat está funcionando correctamente.</div>
+                                        <div class="message-time">ahora</div>
+                                    </div>
+                                `;
+                                chatMessages.appendChild(liaDiv);
+                                chatMessages.scrollTop = chatMessages.scrollHeight;
+                            }, 1000);
+                        }
+                    }
+                };
+                
+                // También para Enter
+                input.onkeydown = function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendBtn.click();
+                    }
+                };
+            }
+        }, 1000);
 });

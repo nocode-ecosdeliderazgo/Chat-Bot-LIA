@@ -208,10 +208,11 @@ class CourseViewer {
      * Actualizar información del video
      */
     updateVideoInfo(module) {
-        const videoHeader = document.querySelector('.video-header h4');
-        if (videoHeader) {
-            videoHeader.textContent = module.title;
-        }
+        // Video header title removed - no longer needed
+        // const videoHeader = document.querySelector('.video-header h4');
+        // if (videoHeader) {
+        //     videoHeader.textContent = module.title;
+        // }
 
         const courseTitleElement = document.querySelector('.course-title');
         if (courseTitleElement) {

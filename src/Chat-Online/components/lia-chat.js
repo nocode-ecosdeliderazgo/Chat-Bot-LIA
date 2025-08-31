@@ -5,7 +5,7 @@
 
 class LiaChat {
     constructor() {
-        this.apiEndpoint = '/netlify/functions/openai'; // Endpoint de la API existente
+        this.apiEndpoint = '/api/openai'; // Endpoint de la API existente
         this.conversationHistory = [];
         this.currentContext = null;
         this.isConnected = true;
