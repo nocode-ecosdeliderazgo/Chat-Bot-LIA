@@ -1,1390 +1,1438 @@
-/**
- * Chat Online - Funcionalidad Principal
- * Sistema de chat asíncrono con LIA para cursos pregrabados
- */
+// ===== CHAT ONLINE - JAVASCRIPT PRINCIPAL =====
 
 class ChatOnline {
     constructor() {
-        console.log('[DEBUG] Constructor ChatOnline ejecutado');
         this.currentModule = 3;
-        this.chatHistory = [];
-        this.isTyping = false;
-        this.videoPlayer = null;
-        this.courseViewer = null;
-        this.liaChat = null;
+        this.currentTab = 'video';
+        this.isLiaTyping = false;
+        this.notes = [];
+        this.isSearchMode = false;
         
         this.init();
-        console.log('[DEBUG] Constructor ChatOnline completado');
     }
 
-    /**
-     * Inicialización del sistema
-     */
     init() {
-        this.initializeComponents();
+        console.log('🚀 Inicializando Chat Online...');
         this.setupEventListeners();
-        this.loadUserData();
-        this.loadCourseProgress();
-        this.setupKeyboardShortcuts();
-        this.initializeChat();
-        
-        console.log('🚀 Chat Online inicializado correctamente');
+        this.loadInitialData();
+        this.setupResponsive();
+        console.log('✅ Chat Online inicializado correctamente');
     }
-
-    /**
-     * Inicializar componentes
-     */
-    initializeComponents() {
-        // Inicializar reproductor de video
-        // Temporalmente deshabilitado para evitar errores
-        if (typeof VideoPlayer !== 'undefined' && false) {
-            this.videoPlayer = new VideoPlayer('courseVideo');
-        } else {
-            console.log('[DEBUG] Video player deshabilitado temporalmente para evitar conflictos con el chat');
-        }
-
-        // Inicializar visor de curso
-        if (typeof CourseViewer !== 'undefined') {
-            this.courseViewer = new CourseViewer();
-        }
-
-        // Inicializar chat con LIA
-        if (typeof LiaChat !== 'undefined') {
-            this.liaChat = new LiaChat();
-        }
-    }
-
-    /**
-     * Configurar event listeners
-     */
+    
     setupEventListeners() {
-        console.log('[DEBUG] setupEventListeners iniciado');
+        // Navegación superior
+        this.setupNavigation();
         
-        // Header buttons
-        this.setupHeaderButtons();
+        // Módulos del curso
+        this.setupModules();
         
-        // Panel collapse/expand
-        this.setupPanelControls();
+        // Chat de LIA
+        this.setupLiaChat();
         
-        // Module navigation
-        this.setupModuleNavigation();
+        // Pestañas de contenido
+        this.setupContentTabs();
         
-        // Chat functionality
-        console.log('[DEBUG] Configurando chat controls...');
-        this.setupChatControls();
+        // Notas
+        this.setupNotes();
         
-        // Tools tabs
-        this.setupToolsTabs();
+        // Materiales
+        this.setupMaterials();
         
-        // Notes functionality
-        this.setupNotesControls();
-        
-        // Quiz functionality
-        this.setupQuizControls();
-        
-        // Window events
-        this.setupWindowEvents();
+        // Responsive
+        this.setupResponsiveListeners();
     }
-
-    /**
-     * Configurar botones del header
-     */
-    setupHeaderButtons() {
-        // Botón de regreso
+    
+    // ===== NAVEGACIÓN SUPERIOR =====
+    setupNavigation() {
         const backBtn = document.querySelector('.back-btn');
+        const navTabs = document.querySelectorAll('.nav-tab');
+        
         if (backBtn) {
             backBtn.addEventListener('click', () => {
+                console.log('🔙 Navegando hacia atrás...');
                 this.goBack();
             });
         }
 
-        // Botón de configuración
-        const settingsBtn = document.getElementById('settingsBtn');
-        if (settingsBtn) {
-            settingsBtn.addEventListener('click', () => {
-                this.openSettings();
-            });
-        }
-
-        // Botón de pantalla completa
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        if (fullscreenBtn) {
-            fullscreenBtn.addEventListener('click', () => {
-                this.toggleFullscreen();
-            });
-        }
-    }
-
-    /**
-     * Configurar controles de paneles
-     */
-    setupPanelControls() {
-        const collapseButtons = document.querySelectorAll('.collapse-panel');
-        
-        collapseButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const panel = e.target.getAttribute('data-panel');
-                this.togglePanel(panel);
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabName = e.currentTarget.dataset.tab;
+                console.log(`📑 Cambiando a pestaña: ${tabName}`);
+                this.switchTab(tabName);
             });
         });
     }
-
-    /**
-     * Configurar navegación de módulos
-     */
-    setupModuleNavigation() {
-        const moduleItems = document.querySelectorAll('.module-item');
+    
+    goBack() {
+        // Simular navegación hacia atrás
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.location.href = '../index.html';
+        }
+    }
+    
+    switchTab(tabName) {
+        // Remover clase active de todas las pestañas
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
         
+        // Agregar clase active a la pestaña seleccionada
+        const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
+        if (activeTab) {
+            activeTab.classList.add('active');
+        }
+        
+        this.currentTab = tabName;
+        
+        // Aquí puedes agregar lógica específica para cada pestaña
+        switch(tabName) {
+            case 'video':
+                this.showVideoContent();
+                break;
+            case 'materials':
+                this.showMaterialsContent();
+                break;
+            case 'quiz':
+                this.showQuizContent();
+                break;
+        }
+    }
+    
+    // ===== MÓDULOS DEL CURSO =====
+    setupModules() {
+        // Configurar progress dots
+        this.setupProgressDots();
+        
+        // Configurar módulos
+        const moduleItems = document.querySelectorAll('.module-item');
         moduleItems.forEach(item => {
             item.addEventListener('click', (e) => {
-                const moduleId = parseInt(e.currentTarget.getAttribute('data-module'));
-                this.loadModule(moduleId);
+                const moduleId = parseInt(e.currentTarget.dataset.module);
+                console.log(`📚 Seleccionando módulo: ${moduleId}`);
+                this.selectModule(moduleId);
             });
         });
     }
 
-    /**
-     * Configurar controles del chat
-     */
-    setupChatControls() {
-        const messageInput = document.getElementById('liaMessageInput');
-        const sendButton = document.getElementById('sendLiaMessage');
-        const clearButton = document.getElementById('clearChat');
-        const voiceButton = document.getElementById('voiceInput');
-        const attachButton = document.getElementById('attachFile');
-
-        // Input del mensaje
-        if (messageInput) {
-            messageInput.addEventListener('input', (e) => {
-                this.handleInputChange(e);
+    // ===== PROGRESS DOTS =====
+    setupProgressDots() {
+        const progressDots = document.querySelectorAll('.progress-dot');
+        
+        progressDots.forEach((dot, index) => {
+            dot.addEventListener('click', (e) => {
+                const moduleId = index + 1;
+                console.log(`🎯 Seleccionando módulo desde progress dot: ${moduleId}`);
+                this.selectModuleFromDot(moduleId, dot);
             });
+            
+            // Agregar efecto de hover con delay
+            dot.addEventListener('mouseenter', () => {
+                dot.style.animationDelay = '0s';
+            });
+            
+            dot.addEventListener('mouseleave', () => {
+                dot.style.animationDelay = `${index * 0.2}s`;
+            });
+        });
+    }
+    
+    selectModuleFromDot(moduleId, clickedDot) {
+        // Remover selección anterior
+        document.querySelectorAll('.progress-dot').forEach(dot => {
+            dot.classList.remove('selected');
+        });
+        
+        // Agregar efecto de selección
+        clickedDot.classList.add('selected');
+        
+        // Remover efecto después de la animación
+        setTimeout(() => {
+            clickedDot.classList.remove('selected');
+        }, 600);
+        
+        // Actualizar módulo actual
+        this.selectModule(moduleId);
+    }
+    
+    selectModule(moduleId) {
+        // Remover clase current de todos los módulos
+        document.querySelectorAll('.module-item').forEach(item => {
+            item.classList.remove('current');
+        });
+        
+        // Agregar clase current al módulo seleccionado
+        const selectedModule = document.querySelector(`[data-module="${moduleId}"]`);
+        if (selectedModule) {
+            selectedModule.classList.add('current');
+        }
+        
+        this.currentModule = moduleId;
+        
+        // Actualizar información del módulo
+        this.updateModuleInfo(moduleId);
+        
+        // Cargar contenido del módulo
+        this.loadModuleContent(moduleId);
+    }
+    
+    updateModuleInfo(moduleId) {
+        const moduleData = this.getModuleData(moduleId);
+        if (moduleData) {
+            // Actualizar título del video
+            const videoTitle = document.querySelector('.video-info h3');
+            if (videoTitle) {
+                videoTitle.textContent = moduleData.title;
+            }
+            
+            // Actualizar información del módulo actual
+            const currentModuleInfo = document.querySelector('.current-module-info');
+            if (currentModuleInfo) {
+                currentModuleInfo.textContent = moduleData.title;
+            }
+        }
+        
+        console.log(`📊 Módulo actualizado: ${moduleData?.title || 'Módulo ' + moduleId}`);
+    }
+    
 
-            messageInput.addEventListener('keydown', (e) => {
+    
+    getModuleData(moduleId) {
+        const modules = {
+            1: { title: 'Módulo 1: ¿Qué es la IA?', duration: '15:30', progress: 100 },
+            2: { title: 'Módulo 2: Historia de la IA', duration: '22:00', progress: 100 },
+            3: { title: 'Módulo 3: Fundamentos del ML', duration: '18:30', progress: 65 },
+            4: { title: 'Módulo 4: Redes Neuronales', duration: '25:00', progress: 0 },
+            5: { title: 'Módulo 5: IA en el Futuro', duration: '20:00', progress: 0 }
+        };
+        
+        return modules[moduleId];
+    }
+    
+    loadModuleContent(moduleId) {
+        // Aquí puedes cargar contenido específico del módulo
+        console.log(`📖 Cargando contenido del módulo ${moduleId}...`);
+        
+        // Simular carga de transcripción
+        const transcriptContent = document.querySelector('.transcript-content');
+        if (transcriptContent) {
+            const transcript = this.getModuleTranscript(moduleId);
+            transcriptContent.innerHTML = transcript;
+        }
+    }
+    
+    getModuleTranscript(moduleId) {
+        const transcripts = {
+            1: `
+                <p>La Inteligencia Artificial (IA) es una rama de la informática que busca crear sistemas capaces de realizar tareas que normalmente requieren inteligencia humana.</p>
+                <p>Estas tareas incluyen el aprendizaje, el razonamiento, la percepción y la resolución de problemas.</p>
+                <p>La IA se puede clasificar en dos tipos principales: IA débil (narrow AI) e IA fuerte (general AI).</p>
+            `,
+            2: `
+                <p>La historia de la IA se remonta a la década de 1950, cuando Alan Turing propuso el Test de Turing.</p>
+                <p>En 1956, el término "Inteligencia Artificial" fue acuñado en la Conferencia de Dartmouth.</p>
+                <p>Los años 60 y 70 vieron el desarrollo de los primeros sistemas expertos y redes neuronales.</p>
+            `,
+            3: `
+                <p>En este módulo vamos a explorar los conceptos fundamentales de las redes neuronales. Comenzaremos con una introducción a los perceptrones simples...</p>
+                <p>Las redes neuronales artificiales están inspiradas en el funcionamiento del cerebro humano. Cada neurona artificial recibe señales de entrada...</p>
+                <p>La función de activación es crucial para determinar si una neurona se activa o no. Las funciones más comunes son sigmoid, tanh y ReLU...</p>
+            `,
+            4: `
+                <p>Las redes neuronales profundas son la base del aprendizaje profundo moderno.</p>
+                <p>Estas redes pueden tener múltiples capas ocultas que permiten el aprendizaje de características complejas.</p>
+                <p>El backpropagation es el algoritmo fundamental para entrenar redes neuronales.</p>
+            `,
+            5: `
+                <p>El futuro de la IA promete avances revolucionarios en todos los campos.</p>
+                <p>La IA general (AGI) podría ser el próximo gran hito en la historia de la humanidad.</p>
+                <p>Es importante considerar las implicaciones éticas y sociales de estos avances.</p>
+            `
+        };
+        
+        return transcripts[moduleId] || transcripts[3];
+    }
+    
+    // ===== CHAT DE LIA =====
+    setupLiaChat() {
+        const sendBtn = document.getElementById('sendLiaMessage');
+        const input = document.getElementById('liaMessageInput');
+        const messagesContainer = document.getElementById('liaMessages');
+        
+        if (sendBtn && input && messagesContainer) {
+            // Envío con botón
+            sendBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.sendLiaMessage();
+            });
+            
+            // Envío con Enter
+            input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    this.sendMessage();
+                    this.sendLiaMessage();
                 }
             });
-
-            // Auto-resize
-            messageInput.addEventListener('input', () => {
-                this.autoResizeTextarea(messageInput);
-            });
-        }
-
-        // Botón de envío
-        if (sendButton) {
-            sendButton.addEventListener('click', () => {
-                console.log('[DEBUG] Botón de envío clickeado');
-                this.sendMessage();
-            });
-        } else {
-            console.error('[DEBUG] No se encontró el botón sendLiaMessage');
-        }
-
-        // Limpiar chat
-        if (clearButton) {
-            clearButton.addEventListener('click', () => {
-                this.clearChat();
-            });
-        }
-
-        // Entrada de voz
-        if (voiceButton) {
-            voiceButton.addEventListener('click', () => {
-                this.toggleVoiceInput();
-            });
-        }
-
-        // Adjuntar archivo
-        if (attachButton) {
-            attachButton.addEventListener('click', () => {
-                this.openFileDialog();
-            });
-        }
-
-        // Sugerencias rápidas eliminadas
-
-        // Botones de acción en mensajes
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('action-btn')) {
-                const action = e.target.getAttribute('data-action');
-                this.handleMessageAction(action);
-            }
-        });
-    }
-
-    /**
-     * Configurar pestañas de herramientas
-     */
-    setupToolsTabs() {
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        
-        tabButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const tabId = e.currentTarget.getAttribute('data-tab');
-                this.switchTab(tabId);
-            });
-        });
-    }
-
-    /**
-     * Configurar controles de notas
-     */
-    setupNotesControls() {
-        const addNoteBtn = document.getElementById('addNote');
-        const saveNoteBtn = document.getElementById('saveNote');
-        const cancelNoteBtn = document.getElementById('cancelNote');
-
-        if (addNoteBtn) {
-            addNoteBtn.addEventListener('click', () => {
-                this.openNoteEditor();
-            });
-        }
-
-        if (saveNoteBtn) {
-            saveNoteBtn.addEventListener('click', () => {
-                this.saveNote();
-            });
-        }
-
-        if (cancelNoteBtn) {
-            cancelNoteBtn.addEventListener('click', () => {
-                this.cancelNoteEdit();
-            });
-        }
-
-        // Eliminar notas
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.note-actions .fa-trash')) {
-                const noteItem = e.target.closest('.note-item');
-                this.deleteNote(noteItem);
-            }
-        });
-    }
-
-    /**
-     * Configurar controles del quiz
-     */
-    setupQuizControls() {
-        const newQuestionBtn = document.getElementById('newQuestion');
-        const quizHelpBtn = document.getElementById('quizHelp');
-        const submitButtons = document.querySelectorAll('.quiz-submit');
-
-        if (newQuestionBtn) {
-            newQuestionBtn.addEventListener('click', () => {
-                this.generateNewQuestion();
-            });
-        }
-
-        if (quizHelpBtn) {
-            quizHelpBtn.addEventListener('click', () => {
-                this.showQuizHelp();
-            });
-        }
-
-        submitButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.submitQuizAnswer(e.target.closest('.quiz-question'));
-            });
-        });
-    }
-
-    /**
-     * Configurar eventos de ventana
-     */
-    setupWindowEvents() {
-        // Redimensionar ventana
-        window.addEventListener('resize', () => {
-            this.handleWindowResize();
-        });
-
-        // Visibilidad de la página
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                this.pauseActivities();
-            } else {
-                this.resumeActivities();
-            }
-        });
-
-        // Prevenir salida accidental
-        window.addEventListener('beforeunload', (e) => {
-            if (this.hasUnsavedChanges()) {
-                e.preventDefault();
-                e.returnValue = '';
-            }
-        });
-    }
-
-    /**
-     * Configurar atajos de teclado
-     */
-    setupKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
-            // Ctrl/Cmd + Enter: Enviar mensaje
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                this.sendMessage();
-            }
             
-            // Escape: Cancelar acciones
-            if (e.key === 'Escape') {
-                this.cancelCurrentAction();
-            }
-            
-            // F11: Pantalla completa
-            if (e.key === 'F11') {
-                e.preventDefault();
-                this.toggleFullscreen();
-            }
-            
-            // Ctrl/Cmd + /: Mostrar atajos
-            if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-                e.preventDefault();
-                this.showKeyboardShortcuts();
-            }
-        });
-    }
-
-    /**
-     * Inicializar chat con mensaje de bienvenida
-     */
-    initializeChat() {
-        // El mensaje de bienvenida ya está en el HTML
-        // Aquí podemos añadir lógica adicional si es necesario
-        this.updateChatStatus();
-    }
-
-    /**
-     * Cargar datos del usuario
-     */
-    loadUserData() {
-        try {
-            const userData = localStorage.getItem('chatOnlineUserData');
-            if (userData) {
-                this.userData = JSON.parse(userData);
-            } else {
-                this.userData = {
-                    name: 'Usuario',
-                    email: '',
-                    preferences: {
-                        autoplay: false,
-                        notifications: true,
-                        theme: 'auto'
-                    }
-                };
-            }
-        } catch (error) {
-            console.error('Error cargando datos del usuario:', error);
-            this.userData = { name: 'Usuario' };
+            // Auto-resize del input
+            input.addEventListener('input', () => {
+                this.autoResizeInput(input);
+            });
         }
-    }
-
-    /**
-     * Cargar progreso del curso
-     */
-    loadCourseProgress() {
-        try {
-            const progress = localStorage.getItem('courseProgress');
-            if (progress) {
-                this.courseProgress = JSON.parse(progress);
-            } else {
-                this.courseProgress = {
-                    currentModule: 3,
-                    completedModules: [1, 2],
-                    totalTime: 2520, // segundos
-                    notes: [],
-                    bookmarks: [],
-                    quiz: { correct: 8, total: 10 }
-                };
-            }
-            this.updateProgressDisplay();
-        } catch (error) {
-            console.error('Error cargando progreso del curso:', error);
-        }
-    }
-
-    /**
-     * Manejar cambios en el input del mensaje
-     */
-    handleInputChange(e) {
-        const input = e.target;
-        const sendBtn = document.getElementById('sendMessage');
         
-        if (sendBtn) {
-            sendBtn.disabled = input.value.trim().length === 0;
+        // Configurar botones de acción de LIA
+        this.setupLiaActions();
+        
+        // Configurar editor de notas
+        this.setupNotesEditor();
+    }
+    
+    // ===== ACCIONES DE LIA =====
+    setupLiaActions() {
+        const newChatBtn = document.getElementById('newChatBtn');
+        const collapseLiaBtn = document.getElementById('collapseLiaBtn');
+        
+        if (newChatBtn) {
+            newChatBtn.addEventListener('click', () => {
+                console.log('🆕 Iniciando nuevo chat con LIA...');
+                this.startNewChat();
+            });
+        }
+        
+        if (collapseLiaBtn) {
+            collapseLiaBtn.addEventListener('click', () => {
+                console.log('📦 Colapsando chat de LIA...');
+                this.toggleLiaCollapse();
+            });
+        }
+    }
+    
+    startNewChat() {
+        const messagesContainer = document.getElementById('liaMessages');
+        const input = document.getElementById('liaMessageInput');
+        
+        // Limpiar mensajes
+        messagesContainer.innerHTML = `
+            <div class="lia-message">
+                <div class="lia-avatar">
+                    <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+                </div>
+                <div class="message-content">
+                    <div class="message-text">
+                        ¡Hola! Soy LIA, tu asistente de aprendizaje. Puedo ayudarte con:
+                        • Conceptos del video
+                        • Ejercicios prácticos
+                        • Resúmenes de temas
+                        ¿En qué puedo ayudarte?
+                    </div>
+                    <div class="message-time">ahora</div>
+                </div>
+            </div>
+        `;
+        
+        // Limpiar input
+        if (input) {
+            input.value = '';
+            this.autoResizeInput(input);
+        }
+        
+        console.log('✅ Nuevo chat iniciado');
+    }
+    
+    toggleLiaCollapse() {
+        const liaChat = document.querySelector('.lia-chat');
+        const liaSection = document.querySelector('.lia-assistant-section');
+        const notesSection = document.querySelector('.notes-section');
+        const collapseBtn = document.getElementById('collapseLiaBtn');
+        const icon = collapseBtn.querySelector('svg');
+        
+        if (liaChat && liaSection && notesSection) {
+            const isCollapsed = liaChat.style.opacity === '0' || liaChat.style.visibility === 'hidden';
             
-            // Añadir/quitar clase para animaciones
-            const container = input.closest('.input-wrapper');
-            if (input.value.trim().length > 0) {
-                container.classList.add('has-content');
+            if (isCollapsed) {
+                // Expandir
+                liaChat.style.opacity = '1';
+                liaChat.style.visibility = 'visible';
+                liaChat.style.display = 'flex';
+                liaSection.style.flex = '1';
+                liaSection.style.minHeight = '350px';
+                notesSection.style.flex = '1';
+                notesSection.style.minHeight = '200px';
+                icon.innerHTML = '<polyline points="6,9 12,15 18,9"/>';
+                collapseBtn.title = 'Colapsar Chat';
+                console.log('📤 Chat de LIA expandido');
             } else {
-                container.classList.remove('has-content');
+                // Colapsar
+                liaChat.style.opacity = '0';
+                liaChat.style.visibility = 'hidden';
+                setTimeout(() => {
+                    liaChat.style.display = 'none';
+                }, 300);
+                liaSection.style.flex = '0 0 auto';
+                liaSection.style.minHeight = 'auto';
+                notesSection.style.flex = '1';
+                notesSection.style.minHeight = '400px';
+                icon.innerHTML = '<polyline points="6,15 12,9 18,15"/>';
+                collapseBtn.title = 'Expandir Chat';
+                console.log('📦 Chat de LIA colapsado - Notas expandidas');
             }
         }
     }
-
-    /**
-     * Auto-redimensionar textarea
-     */
-    autoResizeTextarea(textarea) {
-        textarea.style.height = 'auto';
-        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-    }
-
-    /**
-     * Enviar mensaje
-     */
-    async sendMessage() {
-        console.log('[DEBUG] sendMessage() llamado');
+    
+    async sendLiaMessage() {
+        const input = document.getElementById('liaMessageInput');
+        const messagesContainer = document.getElementById('liaMessages');
+        const message = input.value.trim();
+        const replyArea = document.getElementById('replyArea');
         
-        const messageInput = document.getElementById('liaMessageInput');
-        if (!messageInput) {
-            console.error('[DEBUG] No se encontró liaMessageInput');
-            return;
-        }
-
-        const message = messageInput.value.trim();
-        console.log('[DEBUG] Mensaje obtenido:', message);
+        if (!message || this.isLiaTyping) return;
         
-        if (!message) {
-            console.log('[DEBUG] Mensaje vacío, cancelando');
-            return;
-        }
-
-        console.log('[LIA] 💬 Enviando mensaje:', message);
+        console.log('📤 Enviando mensaje a LIA:', message);
 
         // Limpiar input
-        messageInput.value = '';
-        messageInput.style.height = 'auto';
-        this.handleInputChange({ target: messageInput });
-
-        // Añadir mensaje del usuario
-        this.addUserMessage(message);
+        input.value = '';
+        this.autoResizeInput(input);
+        
+        // Agregar mensaje del usuario (con respuesta si existe)
+        this.addUserMessage(message, replyArea.dataset.replyingTo);
+        
+        // Ocultar área de respuesta
+        if (replyArea.style.display === 'block') {
+            this.cancelReply();
+        }
 
         // Mostrar indicador de escritura
         this.showTypingIndicator();
 
         try {
-            // Simular respuesta de LIA (aquí se integraría con la API real)
+            // Simular respuesta de LIA (aquí puedes integrar con tu API real)
             const response = await this.getLiaResponse(message);
-            
-            // Ocultar indicador de escritura
             this.hideTypingIndicator();
-            
-            // Añadir respuesta de LIA
             this.addLiaMessage(response);
-            
         } catch (error) {
-            console.error('Error enviando mensaje:', error);
+            console.error('❌ Error al obtener respuesta de LIA:', error);
             this.hideTypingIndicator();
-            this.addLiaMessage('Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.');
+            this.addLiaMessage('Lo siento, no pude procesar tu mensaje. ¿Podrías intentarlo de nuevo?');
         }
-
-        // Scroll al final
-        this.scrollToBottom();
     }
-
-    /**
-     * Añadir mensaje del usuario
-     */
-    addUserMessage(message) {
-        const chatMessages = document.getElementById('liaMessages');
-        if (!chatMessages) return;
-
-        const messageEl = this.createMessageElement({
-            type: 'user',
-            author: this.userData.name || 'Usuario',
-            content: message,
-            time: new Date()
-        });
-
-        chatMessages.appendChild(messageEl);
-        this.chatHistory.push({ type: 'user', content: message, time: new Date() });
-    }
-
-    /**
-     * Añadir mensaje de LIA
-     */
-    addLiaMessage(message, actions = null) {
-        const chatMessages = document.getElementById('liaMessages');
-        if (!chatMessages) return;
-
-        const messageEl = this.createMessageElement({
-            type: 'lia',
-            author: 'LIA',
-            content: message,
-            time: new Date(),
-            actions: actions
-        });
-
-        chatMessages.appendChild(messageEl);
-        this.chatHistory.push({ type: 'lia', content: message, time: new Date() });
-    }
-
-    /**
-     * Crear elemento de mensaje
-     */
-    createMessageElement(data) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${data.type}-message`;
+    
+    addUserMessage(message, replyTo = null) {
+        const messagesContainer = document.getElementById('liaMessages');
+        const messageElement = document.createElement('div');
+        messageElement.className = 'lia-message user-message';
         
-        const avatarDiv = document.createElement('div');
-        avatarDiv.className = 'message-avatar neo-circle';
-        
-        if (data.type === 'lia') {
-            avatarDiv.innerHTML = '<i class="fas fa-robot"></i>';
-        } else {
-            avatarDiv.innerHTML = `<div class="avatar-fallback">${data.author.charAt(0)}</div>`;
+        let replyHtml = '';
+        if (replyTo) {
+            replyHtml = `
+                <div class="reply-preview">
+                    <div class="reply-preview-text">${this.escapeHtml(replyTo.length > 40 ? replyTo.substring(0, 40) + '...' : replyTo)}</div>
+                </div>
+            `;
         }
         
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content neo-card';
-        
-        const headerDiv = document.createElement('div');
-        headerDiv.className = 'message-header';
-        headerDiv.innerHTML = `
-            <span class="message-author">${data.author}</span>
-            <span class="message-time">${this.formatTime(data.time)}</span>
+        messageElement.innerHTML = `
+            <div class="message-content user-content">
+                ${replyHtml}
+                <div class="message-text">${this.escapeHtml(message)}</div>
+                <div class="message-time">ahora</div>
+                <div class="message-actions">
+                    <button class="action-btn-small" onclick="window.chatOnline.copyMessage(this)" title="Copiar mensaje">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                    <button class="action-btn-small" onclick="window.chatOnline.replyToMessage(this)" title="Responder">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9,11 12,14 22,4"></polyline>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
         `;
         
-        const textDiv = document.createElement('div');
-        textDiv.className = 'message-text';
-        textDiv.textContent = data.content;
-        
-        contentDiv.appendChild(headerDiv);
-        contentDiv.appendChild(textDiv);
-        
-        // Añadir acciones si existen
-        if (data.actions) {
-            const actionsDiv = document.createElement('div');
-            actionsDiv.className = 'message-actions';
-            
-            data.actions.forEach(action => {
-                const btn = document.createElement('button');
-                btn.className = 'neo-btn neo-btn-small action-btn';
-                btn.setAttribute('data-action', action.id);
-                btn.innerHTML = `<i class="${action.icon}"></i> ${action.label}`;
-                actionsDiv.appendChild(btn);
-            });
-            
-            contentDiv.appendChild(actionsDiv);
-        }
-        
-        messageDiv.appendChild(avatarDiv);
-        messageDiv.appendChild(contentDiv);
-        
-        return messageDiv;
-    }
-
-    /**
-     * Obtener respuesta de LIA usando la API real
-     */
-    async getLiaResponse(message) {
-        console.log('[LIA] 🚀 Generando respuesta para:', message);
-        
-        try {
-            // Obtener información del usuario actual
-            const currentUser = this.getCurrentUser();
-            
-            // Obtener contexto del curso actual
-            const context = this.getCourseContext();
-            
-            // Preparar prompt con contexto
-            const prompt = `Usuario: ${message}\n\nContexto: El usuario está en el curso "Aprende y Aplica IA" - Chat Online. ${context}`;
-            
-            console.log('[LIA] 🔄 Enviando solicitud a API...');
-            
-            // Llamar a la API de OpenAI
-            const response = await fetch('/api/openai', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.getAuthToken()}`,
-                    'X-User-Id': currentUser?.id || 'chat-online-user'
-                },
-                body: JSON.stringify({
-                    prompt: prompt,
-                    context: `Información del usuario: ${JSON.stringify(currentUser || {})}`
-                })
-            });
-            
-            console.log('[LIA] 📡 Respuesta del servidor:', response.status);
-            
-            if (response.ok) {
-                const data = await response.json();
-                console.log('[LIA] ✅ Respuesta recibida exitosamente');
-                
-                if (data.response) {
-                    return data.response;
-                } else {
-                    console.log('[LIA] ⚠️ Respuesta vacía de la API');
-                    return this.getFallbackResponse(message);
-                }
-            } else {
-                const errorText = await response.text();
-                console.log('[LIA] ❌ Error de API:', response.status, errorText);
-                return this.getFallbackResponse(message);
-            }
-            
-        } catch (error) {
-            console.error('[LIA] 💥 Error al conectar con API:', error);
-            return this.getFallbackResponse(message);
-        }
-    }
-
-    /**
-     * Obtener información del usuario actual
-     */
-    getCurrentUser() {
-        try {
-            // Intentar obtener del localStorage
-            const userData = localStorage.getItem('userData');
-            if (userData) {
-                return JSON.parse(userData);
-            }
-            
-            // Fallback para desarrollo
-            return {
-                id: 'chat-online-user',
-                username: 'Usuario',
-                email: 'usuario@ejemplo.com'
-            };
-        } catch (error) {
-            console.log('[LIA] Error obteniendo usuario:', error);
-            return {
-                id: 'chat-online-user',
-                username: 'Usuario',
-                email: 'usuario@ejemplo.com'
-            };
-        }
+        messagesContainer.appendChild(messageElement);
+        this.scrollToBottom(messagesContainer);
     }
     
-    /**
-     * Obtener contexto del curso actual
-     */
-    getCourseContext() {
-        try {
-            // Obtener información del módulo actual
-            const currentModule = document.querySelector('.module-item.current .module-info h4')?.textContent || 'Módulo desconocido';
-            
-            // Obtener tiempo del video si está disponible
-            const videoTime = document.getElementById('currentTime')?.textContent || '00:00';
-            
-            // Obtener contenido de la transcripción visible
-            const transcript = document.querySelector('.transcript-content p')?.textContent?.substring(0, 200) || '';
-            
-            return `Módulo actual: ${currentModule}. Tiempo del video: ${videoTime}. ${transcript ? 'Transcripción: ' + transcript + '...' : ''}`;
-        } catch (error) {
-            console.log('[LIA] Error obteniendo contexto:', error);
-            return 'Contexto no disponible';
-        }
-    }
-    
-    /**
-     * Obtener token de autenticación
-     */
-    getAuthToken() {
-        // Intentar obtener token real
-        const token = localStorage.getItem('authToken');
-        if (token) {
-            return token;
-        }
-        
-        // Token de desarrollo para testing
-        return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaGF0LW9ubGluZS11c2VyIiwidXNlcm5hbWUiOiJVc3VhcmlvIiwiaWF0IjoxNzAwMDAwMDAwfQ.fake-signature-for-dev-testing-only';
-    }
-    
-    /**
-     * Obtener respuesta de fallback cuando la API falla
-     */
-    getFallbackResponse(message) {
-        const responses = this.generateContextualResponse(message);
-        return responses[Math.floor(Math.random() * responses.length)];
-    }
-
-    /**
-     * Generar respuesta contextual
-     */
-    generateContextualResponse(message) {
-        const msg = message.toLowerCase();
-        
-        if (msg.includes('machine learning') || msg.includes('ml')) {
-            return [
-                'El Machine Learning es un subcampo de la inteligencia artificial que permite a las máquinas aprender y mejorar automáticamente a través de la experiencia sin ser programadas explícitamente.',
-                'En el video actual estamos cubriendo los fundamentos del ML. ¿Te gustaría que profundice en algún tipo específico de aprendizaje?'
-            ];
-        }
-        
-        if (msg.includes('ejemplo') || msg.includes('práctica')) {
-            return [
-                'Aquí tienes algunos ejemplos prácticos de Machine Learning:\n\n• Sistemas de recomendación (Netflix, Spotify)\n• Reconocimiento de imágenes\n• Procesamiento de lenguaje natural\n• Detección de fraudes\n\n¿Te interesa alguno en particular?'
-            ];
-        }
-        
-        if (msg.includes('diferencia') && msg.includes('ia')) {
-            return [
-                'La IA es el campo más amplio que busca crear máquinas inteligentes, mientras que ML es un método específico para lograr IA mediante el aprendizaje automático a partir de datos.'
-            ];
-        }
-        
-        if (msg.includes('resumen') || msg.includes('video')) {
-            return [
-                'Resumen del módulo actual "Fundamentos del ML":\n\n• Definición de Machine Learning\n• Tipos de aprendizaje (supervisado, no supervisado, refuerzo)\n• Algoritmos básicos\n• Aplicaciones prácticas\n\n¿Quieres que profundice en algún punto?'
-            ];
-        }
-        
-        // Respuestas generales
-        return [
-            'Interesante pregunta. Basándome en el contenido del curso, puedo ayudarte a entender mejor este concepto. ¿Podrías ser más específico?',
-            'Perfecto, esa es una excelente pregunta sobre el tema que estamos viendo. Te explico...',
-            'Me alegra que preguntes sobre esto. Es un concepto fundamental en el curso. Déjame explicártelo paso a paso.'
-        ];
-    }
-
-    /**
-     * Mostrar indicador de escritura
-     */
-    showTypingIndicator() {
-        const typingIndicator = document.getElementById('typingIndicator');
-        if (typingIndicator) {
-            typingIndicator.style.display = 'block';
-            this.isTyping = true;
-            this.scrollToBottom();
-        }
-    }
-
-    /**
-     * Ocultar indicador de escritura
-     */
-    hideTypingIndicator() {
-        const typingIndicator = document.getElementById('typingIndicator');
-        if (typingIndicator) {
-            typingIndicator.style.display = 'none';
-            this.isTyping = false;
-        }
-    }
-
-    /**
-     * Scroll al final del chat
-     */
-    scrollToBottom() {
-        const chatMessages = document.getElementById('chatMessages');
-        if (chatMessages) {
-            setTimeout(() => {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 100);
-        }
-    }
-
-    /**
-     * Formatear tiempo
-     */
-    formatTime(date) {
-        return date.toLocaleTimeString('es-ES', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
-    }
-
-
-
-    /**
-     * Manejar acciones de mensaje
-     */
-    handleMessageAction(action) {
-        switch (action) {
-            case 'explicar-ml':
-                this.addUserMessage('¿Puedes explicarme qué es el machine learning?');
-                this.getLiaResponse('explicar machine learning').then(response => {
-                    this.addLiaMessage(response);
-                    this.scrollToBottom();
-                });
-                break;
-                
-            case 'ejercicios':
-                this.addUserMessage('Dame ejercicios prácticos de machine learning');
-                this.getLiaResponse('ejercicios prácticos').then(response => {
-                    this.addLiaMessage(response);
-                    this.scrollToBottom();
-                });
-                break;
-                
-            case 'resumen':
-                this.addUserMessage('Hazme un resumen del video actual');
-                this.getLiaResponse('resumen video').then(response => {
-                    this.addLiaMessage(response);
-                    this.scrollToBottom();
-                });
-                break;
-        }
-    }
-
-    /**
-     * Cambiar pestaña de herramientas
-     */
-    switchTab(tabId) {
-        // Desactivar todas las pestañas
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
-        });
-        
-        // Activar pestaña seleccionada
-        const selectedBtn = document.querySelector(`[data-tab="${tabId}"]`);
-        const selectedContent = document.getElementById(`${tabId}Tab`);
-        
-        if (selectedBtn && selectedContent) {
-            selectedBtn.classList.add('active');
-            selectedContent.classList.add('active');
-        }
-    }
-
-    /**
-     * Cargar módulo
-     */
-    loadModule(moduleId) {
-        if (moduleId > this.courseProgress.completedModules.length + 1) {
-            this.showNotification('Este módulo aún no está disponible', 'warning');
-            return;
-        }
-
-        // Actualizar UI
-        document.querySelectorAll('.module-item').forEach(item => {
-            item.classList.remove('current');
-        });
-        
-        const moduleItem = document.querySelector(`[data-module="${moduleId}"]`);
-        if (moduleItem) {
-            moduleItem.classList.add('current');
-        }
-
-        this.currentModule = moduleId;
-        this.updateProgressDisplay();
-        
-        // Cargar contenido del módulo
-        this.loadModuleContent(moduleId);
-        
-        this.showNotification(`Módulo ${moduleId} cargado`, 'success');
-    }
-
-    /**
-     * Cargar contenido del módulo
-     */
-    loadModuleContent(moduleId) {
-        // Aquí se cargaría el contenido específico del módulo
-        // Videos, documentos, etc.
-        console.log(`Cargando contenido del módulo ${moduleId}`);
-    }
-
-    /**
-     * Actualizar visualización del progreso
-     */
-    updateProgressDisplay() {
-        const progressFill = document.querySelector('.progress-fill');
-        const progressText = document.querySelector('.progress-text');
-        const statNumber = document.querySelector('.stat-number');
-        
-        const totalModules = 5;
-        const completedModules = this.courseProgress.completedModules.length;
-        const currentProgress = Math.round((completedModules / totalModules) * 100);
-        
-        if (progressFill) {
-            progressFill.style.width = `${currentProgress}%`;
-        }
-        
-        if (progressText) {
-            progressText.textContent = `Módulo ${this.currentModule} de ${totalModules} • ${currentProgress}% completado`;
-        }
-        
-        if (statNumber) {
-            statNumber.textContent = `${currentProgress}%`;
-        }
-    }
-
-    /**
-     * Mostrar notificación
-     */
-    showNotification(message, type = 'info') {
-        // Crear elemento de notificación
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-            <div class="notification-content">
-                <i class="fas fa-${this.getNotificationIcon(type)}"></i>
-                <span>${message}</span>
+    addLiaMessage(message) {
+        const messagesContainer = document.getElementById('liaMessages');
+        const messageElement = document.createElement('div');
+        messageElement.className = 'lia-message';
+        messageElement.innerHTML = `
+            <div class="lia-avatar">
+                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
             </div>
-            <button class="notification-close">
-                <i class="fas fa-times"></i>
+            <div class="message-content">
+                <div class="message-text">${this.escapeHtml(message)}</div>
+                <div class="message-time">ahora</div>
+                <div class="message-actions">
+                    <button class="action-btn-small" onclick="window.chatOnline.copyMessage(this)" title="Copiar mensaje">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                    <button class="action-btn-small" onclick="window.chatOnline.replyToMessage(this)" title="Responder">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9,11 12,14 22,4"></polyline>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        messagesContainer.appendChild(messageElement);
+        this.scrollToBottom(messagesContainer);
+    }
+    
+    showTypingIndicator() {
+        this.isLiaTyping = true;
+        const messagesContainer = document.getElementById('liaMessages');
+        const typingElement = document.createElement('div');
+        typingElement.className = 'lia-message typing-indicator';
+        typingElement.innerHTML = `
+            <div class="lia-avatar">
+                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+            </div>
+            <div class="typing-dots-only">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        `;
+        
+        messagesContainer.appendChild(typingElement);
+        this.scrollToBottom(messagesContainer);
+    }
+    
+    hideTypingIndicator() {
+        this.isLiaTyping = false;
+        const typingIndicator = document.querySelector('.typing-indicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
+    
+    async getLiaResponse(message) {
+        // Simular delay de respuesta
+        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+        
+        // Respuestas contextuales basadas en el mensaje
+        const lowerMessage = message.toLowerCase();
+        
+        if (lowerMessage.includes('hola') || lowerMessage.includes('buenos')) {
+            return '¡Hola! ¿En qué puedo ayudarte hoy con el curso de IA?';
+        }
+        
+        if (lowerMessage.includes('redes neuronales') || lowerMessage.includes('neural')) {
+            return 'Las redes neuronales son sistemas de aprendizaje automático inspirados en el cerebro humano. Están compuestas por capas de neuronas artificiales que procesan información de manera similar a las neuronas biológicas. ¿Te gustaría que profundice en algún aspecto específico?';
+        }
+        
+        if (lowerMessage.includes('machine learning') || lowerMessage.includes('ml')) {
+            return 'Machine Learning es un subcampo de la IA que permite a las computadoras aprender y mejorar automáticamente a partir de la experiencia sin ser programadas explícitamente. ¿Hay algún algoritmo específico que te interese?';
+        }
+        
+        if (lowerMessage.includes('ayuda') || lowerMessage.includes('ayudar')) {
+            return '¡Por supuesto! Puedo ayudarte con:\n• Explicar conceptos del video\n• Resolver dudas sobre IA\n• Proporcionar ejemplos prácticos\n• Crear resúmenes de temas\n\n¿Qué te gustaría saber?';
+        }
+        
+        // Respuesta por defecto
+        return 'Interesante pregunta. Basándome en el contexto del curso actual, puedo ayudarte a entender mejor los conceptos de IA. ¿Podrías ser más específico sobre lo que te gustaría aprender?';
+    }
+    
+    // ===== PESTAÑAS DE CONTENIDO =====
+    setupContentTabs() {
+        const tabButtons = document.querySelectorAll('.content-tabs .tab-btn');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const contentType = e.currentTarget.dataset.content;
+                console.log(`📄 Cambiando contenido a: ${contentType}`);
+                this.switchContentTab(contentType);
+            });
+        });
+    }
+    
+    switchContentTab(contentType) {
+        // Remover clase active de todas las pestañas
+        document.querySelectorAll('.content-tabs .tab-btn').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Agregar clase active a la pestaña seleccionada
+        const activeTab = document.querySelector(`[data-content="${contentType}"]`);
+        if (activeTab) {
+            activeTab.classList.add('active');
+        }
+        
+        // Cambiar contenido
+        this.updateContentArea(contentType);
+    }
+    
+    updateContentArea(contentType) {
+        const contentArea = document.querySelector('.content-area');
+        if (!contentArea) return;
+        
+        switch(contentType) {
+            case 'transcript':
+                contentArea.innerHTML = `
+                    <div class="transcript-content">
+                        ${this.getModuleTranscript(this.currentModule)}
+                    </div>
+                `;
+                break;
+            case 'summary':
+                contentArea.innerHTML = `
+                    <div class="summary-content">
+                        <h4>Resumen del Módulo</h4>
+                        <ul>
+                            <li>Conceptos fundamentales de redes neuronales</li>
+                            <li>Perceptrones simples y su funcionamiento</li>
+                            <li>Funciones de activación (sigmoid, tanh, ReLU)</li>
+                            <li>Aplicaciones prácticas en IA</li>
+                        </ul>
+                    </div>
+                `;
+                break;
+        }
+    }
+    
+    // ===== NOTAS =====
+    setupNotes() {
+        const addNoteBtn = document.getElementById('addNoteBtn');
+        const searchNotesBtn = document.getElementById('searchNotesBtn');
+        const collapseNotesBtn = document.getElementById('collapseNotes');
+        
+        if (addNoteBtn) {
+            addNoteBtn.addEventListener('click', () => {
+                this.addNewNote();
+            });
+        }
+        
+        if (searchNotesBtn) {
+            searchNotesBtn.addEventListener('click', () => {
+                this.searchNotes();
+            });
+        }
+        
+        if (collapseNotesBtn) {
+            collapseNotesBtn.addEventListener('click', () => {
+                this.toggleNotesCollapse();
+            });
+        }
+    }
+    
+    addNewNote() {
+        console.log('📝 Abriendo editor de notas...');
+        this.showNotesCreator();
+    }
+    
+    showNotesCreator() {
+        const notesCreator = document.getElementById('notesCreatorSection');
+        const titleInput = document.getElementById('noteTitleInput');
+        const contentEditor = document.getElementById('noteContentEditor');
+        const tagsInput = document.getElementById('tagsInput');
+        
+        // Mostrar el editor y agregar clase active
+        notesCreator.style.display = 'block';
+        notesCreator.classList.add('active');
+        
+        // Limpiar campos solo si no estamos editando una nota existente
+        if (!this.currentEditingNoteId) {
+            titleInput.value = '';
+            contentEditor.innerHTML = '';
+            tagsInput.value = '';
+            this.clearTags();
+        }
+        
+        // Enfocar el título
+        titleInput.focus();
+        
+        console.log('✅ Editor de notas abierto');
+    }
+    
+    hideNotesCreator() {
+        const notesCreator = document.getElementById('notesCreatorSection');
+        notesCreator.style.display = 'none';
+        notesCreator.classList.remove('active');
+        
+        // Limpiar ID de edición
+        this.currentEditingNoteId = null;
+        
+        console.log('❌ Editor de notas cerrado');
+    }
+    
+
+    
+    saveNote() {
+        const titleInput = document.getElementById('noteTitleInput');
+        const contentEditor = document.getElementById('noteContentEditor');
+        
+        const title = titleInput.value.trim();
+        const content = contentEditor.innerHTML.trim();
+        const tags = this.getTags();
+        
+        if (!title && !content) {
+            alert('Por favor, agrega un título o contenido a la nota antes de guardar.');
+            return; // No guardar si no hay contenido
+        }
+        
+        // Crear o actualizar nota
+        const note = {
+            id: this.currentEditingNoteId || Date.now(),
+            title: title || 'Nota sin título',
+            content: content || '',
+            tags: tags,
+            createdAt: this.currentEditingNoteId ? this.getNoteById(this.currentEditingNoteId)?.createdAt || new Date().toISOString() : new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Guardar en localStorage
+        this.saveNoteToStorage(note);
+        
+        // Actualizar la lista de notas
+        this.loadNotesList();
+        
+        console.log('💾 Nota guardada:', note);
+        
+        // Mostrar mensaje de confirmación
+        const message = this.currentEditingNoteId ? 'Nota actualizada correctamente' : 'Nota guardada correctamente';
+        alert(message);
+        
+        // NO limpiar ID de edición aquí - solo se limpia cuando se cierra el editor
+    }
+    
+    saveNoteToStorage(note) {
+        let notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+        
+        // Buscar si ya existe una nota con el mismo ID
+        const existingIndex = notes.findIndex(n => n.id === note.id);
+        
+        if (existingIndex >= 0) {
+            notes[existingIndex] = note;
+            console.log(`📝 Actualizando nota existente ID: ${note.id}`);
+        } else {
+            notes.push(note);
+            console.log(`📝 Creando nueva nota ID: ${note.id}`);
+        }
+        
+        localStorage.setItem('lia_notes', JSON.stringify(notes));
+    }
+    
+    getTags() {
+        const tagsList = document.getElementById('tagsList');
+        const tagItems = tagsList.querySelectorAll('.tag-item');
+        return Array.from(tagItems).map(tag => tag.textContent.replace('×', '').trim());
+    }
+    
+    addTag(tagText) {
+        if (!tagText.trim()) return;
+        
+        const tagsList = document.getElementById('tagsList');
+        const existingTags = Array.from(tagsList.querySelectorAll('.tag-item'))
+            .map(tag => tag.textContent.replace('×', '').trim());
+        
+        if (existingTags.includes(tagText.trim())) {
+            return; // Evitar duplicados
+        }
+        
+        const tagElement = document.createElement('div');
+        tagElement.className = 'tag-item';
+        tagElement.innerHTML = `
+            ${tagText.trim()}
+            <button class="tag-remove" onclick="window.chatOnline.removeTag(this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
             </button>
         `;
         
-        // Añadir estilos si no existen
-        if (!document.querySelector('#notification-styles')) {
-            const styles = document.createElement('style');
-            styles.id = 'notification-styles';
-            styles.textContent = `
-                .notification {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: var(--neo-gradient);
-                    border-radius: var(--neo-radius-medium);
-                    box-shadow: var(--neo-shadow-large);
-                    padding: 16px;
-                    z-index: 10000;
-                    max-width: 400px;
-                    transform: translateX(100%);
-                    transition: transform 0.3s ease;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
+        tagsList.appendChild(tagElement);
+    }
+    
+    removeTag(button) {
+        button.closest('.tag-item').remove();
+    }
+    
+    clearTags() {
+        const tagsList = document.getElementById('tagsList');
+        tagsList.innerHTML = '';
+    }
+    
+    // ===== CONFIGURACIÓN DEL EDITOR DE NOTAS =====
+    setupNotesEditor() {
+        // Configurar barra de herramientas
+        this.setupToolbar();
+        
+        // Configurar input de etiquetas
+        this.setupTagsInput();
+        
+        // Configurar botones del editor
+        this.setupEditorButtons();
+    }
+    
+    setupToolbar() {
+        const boldBtn = document.getElementById('boldBtn');
+        const italicBtn = document.getElementById('italicBtn');
+        const underlineBtn = document.getElementById('underlineBtn');
+        const listBtn = document.getElementById('listBtn');
+        const linkBtn = document.getElementById('linkBtn');
+        
+        // Negrita
+        boldBtn.addEventListener('click', () => {
+            document.execCommand('bold', false, null);
+            this.updateToolbarState();
+        });
+        
+        // Cursiva
+        italicBtn.addEventListener('click', () => {
+            document.execCommand('italic', false, null);
+            this.updateToolbarState();
+        });
+        
+        // Subrayado
+        underlineBtn.addEventListener('click', () => {
+            document.execCommand('underline', false, null);
+            this.updateToolbarState();
+        });
+        
+        // Lista
+        listBtn.addEventListener('click', () => {
+            document.execCommand('insertUnorderedList', false, null);
+            this.updateToolbarState();
+        });
+        
+        // Enlace
+        linkBtn.addEventListener('click', () => {
+            const url = prompt('Ingresa la URL del enlace:');
+            if (url) {
+                document.execCommand('createLink', false, url);
+            }
+            this.updateToolbarState();
+        });
+        
+        // Actualizar estado de la barra de herramientas cuando se selecciona texto
+        const contentEditor = document.getElementById('noteContentEditor');
+        contentEditor.addEventListener('keyup', () => this.updateToolbarState());
+        contentEditor.addEventListener('mouseup', () => this.updateToolbarState());
+        contentEditor.addEventListener('input', () => this.updateToolbarState());
+    }
+    
+    updateToolbarState() {
+        const boldBtn = document.getElementById('boldBtn');
+        const italicBtn = document.getElementById('italicBtn');
+        const underlineBtn = document.getElementById('underlineBtn');
+        
+        // Actualizar estado de los botones
+        boldBtn.classList.toggle('active', document.queryCommandState('bold'));
+        italicBtn.classList.toggle('active', document.queryCommandState('italic'));
+        underlineBtn.classList.toggle('active', document.queryCommandState('underline'));
+    }
+    
+    setupTagsInput() {
+        const tagsInput = document.getElementById('tagsInput');
+        
+        tagsInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const tagText = tagsInput.value.trim();
+                if (tagText) {
+                    this.addTag(tagText);
+                    tagsInput.value = '';
                 }
-                .notification.show { transform: translateX(0); }
-                .notification-content {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    color: var(--neo-text-dark);
-                }
-                .notification-close {
-                    position: absolute;
-                    top: 8px;
-                    right: 8px;
-                    background: none;
-                    border: none;
-                    color: var(--neo-text-dark);
-                    cursor: pointer;
-                    padding: 4px;
-                    border-radius: 50%;
-                }
-                .notification-success { border-left: 4px solid #22c55e; }
-                .notification-warning { border-left: 4px solid #f59e0b; }
-                .notification-error { border-left: 4px solid #ef4444; }
-                .notification-info { border-left: 4px solid var(--neo-primary); }
-            `;
-            document.head.appendChild(styles);
-        }
+            }
+        });
         
-        // Añadir al DOM
-        document.body.appendChild(notification);
-        
-        // Mostrar notificación
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 100);
-        
-        // Auto-cerrar después de 5 segundos
-        setTimeout(() => {
-            this.removeNotification(notification);
-        }, 5000);
-        
-        // Cerrar manualmente
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            this.removeNotification(notification);
+        // Permitir agregar etiquetas con coma
+        tagsInput.addEventListener('input', (e) => {
+            const value = e.target.value;
+            if (value.includes(',')) {
+                const tags = value.split(',').map(tag => tag.trim()).filter(tag => tag);
+                tags.forEach(tag => this.addTag(tag));
+                tagsInput.value = '';
+            }
         });
     }
-
-    /**
-     * Remover notificación
-     */
-    removeNotification(notification) {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
+    
+    setupEditorButtons() {
+        const saveBtn = document.getElementById('saveNoteBtn');
+        const cancelBtn = document.getElementById('cancelNoteBtn');
+        
+        // Guardar nota
+        saveBtn.addEventListener('click', () => {
+            this.saveNote();
+            this.hideNotesCreator();
+        });
+        
+        // Cancelar
+        cancelBtn.addEventListener('click', () => {
+            this.hideNotesCreator();
+        });
     }
-
-    /**
-     * Obtener icono de notificación
-     */
-    getNotificationIcon(type) {
-        const icons = {
-            success: 'check-circle',
-            warning: 'exclamation-triangle',
-            error: 'times-circle',
-            info: 'info-circle'
-        };
-        return icons[type] || 'info-circle';
+    
+    searchNotes() {
+        console.log('🔍 Activando búsqueda de notas...');
+        this.toggleSearchMode();
     }
-
-    /**
-     * Limpiar chat
-     */
-    clearChat() {
-        if (confirm('¿Estás seguro de que quieres limpiar el historial del chat?')) {
-            const chatMessages = document.getElementById('chatMessages');
-            if (chatMessages) {
-                // Mantener solo el mensaje de bienvenida
-                const welcomeMessage = chatMessages.querySelector('.message.lia-message');
-                chatMessages.innerHTML = '';
-                if (welcomeMessage) {
-                    chatMessages.appendChild(welcomeMessage);
-                }
-            }
-            
-            this.chatHistory = [];
-            this.showNotification('Chat limpiado', 'success');
-        }
-    }
-
-    /**
-     * Ir atrás
-     */
-    goBack() {
-        if (confirm('¿Seguro que quieres salir? El progreso se guardará automáticamente.')) {
-            this.saveProgress();
-            window.location.href = '../cursos.html';
-        }
-    }
-
-    /**
-     * Guardar progreso
-     */
-    saveProgress() {
-        try {
-            localStorage.setItem('courseProgress', JSON.stringify(this.courseProgress));
-            localStorage.setItem('chatOnlineUserData', JSON.stringify(this.userData));
-            console.log('Progreso guardado correctamente');
-        } catch (error) {
-            console.error('Error guardando progreso:', error);
-        }
-    }
-
-    /**
-     * Verificar cambios sin guardar
-     */
-    hasUnsavedChanges() {
-        // Verificar si hay notas sin guardar, etc.
-        const noteEditor = document.getElementById('noteEditor');
-        return noteEditor && noteEditor.style.display !== 'none';
-    }
-
-    /**
-     * Abrir configuración
-     */
-    openSettings() {
-        this.showNotification('Funcionalidad en desarrollo', 'info');
-    }
-
-    /**
-     * Toggle pantalla completa
-     */
-    toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
+    
+    toggleSearchMode() {
+        const notesList = document.getElementById('notesList');
+        const searchBtn = document.getElementById('searchNotesBtn');
+        
+        if (this.isSearchMode) {
+            // Desactivar modo búsqueda
+            this.isSearchMode = false;
+            this.loadNotesList(); // Cargar todas las notas
+            searchBtn.title = 'Buscar Notas';
+            console.log('🔍 Modo búsqueda desactivado');
         } else {
-            document.exitFullscreen();
+            // Activar modo búsqueda
+            this.isSearchMode = true;
+            this.showSearchInput();
+            searchBtn.title = 'Cancelar Búsqueda';
+            console.log('🔍 Modo búsqueda activado');
         }
     }
-
-    /**
-     * Toggle panel
-     */
-    togglePanel(panel) {
-        const panelElement = document.querySelector(`.${panel}-panel`);
-        if (panelElement) {
-            panelElement.classList.toggle('collapsed');
+    
+    showSearchInput() {
+        const notesList = document.getElementById('notesList');
+        
+        // Crear el input de búsqueda
+        const searchHTML = `
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="noteSearchInput" placeholder="Buscar en notas..." class="search-input">
+                    <button class="search-clear-btn" id="searchClearBtn" style="display: none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="search-results" id="searchResults"></div>
+            </div>
+        `;
+        
+        notesList.innerHTML = searchHTML;
+        
+        // Configurar el input de búsqueda
+        this.setupSearchInput();
+    }
+    
+    setupSearchInput() {
+        const searchInput = document.getElementById('noteSearchInput');
+        const clearBtn = document.getElementById('searchClearBtn');
+        
+        // Event listener para búsqueda en tiempo real
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim().toLowerCase();
+            this.performSearch(query);
+            
+            // Mostrar/ocultar botón de limpiar
+            if (query.length > 0) {
+                clearBtn.style.display = 'flex';
+            } else {
+                clearBtn.style.display = 'none';
+            }
+        });
+        
+        // Event listener para botón de limpiar
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            this.performSearch('');
+        });
+        
+        // Enfocar el input
+        searchInput.focus();
+    }
+    
+    performSearch(query) {
+        const searchResults = document.getElementById('searchResults');
+        const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+        
+        if (!query) {
+            // Si no hay query, mostrar todas las notas
+            this.displaySearchResults(notes);
+            return;
+        }
+        
+        // Filtrar notas que coincidan con la búsqueda
+        const filteredNotes = notes.filter(note => {
+            const title = note.title.toLowerCase();
+            const content = this.stripHTML(note.content).toLowerCase();
+            const tags = note.tags.join(' ').toLowerCase();
+            
+            return title.includes(query) || 
+                   content.includes(query) || 
+                   tags.includes(query);
+        });
+        
+        this.displaySearchResults(filteredNotes);
+        
+        console.log(`🔍 Búsqueda: "${query}" - ${filteredNotes.length} resultados`);
+    }
+    
+    displaySearchResults(notes) {
+        const searchResults = document.getElementById('searchResults');
+        
+        if (notes.length === 0) {
+            searchResults.innerHTML = `
+                <div class="no-search-results">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <p>No se encontraron notas</p>
+                    <span>Intenta con otros términos de búsqueda</span>
+                </div>
+            `;
+            return;
+        }
+        
+        // Ordenar por fecha de actualización (más recientes primero)
+        const sortedNotes = notes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        
+        searchResults.innerHTML = sortedNotes.map(note => this.createNoteHTML(note)).join('');
+        
+        // Agregar event listeners a las notas encontradas
+        this.setupNoteClickListeners();
+    }
+    
+    toggleNotesCollapse() {
+        const notesList = document.getElementById('notesList');
+        const collapseBtn = document.getElementById('collapseNotes');
+        const icon = collapseBtn.querySelector('i');
+        
+        if (notesList) {
+            notesList.style.display = notesList.style.display === 'none' ? 'block' : 'none';
+            icon.className = notesList.style.display === 'none' ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
         }
     }
-
-    /**
-     * Manejar redimensionado de ventana
-     */
-    handleWindowResize() {
-        // Ajustar layout responsivo si es necesario
-        this.updateLayout();
+    
+    // ===== MATERIALES =====
+    setupMaterials() {
+        const collapseMaterialsBtn = document.getElementById('collapseMaterialsBtn');
+        
+        if (collapseMaterialsBtn) {
+            collapseMaterialsBtn.addEventListener('click', () => {
+                console.log('📦 Colapsando materiales del curso...');
+                this.toggleMaterialsCollapse();
+            });
+        }
     }
-
-    /**
-     * Actualizar layout
-     */
-    updateLayout() {
+    
+    toggleMaterialsCollapse() {
+        const materialsSection = document.querySelector('.course-materials-section');
+        const modulesList = document.querySelector('.modules-list');
+        const collapseBtn = document.getElementById('collapseMaterialsBtn');
+        const icon = collapseBtn.querySelector('svg');
+        
+        if (materialsSection && modulesList) {
+            const isCollapsed = modulesList.style.opacity === '0' || modulesList.style.visibility === 'hidden';
+            
+            if (isCollapsed) {
+                // Expandir
+                modulesList.style.opacity = '1';
+                modulesList.style.visibility = 'visible';
+                modulesList.style.display = 'flex';
+                materialsSection.style.flex = '1';
+                icon.innerHTML = '<polyline points="6,9 12,15 18,9"/>';
+                collapseBtn.title = 'Colapsar Materiales';
+                console.log('📤 Materiales expandidos');
+        } else {
+                // Colapsar
+                modulesList.style.opacity = '0';
+                modulesList.style.visibility = 'hidden';
+                setTimeout(() => {
+                    modulesList.style.display = 'none';
+                }, 300);
+                materialsSection.style.flex = '0 0 auto';
+                icon.innerHTML = '<polyline points="6,15 12,9 18,15"/>';
+                collapseBtn.title = 'Expandir Materiales';
+                console.log('📦 Materiales colapsados');
+            }
+        }
+    }
+    
+    // ===== RESPONSIVE =====
+    setupResponsive() {
+        this.checkScreenSize();
+    }
+    
+    setupResponsiveListeners() {
+        window.addEventListener('resize', () => {
+            this.checkScreenSize();
+        });
+    }
+    
+    checkScreenSize() {
         const width = window.innerWidth;
         
-        if (width <= 968) {
-            document.body.classList.add('mobile-layout');
+        if (width <= 992) {
+            this.enableMobileMode();
         } else {
-            document.body.classList.remove('mobile-layout');
+            this.disableMobileMode();
         }
     }
-
-    /**
-     * Pausar actividades
-     */
-    pauseActivities() {
-        if (this.videoPlayer) {
-            this.videoPlayer.pause();
-        }
+    
+    enableMobileMode() {
+        console.log('📱 Modo móvil activado');
+        // Aquí puedes agregar lógica específica para móvil
     }
-
-    /**
-     * Reanudar actividades
-     */
-    resumeActivities() {
-        // Reanudar actividades si es necesario
+    
+    disableMobileMode() {
+        console.log('🖥️ Modo desktop activado');
+        // Aquí puedes agregar lógica específica para desktop
     }
-
-    /**
-     * Cancelar acción actual
-     */
-    cancelCurrentAction() {
-        this.cancelNoteEdit();
-        this.hideTypingIndicator();
-    }
-
-    /**
-     * Mostrar atajos de teclado
-     */
-    showKeyboardShortcuts() {
-        this.showNotification('Atajos: Ctrl+Enter (enviar), Esc (cancelar), F11 (pantalla completa)', 'info');
-    }
-
-    /**
-     * Abrir editor de notas
-     */
-    openNoteEditor() {
-        const noteEditor = document.getElementById('noteEditor');
-        if (noteEditor) {
-            noteEditor.style.display = 'block';
-            const textarea = noteEditor.querySelector('textarea');
-            if (textarea) {
-                textarea.focus();
-            }
-        }
-    }
-
-    /**
-     * Guardar nota
-     */
-    saveNote() {
-        const noteText = document.getElementById('noteText');
-        if (noteText && noteText.value.trim()) {
-            const note = {
-                content: noteText.value.trim(),
-                time: this.getCurrentVideoTime(),
-                timestamp: new Date()
-            };
+    
+    // ===== FUNCIONES DE MENSAJES =====
+    copyMessage(button) {
+        const messageElement = button.closest('.message-content');
+        const messageText = messageElement.querySelector('.message-text').textContent;
+        
+        navigator.clipboard.writeText(messageText).then(() => {
+            // Mostrar feedback visual
+            const originalText = button.title;
+            button.title = '¡Copiado!';
+            button.style.background = 'var(--glass-success)';
             
-            this.courseProgress.notes.push(note);
-            this.saveProgress();
-            this.addNoteToList(note);
-            this.cancelNoteEdit();
-            this.showNotification('Nota guardada', 'success');
-        }
+        setTimeout(() => {
+                button.title = originalText;
+                button.style.background = '';
+            }, 1500);
+            
+            console.log('📋 Mensaje copiado al portapapeles');
+        }).catch(err => {
+            console.error('❌ Error al copiar mensaje:', err);
+        });
     }
-
-    /**
-     * Cancelar edición de nota
-     */
-    cancelNoteEdit() {
-        const noteEditor = document.getElementById('noteEditor');
-        const noteText = document.getElementById('noteText');
+    
+    replyToMessage(button) {
+        const messageElement = button.closest('.lia-message');
+        const messageText = messageElement.querySelector('.message-text').textContent;
+        const isUserMessage = messageElement.classList.contains('user-message');
         
-        if (noteEditor) {
-            noteEditor.style.display = 'none';
+        // Mostrar área de respuesta
+        const replyArea = document.getElementById('replyArea');
+        const replyText = document.getElementById('replyText');
+        const input = document.getElementById('liaMessageInput');
+        
+        replyText.textContent = messageText.length > 50 ? messageText.substring(0, 50) + '...' : messageText;
+        replyArea.style.display = 'block';
+        replyArea.dataset.replyingTo = messageText;
+        replyArea.dataset.isUserMessage = isUserMessage;
+        
+        // Cambiar placeholder del input
+        input.placeholder = 'Escribe tu respuesta...';
+        input.focus();
+        
+        console.log('💬 Respondiendo a mensaje');
+    }
+    
+    cancelReply() {
+        const replyArea = document.getElementById('replyArea');
+        const input = document.getElementById('liaMessageInput');
+        
+        replyArea.style.display = 'none';
+        replyArea.removeAttribute('data-replying-to');
+        replyArea.removeAttribute('data-is-user-message');
+        
+        input.placeholder = 'Pregunta a LIA...';
+        input.focus();
+        
+        console.log('❌ Respuesta cancelada');
+    }
+    
+    // ===== UTILIDADES =====
+    autoResizeInput(input) {
+        input.style.height = 'auto';
+        input.style.height = input.scrollHeight + 'px';
+    }
+    
+    scrollToBottom(element) {
+        element.scrollTop = element.scrollHeight;
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    stripHTML(html) {
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        return div.textContent || div.innerText || '';
+    }
+    
+    getTimeAgo(dateString) {
+        const now = new Date();
+        const date = new Date(dateString);
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) {
+            return 'ahora';
+        } else if (diffInSeconds < 3600) {
+            const minutes = Math.floor(diffInSeconds / 60);
+            return `hace ${minutes} min`;
+        } else if (diffInSeconds < 86400) {
+            const hours = Math.floor(diffInSeconds / 3600);
+            return `hace ${hours}h`;
+        } else {
+            const days = Math.floor(diffInSeconds / 86400);
+            return `hace ${days}d`;
+        }
+    }
+    
+    loadInitialData() {
+        // Cargar datos iniciales
+        console.log('📊 Cargando datos iniciales...');
+        
+        // Simular carga de progreso
+        this.updateProgress(65);
+        
+        // Cargar notas de ejemplo
+        this.loadSampleNotes();
+    }
+    
+    cleanDuplicateNotes() {
+        const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+        const uniqueNotes = [];
+        const seenIds = new Set();
+        
+        // Filtrar notas duplicadas por ID
+        notes.forEach(note => {
+            if (!seenIds.has(note.id)) {
+                seenIds.add(note.id);
+                uniqueNotes.push(note);
+            }
+        });
+        
+        // Guardar solo las notas únicas
+        localStorage.setItem('lia_notes', JSON.stringify(uniqueNotes));
+        
+        console.log(`🧹 Limpiadas ${notes.length - uniqueNotes.length} notas duplicadas`);
+        console.log(`📊 Total de notas únicas: ${uniqueNotes.length}`);
+    }
+    
+    // Función temporal para debuggear - puedes llamarla desde la consola
+    debugNotes() {
+        const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+        console.log('📊 Estado actual de las notas:');
+        console.log(`Total de notas: ${notes.length}`);
+        console.log('Notas:', notes);
+        
+        // Verificar duplicados
+        const ids = notes.map(note => note.id);
+        const uniqueIds = [...new Set(ids)];
+        console.log(`IDs únicos: ${uniqueIds.length}`);
+        console.log(`Duplicados: ${ids.length - uniqueIds.length}`);
+    }
+    
+    // Función temporal para limpiar todas las notas (solo para emergencias)
+    clearAllNotes() {
+        if (confirm('¿Estás seguro de que quieres eliminar TODAS las notas? Esta acción no se puede deshacer.')) {
+            localStorage.removeItem('lia_notes');
+            this.loadNotesList();
+            console.log('🗑️ Todas las notas eliminadas');
+        }
+    }
+    
+    updateProgress(percentage) {
+        const progressFill = document.querySelector('.progress-fill-modern');
+        if (progressFill) {
+            progressFill.style.width = `${percentage}%`;
+        }
+    }
+    
+    loadSampleNotes() {
+        // Cargar notas desde localStorage
+        this.loadNotesList();
+        console.log('📝 Notas cargadas desde localStorage');
+    }
+    
+    loadNotesList() {
+        const notesList = document.getElementById('notesList');
+        const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+        
+        if (notes.length === 0) {
+            notesList.innerHTML = `
+                <div class="no-notes">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    <p>No hay notas aún</p>
+                    <span>Crea tu primera nota para comenzar</span>
+                </div>
+            `;
+            return;
         }
         
-        if (noteText) {
-            noteText.value = '';
-        }
+        // Ordenar notas por fecha de actualización (más recientes primero)
+        const sortedNotes = notes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        
+        notesList.innerHTML = sortedNotes.map(note => this.createNoteHTML(note)).join('');
+        
+        // Agregar event listeners a las notas
+        this.setupNoteClickListeners();
     }
-
-    /**
-     * Obtener tiempo actual del video
-     */
-    getCurrentVideoTime() {
-        const video = document.getElementById('courseVideo');
-        if (video) {
-            const currentTime = video.currentTime;
-            const minutes = Math.floor(currentTime / 60);
-            const seconds = Math.floor(currentTime % 60);
-            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-        return '00:00';
+    
+    setupNoteClickListeners() {
+        const noteItems = document.querySelectorAll('.note-item');
+        noteItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                const noteId = parseInt(item.dataset.noteId);
+                console.log('📝 Abriendo nota:', noteId);
+                this.openNoteForEditing(noteId);
+            });
+        });
     }
-
-    /**
-     * Añadir nota a la lista
-     */
-    addNoteToList(note) {
-        const notesList = document.querySelector('.notes-list');
-        if (notesList) {
-            const noteElement = document.createElement('div');
-            noteElement.className = 'note-item neo-card';
-            noteElement.innerHTML = `
+    
+    openNoteForEditing(noteId) {
+        const note = this.getNoteById(noteId);
+        if (!note) {
+            console.error('❌ Nota no encontrada:', noteId);
+            return;
+        }
+        
+        // Guardar ID de la nota que se está editando
+        this.currentEditingNoteId = noteId;
+        
+        // Mostrar el editor
+        this.showNotesCreator();
+        
+        // Llenar los campos con los datos de la nota
+        const titleInput = document.getElementById('noteTitleInput');
+        const contentEditor = document.getElementById('noteContentEditor');
+        const tagsInput = document.getElementById('tagsInput');
+        
+        titleInput.value = note.title;
+        contentEditor.innerHTML = note.content;
+        
+        // Limpiar y agregar las etiquetas
+        this.clearTags();
+        note.tags.forEach(tag => this.addTag(tag));
+        
+        console.log('✅ Nota cargada para edición:', note);
+    }
+    
+    getNoteById(noteId) {
+        const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+        return notes.find(note => note.id === noteId);
+    }
+    
+    deleteNote(noteId) {
+        let notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+        
+        // Filtrar la nota a eliminar
+        notes = notes.filter(note => note.id !== noteId);
+        
+        // Guardar la lista actualizada
+        localStorage.setItem('lia_notes', JSON.stringify(notes));
+        
+        // Actualizar la lista en la interfaz
+        this.loadNotesList();
+        
+        console.log('🗑️ Nota eliminada:', noteId);
+    }
+    
+    createNoteHTML(note) {
+        const tagsHTML = note.tags.map(tag => `
+            <span class="tag">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                </svg>
+                ${this.escapeHtml(tag)}
+            </span>
+        `).join('');
+        
+        const timeAgo = this.getTimeAgo(note.updatedAt);
+        const contentPreview = this.stripHTML(note.content).substring(0, 100);
+        
+        return `
+            <div class="note-item" data-note-id="${note.id}">
                 <div class="note-header">
-                    <span class="note-time">${note.time}</span>
+                    <span class="note-title">
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        ${this.escapeHtml(note.title)}
+                    </span>
+                    <span class="note-time">${timeAgo}</span>
+                </div>
+                <div class="note-content">
+                    <p>${this.escapeHtml(contentPreview)}${contentPreview.length >= 100 ? '...' : ''}</p>
+                </div>
+                <div class="note-tags">
+                    ${tagsHTML}
+                </div>
                     <div class="note-actions">
-                        <button class="neo-btn neo-btn-micro">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="neo-btn neo-btn-micro">
-                            <i class="fas fa-trash"></i>
+                    <button class="note-delete-btn" onclick="window.chatOnline.deleteNote(${note.id})" title="Eliminar nota">
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
                         </button>
                     </div>
                 </div>
-                <div class="note-content">${note.content}</div>
-            `;
-            
-            notesList.insertBefore(noteElement, notesList.firstChild);
-        }
+        `;
     }
-
-    /**
-     * Eliminar nota
-     */
-    deleteNote(noteElement) {
-        if (confirm('¿Eliminar esta nota?')) {
-            noteElement.remove();
-            this.showNotification('Nota eliminada', 'success');
-        }
+    
+    // ===== CONTENIDO DE PESTAÑAS =====
+    showVideoContent() {
+        console.log('🎥 Mostrando contenido de video');
+        // El contenido de video ya está visible por defecto
     }
-
-    /**
-     * Generar nueva pregunta de quiz
-     */
-    generateNewQuestion() {
-        this.showNotification('Generando nueva pregunta...', 'info');
-        // Aquí se generaría una nueva pregunta basada en el contenido
+    
+    showMaterialsContent() {
+        console.log('📚 Mostrando materiales');
+        // Aquí puedes implementar la vista de materiales
+        alert('Sección de materiales en desarrollo');
     }
-
-    /**
-     * Mostrar ayuda del quiz
-     */
-    showQuizHelp() {
-        this.showNotification('Las preguntas se basan en el contenido del módulo actual', 'info');
-    }
-
-    /**
-     * Enviar respuesta del quiz
-     */
-    submitQuizAnswer(questionElement) {
-        const selectedOption = questionElement.querySelector('input[type="radio"]:checked');
-        if (selectedOption) {
-            const isCorrect = selectedOption.value === 'supervisado'; // Respuesta correcta hardcodeada
-            this.showNotification(
-                isCorrect ? '¡Correcto! Excelente trabajo.' : 'Incorrecto. La respuesta correcta es "Aprendizaje Supervisado".',
-                isCorrect ? 'success' : 'error'
-            );
-        } else {
-            this.showNotification('Por favor selecciona una opción', 'warning');
-        }
-    }
-
-    /**
-     * Actualizar estado del chat
-     */
-    updateChatStatus() {
-        const statusIndicator = document.querySelector('.status-indicator');
-        const statusText = document.querySelector('.lia-status span');
-        
-        if (statusIndicator && statusText) {
-            statusIndicator.className = 'status-indicator online';
-            statusText.textContent = 'En línea • Listo para ayudar';
-        }
-    }
-
-    /**
-     * Toggle entrada de voz
-     */
-    toggleVoiceInput() {
-        this.showNotification('Función de voz en desarrollo', 'info');
-    }
-
-    /**
-     * Abrir diálogo de archivo
-     */
-    openFileDialog() {
-        this.showNotification('Función de archivos en desarrollo', 'info');
+    
+    showQuizContent() {
+        console.log('❓ Mostrando quiz');
+        // Aquí puedes implementar la vista de quiz
+        alert('Sección de quiz en desarrollo');
     }
 }
 
-// Función global para ir atrás (llamada desde el HTML)
+// ===== INICIALIZACIÓN =====
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Iniciando Chat Online...');
+    
+    // Crear instancia de ChatOnline
+    window.chatOnline = new ChatOnline();
+    
+    // Configurar tema global
+    if (typeof setupGlobalTheme === 'function') {
+        setupGlobalTheme();
+    }
+    
+    console.log('✅ Chat Online iniciado correctamente');
+});
+
+// ===== FUNCIONES GLOBALES =====
 function goBack() {
     if (window.chatOnline) {
         window.chatOnline.goBack();
-    } else {
-        window.history.back();
     }
 }
 
-// Función global para buscar tiempo específico en video
-function seekToTime(seconds) {
-    const video = document.getElementById('courseVideo');
-    if (video) {
-        video.currentTime = seconds;
-        video.play();
-    }
+// ===== EXPORTAR PARA USO EXTERNO =====
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ChatOnline;
 }
-
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('[DEBUG] DOM cargado, inicializando ChatOnline');
-    window.chatOnline = new ChatOnline();
-    
-            // Debugging adicional - event listener directo
-        setTimeout(() => {
-            const sendBtn = document.getElementById('sendLiaMessage');
-            const input = document.getElementById('liaMessageInput');
-            
-            console.log('[DEBUG] Botón encontrado:', !!sendBtn);
-            console.log('[DEBUG] Input encontrado:', !!input);
-            
-            if (sendBtn && input) {
-                // Test simple
-                sendBtn.onclick = function() {
-                    console.log('[DEBUG] onclick directo ejecutado');
-                    const msg = input.value.trim();
-                    if (msg) {
-                        console.log('[DEBUG] Mensaje a enviar:', msg);
-                        // Agregar mensaje directamente al chat
-                        const chatMessages = document.getElementById('liaMessages');
-                        if (chatMessages) {
-                            const messageDiv = document.createElement('div');
-                            messageDiv.className = 'message user-message';
-                            messageDiv.innerHTML = `
-                                <div class="message-avatar neo-circle">
-                                    <span>U</span>
-                                </div>
-                                <div class="message-content neo-card">
-                                    <div class="message-text">${msg}</div>
-                                    <div class="message-time">ahora</div>
-                                </div>
-                            `;
-                            chatMessages.appendChild(messageDiv);
-                            input.value = '';
-                            
-                            // Respuesta automática de prueba
-                            setTimeout(() => {
-                                const liaDiv = document.createElement('div');
-                                liaDiv.className = 'message lia-message';
-                                liaDiv.innerHTML = `
-                                    <div class="message-avatar neo-circle">
-                                        <i class="fas fa-robot"></i>
-                                    </div>
-                                    <div class="message-content neo-card">
-                                        <div class="message-text">¡Hola! Recibí tu mensaje: "${msg}". El chat está funcionando correctamente.</div>
-                                        <div class="message-time">ahora</div>
-                                    </div>
-                                `;
-                                chatMessages.appendChild(liaDiv);
-                                chatMessages.scrollTop = chatMessages.scrollHeight;
-                            }, 1000);
-                        }
-                    }
-                };
-                
-                // También para Enter
-                input.onkeydown = function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendBtn.click();
-                    }
-                };
-            }
-        }, 1000);
-});
