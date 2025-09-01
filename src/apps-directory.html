@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Directorio de Herramientas IA — Aprende y Aplica</title>
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/apps-directory.css" />
+    <!-- Estilos del navbar de pestañas reutilizado -->
+    <link rel="stylesheet" href="styles/courses.css" />
+    <!-- Estilos del login para las partículas -->
+    <link rel="stylesheet" href="login/new-auth.css" />
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="icon" type="image/png" href="assets/images/icono.png" />
+    
+    <!-- Auth Guard - Protección de autenticación -->
+    <script src="utils/auth-guard.js"></script>
+    
+    <!-- Global theme setup - Configuración global del tema -->
+    <script src="scripts/global-theme-setup.js"></script>
+</head>
+<body class="bg-glow-global">
+    <!-- Partículas de fondo estáticas CSS -->
+    <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Contenedor principal con fondo dinámico -->
+    <div class="auth-container">
+        <div class="auth-bg">
+            <div class="bg-glow"></div>
+            <canvas id="bgParticles"></canvas>
+        </div>
+
+        <header class="catalog-header">
+            <div class="container">
+                <!-- Navbar de pestañas superior (a todo lo ancho) -->
+                <div class="course-tabs">
+                    <button class="tab-button" onclick="location.href='cursos.html'">
+                        <i class='bx bx-collection'></i>
+                        Talleres
+                    </button>
+                    <button class="tab-button active" onclick="location.href='apps-directory.html'">
+                        <i class='bx bx-grid-alt'></i>
+                        Directorio IA
+                    </button>
+                    <button class="tab-button" onclick="location.href='Community/community.html'">
+                        <i class='bx bx-group'></i>
+                        Comunidad
+                    </button>
+                    <button class="tab-button" onclick="location.href='Notices/notices.html'">
+                        <i class='bx bx-news'></i>
+                        Noticias
+                    </button>
+                </div>
+
+                <button class="header-profile">
+                    <img src="assets/images/icono.png" alt="Perfil" />
+                </button>
+                <div id="profileMenu" class="profile-menu">
+                    <div class="pm-header">
+                        <div class="pm-avatar"><img src="assets/images/icono.png" alt="Perfil"/></div>
+                        <div>
+                            <div class="pm-name" id="pmName">Usuario</div>
+                            <div class="pm-email" id="pmEmail">user@example.com</div>
+                        </div>
+                    </div>
+                    <div class="pm-section">
+                        <div class="pm-item" onclick="location.href='estadisticas.html'"><i class='bx bx-bar-chart-alt-2'></i> Mis Estadísticas</div>
+                        <div class="pm-item" onclick="location.href='courses.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
+                        <div class="pm-item" onclick="location.href='cursos.html'"><i class='bx bx-collection'></i> Talleres</div>
+                    </div>
+                    <div class="pm-section">
+                        <div class="pm-item" onclick="location.href='profile.html'"><i class='bx bx-user'></i> Editar perfil</div>
+                    </div>
+                    <div class="pm-section">
+                        <div class="pm-item" id="themeToggle" onclick="toggleTheme()">
+                            <i class='bx bx-sun theme-icon-sun'></i>
+                            <i class='bx bx-moon theme-icon-moon'></i>
+                            Cambiar tema
+                        </div>
+                    </div>
+                    <div class="pm-section">
+                        <div class="pm-item" onclick="location.href='index.html'"><i class='bx bx-log-out'></i> Cerrar sesión</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="container">
+            <!-- Barra de búsqueda y Filtros DEBAJO del header -->
+            <div class="search">
+                <i class='bx bx-search'></i>
+                <input id="searchInput" type="text" placeholder="Buscar herramientas de IA por nombre o categoría…" />
+            </div>
+            
+            <!-- Filtros de categorías -->
+            <nav class="catalog-categories" id="catalogTabs">
+                <button class="cat-tab active" data-category="">Todas</button>
+                <button class="cat-tab" data-category="arte-ilustracion">Arte</button>
+                <button class="cat-tab" data-category="contenido-escritura">Escritura</button>
+                <button class="cat-tab" data-category="desarrollo-programacion">Desarrollo</button>
+                <button class="cat-tab" data-category="fotografia-imagen">Imagen</button>
+                <button class="cat-tab" data-category="musica-audio">Audio</button>
+                <button class="cat-tab" data-category="video">Video</button>
+                <button class="cat-tab" data-category="productividad-automatizacion">Productividad</button>
+                <button class="cat-tab" data-category="negocios-finanzas">Negocios</button>
+            </nav>
+
+            <!-- Hero intro -->
+            <section class="hero-intro">
+                <div class="hero-copy">
+                    <h1>Directorio de Herramientas de IA</h1>
+                    <p>Descubre las mejores herramientas de inteligencia artificial organizadas por categorías. Encuentra la herramienta perfecta para tu proyecto o flujo de trabajo.</p>
+                </div>
+                <div class="hero-cta">
+                    <div class="filter-toggle">
+                        <button class="btn btn-outline" id="filterToggle">
+                            <i class='bx bx-filter-alt'></i>
+                            Filtros avanzados
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sidebar de filtros (inicialmente oculto) -->
+            <aside class="filters-sidebar" id="filtersSidebar">
+                <div class="filters-content">
+                    <div class="filter-group">
+                        <h3>Modelo de precio</h3>
+                        <div class="filter-options">
+                            <label class="filter-option">
+                                <input type="checkbox" value="gratis" class="pricing-filter">
+                                <span class="checkmark"></span>
+                                Gratis
+                            </label>
+                            <label class="filter-option">
+                                <input type="checkbox" value="freemium" class="pricing-filter">
+                                <span class="checkmark"></span>
+                                Freemium
+                            </label>
+                            <label class="filter-option">
+                                <input type="checkbox" value="de-pago" class="pricing-filter">
+                                <span class="checkmark"></span>
+                                De pago
+                            </label>
+                            <label class="filter-option">
+                                <input type="checkbox" value="prueba-gratis" class="pricing-filter">
+                                <span class="checkmark"></span>
+                                Prueba gratis
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <h3>Tutorial disponible</h3>
+                        <div class="filter-options">
+                            <label class="filter-option">
+                                <input type="checkbox" id="withTutorial">
+                                <span class="checkmark"></span>
+                                Con tutorial
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Grid de aplicaciones -->
+            <section id="appsGrid" class="courses-grid">
+                <!-- Las aplicaciones se cargarán dinámicamente aquí -->
+            </section>
+
+            <!-- Estados de carga y sin resultados -->
+            <div class="loading-state" id="loadingState">
+                <div class="loading-spinner"></div>
+                <p>Cargando herramientas...</p>
+            </div>
+
+            <div class="no-results" id="noResults" style="display: none;">
+                <i class='bx bx-search-alt-2'></i>
+                <h3>No se encontraron herramientas</h3>
+                <p>Intenta ajustar tus filtros o términos de búsqueda</p>
+            </div>
+        </main>
+    </div> <!-- Cierre del auth-container -->
+
+    <!-- Scripts -->
+    <script src="data/apps-data.js"></script>
+    <script src="scripts/apps-directory.js"></script>
+    <script src="scripts/profile-avatar-manager.js"></script>
+    <script src="scripts/cursos-particles-direct.js"></script>
+    <script src="scripts/force-theme-init.js"></script>
+    <script src="scripts/theme-manager.js"></script>
+</body>
+</html>
