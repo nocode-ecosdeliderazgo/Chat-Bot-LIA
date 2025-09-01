@@ -1,6 +1,6 @@
 // Catálogo de cursos: data mínima simulada (podrás reemplazar por API)
 const CATALOG = [
-  {id: 'chatgpt_gemini', title: 'Dominando ChatGPT y Gemini para la Productividad', instructor:'Ernesto', rating: 4.9, price: 2990, cat:'ia', level:'Intermedio', img:'assets/images/brain-icon.jpg'}
+  {id: 'chatgpt_gemini', title: 'Dominando ChatGPT y Gemini para la Productividad', instructor:'Ernesto Hernandez', rating: 4.9, price: 2990, cat:'ia', level:'Intermedio', img:'assets/images/brain-icon.jpg'}
 ];
 
 // Ocultar todos los cursos (toggle)
@@ -32,7 +32,7 @@ function renderCards(list, grouped=false){
         <div class="instructor">${c.instructor}</div>
         <div class="meta"><span>⭐ ${c.rating.toFixed(1)}</span><span class="price">${formatPrice(c.price)}</span></div>
         <div class="cta">
-          <button class="enroll acquired" onclick="location.href='courses.html'">Adquirido</button>
+                     <button class="enroll acquired" onclick="location.href='Chat-Online/chat-online.html'">Adquirido</button>
           <button class="wishlist"><i class='bx bx-heart'></i></button>
         </div>
       </div>

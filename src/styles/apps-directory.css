@@ -689,22 +689,49 @@
 /* Course tabs dentro del header */
 .course-tabs {
     display: flex;
-    gap: 4px;
+    gap: 10px;
     flex: 1;
     justify-content: center;
-    padding: 0 20px;
+    padding: 12px;
+    width: min(600px, 90vw);
+    margin: 0 auto;
+}
+
+/* Regla específica para sobrescribir courses.css - MÁS ESPECÍFICA */
+.catalog-header .course-tabs {
+    width: min(600px, 90vw) !important;
+    margin: 0 auto !important;
+    max-width: 600px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Regla adicional para asegurar que se aplique */
+.bg-glow-global .catalog-header .course-tabs {
+    width: min(600px, 90vw) !important;
+    margin: 0 auto !important;
+    max-width: 600px !important;
+}
+
+/* Regla ULTRA ESPECÍFICA para forzar el ancho */
+body.bg-glow-global .catalog-header .course-tabs {
+    width: min(600px, 90vw) !important;
+    margin: 0 auto !important;
+    max-width: 600px !important;
+    flex-shrink: 0 !important;
+    flex-basis: min(600px, 90vw) !important;
 }
 
 /* Estilos para los botones del navbar - exactamente como en la imagen */
 .tab-button {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 24px;
     border: none;
     background: rgba(68, 229, 255, 0.05);
     color: var(--course-text-secondary, #b8c5d1);
-    border-radius: 8px;
+    border-radius: 16px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-weight: 500;
@@ -712,8 +739,9 @@
     position: relative;
     overflow: hidden;
     border: 1px solid rgba(68, 229, 255, 0.1);
-    font-size: 13px;
-    min-height: 32px;
+    font-size: 1rem;
+    min-height: auto;
+    text-align: center;
 }
 
 .tab-button::before {
