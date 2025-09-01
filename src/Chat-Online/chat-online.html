@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Online - Cursos Asincrónicos | LIA</title>
+    
+    <!-- CSS Principal y Neumorphism -->
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="chat-online.css">
+    
+    <!-- Iconos SVG personalizados -->
+    <style>
+        .icon {
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        
+        .icon-sm {
+            width: 12px;
+            height: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+            margin-right: 6px;
+            flex-shrink: 0;
+        }
+        
+        .icon-lg {
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        
+        /* Centrado específico para elementos flex */
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+    
+    <!-- Global theme setup - Configuración global del tema -->
+    <script src="../scripts/global-theme-setup.js"></script>
+</head>
+<body>
+    
+    <!-- Botón de cambio de tema -->
+    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">
+        <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <!-- Contenedor Principal con 3 Paneles -->
+    <main class="layout-3panels">
+        
+        <!-- Barra de Navegación Superior -->
+        <div class="top-navigation">
+                <button class="neo-btn neo-btn-small back-btn" onclick="goBack()">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Volver
+            </button>
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="video">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polygon points="10,8 16,12 10,16"/>
+                    </svg>
+                    Video
+                </button>
+                <button class="nav-tab" data-tab="materials">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10,9 9,9 8,9"/>
+                    </svg>
+                    Materiales
+                </button>
+                <button class="nav-tab" data-tab="quiz">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    Quiz
+                </button>
+            </div>
+                </div>
+                
+        <!-- Panel Izquierdo - Material del Curso -->
+        <aside class="left-panel neo-panel" id="sidebarLeft">
+            
+            <!-- Información del Curso -->
+            <div class="course-info-section">
+                <div class="course-card">
+                    <!-- Categoría del Curso -->
+                    <div class="course-category">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                            <span>Inteligencia Artificial</span>
+                    </div>
+                    
+                    <!-- Título del Curso -->
+                    <h2 class="course-title">
+                        <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                        </svg>
+                        <span>Introducción a la IA</span>
+                    </h2>
+                    
+                    <!-- Información de Progreso -->
+                    <div class="course-progress-section">
+                        <div class="progress-header">
+                            <span class="progress-label">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
+                                </svg>
+                                Progreso del Curso
+                            </span>
+                            <span class="progress-percentage">65%</span>
+                        </div>
+                        
+                        <!-- Barra de Progreso -->
+                        <div class="progress-bar-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 65%"></div>
+                                </div>
+                            </div>
+                        
+                        <!-- Indicadores de Módulos -->
+                        <div class="progress-indicators">
+                            <div class="progress-dot completed" title="Módulo 1 Completado">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20,6 9,17 4,12"/>
+                                </svg>
+                            </div>
+                            <div class="progress-dot completed" title="Módulo 2 Completado">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20,6 9,17 4,12"/>
+                                </svg>
+                        </div>
+                            <div class="progress-dot current" title="Módulo 3 En Progreso">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="5,3 19,12 5,21"/>
+                                </svg>
+                </div>
+                            <div class="progress-dot pending" title="Módulo 4 Pendiente">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
+                                </svg>
+                            </div>
+                            <div class="progress-dot pending" title="Módulo 5 Pendiente">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
+                                </svg>
+                    </div>
+                </div>
+            </div>
+            
+                    <!-- Módulo Actual -->
+                    <div class="current-module-info">
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                        </svg>
+                        <span>Módulo 3: Fundamentos del ML</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Área de Creación de Notas -->
+            <div class="notes-creator-section" id="notesCreatorSection" style="display: none;">
+                <div class="notes-creator-header">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        Nueva Nota
+                    </h3>
+                    <div class="notes-creator-actions">
+                        <button class="action-btn" id="saveNoteBtn" title="Guardar Nota">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                <polyline points="17,21 17,13 7,13 7,21"/>
+                                <polyline points="7,3 7,8 15,8"/>
+                            </svg>
+                        </button>
+                        <button class="action-btn" id="cancelNoteBtn" title="Cancelar">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                </button>
+                    </div>
+            </div>
+            
+                <div class="notes-creator-content">
+                    <!-- Título de la nota -->
+                    <div class="note-title-input">
+                        <input type="text" id="noteTitleInput" placeholder="Título de la nota..." maxlength="100">
+                    </div>
+                    
+                    <!-- Barra de herramientas del editor -->
+                    <div class="editor-toolbar">
+                        <button class="toolbar-btn" id="boldBtn" title="Negrita">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                            </svg>
+                        </button>
+                        <button class="toolbar-btn" id="italicBtn" title="Cursiva">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="19" y1="4" x2="10" y2="4"/>
+                                <line x1="14" y1="20" x2="5" y2="20"/>
+                                <line x1="15" y1="4" x2="9" y2="20"/>
+                            </svg>
+                        </button>
+                        <button class="toolbar-btn" id="underlineBtn" title="Subrayado">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/>
+                                <line x1="4" y1="21" x2="20" y2="21"/>
+                            </svg>
+                        </button>
+                        <div class="toolbar-separator"></div>
+                        <button class="toolbar-btn" id="listBtn" title="Lista">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6"/>
+                                <line x1="8" y1="12" x2="21" y2="12"/>
+                                <line x1="8" y1="18" x2="21" y2="18"/>
+                                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                <line x1="3" y1="18" x2="3.01" y2="18"/>
+                            </svg>
+                        </button>
+                        <button class="toolbar-btn" id="linkBtn" title="Enlace">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Editor de contenido -->
+                    <div class="note-content-editor">
+                        <div class="editor-content" id="noteContentEditor" contenteditable="true" placeholder="Escribe el contenido de tu nota aquí..."></div>
+                    </div>
+                    
+                    <!-- Etiquetas -->
+                    <div class="note-tags-section">
+                        <div class="tags-input-container">
+                            <input type="text" id="tagsInput" placeholder="Agregar etiquetas (presiona Enter para agregar)" maxlength="20">
+                            <div class="tags-list" id="tagsList"></div>
+                        </div>
+                    </div>
+                    
+
+                </div>
+            </div>
+            
+            <!-- Material del Curso -->
+            <div class="course-materials-section">
+                <div class="materials-header">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                        </svg>
+                        Material del Curso
+                    </h3>
+                    <div class="materials-actions">
+                        <button class="action-btn" id="collapseMaterialsBtn" title="Colapsar Materiales">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6,9 12,15 18,9"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Lista de Módulos -->
+                <div class="modules-list">
+                    <div class="module-item completed" data-module="1">
+                        <div class="module-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polygon points="10,8 16,12 10,16"/>
+                            </svg>
+                    </div>
+                    <div class="module-info">
+                        <h4>¿Qué es la IA?</h4>
+                        <span class="module-duration">15 min</span>
+                    </div>
+                </div>
+                
+                    <div class="module-item completed" data-module="2">
+                        <div class="module-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
+                    </div>
+                    <div class="module-info">
+                        <h4>Historia de la IA</h4>
+                        <span class="module-duration">22 min</span>
+                    </div>
+                </div>
+                
+                <div class="module-item current" data-module="3">
+                        <div class="module-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                    </div>
+                    <div class="module-info">
+                        <h4>Fundamentos del ML</h4>
+                        <span class="module-duration">18 min</span>
+                    </div>
+                </div>
+                
+                    <div class="module-item pending" data-module="4">
+                        <div class="module-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                            </svg>
+                    </div>
+                    <div class="module-info">
+                        <h4>Redes Neuronales</h4>
+                        <span class="module-duration">25 min</span>
+                    </div>
+                </div>
+                
+                    <div class="module-item pending" data-module="5">
+                        <div class="module-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4.5 9.5V5a2.5 2.5 0 0 1 5 0v4.5"/>
+                                <path d="M9.5 9.5V5a2.5 2.5 0 0 1 5 0v4.5"/>
+                                <path d="M14.5 9.5V5a2.5 2.5 0 0 1 5 0v4.5"/>
+                                <path d="M19.5 9.5V5a2.5 2.5 0 0 1 5 0v4.5"/>
+                                <path d="M4.5 14.5V19a2.5 2.5 0 0 0 5 0v-4.5"/>
+                                <path d="M9.5 14.5V19a2.5 2.5 0 0 0 5 0v-4.5"/>
+                                <path d="M14.5 14.5V19a2.5 2.5 0 0 0 5 0v-4.5"/>
+                                <path d="M19.5 14.5V19a2.5 2.5 0 0 0 5 0v-4.5"/>
+                            </svg>
+                    </div>
+                    <div class="module-info">
+                        <h4>IA en el Futuro</h4>
+                        <span class="module-duration">20 min</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+
+            
+
+            
+
+        </aside>
+
+        <!-- Panel Central - Contenido del Curso -->
+        <section class="center-panel">
+            <div class="course-content">
+                <!-- Video Player Principal -->
+                <div class="main-video-player">
+                    <div class="video-container">
+                                <video controls>
+                                    <source src="#" type="video/mp4">
+                                    Tu navegador no soporta el elemento video.
+                                </video>
+                            </div>
+                            
+                    <!-- Información del Video -->
+                                <div class="video-info">
+                        <h3>
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="23,7 16,12 23,17"/>
+                                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                            </svg>
+                            Módulo 3: Redes Neuronales Básicas
+                        </h3>
+                        <div class="video-stats">
+                            <span>
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
+                                </svg>
+                                Duración: 15:30
+                            </span>
+                            <span>
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                                Visto: 8:45
+                            </span>
+                                </div>
+                        <div class="video-progress-dots">
+                            <div class="progress-dot filled" title="Sección 1 Completada">
+                                <i class="fas fa-check"></i>
+                                </div>
+                            <div class="progress-dot filled" title="Sección 2 Completada">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="progress-dot filled" title="Sección 3 Completada">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="progress-dot" title="Sección 4 Pendiente">
+                                <i class="fas fa-circle"></i>
+                            </div>
+                        </div>
+                            </div>
+                        </div>
+
+                <!-- Pestañas de Contenido -->
+                <div class="content-tabs">
+                    <button class="tab-btn active" data-content="transcript">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10,9 9,9 8,9"/>
+                        </svg>
+                                Transcripción
+                            </button>
+                    <button class="tab-btn" data-content="summary">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="8" y1="6" x2="21" y2="6"/>
+                            <line x1="8" y1="12" x2="21" y2="12"/>
+                            <line x1="8" y1="18" x2="21" y2="18"/>
+                            <line x1="3" y1="6" x2="3.01" y2="6"/>
+                            <line x1="3" y1="12" x2="3.01" y2="12"/>
+                            <line x1="3" y1="18" x2="3.01" y2="18"/>
+                        </svg>
+                                Resumen
+                            </button>
+                        </div>
+
+                <!-- Contenido de Transcripción -->
+                <div class="content-area">
+                            <div class="transcript-content">
+                                <p>En este módulo vamos a explorar los conceptos fundamentales de las redes neuronales. Comenzaremos con una introducción a los perceptrones simples...</p>
+                                <p>Las redes neuronales artificiales están inspiradas en el funcionamiento del cerebro humano. Cada neurona artificial recibe señales de entrada...</p>
+                                <p>La función de activación es crucial para determinar si una neurona se activa o no. Las funciones más comunes son sigmoid, tanh y ReLU...</p>
+                            </div>
+                        </div>
+                    </div>
+        </section>
+
+
+
+        <!-- Panel Derecho - LIA Assistant y Notas -->
+        <aside class="right-panel" id="sidebarRight">
+            
+            <!-- LIA Assistant -->
+            <div class="lia-assistant-section">
+                <div class="lia-header">
+                    <h3>
+                        <div class="lia-avatar">
+                            <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+                                </div>
+                        LIA
+                    </h3>
+                    <div class="lia-actions">
+                        <button class="action-btn" id="newChatBtn" title="Nuevo Chat">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                                </button>
+                        <button class="action-btn" id="collapseLiaBtn" title="Colapsar Chat">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6,9 12,15 18,9"/>
+                            </svg>
+                                </button>
+                    </div>
+                </div>
+
+                <!-- Chat de LIA -->
+                <div class="lia-chat">
+                <div class="lia-messages" id="liaMessages">
+                        <div class="lia-message">
+                            <div class="lia-avatar">
+                                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+                        </div>
+                            <div class="message-content">
+                            <div class="message-text">
+                                    ¡Hola! Soy LIA, tu asistente de aprendizaje. Puedo ayudarte con:
+                                • Conceptos del video
+                                • Ejercicios prácticos  
+                                • Resúmenes de temas
+                                ¿En qué puedo ayudarte?
+                            </div>
+                            <div class="message-time">ahora</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Área de respuesta -->
+                    <div class="reply-area" id="replyArea" style="display: none;">
+                        <div class="reply-content">
+                            <div class="reply-info">
+                                <span class="reply-label">Respondiendo a:</span>
+                                <span class="reply-text" id="replyText"></span>
+                        </div>
+                            <button class="reply-close" onclick="window.chatOnline.cancelReply()" title="Cancelar respuesta">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                    </div>
+                </div>
+                
+                <!-- Input de LIA -->
+                    <div class="lia-input">
+                        <input type="text" id="liaMessageInput" placeholder="Pregunta a LIA...">
+                        <div class="input-actions">
+                            <button class="action-btn" id="sendLiaMessage">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"/>
+                                    <polygon points="22,2 15,22 11,13 2,9"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Línea Divisoria -->
+            <div class="section-divider"></div>
+            
+            <!-- Mis Notas -->
+            <div class="notes-section">
+                <div class="notes-header">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10,9 9,9 8,9"/>
+                        </svg>
+                        Mis Notas
+                    </h3>
+                    <div class="notes-actions">
+                        <button class="action-btn" id="addNoteBtn" title="Agregar Nota">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                        </button>
+                        <button class="action-btn" id="searchNotesBtn" title="Buscar Notas">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="M21 21l-4.35-4.35"/>
+                            </svg>
+                        </button>
+                        <button class="action-btn" id="collapseNotes" title="Colapsar Notas">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6,9 12,15 18,9"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Lista de Notas -->
+                        <div class="notes-list" id="notesList">
+                    <div class="note-item">
+                                <div class="note-header">
+                            <span class="note-title">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                </svg>
+                                Conceptos clave IA
+                            </span>
+                            <span class="note-time">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
+                                </svg>
+                                hace 2h
+                            </span>
+                                </div>
+                                <div class="note-content">
+                            <p>Machine Learning es un subcampo de la IA que permite a las máquinas aprender...</p>
+                                </div>
+                                <div class="note-tags">
+                            <span class="tag">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                                    <line x1="7" y1="7" x2="7.01" y2="7"/>
+                                </svg>
+                                ML
+                            </span>
+                            <span class="tag">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                                    <line x1="7" y1="7" x2="7.01" y2="7"/>
+                                </svg>
+                                Conceptos
+                            </span>
+                                </div>
+                            </div>
+                            
+                    <div class="note-item">
+                                <div class="note-header">
+                            <span class="note-title">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                Algoritmos importantes
+                            </span>
+                            <span class="note-time">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
+                                </svg>
+                                ayer
+                            </span>
+                                </div>
+                                <div class="note-content">
+                            <p>Redes neuronales, SVM, Random Forest... cada uno tiene sus ventajas dependiend...</p>
+                                </div>
+                                <div class="note-tags">
+                            <span class="tag">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                                    <line x1="7" y1="7" x2="7.01" y2="7"/>
+                                </svg>
+                                Algoritmos
+                            </span>
+                            <span class="tag">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                                    <line x1="7" y1="7" x2="7.01" y2="7"/>
+                                </svg>
+                                Estudio
+                            </span>
+                    </div>
+                </div>
+            </div>
+            
+                <!-- Dudas para revisar -->
+                <div class="dudas-section">
+                    <div class="dudas-header">
+                        <span>
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            Dudas para revisar
+                        </span>
+                        <span class="dudas-time">
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            3 dias
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="../utils/helpers.js"></script>
+    <script src="chat-online.js"></script>
+    
+    <!-- Script de cambio de tema global -->
+    <script src="../scripts/theme-toggle.js">    </script>
+</body>
+</html>
+                            rows="2"
+
+                            maxlength="1000"
+
+                        ></textarea>
+
+                        <div class="input-actions">
+
+                            <button class="neo-btn neo-btn-small" id="attachFile">
+
+                                <i class="fas fa-paperclip"></i>
+
+                            </button>
+
+                            <button class="neo-btn neo-btn-small" id="voiceInput">
+
+                                <i class="fas fa-microphone"></i>
+
+                            </button>
+
+                            <button class="neo-btn neo-btn-primary" id="sendLiaMessage">
+
+                                <i class="fas fa-paper-plane"></i>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            
+
+
+
+        </aside>
+
+    </main>
+
+
+
+    <!-- JavaScript -->
+
+    <script src="../utils/helpers.js"></script>
+
+    <script src="components/course-viewer.js"></script>
+
+    <!-- <script src="components/video-player.js"></script> Temporalmente deshabilitado -->
+
+    <script src="components/lia-chat.js"></script>
+
+    <script src="chat-online.js"></script>
+
+    
+
+    <!-- Script de prueba directo -->
+
+    <script>
+
+        console.log('🔧 Script de prueba cargado');
+
+        
+
+        // Esperar a que el DOM esté listo
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('🔧 DOM listo, configurando chat básico...');
+
+            
+
+            setTimeout(function() {
+
+                const sendBtn = document.getElementById('sendLiaMessage');
+
+                const input = document.getElementById('liaMessageInput');
+
+                const messagesContainer = document.getElementById('liaMessages');
+
+                
+
+                console.log('🔧 Elementos encontrados:');
+
+                console.log('- Botón:', !!sendBtn);
+
+                console.log('- Input:', !!input);
+
+                console.log('- Container:', !!messagesContainer);
+
+                
+
+                if (sendBtn && input && messagesContainer) {
+
+                    console.log('✅ Todos los elementos encontrados, configurando eventos...');
+
+                    
+
+                    async function enviarMensaje() {
+
+                        console.log('📤 Función enviarMensaje ejecutada');
+
+                        const mensaje = input.value.trim();
+
+                        console.log('📝 Mensaje:', mensaje);
+
+                        
+
+                        if (!mensaje) {
+
+                            console.log('⚠️ Mensaje vacío');
+
+                            return;
+
+                        }
+
+                        
+
+                        // Limpiar input
+
+                        input.value = '';
+
+                        
+
+                        // Crear mensaje del usuario
+
+                        const userMsg = document.createElement('div');
+
+                        userMsg.className = 'message user-message';
+
+                        userMsg.innerHTML = `
+
+                            <div class="message-avatar neo-circle">
+
+                                <span>U</span>
+
+                            </div>
+
+                            <div class="message-content neo-card">
+
+                                <div class="message-text">${mensaje}</div>
+
+                                <div class="message-time">ahora</div>
+
+                            </div>
+
+                        `;
+
+                        
+
+                        messagesContainer.appendChild(userMsg);
+
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                        
+
+                        console.log('✅ Mensaje del usuario agregado');
+
+                        
+
+                        // Mostrar indicador de escritura
+
+                        const typingIndicator = document.getElementById('typingIndicator');
+
+                        if (typingIndicator) {
+
+                            typingIndicator.style.display = 'flex';
+
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                        }
+
+                        
+
+                        try {
+
+                            console.log('[LIA] 🚀 Generando respuesta para:', mensaje);
+
+                            
+
+                            // Obtener información del usuario actual
+
+                            const currentUser = obtenerUsuarioActual();
+
+                            console.log('[LIA] 👤 Usuario actual:', currentUser);
+
+                            
+
+                            // Obtener contexto del curso actual
+
+                            const context = obtenerContextoCurso();
+
+                            console.log('[LIA] 📚 Contexto del curso:', context);
+
+                            
+
+                            // Preparar prompt con contexto
+
+                            const prompt = `Usuario: ${mensaje}\n\nContexto: El usuario está en el curso "Aprende y Aplica IA" - Chat Online. ${context}`;
+
+                            console.log('[LIA] 📝 Prompt preparado:', prompt);
+
+                            
+
+                            console.log('[LIA] 🔄 Enviando solicitud a API...');
+
+                            console.log('[LIA] 🌐 URL de API:', '/api/openai');
+
+                            console.log('[LIA] 🔑 Token de autorización:', obtenerTokenAuth().substring(0, 20) + '...');
+
+                            console.log('[LIA] 👤 User ID:', currentUser?.id || 'chat-online-user');
+
+                            
+
+                            // Determinar URL de API según el entorno
+
+                            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+                            const currentPort = window.location.port;
+
+                            let apiUrl;
+
+                            
+
+                            console.log('[LIA] 🔍 Debugging URL:');
+
+                            console.log('[LIA] 🌐 Hostname:', window.location.hostname);
+
+                            console.log('[LIA] 🔌 Puerto detectado:', currentPort);
+
+                            console.log('[LIA] 🏠 Es localhost:', isLocalhost);
+
+                            
+
+                            // Forzar URL correcta para puerto 3000
+
+                            if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
+
+                                apiUrl = '/api/openai';  // URL relativa para evitar problemas de CORS
+
+                                console.log('[LIA] ✅ Usando URL relativa para puerto 3000');
+
+                            } else if (isLocalhost && currentPort === '8888') {
+
+                                apiUrl = '/.netlify/functions/openai';  // Para Netlify Dev
+
+                                console.log('[LIA] ✅ Usando URL de Netlify Dev');
+
+                            } else if (isLocalhost) {
+
+                                apiUrl = '/api/openai';  // Fallback local
+
+                                console.log('[LIA] ✅ Usando fallback local');
+
+                            } else {
+
+                                apiUrl = '/api/openai';  // Producción
+
+                                console.log('[LIA] ✅ Usando URL de producción');
+
+                            }
+
+                            
+
+                            console.log('[LIA] 🎯 URL final de API:', apiUrl);
+
+                            
+
+                            // Llamar a la API de OpenAI
+
+                            const response = await fetch(apiUrl, {
+
+                                method: 'POST',
+
+                                headers: {
+
+                                    'Content-Type': 'application/json',
+
+                                    'Authorization': `Bearer ${obtenerTokenAuth()}`,
+
+                                    'X-User-Id': currentUser?.id || 'chat-online-user'
+
+                                },
+
+                                body: JSON.stringify({
+
+                                    prompt: prompt,
+
+                                    context: `Información del usuario: ${JSON.stringify(currentUser || {})}`
+
+                                })
+
+                            });
+
+                            
+
+                            console.log('[LIA] 📡 Respuesta del servidor:', response.status, response.statusText);
+
+                            
+
+                            // Ocultar indicador de escritura
+
+                            if (typingIndicator) {
+
+                                typingIndicator.style.display = 'none';
+
+                            }
+
+                            
+
+                            if (response.ok) {
+
+                                const data = await response.json();
+
+                                console.log('[LIA] ✅ Datos recibidos:', data);
+
+                                
+
+                                let respuestaLIA = '';
+
+                                if (data.response) {
+
+                                    respuestaLIA = data.response;
+
+                                    console.log('[LIA] 🎯 Respuesta de API obtenida exitosamente');
+
+                                    if (data.usage) {
+
+                                        console.log('[LIA] 📊 Tokens utilizados:', data.usage.total_tokens);
+
+                                    }
+
+                                    if (data.cost) {
+
+                                        console.log('[LIA] 💰 Costo estimado:', data.cost);
+
+                                    }
+
+                                } else {
+
+                                    console.log('[LIA] ⚠️ Respuesta vacía de la API');
+
+                                    respuestaLIA = '❌ Error: La API respondió correctamente pero sin contenido. Verifica la configuración de OpenAI.';
+
+                                }
+
+                                
+
+                                // Mostrar respuesta de LIA
+
+                                const liaMsg = document.createElement('div');
+
+                                liaMsg.className = 'message lia-message';
+
+                                liaMsg.innerHTML = `
+
+                                    <div class="message-avatar neo-circle">
+
+                                        <i class="fas fa-robot"></i>
+
+                                    </div>
+
+                                    <div class="message-content neo-card">
+
+                                        <div class="message-text">${respuestaLIA}</div>
+
+                                        <div class="message-time">ahora</div>
+
+                                    </div>
+
+                                `;
+
+                                
+
+                                messagesContainer.appendChild(liaMsg);
+
+                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                                
+
+                                console.log('[LIA] ✅ Respuesta de LIA mostrada');
+
+                                
+
+                            } else {
+
+                                const errorText = await response.text();
+
+                                console.log('[LIA] ❌ Error de API:', response.status, response.statusText);
+
+                                console.log('[LIA] 📄 Texto del error:', errorText);
+
+                                console.log('[LIA] 🌐 URL que falló:', response.url);
+
+                                console.log('[LIA] 🔍 Headers de respuesta:', Object.fromEntries(response.headers.entries()));
+
+                                
+
+                                // Solo usar fallback si es un error real, no un 404 de ruta incorrecta
+
+                                let respuestaFallback;
+
+                                if (response.status === 404) {
+
+                                    respuestaFallback = `❌ Error de configuración: La API no se encuentra en la ruta ${apiUrl}. Verifica que tu servidor esté corriendo y que la ruta /api/openai esté configurada correctamente.`;
+
+                                } else if (response.status === 401) {
+
+                                    respuestaFallback = `🔐 Error de autenticación: Token inválido o faltante. Verifica la configuración de autenticación.`;
+
+                                } else if (response.status === 500) {
+
+                                    respuestaFallback = `⚙️ Error del servidor: ${errorText}. Verifica tu configuración de OPENAI_API_KEY.`;
+
+                                } else {
+
+                                    respuestaFallback = `❌ Error HTTP ${response.status}: ${errorText}. Verifica la configuración del servidor.`;
+
+                                }
+
+                                
+
+                                // Mostrar mensaje de error específico
+
+                                const liaMsg = document.createElement('div');
+
+                                liaMsg.className = 'message lia-message';
+
+                                liaMsg.innerHTML = `
+
+                                    <div class="message-avatar neo-circle">
+
+                                        <i class="fas fa-robot"></i>
+
+                                    </div>
+
+                                    <div class="message-content neo-card">
+
+                                        <div class="message-text">${respuestaFallback}</div>
+
+                                        <div class="message-time">ahora</div>
+
+                                    </div>
+
+                                `;
+
+                                
+
+                                messagesContainer.appendChild(liaMsg);
+
+                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                                
+
+                                console.log('[LIA] 🔄 Respuesta de fallback mostrada');
+
+                            }
+
+                            
+
+                        } catch (error) {
+
+                            console.error('[LIA] 💥 Error al conectar con API:', error);
+
+                            
+
+                            // Ocultar indicador de escritura
+
+                            if (typingIndicator) {
+
+                                typingIndicator.style.display = 'none';
+
+                            }
+
+                            
+
+                            // Mostrar mensaje de error de conexión
+
+                            const errorMsg = `❌ Error de conexión: No se pudo conectar con la API. Verifica que el servidor esté corriendo en puerto 3000 y que la configuración sea correcta.`;
+
+                            const liaMsg = document.createElement('div');
+
+                            liaMsg.className = 'message lia-message';
+
+                            liaMsg.innerHTML = `
+
+                                <div class="message-avatar neo-circle">
+
+                                    <i class="fas fa-robot"></i>
+
+                                </div>
+
+                                <div class="message-content neo-card">
+
+                                    <div class="message-text">${errorMsg}</div>
+
+                                    <div class="message-time">ahora</div>
+
+                                </div>
+
+                            `;
+
+                            
+
+                            messagesContainer.appendChild(liaMsg);
+
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                            
+
+                            console.log('[LIA] 🔄 Respuesta de fallback por error mostrada');
+
+                        }
+
+                    }
+
+                    
+
+                    // Event listener para el botón
+
+                    sendBtn.addEventListener('click', function(e) {
+
+                        console.log('🖱️ Click en botón detectado');
+
+                        e.preventDefault();
+
+                        enviarMensaje();
+
+                    });
+
+                    
+
+                    // Event listener para Enter
+
+                    input.addEventListener('keydown', function(e) {
+
+                        if (e.key === 'Enter' && !e.shiftKey) {
+
+                            console.log('⌨️ Enter presionado');
+
+                            e.preventDefault();
+
+                            enviarMensaje();
+
+                        }
+
+                    });
+
+                    
+
+                    console.log('✅ Event listeners configurados correctamente');
+
+                    
+
+                } else {
+
+                    console.error('❌ No se encontraron todos los elementos necesarios');
+
+                }
+
+            }, 500);
+
+        });
+
+        
+
+        // Funciones auxiliares
+
+        function obtenerUsuarioActual() {
+
+            try {
+
+                // Intentar obtener del localStorage
+
+                const userData = localStorage.getItem('userData');
+
+                if (userData) {
+
+                    return JSON.parse(userData);
+
+                }
+
+                
+
+                // Fallback para desarrollo
+
+                return {
+
+                    id: 'chat-online-user',
+
+                    username: 'Usuario',
+
+                    email: 'usuario@ejemplo.com'
+
+                };
+
+            } catch (error) {
+
+                console.log('[LIA] Error obteniendo usuario:', error);
+
+                return {
+
+                    id: 'chat-online-user',
+
+                    username: 'Usuario',
+
+                    email: 'usuario@ejemplo.com'
+
+                };
+
+            }
+
+        }
+
+        
+
+        function obtenerContextoCurso() {
+
+            try {
+
+                // Obtener información del módulo actual
+
+                const currentModule = document.querySelector('.module-item.current .module-info h4')?.textContent || 'Fundamentos del ML';
+
+                
+
+                // Obtener tiempo del video si está disponible
+
+                const videoTime = document.getElementById('currentTime')?.textContent || '00:00';
+
+                
+
+                // Obtener contenido de la transcripción visible
+
+                const transcript = document.querySelector('.transcript-content p')?.textContent?.substring(0, 200) || 'Conceptos fundamentales del Machine Learning';
+
+                
+
+                return `Módulo actual: ${currentModule}. Tiempo del video: ${videoTime}. ${transcript ? 'Transcripción: ' + transcript + '...' : ''}`;
+
+            } catch (error) {
+
+                console.log('[LIA] Error obteniendo contexto:', error);
+
+                return 'Módulo: Fundamentos del ML. Contexto: Curso de Inteligencia Artificial.';
+
+            }
+
+        }
+
+        
+
+        function obtenerTokenAuth() {
+
+            // Intentar obtener token real
+
+            const token = localStorage.getItem('authToken');
+
+            if (token) {
+
+                console.log('[LIA] 🔑 Usando token real del localStorage');
+
+                return token;
+
+            }
+
+            
+
+            // Token de desarrollo para testing - más compatible con el servidor
+
+            const devToken = 'dev-token-chat-online-user-' + Date.now();
+
+            console.log('[LIA] 🔧 Usando token de desarrollo:', devToken);
+
+            return devToken;
+
+        }
+
+        
+
+
+
+    </script>
+
+</body>
+
+</html>
+
+
+

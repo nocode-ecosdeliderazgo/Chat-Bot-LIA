@@ -1434,8 +1434,8 @@ app.post('/api/auth/issue', authenticateRequest, (req, res) => {
     }
 });
 
-// Endpoint seguro para llamadas a OpenAI
-app.post('/api/openai', authenticateRequest, requireUserSession, async (req, res) => {
+// Endpoint seguro para llamadas a OpenAI (RENOMBRADO para evitar conflicto)
+app.post('/api/openai-secure', authenticateRequest, requireUserSession, async (req, res) => {
     try {
         const { prompt, context } = req.body;
         
@@ -3635,6 +3635,17 @@ app.get('/api/session-info', authenticateRequest, requireUserSession, async (req
 
 // Almacenar usuarios conectados al chat del livestream
 const livestreamUsers = new Map();
+
+// Endpoint de prueba para verificar que la API funciona
+app.get('/api/test', (req, res) => {
+    console.log('[API TEST] 🧪 Endpoint de prueba llamado');
+    res.json({ 
+        status: 'ok', 
+        message: 'API funcionando correctamente',
+        timestamp: new Date().toISOString(),
+        openaiConfigured: !!process.env.OPENAI_API_KEY
+    });
+});
 
 // Endpoint para OpenAI API
 app.post('/api/openai', async (req, res) => {
