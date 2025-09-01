@@ -720,13 +720,9 @@ class ProfileManager {
     }
 
     setupAutoSave() {
-        // Auto-guardar cada 30 segundos si hay cambios
-        setInterval(() => {
-            if (this.hasChanges && !this.isLoading) {
-                console.log('Auto-guardando cambios...');
-                // Aquí se podría implementar el auto-guardado
-            }
-        }, 30000);
+        // Auto-guardado deshabilitado para evitar logs repetitivos
+        // Los usuarios deben guardar manualmente usando el botón "Guardar"
+        console.log('ℹ️ Auto-guardado deshabilitado - usar botón "Guardar" para persistir cambios');
     }
 
     showSuccess(message) {
