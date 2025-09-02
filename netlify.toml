@@ -63,7 +63,7 @@
   to   = "/.netlify/functions/update-avatar"
   status = 200
 
-# Course Progress API redirects
+# Course Progress API redirects (Legacy)
 [[redirects]]
   from = "/api/course-progress"
   to   = "/.netlify/functions/get-course-progress"
@@ -77,6 +77,37 @@
 [[redirects]]
   from = "/api/video-progress"
   to   = "/.netlify/functions/update-video-progress"
+  status = 200
+
+# Dynamic Course System API redirects (NEW)
+[[redirects]]
+  from = "/.netlify/functions/course-data/course-structure/*"
+  to   = "/.netlify/functions/course-data"
+  status = 200
+
+[[redirects]]
+  from = "/.netlify/functions/course-data/current-module/*/*"
+  to   = "/.netlify/functions/course-data"
+  status = 200
+
+[[redirects]]
+  from = "/.netlify/functions/course-data/video-data/*"
+  to   = "/.netlify/functions/course-data"
+  status = 200
+
+[[redirects]]
+  from = "/.netlify/functions/user-progress/progress/*/*"
+  to   = "/.netlify/functions/user-progress"
+  status = 200
+
+[[redirects]]
+  from = "/.netlify/functions/user-progress/video-progress"
+  to   = "/.netlify/functions/user-progress"
+  status = 200
+
+[[redirects]]
+  from = "/.netlify/functions/user-progress/switch-module"
+  to   = "/.netlify/functions/user-progress"
   status = 200
 
 # Wildcard redirect (must be last)

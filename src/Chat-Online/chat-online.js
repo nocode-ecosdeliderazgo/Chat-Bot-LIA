@@ -2,7 +2,7 @@
 
 class ChatOnline {
     constructor() {
-        this.currentModule = 3;
+        this.currentModule = 1;
         this.currentTab = 'video';
         this.isLiaTyping = false;
         this.notes = [];
@@ -214,9 +214,9 @@ class ChatOnline {
     
     getModuleData(moduleId) {
         const modules = {
-            1: { title: 'Módulo 1: ¿Qué es la IA?', duration: '15:30', progress: 100 },
-            2: { title: 'Módulo 2: Historia de la IA', duration: '22:00', progress: 100 },
-            3: { title: 'Módulo 3: Fundamentos del ML', duration: '18:30', progress: 65 },
+            1: { title: 'Módulo 1: ¿Qué es la IA?', duration: '15:30', progress: 0 },
+            2: { title: 'Módulo 2: Historia de la IA', duration: '22:00', progress: 0 },
+            3: { title: 'Módulo 3: Fundamentos del ML', duration: '18:30', progress: 0 },
             4: { title: 'Módulo 4: Redes Neuronales', duration: '25:00', progress: 0 },
             5: { title: 'Módulo 5: IA en el Futuro', duration: '20:00', progress: 0 }
         };
@@ -265,7 +265,7 @@ class ChatOnline {
             `
         };
         
-        return transcripts[moduleId] || transcripts[3];
+        return transcripts[moduleId] || transcripts[1];
     }
     
     // ===== CHAT DE LIA =====
@@ -1393,6 +1393,9 @@ class ChatOnline {
         try {
             console.log('🎥 Inicializando YouTube Progress Tracker...');
             
+            // Esperar a que ambos componentes estén listos
+            await this.waitForComponents();
+            
             // Verificar si YouTube Progress Tracker está disponible
             if (typeof window.YouTubeProgressTracker === 'undefined') {
                 console.warn('⚠️ YouTubeProgressTracker no disponible, saltando inicialización');
@@ -1433,6 +1436,29 @@ class ChatOnline {
             console.error('❌ Error inicializando YouTube Progress Tracker:', error);
             this.youtubeTracker = null;
         }
+    }
+    
+    // Esperar a que los componentes estén listos
+    async waitForComponents() {
+        return new Promise((resolve) => {
+            const checkComponents = () => {
+                if (typeof window.YouTubeProgressTracker !== 'undefined' && 
+                    typeof window.CourseProgressManager !== 'undefined') {
+                    console.log('✅ Todos los componentes están disponibles');
+                    resolve();
+                    return;
+                }
+                
+                console.log('⏳ Esperando componentes...', {
+                    YouTubeProgressTracker: typeof window.YouTubeProgressTracker,
+                    CourseProgressManager: typeof window.CourseProgressManager
+                });
+                
+                setTimeout(checkComponents, 100);
+            };
+            
+            checkComponents();
+        });
     }
     
     setupYouTubeEvents() {
@@ -2042,12 +2068,12 @@ class ChatOnline {
         // Cargar datos iniciales
         console.log('📊 Cargando datos iniciales...');
         
-        // Cargar video del módulo actual (3)
+        // Cargar video del módulo actual (1)
         console.log('🎥 Cargando video del módulo inicial...');
         this.changeVideoByModule(this.currentModule);
         
-        // Simular carga de progreso
-        this.updateProgress(65);
+        // Simular carga de progreso inicial
+        this.updateProgress(0);
         
         // Cargar notas de ejemplo
         this.loadSampleNotes();

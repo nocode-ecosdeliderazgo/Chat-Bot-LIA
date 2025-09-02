@@ -18,19 +18,26 @@ class YouTubeProgressTracker {
     async init() {
         console.log('🎥 Inicializando YouTube Progress Tracker...');
         
-        // Cargar YouTube IFrame API
-        await this.loadYouTubeAPI();
-        
-        // Configurar event listeners
-        this.setupEventListeners();
-        
-        console.log('✅ YouTube Progress Tracker listo');
+        try {
+            // Cargar YouTube IFrame API
+            await this.loadYouTubeAPI();
+            
+            // Configurar event listeners
+            this.setupEventListeners();
+            
+            console.log('✅ YouTube Progress Tracker listo');
+        } catch (error) {
+            console.error('❌ Error inicializando YouTube Progress Tracker:', error);
+            // Continuar sin la API de YouTube, pero marcar como disponible
+            this.setupEventListeners();
+        }
     }
     
     loadYouTubeAPI() {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             // Si ya está cargada la API
             if (window.YT && window.YT.Player) {
+                console.log('✅ YouTube API ya está disponible');
                 resolve();
                 return;
             }
@@ -39,23 +46,38 @@ class YouTubeProgressTracker {
             if (window.onYouTubeIframeAPIReady) {
                 const originalCallback = window.onYouTubeIframeAPIReady;
                 window.onYouTubeIframeAPIReady = () => {
-                    originalCallback();
+                    if (originalCallback) originalCallback();
+                    console.log('✅ YouTube API cargada (callback existente)');
                     resolve();
                 };
                 return;
             }
             
             // Cargar API
-            const tag = document.createElement('script');
-            tag.src = 'https://www.youtube.com/iframe_api';
-            const firstScriptTag = document.getElementsByTagName('script')[0];
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-            
-            // Callback cuando la API esté lista
-            window.onYouTubeIframeAPIReady = () => {
-                console.log('✅ YouTube IFrame API cargada');
-                resolve();
-            };
+            try {
+                const tag = document.createElement('script');
+                tag.src = 'https://www.youtube.com/iframe_api';
+                const firstScriptTag = document.getElementsByTagName('script')[0];
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                
+                // Callback cuando la API esté lista
+                window.onYouTubeIframeAPIReady = () => {
+                    console.log('✅ YouTube IFrame API cargada');
+                    resolve();
+                };
+                
+                // Timeout de seguridad
+                setTimeout(() => {
+                    if (!window.YT || !window.YT.Player) {
+                        console.warn('⚠️ Timeout cargando YouTube API, continuando sin ella');
+                        resolve();
+                    }
+                }, 10000);
+                
+            } catch (error) {
+                console.error('❌ Error cargando YouTube API:', error);
+                reject(error);
+            }
         });
     }
     
@@ -77,6 +99,13 @@ class YouTubeProgressTracker {
         
         this.currentVideoId = videoId;
         this.currentModuleNumber = moduleNumber;
+        
+        // Verificar si la API de YouTube está disponible
+        if (!window.YT || !window.YT.Player) {
+            console.warn('⚠️ YouTube API no disponible, creando player básico');
+            this.createBasicPlayer(containerId, videoId);
+            return;
+        }
         
         // Configuración por defecto del player
         const defaultOptions = {
@@ -117,8 +146,43 @@ class YouTubeProgressTracker {
             
         } catch (error) {
             console.error('❌ Error inicializando YouTube Player:', error);
-            this.handlePlayerError(error);
+            this.createBasicPlayer(containerId, videoId);
         }
+    }
+    
+    // Crear player básico cuando YouTube API no esté disponible
+    createBasicPlayer(containerId, videoId) {
+        console.log('🔧 Creando player básico para:', videoId);
+        
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.error('❌ Contenedor no encontrado:', containerId);
+            return;
+        }
+        
+        // Crear iframe básico
+        container.innerHTML = `
+            <iframe 
+                width="100%" 
+                height="100%" 
+                src="https://www.youtube.com/embed/${videoId}?enablejsapi=0" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        `;
+        
+        // Simular eventos básicos para mantener compatibilidad
+        this.player = {
+            getCurrentTime: () => 0,
+            getDuration: () => 0,
+            getPlayerState: () => -1,
+            destroy: () => {
+                container.innerHTML = '';
+            }
+        };
+        
+        console.log('✅ Player básico creado');
     }
     
     onPlayerReady(event) {
@@ -538,4 +602,16 @@ if (!document.querySelector('#youtube-tracker-styles')) {
 // Crear instancia global
 window.YouTubeProgressTracker = YouTubeProgressTracker;
 
-export default YouTubeProgressTracker;
+// Emitir evento cuando esté disponible
+if (typeof window !== 'undefined') {
+    window.addEventListener('load', () => {
+        if (window.YouTubeProgressTracker) {
+            console.log('🎯 YouTubeProgressTracker listo en window.load');
+            window.dispatchEvent(new CustomEvent('youtubeProgressTrackerReady', {
+                detail: { tracker: window.YouTubeProgressTracker }
+            }));
+        }
+    });
+}
+
+// export default YouTubeProgressTracker; // Removido para compatibilidad con navegador

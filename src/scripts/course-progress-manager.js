@@ -31,23 +31,45 @@ class CourseProgressManager {
     // ===== OBTENER USUARIO ACTUAL =====
     getCurrentUserId() {
         try {
-            // Intentar obtener del localStorage
+            // 1. Intentar obtener del localStorage (sistema de login)
             const userData = localStorage.getItem('userData');
             if (userData) {
                 const user = JSON.parse(userData);
+                console.log('👤 Usuario obtenido del localStorage:', user.id);
                 return user.id;
             }
 
-            // Intentar obtener de sessionStorage
+            // 2. Intentar obtener userId directamente del localStorage
+            const directUserId = localStorage.getItem('userId');
+            if (directUserId) {
+                console.log('👤 UserId directo del localStorage:', directUserId);
+                return directUserId;
+            }
+
+            // 3. Intentar obtener de sessionStorage
             const sessionData = sessionStorage.getItem('userData');
             if (sessionData) {
                 const user = JSON.parse(sessionData);
+                console.log('👤 Usuario obtenido del sessionStorage:', user.id);
                 return user.id;
             }
 
-            // Generar ID temporal para demo
-            const demoId = 'demo-user-' + Math.random().toString(36).substr(2, 9);
-            console.log('🎭 Usando ID demo:', demoId);
+            // 4. Verificar si hay un user ID en la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlUserId = urlParams.get('userId');
+            if (urlUserId) {
+                console.log('👤 UserId obtenido de la URL:', urlUserId);
+                return urlUserId;
+            }
+
+            // 5. Generar ID temporal para demo (siempre el mismo para consistencia)
+            let demoId = localStorage.getItem('demoUserId');
+            if (!demoId) {
+                // Usar el mismo ID que se crea en la base de datos
+                demoId = '00000000-0000-0000-0000-000000000001';
+                localStorage.setItem('demoUserId', demoId);
+            }
+            console.log('🎭 Usando ID demo persistente:', demoId);
             return demoId;
             
         } catch (error) {
@@ -59,7 +81,20 @@ class CourseProgressManager {
     // ===== API CALLS =====
     async makeApiCall(endpoint, options = {}) {
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const baseUrl = isLocalhost ? '' : '';
+        const currentPort = window.location.port;
+        
+        // Determinar URL base según el entorno
+        let baseUrl = '';
+        if (isLocalhost && currentPort === '8888') {
+            // Netlify Dev
+            baseUrl = '/.netlify/functions';
+        } else if (isLocalhost && currentPort === '3000') {
+            // Servidor local Express
+            baseUrl = '/api';
+        } else {
+            // Producción con Netlify Functions
+            baseUrl = '/.netlify/functions';
+        }
         
         const defaultOptions = {
             headers: {
@@ -71,22 +106,26 @@ class CourseProgressManager {
 
         const mergedOptions = { ...defaultOptions, ...options };
 
+        // Construir URL final
+        const apiPath = endpoint.replace('/api/', '');
+        const fullUrl = `${baseUrl}/${apiPath}`;
+
         try {
-            console.log(`🌐 API Call: ${endpoint}`, mergedOptions);
+            console.log(`🌐 API Call: ${fullUrl}`, mergedOptions);
             
-            const response = await fetch(`${baseUrl}${endpoint}`, mergedOptions);
+            const response = await fetch(fullUrl, mergedOptions);
             
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
             const data = await response.json();
-            console.log(`✅ API Response: ${endpoint}`, data);
+            console.log(`✅ API Response: ${fullUrl}`, data);
             
             return data;
             
         } catch (error) {
-            console.error(`❌ API Error: ${endpoint}`, error);
+            console.error(`❌ API Error: ${fullUrl}`, error);
             throw error;
         }
     }
@@ -475,6 +514,16 @@ if (typeof window !== 'undefined') {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initializeGlobalProgressManager);
     }
+    
+    // Emitir evento cuando esté listo
+    window.addEventListener('load', () => {
+        if (window.courseProgressManager) {
+            console.log('🎯 CourseProgressManager listo en window.load');
+            window.dispatchEvent(new CustomEvent('courseProgressManagerReady', {
+                detail: { manager: window.courseProgressManager }
+            }));
+        }
+    });
 }
 
-export default CourseProgressManager;
+// export default CourseProgressManager; // Removido para compatibilidad con navegador
