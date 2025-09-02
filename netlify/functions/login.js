@@ -47,6 +47,7 @@ exports.handler = async (event) => {
       'password_hash',
       'created_at',
       'last_login_at',
+      'profile_picture_url',
       ...(hasCargoRol ? ['cargo_rol'] : []),
       ...(hasTypeRol ? ['type_rol'] : []),
       ...(hasGoogleId ? ['google_id'] : []),
@@ -108,6 +109,7 @@ exports.handler = async (event) => {
       username: user.username,
       email: user.email,
       display_name: user.display_name,
+      profile_picture_url: user.profile_picture_url,
       isNewUser: isNewUser,
       authProvider: user.auth_provider || 'email'
     };

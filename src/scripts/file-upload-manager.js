@@ -465,17 +465,26 @@ class FileUploadManager {
         });
     }
 
-    // Actualizar imagen de perfil en localStorage (fallback)
+    // Actualizar imagen de perfil (versión que incluye tanto BD como localStorage)
     async updateUserProfilePictureLocal(base64Url) {
         try {
-            // Actualizar en localStorage
-            const updatedUser = { ...this.currentUser, profile_picture_url: base64Url };
-            localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-            this.currentUser = updatedUser;
-
-            console.log('Profile picture actualizada en localStorage');
+            console.log('🖼️ Actualizando avatar (base64) en base de datos...');
+            
+            // Intentar actualizar en base de datos primero
+            try {
+                await this.updateUserProfilePicture(base64Url);
+                console.log('✅ Avatar base64 actualizado en BD y localStorage');
+            } catch (dbError) {
+                console.warn('⚠️ Falló BD, actualizando solo localStorage:', dbError.message);
+                
+                // Si falla BD, al menos actualizar localStorage
+                const updatedUser = { ...this.currentUser, profile_picture_url: base64Url };
+                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                this.currentUser = updatedUser;
+                console.log('✅ Avatar base64 actualizado solo en localStorage');
+            }
         } catch (error) {
-            console.error('Error actualizando profile picture local:', error);
+            console.error('❌ Error actualizando profile picture local:', error);
             throw error;
         }
     }
@@ -518,42 +527,71 @@ class FileUploadManager {
 
     async updateUserProfilePicture(imageUrl) {
         try {
-            // IDENTIFICACIÓN ROBUSTA: usar ID válido, username o email
-            let query = this.supabase.from('users').update({ profile_picture_url: imageUrl });
+            console.log('🖼️ Actualizando avatar en base de datos...');
             
+            // Preparar datos para el endpoint
+            const updateData = {
+                profile_picture_url: imageUrl
+            };
+            
+            // Agregar identificador del usuario (preferir ID, luego username, luego email)
             if (this.currentUser.id && 
                 !String(this.currentUser.id).startsWith('dev-') && 
                 !String(this.currentUser.id).includes('test')) {
-                // Usar ID si es válido y real de BD
-                query = query.eq('id', this.currentUser.id);
-                console.log('Actualizando profile_picture_url por ID:', this.currentUser.id);
+                updateData.user_id = this.currentUser.id;
+                console.log('Actualizando avatar por user_id:', this.currentUser.id);
             } else if (this.currentUser.username) {
-                // Usar username como fallback
-                query = query.eq('username', this.currentUser.username);
-                console.log('Actualizando profile_picture_url por username:', this.currentUser.username);
+                updateData.username = this.currentUser.username;
+                console.log('Actualizando avatar por username:', this.currentUser.username);
             } else if (this.currentUser.email) {
-                // Usar email como último recurso
-                query = query.eq('email', this.currentUser.email);
-                console.log('Actualizando profile_picture_url por email:', this.currentUser.email);
+                updateData.email = this.currentUser.email;
+                console.log('Actualizando avatar por email:', this.currentUser.email);
             } else {
                 throw new Error('No se puede identificar al usuario para actualizar avatar');
             }
             
-            const { error } = await query;
-
-            if (error) {
-                console.error('Error actualizando profile_picture_url en BD:', error);
-                throw error;
+            // Detectar URL base según el entorno
+            const baseURL = window.location.hostname === 'localhost' 
+                ? 'http://localhost:3000' 
+                : window.location.origin;
+            
+            // Llamar al endpoint de Netlify
+            const response = await fetch(`${baseURL}/api/update-avatar`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
             }
-
-            // Actualizar en localStorage
+            
+            const result = await response.json();
+            console.log('✅ Avatar actualizado en base de datos:', result);
+            
+            // Actualizar localStorage con los datos más recientes
             const updatedUser = { ...this.currentUser, profile_picture_url: imageUrl };
             localStorage.setItem('currentUser', JSON.stringify(updatedUser));
             this.currentUser = updatedUser;
-
+            
             console.log('✅ Profile picture URL actualizada en BD y localStorage');
+            
         } catch (error) {
-            console.error('❌ Error actualizando profile picture en BD:', error);
+            console.error('❌ Error actualizando avatar en BD:', error);
+            
+            // Si falla la actualización en BD, al menos actualizar localStorage como fallback
+            try {
+                const updatedUser = { ...this.currentUser, profile_picture_url: imageUrl };
+                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                this.currentUser = updatedUser;
+                console.log('⚠️ Avatar actualizado solo en localStorage (BD falló)');
+            } catch (localError) {
+                console.error('❌ Error también en localStorage:', localError);
+            }
+            
             throw error;
         }
     }

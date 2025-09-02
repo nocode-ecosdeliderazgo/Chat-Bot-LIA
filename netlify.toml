@@ -57,6 +57,12 @@
   to   = "/.netlify/functions/adopcion-genai"
   status = 200
 
+# User profile redirects
+[[redirects]]
+  from = "/api/update-avatar"
+  to   = "/.netlify/functions/update-avatar"
+  status = 200
+
 # Wildcard redirect (must be last)
 [[redirects]]
   from = "/api/*"
