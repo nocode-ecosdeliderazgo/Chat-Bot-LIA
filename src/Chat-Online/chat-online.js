@@ -17,6 +17,7 @@ class ChatOnline {
         console.log('🚀 Inicializando Chat Online...');
         this.setupEventListeners();
         await this.initializeProgressManager();
+        await this.initializeYouTubeTracker();
         this.loadInitialData();
         this.setupResponsive();
         console.log('✅ Chat Online inicializado correctamente');
@@ -1101,44 +1102,313 @@ class ChatOnline {
         try {
             console.log('📊 Inicializando Progress Manager...');
             
-            // Esperar a que esté disponible CourseProgressManager
-            if (typeof window.courseProgressManager === 'undefined') {
+            // Intentar múltiples estrategias para obtener el progress manager
+            let manager = null;
+            
+            // Estrategia 1: Verificar si ya está disponible
+            if (window.courseProgressManager && typeof window.courseProgressManager.getCourseProgress === 'function') {
+                console.log('✅ CourseProgressManager ya disponible');
+                manager = window.courseProgressManager;
+            } 
+            // Estrategia 2: Esperar con timeout
+            else {
                 console.log('⏳ Esperando CourseProgressManager...');
-                await this.waitForProgressManager();
+                manager = await this.waitForProgressManager();
             }
             
-            this.progressManager = window.courseProgressManager;
+            // Estrategia 3: Si aún no está disponible, crear uno básico
+            if (!manager || typeof manager.getCourseProgress !== 'function') {
+                console.warn('⚠️ CreatingFallback Progress Manager');
+                manager = this.createFallbackProgressManager();
+            }
             
-            // Obtener progreso inicial
-            this.courseProgress = await this.progressManager.getCourseProgress();
+            this.progressManager = manager;
             
-            // Actualizar UI con el progreso actual
-            this.updateProgressUI();
-            
-            console.log('✅ Progress Manager inicializado');
+            // Validar que el manager es funcional antes de usarlo
+            if (this.progressManager && typeof this.progressManager.getCourseProgress === 'function') {
+                // Obtener progreso inicial
+                console.log('📊 Obteniendo progreso inicial...');
+                this.courseProgress = await this.progressManager.getCourseProgress();
+                console.log('📊 Progreso obtenido:', this.courseProgress);
+                
+                // Actualizar UI con el progreso actual
+                this.updateProgressUI();
+                
+                console.log('✅ Progress Manager inicializado exitosamente');
+            } else {
+                throw new Error('Progress Manager no es funcional');
+            }
             
         } catch (error) {
             console.error('❌ Error inicializando Progress Manager:', error);
-            // Continuar sin progress manager en modo fallback
-            this.progressManager = null;
+            console.error('📊 Stack trace:', error.stack);
+            
+            // Crear un manager de fallback que no cause errores
+            this.progressManager = this.createFallbackProgressManager();
+            this.courseProgress = {
+                overall_progress_percentage: 0,
+                modules: [],
+                status: 'fallback'
+            };
+            
+            console.log('🔄 Usando Progress Manager de fallback');
         }
     }
     
     waitForProgressManager() {
         return new Promise((resolve) => {
+            let attempts = 0;
+            const maxAttempts = 50; // 5 segundos con intervalos de 100ms
+            
             const checkInterval = setInterval(() => {
-                if (typeof window.courseProgressManager !== 'undefined') {
+                attempts++;
+                
+                // Verificar múltiples condiciones
+                if (window.courseProgressManager && typeof window.courseProgressManager.getCourseProgress === 'function') {
+                    console.log(`✅ Progress Manager encontrado después de ${attempts} intentos`);
                     clearInterval(checkInterval);
-                    resolve();
+                    resolve(window.courseProgressManager);
+                    return;
+                }
+                
+                // También escuchar el evento de inicialización
+                const onReady = (event) => {
+                    console.log('📡 Evento courseProgressManagerReady recibido');
+                    window.removeEventListener('courseProgressManagerReady', onReady);
+                    clearInterval(checkInterval);
+                    resolve(event.detail.manager);
+                };
+                
+                if (attempts === 1) { // Solo agregar el listener una vez
+                    window.addEventListener('courseProgressManagerReady', onReady);
+                }
+                
+                // Timeout después de maxAttempts
+                if (attempts >= maxAttempts) {
+                    console.warn(`⚠️ Timeout esperando CourseProgressManager después de ${attempts} intentos`);
+                    clearInterval(checkInterval);
+                    window.removeEventListener('courseProgressManagerReady', onReady);
+                    resolve(null); // Devolver null para que se cree un fallback
                 }
             }, 100);
-            
-            // Timeout después de 5 segundos
-            setTimeout(() => {
-                clearInterval(checkInterval);
-                resolve(); // Continuar sin progress manager
-            }, 5000);
         });
+    }
+    
+    createFallbackProgressManager() {
+        console.log('🔄 Creando Progress Manager de fallback...');
+        
+        // Crear manager básico que no cause errores
+        return {
+            getCourseProgress: async (forceRefresh = false) => {
+                console.log('📦 Usando progreso de fallback local');
+                return {
+                    course_progress_id: 'fallback-progress',
+                    user_id: 'demo-user',
+                    course_identifier: 'intro-to-ai',
+                    overall_progress_percentage: 0,
+                    status: 'in_progress',
+                    started_at: new Date().toISOString(),
+                    current_module: 1,
+                    modules: [
+                        {
+                            module_number: 1,
+                            module_name: '¿Qué es la IA?',
+                            status: 'in_progress',
+                            progress_percentage: 0,
+                            video_id: 'Yy_eZ65jzmo'
+                        },
+                        {
+                            module_number: 2,
+                            module_name: 'Historia de la IA',
+                            status: 'locked',
+                            progress_percentage: 0,
+                            video_id: 'dhsy6epaJGs'
+                        },
+                        {
+                            module_number: 3,
+                            module_name: 'Fundamentos del ML',
+                            status: 'locked',
+                            progress_percentage: 0,
+                            video_id: 'DvyOm9HeT-k'
+                        },
+                        {
+                            module_number: 4,
+                            module_name: 'Redes Neuronales',
+                            status: 'locked',
+                            progress_percentage: 0,
+                            video_id: 'oiKj0Z_Xnjc'
+                        },
+                        {
+                            module_number: 5,
+                            module_name: 'Aplicaciones Prácticas',
+                            status: 'locked',
+                            progress_percentage: 0,
+                            video_id: 'HMoaRIbOaN0'
+                        }
+                    ],
+                    total_modules: 5,
+                    completed_modules: 0,
+                    current_module: 1,
+                    total_time_spent: 0
+                };
+            },
+            
+            updateModuleProgress: async (moduleNumber, updates = {}) => {
+                console.log(`📝 Fallback: Actualizando módulo ${moduleNumber}`, updates);
+                return Promise.resolve({ success: true });
+            },
+            
+            updateVideoProgress: async (moduleNumber, videoUpdates = {}) => {
+                console.log(`🎥 Fallback: Actualizando video ${moduleNumber}`, videoUpdates);
+                return Promise.resolve({ success: true });
+            },
+            
+            completeModule: async (moduleNumber) => {
+                console.log(`🎯 Fallback: Completando módulo ${moduleNumber}`);
+                return Promise.resolve({ success: true });
+            },
+            
+            startModule: async (moduleNumber) => {
+                console.log(`▶️ Fallback: Iniciando módulo ${moduleNumber}`);
+                return Promise.resolve({ success: true });
+            },
+            
+            getModuleProgress: (moduleNumber) => {
+                return null;
+            },
+            
+            isModuleCompleted: (moduleNumber) => false,
+            isModuleLocked: (moduleNumber) => moduleNumber > 1
+        };
+    }
+    
+    // ===== YOUTUBE PROGRESS TRACKER =====
+    async initializeYouTubeTracker() {
+        try {
+            console.log('🎥 Inicializando YouTube Progress Tracker...');
+            
+            // Verificar si YouTube Progress Tracker está disponible
+            if (typeof window.YouTubeProgressTracker === 'undefined') {
+                console.warn('⚠️ YouTubeProgressTracker no disponible, saltando inicialización');
+                return;
+            }
+            
+            // Verificar que tenemos un progress manager
+            if (!this.progressManager) {
+                console.warn('⚠️ Progress Manager no disponible, usando tracker básico');
+                this.youtubeTracker = new window.YouTubeProgressTracker(null);
+            } else {
+                this.youtubeTracker = new window.YouTubeProgressTracker(this.progressManager);
+            }
+            
+            // Configurar eventos del tracker
+            this.setupYouTubeEvents();
+            
+            // Inicializar con el video actual si hay datos de progreso
+            if (this.courseProgress && this.courseProgress.modules && this.courseProgress.current_module) {
+                const currentModule = this.courseProgress.modules.find(m => m.module_number === this.courseProgress.current_module);
+                if (currentModule && currentModule.video_id) {
+                    console.log(`🎥 Inicializando player con video: ${currentModule.video_id} (Módulo ${currentModule.module_number})`);
+                    
+                    // Esperar un momento para que el DOM esté listo
+                    setTimeout(() => {
+                        this.youtubeTracker.initializePlayer(
+                            'youtubePlayer',
+                            currentModule.video_id,
+                            currentModule.module_number
+                        );
+                    }, 1000);
+                }
+            }
+            
+            console.log('✅ YouTube Progress Tracker inicializado');
+            
+        } catch (error) {
+            console.error('❌ Error inicializando YouTube Progress Tracker:', error);
+            this.youtubeTracker = null;
+        }
+    }
+    
+    setupYouTubeEvents() {
+        // Escuchar eventos del tracker
+        window.addEventListener('moduleCompleted', (event) => {
+            console.log('🎯 Módulo completado:', event.detail);
+            this.handleModuleCompleted(event.detail.moduleNumber);
+        });
+        
+        window.addEventListener('moduleUnlocked', (event) => {
+            console.log('🔓 Módulo desbloqueado:', event.detail);
+            this.handleModuleUnlocked(event.detail.unlockedModule);
+        });
+    }
+    
+    handleModuleCompleted(moduleNumber) {
+        console.log(`🎉 Manejando completación del módulo ${moduleNumber}`);
+        
+        // Actualizar UI de progreso
+        this.updateProgressUI();
+        
+        // Actualizar estado del módulo en la lista
+        this.updateModuleStatus(moduleNumber, 'completed');
+        
+        // Auto-seleccionar siguiente módulo si está disponible
+        const nextModule = moduleNumber + 1;
+        if (this.courseProgress && this.courseProgress.modules) {
+            const nextModuleData = this.courseProgress.modules.find(m => m.module_number === nextModule);
+            if (nextModuleData && nextModuleData.status !== 'locked') {
+                setTimeout(() => {
+                    console.log(`🔄 Auto-seleccionando módulo ${nextModule}`);
+                    this.selectModule(nextModule);
+                }, 2000);
+            }
+        }
+    }
+    
+    handleModuleUnlocked(moduleNumber) {
+        console.log(`🔓 Manejando desbloqueo del módulo ${moduleNumber}`);
+        
+        // Actualizar estado del módulo desbloqueado
+        this.updateModuleStatus(moduleNumber, 'not_started');
+        
+        // Actualizar UI
+        this.updateProgressUI();
+    }
+    
+    updateModuleStatus(moduleNumber, status) {
+        // Actualizar en los datos locales
+        if (this.courseProgress && this.courseProgress.modules) {
+            const module = this.courseProgress.modules.find(m => m.module_number === moduleNumber);
+            if (module) {
+                module.status = status;
+                if (status === 'completed') {
+                    module.progress_percentage = 100;
+                    module.video_completed = true;
+                    module.video_progress_percentage = 100;
+                }
+            }
+        }
+        
+        // Actualizar en la UI
+        const moduleElement = document.querySelector(`[data-module="${moduleNumber}"]`);
+        if (moduleElement) {
+            moduleElement.classList.remove('locked', 'not_started', 'in_progress', 'completed');
+            moduleElement.classList.add(status);
+            
+            // Actualizar el círculo de progreso
+            const progressCircle = moduleElement.querySelector('.progress-circle');
+            if (progressCircle) {
+                if (status === 'completed') {
+                    progressCircle.style.background = 'var(--glass-primary)';
+                    progressCircle.innerHTML = '<i class="fas fa-check"></i>';
+                } else if (status === 'locked') {
+                    progressCircle.style.background = 'var(--glass-border)';
+                    progressCircle.innerHTML = '<i class="fas fa-lock"></i>';
+                } else {
+                    progressCircle.style.background = 'var(--glass-secondary)';
+                    progressCircle.innerHTML = moduleNumber;
+                }
+            }
+        }
     }
     
     setupProgressEvents() {
@@ -1288,6 +1558,36 @@ class ChatOnline {
         // Ejecutar selección básica (evitar recursión)
         this.selectModuleBasic(moduleId);
         
+        // Obtener datos del módulo para el video
+        let moduleVideoId = null;
+        if (this.courseProgress && this.courseProgress.modules) {
+            const moduleData = this.courseProgress.modules.find(m => m.module_number === moduleId);
+            if (moduleData && moduleData.video_id) {
+                moduleVideoId = moduleData.video_id;
+            }
+        }
+        
+        // Si no tenemos el video ID desde progreso, usar datos estáticos
+        if (!moduleVideoId) {
+            const moduleVideos = {
+                1: 'Yy_eZ65jzmo',  // ¿Qué es la IA?
+                2: 'dhsy6epaJGs',  // Historia de la IA
+                3: 'DvyOm9HeT-k',  // Fundamentos del ML
+                4: 'oiKj0Z_Xnjc',  // Redes Neuronales
+                5: 'HMoaRIbOaN0'   // Aplicaciones Prácticas
+            };
+            moduleVideoId = moduleVideos[moduleId];
+        }
+        
+        // Cambiar video usando YouTube Tracker si está disponible
+        if (this.youtubeTracker && moduleVideoId) {
+            console.log(`🎥 Cambiando video a: ${moduleVideoId} (Módulo ${moduleId})`);
+            this.youtubeTracker.changeVideo(moduleVideoId, moduleId);
+        } else {
+            // Fallback al método tradicional
+            this.changeVideoByModule(moduleId);
+        }
+        
         // Marcar como iniciado si no ha comenzado
         if (this.progressManager) {
             const moduleData = this.progressManager.getModuleProgress(moduleId);
@@ -1301,6 +1601,16 @@ class ChatOnline {
                 }
             }
         }
+        
+        // Emitir evento de cambio de módulo para el tracker
+        const event = new CustomEvent('moduleChanged', {
+            detail: {
+                moduleNumber: moduleId,
+                videoId: moduleVideoId,
+                timestamp: Date.now()
+            }
+        });
+        window.dispatchEvent(event);
     }
     
     async markVideoSectionCompleted(sectionNumber) {
@@ -2506,6 +2816,87 @@ function showProgressCommands() {
 // Auto-mostrar comandos disponibles
 console.log('🚀 Course Progress System cargado');
 console.log('💡 Escribe showProgressCommands() para ver comandos disponibles');
+
+// Debug del sistema de progreso
+async function debugProgressSystem() {
+    console.log('🔧 === DEBUG PROGRESS SYSTEM ===');
+    
+    // 1. Verificar Progress Manager
+    console.log('1. Progress Manager:', window.courseProgressManager ? '✅ Disponible' : '❌ No disponible');
+    
+    if (!window.courseProgressManager) {
+        console.log('⚠️ CourseProgressManager no está disponible');
+        return;
+    }
+    
+    // 2. Verificar Chat Online
+    console.log('2. Chat Online:', window.chatOnline ? '✅ Disponible' : '❌ No disponible');
+    
+    // 3. Obtener progreso
+    try {
+        console.log('3. Obteniendo progreso...');
+        const progress = await window.courseProgressManager.getCourseProgress(true);
+        console.log('✅ Progreso obtenido:', progress);
+        
+        // 4. Verificar elementos DOM
+        console.log('4. Verificando elementos DOM...');
+        const progressPercentage = document.querySelector('.progress-percentage');
+        const progressFill = document.querySelector('.progress-fill');
+        const progressDots = document.querySelectorAll('.progress-dot');
+        
+        console.log('• Progress percentage element:', progressPercentage ? '✅' : '❌');
+        console.log('• Progress fill element:', progressFill ? '✅' : '❌'); 
+        console.log('• Progress dots count:', progressDots.length);
+        
+        // 5. Forzar actualización UI
+        if (window.chatOnline) {
+            console.log('5. Forzando actualización UI...');
+            window.chatOnline.courseProgress = progress;
+            window.chatOnline.updateProgressUI();
+            console.log('✅ UI actualizada');
+        }
+        
+        // 6. Verificar clases aplicadas
+        console.log('6. Verificando clases de progress dots:');
+        progressDots.forEach((dot, index) => {
+            const classes = Array.from(dot.classList);
+            console.log(`• Dot ${index + 1}:`, classes);
+        });
+        
+    } catch (error) {
+        console.error('❌ Error en debug:', error);
+    }
+}
+
+// Función para inicializar manualmente si no funciona automáticamente  
+async function forceInitializeProgress() {
+    console.log('🚀 Forzando inicialización del progreso...');
+    
+    if (!window.courseProgressManager) {
+        console.error('❌ CourseProgressManager no disponible');
+        return;
+    }
+    
+    try {
+        // Forzar obtención de progreso
+        const progress = await window.courseProgressManager.getCourseProgress(true);
+        console.log('✅ Progreso inicializado:', progress);
+        
+        if (window.chatOnline) {
+            window.chatOnline.courseProgress = progress;
+            window.chatOnline.updateProgressUI();
+            console.log('✅ UI actualizada manualmente');
+        }
+        
+        return progress;
+    } catch (error) {
+        console.error('❌ Error forzando inicialización:', error);
+    }
+}
+
+console.log('🔧 Funciones de debug disponibles:');
+console.log('• debugProgressSystem() - Debug completo del sistema');
+console.log('• forceInitializeProgress() - Forzar inicialización');
 
 // ===== EXPORTAR PARA USO EXTERNO =====
 if (typeof module !== 'undefined' && module.exports) {

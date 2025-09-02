@@ -287,15 +287,15 @@ class CourseProgressManager {
             user_id: this.userId,
             course_identifier: this.courseId,
             overall_progress_percentage: 0,
-            status: 'not_started',
-            started_at: null,
+            status: 'in_progress',
+            started_at: new Date().toISOString(),
             last_accessed_at: new Date().toISOString(),
             completed_at: null,
             modules: [
                 {
                     module_number: 1,
                     module_name: '¿Qué es la IA?',
-                    status: 'not_started',
+                    status: 'in_progress',
                     progress_percentage: 0,
                     video_id: 'Yy_eZ65jzmo',
                     video_progress: 0,
@@ -422,12 +422,59 @@ class CourseProgressManager {
     }
 }
 
-// Crear instancia global
+// Crear instancia global - INMEDIATAMENTE
 window.CourseProgressManager = CourseProgressManager;
 
-// Auto-inicializar si no existe
-if (typeof window !== 'undefined' && !window.courseProgressManager) {
-    window.courseProgressManager = new CourseProgressManager();
+// Función de inicialización asíncrona
+async function initializeGlobalProgressManager() {
+    try {
+        console.log('🚀 Inicializando CourseProgressManager global...');
+        
+        // Crear instancia inmediatamente
+        const manager = new CourseProgressManager();
+        
+        // Asignar a window inmediatamente
+        window.courseProgressManager = manager;
+        
+        console.log('✅ CourseProgressManager disponible globalmente');
+        console.log('🔍 Verificación:', typeof window.courseProgressManager);
+        
+        // Emitir evento de que está listo
+        window.dispatchEvent(new CustomEvent('courseProgressManagerReady', {
+            detail: { manager: window.courseProgressManager }
+        }));
+        
+        return manager;
+        
+    } catch (error) {
+        console.error('❌ Error inicializando CourseProgressManager:', error);
+        
+        // Crear manager de fallback básico
+        window.courseProgressManager = {
+            getCourseProgress: () => ({
+                overall_progress_percentage: 0,
+                modules: [],
+                status: 'error'
+            }),
+            updateModuleProgress: () => Promise.resolve(),
+            updateVideoProgress: () => Promise.resolve(),
+            completeModule: () => Promise.resolve(),
+            startModule: () => Promise.resolve()
+        };
+        
+        return window.courseProgressManager;
+    }
+}
+
+// Auto-inicializar inmediatamente con manejo de errores robusto
+if (typeof window !== 'undefined') {
+    // Ejecutar inmediatamente
+    initializeGlobalProgressManager();
+    
+    // También en DOMContentLoaded como respaldo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeGlobalProgressManager);
+    }
 }
 
 export default CourseProgressManager;

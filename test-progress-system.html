@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Progress System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+            overflow-x: auto;
+        }
+    </style>
+    
+    <!-- Course Progress Manager Script -->
+    <script src="src/scripts/course-progress-manager.js"></script>
+</head>
+<body>
+    <h1>🧪 Course Progress System - Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Verificar APIs</h2>
+        <button onclick="testAPIs()">🔍 Test API Endpoints</button>
+        <div id="apiStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Inicializar Progreso</h2>
+        <button onclick="initializeUserProgress()">🚀 Inicializar Usuario Demo</button>
+        <div id="initStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Obtener Progreso</h2>
+        <button onclick="getCurrentProgress()">📊 Ver Progreso Actual</button>
+        <div id="progressStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Probar Actualizaciones</h2>
+        <button onclick="testModuleUpdate()">📚 Iniciar Módulo 1</button>
+        <button onclick="testVideoUpdate()">🎥 Actualizar Video 50%</button>
+        <button onclick="testCompleteModule()">✅ Completar Módulo 1</button>
+        <div id="updateStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Log de Actividad</h2>
+        <button onclick="clearLog()">🧹 Limpiar Log</button>
+        <pre id="activityLog"></pre>
+    </div>
+
+    <script>
+        // Configuración
+        const TEST_USER_ID = 'test-user-' + Date.now();
+        const COURSE_ID = 'intro-to-ai';
+        
+        // Logger
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEl = document.getElementById('activityLog');
+            const logMessage = `[${timestamp}] ${message}\n`;
+            logEl.textContent += logMessage;
+            
+            console.log(message);
+        }
+
+        function clearLog() {
+            document.getElementById('activityLog').textContent = '';
+        }
+
+        function showStatus(elementId, message, type = 'info') {
+            const el = document.getElementById(elementId);
+            el.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        // 1. Test API Endpoints
+        async function testAPIs() {
+            log('🔍 Testing API endpoints...');
+            showStatus('apiStatus', '🔄 Probando APIs...', 'info');
+            
+            const tests = [
+                { name: 'Course Progress', url: `/api/course-progress?user_id=${TEST_USER_ID}&course_identifier=${COURSE_ID}` },
+            ];
+            
+            let results = '';
+            
+            for (const test of tests) {
+                try {
+                    log(`Testing ${test.name}: ${test.url}`);
+                    const response = await fetch(test.url, {
+                        headers: {
+                            'X-User-Id': TEST_USER_ID
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        results += `✅ ${test.name}: OK (${response.status})\n`;
+                        log(`✅ ${test.name}: Success`);
+                        console.log(`${test.name} response:`, data);
+                    } else {
+                        results += `❌ ${test.name}: Error ${response.status}\n`;
+                        log(`❌ ${test.name}: Error ${response.status} - ${data.error}`);
+                    }
+                } catch (error) {
+                    results += `💥 ${test.name}: Exception - ${error.message}\n`;
+                    log(`💥 ${test.name}: Exception - ${error.message}`);
+                }
+            }
+            
+            showStatus('apiStatus', `<pre>${results}</pre>`, results.includes('❌') ? 'error' : 'success');
+        }
+
+        // 2. Inicializar progreso
+        async function initializeUserProgress() {
+            log('🚀 Inicializando progreso del usuario...');
+            showStatus('initStatus', '🔄 Inicializando...', 'info');
+            
+            try {
+                const response = await fetch(`/api/course-progress?user_id=${TEST_USER_ID}&course_identifier=${COURSE_ID}`, {
+                    headers: {
+                        'X-User-Id': TEST_USER_ID
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(`✅ Usuario inicializado: ${data.initialized ? 'NUEVO' : 'EXISTENTE'}`);
+                    showStatus('initStatus', `✅ Usuario inicializado correctamente\n• User ID: ${TEST_USER_ID}\n• Inicializado: ${data.initialized ? 'Sí' : 'No'}\n• Módulos: ${data.progress.modules.length}`, 'success');
+                    console.log('User progress:', data.progress);
+                } else {
+                    throw new Error(`${response.status}: ${data.error}`);
+                }
+            } catch (error) {
+                log(`❌ Error inicializando: ${error.message}`);
+                showStatus('initStatus', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // 3. Obtener progreso actual
+        async function getCurrentProgress() {
+            log('📊 Obteniendo progreso actual...');
+            showStatus('progressStatus', '🔄 Cargando...', 'info');
+            
+            try {
+                const response = await fetch(`/api/course-progress?user_id=${TEST_USER_ID}&course_identifier=${COURSE_ID}`, {
+                    headers: {
+                        'X-User-Id': TEST_USER_ID
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const progress = data.progress;
+                    log(`✅ Progreso obtenido: ${progress.overall_progress_percentage}%`);
+                    
+                    let progressInfo = `✅ Progreso del Curso\n`;
+                    progressInfo += `• Progreso General: ${progress.overall_progress_percentage}%\n`;
+                    progressInfo += `• Estado: ${progress.status}\n`;
+                    progressInfo += `• Módulo Actual: ${progress.current_module}\n`;
+                    progressInfo += `• Módulos Completados: ${progress.completed_modules}/${progress.total_modules}\n`;
+                    progressInfo += `• Tiempo Total: ${progress.total_time_spent} min\n\n`;
+                    
+                    progressInfo += `📚 Módulos:\n`;
+                    progress.modules.forEach(module => {
+                        const statusIcon = {
+                            'completed': '✅',
+                            'in_progress': '🔄', 
+                            'not_started': '⏸️',
+                            'locked': '🔒'
+                        };
+                        progressInfo += `${statusIcon[module.status]} Módulo ${module.module_number}: ${module.module_name} (${module.progress_percentage}%)\n`;
+                    });
+                    
+                    showStatus('progressStatus', `<pre>${progressInfo}</pre>`, 'success');
+                    console.log('Full progress:', progress);
+                } else {
+                    throw new Error(`${response.status}: ${data.error}`);
+                }
+            } catch (error) {
+                log(`❌ Error obteniendo progreso: ${error.message}`);
+                showStatus('progressStatus', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // 4. Test actualizaciones
+        async function testModuleUpdate() {
+            log('📚 Iniciando módulo 1...');
+            showStatus('updateStatus', '🔄 Iniciando módulo...', 'info');
+            
+            try {
+                const response = await fetch('/api/module-progress', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Id': TEST_USER_ID
+                    },
+                    body: JSON.stringify({
+                        course_identifier: COURSE_ID,
+                        module_number: 1,
+                        status: 'in_progress',
+                        progress_percentage: 1
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(`✅ Módulo 1 iniciado: ${data.module.status}`);
+                    showStatus('updateStatus', `✅ Módulo 1 iniciado correctamente\n• Estado: ${data.module.status}\n• Progreso: ${data.module.progress_percentage}%`, 'success');
+                } else {
+                    throw new Error(`${response.status}: ${data.error}`);
+                }
+            } catch (error) {
+                log(`❌ Error iniciando módulo: ${error.message}`);
+                showStatus('updateStatus', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testVideoUpdate() {
+            log('🎥 Actualizando video al 50%...');
+            
+            try {
+                const response = await fetch('/api/video-progress', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Id': TEST_USER_ID
+                    },
+                    body: JSON.stringify({
+                        course_identifier: COURSE_ID,
+                        module_number: 1,
+                        video_progress_percentage: 50,
+                        last_video_position: 300,
+                        sections_completed: [
+                            { section_number: 1, completed: true },
+                            { section_number: 2, completed: true }
+                        ]
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(`✅ Video actualizado: ${data.module.video_progress_percentage}%`);
+                    showStatus('updateStatus', `✅ Video actualizado\n• Progreso: ${data.module.video_progress_percentage}%\n• Posición: ${data.module.last_video_position}s\n• Secciones: ${data.sections_updated}`, 'success');
+                } else {
+                    throw new Error(`${response.status}: ${data.error}`);
+                }
+            } catch (error) {
+                log(`❌ Error actualizando video: ${error.message}`);
+                showStatus('updateStatus', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCompleteModule() {
+            log('✅ Completando módulo 1...');
+            
+            try {
+                const response = await fetch('/api/module-progress', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Id': TEST_USER_ID
+                    },
+                    body: JSON.stringify({
+                        course_identifier: COURSE_ID,
+                        module_number: 1,
+                        status: 'completed',
+                        progress_percentage: 100,
+                        video_completed: true,
+                        video_progress_percentage: 100
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(`✅ Módulo 1 completado: ${data.course_progress.overall_progress_percentage}% total`);
+                    showStatus('updateStatus', `✅ Módulo 1 completado\n• Progreso General: ${data.course_progress.overall_progress_percentage}%\n• Siguiente módulo desbloqueado: ${data.course_progress.current_module}`, 'success');
+                } else {
+                    throw new Error(`${response.status}: ${data.error}`);
+                }
+            } catch (error) {
+                log(`❌ Error completando módulo: ${error.message}`);
+                showStatus('updateStatus', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-inicializar
+        window.addEventListener('DOMContentLoaded', () => {
+            log('🧪 Test Progress System cargado');
+            log(`👤 Test User ID: ${TEST_USER_ID}`);
+            
+            // Verificar CourseProgressManager
+            checkProgressManager();
+        });
+        
+        function checkProgressManager() {
+            log('🔍 Verificando CourseProgressManager...');
+            
+            if (typeof window.CourseProgressManager !== 'undefined') {
+                log('✅ Clase CourseProgressManager disponible');
+            } else {
+                log('❌ Clase CourseProgressManager NO disponible');
+            }
+            
+            if (typeof window.courseProgressManager !== 'undefined') {
+                log('✅ Instancia courseProgressManager disponible');
+                log('🔍 Tipo:', typeof window.courseProgressManager);
+                log('🔍 Métodos disponibles:', Object.keys(window.courseProgressManager));
+                
+                if (typeof window.courseProgressManager.getCourseProgress === 'function') {
+                    log('✅ Método getCourseProgress disponible');
+                } else {
+                    log('❌ Método getCourseProgress NO disponible');
+                }
+            } else {
+                log('❌ Instancia courseProgressManager NO disponible');
+                
+                // Intentar crear una manualmente para testing
+                if (typeof window.CourseProgressManager !== 'undefined') {
+                    try {
+                        log('🔄 Intentando crear instancia manual...');
+                        window.courseProgressManager = new window.CourseProgressManager();
+                        log('✅ Instancia manual creada exitosamente');
+                    } catch (error) {
+                        log('❌ Error creando instancia manual: ' + error.message);
+                    }
+                }
+            }
+            
+            // Escuchar evento de inicialización
+            window.addEventListener('courseProgressManagerReady', (event) => {
+                log('📡 Evento courseProgressManagerReady recibido');
+                log('📊 Manager:', event.detail.manager);
+            });
+        }
+    </script>
+</body>
+</html>
