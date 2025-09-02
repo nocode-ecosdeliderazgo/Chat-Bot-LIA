@@ -46,6 +46,17 @@
   to   = "/.netlify/functions/grafana-panel"
   status = 200
 
+# API Statistics redirects
+[[redirects]]
+  from = "/api/genai-radar/*"
+  to   = "/.netlify/functions/genai-radar"
+  status = 200
+
+[[redirects]]
+  from = "/api/adopcion-genai"
+  to   = "/.netlify/functions/adopcion-genai"
+  status = 200
+
 # Wildcard redirect (must be last)
 [[redirects]]
   from = "/api/*"
