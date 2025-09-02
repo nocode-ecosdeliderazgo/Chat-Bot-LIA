@@ -969,7 +969,7 @@ main.container { padding-top: 120px; }
 .category-group .cta .wishlist { width: 36px; }
 
 /* Reducir ancho del navbar (no altura) solo en cursos */
-.catalog-header .course-tabs { width: min(430px, 85vw); margin: 0 auto; }
+.catalog-header .course-tabs { width: min(600px, 90vw); margin: 0 auto; }
 
 /* ===== ESTILOS PARA EL BOTÓN DE CAMBIO DE TEMA EN EL MENÚ ===== */
 .pm-item#themeToggle {

@@ -621,8 +621,10 @@
                     sessionInfo.innerHTML = `Debugging: userId = ${userId}`;
                 }
                 
-                // Hacer fetch al endpoint GenAI del backend (puerto 3000 - configuración estándar del equipo)
-                const baseURL = 'http://localhost:3000';
+                // Detectar automáticamente la URL base según el entorno
+                const baseURL = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:3000' 
+                    : 'https://ecosdeliderazgo.com';
                 console.log(`🔗 Haciendo fetch a: ${baseURL}/api/genai-radar/${userId}`);
                 
                 const response = await fetch(`${baseURL}/api/genai-radar/${userId}`, {
@@ -803,7 +805,10 @@
                 // Mostrar placeholder de carga
                 showAdoptionPlaceholder('Cargando datos...');
                 
-                const baseURL = 'http://localhost:3000';
+                // Detectar automáticamente la URL base según el entorno
+                const baseURL = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:3000' 
+                    : 'https://ecosdeliderazgo.com';
                 const response = await fetch(`${baseURL}/api/adopcion-genai`, {
                     headers: {
                         'Content-Type': 'application/json'

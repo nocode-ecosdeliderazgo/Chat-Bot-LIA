@@ -449,6 +449,12 @@ class ChatOnline {
                             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                         </svg>
                     </button>
+                    <button class="action-btn-small" onclick="window.chatOnline.createNoteFromMessage(this)" title="Crear nota">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
         `;
@@ -479,6 +485,12 @@ class ChatOnline {
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="9,11 12,14 22,4"></polyline>
                             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                    </button>
+                    <button class="action-btn-small" onclick="window.chatOnline.createNoteFromMessage(this)" title="Crear nota">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                         </svg>
                     </button>
                 </div>
@@ -698,10 +710,6 @@ class ChatOnline {
         this.loadNotesList();
         
         console.log('💾 Nota guardada:', note);
-        
-        // Mostrar mensaje de confirmación
-        const message = this.currentEditingNoteId ? 'Nota actualizada correctamente' : 'Nota guardada correctamente';
-        alert(message);
         
         // NO limpiar ID de edición aquí - solo se limpia cuando se cierra el editor
     }
@@ -1153,6 +1161,102 @@ class ChatOnline {
         console.log('❌ Respuesta cancelada');
     }
     
+    createNoteFromMessage(button) {
+        console.log('📝 Creando nota desde mensaje...');
+        
+        // Obtener el mensaje completo
+        const messageElement = button.closest('.lia-message, .user-message');
+        const messageText = messageElement.querySelector('.message-text').textContent;
+        const isUserMessage = messageElement.classList.contains('user-message');
+        
+        // Crear título automático para la nota
+        const noteTitle = this.generateNoteTitle(messageText, isUserMessage);
+        
+        // Crear contenido de la nota
+        const noteContent = this.formatNoteContent(messageText, isUserMessage);
+        
+        // Crear la nota usando el sistema existente
+        this.createNoteFromMessageData(noteTitle, noteContent);
+        
+        // Mostrar feedback visual
+        this.showNoteCreatedFeedback(button);
+    }
+    
+    generateNoteTitle(messageText, isUserMessage) {
+        const prefix = isUserMessage ? 'Pregunta: ' : 'Respuesta de LIA: ';
+        const maxLength = 50;
+        
+        if (messageText.length <= maxLength) {
+            return prefix + messageText;
+        }
+        
+        // Truncar y agregar puntos suspensivos
+        return prefix + messageText.substring(0, maxLength) + '...';
+    }
+    
+    formatNoteContent(messageText, isUserMessage) {
+        const timestamp = new Date().toLocaleString('es-ES');
+        const header = isUserMessage ? '💬 Pregunta del Usuario' : '🤖 Respuesta de LIA';
+        
+        return `
+            <div class="note-header">
+                <h3>${header}</h3>
+                <p class="note-timestamp">📅 ${timestamp}</p>
+            </div>
+            <div class="note-content">
+                <p>${messageText}</p>
+            </div>
+            <div class="note-footer">
+                <p><em>Nota creada automáticamente desde el chat</em></p>
+            </div>
+        `;
+    }
+    
+    createNoteFromMessageData(title, content) {
+        // Crear objeto de nota
+        const note = {
+            id: Date.now(),
+            title: title,
+            content: content,
+            tags: ['chat', 'automático'],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Guardar en localStorage usando el sistema existente
+        this.saveNoteToStorage(note);
+        
+        // Actualizar la lista de notas si está visible
+        this.loadNotesList();
+        
+        console.log('📝 Nota creada automáticamente:', note);
+    }
+    
+    showNoteCreatedFeedback(button) {
+        // Cambiar temporalmente el botón para mostrar feedback
+        const originalTitle = button.title;
+        const originalHTML = button.innerHTML;
+        
+        button.title = '¡Nota creada!';
+        button.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20,6 9,17 4,12"/>
+            </svg>
+        `;
+        button.style.background = 'var(--glass-success)';
+        button.style.color = 'white';
+        
+        // Restaurar después de 2 segundos
+        setTimeout(() => {
+            button.title = originalTitle;
+            button.innerHTML = originalHTML;
+            button.style.background = '';
+            button.style.color = '';
+        }, 2000);
+        
+        console.log('✅ Nota creada exitosamente');
+    }
+    
     // ===== UTILIDADES =====
     autoResizeInput(input) {
         input.style.height = 'auto';
@@ -1394,19 +1498,280 @@ class ChatOnline {
     // ===== CONTENIDO DE PESTAÑAS =====
     showVideoContent() {
         console.log('🎥 Mostrando contenido de video');
-        // El contenido de video ya está visible por defecto
+        
+        // Ocultar contenido de materiales y quiz
+        this.hideMaterialsContent();
+        this.hideQuizContent();
+        
+        // Mostrar contenido de video
+        const videoContent = document.querySelector('.main-video-player');
+        const contentTabs = document.querySelector('.content-tabs');
+        const contentArea = document.querySelector('.content-area');
+        
+        if (videoContent) videoContent.style.display = 'block';
+        if (contentTabs) contentTabs.style.display = 'flex';
+        if (contentArea) contentArea.style.display = 'block';
+        
+        // Agregar clase para animación
+        if (videoContent) videoContent.classList.add('content-visible');
     }
     
     showMaterialsContent() {
         console.log('📚 Mostrando materiales');
-        // Aquí puedes implementar la vista de materiales
-        alert('Sección de materiales en desarrollo');
+        
+        // Ocultar contenido de video y quiz
+        this.hideVideoContent();
+        this.hideQuizContent();
+        
+        // Crear y mostrar contenido de materiales
+        this.createMaterialsContent();
+        
+        // Agregar clase para animación
+        const materialsContent = document.querySelector('.materials-content');
+        if (materialsContent) materialsContent.classList.add('content-visible');
     }
     
     showQuizContent() {
         console.log('❓ Mostrando quiz');
-        // Aquí puedes implementar la vista de quiz
-        alert('Sección de quiz en desarrollo');
+        
+        // Ocultar contenido de video y materiales
+        this.hideVideoContent();
+        this.hideMaterialsContent();
+        
+        // Crear y mostrar contenido de quiz
+        this.createQuizContent();
+        
+        // Agregar clase para animación
+        const quizContent = document.querySelector('.quiz-content');
+        if (quizContent) quizContent.classList.add('content-visible');
+    }
+    
+    // ===== FUNCIONES DE OCULTAR CONTENIDO =====
+    hideVideoContent() {
+        const videoContent = document.querySelector('.main-video-player');
+        const contentTabs = document.querySelector('.content-tabs');
+        const contentArea = document.querySelector('.content-area');
+        
+        if (videoContent) {
+            videoContent.style.display = 'none';
+            videoContent.classList.remove('content-visible');
+        }
+        if (contentTabs) contentTabs.style.display = 'none';
+        if (contentArea) contentArea.style.display = 'none';
+    }
+    
+    hideMaterialsContent() {
+        const materialsContent = document.querySelector('.materials-content');
+        if (materialsContent) {
+            materialsContent.style.display = 'none';
+            materialsContent.classList.remove('content-visible');
+        }
+    }
+    
+    hideQuizContent() {
+        const quizContent = document.querySelector('.quiz-content');
+        if (quizContent) {
+            quizContent.style.display = 'none';
+            quizContent.classList.remove('content-visible');
+        }
+    }
+    
+    // ===== CREAR CONTENIDO DE MATERIALES =====
+    createMaterialsContent() {
+        const centerPanel = document.querySelector('.center-panel .course-content');
+        if (!centerPanel) return;
+        
+        // Remover contenido existente de materiales si existe
+        const existingMaterials = document.querySelector('.materials-content');
+        if (existingMaterials) {
+            existingMaterials.remove();
+        }
+        
+        // Crear nuevo contenido de materiales
+        const materialsHTML = `
+            <div class="materials-content">
+                <div class="materials-header">
+                    <h2>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                        </svg>
+                        Materiales del Curso
+                    </h2>
+                    <p>Recursos adicionales para complementar tu aprendizaje</p>
+                </div>
+                
+                <div class="materials-grid">
+                    <div class="material-card">
+                        <div class="material-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                            </svg>
+                        </div>
+                        <div class="material-info">
+                            <h3>Introducción a la IA - PDF</h3>
+                            <p>Documento completo del módulo con ejemplos prácticos</p>
+                            <span class="material-size">2.5 MB</span>
+                        </div>
+                        <button class="download-btn" onclick="window.chatOnline.downloadMaterial('ia-intro.pdf')">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7,10 12,15 17,10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Descargar
+                        </button>
+                    </div>
+                    
+                    <div class="material-card">
+                        <div class="material-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                            </svg>
+                        </div>
+                        <div class="material-info">
+                            <h3>Ejercicios Prácticos</h3>
+                            <p>Actividades para reforzar los conceptos aprendidos</p>
+                            <span class="material-size">1.8 MB</span>
+                        </div>
+                        <button class="download-btn" onclick="window.chatOnline.downloadMaterial('ejercicios-ia.pdf')">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7,10 12,15 17,10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Descargar
+                        </button>
+                    </div>
+                    
+                    <div class="material-card">
+                        <div class="material-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                <polyline points="15,3 21,3 21,9"/>
+                                <line x1="10" y1="14" x2="21" y2="3"/>
+                            </svg>
+                        </div>
+                        <div class="material-info">
+                            <h3>Enlaces de Referencia</h3>
+                            <p>Recursos web adicionales para profundizar en el tema</p>
+                            <span class="material-type">Enlaces</span>
+                        </div>
+                        <button class="link-btn" onclick="window.chatOnline.openLinks()">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                <polyline points="15,3 21,3 21,9"/>
+                                <line x1="10" y1="14" x2="21" y2="3"/>
+                            </svg>
+                            Ver Enlaces
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        centerPanel.insertAdjacentHTML('beforeend', materialsHTML);
+    }
+    
+    // ===== CREAR CONTENIDO DE QUIZ =====
+    createQuizContent() {
+        const centerPanel = document.querySelector('.center-panel .course-content');
+        if (!centerPanel) return;
+        
+        // Remover contenido existente de quiz si existe
+        const existingQuiz = document.querySelector('.quiz-content');
+        if (existingQuiz) {
+            existingQuiz.remove();
+        }
+        
+        // Crear nuevo contenido de quiz
+        const quizHTML = `
+            <div class="quiz-content">
+                <div class="quiz-header">
+                    <h2>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        Quiz del Módulo ${this.currentModule}
+                    </h2>
+                    <p>Pon a prueba tus conocimientos con estas preguntas</p>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="question-card">
+                        <div class="question-header">
+                            <span class="question-number">Pregunta 1 de 5</span>
+                            <span class="question-timer">⏱️ 02:30</span>
+                        </div>
+                        
+                        <h3 class="question-text">¿Qué es la Inteligencia Artificial?</h3>
+                        
+                        <div class="answer-options">
+                            <label class="answer-option">
+                                <input type="radio" name="q1" value="a">
+                                <span class="answer-text">A) Una tecnología que permite a las máquinas pensar como humanos</span>
+                            </label>
+                            
+                            <label class="answer-option">
+                                <input type="radio" name="q1" value="b">
+                                <span class="answer-text">B) Un programa de computadora que puede jugar ajedrez</span>
+                            </label>
+                            
+                            <label class="answer-option">
+                                <input type="radio" name="q1" value="c">
+                                <span class="answer-text">C) Un sistema que puede realizar tareas que normalmente requieren inteligencia humana</span>
+                            </label>
+                            
+                            <label class="answer-option">
+                                <input type="radio" name="q1" value="d">
+                                <span class="answer-text">D) Solo robots humanoides</span>
+                            </label>
+                        </div>
+                        
+                        <div class="question-actions">
+                            <button class="btn-secondary" onclick="window.chatOnline.previousQuestion()">Anterior</button>
+                            <button class="btn-primary" onclick="window.chatOnline.nextQuestion()">Siguiente</button>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 20%"></div>
+                        </div>
+                        <span class="progress-text">1 de 5 preguntas</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        centerPanel.insertAdjacentHTML('beforeend', quizHTML);
+    }
+    
+    // ===== FUNCIONES AUXILIARES =====
+    downloadMaterial(filename) {
+        console.log(`📥 Descargando material: ${filename}`);
+        // Aquí implementarías la lógica real de descarga
+        alert(`Descargando ${filename}...`);
+    }
+    
+    openLinks() {
+        console.log('🔗 Abriendo enlaces de referencia');
+        // Aquí implementarías la lógica para mostrar enlaces
+        alert('Enlaces de referencia:\n• https://example.com/ia-basics\n• https://example.com/ml-intro');
+    }
+    
+    previousQuestion() {
+        console.log('⬅️ Pregunta anterior');
+        // Implementar navegación entre preguntas
+    }
+    
+    nextQuestion() {
+        console.log('➡️ Siguiente pregunta');
+        // Implementar navegación entre preguntas
     }
 }
 
