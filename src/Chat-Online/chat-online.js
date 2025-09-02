@@ -170,6 +170,9 @@ class ChatOnline {
         
         this.currentModule = moduleId;
         
+        // 🎥 CAMBIAR VIDEO POR MÓDULO
+        this.changeVideoByModule(moduleId);
+        
         // Actualizar información del módulo
         this.updateModuleInfo(moduleId);
         
@@ -1302,6 +1305,10 @@ class ChatOnline {
         // Cargar datos iniciales
         console.log('📊 Cargando datos iniciales...');
         
+        // Cargar video del módulo actual (3)
+        console.log('🎥 Cargando video del módulo inicial...');
+        this.changeVideoByModule(this.currentModule);
+        
         // Simular carga de progreso
         this.updateProgress(65);
         
@@ -1777,6 +1784,39 @@ class ChatOnline {
     // ===== YOUTUBE VIDEO PLAYER =====
     
     /**
+     * Videos asignados a cada módulo
+     */
+    getModuleVideos() {
+        return {
+            1: {
+                id: 'Yy_eZ65jzmo',
+                title: '¿Qué es la IA? - Introducción',
+                duration: '15:00'
+            },
+            2: {
+                id: 'dhsy6epaJGs', 
+                title: 'Historia de la IA - Evolución',
+                duration: '22:00'
+            },
+            3: {
+                id: 'DvyOm9HeT-k',
+                title: 'Fundamentos del ML - Conceptos básicos',
+                duration: '18:00'
+            },
+            4: {
+                id: 'oiKj0Z_Xnjc',
+                title: 'Redes Neuronales - Arquitectura',
+                duration: '25:00'
+            },
+            5: {
+                id: 'HMoaRIbOaN0',
+                title: 'Aplicaciones Prácticas de IA',
+                duration: '20:00'
+            }
+        };
+    }
+    
+    /**
      * Cambia el video de YouTube actual
      * @param {string} videoId - ID del video de YouTube
      * @param {string} title - Título del video
@@ -1816,6 +1856,35 @@ class ChatOnline {
         }
         
         console.log(`✅ Video actualizado: ${title}`);
+    }
+    
+    /**
+     * Cambia el video según el módulo seleccionado
+     * @param {number} moduleNumber - Número del módulo (1-5)
+     */
+    changeVideoByModule(moduleNumber) {
+        const moduleVideos = this.getModuleVideos();
+        const videoData = moduleVideos[moduleNumber];
+        
+        if (videoData) {
+            console.log(`🎯 Cargando video del Módulo ${moduleNumber}`);
+            this.changeYouTubeVideo(videoData.id, videoData.title, videoData.duration);
+            
+            // Actualizar la información del módulo actual si existe
+            const currentModuleInfo = document.querySelector('.current-module-info span');
+            if (currentModuleInfo) {
+                const moduleNames = {
+                    1: 'Módulo 1: ¿Qué es la IA?',
+                    2: 'Módulo 2: Historia de la IA', 
+                    3: 'Módulo 3: Fundamentos del ML',
+                    4: 'Módulo 4: Redes Neuronales',
+                    5: 'Módulo 5: Aplicaciones Prácticas'
+                };
+                currentModuleInfo.textContent = moduleNames[moduleNumber] || `Módulo ${moduleNumber}`;
+            }
+        } else {
+            console.error(`❌ No hay video configurado para el módulo ${moduleNumber}`);
+        }
     }
     
     /**
@@ -2012,6 +2081,28 @@ function testVideos() {
             console.log(`${index + 1}. changeVideo('${video.id}', '${video.title}', '${video.duration}')`);
         });
         return videos;
+    }
+}
+
+// Función para cambiar a un módulo específico
+function selectModule(moduleNumber) {
+    if (window.chatOnline) {
+        window.chatOnline.selectModule(moduleNumber);
+        console.log(`🎯 Módulo ${moduleNumber} seleccionado`);
+    }
+}
+
+// Función para ver todos los videos de módulos
+function showModuleVideos() {
+    if (window.chatOnline) {
+        const moduleVideos = window.chatOnline.getModuleVideos();
+        console.log('🎬 Videos por módulo:');
+        Object.keys(moduleVideos).forEach(moduleId => {
+            const video = moduleVideos[moduleId];
+            console.log(`Módulo ${moduleId}: ${video.title} (${video.duration}) - ID: ${video.id}`);
+        });
+        console.log('\n🎯 Para cambiar usa: selectModule(1), selectModule(2), etc.');
+        return moduleVideos;
     }
 }
 
