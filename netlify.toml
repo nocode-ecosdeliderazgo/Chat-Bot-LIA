@@ -1,15 +1,15 @@
 [build]
-  publish = "."
-  command = "echo 'Serving from current directory'"
-  node_version = "18.18.0"
+  base = "."
+  publish = "src"
+  node_version = "18"
   
 [build.environment]
   NODE_ENV = "production"
 
 [functions]
-  directory = "../netlify/functions"
+  directory = "netlify/functions"
 
-# Specific API redirects
+# Specific API redirects (higher priority than wildcards)
 [[redirects]]
   from = "/api/user/session"
   to   = "/.netlify/functions/get-user-session"
@@ -35,6 +35,18 @@
   to   = "/.netlify/functions/openai"
   status = 200
 
+# Grafana redirects
+[[redirects]]
+  from = "/grafana/health"
+  to   = "/.netlify/functions/grafana-health"
+  status = 200
+
+[[redirects]]
+  from = "/grafana/panel/*.png"
+  to   = "/.netlify/functions/grafana-panel"
+  status = 200
+
+# Wildcard redirect (must be last)
 [[redirects]]
   from = "/api/*"
   to   = "/.netlify/functions/:splat"
