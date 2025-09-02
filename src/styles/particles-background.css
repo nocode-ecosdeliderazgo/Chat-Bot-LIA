@@ -39,7 +39,8 @@
 .auth-container {
     position: relative;
     min-height: 100vh;
-    overflow: hidden;
+    height: auto;
+    overflow: visible; /* Permitir que el contenido fluya naturalmente */
 }
 
 .auth-bg {

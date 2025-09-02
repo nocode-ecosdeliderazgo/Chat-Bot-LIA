@@ -10,6 +10,23 @@ class ChatOnline {
         this.progressManager = null;
         this.courseProgress = null;
         
+        // ===== ESTADO DEL QUIZ =====
+        /**
+         * Array con las preguntas del quiz del módulo actual.
+         * Cada elemento: {
+         *   question: string,
+         *   options: { value: string, text: string }[],
+         *   correct: string
+         * }
+         */
+        this.quizData = this.getQuizData();
+        
+        // Índice de la pregunta que se está mostrando (0-based)
+        this.currentQuestionIndex = 0;
+        
+        // Respuestas elegidas por el usuario: { [index:number]: value:string }
+        this.userAnswers = {};
+        
         this.init();
     }
 
@@ -1866,10 +1883,10 @@ class ChatOnline {
         this.hideVideoContent();
         this.hideMaterialsContent();
         
-        // Crear y mostrar contenido de quiz
+        // Crear el contenido del quiz
         this.createQuizContent();
         
-        // Agregar clase para animación
+        // Añadir animación de entrada
         const quizContent = document.querySelector('.quiz-content');
         if (quizContent) quizContent.classList.add('content-visible');
     }
@@ -1897,11 +1914,7 @@ class ChatOnline {
     }
     
     hideQuizContent() {
-        const quizContent = document.querySelector('.quiz-content');
-        if (quizContent) {
-            quizContent.style.display = 'none';
-            quizContent.classList.remove('content-visible');
-        }
+        document.querySelectorAll('.quiz-content, .quiz-results').forEach(el => el.remove());
     }
     
     // ===== CREAR CONTENIDO DE MATERIALES =====
@@ -2001,82 +2014,6 @@ class ChatOnline {
         `;
         
         centerPanel.insertAdjacentHTML('beforeend', materialsHTML);
-    }
-    
-    // ===== CREAR CONTENIDO DE QUIZ =====
-    createQuizContent() {
-        const centerPanel = document.querySelector('.center-panel .course-content');
-        if (!centerPanel) return;
-        
-        // Remover contenido existente de quiz si existe
-        const existingQuiz = document.querySelector('.quiz-content');
-        if (existingQuiz) {
-            existingQuiz.remove();
-        }
-        
-        // Crear nuevo contenido de quiz
-        const quizHTML = `
-            <div class="quiz-content">
-                <div class="quiz-header">
-                    <h2>
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                            <line x1="12" y1="17" x2="12.01" y2="17"/>
-                        </svg>
-                        Quiz del Módulo ${this.currentModule}
-                    </h2>
-                    <p>Pon a prueba tus conocimientos con estas preguntas</p>
-                </div>
-                
-                <div class="quiz-container">
-                    <div class="question-card">
-                        <div class="question-header">
-                            <span class="question-number">Pregunta 1 de 5</span>
-                            <span class="question-timer">⏱️ 02:30</span>
-                        </div>
-                        
-                        <h3 class="question-text">¿Qué es la Inteligencia Artificial?</h3>
-                        
-                        <div class="answer-options">
-                            <label class="answer-option">
-                                <input type="radio" name="q1" value="a">
-                                <span class="answer-text">A) Una tecnología que permite a las máquinas pensar como humanos</span>
-                            </label>
-                            
-                            <label class="answer-option">
-                                <input type="radio" name="q1" value="b">
-                                <span class="answer-text">B) Un programa de computadora que puede jugar ajedrez</span>
-                            </label>
-                            
-                            <label class="answer-option">
-                                <input type="radio" name="q1" value="c">
-                                <span class="answer-text">C) Un sistema que puede realizar tareas que normalmente requieren inteligencia humana</span>
-                            </label>
-                            
-                            <label class="answer-option">
-                                <input type="radio" name="q1" value="d">
-                                <span class="answer-text">D) Solo robots humanoides</span>
-                            </label>
-                        </div>
-                        
-                        <div class="question-actions">
-                            <button class="btn-secondary" onclick="window.chatOnline.previousQuestion()">Anterior</button>
-                            <button class="btn-primary" onclick="window.chatOnline.nextQuestion()">Siguiente</button>
-                        </div>
-                    </div>
-                    
-                    <div class="quiz-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 20%"></div>
-                        </div>
-                        <span class="progress-text">1 de 5 preguntas</span>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        centerPanel.insertAdjacentHTML('beforeend', quizHTML);
     }
     
     // ===== FUNCIONES AUXILIARES =====
@@ -2356,6 +2293,557 @@ class ChatOnline {
         console.log('🎬 Videos de prueba disponibles:', testVideos);
         return testVideos;
     }
+    
+    // ===== FUNCIONES DEL TEMARIO =====
+    showCourseSyllabus() {
+        console.log('📋 Mostrando temario del curso');
+        
+        // Crear modal con el temario completo
+        const modalHTML = `
+            <div id="syllabusModal" class="modal-overlay">
+                <div class="modal-content neo-panel">
+                    <div class="modal-header">
+                        <h2>
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 0 0 1.946-.806 3.42 3.42 0 0 1 4.438 0 3.42 3.42 0 0 0 1.946.806 3.42 3.42 0 0 1 1.946 1.946 3.42 3.42 0 0 0 .806 1.946 3.42 3.42 0 0 1 0 4.438 3.42 3.42 0 0 0-.806 1.946 3.42 3.42 0 0 1-1.946 1.946 3.42 3.42 0 0 0-1.946.806 3.42 3.42 0 0 1-4.438 0 3.42 3.42 0 0 0-1.946-.806 3.42 3.42 0 0 1-1.946-1.946 3.42 3.42 0 0 0-.806-1.946 3.42 3.42 0 0 1 0-4.438 3.42 3.42 0 0 0 .806-1.946 3.42 3.42 0 0 1 1.946-1.946z"/>
+                            </svg>
+                            Temario Completo del Curso
+                        </h2>
+                        <button class="modal-close" onclick="window.chatOnline.closeSyllabusModal()">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="syllabus-overview">
+                            <h3>Dominando ChatGPT y Gemini para la Productividad</h3>
+                            <p class="course-description">
+                                <strong>Objetivo General:</strong> Capacitar a profesionales para optimizar su productividad diaria mediante el uso estratégico de ChatGPT y Gemini, a través de técnicas de prompting efectivo, diseño de agentes personalizados y desarrollo de soluciones integradoras.
+                            </p>
+                        </div>
+                        
+                        <div class="modules-syllabus">
+                            <h4>Estructura del Curso - 4 Sesiones</h4>
+                            
+                            <div class="module-syllabus-item">
+                                <div class="module-header">
+                                    <span class="module-number">Sesión 1</span>
+                                    <h5>Descubriendo la IA para Profesionales</h5>
+                                    <span class="module-duration">Importancia y Primeros Pasos</span>
+                                </div>
+                                <div class="module-content">
+                                    <p class="session-objective"><strong>Objetivo:</strong> Comprender la relevancia de la IA en el ámbito profesional, configurar y explorar las funciones básicas de ChatGPT y Gemini, y aplicar prompting inicial para optimizar su perfil profesional.</p>
+                                    
+                                    <div class="session-blocks">
+                                        <h6>Bloque 1: El "Por Qué" de la IA para el Profesional Moderno</h6>
+                                        <ul>
+                                            <li>IA sin tecnicismos: qué es y por qué importa hoy</li>
+                                            <li>La IA ya está aquí: ejemplos reales en lo cotidiano y lo profesional</li>
+                                            <li>Impacto en el trabajo y en los negocios</li>
+                                            <li>Casos prácticos de alto impacto</li>
+                                        </ul>
+                                        
+                                        <h6>Bloque 2: Introducción a los Modelos de Lenguaje Grande (LLMs)</h6>
+                                        <ul>
+                                            <li>El "Nuevo Lenguaje de Programación": Entender el prompt</li>
+                                            <li>ChatGPT: Tu Asistente Inteligente (Práctica Guiada)</li>
+                                            <li>Google Gemini: El Poder de Google con IA (Práctica Guiada)</li>
+                                            <li>Comparación Directa: ChatGPT vs. Gemini</li>
+                                        </ul>
+                                        
+                                        <h6>Bloque 3: Primeros Pasos Prácticos</h6>
+                                        <ul>
+                                            <li>Introducción al Prompt: Conceptos clave</li>
+                                            <li>Mentalidad IA-Oriented: Enfoque efectivo</li>
+                                            <li>Ejercicio Práctico: Tu Nuevo CV para Liderar el Cambio</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="module-syllabus-item">
+                                <div class="module-header">
+                                    <span class="module-number">Sesión 2</span>
+                                    <h5>Dominando la Comunicación con IA</h5>
+                                    <span class="module-duration">Prompt Designing Avanzado</span>
+                                </div>
+                                <div class="module-content">
+                                    <p class="session-objective"><strong>Objetivo:</strong> Aplicar técnicas avanzadas de diseño de prompts y crear agentes GPT personalizados y Gems básicos para automatizar tareas específicas.</p>
+                                    
+                                    <div class="session-blocks">
+                                        <h6>Bloque 1: Técnicas Avanzadas de Prompt Designing</h6>
+                                        <ul>
+                                            <li>Metaprompt: Usar la IA para mejorar tus propios prompts</li>
+                                            <li>Prompt Progresivo: Iteración y refinamiento paso a paso</li>
+                                            <li>Megaprompt: Construir prompts complejos para tareas multifacéticas</li>
+                                            <li>Ejercicios prácticos de generación de contenido y copywriting</li>
+                                        </ul>
+                                        
+                                        <h6>Bloque 2: Agentes GPT Personalizados (Custom GPTs)</h6>
+                                        <ul>
+                                            <li>Funcionalidades avanzadas de ChatGPT</li>
+                                            <li>Creación de Custom GPTs desde cero</li>
+                                            <li>Asistente de Marketing para Redes Sociales</li>
+                                            <li>Generador de Informes Ejecutivos</li>
+                                        </ul>
+                                        
+                                        <h6>Bloque 3: Creación de Gems en Gemini</h6>
+                                        <ul>
+                                            <li>Introducción a los Gems de Gemini</li>
+                                            <li>Desarrollo de un Gem Básico</li>
+                                            <li>Integración en flujos de trabajo</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="module-syllabus-item">
+                                <div class="module-header">
+                                    <span class="module-number">Sesión 3</span>
+                                    <h5>IMPULSO con ChatGPT</h5>
+                                    <span class="module-duration">Productividad para PYMES</span>
+                                </div>
+                                <div class="module-content">
+                                    <p class="session-objective"><strong>Objetivo:</strong> Identificar y mapear desafíos de negocio usando el modelo IMPULSO, diseñar prompts eficaces para ChatGPT orientados a casos PYME, y definir KPIs con ciclo de mejora quincenal.</p>
+                                    
+                                    <div class="session-blocks">
+                                        <h6>Marco Conceptual IMPULSO</h6>
+                                        <ul>
+                                            <li><strong>I</strong>dentificar: Redacción del desafío en una frase clara</li>
+                                            <li><strong>M</strong>apear: Creación del mapa de datos compartibles vs. sensibles</li>
+                                            <li><strong>P</strong>reguntar: Anatomía de un prompt eficaz</li>
+                                            <li><strong>U</strong>nificar: Revisión crítica y integración de hallazgos</li>
+                                            <li><strong>L</strong>imitar: Verificación de fuentes y detección de sesgos</li>
+                                            <li><strong>S</strong>upervisar: Definición de KPIs y calendario de seguimiento</li>
+                                            <li><strong>O</strong>ptimizar: Ciclo de mejora quincenal</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="module-syllabus-item">
+                                <div class="module-header">
+                                    <span class="module-number">Sesión 4</span>
+                                    <h5>Desbloqueando el Potencial de la IA</h5>
+                                    <span class="module-duration">Estrategia y Proyecto</span>
+                                </div>
+                                <div class="module-content">
+                                    <p class="session-objective"><strong>Objetivo:</strong> Diseñar e implementar un proyecto integrador de IA generativa adaptado a su entorno real, elaborar un plan de integración diaria y establecer métricas SMART.</p>
+                                    
+                                    <div class="session-blocks">
+                                        <h6>Bloque 1: IA como Ventaja Estratégica</h6>
+                                        <ul>
+                                            <li>Casos de negocio y aplicación personalizada</li>
+                                            <li>Ejercicio práctico grupal: diseñar soluciones con ChatGPT</li>
+                                        </ul>
+                                        
+                                        <h6>Bloque 2: Proyecto Integrador</h6>
+                                        <ul>
+                                            <li>Definición del problema y establecimiento de metas SMART</li>
+                                            <li>Esbozo de la solución y mini-pitch de 5 minutos</li>
+                                        </ul>
+                                        
+                                        <h6>Bloque 3: Plan de Integración Diaria</h6>
+                                        <ul>
+                                            <li>Identificación de casos de uso y diseño de workflows</li>
+                                            <li>Métricas y KPIs para medir eficiencia y ahorro de tiempo</li>
+                                            <li>Ejercicio individual: bosquejo del plan paso a paso</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="course-outcomes">
+                            <h4>Resultados Esperados</h4>
+                            <p>Al finalizar las cuatro sesiones del curso, los participantes habrán implementado flujos de trabajo prácticos y medibles que incorporen estas herramientas en su rutina profesional.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="neo-btn neo-btn-primary" onclick="window.chatOnline.downloadSyllabus()">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="7,10 12,15 17,10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Descargar Temario
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Insertar modal en el body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Mostrar modal con animación
+        setTimeout(() => {
+            const modal = document.getElementById('syllabusModal');
+            if (modal) modal.classList.add('active');
+        }, 10);
+    }
+    
+    closeSyllabusModal() {
+        const modal = document.getElementById('syllabusModal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => modal.remove(), 300);
+        }
+    }
+    
+    downloadSyllabus() {
+        console.log('📥 Descargando temario del curso');
+        // Aquí implementarías la lógica real de descarga
+        alert('Descargando temario completo del curso...');
+        this.closeSyllabusModal();
+    }
+
+    /**
+     * Devuelve las preguntas del quiz para el módulo actual.
+     * En el futuro podría obtenerse de una API o base de datos.
+     */
+    getQuizData() {
+        // Ejemplo simple con 2 preguntas; se puede ampliar a 5
+        return [
+            {
+                type: 'single',
+                question: '¿Cuál de los siguientes elementos del prompt garantiza la fiabilidad de la investigación solicitada a Gemini?',
+                options: [
+                    { value: 'a', text: 'Incluir casos de uso en finanzas y banca.' },
+                    { value: 'b', text: 'Pedir que actúe "como un analista experto en IA generativa".' },
+                    { value: 'c', text: 'Exigir la cita numerada de cada dato o afirmación.' },
+                    { value: 'd', text: 'Solicitar un resumen de audio al final.' }
+                ],
+                correct: 'c',
+                feedbackCorrect: '¡Exacto! Exigir citas numeradas asegura la trazabilidad y credibilidad de la información.',
+                feedbackIncorrect: 'La opción correcta era exigir la cita numerada; esto permite verificar cada afirmación.'
+            },
+            {
+                type: 'multiple',
+                question: 'El prompt define un ____ profesional ("analista experto") y proporciona una estructura ____ de puntos numerados, lo que facilita a Gemini generar salidas reutilizables como infografías.',
+                options: [
+                    { value: 'clara', text: 'Clara' },
+                    { value: 'rol', text: 'Rol' },
+                    { value: 'fuerte', text: 'Fuerte' },
+                    { value: 'lugar', text: 'Lugar' }
+                ],
+                correct: ['rol', 'clara'], // ejemplo
+                feedbackCorrect: 'Correcto: el prompt establece claramente el rol y una estructura clara.',
+                feedbackIncorrect: 'La respuesta correcta era "Rol" y "Clara": define quién habla y una estructura legible.'
+            },
+            {
+                type: 'boolean',
+                question: 'El flujo de trabajo indica que, después de crear la infografía, el usuario debe cerrar la pestaña de Canvas para volver al proyecto de investigación principal.',
+                options: [
+                    { value: 'true', text: 'Verdadero' },
+                    { value: 'false', text: 'Falso' }
+                ],
+                correct: 'true',
+                feedbackCorrect: '¡Bien! Seguir ese paso asegura volver al flujo principal sin perder contexto.',
+                feedbackIncorrect: 'Incorrecto: El paso correcto es cerrar Canvas para regresar al proyecto principal.'
+            },
+            {
+                type: 'text',
+                question: 'En 1-2 frases, explica por qué el prompt reserva una sección específica para "Desafíos y consideraciones estratégicas para líderes" en la adopción de IA generativa.',
+                correct: null, // evaluación manual
+                feedbackCorrect: 'Gracias por tu reflexión. Un evaluador revisará tu respuesta.',
+                feedbackIncorrect: 'Respuesta registrada. Un evaluador proporcionará comentarios específicos.'
+            },
+            {
+                type: 'match',
+                question: 'Relaciona cada salida del flujo de trabajo con su objetivo principal:',
+                pairs: {
+                    '1. Reporte web interactivo.': ['A', 'B', 'C', 'D'],
+                    '2. Infografía visual.': ['A', 'B', 'C', 'D'],
+                    '3. Cuestionario': ['A', 'B', 'C', 'D'],
+                    '4. Resumen de audio': ['A', 'B', 'C', 'D']
+                },
+                legend: {
+                    A: 'Validar conocimientos adquiridos',
+                    B: 'Repaso auditivo en multitarea',
+                    C: 'Exploración profunda y compartible',
+                    D: 'Impacto rápido y sintético'
+                },
+                correct: {
+                    1: 'C',
+                    2: 'D',
+                    3: 'A',
+                    4: 'B'
+                },
+                feedbackCorrect: '¡Perfecto! Has emparejado correctamente cada salida con su objetivo.',
+                feedbackIncorrect: 'Algunas correspondencias eran distintas. Revisa la leyenda para entender cada objetivo.'
+            }
+        ];
+    }
+
+    // ===== RENDERIZAR PREGUNTA ACTUAL =====
+    renderCurrentQuestion() {
+        const questionData = this.quizData[this.currentQuestionIndex];
+        if (!questionData) return;
+
+        const questionCard = document.querySelector('.quiz-container .question-card');
+        const progressFill = document.querySelector('.quiz-container .progress-fill');
+        const progressText = document.querySelector('.quiz-container .progress-text');
+
+        if (!questionCard) return;
+
+        // Determinar representación según type
+        let inputHTML = '';
+        switch (questionData.type) {
+            case 'single':
+            case 'boolean':
+                questionData.options.forEach(opt => {
+                    const checked = this.userAnswers[this.currentQuestionIndex] === opt.value;
+                    inputHTML += `
+                        <label class="answer-option">
+                            <input type="radio" name="q${this.currentQuestionIndex}" value="${opt.value}" ${checked ? 'checked' : ''}>
+                            <span class="answer-text">${opt.text}</span>
+                        </label>`;
+                });
+                break;
+            case 'multiple':
+                questionData.options.forEach(opt => {
+                    const checked = Array.isArray(this.userAnswers[this.currentQuestionIndex]) && this.userAnswers[this.currentQuestionIndex].includes(opt.value);
+                    inputHTML += `
+                        <label class="answer-option">
+                            <input type="checkbox" name="q${this.currentQuestionIndex}" value="${opt.value}" ${checked ? 'checked' : ''}>
+                            <span class="answer-text">${opt.text}</span>
+                        </label>`;
+                });
+                break;
+            case 'text':
+                const savedText = this.userAnswers[this.currentQuestionIndex] || '';
+                inputHTML = `<textarea name="q${this.currentQuestionIndex}" rows="4" class="answer-textarea">${savedText}</textarea>`;
+                break;
+            case 'match':
+                // mostrar leyenda
+                let legendHTML = '<ul class="match-legend">';
+                Object.entries(questionData.legend).forEach(([key, val]) => {
+                    legendHTML += `<li><strong>${key}</strong>: ${val}</li>`;
+                });
+                legendHTML += '</ul>';
+
+                let pairsHTML = '';
+                const stored = this.userAnswers[this.currentQuestionIndex] || {};
+                Object.keys(questionData.pairs).forEach((key, idx) => {
+                    const options = questionData.pairs[key];
+                    pairsHTML += `
+                        <div class="match-row">
+                            <span class="match-prompt">${key}</span>
+                            <select name="q${this.currentQuestionIndex}_${idx}" class="match-select">
+                                <option value="">---</option>
+                                ${options.map(opt => `<option value="${opt}" ${stored[idx]===opt?'selected':''}>${opt}</option>`).join('')}
+                            </select>
+                        </div>`;
+                });
+                inputHTML = legendHTML + pairsHTML;
+                break;
+        }
+
+        questionCard.innerHTML = `
+            <div class="question-header"><span class="question-number">Pregunta ${this.currentQuestionIndex + 1} de ${this.quizData.length}</span></div>
+            <h3 class="question-text">${questionData.question}</h3>
+            <div class="answer-options">${inputHTML}</div>
+            <div class="question-actions">
+                <button class="btn-secondary" ${this.currentQuestionIndex === 0 ? 'disabled' : ''} onclick="window.chatOnline.previousQuestion()">Anterior</button>
+                <button class="btn-primary" onclick="window.chatOnline.nextQuestion()">${this.currentQuestionIndex === this.quizData.length - 1 ? 'Finalizar' : 'Siguiente'}</button>
+            </div>`;
+         
+         // Actualizar barra y texto de progreso
+         const progressPercent = ((this.currentQuestionIndex) / this.quizData.length) * 100;
+         if (progressFill) progressFill.style.width = `${progressPercent}%`;
+         if (progressText) progressText.textContent = `${this.currentQuestionIndex} de ${this.quizData.length} preguntas respondidas`;
+     }
+ 
+     // ===== NAVEGAR A SIGUIENTE PREGUNTA =====
+     nextQuestion() {
+        const qData = this.quizData[this.currentQuestionIndex];
+        let answer;
+
+        switch (qData.type) {
+            case 'single':
+            case 'boolean':
+                const sel = document.querySelector('.answer-options input:checked');
+                if (!sel) { alert('Selecciona una respuesta.'); return; }
+                answer = sel.value;
+                break;
+            case 'multiple':
+                const checks = Array.from(document.querySelectorAll('.answer-options input[type="checkbox"]:checked'));
+                if (checks.length === 0) { alert('Selecciona al menos una opción.'); return; }
+                answer = checks.map(c => c.value);
+                break;
+            case 'text':
+                const txt = document.querySelector('.answer-textarea').value.trim();
+                if (!txt) { alert('Por favor escribe tu respuesta.'); return; }
+                answer = txt;
+                break;
+            case 'match':
+                const selects = Array.from(document.querySelectorAll('.match-select'));
+                const pairAns = {};
+                let incomplete = false;
+                selects.forEach((s, idx)=>{
+                    if (!s.value) incomplete = true; else pairAns[idx] = s.value;
+                });
+                if (incomplete) { alert('Completa todas las correspondencias.'); return; }
+                answer = pairAns;
+                break;
+        }
+
+        this.userAnswers[this.currentQuestionIndex] = answer;
+
+        if (this.currentQuestionIndex < this.quizData.length - 1) {
+            this.currentQuestionIndex++;
+            this.renderCurrentQuestion();
+        } else {
+            this.finishQuiz();
+        }
+    }
+
+    // ===== NAVEGAR A PREGUNTA ANTERIOR =====
+    previousQuestion() {
+        if (this.currentQuestionIndex > 0) {
+            this.currentQuestionIndex--;
+            this.renderCurrentQuestion();
+        }
+    }
+
+    // ===== FINALIZAR QUIZ =====
+    finishQuiz() {
+        let correct = 0;
+        this.quizData.forEach((q, idx) => {
+            const userAns = this.userAnswers[idx];
+            let isCorrect = false;
+            if (q.type === 'multiple') {
+                isCorrect = Array.isArray(userAns) && Array.isArray(q.correct) && userAns.sort().join(',') === q.correct.sort().join(',');
+            } else if (q.type === 'match') {
+                isCorrect = JSON.stringify(userAns) === JSON.stringify(q.correct);
+            } else if (q.type === 'text') {
+                isCorrect = false; // texto requiere evaluación manual
+            } else {
+                isCorrect = userAns === q.correct;
+            }
+            if (isCorrect) correct++;
+        });
+
+        this.showQuizResults(correct);
+    }
+
+    /**
+     * Muestra pantalla de resultados detallados
+     * @param {number} correctCount
+     */
+    showQuizResults(correctCount) {
+        const centerPanel = document.querySelector('.center-panel .course-content');
+        if (!centerPanel) return;
+
+        // Remover posibles contenidos de quiz previos
+        centerPanel.querySelectorAll('.quiz-content, .quiz-results').forEach(el => el.remove());
+
+        let resultsHTML = `
+            <div class="quiz-results">
+                <h2>Resultados del Quiz</h2>
+                <p>Respuestas correctas: <strong>${correctCount}</strong> de ${this.quizData.length}</p>
+        `;
+
+        this.quizData.forEach((q, idx) => {
+            const userAns = this.userAnswers[idx];
+            let isCorrect = false;
+            if (q.type === 'multiple') {
+                isCorrect = Array.isArray(userAns) && Array.isArray(q.correct) && userAns.sort().join(',') === q.correct.sort().join(',');
+            } else if (q.type === 'match') {
+                isCorrect = JSON.stringify(userAns) === JSON.stringify(q.correct);
+            } else if (q.type === 'text') {
+                isCorrect = false;
+            } else {
+                isCorrect = userAns === q.correct;
+            }
+
+            const feedback = isCorrect ? q.feedbackCorrect : q.feedbackIncorrect;
+
+            resultsHTML += `
+                <div class="result-card ${isCorrect ? 'correct' : 'incorrect'}">
+                    <h3>Pregunta ${idx + 1}</h3>
+                    <p class="question">${q.question}</p>
+                    <p><strong>Tu respuesta:</strong> ${this.formatAnswer(q, userAns)}</p>
+                    ${q.correct !== null && q.type !== 'text' ? `<p><strong>Respuesta correcta:</strong> ${this.formatAnswer(q, q.correct)}</p>` : ''}
+                    <p class="feedback">${feedback}</p>
+                </div>`;
+        });
+
+        resultsHTML += '</div>';
+
+        centerPanel.insertAdjacentHTML('beforeend', resultsHTML);
+    }
+
+    /**
+     * Devuelve un string legible de una respuesta según tipo
+     */
+    formatAnswer(question, answer) {
+        if (answer === undefined || answer === null) return '-';
+        switch (question.type) {
+            case 'single':
+            case 'boolean':
+                const opt = question.options.find(o => o.value === answer);
+                return opt ? opt.text : answer;
+            case 'multiple':
+                return answer.map(val => {
+                    const o = question.options.find(x => x.value === val);
+                    return o ? o.text : val;
+                }).join(', ');
+            case 'text':
+                return answer;
+            case 'match':
+                return Object.entries(answer).map(([k,v]) => `${parseInt(k)+1}→${v}`).join(', ');
+            default:
+                return String(answer);
+        }
+    }
+
+    /**
+     * Crea el contenedor base del quiz dentro del panel central y prepara la primera pregunta
+     */
+    createQuizContent() {
+        const centerPanel = document.querySelector('.center-panel .course-content');
+        if (!centerPanel) {
+            console.warn('⚠️ center-panel no encontrado');
+            return;
+        }
+
+        // Eliminar quiz existente si lo hubiera
+        const existingQuiz = centerPanel.querySelector('.quiz-content');
+        if (existingQuiz) existingQuiz.remove();
+
+        const quizHTML = `
+            <div class="quiz-content">
+                <div class="quiz-header">
+                    <h2>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg>
+                        Quiz del Módulo ${this.currentModule}
+                    </h2>
+                    <p>Pon a prueba tus conocimientos con estas preguntas</p>
+                </div>
+                <div class="quiz-container">
+                    <div class="question-card"></div>
+                    <div class="quiz-progress">
+                        <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+                        <span class="progress-text"></span>
+                    </div>
+                </div>
+            </div>`;
+
+        centerPanel.insertAdjacentHTML('beforeend', quizHTML);
+
+        // Reiniciar estado y mostrar primera pregunta
+        this.currentQuestionIndex = 0;
+        this.renderCurrentQuestion();
+    }
 }
 
 // ===== INICIALIZACIÓN =====
@@ -2475,39 +2963,10 @@ async function updateVideoProgress(moduleNumber, percentage, position = 0) {
                 last_video_position: position,
                 video_completed: percentage >= 95
             });
-            console.log(`🎥 Video del módulo ${moduleNumber} actualizado:`, result);
+            console.log('Progreso de video actualizado:', result);
             return result;
         } catch (error) {
             console.error('❌ Error:', error);
         }
     }
-}
-
-// Reset del progreso (para testing - USAR CON CUIDADO)
-async function resetProgress() {
-    if (confirm('⚠️ ¿Estás seguro de que quieres resetear el progreso? Esta acción no se puede deshacer.')) {
-        console.log('🔄 Resetting progress no implementado por seguridad');
-        console.log('Para resetear manualmente, limpia las tablas de progreso en la base de datos');
-    }
-}
-
-// Mostrar comandos disponibles
-function showProgressCommands() {
-    console.log('📋 Comandos de progreso disponibles:');
-    console.log('• getProgress() - Obtener progreso actual');
-    console.log('• startModule(n) - Iniciar módulo n (1-5)');
-    console.log('• completeModule(n) - Completar módulo n (1-5)');
-    console.log('• updateVideoProgress(module, percentage, position) - Actualizar video');
-    console.log('• selectModule(n) - Cambiar a módulo n');
-    console.log('• showModuleVideos() - Ver videos disponibles');
-    console.log('• resetProgress() - Reset completo (usar con cuidado)');
-}
-
-// Auto-mostrar comandos disponibles
-console.log('🚀 Course Progress System cargado');
-console.log('💡 Escribe showProgressCommands() para ver comandos disponibles');
-
-// ===== EXPORTAR PARA USO EXTERNO =====
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = ChatOnline;
 }
