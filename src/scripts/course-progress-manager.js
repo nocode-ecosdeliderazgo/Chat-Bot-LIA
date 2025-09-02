@@ -65,7 +65,8 @@ class CourseProgressManager {
             // 5. Generar ID temporal para demo (siempre el mismo para consistencia)
             let demoId = localStorage.getItem('demoUserId');
             if (!demoId) {
-                demoId = 'demo-user-' + Math.random().toString(36).substr(2, 9);
+                // Usar el mismo ID que se crea en la base de datos
+                demoId = '00000000-0000-0000-0000-000000000001';
                 localStorage.setItem('demoUserId', demoId);
             }
             console.log('🎭 Usando ID demo persistente:', demoId);
@@ -513,6 +514,16 @@ if (typeof window !== 'undefined') {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initializeGlobalProgressManager);
     }
+    
+    // Emitir evento cuando esté listo
+    window.addEventListener('load', () => {
+        if (window.courseProgressManager) {
+            console.log('🎯 CourseProgressManager listo en window.load');
+            window.dispatchEvent(new CustomEvent('courseProgressManagerReady', {
+                detail: { manager: window.courseProgressManager }
+            }));
+        }
+    });
 }
 
-export default CourseProgressManager;
+// export default CourseProgressManager; // Removido para compatibilidad con navegador

@@ -1287,6 +1287,9 @@ class ChatOnline {
         try {
             console.log('🎥 Inicializando YouTube Progress Tracker...');
             
+            // Esperar a que ambos componentes estén listos
+            await this.waitForComponents();
+            
             // Verificar si YouTube Progress Tracker está disponible
             if (typeof window.YouTubeProgressTracker === 'undefined') {
                 console.warn('⚠️ YouTubeProgressTracker no disponible, saltando inicialización');
@@ -1327,6 +1330,29 @@ class ChatOnline {
             console.error('❌ Error inicializando YouTube Progress Tracker:', error);
             this.youtubeTracker = null;
         }
+    }
+    
+    // Esperar a que los componentes estén listos
+    async waitForComponents() {
+        return new Promise((resolve) => {
+            const checkComponents = () => {
+                if (typeof window.YouTubeProgressTracker !== 'undefined' && 
+                    typeof window.CourseProgressManager !== 'undefined') {
+                    console.log('✅ Todos los componentes están disponibles');
+                    resolve();
+                    return;
+                }
+                
+                console.log('⏳ Esperando componentes...', {
+                    YouTubeProgressTracker: typeof window.YouTubeProgressTracker,
+                    CourseProgressManager: typeof window.CourseProgressManager
+                });
+                
+                setTimeout(checkComponents, 100);
+            };
+            
+            checkComponents();
+        });
     }
     
     setupYouTubeEvents() {
