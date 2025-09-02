@@ -1,6 +1,7 @@
 [build]
   publish = "src"
-  node_version = "18"
+  command = "echo 'Static site - no build required'"
+  node_version = "18.18.0"
   
 [build.environment]
   NODE_ENV = "production"

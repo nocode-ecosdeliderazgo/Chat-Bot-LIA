@@ -1,0 +1,10 @@
+# API redirects for Netlify Functions
+/api/user/session /.netlify/functions/get-user-session 200
+/api/login /.netlify/functions/login 200
+/api/auth/issue /.netlify/functions/auth-issue 200  
+/api/register /.netlify/functions/register 200
+/api/openai /.netlify/functions/openai 200
+/api/* /.netlify/functions/:splat 200
+
+# SPA fallback
+/* /index.html 200
