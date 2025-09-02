@@ -150,31 +150,33 @@
                                 </svg>
                                 Progreso del Curso
                             </span>
-                            <span class="progress-percentage">65%</span>
+                            <span class="progress-percentage">0%</span>
                         </div>
                         
                         <!-- Barra de Progreso -->
                         <div class="progress-bar-container">
                             <div class="progress-bar">
-                                <div class="progress-fill" style="width: 65%"></div>
+                                <div class="progress-fill" style="width: 0%"></div>
                                 </div>
                             </div>
                         
                         <!-- Indicadores de Módulos -->
                         <div class="progress-indicators">
-                            <div class="progress-dot completed" title="Módulo 1 Completado">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="20,6 9,17 4,12"/>
-                                </svg>
-                            </div>
-                            <div class="progress-dot completed" title="Módulo 2 Completado">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="20,6 9,17 4,12"/>
-                                </svg>
-                        </div>
-                            <div class="progress-dot current" title="Módulo 3 En Progreso">
+                            <div class="progress-dot current" title="Módulo 1 En Progreso">
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polygon points="5,3 19,12 5,21"/>
+                                </svg>
+                            </div>
+                            <div class="progress-dot pending" title="Módulo 2 Pendiente">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
+                                </svg>
+                        </div>
+                            <div class="progress-dot pending" title="Módulo 3 Pendiente">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
                                 </svg>
                 </div>
                             <div class="progress-dot pending" title="Módulo 4 Pendiente">
@@ -198,7 +200,7 @@
                             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
                             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
                         </svg>
-                        <span>Módulo 3: Fundamentos del ML</span>
+                        <span>Módulo 1: ¿Qué es la IA?</span>
                     </div>
                 </div>
             </div>
@@ -314,7 +316,7 @@
                 
                 <!-- Lista de Módulos -->
                 <div class="modules-list">
-                    <div class="module-item completed" data-module="1">
+                    <div class="module-item current" data-module="1">
                         <div class="module-icon">
                             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="10"/>
@@ -340,7 +342,7 @@
                     </div>
                 </div>
                 
-                <div class="module-item current" data-module="3">
+                <div class="module-item" data-module="3">
                         <div class="module-icon">
                             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
@@ -1366,7 +1368,7 @@ Video de YouTube (ID: HMoaRIbOaN0)
 
                 // Obtener información del módulo actual
 
-                const currentModule = document.querySelector('.module-item.current .module-info h4')?.textContent || 'Fundamentos del ML';
+                const currentModule = document.querySelector('.module-item.current .module-info h4')?.textContent || '¿Qué es la IA?';
 
                 
 
@@ -1388,7 +1390,7 @@ Video de YouTube (ID: HMoaRIbOaN0)
 
                 console.log('[LIA] Error obteniendo contexto:', error);
 
-                return 'Módulo: Fundamentos del ML. Contexto: Curso de Inteligencia Artificial.';
+                return 'Módulo: ¿Qué es la IA?. Contexto: Curso de Inteligencia Artificial.';
 
             }
 

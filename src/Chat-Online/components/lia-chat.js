@@ -56,10 +56,10 @@ class LiaChat {
     setupContextualAnalysis() {
         this.currentContext = {
             course: 'Introducción a la IA',
-            module: 3,
-            moduleTitle: 'Fundamentos del Machine Learning',
+            module: 1,
+            moduleTitle: '¿Qué es la IA?',
             videoTimestamp: 0,
-            userProgress: 65,
+            userProgress: 0,
             lastActivity: new Date()
         };
     }
