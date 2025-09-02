@@ -107,9 +107,6 @@ dist
 .cache/
 public
 
-# Netlify build directory
-public/
-
 # Storybook build outputs
 .out
 .storybook-out
