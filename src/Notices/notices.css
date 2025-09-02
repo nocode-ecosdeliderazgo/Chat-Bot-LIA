@@ -110,14 +110,14 @@ body {
     background: rgba(255, 255, 255, 0.04);
     backdrop-filter: blur(10px);
     border-radius: 20px;
-    padding: 8px;
-    gap: 6px;
+    padding: 12px;
+    gap: 10px;
     overflow-x: auto;
     border: 1px solid rgba(68, 229, 255, 0.18);
     box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
     position: relative;
     margin: 20px auto;
-    width: min(430px, 85vw);
+    width: min(600px, 90vw);
     
     /* Ocultar scrollbar */
     scrollbar-width: none;
@@ -236,8 +236,9 @@ body {
 .tab-button {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 10px;
-    padding: 14px 24px;
+    padding: 16px 24px;
     border: none;
     background: rgba(68, 229, 255, 0.03);
     color: #b8c5d1;
@@ -245,10 +246,12 @@ body {
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-weight: 500;
+    font-size: 1rem;
     white-space: nowrap;
     position: relative;
     overflow: hidden;
     border: 1px solid rgba(68, 229, 255, 0.08);
+    text-align: center;
 }
 
 .tab-button[disabled] {
