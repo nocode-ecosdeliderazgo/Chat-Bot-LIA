@@ -399,11 +399,30 @@
                         Live Stream
                     </h3>
                     <div class="live-stream-main-controls">
-                        <button class="live-stream-main-control-btn" id="liveStreamMainToggleBtn" title="Iniciar/Detener Stream">
-                            <i class='bx bx-broadcast' id="liveStreamIcon"></i>
+                        <button class="live-stream-main-control-btn" id="liveStreamMainToggleBtn" title="Unirse a Sesión de Video">
+                            <i class='bx bx-video' id="liveStreamIcon"></i>
                         </button>
 
-                        <!-- Controles de grabación -->
+                        <!-- Controles de video diferenciados por rol -->
+                        <div class="video-basic-controls" id="videoBasicControls" style="display: none;">
+                            <!-- Controles SOLO para HOSTS (transmiten) -->
+                            <button class="video-control-btn host-only" id="cameraToggleBtn" title="Encender/Apagar Cámara" style="display: none;">
+                                <i class='bx bx-video'></i>
+                            </button>
+                            <button class="video-control-btn host-only" id="microphoneToggleBtn" title="Silenciar/Activar Micrófono" style="display: none;">
+                                <i class='bx bx-microphone'></i>
+                            </button>
+                            
+                            <!-- Controles para TODOS (participantes y hosts) -->
+                            <button class="video-control-btn" id="volumeControlBtn" title="Control de Volumen">
+                                <i class='bx bx-volume-full'></i>
+                            </button>
+                            <button class="video-control-btn" id="fullscreenToggleBtn" title="Pantalla Completa">
+                                <i class='bx bx-fullscreen'></i>
+                            </button>
+                        </div>
+
+                        <!-- Controles de grabación (solo hosts) -->
                         <div class="recording-controls" id="recordingControls" style="display: none;">
                             <button class="recording-control-btn" id="recordingStartBtn" title="Iniciar grabación">
                                 <i class='bx bx-video-recording'></i>
@@ -437,18 +456,70 @@
                     </div>
 
                     <div class="live-stream-main-placeholder" id="liveStreamMainPlaceholder">
-                        <i class='bx bx-broadcast'></i>
-                        <p>Inicia el Live Stream para comenzar la transmisión</p>
+                        <i class='bx bx-video'></i>
+                        <p>Únete a una sesión de video para comenzar</p>
                         <button class="live-stream-main-connect-btn" id="liveStreamMainConnectBtnLarge">
-                            <i class='bx bx-broadcast'></i>
-                            Iniciar Live Stream
+                            <i class='bx bx-video'></i>
+                            Unirse a Video Sesión
                         </button>
                     </div>
                     
-                    <!-- Contenedor para Live Stream -->
-                    <div class="live-stream-main-embed-container" id="liveStreamMainEmbedContainer" style="display: none; background: rgba(20, 30, 45, 0.95);">
-                        <iframe id="liveStreamMainIframe" src="" frameborder="0" allowfullscreen></iframe>
+                    <!-- Contenedor principal de Zoom Video SDK -->
+                    <div id="zoom-video-container" class="zoom-video-wrapper" style="display: none;">
+                        <div id="zoom-video-canvas" class="zoom-video-canvas"></div>
+                        <!-- Overlay para controles -->
+                        <div class="zoom-controls-overlay" id="zoomControlsOverlay">
+                            <div class="zoom-participant-info">
+                                <span class="participant-count" id="participantCount">0 participantes</span>
+                                <span class="connection-status" id="connectionStatus">Conectando...</span>
+                            </div>
+                            
+                            <!-- Controles básicos para todos los usuarios -->
+                            <div class="zoom-basic-controls" id="videoBasicControls" style="display: none;">
+                                <!-- Control de volumen - TODOS los usuarios -->
+                                <button class="zoom-control-btn" id="volumeControlBtn" title="Controlar volumen">
+                                    <i class='bx bx-volume-full'></i>
+                                </button>
+                                
+                                <!-- Pantalla completa - TODOS los usuarios -->
+                                <button class="zoom-control-btn" id="fullscreenToggleBtn" title="Pantalla completa">
+                                    <i class='bx bx-fullscreen'></i>
+                                </button>
+                                
+                                <!-- Controles HOST - Solo para usuarios con role_zoom = 'host' -->
+                                <div class="zoom-host-controls host-only" style="display: none;">
+                                    <div class="host-controls-separator"></div>
+                                    
+                                    <!-- Cámara - Solo HOST -->
+                                    <button class="zoom-control-btn camera-control" id="cameraToggleBtn" title="Encender/Apagar cámara">
+                                        <i class='bx bx-video'></i>
+                                    </button>
+                                    
+                                    <!-- Micrófono - Solo HOST -->
+                                    <button class="zoom-control-btn microphone-control" id="microphoneToggleBtn" title="Silenciar/Activar micrófono">
+                                        <i class='bx bx-microphone'></i>
+                                    </button>
+                                    
+                                    <!-- Screen Sharing - Solo HOST -->
+                                    <button class="zoom-control-btn screen-share-control" id="screenShareBtn" title="Compartir pantalla">
+                                        <i class='bx bx-desktop'></i>
+                                    </button>
+                                    
+                                    <!-- Grabación - Solo HOST -->
+                                    <button class="zoom-control-btn recording-control" id="recordingToggleBtn" title="Iniciar/Detener grabación">
+                                        <i class='bx bx-video-recording'></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Indicador de rol de usuario -->
+                                <div class="user-role-indicator" id="userRoleIndicator">
+                                    <span class="role-badge participant-badge" id="roleBadge">Participant</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    
+                    <!-- Live Stream container eliminado - Solo Zoom Video SDK -->
                 </div>
             </div>
 
@@ -558,6 +629,128 @@
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" 
             onload="console.log('✅ Socket.IO script loaded successfully')"
             onerror="console.error('❌ Failed to load Socket.IO from CDN')"></script>
+            
+    <!-- Zoom Video SDK - Mock para Desarrollo -->
+    <script>
+        // Crear mock inmediatamente para desarrollo
+        console.warn('🧪 Cargando Zoom Video SDK Mock para desarrollo local...');
+        
+        window.ZoomVideo = {
+            createClient: function() {
+                console.log('🧪 Mock: Cliente de Zoom Video SDK creado');
+                return {
+                    join: async function(topic, signature, meetingNumber, userName, password) {
+                        console.log('🧪 Mock: Uniéndose a sesión', { topic, meetingNumber, userName });
+                        
+                        // Simular proceso de conexión
+                        setTimeout(() => {
+                            if (this.onConnectionChange) {
+                                this.onConnectionChange({ state: 'Connected' });
+                            }
+                            console.log('🧪 Mock: Conexión establecida exitosamente');
+                        }, 1500);
+                        
+                        return Promise.resolve();
+                    },
+                    leave: async function() {
+                        console.log('🧪 Mock: Saliendo de sesión');
+                        
+                        // Simular desconexión
+                        setTimeout(() => {
+                            if (this.onConnectionChange) {
+                                this.onConnectionChange({ state: 'Disconnected' });
+                            }
+                        }, 500);
+                        
+                        return Promise.resolve();
+                    },
+                    on: function(event, callback) {
+                        console.log('🧪 Mock: Event listener agregado para:', event);
+                        // Guardar callbacks para simular eventos
+                        if (event === 'connection-change') {
+                            this.onConnectionChange = callback;
+                        } else if (event === 'user-added') {
+                            this.onUserAdded = callback;
+                        } else if (event === 'user-removed') {
+                            this.onUserRemoved = callback;
+                        } else if (event === 'user-video-active') {
+                            this.onVideoActive = callback;
+                        }
+                    },
+                    getMediaStream: function() {
+                        return {
+                            startVideo: async function(options) {
+                                console.log('🧪 Mock: Iniciando video', options);
+                                // Simular video activado
+                                setTimeout(() => {
+                                    const client = this;
+                                    if (client.onVideoActive) {
+                                        client.onVideoActive({ userId: 'mock-user-1' });
+                                    }
+                                }, 1000);
+                                return Promise.resolve();
+                            },
+                            stopVideo: async function() {
+                                console.log('🧪 Mock: Deteniendo video');
+                                return Promise.resolve();
+                            },
+                            muteAudio: async function() {
+                                console.log('🧪 Mock: Silenciando audio');
+                                return Promise.resolve();
+                            },
+                            unmuteAudio: async function() {
+                                console.log('🧪 Mock: Activando audio');
+                                return Promise.resolve();
+                            },
+                            renderVideo: async function(canvas, userId, width, height, x, y, quality) {
+                                console.log('🧪 Mock: Renderizando video', { userId, width, height });
+                                
+                                // Crear contenido visual simulado
+                                if (canvas) {
+                                    canvas.innerHTML = `
+                                        <div style="
+                                            width: 100%; 
+                                            height: 100%; 
+                                            background: linear-gradient(45deg, #1e3a8a, #3b82f6);
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            color: white;
+                                            font-family: Arial, sans-serif;
+                                            text-align: center;
+                                            flex-direction: column;
+                                        ">
+                                            <div style="font-size: 2rem; margin-bottom: 1rem;">📹</div>
+                                            <div style="font-size: 1.2rem; font-weight: bold;">Mock Video Feed</div>
+                                            <div style="font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem;">
+                                                Usuario: ${userId || 'Usuario Desarrollo'}
+                                            </div>
+                                            <div style="font-size: 0.8rem; opacity: 0.6; margin-top: 1rem;">
+                                                🧪 Zoom SDK Simulado - Fase 1
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                                return Promise.resolve();
+                            }
+                        };
+                    },
+                    getAllUser: function() {
+                        return [
+                            { userId: 'mock-user-1', displayName: 'Usuario Desarrollo' },
+                            { userId: 'mock-user-2', displayName: 'Usuario Prueba' }
+                        ];
+                    }
+                };
+            }
+        };
+        
+        console.log('✅ Zoom Video SDK Mock inicializado correctamente');
+    </script>
+            
+    <!-- Zoom Video Integration - Nuestro código -->
+    <script src="scripts/zoom-video-integration.js"></script>
+    
     <script src="scripts/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -2922,7 +3115,7 @@
             initializeCollapsibleSections();
             initializeToggleSystem();
             initializeZoomSection();
-            initializeLiveStreamMainPanel();
+            // initializeLiveStreamMainPanel(); // Eliminado - Solo Zoom Video SDK
             initializePresentationMainPanel();
             initializeLiaChat();
             console.log('✅ Todas las funcionalidades inicializadas correctamente');
