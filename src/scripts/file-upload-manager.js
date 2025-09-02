@@ -100,47 +100,92 @@ class FileUploadManager {
     }
 
     setupEventListeners() {
-        // Event listener para cambio de foto de perfil
-        // NOTA: El botón changeAvatarBtn ya es manejado por profile-manager.js
-        // Solo configuramos el listener del input para evitar duplicación
+        // Sistema anti-duplicación para event listeners
+        if (this.listenersSetup) {
+            console.log('ℹ️ Event listeners ya configurados, evitando duplicación');
+            return;
+        }
+        
         const profilePictureInput = document.getElementById('profilePicture');
         
         if (profilePictureInput) {
-            // Remover listener existente si ya existe para evitar duplicados
-            profilePictureInput.removeEventListener('change', this.handleProfilePictureChange);
+            // Limpiar cualquier listener previo
+            const newInput = profilePictureInput.cloneNode(true);
+            profilePictureInput.parentNode.replaceChild(newInput, profilePictureInput);
             
-            // Crear función bound para poder removerla después
-            this.handleProfilePictureChange = (e) => {
+            // Flag para prevenir uploads múltiples
+            let uploadInProgress = false;
+            
+            // Event listener único y protegido
+            newInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
                 
-                console.log('📸 Archivo seleccionado:', file.name, file.size, 'bytes');
-                
-                // Mostrar preview inmediato si profile-manager está disponible
-                if (window.profileManager && typeof window.profileManager.showImagePreview === 'function') {
-                    window.profileManager.showImagePreview(file);
+                // Prevenir uploads múltiples
+                if (uploadInProgress) {
+                    console.log('⚠️ Upload ya en progreso, ignorando...');
+                    return;
                 }
                 
-                // Procesar el upload
-                this.handleProfilePictureUpload(file);
-            };
-            
-            profilePictureInput.addEventListener('change', this.handleProfilePictureChange);
+                uploadInProgress = true;
+                console.log('📸 Procesando archivo:', file.name, file.size, 'bytes');
+                
+                try {
+                    // Mostrar preview inmediato
+                    if (window.profileManager && typeof window.profileManager.showImagePreview === 'function') {
+                        window.profileManager.showImagePreview(file);
+                    }
+                    
+                    // Procesar el upload
+                    await this.handleProfilePictureUpload(file);
+                } catch (error) {
+                    console.error('❌ Error en upload:', error);
+                } finally {
+                    // Resetear flag después de un delay
+                    setTimeout(() => {
+                        uploadInProgress = false;
+                        console.log('✅ Upload completado, listo para siguiente archivo');
+                    }, 2000);
+                }
+            });
         }
 
         // Event listener para subida de curriculum
         const curriculumBtn = document.getElementById('curriculumBtn');
         const curriculumInput = document.getElementById('curriculum');
         
-        if (curriculumBtn && curriculumInput) {
-            curriculumBtn.addEventListener('click', () => {
-                curriculumInput.click();
+        if (curriculumBtn && curriculumInput && !this.curriculumListenersSetup) {
+            console.log('📝 Configurando listeners de curriculum...');
+            
+            // Limpiar listeners previos para evitar duplicación
+            const newCurriculumBtn = curriculumBtn.cloneNode(true);
+            const newCurriculumInput = curriculumInput.cloneNode(true);
+            curriculumBtn.parentNode.replaceChild(newCurriculumBtn, curriculumBtn);
+            curriculumInput.parentNode.replaceChild(newCurriculumInput, curriculumInput);
+            
+            // Configurar listeners únicos
+            newCurriculumBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                console.log('📝 Abriendo selector de CV...');
+                newCurriculumInput.click();
             });
 
-            curriculumInput.addEventListener('change', (e) => {
-                this.handleCurriculumUpload(e.target.files[0]);
+            newCurriculumInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    console.log('📄 Archivo CV seleccionado:', file.name, file.type);
+                    await this.handleCurriculumUpload(file);
+                }
             });
+            
+            // Marcar como configurado
+            this.curriculumListenersSetup = true;
+            console.log('✅ Listeners de curriculum configurados');
         }
+        
+        // Marcar listeners como configurados para evitar duplicación
+        this.listenersSetup = true;
+        console.log('✅ Event listeners configurados correctamente');
     }
 
     async handleProfilePictureUpload(file) {
@@ -311,9 +356,12 @@ class FileUploadManager {
                 ]
             };
 
-            // Generar nombre único para el archivo
+            // Generar nombre consistente para el usuario (reemplaza archivo anterior)
             const fileExtension = file.name.split('.').pop().toLowerCase();
-            const fileName = `${config.prefix}_${this.currentUser.id || this.currentUser.username}_${Date.now()}.${fileExtension}`;
+            const userId = this.currentUser.id || this.currentUser.username || 'user';
+            const fileName = `${config.prefix}_${userId}.${fileExtension}`;
+            
+            console.log('📁 Nombre de archivo:', fileName, '(reemplazará archivo anterior si existe)');
 
             // Verificar si el tipo de archivo es soportado por Storage
             if (!config.allowedTypes.includes(file.type)) {
@@ -345,6 +393,9 @@ class FileUploadManager {
                 // Continuar con el upload aunque el bucket no esté confirmado
                 // Esto puede funcionar si el bucket existe pero no se pudo verificar
             }
+            
+            // Limpiar archivos anteriores del usuario para evitar duplicados
+            await this.cleanupUserFiles(config, userId);
 
             // Intentar subir archivo
             console.log('📤 [UPLOAD] Ejecutando upload...');
@@ -1307,9 +1358,6 @@ class FileUploadManager {
             if (listError) {
                 console.error('❌ [BUCKET] Error listando buckets:', listError);
                 console.log('💡 [SOLUCIÓN] Verificar credenciales o crear buckets manualmente en Supabase Dashboard');
-                
-                // Mostrar notificación con instrucciones
-                this.showBucketSetupNotification();
                 return false;
             }
 
@@ -1374,131 +1422,46 @@ class FileUploadManager {
             console.log('3. Marcar como "Public bucket"');
             console.log('4. Configurar políticas RLS apropiadas');
             
-            // Mostrar notificación al usuario
-            this.showBucketSetupNotification();
-            
             // Intentar continuar sin bucket (fallback total)
             return false;
 
         } catch (error) {
             console.error(`💥 [BUCKET] Excepción asegurando bucket "${config.bucket}":`, error);
-            this.showBucketSetupNotification();
             return false;
         }
     }
 
-    // Mostrar notificación con instrucciones para configurar buckets manualmente
-    showBucketSetupNotification() {
-        // Evitar mostrar múltiples notificaciones
-        if (document.querySelector('.bucket-setup-notification')) {
-            return;
+    
+    // Método para limpiar archivos anteriores del usuario
+    async cleanupUserFiles(config, userId) {
+        try {
+            console.log('🧹 [CLEANUP] Limpiando archivos anteriores del usuario...');
+            
+            // Buscar archivos del usuario con diferentes extensiones
+            const commonExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            const filesToDelete = [];
+            
+            for (const ext of commonExtensions) {
+                const oldFileName = `${config.prefix}_${userId}.${ext}`;
+                filesToDelete.push(oldFileName);
+            }
+            
+            // Intentar eliminar archivos anteriores (silenciosamente)
+            const { error: deleteError } = await this.supabase.storage
+                .from(config.bucket)
+                .remove(filesToDelete);
+                
+            if (deleteError) {
+                // No mostrar error ya que es normal que algunos archivos no existan
+                console.log('ℹ️ [CLEANUP] Archivos anteriores no encontrados o ya eliminados');
+            } else {
+                console.log('✅ [CLEANUP] Archivos anteriores eliminados exitosamente');
+            }
+            
+        } catch (error) {
+            // Cleanup errors are not critical, just log them
+            console.log('ℹ️ [CLEANUP] No se pudieron eliminar archivos anteriores:', error.message);
         }
-
-        const notification = document.createElement('div');
-        notification.className = 'bucket-setup-notification';
-        notification.innerHTML = `
-            <div class="notification-content">
-                <div class="notification-header">
-                    <h3>🗂️ Configuración de Storage Requerida</h3>
-                    <button class="notification-close">&times;</button>
-                </div>
-                <div class="notification-body">
-                    <p><strong>⚠️ Los buckets de storage no están configurados</strong></p>
-                    <p>Para guardar imágenes de perfil en la nube, necesitas configurar los buckets manualmente.</p>
-                    
-                    <div class="setup-instructions">
-                        <h4>🔧 Pasos para configurar:</h4>
-                        <ol>
-                            <li><strong>Abrir Supabase Dashboard:</strong> <a href="https://app.supabase.com" target="_blank">https://app.supabase.com</a></li>
-                            <li><strong>Ir a tu proyecto → Storage → Buckets</strong></li>
-                            <li><strong>Crear bucket "avatars":</strong>
-                                <ul>
-                                    <li>Nombre: <code>avatars</code></li>
-                                    <li>✅ Marcar como "Public bucket"</li>
-                                    <li>File size limit: 5MB</li>
-                                </ul>
-                            </li>
-                            <li><strong>Crear bucket "curriculums":</strong>
-                                <ul>
-                                    <li>Nombre: <code>curriculums</code></li>
-                                    <li>✅ Marcar como "Public bucket"</li>
-                                    <li>File size limit: 10MB</li>
-                                </ul>
-                            </li>
-                            <li><strong>Configurar políticas RLS</strong> (opcional para buckets públicos)</li>
-                        </ol>
-                    </div>
-                    
-                    <div class="notification-actions">
-                        <button class="btn-primary" onclick="window.open('https://app.supabase.com', '_blank')">🚀 Abrir Supabase</button>
-                        <button class="btn-secondary" onclick="this.parentElement.parentElement.parentElement.parentElement.remove()">⏭️ Continuar sin Nube</button>
-                    </div>
-                    
-                    <div class="notification-note">
-                        <small><strong>Nota:</strong> Mientras no configures los buckets, las imágenes se guardarán solo en tu navegador local.</small>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Estilos
-        notification.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10003;
-            backdrop-filter: blur(5px);
-        `;
-
-        const content = notification.querySelector('.notification-content');
-        content.style.cssText = `
-            background: var(--color-background, #ffffff);
-            color: var(--color-text, #333333);
-            padding: 2rem;
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            margin: 2rem;
-            font-family: 'Inter', sans-serif;
-        `;
-
-        // Event listeners
-        const closeBtn = notification.querySelector('.notification-close');
-        closeBtn.addEventListener('click', () => notification.remove());
-
-        const primaryBtn = notification.querySelector('.btn-primary');
-        primaryBtn.style.cssText = `
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 0.5rem;
-            font-weight: 500;
-        `;
-
-        const secondaryBtn = notification.querySelector('.btn-secondary');
-        secondaryBtn.style.cssText = `
-            background: #6b7280;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 0.5rem;
-            font-weight: 500;
-        `;
-
-        document.body.appendChild(notification);
     }
 }
 

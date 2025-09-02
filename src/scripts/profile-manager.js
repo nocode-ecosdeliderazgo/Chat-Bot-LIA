@@ -255,15 +255,17 @@ class ProfileManager {
             });
         }
 
-        // Cambiar foto de perfil - Manejo centralizado para evitar duplicados
+        // Configurar botones para cambiar foto - SOLO botones, no el input
+        // El input de archivo es manejado completamente por file-upload-manager.js
         const changeAvatarBtn = document.getElementById('changeAvatarBtn');
         const avatar = document.getElementById('currentAvatar');
         const profilePictureInput = document.getElementById('profilePicture');
         
-        if (profilePictureInput) {
-            // Función reutilizable para abrir el file chooser
+        if (profilePictureInput && !this.photoListenersConfigured) {
+            console.log('📸 Configurando botones de foto de perfil...');
+            
+            // Función para abrir selector de archivos
             const openFileChooser = (event) => {
-                // Prevenir propagación para evitar eventos duplicados
                 if (event) {
                     event.preventDefault();
                     event.stopPropagation();
@@ -276,27 +278,25 @@ class ProfileManager {
                     return;
                 }
                 
-                console.log('📸 Abriendo selector de imagen de perfil...');
+                console.log('📸 Abriendo selector de imagen...');
                 profilePictureInput.click();
             };
             
-            // Botón "Cambiar foto"
+            // Configurar botón "Cambiar foto" (solo una vez)
             if (changeAvatarBtn) {
-                // Remover listeners previos para evitar duplicados
-                const newBtn = changeAvatarBtn.cloneNode(true);
-                changeAvatarBtn.parentNode.replaceChild(newBtn, changeAvatarBtn);
-                
-                newBtn.addEventListener('click', openFileChooser);
+                changeAvatarBtn.addEventListener('click', openFileChooser);
+                console.log('✅ Botón "Cambiar foto" configurado');
             }
             
-            // Avatar clickeable
+            // Configurar avatar clickeable (solo una vez)
             if (avatar) {
-                // Remover listeners previos para evitar duplicados
-                const newAvatar = avatar.cloneNode(true);
-                avatar.parentNode.replaceChild(newAvatar, avatar);
-                
-                newAvatar.addEventListener('click', openFileChooser);
+                avatar.addEventListener('click', openFileChooser);
+                avatar.style.cursor = 'pointer';
+                console.log('✅ Avatar clickeable configurado');
             }
+            
+            // Marcar como configurado para evitar duplicación
+            this.photoListenersConfigured = true;
         }
 
         // Subida de archivos
@@ -315,9 +315,9 @@ class ProfileManager {
     }
 
     setupFileUploads() {
-        // NOTA: La foto de perfil ahora es manejada completamente por file-upload-manager.js
-        // Esto evita duplicación de event listeners y conflictos
-        console.log('📝 ProfileManager: file-upload-manager.js se encarga del upload de imágenes');
+        // NOTA: Las fotos de perfil son manejadas por file-upload-manager.js
+        // Este método solo maneja curriculum (CV) para evitar conflictos
+        console.log('📝 ProfileManager: Configurando solo upload de CV (fotos manejadas por FileUploadManager)');
 
         // Curriculum
         const curriculumInput = document.getElementById('curriculum');
@@ -386,19 +386,15 @@ class ProfileManager {
                 }
             });
 
-            curriculumInput.addEventListener('change', async (e) => {
+            // NOTA: El upload de curriculum es manejado por file-upload-manager.js
+            // Solo configuramos el display del nombre de archivo aquí
+            curriculumInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
-                if (!file) return;
-                if (!this.validateFile(file, 'curriculum')) return;
-                if (curriculumName) curriculumName.textContent = file.name;
-                try {
-                    const url = await this.uploadToServer(file);
-                    if (url) {
-                        await this.persistPartial({ curriculum_url: url });
-                    }
-                } catch (err) {
-                    this.showError('No se pudo subir el CV');
+                if (file && curriculumName) {
+                    curriculumName.textContent = file.name;
+                    console.log('📝 Archivo CV seleccionado:', file.name);
                 }
+                // El upload real es manejado por FileUploadManager
             });
         }
     }
