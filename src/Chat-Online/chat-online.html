@@ -356,7 +356,7 @@
                         <noscript>
                             <div class="video-fallback">
                                 <p>Para ver este video, necesitas JavaScript habilitado.</p>
-                                <a href="https://youtu.be/QNJL6nfu__Q?si=u7p4WDg8Ah2Bu5ph" target="_blank" rel="noopener noreferrer">
+                                <a href="#" target="_blank" rel="noopener noreferrer" id="fallbackVideoLink">
                                     Ver en YouTube
                                 </a>
                             </div>
@@ -735,57 +735,89 @@ Cargando información...
 
     <script src="components/lia-chat.js"></script>
 
-    <script src="chat-online.js"></script>
+    <!-- Sistema dinámico V2 ya cargado arriba -->
 
     
 
-    <!-- Script de prueba directo -->
+    <!-- Inicialización del Sistema Dinámico -->
 
     <script>
 
-        console.log('🔧 Script de prueba cargado');
+        console.log('🚀 Inicializando sistema dinámico...');
 
         
 
         // Esperar a que el DOM esté listo
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
 
-            console.log('🔧 DOM listo, configurando chat básico...');
+            console.log('🌟 DOM listo - Inicializando sistema de cursos dinámico');
 
             
 
-            setTimeout(function() {
+            try {
 
-                const sendBtn = document.getElementById('sendLiaMessage');
+                // 1. Inicializar Dynamic Video Loader
 
-                const input = document.getElementById('liaMessageInput');
+                if (window.DynamicVideoLoader) {
 
-                const messagesContainer = document.getElementById('liaMessages');
+                    window.dynamicVideoLoader = new DynamicVideoLoader();
+
+                    await window.dynamicVideoLoader.init();
+
+                    console.log('✅ Dynamic Video Loader inicializado');
+
+                } else {
+
+                    console.error('❌ DynamicVideoLoader no encontrado');
+
+                }
 
                 
 
-                console.log('🔧 Elementos encontrados:');
+                // 2. Inicializar Course Progress Manager V2
 
-                console.log('- Botón:', !!sendBtn);
+                if (window.CourseProgressManagerV2) {
 
-                console.log('- Input:', !!input);
+                    window.courseProgressManager = new CourseProgressManagerV2();
 
-                console.log('- Container:', !!messagesContainer);
+                    await window.courseProgressManager.init();
+
+                    console.log('✅ Course Progress Manager V2 inicializado');
+
+                } else {
+
+                    console.error('❌ CourseProgressManagerV2 no encontrado');
+
+                }
 
                 
 
-                if (sendBtn && input && messagesContainer) {
+                // 3. Inicializar Chat Online V2
 
-                    console.log('✅ Todos los elementos encontrados, configurando eventos...');
+                if (window.ChatOnlineV2) {
 
-                    
+                    window.chatOnlineV2 = new ChatOnlineV2();
 
-                    async function enviarMensaje() {
+                    await window.chatOnlineV2.init();
 
-                        console.log('📤 Función enviarMensaje ejecutada');
+                    console.log('✅ Chat Online V2 inicializado');
 
-                        const mensaje = input.value.trim();
+                } else {
+
+                    console.error('❌ ChatOnlineV2 no encontrado');
+
+                }
+
+                
+
+                console.log('🎉 Sistema dinámico completamente inicializado');
+
+                
+
+            } catch (error) {
+
+                console.error('💥 Error inicializando sistema dinámico:', error);
 
                         console.log('📝 Mensaje:', mensaje);
 

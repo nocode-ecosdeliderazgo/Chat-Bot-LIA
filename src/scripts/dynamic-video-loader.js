@@ -470,12 +470,14 @@ class DynamicVideoLoader {
                 return directUserId;
             }
 
-            // Fallback para desarrollo
-            return 'demo-user-' + Date.now();
+            // Usar el usuario real de la base de datos
+            console.log('🔧 Usando usuario real de la base de datos');
+            return '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0';
 
         } catch (error) {
             console.error('❌ Error obteniendo usuario:', error);
-            return 'demo-user-' + Date.now();
+            // En caso de error, usar el usuario real también
+            return '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0';
         }
     }
 
