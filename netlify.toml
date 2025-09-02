@@ -1,4 +1,6 @@
 [build]
+  base = "."
+  publish = "src"
   node_version = "18"
   
 [build.environment]
@@ -7,18 +9,7 @@
 [functions]
   directory = "netlify/functions"
 
-# Grafana redirects (higher priority)
-[[redirects]]
-  from = "/grafana/health"
-  to   = "/.netlify/functions/grafana-health"
-  status = 200
-
-[[redirects]]
-  from = "/grafana/panel/*.png"
-  to   = "/.netlify/functions/grafana-panel"
-  status = 200
-
-# Specific API redirects
+# Specific API redirects (higher priority than wildcards)
 [[redirects]]
   from = "/api/user/session"
   to   = "/.netlify/functions/get-user-session"
@@ -44,6 +35,7 @@
   to   = "/.netlify/functions/openai"
   status = 200
 
+# Grafana redirects
 [[redirects]]
   from = "/grafana/health"
   to   = "/.netlify/functions/grafana-health"
@@ -54,7 +46,7 @@
   to   = "/.netlify/functions/grafana-panel"
   status = 200
 
-
+# Wildcard redirect (must be last)
 [[redirects]]
   from = "/api/*"
   to   = "/.netlify/functions/:splat"
