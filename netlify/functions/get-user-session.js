@@ -101,7 +101,7 @@ exports.handler = async (event, context) => {
                 is_completed: isCompleted,
                 responses_count: parseInt(sessionData.responses_count),
                 has_data: hasResponses,
-                grafana_ready: isCompleted && hasResponses,
+
                 debug: {
                     query_executed: true,
                     timestamp: new Date().toISOString()

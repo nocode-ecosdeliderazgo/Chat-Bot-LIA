@@ -7,17 +7,6 @@
 [functions]
   directory = "netlify/functions"
 
-# Grafana redirects (higher priority)
-[[redirects]]
-  from = "/grafana/health"
-  to   = "/.netlify/functions/grafana-health"
-  status = 200
-
-[[redirects]]
-  from = "/grafana/panel/*.png"
-  to   = "/.netlify/functions/grafana-panel"
-  status = 200
-
 # Specific API redirects
 [[redirects]]
   from = "/api/user/session"
@@ -43,17 +32,6 @@
   from = "/api/openai"
   to   = "/.netlify/functions/openai"
   status = 200
-
-[[redirects]]
-  from = "/grafana/health"
-  to   = "/.netlify/functions/grafana-health"
-  status = 200
-
-[[redirects]]
-  from = "/grafana/panel/*.png"
-  to   = "/.netlify/functions/grafana-panel"
-  status = 200
-
 
 [[redirects]]
   from = "/api/*"

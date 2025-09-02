@@ -7,7 +7,7 @@ C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\webpack.config
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\test-chat-localhost.html
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\test-chat-selector-simple.html
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\test-chat-selector.html
-C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\test-grafana-personalized.html
+
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\test-instructor-dashboard-fixed.html
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\test-instructor-supabase.html
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\test-lia-button-debug.html
@@ -23,9 +23,9 @@ C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\COURSE_KNOWLED
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\EMAIL_VERIFICATION_README.md
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\GOOGLE_OAUTH_SETUP.md
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\LIVESTREAM_CHAT_SELECTOR.md
-C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\NETLIFY_GRAFANA_CHECKLIST.md
-C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\NETLIFY_TROUBLESHOOTING.md
-C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\PERSONALIZACION_GRAFANA.md
+
+
+
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\PROMPT_CLAUDE.md
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\RECORDINGS_ENHANCED_FEATURES.md
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\RECORDING_IMPLEMENTATION.md
@@ -55,11 +55,11 @@ C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\prompts\tools.
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\prompts\use_cases.es.md
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\scripts\extract-supabase-config.js
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\scripts\setup.js
-C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\sif-icap\Aprende y Aplica IA_ Programa de Capacitaci¢n para SIF ICAP.html
+C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\sif-icap\Aprende y Aplica IA_ Programa de Capacitaciï¿½n para SIF ICAP.html
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\sif-icap\index.html
-C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\sif-icap\Aprende y Aplica IA_ Programa de Capacitaci¢n para SIF ICAP_files\231907dd77cd0c13.css
-C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\sif-icap\Aprende y Aplica IA_ Programa de Capacitaci¢n para SIF ICAP_files\63953018aeb2f914.css
-C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\sif-icap\Aprende y Aplica IA_ Programa de Capacitaci¢n para SIF ICAP_files\bcff0860b8f633c8.css
+C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\sif-icap\Aprende y Aplica IA_ Programa de Capacitaciï¿½n para SIF ICAP_files\231907dd77cd0c13.css
+C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\sif-icap\Aprende y Aplica IA_ Programa de Capacitaciï¿½n para SIF ICAP_files\63953018aeb2f914.css
+C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\sif-icap\Aprende y Aplica IA_ Programa de Capacitaciï¿½n para SIF ICAP_files\bcff0860b8f633c8.css
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\src\chat-backup.html
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\src\chat.html
 C:\Users\fysg5\OneDrive\Escritorio\Ecos de Liderazgo\Chat-Bot-LIA\src\coming-soon.html
