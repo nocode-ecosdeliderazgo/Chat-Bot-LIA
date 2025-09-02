@@ -314,75 +314,12 @@
                     </div>
                 </div>
                 
-                <!-- Lista de Módulos -->
+                <!-- Lista de Módulos - Se carga dinámicamente -->
                 <div class="modules-list">
-                    <div class="module-item current" data-module="1">
-                        <div class="module-icon">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"/>
-                                <polygon points="10,8 16,12 10,16"/>
-                            </svg>
-                    </div>
-                    <div class="module-info">
-                        <h4>¿Qué es la IA?</h4>
-                        <span class="module-duration">15 min</span>
-                    </div>
-                </div>
-                
-                    <div class="module-item completed" data-module="2">
-                        <div class="module-icon">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"/>
-                                <polyline points="12,6 12,12 16,14"/>
-                            </svg>
-                    </div>
-                    <div class="module-info">
-                        <h4>Historia de la IA</h4>
-                        <span class="module-duration">22 min</span>
-                    </div>
-                </div>
-                
-                <div class="module-item" data-module="3">
-                        <div class="module-icon">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                            </svg>
-                    </div>
-                    <div class="module-info">
-                        <h4>Fundamentos del ML</h4>
-                        <span class="module-duration">18 min</span>
-                    </div>
-                </div>
-                
-                    <div class="module-item pending" data-module="4">
-                        <div class="module-icon">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
-                            </svg>
-                    </div>
-                    <div class="module-info">
-                        <h4>Redes Neuronales</h4>
-                        <span class="module-duration">25 min</span>
-                    </div>
-                </div>
-                
-                    <div class="module-item pending" data-module="5">
-                        <div class="module-icon">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M4.5 9.5V5a2.5 2.5 0 0 1 5 0v4.5"/>
-                                <path d="M9.5 9.5V5a2.5 2.5 0 0 1 5 0v4.5"/>
-                                <path d="M14.5 9.5V5a2.5 2.5 0 0 1 5 0v4.5"/>
-                                <path d="M19.5 9.5V5a2.5 2.5 0 0 1 5 0v4.5"/>
-                                <path d="M4.5 14.5V19a2.5 2.5 0 0 0 5 0v-4.5"/>
-                                <path d="M9.5 14.5V19a2.5 2.5 0 0 0 5 0v-4.5"/>
-                                <path d="M14.5 14.5V19a2.5 2.5 0 0 0 5 0v-4.5"/>
-                                <path d="M19.5 14.5V19a2.5 2.5 0 0 0 5 0v-4.5"/>
-                            </svg>
-                    </div>
-                    <div class="module-info">
-                        <h4>IA en el Futuro</h4>
-                        <span class="module-duration">20 min</span>
-                        </div>
+                    <!-- Los módulos se cargarán dinámicamente desde la base de datos -->
+                    <div class="loading-modules">
+                        <div class="loading-spinner"></div>
+                        <span>Cargando módulos del curso...</span>
                     </div>
                 </div>
             </div>
@@ -406,9 +343,8 @@
                                 id="youtubePlayer"
                                 width="100%" 
                                 height="100%" 
-                               
-                                src="https://www.youtube.com/embed/HMoaRIbOaN0?enablejsapi=1&modestbranding=1&rel=0&showinfo=0&origin=file://&fs=1&cc_load_policy=0&iv_load_policy=3&disablekb=0" 
-                                title="Video de YouTube - ID: HMoaRIbOaN0"
+                                src=""
+                                title="Cargando video..."
                                 frameborder="0" 
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" 
                                 allowfullscreen
@@ -434,8 +370,7 @@
                                 <polygon points="23,7 16,12 23,17"/>
                                 <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                             </svg>
-                            <!-- 📝 CAMBIAR TÍTULO: Actualizar este título para que coincida con el nuevo video -->
-Video de YouTube (ID: HMoaRIbOaN0)
+Cargando información del video...
                         </h3>
                         <div class="video-stats">
                             <span>
@@ -443,15 +378,14 @@ Video de YouTube (ID: HMoaRIbOaN0)
                                     <circle cx="12" cy="12" r="10"/>
                                     <polyline points="12,6 12,12 16,14"/>
                                 </svg>
-                                <!-- ⏱️ CAMBIAR DURACIÓN: Actualizar la duración del nuevo video -->
-                                Duración: --:--
+Duración: Cargando...
                             </span>
                             <span>
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                     <circle cx="12" cy="12" r="3"/>
                                 </svg>
-                                Video de prueba
+Cargando información...
                             </span>
                                 </div>
                         <div class="video-progress-dots">
@@ -731,14 +665,17 @@ Video de YouTube (ID: HMoaRIbOaN0)
     <!-- JavaScript -->
     <script src="../utils/helpers.js"></script>
     
-    <!-- Course Progress Manager -->
-    <script src="../scripts/course-progress-manager.js"></script>
+    <!-- Dynamic Video Loader -->
+    <script src="../scripts/dynamic-video-loader.js"></script>
+    
+    <!-- Course Progress Manager V2 -->
+    <script src="../scripts/course-progress-manager-v2.js"></script>
     
     <!-- YouTube Progress Tracker -->
     <script src="../scripts/youtube-progress-tracker.js"></script>
     
-    <!-- Chat Online Main Script -->
-    <script src="chat-online.js"></script>
+    <!-- Chat Online V2 - Dynamic System -->
+    <script src="chat-online-v2.js"></script>
     
     <!-- Script de cambio de tema global -->
     <script src="../scripts/theme-toggle.js">    </script>
