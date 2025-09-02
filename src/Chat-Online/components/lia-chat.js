@@ -51,15 +51,30 @@ class LiaChat {
     }
 
     /**
-     * Configurar análisis contextual
+     * Configurar análisis contextual - HARDCODEADO para Taller de IA con tutor personalizado
      */
     setupContextualAnalysis() {
         this.currentContext = {
-            course: 'Introducción a la IA',
-            module: 3,
-            moduleTitle: 'Fundamentos del Machine Learning',
+            taller: 'Taller de fundamentos de Inteligencia Artificial con tutor personalizado',
+            tipo: 'Taller interactivo',
+            tutor: 'LIA - Tutor Personalizado de IA',
+            modalidad: '100% online con tutor personalizado IA',
+            module: 1,
+            moduleTitle: 'Fundamentos de Inteligencia Artificial',
+            moduleDescription: 'Conceptos básicos de IA, Machine Learning y aplicaciones prácticas con acompañamiento personalizado',
+            documentoApoyo: 'Doc de apoyo - Fundamentos de IA.pdf',
             videoTimestamp: 0,
-            userProgress: 65,
+            userProgress: 25, // Módulo 1 - Fundamentos
+            totalModules: 4,
+            objetivos: [
+                'Comprender los conceptos fundamentales de IA',
+                'Identificar tipos de Machine Learning',
+                'Reconocer aplicaciones prácticas de IA',
+                'Desarrollar pensamiento crítico sobre IA'
+            ],
+            contextoEducativo: 'Taller práctico con tutor personalizado para aprender IA desde cero con acompañamiento individualizado',
+            nivelDificultad: 'Principiante',
+            enfoque: 'Fundamentos teóricos y aplicaciones prácticas',
             lastActivity: new Date()
         };
     }
@@ -112,27 +127,37 @@ class LiaChat {
     }
 
     /**
-     * Preparar contexto para LIA
+     * Preparar contexto para LIA - HARDCODEADO para Taller de IA con tutor personalizado
      */
     prepareContext(additionalContext = null) {
         const context = {
-            // Contexto del curso
-            course: this.currentContext.course,
+            // Contexto del taller hardcodeado
+            taller: this.currentContext.taller,
+            tipo: this.currentContext.tipo,
+            tutor: this.currentContext.tutor,
+            modalidad: this.currentContext.modalidad,
             module: this.currentContext.module,
             moduleTitle: this.currentContext.moduleTitle,
+            moduleDescription: this.currentContext.moduleDescription,
+            documentoApoyo: this.currentContext.documentoApoyo,
             
             // Contexto del video
             videoTimestamp: this.getCurrentVideoTime(),
-            videoTitle: 'Fundamentos del Machine Learning',
+            videoTitle: this.currentContext.moduleTitle,
             
-            // Contexto del usuario
+            // Contexto del usuario y taller
             userProgress: this.currentContext.userProgress,
+            totalModules: this.currentContext.totalModules,
+            objetivos: this.currentContext.objetivos,
+            contextoEducativo: this.currentContext.contextoEducativo,
+            nivelDificultad: this.currentContext.nivelDificultad,
+            enfoque: this.currentContext.enfoque,
             conversationHistory: this.conversationHistory.slice(-5), // Últimos 5 mensajes
             
             // Contexto adicional
             ...additionalContext,
             
-            // Prompt específico para cursos asincrónicos
+            // Prompt específico para el taller de IA
             systemPrompt: this.getSystemPrompt()
         };
 
@@ -140,48 +165,100 @@ class LiaChat {
     }
 
     /**
-     * Obtener prompt del sistema
+     * Obtener prompt del sistema - HARDCODEADO para Taller de IA con tutor personalizado
      */
     getSystemPrompt() {
-        return `Eres LIA, un asistente inteligente especializado en educación online.
+        return `Eres LIA, un tutor personalizado especializado en enseñar fundamentos de Inteligencia Artificial.
         
-        CONTEXTO ACTUAL:
-        - Curso: ${this.currentContext.course}
-        - Módulo: ${this.currentContext.moduleTitle}
-        - Progreso del estudiante: ${this.currentContext.userProgress}%
+        CONTEXTO ACTUAL DEL TALLER:
+        - Taller: ${this.currentContext.taller}
+        - Tipo: ${this.currentContext.tipo}
+        - Tutor: ${this.currentContext.tutor}
+        - Modalidad: ${this.currentContext.modalidad}
+        - Módulo actual: ${this.currentContext.module} - ${this.currentContext.moduleTitle}
+        - Descripción: ${this.currentContext.moduleDescription}
+        - Nivel: ${this.currentContext.nivelDificultad}
+        - Enfoque: ${this.currentContext.enfoque}
+        - Progreso del estudiante: ${this.currentContext.userProgress}% del taller completo
+        - Documento de apoyo: ${this.currentContext.documentoApoyo}
         
-        INSTRUCCIONES:
-        1. Responde de forma clara y educativa
-        2. Relaciona tus respuestas con el contenido del curso actual
-        3. Ofrece ejemplos prácticos cuando sea posible
-        4. Sugiere acciones concretas (ver video específico, hacer ejercicio, etc.)
-        5. Mantén un tono amigable y motivador
-        6. Si mencionan un timestamp del video, haz referencia específica a ese momento
+        OBJETIVOS DE ESTE MÓDULO:
+        ${this.currentContext.objetivos.map(obj => `• ${obj}`).join('\n')}
         
-        CAPACIDADES:
-        - Explicar conceptos del curso
-        - Generar ejercicios y ejemplos
-        - Crear resúmenes del contenido
-        - Responder preguntas específicas sobre el material
-        - Sugerir recursos adicionales
-        - Evaluar comprensión con preguntas
+        ESPECIALIZACIÓN COMO TUTOR:
+        Te especializas específicamente en:
+        - Conceptos fundamentales de Inteligencia Artificial
+        - Machine Learning básico y sus tipos
+        - Aplicaciones prácticas de IA en diferentes sectores
+        - Historia y evolución de la IA
+        - Ética y consideraciones en IA
+        - Introducción a algoritmos de IA
         
-        Responde siempre en español y enfócate en el aprendizaje efectivo.`;
+        METODOLOGÍA DE ENSEÑANZA:
+        1. Explica conceptos de forma CLARA y GRADUAL para principiantes
+        2. Usa ANALOGÍAS y EJEMPLOS de la vida cotidiana
+        3. Proporciona EJERCICIOS prácticos y actividades de refuerzo
+        4. Adapta el ritmo según las preguntas del estudiante
+        5. Fomenta el PENSAMIENTO CRÍTICO sobre la IA
+        6. Conecta conceptos teóricos con APLICACIONES REALES
+        7. Proporciona RETROALIMENTACIÓN constructiva y motivadora
+        
+        CAPACIDADES COMO TUTOR PERSONALIZADO:
+        - Explicar conceptos complejos de forma simple
+        - Crear ejercicios y actividades adaptadas al nivel
+        - Evaluar comprensión con preguntas dirigidas
+        - Proporcionar ejemplos relevantes y actuales
+        - Guiar el aprendizaje paso a paso
+        - Resolver dudas específicas con paciencia
+        - Motivar y acompañar el proceso de aprendizaje
+        
+        CONTEXTO EDUCATIVO: ${this.currentContext.contextoEducativo}
+        
+        PERSONALIDAD:
+        - Paciente y comprensivo
+        - Motivador y alentador
+        - Claro en las explicaciones
+        - Adaptable al ritmo del estudiante
+        - Enfoque en el aprendizaje práctico
+        
+        Responde siempre en español, con un tono amigable y educativo, adaptándote al nivel principiante y asegurándote de que cada concepto sea bien comprendido antes de avanzar.`;
     }
 
     /**
-     * Llamar a la API de LIA
+     * Llamar a la API de LIA - CON REFERENCIA AL DOCUMENTO PDF del taller
      */
     async callLiaAPI(message, context) {
-        // Preparar payload para la API existente
+        // Preparar payload para la API existente con contexto del taller
         const payload = {
             message: message,
             context: context,
-            mode: 'course_assistant',
-            course_data: {
-                id: 'intro-ia',
+            mode: 'ai_fundamentals_tutor',
+            taller_data: {
+                id: 'taller-fundamentos-ia-tutor-personalizado',
+                tipo: context.tipo,
                 module: context.module,
+                moduleTitle: context.moduleTitle,
+                moduleDescription: context.moduleDescription,
+                documento_apoyo: context.documentoApoyo,
+                tutor: context.tutor,
+                nivel: context.nivelDificultad,
+                enfoque: context.enfoque,
+                objetivos: context.objetivos,
                 timestamp: context.videoTimestamp
+            },
+            // Referencia específica al documento PDF del taller
+            document_reference: {
+                name: 'Doc de apoyo - Fundamentos de IA.pdf',
+                path: '/Doc de apoyo - Fundamentos de IA.pdf',
+                type: 'workshop_support_document',
+                description: 'Documento oficial del taller con fundamentos teóricos y ejercicios prácticos de IA'
+            },
+            // Contexto educativo específico
+            educational_context: {
+                level: 'principiante',
+                approach: 'tutor_personalizado',
+                methodology: 'gradual_con_ejemplos',
+                focus: 'fundamentos_teoricos_y_practicos'
             }
         };
 
@@ -348,14 +425,17 @@ class LiaChat {
     }
 
     /**
-     * Añadir mensaje al historial
+     * Añadir mensaje al historial - CON CONTEXTO HARDCODEADO del taller
      */
     addToHistory(role, content) {
         this.conversationHistory.push({
             role: role,
             content: content,
             timestamp: new Date(),
-            context: this.currentContext.moduleTitle
+            context: this.currentContext.moduleTitle,
+            module: this.currentContext.module,
+            taller: this.currentContext.taller,
+            documento: this.currentContext.documentoApoyo
         });
 
         // Mantener solo los últimos 50 mensajes
@@ -567,12 +647,17 @@ class LiaChat {
     }
 
     /**
-     * Exportar conversación
+     * Exportar conversación - CON CONTEXTO HARDCODEADO del taller
      */
     exportConversation() {
         const exportData = {
-            course: this.currentContext.course,
-            module: this.currentContext.moduleTitle,
+            taller: this.currentContext.taller,
+            tipo: this.currentContext.tipo,
+            tutor: this.currentContext.tutor,
+            module: this.currentContext.module,
+            moduleTitle: this.currentContext.moduleTitle,
+            nivelDificultad: this.currentContext.nivelDificultad,
+            documentoApoyo: this.currentContext.documentoApoyo,
             conversation: this.conversationHistory,
             exportDate: new Date(),
             statistics: this.getStatistics()

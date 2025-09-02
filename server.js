@@ -2777,10 +2777,7 @@ app.use((error, req, res, next) => {
     res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-// Middleware para rutas no encontradas
-app.use((req, res) => {
-    res.status(404).json({ error: 'Ruta no encontrada' });
-});
+// NOTA: Middleware catch-all movido al final del archivo
 
 // Crear servidor HTTP y configurar Socket.IO
 const server = createServer(app);
@@ -4594,5 +4591,11 @@ function generateZoomSignature(sessionName, roleType) {
     console.log(`🔐 Generando signature mock de Zoom: ${mockSignature}`);
     return mockSignature;
 }
+
+// Middleware para rutas no encontradas (DEBE IR AL FINAL)
+app.use((req, res) => {
+    console.log(`❌ Ruta no encontrada: ${req.method} ${req.path}`);
+    res.status(404).json({ error: 'Ruta no encontrada' });
+});
 
 module.exports = app;
