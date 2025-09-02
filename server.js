@@ -43,7 +43,7 @@ app.use(helmet({
             // scriptSrcElem: DEV_MODE ? ["'self'", 'https://esm.sh'] : ["'self'"],
             // Permitir atributos inline (onclick) explícitamente en CSP nivel 3 durante desarrollo
             scriptSrcAttr: DEV_MODE ? ["'unsafe-inline'"] : [],
-            // Permitir iframes de YouTube/Vimeo para reproducir videos, Google Forms y Grafana
+            // Permitir iframes de YouTube/Vimeo para reproducir videos, Google Forms
             frameSrc: [
                 "'self'",
                 'https://www.youtube.com',
@@ -55,9 +55,7 @@ app.use(helmet({
                 'https://*.zoom.us',
                 'https://source.zoom.us',
                 'https://forms.gle',
-                'https://docs.google.com',
-                'https://nocode1.grafana.net',
-                'https://*.grafana.net'
+                'https://docs.google.com'
             ],
             childSrc: [
                 "'self'",
@@ -70,9 +68,7 @@ app.use(helmet({
                 'https://*.zoom.us',
                 'https://source.zoom.us',
                 'https://forms.gle',
-                'https://docs.google.com',
-                'https://nocode1.grafana.net',
-                'https://*.grafana.net'
+                'https://docs.google.com'
             ],
             imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
             connectSrc: [
@@ -295,182 +291,7 @@ app.get('/sif-icap', (req, res) => {
     res.sendFile(path.join(__dirname, 'sif-icap', 'index.html'));
 });
 
-// Configuración de Grafana
-const GRAFANA_URL = "https://nocode1.grafana.net";
-const DASH_UID = "057abaf9-2e0f-4aa4-99b0-3b0e2990c5aa";
-const DASH_SLUG = "cuestionario-ia2";
-const GRAFANA_TOKEN = process.env.GRAFANA_SA_TOKEN;
 
-// Cache para evitar múltiples requests simultáneos
-const grafanaCache = new Map();
-const grafanaPendingRequests = new Map();
-
-// Health check para Grafana
-app.get('/grafana/health', (req, res) => {
-    res.json({
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        grafana_configured: !!GRAFANA_TOKEN,
-        grafana_url: GRAFANA_URL,
-        dashboard_uid: DASH_UID
-    });
-});
-
-// Ruta para servir imágenes de Grafana con cache y mejoras de conectividad
-app.get('/grafana/panel/:panelId.png', async (req, res) => {
-    const panelId = req.params.panelId;
-    const sessionId = req.query.session_id; // Obtener session_id del query parameter
-    const cacheKey = `panel_${panelId}_${sessionId || 'general'}`; // Incluir session_id en cache
-    
-    // Función para servir imagen estática como fallback
-    const serveStaticFallback = () => {
-        const staticImagePath = path.join(__dirname, 'src', 'assets', 'grafana', `panel-${panelId}.png`);
-        if (fs.existsSync(staticImagePath)) {
-            console.log(`📁 Serving static fallback for panel ${panelId}`);
-            return res.sendFile(staticImagePath);
-        } else {
-            // Generar imagen placeholder dinámicamente
-            return generatePlaceholderImage(res, panelId);
-        }
-    };
-
-    // Si no hay token de Grafana, usar fallback inmediatamente
-    if (!GRAFANA_TOKEN) {
-        console.warn('❌ GRAFANA_SA_TOKEN no configurado, usando imagen estática');
-        return serveStaticFallback();
-    }
-
-    // Verificar cache (válido por 5 minutos)
-    const cached = grafanaCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < 300000) {
-        console.log(`💾 Cache hit for panel ${panelId}: ${cached.buffer.length} bytes`);
-        res.setHeader("Content-Type", "image/png");
-        res.setHeader("Cache-Control", "private, max-age=300");
-        return res.send(cached.buffer);
-    }
-
-    // Verificar si ya hay un request pendiente para este panel
-    if (grafanaPendingRequests.has(cacheKey)) {
-        console.log(`⏳ Request ya pendiente para panel ${panelId}, esperando...`);
-        try {
-            const result = await grafanaPendingRequests.get(cacheKey);
-            res.setHeader("Content-Type", "image/png");
-            res.setHeader("Cache-Control", "private, max-age=300");
-            return res.send(result);
-        } catch (error) {
-            console.error(`❌ Error en request pendiente: ${error.message}`);
-            return serveStaticFallback();
-        }
-    }
-
-    // Crear nueva promesa para el request
-    const requestPromise = (async () => {
-        try {
-            const fetch = (await import('node-fetch')).default;
-            console.log(`🖼️ Solicitando panel de Grafana ${panelId}`);
-
-            // Configurar URL de renderizado de Grafana
-            const url = new URL(`${GRAFANA_URL}/render/d-solo/${DASH_UID}/${DASH_SLUG}`);
-            url.searchParams.set("orgId", "1");
-            url.searchParams.set("panelId", panelId);
-            url.searchParams.set("from", "now-30d");
-            url.searchParams.set("to", "now");
-            url.searchParams.set("theme", "dark");
-            url.searchParams.set("width", "800");
-            url.searchParams.set("height", "400");
-            
-            // Si se proporciona session_id, agregarlo como variable de Grafana
-            if (sessionId) {
-                url.searchParams.set("var-session_id", sessionId);
-                console.log(`👤 Usando session_id personalizado: ${sessionId}`);
-            } else {
-                console.log(`⚠️ No se proporcionó session_id, usando datos generales`);
-            }
-
-            console.log(`🌐 Fetching: ${url.toString()}`);
-
-            const r = await fetch(url.toString(), {
-                headers: { 
-                    'Authorization': `Bearer ${GRAFANA_TOKEN}`,
-                    'User-Agent': 'Chat-Bot-LIA/1.0'
-                },
-                timeout: 15000 // 15 segundos timeout (como debug server)
-            });
-
-            console.log(`📡 Grafana response: ${r.status} ${r.statusText}`);
-
-            if (!r.ok) {
-                const errorText = await r.text();
-                console.error(`❌ Grafana error (${r.status}):`, errorText);
-                throw new Error(`Grafana error: ${r.status}`);
-            }
-
-            const buffer = Buffer.from(await r.arrayBuffer());
-            console.log(`✅ Serving Grafana panel ${panelId}: ${buffer.length} bytes`);
-            
-            // Guardar en cache
-            grafanaCache.set(cacheKey, {
-                buffer: buffer,
-                timestamp: Date.now()
-            });
-
-            return buffer;
-
-        } catch (error) {
-            console.error('💥 Error connecting to Grafana:', error.message);
-            throw error;
-        } finally {
-            // Limpiar request pendiente
-            grafanaPendingRequests.delete(cacheKey);
-        }
-    })();
-
-    // Guardar la promesa para otros requests simultáneos
-    grafanaPendingRequests.set(cacheKey, requestPromise);
-
-    try {
-        const buffer = await requestPromise;
-        res.setHeader("Content-Type", "image/png");
-        res.setHeader("Cache-Control", "private, max-age=300");
-        res.send(buffer);
-    } catch (error) {
-        // En caso de error, usar fallback
-        return serveStaticFallback();
-    }
-});
-
-// Función para generar imagen placeholder
-function generatePlaceholderImage(res, panelId) {
-    const titles = {
-        '1': 'Índice de Competencias',
-        '2': 'Radar de Habilidades', 
-        '3': 'Análisis por Subdominios'
-    };
-    
-    const title = titles[panelId] || `Panel ${panelId}`;
-    
-    // SVG placeholder
-    const svg = `
-    <svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#44e5ff;stop-opacity:0.1" />
-                <stop offset="100%" style="stop-color:#0077a6;stop-opacity:0.1" />
-            </linearGradient>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grad1)" stroke="#44e5ff" stroke-width="2" rx="16"/>
-        <text x="400" y="180" font-family="Arial, sans-serif" font-size="24" fill="#44e5ff" text-anchor="middle" font-weight="bold">${title}</text>
-        <text x="400" y="220" font-family="Arial, sans-serif" font-size="16" fill="#888" text-anchor="middle">Dashboard en construcción</text>
-        <text x="400" y="250" font-family="Arial, sans-serif" font-size="14" fill="#666" text-anchor="middle">Configura GRAFANA_SA_TOKEN para ver datos reales</text>
-        <circle cx="200" cy="300" r="30" fill="none" stroke="#44e5ff" stroke-width="2" opacity="0.5"/>
-        <circle cx="400" cy="300" r="20" fill="none" stroke="#44e5ff" stroke-width="2" opacity="0.7"/>
-        <circle cx="600" cy="300" r="25" fill="none" stroke="#44e5ff" stroke-width="2" opacity="0.6"/>
-    </svg>`;
-    
-    res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-    res.send(svg);
-}
 
 // Pool de conexiones a PostgreSQL
 let pool;
@@ -1332,7 +1153,7 @@ app.get('/api/prompts', authenticateRequest, (req, res) => {
     }
 });
 
-// Endpoint para obtener session_id del usuario para personalización de Grafana
+// Endpoint para obtener session_id del usuario
 app.get('/api/user/session', async (req, res) => {
     try {
         if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
@@ -1397,7 +1218,7 @@ app.get('/api/user/session', async (req, res) => {
             is_completed: isCompleted,
             responses_count: parseInt(sessionData.responses_count),
             has_data: hasResponses,
-            grafana_ready: isCompleted && hasResponses,
+
             debug: {
                 query_executed: true,
                 timestamp: new Date().toISOString()
@@ -4517,6 +4338,261 @@ async function checkHostPermissions(userId) {
 function generateSessionPasscode() {
     // Generar un passcode de 6 dígitos
     return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// ===== ZOOM VIDEO SDK ENDPOINTS ===== 
+
+// Obtener configuración de sesión de Zoom
+app.get('/api/zoom/session-config', authenticateRequest, async (req, res) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ error: 'Usuario no autenticado' });
+        }
+
+        // Verificar rol de usuario para Zoom
+        const userRole = await getUserZoomRole(user.id);
+        
+        // Por ahora, generar configuración mock para desarrollo
+        // TODO: Implementar generación real de JWT signature para Zoom SDK
+        const sessionConfig = {
+            signature: generateZoomSignature('test-session', userRole === 'host' ? 1 : 0),
+            meetingNumber: 'test-meeting-123',
+            userName: user.username || user.display_name || 'Usuario',
+            topic: 'Sesión de Coach LIA',
+            passWord: '',
+            userRole: userRole
+        };
+
+        console.log(`📹 Configuración de sesión Zoom generada para usuario: ${user.id}, rol: ${userRole}`);
+        
+        res.json(sessionConfig);
+        
+    } catch (error) {
+        console.error('Error obteniendo configuración de sesión Zoom:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Verificar permisos de usuario para Zoom
+app.get('/api/zoom/user-permissions/:userId', authenticateRequest, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const requestingUser = req.user;
+        
+        // Verificar que el usuario puede acceder a esta información
+        if (requestingUser.id !== parseInt(userId) && await getUserZoomRole(requestingUser.id) !== 'host') {
+            return res.status(403).json({ error: 'No tienes permisos para acceder a esta información' });
+        }
+
+        const userRole = await getUserZoomRole(userId);
+        const isHost = userRole === 'host';
+        
+        res.json({
+            canRecord: isHost,
+            canMuteOthers: isHost,
+            canScreenShare: isHost,
+            canManageParticipants: isHost,
+            userRole: userRole
+        });
+        
+    } catch (error) {
+        console.error('Error verificando permisos de usuario:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Crear nueva sesión de Zoom
+app.post('/api/zoom/session', authenticateRequest, async (req, res) => {
+    try {
+        const { title, description, startTime } = req.body;
+        const hostId = req.user.id;
+        
+        // Verificar que el usuario sea host
+        const userRole = await getUserZoomRole(hostId);
+        if (userRole !== 'host') {
+            return res.status(403).json({ error: 'Solo los hosts pueden crear sesiones' });
+        }
+        
+        const sessionId = `zoom_${Date.now()}`;
+        
+        // Si hay base de datos disponible, guardar la sesión
+        if (pool) {
+            try {
+                const result = await pool.query(`
+                    INSERT INTO zoom_sessions (session_id, host_id, title, description, start_time, status)
+                    VALUES ($1, $2, $3, $4, $5, 'scheduled') RETURNING *
+                `, [sessionId, hostId, title, description, startTime || new Date()]);
+                
+                console.log(`📹 Sesión de Zoom creada: ${sessionId} por usuario: ${hostId}`);
+                res.json(result.rows[0]);
+                
+            } catch (dbError) {
+                console.warn('⚠️ Error guardando sesión en BD, continuando sin persistencia:', dbError.message);
+                // Continuar sin base de datos
+                res.json({
+                    session_id: sessionId,
+                    host_id: hostId,
+                    title: title,
+                    description: description,
+                    start_time: startTime || new Date(),
+                    status: 'scheduled'
+                });
+            }
+        } else {
+            // Sin base de datos, devolver configuración temporal
+            res.json({
+                session_id: sessionId,
+                host_id: hostId,
+                title: title,
+                description: description,
+                start_time: startTime || new Date(),
+                status: 'scheduled'
+            });
+        }
+        
+    } catch (error) {
+        console.error('Error creando sesión de Zoom:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Unirse a sesión de Zoom
+app.post('/api/zoom/join/:sessionId', authenticateRequest, async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const userId = req.user.id;
+        
+        // Verificar si la sesión existe (si hay BD disponible)
+        if (pool) {
+            try {
+                const session = await pool.query('SELECT * FROM zoom_sessions WHERE session_id = $1', [sessionId]);
+                if (session.rows.length === 0) {
+                    return res.status(404).json({ error: 'Sesión no encontrada' });
+                }
+                
+                // Registrar participación
+                await pool.query(`
+                    INSERT INTO zoom_participants (session_id, user_id, join_time)
+                    VALUES ($1, $2, NOW()) ON CONFLICT (session_id, user_id) DO NOTHING
+                `, [sessionId, userId]);
+                
+            } catch (dbError) {
+                console.warn('⚠️ Error accediendo a BD para sesión, continuando:', dbError.message);
+            }
+        }
+        
+        console.log(`📹 Usuario ${userId} se unió a sesión: ${sessionId}`);
+        res.json({ message: 'Unido a la sesión', sessionId });
+        
+    } catch (error) {
+        console.error('Error uniéndose a sesión:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Iniciar grabación (solo hosts)
+app.post('/api/zoom/recording/start', authenticateRequest, async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        const userId = req.user.id;
+        
+        // Verificar permisos de host
+        const userRole = await getUserZoomRole(userId);
+        if (userRole !== 'host') {
+            return res.status(403).json({ error: 'Solo los hosts pueden grabar' });
+        }
+        
+        const recordingId = `rec_${sessionId}_${Date.now()}`;
+        
+        // Guardar en BD si está disponible
+        if (pool) {
+            try {
+                await pool.query(`
+                    INSERT INTO zoom_recordings (recording_id, session_id, host_id, start_time, status)
+                    VALUES ($1, $2, $3, NOW(), 'recording')
+                `, [recordingId, sessionId, userId]);
+            } catch (dbError) {
+                console.warn('⚠️ Error guardando grabación en BD:', dbError.message);
+            }
+        }
+        
+        console.log(`🎥 Grabación iniciada: ${recordingId} por usuario: ${userId}`);
+        res.json({ recordingId, status: 'recording_started' });
+        
+    } catch (error) {
+        console.error('Error iniciando grabación:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Detener grabación
+app.post('/api/zoom/recording/stop', authenticateRequest, async (req, res) => {
+    try {
+        const { recordingId } = req.body;
+        const userId = req.user.id;
+        
+        // Verificar permisos
+        const userRole = await getUserZoomRole(userId);
+        if (userRole !== 'host') {
+            return res.status(403).json({ error: 'Solo los hosts pueden controlar grabaciones' });
+        }
+        
+        // Actualizar en BD si está disponible
+        if (pool) {
+            try {
+                await pool.query(`
+                    UPDATE zoom_recordings 
+                    SET end_time = NOW(), status = 'completed' 
+                    WHERE recording_id = $1 AND host_id = $2
+                `, [recordingId, userId]);
+            } catch (dbError) {
+                console.warn('⚠️ Error actualizando grabación en BD:', dbError.message);
+            }
+        }
+        
+        console.log(`🎥 Grabación finalizada: ${recordingId}`);
+        res.json({ recordingId, status: 'recording_stopped' });
+        
+    } catch (error) {
+        console.error('Error deteniendo grabación:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Función para obtener rol de Zoom del usuario
+async function getUserZoomRole(userId) {
+    try {
+        if (!pool) {
+            console.warn('⚠️ BD no disponible, asignando rol participant por defecto');
+            return 'participant'; // Por defecto en modo desarrollo
+        }
+        
+        const result = await pool.query('SELECT role_zoom FROM users WHERE id = $1', [userId]);
+        
+        if (result.rows.length === 0) {
+            return 'participant'; // Por defecto si no existe el usuario
+        }
+        
+        return result.rows[0].role_zoom || 'participant';
+        
+    } catch (error) {
+        console.error('Error obteniendo rol de Zoom:', error);
+        return 'participant'; // Por defecto en caso de error
+    }
+}
+
+// Función mock para generar signature de Zoom (temporal)
+function generateZoomSignature(sessionName, roleType) {
+    // Esta es una implementación temporal para desarrollo
+    // En producción, necesitarás implementar la generación real del JWT signature
+    // usando tu Zoom SDK Key y Secret
+    
+    const timestamp = Date.now();
+    const mockSignature = `mock_signature_${timestamp}_${sessionName}_${roleType}`;
+    
+    console.log(`🔐 Generando signature mock de Zoom: ${mockSignature}`);
+    return mockSignature;
 }
 
 module.exports = app;

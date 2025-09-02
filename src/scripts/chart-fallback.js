@@ -1,5 +1,5 @@
 // src/scripts/chart-fallback.js
-// Funciones de Chart.js como fallback cuando Grafana no funciona
+// Funciones de Chart.js como fallback para gráficos
 
 // Inicializar Supabase
 const supabaseUrl = 'https://miwbzotcuaywpdbidpwo.supabase.co';
@@ -186,13 +186,13 @@ function drawChartFallback(panelId, sessionId) {
   
   switch (panelId) {
     case 1:
-      drawGaugeFallback('grafana_idx_img', sessionId);
+      drawGaugeFallback('chart_idx_img', sessionId);
       break;
     case 6:
-      drawDimensionsFallback('grafana_dims_img', sessionId);
+      drawDimensionsFallback('chart_dims_img', sessionId);
       break;
     case 8:
-      drawSubdomainsFallback('grafana_subs_img', sessionId);
+      drawSubdomainsFallback('chart_subs_img', sessionId);
       break;
     default:
       console.warn('Panel ID no reconocido:', panelId);

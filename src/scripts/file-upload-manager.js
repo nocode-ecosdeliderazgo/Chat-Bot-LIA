@@ -78,212 +78,11 @@ class FileUploadManager {
         }
     }
 
+    // Método simplificado para storage público (sin autenticación compleja)
     async tryAuthenticateUser() {
-        try {
-            if (!this.supabase || !this.currentUser) {
-                return false;
-            }
-            
-            console.log('🔑 Intentando autenticar usuario en Supabase...');
-            
-            // 1. Verificar si hay un token guardado
-            const tokenKeys = [
-                'supabase.auth.token',
-                'sb-lia.auth.token', // storageKey configurado
-                'sb-lia-auth-token'
-            ];
-            
-            let tokenFound = false;
-            for (const key of tokenKeys) {
-                const token = localStorage.getItem(key);
-                if (token) {
-                    console.log('🔑 Token encontrado en:', key);
-                    tokenFound = true;
-                    break;
-                }
-            }
-            
-            if (tokenFound) {
-                console.log('🔑 Intentando restaurar sesión con token existente...');
-                
-                // Intentar refrescar la sesión
-                const { data, error } = await this.supabase.auth.refreshSession();
-                
-                if (!error && data.session) {
-                    console.log('✅ Sesión restaurada exitosamente');
-                    this.supabaseUser = data.session.user;
-                    return true;
-                } else {
-                    console.log('⚠️ Token expirado o inválido, intentando nuevo login...');
-                }
-            }
-            
-            // 2. Si no hay token válido, intentar autenticar con credenciales
-            if (this.currentUser.email) {
-                console.log('🔑 Intentando autenticar con email:', this.currentUser.email);
-                
-                // Intentar login primero
-                if (this.currentUser.password) {
-                    const { data, error } = await this.supabase.auth.signInWithPassword({
-                        email: this.currentUser.email,
-                        password: this.currentUser.password
-                    });
-                    
-                    if (!error && data.session) {
-                        console.log('✅ Autenticación exitosa con credenciales existentes');
-                        this.supabaseUser = data.session.user;
-                        return true;
-                    } else {
-                        console.warn('⚠️ Login falló:', error?.message);
-                        
-                        // MANEJO DETALLADO DE ERRORES DE SUPABASE
-                        const errorMessage = error?.message || '';
-                        
-                        // ERROR 1: EMAIL NOT CONFIRMED
-                        if (errorMessage.includes('Email not confirmed')) {
-                            console.error('❌ EMAIL NO CONFIRMADO en Supabase');
-                            console.log('📧 El usuario debe confirmar su email antes de usar Storage');
-                            console.log('🔧 SOLUCIÓN: Reenviar email de confirmación o confirmar manualmente');
-                            
-                            // Mostrar notificación específica con opciones de solución
-                            this.showEmailNotConfirmedNotification();
-                            return false;
-                        }
-                        
-                        // ERROR 2: INVALID LOGIN CREDENTIALS  
-                        if (errorMessage.includes('Invalid login credentials')) {
-                            console.error('❌ CREDENCIALES INVÁLIDAS en Supabase');
-                            console.log('🔧 POSIBLES CAUSAS:');
-                            console.log('   - Contraseña incorrecta');
-                            console.log('   - Usuario no registrado en Supabase');
-                            console.log('   - Email incorrecto');
-                            console.log('🔧 SOLUCIÓN: Verificar credenciales o crear usuario nuevo');
-                        }
-                        
-                        // ERROR 3: TOO MANY REQUESTS
-                        if (errorMessage.includes('Too many requests') || errorMessage.includes('rate limit')) {
-                            console.error('❌ DEMASIADAS SOLICITUDES en Supabase');
-                            console.log('🔧 SOLUCIÓN: Esperar unos minutos antes de intentar nuevamente');
-                            this.showError('Demasiadas solicitudes. Espera unos minutos e intenta de nuevo.');
-                            return false;
-                        }
-                        
-                        // ERROR 4: SIGNUP DISABLED
-                        if (errorMessage.includes('Signups not allowed')) {
-                            console.error('❌ REGISTRO DESHABILITADO en Supabase');
-                            console.log('🔧 SOLUCIÓN: El administrador debe habilitar registros en Supabase');
-                            this.showError('Los registros están deshabilitados. Contacta al administrador.');
-                            return false;
-                        }
-                        
-                        // Si el usuario no existe, intentar crearlo
-                        if (errorMessage.includes('Invalid login credentials') || 
-                            errorMessage.includes('User not found')) {
-                            
-                            console.log('🔑 Usuario no existe, intentando crear en Supabase...');
-                            
-                            const { data: signUpData, error: signUpError } = await this.supabase.auth.signUp({
-                                email: this.currentUser.email,
-                                password: this.currentUser.password || 'defaultPassword123!',
-                                options: {
-                                    data: {
-                                        username: this.currentUser.username || 'user',
-                                        full_name: this.currentUser.display_name || this.currentUser.full_name || 'Usuario'
-                                    }
-                                }
-                            });
-                            
-                            if (!signUpError && signUpData.session) {
-                                console.log('✅ Usuario creado y autenticado exitosamente');
-                                this.supabaseUser = signUpData.session.user;
-                                return true;
-                            } else if (!signUpError && signUpData.user && !signUpData.session) {
-                                console.log('✅ Usuario creado - Email de confirmación enviado');
-                                console.log('📧 El usuario debe confirmar su email para completar el registro');
-                                this.showEmailNotConfirmedNotification();
-                                return false;
-                            } else {
-                                console.error('❌ Error creando usuario:', signUpError?.message);
-                                
-                                // MANEJO DETALLADO DE ERRORES DE SIGNUP
-                                const signUpErrorMessage = signUpError?.message || '';
-                                
-                                if (signUpErrorMessage.includes('User already registered')) {
-                                    console.log('🔧 CAUSA: Usuario ya existe pero con credenciales diferentes');
-                                    console.log('🔧 SOLUCIÓN: Verificar email y contraseña correctos');
-                                    this.showError('Usuario ya registrado. Verifica tus credenciales.');
-                                } else if (signUpErrorMessage.includes('Password should be at least')) {
-                                    console.log('🔧 CAUSA: Contraseña muy corta');
-                                    console.log('🔧 SOLUCIÓN: Usar contraseña más larga');
-                                    this.showError('La contraseña debe tener al menos 6 caracteres.');
-                                } else if (signUpErrorMessage.includes('Signups not allowed')) {
-                                    console.log('🔧 CAUSA: Registros deshabilitados en Supabase');
-                                    console.log('🔧 SOLUCIÓN: Contactar administrador');
-                                    this.showError('Los registros están deshabilitados. Contacta al administrador.');
-                                } else if (signUpErrorMessage.includes('Invalid email')) {
-                                    console.log('🔧 CAUSA: Email inválido');
-                                    console.log('🔧 SOLUCIÓN: Verificar formato de email');
-                                    this.showError('El formato del email es inválido.');
-                                } else if (signUpErrorMessage) {
-                                    this.showError(`Error al crear usuario: ${signUpErrorMessage}`);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // 3. Si no tiene email, usar autenticación alternativa
-            if (!this.currentUser.email && this.currentUser.username) {
-                console.log('🔑 Usuario sin email, creando email temporal para Supabase...');
-                
-                // Crear email temporal basado en username
-                const tempEmail = `${this.currentUser.username}@tempuser.local`;
-                const tempPassword = 'TempPassword123!';
-                
-                console.log('🔑 Intentando crear usuario temporal:', tempEmail);
-                
-                const { data: tempData, error: tempError } = await this.supabase.auth.signUp({
-                    email: tempEmail,
-                    password: tempPassword,
-                    options: {
-                        data: {
-                            username: this.currentUser.username,
-                            full_name: this.currentUser.display_name || this.currentUser.username,
-                            is_temp_user: true
-                        }
-                    }
-                });
-                
-                if (!tempError && tempData.session) {
-                    console.log('✅ Usuario temporal creado exitosamente');
-                    this.supabaseUser = tempData.session.user;
-                    return true;
-                }
-            }
-            
-            console.error('❌ No se pudo autenticar en Supabase de ninguna forma');
-            console.log('📝 Estado del usuario local:', {
-                hasEmail: !!this.currentUser.email,
-                email: this.currentUser.email || 'NO EMAIL',
-                hasPassword: !!this.currentUser.password,
-                hasUsername: !!this.currentUser.username,
-                username: this.currentUser.username || 'NO USERNAME'
-            });
-            console.log('🚨 SOLUCIÓN PRINCIPAL: El usuario debe confirmar su email en Supabase');
-            console.log('🔧 PASOS PARA SOLUCIONAR:');
-            console.log('   1. Revisar bandeja de entrada del email:', this.currentUser.email);
-            console.log('   2. Buscar email de Supabase con asunto "Confirm your signup"');
-            console.log('   3. Hacer clic en el enlace de confirmación');
-            console.log('   4. O usar el botón "Reenviar Email" cuando aparezca la notificación');
-            console.log('   5. Una vez confirmado, recargar la página e intentar subir el CV nuevamente');
-            
-            return false;
-            
-        } catch (error) {
-            console.error('❌ Error intentando autenticar:', error);
-            return false;
-        }
+        // Para buckets públicos, la autenticación no es necesaria
+        console.log('ℹ️ [AUTH] Storage público configurado - autenticación opcional');
+        return true;
     }
 
     async loadCurrentUser() {
@@ -301,17 +100,53 @@ class FileUploadManager {
     }
 
     setupEventListeners() {
-        // Event listener para cambio de foto de perfil
-        const changeAvatarBtn = document.getElementById('changeAvatarBtn');
+        // Sistema anti-duplicación para event listeners
+        if (this.listenersSetup) {
+            console.log('ℹ️ Event listeners ya configurados, evitando duplicación');
+            return;
+        }
+        
         const profilePictureInput = document.getElementById('profilePicture');
         
-        if (changeAvatarBtn && profilePictureInput) {
-            changeAvatarBtn.addEventListener('click', () => {
-                profilePictureInput.click();
-            });
-
-            profilePictureInput.addEventListener('change', (e) => {
-                this.handleProfilePictureUpload(e.target.files[0]);
+        if (profilePictureInput) {
+            // Limpiar cualquier listener previo
+            const newInput = profilePictureInput.cloneNode(true);
+            profilePictureInput.parentNode.replaceChild(newInput, profilePictureInput);
+            
+            // Flag para prevenir uploads múltiples
+            let uploadInProgress = false;
+            
+            // Event listener único y protegido
+            newInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // Prevenir uploads múltiples
+                if (uploadInProgress) {
+                    console.log('⚠️ Upload ya en progreso, ignorando...');
+                    return;
+                }
+                
+                uploadInProgress = true;
+                console.log('📸 Procesando archivo:', file.name, file.size, 'bytes');
+                
+                try {
+                    // Mostrar preview inmediato
+                    if (window.profileManager && typeof window.profileManager.showImagePreview === 'function') {
+                        window.profileManager.showImagePreview(file);
+                    }
+                    
+                    // Procesar el upload
+                    await this.handleProfilePictureUpload(file);
+                } catch (error) {
+                    console.error('❌ Error en upload:', error);
+                } finally {
+                    // Resetear flag después de un delay
+                    setTimeout(() => {
+                        uploadInProgress = false;
+                        console.log('✅ Upload completado, listo para siguiente archivo');
+                    }, 2000);
+                }
             });
         }
 
@@ -319,15 +154,38 @@ class FileUploadManager {
         const curriculumBtn = document.getElementById('curriculumBtn');
         const curriculumInput = document.getElementById('curriculum');
         
-        if (curriculumBtn && curriculumInput) {
-            curriculumBtn.addEventListener('click', () => {
-                curriculumInput.click();
+        if (curriculumBtn && curriculumInput && !this.curriculumListenersSetup) {
+            console.log('📝 Configurando listeners de curriculum...');
+            
+            // Limpiar listeners previos para evitar duplicación
+            const newCurriculumBtn = curriculumBtn.cloneNode(true);
+            const newCurriculumInput = curriculumInput.cloneNode(true);
+            curriculumBtn.parentNode.replaceChild(newCurriculumBtn, curriculumBtn);
+            curriculumInput.parentNode.replaceChild(newCurriculumInput, curriculumInput);
+            
+            // Configurar listeners únicos
+            newCurriculumBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                console.log('📝 Abriendo selector de CV...');
+                newCurriculumInput.click();
             });
 
-            curriculumInput.addEventListener('change', (e) => {
-                this.handleCurriculumUpload(e.target.files[0]);
+            newCurriculumInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    console.log('📄 Archivo CV seleccionado:', file.name, file.type);
+                    await this.handleCurriculumUpload(file);
+                }
             });
+            
+            // Marcar como configurado
+            this.curriculumListenersSetup = true;
+            console.log('✅ Listeners de curriculum configurados');
         }
+        
+        // Marcar listeners como configurados para evitar duplicación
+        this.listenersSetup = true;
+        console.log('✅ Event listeners configurados correctamente');
     }
 
     async handleProfilePictureUpload(file) {
@@ -466,62 +324,30 @@ class FileUploadManager {
     // Nueva función para intentar subir a Storage con manejo robusto
     async uploadToStorage(file, type) {
         try {
+            console.log('🔄 [STORAGE] Iniciando uploadToStorage:', {
+                fileName: file.name,
+                fileSize: file.size,
+                fileType: file.type,
+                uploadType: type
+            });
+            
             if (!this.supabase) {
-                console.log('Supabase no inicializado, usando fallback');
+                console.error('❌ [STORAGE] Supabase no inicializado, usando fallback');
                 return null;
             }
             
-            // VERIFICAR AUTENTICACIÓN ANTES DE SUBIR
-            await this.verifySupabaseAuth();
+            console.log('✅ [STORAGE] Supabase client disponible');
             
-            if (!this.supabaseUser) {
-                console.error('❌ Usuario no autenticado en Supabase - Storage fallará');
-                
-                // VERIFICAR SI TIENE CONTRASEÑA ANTES DE INTENTAR AUTENTICAR
-                if (!this.currentUser.password) {
-                    console.error('❌ PROBLEMA: Usuario sin contraseña guardada');
-                    console.log('📝 Estado del usuario:', {
-                        hasEmail: !!this.currentUser.email,
-                        email: this.currentUser.email || 'NO EMAIL',
-                        hasPassword: !!this.currentUser.password,
-                        hasUsername: !!this.currentUser.username,
-                        username: this.currentUser.username || 'NO USERNAME'
-                    });
-                    console.log('🚨 SOLUCIÓN: El usuario debe hacer login nuevamente para guardar la contraseña');
-                    
-                    // Mostrar notificación al usuario
-                    this.showPasswordRequiredNotification();
-                    
-                    return null;
-                }
-                
-                console.log('🔄 Intentando autenticar con token local...');
-                
-                // Intentar autenticar con datos locales si están disponibles
-                if (this.currentUser && this.currentUser.email) {
-                    console.log('🔑 Usuario local encontrado con contraseña, intentando autenticar en Supabase...');
-                    await this.tryAuthenticateUser();
-                    
-                    // Verificar de nuevo después del intento de autenticación
-                    if (!this.supabaseUser) {
-                        console.warn('⚠️ No se pudo autenticar en Supabase - usando fallback');
-                        return null;
-                    }
-                } else {
-                    // Continuar con fallback
-                    return null;
-                }
-            }
-            
-            console.log('✅ Usuario autenticado, procediendo con Storage');
+            // Verificar/intentar autenticación de forma simplificada
+            await this.ensureAuthentication();
 
-            // Determinar bucket y configuración según tipo (NOMBRES EN MAYÚSCULAS)
+            // Determinar bucket y configuración según tipo (nombres en minúsculas)
             const config = type === 'profile' ? {
-                bucket: 'AVATARS', // bucket correcto en MAYÚSCULAS
+                bucket: 'avatars', // bucket en minúsculas como requiere Supabase
                 prefix: 'avatar',
                 allowedTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif']
             } : {
-                bucket: 'CURRICULUMS', // bucket correcto en MAYÚSCULAS
+                bucket: 'curriculums', // bucket en minúsculas como requiere Supabase
                 prefix: 'cv', 
                 allowedTypes: [
                     'application/pdf',
@@ -530,9 +356,12 @@ class FileUploadManager {
                 ]
             };
 
-            // Generar nombre único para el archivo
+            // Generar nombre consistente para el usuario (reemplaza archivo anterior)
             const fileExtension = file.name.split('.').pop().toLowerCase();
-            const fileName = `${config.prefix}_${this.currentUser.id || this.currentUser.username}_${Date.now()}.${fileExtension}`;
+            const userId = this.currentUser.id || this.currentUser.username || 'user';
+            const fileName = `${config.prefix}_${userId}.${fileExtension}`;
+            
+            console.log('📁 Nombre de archivo:', fileName, '(reemplazará archivo anterior si existe)');
 
             // Verificar si el tipo de archivo es soportado por Storage
             if (!config.allowedTypes.includes(file.type)) {
@@ -548,14 +377,28 @@ class FileUploadManager {
                 return null;
             }
 
-            console.log('Intentando subir a Storage:', {
+            console.log('🚀 [UPLOAD] Intentando subir a Storage:', {
                 fileName,
                 fileType: file.type,
                 fileSize: file.size,
-                bucket: config.bucket
+                bucket: config.bucket,
+                allowedTypes: config.allowedTypes
             });
 
+            // Verificar/crear bucket de forma robusta
+            console.log('🔍 [BUCKET] Verificando/creando bucket:', config.bucket);
+            const bucketReady = await this.ensureBucketExists(config);
+            if (!bucketReady) {
+                console.warn('⚠️ [BUCKET] Bucket no disponible, intentando upload directo...');
+                // Continuar con el upload aunque el bucket no esté confirmado
+                // Esto puede funcionar si el bucket existe pero no se pudo verificar
+            }
+            
+            // Limpiar archivos anteriores del usuario para evitar duplicados
+            await this.cleanupUserFiles(config, userId);
+
             // Intentar subir archivo
+            console.log('📤 [UPLOAD] Ejecutando upload...');
             const { data, error } = await this.supabase.storage
                 .from(config.bucket)
                 .upload(fileName, file, {
@@ -564,70 +407,50 @@ class FileUploadManager {
                 });
 
             if (error) {
-                console.error('❌ Error de Storage:', error.message);
-                console.error('❌ Error completo:', error);
-                
-                // DIAGNÓSTICO DETALLADO
-                console.error('🔍 DIAGNÓSTICO COMPLETO:', {
+                console.error('❌ [UPLOAD] Error subiendo archivo:', {
+                    error: error.message,
                     bucket: config.bucket,
                     fileName: fileName,
-                    fileType: file.type,
-                    fileSize: file.size,
-                    error: error.message,
-                    statusCode: error.statusCode || error.status || 'N/A',
-                    supabaseUserAuth: !!this.supabaseUser,
-                    localUserAuth: !!this.currentUser
+                    status: error.statusCode || error.status || 'N/A'
                 });
                 
-                // Log específico para diferentes tipos de error
-                if (error.message.includes('mime type')) {
-                    console.log('🗺 Error de MIME type - usando fallback');
+                // Manejo específico de errores comunes
+                if (error.message.includes('bucket') || error.message.includes('Bucket')) {
+                    console.log('💡 [SOLUCIÓN] Verificar que el bucket existe y es público');
                 } else if (error.message.includes('row-level security') || error.message.includes('RLS')) {
-                    console.log('🔒 Error de RLS - posible problema de autenticación');
-                    console.log('🔑 Usuario Supabase:', this.supabaseUser ? 'Autenticado' : 'NO autenticado');
-                } else if (error.message.includes('bucket') || error.message.includes('Bucket')) {
-                    console.error('🚨 ERROR DE BUCKET:', {
-                        bucket: config.bucket,
-                        fileName: fileName,
-                        error: error.message,
-                        statusCode: error.statusCode || 'N/A',
-                        suggestion: 'Verificar que el bucket existe y tiene permisos correctos'
-                    });
-                    console.log('🚨 Bucket "' + config.bucket + '" no encontrado o sin permisos');
-                } else if (error.message.includes('400') || error.status === 400) {
-                    console.error('🚨 ERROR 400 BAD REQUEST - Posible problema de autenticación o permisos:', {
-                        bucket: config.bucket,
-                        fileName: fileName,
-                        fileType: file.type,
-                        error: error.message,
-                        authStatus: this.supabaseUser ? 'Autenticado' : 'NO autenticado'
-                    });
+                    console.log('💡 [SOLUCIÓN] Verificar políticas RLS del bucket');
                 } else if (error.message.includes('401') || error.status === 401) {
-                    console.error('🔑 ERROR 401 UNAUTHORIZED - Usuario no autenticado correctamente');
+                    console.log('💡 [SOLUCIÓN] Usuario no autenticado - usando fallback');
                 } else if (error.message.includes('403') || error.status === 403) {
-                    console.error('🚫 ERROR 403 FORBIDDEN - Sin permisos para este bucket');
-                } else if (error.message.includes('404') || error.status === 404) {
-                    console.error('🔍 ERROR 404 NOT FOUND - Bucket no existe o URL incorrecta');
+                    console.log('💡 [SOLUCIÓN] Sin permisos - verificar políticas del bucket');
                 }
                 
                 return null;
             }
 
+            // Si llegamos aquí, el upload fue exitoso
+            console.log('✅ [UPLOAD] Upload exitoso a Storage:', {
+                path: data.path,
+                fullPath: data.fullPath,
+                id: data.id
+            });
+
             // Obtener URL pública
+            console.log('🔗 [URL] Obteniendo URL pública...');
             const { data: urlData } = this.supabase.storage
                 .from(config.bucket)
                 .getPublicUrl(fileName);
 
             if (urlData?.publicUrl) {
-                console.log('Upload exitoso a Storage:', urlData.publicUrl);
+                console.log('✅ [URL] URL pública obtenida:', urlData.publicUrl);
                 return urlData.publicUrl;
             } else {
-                console.log('Error obteniendo URL pública');
+                console.error('❌ [URL] Error obteniendo URL pública:', urlData);
                 return null;
             }
 
         } catch (error) {
-            console.log('Exception en uploadToStorage:', error.message);
+            console.error('💥 [EXCEPTION] Error inesperado:', error.message);
             return null;
         }
     }
@@ -642,17 +465,26 @@ class FileUploadManager {
         });
     }
 
-    // Actualizar imagen de perfil en localStorage (fallback)
+    // Actualizar imagen de perfil (versión que incluye tanto BD como localStorage)
     async updateUserProfilePictureLocal(base64Url) {
         try {
-            // Actualizar en localStorage
-            const updatedUser = { ...this.currentUser, profile_picture_url: base64Url };
-            localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-            this.currentUser = updatedUser;
-
-            console.log('Profile picture actualizada en localStorage');
+            console.log('🖼️ Actualizando avatar (base64) en base de datos...');
+            
+            // Intentar actualizar en base de datos primero
+            try {
+                await this.updateUserProfilePicture(base64Url);
+                console.log('✅ Avatar base64 actualizado en BD y localStorage');
+            } catch (dbError) {
+                console.warn('⚠️ Falló BD, actualizando solo localStorage:', dbError.message);
+                
+                // Si falla BD, al menos actualizar localStorage
+                const updatedUser = { ...this.currentUser, profile_picture_url: base64Url };
+                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                this.currentUser = updatedUser;
+                console.log('✅ Avatar base64 actualizado solo en localStorage');
+            }
         } catch (error) {
-            console.error('Error actualizando profile picture local:', error);
+            console.error('❌ Error actualizando profile picture local:', error);
             throw error;
         }
     }
@@ -695,42 +527,71 @@ class FileUploadManager {
 
     async updateUserProfilePicture(imageUrl) {
         try {
-            // IDENTIFICACIÓN ROBUSTA: usar ID válido, username o email
-            let query = this.supabase.from('users').update({ profile_picture_url: imageUrl });
+            console.log('🖼️ Actualizando avatar en base de datos...');
             
+            // Preparar datos para el endpoint
+            const updateData = {
+                profile_picture_url: imageUrl
+            };
+            
+            // Agregar identificador del usuario (preferir ID, luego username, luego email)
             if (this.currentUser.id && 
                 !String(this.currentUser.id).startsWith('dev-') && 
                 !String(this.currentUser.id).includes('test')) {
-                // Usar ID si es válido y real de BD
-                query = query.eq('id', this.currentUser.id);
-                console.log('Actualizando profile_picture_url por ID:', this.currentUser.id);
+                updateData.user_id = this.currentUser.id;
+                console.log('Actualizando avatar por user_id:', this.currentUser.id);
             } else if (this.currentUser.username) {
-                // Usar username como fallback
-                query = query.eq('username', this.currentUser.username);
-                console.log('Actualizando profile_picture_url por username:', this.currentUser.username);
+                updateData.username = this.currentUser.username;
+                console.log('Actualizando avatar por username:', this.currentUser.username);
             } else if (this.currentUser.email) {
-                // Usar email como último recurso
-                query = query.eq('email', this.currentUser.email);
-                console.log('Actualizando profile_picture_url por email:', this.currentUser.email);
+                updateData.email = this.currentUser.email;
+                console.log('Actualizando avatar por email:', this.currentUser.email);
             } else {
                 throw new Error('No se puede identificar al usuario para actualizar avatar');
             }
             
-            const { error } = await query;
-
-            if (error) {
-                console.error('Error actualizando profile_picture_url en BD:', error);
-                throw error;
+            // Detectar URL base según el entorno
+            const baseURL = window.location.hostname === 'localhost' 
+                ? 'http://localhost:3000' 
+                : window.location.origin;
+            
+            // Llamar al endpoint de Netlify
+            const response = await fetch(`${baseURL}/api/update-avatar`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
             }
-
-            // Actualizar en localStorage
+            
+            const result = await response.json();
+            console.log('✅ Avatar actualizado en base de datos:', result);
+            
+            // Actualizar localStorage con los datos más recientes
             const updatedUser = { ...this.currentUser, profile_picture_url: imageUrl };
             localStorage.setItem('currentUser', JSON.stringify(updatedUser));
             this.currentUser = updatedUser;
-
+            
             console.log('✅ Profile picture URL actualizada en BD y localStorage');
+            
         } catch (error) {
-            console.error('❌ Error actualizando profile picture en BD:', error);
+            console.error('❌ Error actualizando avatar en BD:', error);
+            
+            // Si falla la actualización en BD, al menos actualizar localStorage como fallback
+            try {
+                const updatedUser = { ...this.currentUser, profile_picture_url: imageUrl };
+                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                this.currentUser = updatedUser;
+                console.log('⚠️ Avatar actualizado solo en localStorage (BD falló)');
+            } catch (localError) {
+                console.error('❌ Error también en localStorage:', localError);
+            }
+            
             throw error;
         }
     }
@@ -1493,63 +1354,165 @@ class FileUploadManager {
             document.head.appendChild(style);
         }
     }
-}
 
-// Función global para asegurar autenticación en Supabase
-window.ensureSupabaseAuth = async function() {
-    try {
-        if (window.fileUploadManager) {
-            await window.fileUploadManager.verifySupabaseAuth();
+    // Método simplificado para configuración de storage público
+    async ensureAuthentication() {
+        try {
+            console.log('🔑 [AUTH] Modo Storage Público - sin autenticación requerida');
             
-            if (!window.fileUploadManager.supabaseUser) {
-                console.log('🔑 Usuario no autenticado, intentando autenticar...');
-                const success = await window.fileUploadManager.tryAuthenticateUser();
-                
-                if (success) {
-                    console.log('✅ Autenticación automática exitosa');
+            // Para buckets públicos, no necesitamos autenticación
+            // Solo verificar si casualmente hay una sesión activa
+            try {
+                const { data: { session } } = await this.supabase.auth.getSession();
+                if (session && session.user) {
+                    console.log('✅ [AUTH] Sesión encontrada (bonus):', session.user.email);
+                    this.supabaseUser = session.user;
                     return true;
-                } else {
-                    console.warn('⚠️ No se pudo autenticar automáticamente');
-                    return false;
                 }
-            } else {
-                console.log('✅ Usuario ya autenticado en Supabase');
+            } catch (authError) {
+                // Ignorar errores de auth para buckets públicos
+                console.log('ℹ️ [AUTH] Sin sesión (normal para storage público)');
+            }
+            
+            console.log('✅ [AUTH] Configurado para storage público - sin autenticación necesaria');
+            this.supabaseUser = null;
+            return true; // Retornar true porque el storage público no requiere auth
+            
+        } catch (error) {
+            console.log('ℹ️ [AUTH] Usando storage público sin verificación auth');
+            this.supabaseUser = null;
+            return true; // Siempre permitir para buckets públicos
+        }
+    }
+
+    // Método para asegurar que el bucket existe y está configurado correctamente
+    async ensureBucketExists(config) {
+        try {
+            console.log(`🔍 [BUCKET] Verificando existencia del bucket: ${config.bucket}`);
+            
+            // Listar buckets existentes
+            const { data: buckets, error: listError } = await this.supabase.storage.listBuckets();
+            
+            if (listError) {
+                console.error('❌ [BUCKET] Error listando buckets:', listError);
+                console.log('💡 [SOLUCIÓN] Verificar credenciales o crear buckets manualmente en Supabase Dashboard');
+                return false;
+            }
+
+            // Verificar si el bucket existe
+            const bucketExists = buckets.find(b => b.name === config.bucket);
+            
+            if (bucketExists) {
+                console.log(`✅ [BUCKET] Bucket "${config.bucket}" ya existe (público: ${bucketExists.public})`);
                 return true;
             }
+
+            // Si no existe, intentar crear con diferentes métodos
+            console.log(`📁 [BUCKET] Bucket "${config.bucket}" no existe, intentando crear...`);
+            
+            // Método 1: Crear con service role si está disponible
+            const serviceKey = localStorage.getItem('supabaseServiceKey') || 
+                              document.querySelector('meta[name="supabase-service-key"]')?.content;
+            
+            if (serviceKey && serviceKey !== '') {
+                console.log('🔑 [BUCKET] Intentando crear con service role...');
+                
+                try {
+                    // Crear cliente temporal con service role
+                    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+                    const serviceSupabase = createClient(
+                        this.supabase.supabaseUrl, 
+                        serviceKey
+                    );
+                    
+                    const { data, error } = await serviceSupabase.storage.createBucket(config.bucket, {
+                        public: true,
+                        fileSizeLimit: config.bucket === 'avatars' ? 5 * 1024 * 1024 : 10 * 1024 * 1024
+                    });
+                    
+                    if (!error || error.message?.includes('already exists')) {
+                        console.log(`✅ [BUCKET] Bucket "${config.bucket}" creado con service role`);
+                        return true;
+                    }
+                    
+                    console.warn('⚠️ [BUCKET] Service role falló:', error.message);
+                } catch (serviceError) {
+                    console.warn('⚠️ [BUCKET] Error con service role:', serviceError.message);
+                }
+            }
+            
+            // Método 2: Crear con usuario normal (probablemente falle por RLS)
+            console.log('🔄 [BUCKET] Intentando crear con usuario normal...');
+            const { error: normalCreateError } = await this.supabase.storage.createBucket(config.bucket, {
+                public: true
+            });
+            
+            if (!normalCreateError || normalCreateError.message?.includes('already exists')) {
+                console.log(`✅ [BUCKET] Bucket "${config.bucket}" creado con usuario normal`);
+                return true;
+            }
+            
+            // Si llegamos aquí, no se pudo crear el bucket
+            console.error(`❌ [BUCKET] No se pudo crear bucket "${config.bucket}"`);
+            console.log('📋 [INSTRUCCIONES] Para resolver este problema:');
+            console.log('1. Ir a https://app.supabase.com/project/[tu-proyecto]/storage/buckets');
+            console.log(`2. Crear bucket "${config.bucket}" manualmente`);
+            console.log('3. Marcar como "Public bucket"');
+            console.log('4. Configurar políticas RLS apropiadas');
+            
+            // Intentar continuar sin bucket (fallback total)
+            return false;
+
+        } catch (error) {
+            console.error(`💥 [BUCKET] Excepción asegurando bucket "${config.bucket}":`, error);
+            return false;
         }
-        return false;
-    } catch (error) {
-        console.error('❌ Error en ensureSupabaseAuth:', error);
-        return false;
     }
+
+    
+    // Método para limpiar archivos anteriores del usuario
+    async cleanupUserFiles(config, userId) {
+        try {
+            console.log('🧹 [CLEANUP] Limpiando archivos anteriores del usuario...');
+            
+            // Buscar archivos del usuario con diferentes extensiones
+            const commonExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            const filesToDelete = [];
+            
+            for (const ext of commonExtensions) {
+                const oldFileName = `${config.prefix}_${userId}.${ext}`;
+                filesToDelete.push(oldFileName);
+            }
+            
+            // Intentar eliminar archivos anteriores (silenciosamente)
+            const { error: deleteError } = await this.supabase.storage
+                .from(config.bucket)
+                .remove(filesToDelete);
+                
+            if (deleteError) {
+                // No mostrar error ya que es normal que algunos archivos no existan
+                console.log('ℹ️ [CLEANUP] Archivos anteriores no encontrados o ya eliminados');
+            } else {
+                console.log('✅ [CLEANUP] Archivos anteriores eliminados exitosamente');
+            }
+            
+        } catch (error) {
+            // Cleanup errors are not critical, just log them
+            console.log('ℹ️ [CLEANUP] No se pudieron eliminar archivos anteriores:', error.message);
+        }
+    }
+}
+
+// Función global simplificada para storage público
+window.ensureSupabaseAuth = async function() {
+    console.log('ℹ️ [AUTH] Storage público - autenticación no requerida');
+    return true;
 };
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     window.fileUploadManager = new FileUploadManager();
-    
-    // Intentar autenticación automática después de un breve retraso
-    setTimeout(async () => {
-        console.log('🔑 Verificando autenticación automática en Supabase...');
-        await window.ensureSupabaseAuth();
-    }, 2000);
-    
-    // Escuchar cambios en localStorage para autenticar cuando el usuario haga login
-    window.addEventListener('storage', async (e) => {
-        if (e.key === 'currentUser' && e.newValue) {
-            console.log('🔑 Nuevo login detectado, autenticando en Supabase...');
-            await window.ensureSupabaseAuth();
-        }
-    });
-    
-    // También verificar periódicamente la autenticación
-    setInterval(async () => {
-        const currentUser = localStorage.getItem('currentUser');
-        if (currentUser && window.fileUploadManager && !window.fileUploadManager.supabaseUser) {
-            console.log('🔑 Verificación periódica - reintentando autenticación...');
-            await window.ensureSupabaseAuth();
-        }
-    }, 30000); // Cada 30 segundos
+    console.log('✅ [INIT] FileUploadManager inicializado para storage público');
 });
 
 // Exportar para uso global

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Zoom Integration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .log-container {
+            background: #000;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        .host-only {
+            display: none !important;
+        }
+        .zoom-user-host .host-only {
+            display: flex !important;
+        }
+        .video-control-btn {
+            background: #444;
+            color: white;
+            border: 1px solid #666;
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .video-control-btn:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Zoom Video SDK Integration</h1>
+        
+        <div class="test-section">
+            <h2>Botones del Sistema</h2>
+            
+            <!-- Botones idénticos al chat.html -->
+            <button class="test-button" id="liveStreamMainToggleBtn">
+                <i>🎥</i> Botón Pequeño (Unirse a Video Sesión)
+            </button>
+            
+            <button class="test-button" id="liveStreamMainConnectBtnLarge">
+                <i>📹</i> Botón Grande (Unirse a Video Sesión)
+            </button>
+            
+            <div id="zoom-video-container" style="display: none;">
+                <div class="zoom-controls-overlay">
+                    <!-- Controles básicos para todos -->
+                    <button class="video-control-btn" id="volumeControlBtn">🔊 Volumen</button>
+                    <button class="video-control-btn" id="fullscreenToggleBtn">⛶ Pantalla Completa</button>
+                    
+                    <!-- Controles solo para hosts -->
+                    <div class="host-only">
+                        <button class="video-control-btn" id="cameraToggleBtn">📷 Cámara</button>
+                        <button class="video-control-btn" id="microphoneToggleBtn">🎤 Micrófono</button>
+                        <button class="video-control-btn" id="screenShareBtn">🖥️ Compartir Pantalla</button>
+                        <button class="video-control-btn" id="recordingToggleBtn">🎥 Grabar</button>
+                    </div>
+                    
+                    <!-- Indicador de rol -->
+                    <div id="userRoleIndicator">
+                        <span id="roleBadge">Participant</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Tests Manuales</h2>
+            <button class="test-button" onclick="testBasicFunctionality()">🔧 Test Funcionalidad Básica</button>
+            <button class="test-button" onclick="debugZoomButton()">🔍 Debug Botones</button>
+            <button class="test-button" onclick="testZoomJoin()">🚀 Test Zoom Join</button>
+            <button class="test-button" onclick="toggleUserRole()">👑 Toggle Host/Participant</button>
+            <button class="test-button" onclick="clearLogs()">🗑️ Limpiar Logs</button>
+        </div>
+        
+        <div class="log-container" id="logContainer">
+            <div class="log-entry">📋 Logs aparecerán aquí...</div>
+        </div>
+    </div>
+
+    <!-- Mock Zoom Video SDK -->
+    <script>
+        // Mock del Zoom Video SDK para testing
+        window.ZoomVideo = {
+            createClient: () => ({
+                join: async (topic, signature, meeting, user, pass) => {
+                    console.log('📞 Mock: Uniendo a sesión:', { topic, meeting, user });
+                    return { success: true };
+                },
+                leave: async () => {
+                    console.log('👋 Mock: Saliendo de sesión');
+                    return { success: true };
+                },
+                on: (event, callback) => {
+                    console.log('👂 Mock: Escuchando evento:', event);
+                },
+                getMediaStream: () => ({
+                    startVideo: async () => console.log('📹 Mock: Video iniciado'),
+                    stopVideo: async () => console.log('📹 Mock: Video detenido'),
+                    muteAudio: async () => console.log('🔇 Mock: Audio silenciado'),
+                    unmuteAudio: async () => console.log('🔊 Mock: Audio activado')
+                }),
+                getAllUser: () => [{ id: 1, name: 'Test User' }]
+            })
+        };
+        
+        console.log('✅ Zoom Video SDK Mock inicializado');
+    </script>
+    
+    <!-- Nuestro script de zoom -->
+    <script src="src/scripts/zoom-video-integration.js"></script>
+    
+    <script>
+        // Override console.log para mostrar en pantalla
+        const logContainer = document.getElementById('logContainer');
+        const originalLog = console.log;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = args.join(' ');
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        };
+        
+        let isHost = false;
+        
+        function testBasicFunctionality() {
+            console.log('🧪 === TEST FUNCIONALIDAD BÁSICA ===');
+            console.log('DOM ready state:', document.readyState);
+            
+            const smallBtn = document.getElementById('liveStreamMainToggleBtn');
+            const largeBtn = document.getElementById('liveStreamMainConnectBtnLarge');
+            
+            console.log('Botón pequeño existe:', !!smallBtn);
+            console.log('Botón grande existe:', !!largeBtn);
+            
+            if (window.ZoomVideoIntegration) {
+                console.log('✅ ZoomVideoIntegration disponible');
+                console.log('Config:', window.ZoomVideoIntegration.getConfig());
+            } else {
+                console.log('❌ ZoomVideoIntegration NO disponible');
+            }
+        }
+        
+        function toggleUserRole() {
+            isHost = !isHost;
+            const container = document.getElementById('zoom-video-container');
+            const badge = document.getElementById('roleBadge');
+            
+            if (isHost) {
+                container.classList.add('zoom-user-host');
+                badge.textContent = 'Host';
+                console.log('👑 Cambiado a HOST - controles visibles');
+            } else {
+                container.classList.remove('zoom-user-host');
+                badge.textContent = 'Participant';
+                console.log('👥 Cambiado a PARTICIPANT - controles ocultos');
+            }
+            
+            container.style.display = 'block';
+        }
+        
+        function clearLogs() {
+            logContainer.innerHTML = '<div class="log-entry">📋 Logs limpiados...</div>';
+        }
+        
+        // Test automático al cargar
+        setTimeout(() => {
+            console.log('🚀 Iniciando test automático...');
+            testBasicFunctionality();
+        }, 1000);
+    </script>
+</body>
+</html>

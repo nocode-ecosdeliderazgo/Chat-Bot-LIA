@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Storage Público - Sin Autenticación</title>
+    <!-- Configurar credenciales de Supabase -->
+    <meta name="supabase-url" content="">
+    <meta name="supabase-key" content="">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            padding: 2rem;
+            margin: 0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .test-section {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0.5rem;
+            font-weight: 500;
+        }
+        button:hover { background: #2563eb; }
+        button.success { background: #10b981; }
+        button.error { background: #ef4444; }
+        input[type="file"] {
+            margin: 1rem 0;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            width: 100%;
+        }
+        .result {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            font-size: 0.875rem;
+        }
+        .result.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .result.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        .result.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+        .preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 2px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Storage Público</h1>
+        <p><strong>Objetivo:</strong> Verificar que las imágenes se suben correctamente al bucket público de Supabase sin necesidad de autenticación.</p>
+
+        <!-- Test 1: Verificar conexión -->
+        <div class="test-section">
+            <h3>1️⃣ Verificar Conexión</h3>
+            <button onclick="testConnection()">🔗 Test Conexión</button>
+            <div id="connectionResult" class="result info">Hacer clic para probar conexión...</div>
+        </div>
+
+        <!-- Test 2: Verificar buckets -->
+        <div class="test-section">
+            <h3>2️⃣ Verificar Buckets</h3>
+            <button onclick="testBuckets()">🗂️ Test Buckets</button>
+            <div id="bucketsResult" class="result info">Hacer clic para verificar buckets...</div>
+        </div>
+
+        <!-- Test 3: Upload sin autenticación -->
+        <div class="test-section">
+            <h3>3️⃣ Upload Sin Autenticación</h3>
+            <input type="file" id="testFile" accept="image/*" onchange="previewImage()">
+            <div class="preview" id="preview"></div>
+            <button onclick="testPublicUpload()">📤 Upload Público</button>
+            <div id="uploadResult" class="result info">Seleccionar imagen y hacer clic para subir...</div>
+        </div>
+
+        <!-- Test 4: Verificar archivo subido -->
+        <div class="test-section">
+            <h3>4️⃣ Verificar Upload</h3>
+            <button onclick="listFiles()">📋 Ver Archivos</button>
+            <div id="listResult" class="result info">Ver archivos en bucket avatars...</div>
+        </div>
+    </div>
+
+    <!-- Cargar Supabase -->
+    <script src="src/scripts/supabase-client.js"></script>
+    <script>
+        let uploadedFileName = null;
+
+        function setResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+        }
+
+        async function testConnection() {
+            setResult('connectionResult', 'Probando conexión...', 'info');
+            
+            try {
+                if (!window.supabase) {
+                    setResult('connectionResult', '❌ Supabase client no está disponible\nVerificar credenciales en meta tags', 'error');
+                    return;
+                }
+
+                // Test simple de conexión
+                const { data, error } = await window.supabase.auth.getSession();
+                
+                setResult('connectionResult', '✅ Conexión exitosa\n✅ Cliente Supabase funcional\n✅ API accesible', 'success');
+                console.log('✅ Conexión verificada:', { hasSupabase: !!window.supabase });
+
+            } catch (error) {
+                setResult('connectionResult', `❌ Error de conexión:\n${error.message}`, 'error');
+            }
+        }
+
+        async function testBuckets() {
+            setResult('bucketsResult', 'Verificando buckets...', 'info');
+            
+            try {
+                if (!window.supabase) {
+                    setResult('bucketsResult', '❌ Supabase no disponible', 'error');
+                    return;
+                }
+
+                const { data: buckets, error } = await window.supabase.storage.listBuckets();
+                
+                if (error) {
+                    setResult('bucketsResult', `❌ Error listando buckets:\n${error.message}`, 'error');
+                    return;
+                }
+
+                const hasAvatars = buckets.find(b => b.name === 'avatars');
+                const hasCurriculums = buckets.find(b => b.name === 'curriculums');
+
+                let result = `📁 Total buckets: ${buckets.length}\n`;
+                result += `✅ Bucket "avatars": ${hasAvatars ? `EXISTE (${hasAvatars.public ? 'público' : 'privado'})` : 'NO EXISTE'}\n`;
+                result += `✅ Bucket "curriculums": ${hasCurriculums ? `EXISTE (${hasCurriculums.public ? 'público' : 'privado'})` : 'NO EXISTE'}\n`;
+                
+                if (buckets.length > 0) {
+                    result += `\nTodos los buckets:\n${buckets.map(b => `• ${b.name} (${b.public ? 'público' : 'privado'})`).join('\n')}`;
+                }
+
+                const allGood = hasAvatars && hasCurriculums && hasAvatars.public && hasCurriculums.public;
+                setResult('bucketsResult', result, allGood ? 'success' : 'error');
+
+            } catch (error) {
+                setResult('bucketsResult', `❌ Error verificando buckets:\n${error.message}`, 'error');
+            }
+        }
+
+        function previewImage() {
+            const fileInput = document.getElementById('testFile');
+            const file = fileInput.files[0];
+            const preview = document.getElementById('preview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    console.log('📸 Imagen seleccionada:', file.name, file.size, 'bytes', file.type);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.innerHTML = '';
+            }
+        }
+
+        async function testPublicUpload() {
+            const fileInput = document.getElementById('testFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                setResult('uploadResult', '❌ Por favor selecciona una imagen primero', 'error');
+                return;
+            }
+
+            setResult('uploadResult', 'Subiendo archivo...', 'info');
+            
+            try {
+                if (!window.supabase) {
+                    setResult('uploadResult', '❌ Supabase no disponible', 'error');
+                    return;
+                }
+
+                // Generar nombre único
+                const timestamp = Date.now();
+                const extension = file.name.split('.').pop().toLowerCase();
+                const fileName = `test_public_${timestamp}.${extension}`;
+                uploadedFileName = fileName;
+
+                console.log('📤 Subiendo:', fileName, 'Size:', file.size, 'Type:', file.type);
+
+                // Intentar upload público directo
+                const { data, error } = await window.supabase.storage
+                    .from('avatars')
+                    .upload(fileName, file, {
+                        cacheControl: '3600',
+                        upsert: true
+                    });
+
+                if (error) {
+                    let errorMsg = `❌ Error en upload:\n${error.message}`;
+                    
+                    if (error.message.includes('bucket')) {
+                        errorMsg += '\n\n💡 Solución: Crear bucket "avatars" en Supabase Dashboard';
+                    } else if (error.message.includes('policy') || error.message.includes('RLS')) {
+                        errorMsg += '\n\n💡 Solución: Marcar bucket como "Public" o configurar políticas RLS';
+                    } else if (error.message.includes('auth')) {
+                        errorMsg += '\n\n💡 Bucket debe ser público para uploads sin autenticación';
+                    }
+                    
+                    setResult('uploadResult', errorMsg, 'error');
+                    return;
+                }
+
+                // Obtener URL pública
+                const { data: urlData } = window.supabase.storage
+                    .from('avatars')
+                    .getPublicUrl(fileName);
+
+                if (urlData?.publicUrl) {
+                    let result = `✅ Upload exitoso!\n`;
+                    result += `📁 Archivo: ${fileName}\n`;
+                    result += `🔗 URL: ${urlData.publicUrl}\n`;
+                    result += `📏 Tamaño: ${file.size} bytes\n`;
+                    result += `🗂️ Tipo: ${file.type}`;
+                    
+                    setResult('uploadResult', result, 'success');
+                    console.log('✅ Upload exitoso:', { fileName, url: urlData.publicUrl });
+                    
+                    // Actualizar preview con imagen de Supabase
+                    const preview = document.getElementById('preview');
+                    preview.innerHTML = `
+                        <p><strong>Imagen subida a Supabase:</strong></p>
+                        <img src="${urlData.publicUrl}" alt="Subida exitosa" onload="console.log('✅ Imagen cargada desde Supabase')" onerror="console.error('❌ Error cargando imagen desde Supabase')">
+                    `;
+                } else {
+                    setResult('uploadResult', '⚠️ Upload exitoso pero sin URL pública', 'error');
+                }
+
+            } catch (error) {
+                setResult('uploadResult', `❌ Error inesperado:\n${error.message}`, 'error');
+                console.error('❌ Error en upload:', error);
+            }
+        }
+
+        async function listFiles() {
+            setResult('listResult', 'Listando archivos...', 'info');
+            
+            try {
+                if (!window.supabase) {
+                    setResult('listResult', '❌ Supabase no disponible', 'error');
+                    return;
+                }
+
+                const { data: files, error } = await window.supabase.storage
+                    .from('avatars')
+                    .list('', { limit: 10, sortBy: { column: 'created_at', order: 'desc' } });
+
+                if (error) {
+                    setResult('listResult', `❌ Error listando archivos:\n${error.message}`, 'error');
+                    return;
+                }
+
+                let result = `📁 Archivos en bucket "avatars": ${files.length}\n\n`;
+                
+                if (files.length === 0) {
+                    result += 'El bucket está vacío';
+                } else {
+                    files.forEach((file, index) => {
+                        result += `${index + 1}. ${file.name}\n`;
+                        result += `   📏 ${file.metadata?.size || 'N/A'} bytes\n`;
+                        result += `   📅 ${file.created_at || file.updated_at || 'N/A'}\n`;
+                        
+                        if (file.name === uploadedFileName) {
+                            result += `   ✅ ¡Este es el archivo que acabamos de subir!\n`;
+                        }
+                        result += '\n';
+                    });
+                }
+
+                setResult('listResult', result, files.length > 0 ? 'success' : 'info');
+
+            } catch (error) {
+                setResult('listResult', `❌ Error listando archivos:\n${error.message}`, 'error');
+            }
+        }
+
+        // Auto-inicialización
+        window.addEventListener('load', () => {
+            console.log('🧪 Test de Storage Público inicializado');
+            
+            // Test automático de conexión
+            setTimeout(testConnection, 1000);
+        });
+    </script>
+</body>
+</html>

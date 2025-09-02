@@ -5148,30 +5148,27 @@ let liveStreamState = {
 function initializeStreamAndRecordingControls() {
     console.log('🎥 Inicializando controles de live stream y grabación...');
     
-    // Inicializar botón de live stream fusionado
-    if (liveStreamToggleBtn) {
-        liveStreamToggleBtn.addEventListener('click', toggleLiveStream);
-        console.log('✅ Botón de live stream fusionado inicializado');
-    }
+    // NOTA: Botón principal ahora es controlado por Zoom Video SDK
+    // No agregamos event listener para evitar conflictos
+    console.log('ℹ️ Botón principal delegado a Zoom Video SDK integration');
     
     // Verificar si el usuario es host (esto se puede determinar por el rol o permisos)
     recordingState.isHost = checkIfUserIsHost();
     
     if (recordingState.isHost) {
-        console.log('✅ Usuario es host, mostrando controles de grabación');
-        recordingControls.style.display = 'flex';
+        console.log('✅ Usuario es host, iniciando controles de grabación heredados');
         
-        // Agregar event listeners para grabación
-        recordingStartBtn.addEventListener('click', startRecording);
-        recordingPauseBtn.addEventListener('click', pauseRecording);
-        recordingResumeBtn.addEventListener('click', resumeRecording);
-        recordingStopBtn.addEventListener('click', stopRecording);
+        // Solo inicializar controles de grabación si existen
+        // El Zoom SDK se encarga de los controles principales de video
+        if (recordingStartBtn) recordingStartBtn.addEventListener('click', startRecording);
+        if (recordingPauseBtn) recordingPauseBtn.addEventListener('click', pauseRecording);
+        if (recordingResumeBtn) recordingResumeBtn.addEventListener('click', resumeRecording);
+        if (recordingStopBtn) recordingStopBtn.addEventListener('click', stopRecording);
         
         // Verificar si ya hay una grabación en curso
         checkExistingRecording();
     } else {
-        console.log('❌ Usuario no es host, ocultando controles de grabación');
-        recordingControls.style.display = 'none';
+        console.log('ℹ️ Usuario no es host, controles de grabación manejados por Zoom SDK');
     }
 }
 

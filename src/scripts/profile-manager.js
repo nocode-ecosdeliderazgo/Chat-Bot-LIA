@@ -255,20 +255,48 @@ class ProfileManager {
             });
         }
 
-        // Cambiar foto de perfil
+        // Configurar botones para cambiar foto - SOLO botones, no el input
+        // El input de archivo es manejado completamente por file-upload-manager.js
         const changeAvatarBtn = document.getElementById('changeAvatarBtn');
-        if (changeAvatarBtn) {
-            changeAvatarBtn.addEventListener('click', () => {
-                document.getElementById('profilePicture').click();
-            });
-        }
-
-        // Avatar click
         const avatar = document.getElementById('currentAvatar');
-        if (avatar) {
-            avatar.addEventListener('click', () => {
-                document.getElementById('profilePicture').click();
-            });
+        const profilePictureInput = document.getElementById('profilePicture');
+        
+        if (profilePictureInput && !this.photoListenersConfigured) {
+            console.log('📸 Configurando botones de foto de perfil...');
+            
+            // Función para abrir selector de archivos
+            const openFileChooser = (event) => {
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                
+                // Verificar que no hay diálogos abiertos
+                if (document.querySelector('.password-required-notification') || 
+                    document.querySelector('.email-not-confirmed-notification')) {
+                    console.log('⚠️ Hay un diálogo abierto, cancelando file chooser');
+                    return;
+                }
+                
+                console.log('📸 Abriendo selector de imagen...');
+                profilePictureInput.click();
+            };
+            
+            // Configurar botón "Cambiar foto" (solo una vez)
+            if (changeAvatarBtn) {
+                changeAvatarBtn.addEventListener('click', openFileChooser);
+                console.log('✅ Botón "Cambiar foto" configurado');
+            }
+            
+            // Configurar avatar clickeable (solo una vez)
+            if (avatar) {
+                avatar.addEventListener('click', openFileChooser);
+                avatar.style.cursor = 'pointer';
+                console.log('✅ Avatar clickeable configurado');
+            }
+            
+            // Marcar como configurado para evitar duplicación
+            this.photoListenersConfigured = true;
         }
 
         // Subida de archivos
@@ -287,26 +315,9 @@ class ProfileManager {
     }
 
     setupFileUploads() {
-        // Foto de perfil
-        const profilePictureInput = document.getElementById('profilePicture');
-        if (profilePictureInput) {
-            profilePictureInput.addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                if (!this.validateFile(file, 'profile_picture')) return;
-                // Preview inmediata
-                this.showImagePreview(file);
-                try {
-                    const url = await this.uploadToServer(file);
-                    if (url) {
-                        // Persistir URL en backend
-                        await this.persistPartial({ profile_picture_url: url });
-                    }
-                } catch (err) {
-                    this.showError('No se pudo subir la foto');
-                }
-            });
-        }
+        // NOTA: Las fotos de perfil son manejadas por file-upload-manager.js
+        // Este método solo maneja curriculum (CV) para evitar conflictos
+        console.log('📝 ProfileManager: Configurando solo upload de CV (fotos manejadas por FileUploadManager)');
 
         // Curriculum
         const curriculumInput = document.getElementById('curriculum');
@@ -314,18 +325,39 @@ class ProfileManager {
         const curriculumName = document.getElementById('curriculumName');
 
         if (curriculumInput && curriculumBtn) {
-            curriculumBtn.addEventListener('click', (event) => {
+            // Prevenir clics duplicados con flag de protección
+            let cvClickInProgress = false;
+            
+            // Remover listeners previos clonando el elemento
+            const newCvBtn = curriculumBtn.cloneNode(true);
+            curriculumBtn.parentNode.replaceChild(newCvBtn, curriculumBtn);
+            
+            newCvBtn.addEventListener('click', (event) => {
+                // Prevenir clics duplicados
+                if (cvClickInProgress) {
+                    console.log('⚠️ Click ya en progreso, ignorando...');
+                    event.preventDefault();
+                    return;
+                }
+                
                 // VERIFICAR QUE ES UNA ACTIVACIÓN DEL USUARIO
                 if (!event.isTrusted) {
                     console.error('❌ Error: File chooser requiere activación del usuario');
                     return;
                 }
                 
+                // Prevenir propagación de eventos
+                event.preventDefault();
+                event.stopPropagation();
+                
                 // Verificar que no haya otros diálogos abiertos
-                if (document.querySelector('.password-required-notification')) {
+                if (document.querySelector('.password-required-notification') || 
+                    document.querySelector('.email-not-confirmed-notification')) {
                     console.log('⚠️ Diálogo de notificación abierto, esperando...');
                     return;
                 }
+                
+                cvClickInProgress = true;
                 
                 try {
                     console.log('📝 Abriendo selector de archivos para CV...');
@@ -336,11 +368,17 @@ class ProfileManager {
                             curriculumInput.click();
                         } catch (error) {
                             console.error('❌ Error en setTimeout click:', error);
+                        } finally {
+                            // Resetear flag después de un tiempo
+                            setTimeout(() => {
+                                cvClickInProgress = false;
+                            }, 1000);
                         }
                     }, 0);
                     
                 } catch (error) {
                     console.error('❌ Error abriendo file chooser:', error);
+                    cvClickInProgress = false;
                     // No mostrar alert inmediatamente, puede interferir
                     setTimeout(() => {
                         alert('Error al abrir el selector de archivos. Por favor, intenta de nuevo.');
@@ -348,19 +386,15 @@ class ProfileManager {
                 }
             });
 
-            curriculumInput.addEventListener('change', async (e) => {
+            // NOTA: El upload de curriculum es manejado por file-upload-manager.js
+            // Solo configuramos el display del nombre de archivo aquí
+            curriculumInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
-                if (!file) return;
-                if (!this.validateFile(file, 'curriculum')) return;
-                if (curriculumName) curriculumName.textContent = file.name;
-                try {
-                    const url = await this.uploadToServer(file);
-                    if (url) {
-                        await this.persistPartial({ curriculum_url: url });
-                    }
-                } catch (err) {
-                    this.showError('No se pudo subir el CV');
+                if (file && curriculumName) {
+                    curriculumName.textContent = file.name;
+                    console.log('📝 Archivo CV seleccionado:', file.name);
                 }
+                // El upload real es manejado por FileUploadManager
             });
         }
     }
@@ -682,13 +716,9 @@ class ProfileManager {
     }
 
     setupAutoSave() {
-        // Auto-guardar cada 30 segundos si hay cambios
-        setInterval(() => {
-            if (this.hasChanges && !this.isLoading) {
-                console.log('Auto-guardando cambios...');
-                // Aquí se podría implementar el auto-guardado
-            }
-        }, 30000);
+        // Auto-guardado deshabilitado para evitar logs repetitivos
+        // Los usuarios deben guardar manualmente usando el botón "Guardar"
+        console.log('ℹ️ Auto-guardado deshabilitado - usar botón "Guardar" para persistir cambios');
     }
 
     showSuccess(message) {
