@@ -16,6 +16,26 @@ if (!supabaseUrl || !supabaseServiceKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // =====================================================
+// HELPER FUNCTION: Resolver courseId (slug o UUID) a UUID
+// =====================================================
+async function resolveCourseId(courseId) {
+    // Si ya es un UUID, devolverlo directamente
+    if (courseId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        return courseId;
+    }
+    
+    // Si es un slug, buscar el UUID correspondiente
+    const { data: courseData } = await supabase
+        .from('courses')
+        .select('id')
+        .eq('slug', courseId)
+        .eq('is_active', true)
+        .single();
+    
+    return courseData?.id || null;
+}
+
+// =====================================================
 // HANDLER PRINCIPAL
 // =====================================================
 
@@ -94,13 +114,17 @@ async function getCourseFullStructure(courseId, queryParams, headers) {
 
         console.log(`📚 Obteniendo estructura completa del curso: ${courseId}`);
 
-        // 1. Obtener datos del curso
-        const { data: courseData, error: courseError } = await supabase
-            .from('courses')
-            .select('*')
-            .eq('id', courseId)
-            .eq('is_active', true)
-            .single();
+        // 1. Obtener datos del curso (buscar por slug o UUID)
+        let courseQuery = supabase.from('courses').select('*').eq('is_active', true);
+        
+        // Verificar si courseId es un UUID o un slug
+        if (courseId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+            courseQuery = courseQuery.eq('id', courseId);
+        } else {
+            courseQuery = courseQuery.eq('slug', courseId);
+        }
+        
+        const { data: courseData, error: courseError } = await courseQuery.single();
 
         if (courseError || !courseData) {
             console.error('❌ Error obteniendo curso:', courseError);
@@ -114,7 +138,7 @@ async function getCourseFullStructure(courseId, queryParams, headers) {
             };
         }
 
-        // 2. Obtener módulos con videos y checkpoints
+        // 2. Obtener módulos con videos y checkpoints (usar el UUID real del curso)
         const { data: modulesData, error: modulesError } = await supabase
             .from('course_modules')
             .select(`
@@ -125,7 +149,7 @@ async function getCourseFullStructure(courseId, queryParams, headers) {
                 ),
                 module_materials (*)
             `)
-            .eq('course_id', courseId)
+            .eq('course_id', courseData.id)
             .order('order_index', { ascending: true });
 
         if (modulesError) {
@@ -145,24 +169,24 @@ async function getCourseFullStructure(courseId, queryParams, headers) {
         let videoProgressMap = new Map();
 
         if (userId) {
-            // Progreso general del curso
+            // Progreso general del curso (usar el UUID real del curso)
             const { data: courseProgressData, error: courseProgressError } = await supabase
                 .from('user_course_progress')
                 .select('*')
                 .eq('user_id', userId)
-                .eq('course_id', courseId)
+                .eq('course_id', courseData.id)
                 .single();
 
             if (!courseProgressError && courseProgressData) {
                 userProgress = courseProgressData;
             }
 
-            // Progreso detallado por video
+            // Progreso detallado por video (usar el UUID real del curso)
             const { data: videoProgressData } = await supabase
                 .from('user_progress')
                 .select('*')
                 .eq('user_id', userId)
-                .eq('course_id', courseId);
+                .eq('course_id', courseData.id);
 
             if (videoProgressData) {
                 videoProgressData.forEach(progress => {
@@ -225,12 +249,22 @@ async function getCurrentModule(courseId, userId, headers) {
     try {
         console.log(`📍 Obteniendo módulo actual para usuario ${userId} en curso ${courseId}`);
 
+        // Resolver courseId a UUID si es necesario
+        const resolvedCourseId = await resolveCourseId(courseId);
+        if (!resolvedCourseId) {
+            return {
+                statusCode: 404,
+                headers,
+                body: JSON.stringify({ error: 'Curso no encontrado' })
+            };
+        }
+
         // 1. Obtener progreso del curso
         let { data: courseProgress } = await supabase
             .from('user_course_progress')
             .select('*')
             .eq('user_id', userId)
-            .eq('course_id', courseId)
+            .eq('course_id', resolvedCourseId)
             .single();
 
         // Si no existe progreso, crear uno inicial con el primer módulo
@@ -238,7 +272,7 @@ async function getCurrentModule(courseId, userId, headers) {
             const { data: firstModule } = await supabase
                 .from('course_modules')
                 .select('id')
-                .eq('course_id', courseId)
+                .eq('course_id', resolvedCourseId)
                 .order('order_index', { ascending: true })
                 .limit(1)
                 .single();
@@ -248,7 +282,7 @@ async function getCurrentModule(courseId, userId, headers) {
                     .from('user_course_progress')
                     .insert({
                         user_id: userId,
-                        course_id: courseId,
+                        course_id: resolvedCourseId,
                         current_module_id: firstModule.id,
                         total_modules: 0,
                         total_videos: 0
