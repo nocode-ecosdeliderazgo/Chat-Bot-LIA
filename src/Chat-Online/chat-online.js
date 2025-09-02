@@ -1773,6 +1773,199 @@ class ChatOnline {
         console.log('➡️ Siguiente pregunta');
         // Implementar navegación entre preguntas
     }
+    
+    // ===== YOUTUBE VIDEO PLAYER =====
+    
+    /**
+     * Cambia el video de YouTube actual
+     * @param {string} videoId - ID del video de YouTube
+     * @param {string} title - Título del video
+     * @param {string} duration - Duración del video (opcional)
+     */
+    changeYouTubeVideo(videoId, title, duration = '00:00') {
+        console.log(`🎥 Cambiando video: ${title} (${videoId})`);
+        
+        const iframe = document.getElementById('youtubePlayer');
+        const videoTitle = document.querySelector('.video-info h3');
+        const videoDuration = document.querySelector('.video-stats span:first-child');
+        
+        if (iframe) {
+            // Construir URL con parámetros optimizados
+            const embedUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0`;
+            iframe.src = embedUrl;
+            iframe.title = title;
+        }
+        
+        if (videoTitle) {
+            // Mantener el ícono SVG y actualizar solo el texto
+            const icon = videoTitle.querySelector('svg');
+            videoTitle.innerHTML = '';
+            if (icon) {
+                videoTitle.appendChild(icon);
+            }
+            videoTitle.innerHTML += title;
+        }
+        
+        if (videoDuration && duration !== '00:00') {
+            const timeIcon = videoDuration.querySelector('svg');
+            videoDuration.innerHTML = '';
+            if (timeIcon) {
+                videoDuration.appendChild(timeIcon);
+            }
+            videoDuration.innerHTML += `Duración: ${duration}`;
+        }
+        
+        console.log(`✅ Video actualizado: ${title}`);
+    }
+    
+    /**
+     * Extrae el ID de video desde una URL de YouTube
+     * @param {string} url - URL completa de YouTube
+     * @returns {string|null} - ID del video o null si no es válida
+     */
+    extractYouTubeId(url) {
+        const patterns = [
+            /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+            /youtube\.com\/v\/([^&\n?#]+)/,
+            /youtube\.com\/.*[?&]v=([^&\n?#]+)/
+        ];
+        
+        for (const pattern of patterns) {
+            const match = url.match(pattern);
+            if (match) {
+                return match[1];
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Carga un video desde una URL completa de YouTube
+     * @param {string} youtubeUrl - URL completa de YouTube
+     * @param {string} title - Título del video
+     * @param {string} duration - Duración del video
+     */
+    loadYouTubeVideo(youtubeUrl, title, duration = '00:00') {
+        const videoId = this.extractYouTubeId(youtubeUrl);
+        if (videoId) {
+            this.changeYouTubeVideo(videoId, title, duration);
+        } else {
+            console.error('❌ URL de YouTube no válida:', youtubeUrl);
+            alert('Error: URL de YouTube no válida');
+        }
+    }
+    
+    /**
+     * Verifica si un video puede ser embebido y muestra mensaje de error si no
+     * @param {string} videoId - ID del video de YouTube
+     */
+    checkVideoAvailability(videoId) {
+        const iframe = document.getElementById('youtubePlayer');
+        if (iframe) {
+            // Agregar listener para detectar errores de embedding
+            iframe.addEventListener('load', () => {
+                console.log(`✅ Video ${videoId} cargado correctamente`);
+            });
+            
+            iframe.addEventListener('error', (e) => {
+                console.error(`❌ Error cargando video ${videoId}:`, e);
+                this.showVideoError(videoId);
+            });
+            
+            // Timeout para detectar videos con restricciones
+            setTimeout(() => {
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    if (!iframeDoc) {
+                        console.warn(`⚠️ Video ${videoId} puede tener restricciones de embedding`);
+                    }
+                } catch (error) {
+                    console.warn(`⚠️ Video ${videoId} con restricciones detectadas:`, error.message);
+                }
+            }, 3000);
+        }
+    }
+    
+    /**
+     * Muestra mensaje de error cuando un video no puede ser embebido
+     * @param {string} videoId - ID del video con problema
+     */
+    showVideoError(videoId) {
+        const container = document.querySelector('.youtube-player-wrapper');
+        if (container) {
+            container.innerHTML = `
+                <div class="video-error-message" style="
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100%;
+                    background: var(--glass-surface-dark);
+                    border-radius: 12px;
+                    padding: 2rem;
+                    text-align: center;
+                    color: var(--glass-text-secondary);
+                ">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 1rem; opacity: 0.6;">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    <h4 style="color: var(--glass-text-primary); margin-bottom: 0.5rem;">Video no disponible</h4>
+                    <p style="margin-bottom: 1.5rem; opacity: 0.8;">Este video tiene restricciones de embedding.</p>
+                    <a href="https://www.youtube.com/watch?v=${videoId}" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       style="
+                        color: var(--glass-primary);
+                        text-decoration: none;
+                        padding: 0.75rem 1.5rem;
+                        background: var(--glass-surface);
+                        border-radius: 8px;
+                        border: var(--glass-border);
+                        transition: all 0.3s ease;
+                        display: inline-block;
+                       "
+                       onmouseover="this.style.background='var(--glass-surface-hover)'; this.style.transform='translateY(-2px)'"
+                       onmouseout="this.style.background='var(--glass-surface)'; this.style.transform='translateY(0)'">
+                        Ver en YouTube
+                    </a>
+                </div>
+            `;
+        }
+    }
+    
+    /**
+     * Playlist de videos de ejemplo para testing
+     */
+    loadTestVideos() {
+        const testVideos = [
+            {
+                id: 'aircAruvnKk',
+                title: 'Redes Neuronales - Introducción práctica',
+                duration: '19:13'
+            },
+            {
+                id: 'dQw4w9WgXcQ',
+                title: 'Rick Astley - Never Gonna Give You Up',
+                duration: '3:32'
+            },
+            {
+                id: 'bEQTO7FO_P4',
+                title: 'Machine Learning Explained',
+                duration: '15:06'
+            },
+            {
+                id: 'QNJL6nfu__Q',
+                title: 'Michael Jackson - Billie Jean (con restricciones)',
+                duration: '4:54'
+            }
+        ];
+        
+        console.log('🎬 Videos de prueba disponibles:', testVideos);
+        return testVideos;
+    }
 }
 
 // ===== INICIALIZACIÓN =====
@@ -1794,6 +1987,31 @@ document.addEventListener('DOMContentLoaded', function() {
 function goBack() {
     if (window.chatOnline) {
         window.chatOnline.goBack();
+    }
+}
+
+// Funciones globales para control de YouTube
+function changeVideo(videoId, title, duration) {
+    if (window.chatOnline) {
+        window.chatOnline.changeYouTubeVideo(videoId, title, duration);
+    }
+}
+
+function loadVideo(youtubeUrl, title, duration) {
+    if (window.chatOnline) {
+        window.chatOnline.loadYouTubeVideo(youtubeUrl, title, duration);
+    }
+}
+
+// Función de prueba para cambiar videos rápidamente
+function testVideos() {
+    if (window.chatOnline) {
+        const videos = window.chatOnline.loadTestVideos();
+        console.log('🎬 Para cambiar videos usa:');
+        videos.forEach((video, index) => {
+            console.log(`${index + 1}. changeVideo('${video.id}', '${video.title}', '${video.duration}')`);
+        });
+        return videos;
     }
 }
 
