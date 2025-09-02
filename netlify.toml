@@ -1,6 +1,6 @@
 [build]
-  publish = "src"
-  command = "echo 'Static site - no build required'"
+  publish = "public"
+  command = "cp -r src/* public/ 2>/dev/null || mkdir -p public && cp -r src/* public/"
   node_version = "18.18.0"
   
 [build.environment]
