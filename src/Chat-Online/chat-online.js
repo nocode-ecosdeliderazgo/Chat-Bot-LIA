@@ -7,13 +7,16 @@ class ChatOnline {
         this.isLiaTyping = false;
         this.notes = [];
         this.isSearchMode = false;
+        this.progressManager = null;
+        this.courseProgress = null;
         
         this.init();
     }
 
-    init() {
+    async init() {
         console.log('🚀 Inicializando Chat Online...');
         this.setupEventListeners();
+        await this.initializeProgressManager();
         this.loadInitialData();
         this.setupResponsive();
         console.log('✅ Chat Online inicializado correctamente');
@@ -40,6 +43,9 @@ class ChatOnline {
         
         // Responsive
         this.setupResponsiveListeners();
+        
+        // Progress Manager Events
+        this.setupProgressEvents();
     }
     
     // ===== NAVEGACIÓN SUPERIOR =====
@@ -157,26 +163,30 @@ class ChatOnline {
     }
     
     selectModule(moduleId) {
-        // Remover clase current de todos los módulos
+        // Si hay progress manager, usar el método con progreso
+        if (this.progressManager) {
+            this.selectModuleWithProgress(moduleId);
+            return;
+        }
+        
+        // Fallback sin progress manager
+        this.selectModuleBasic(moduleId);
+    }
+    
+    selectModuleBasic(moduleId) {
+        // Método original sin progress manager
         document.querySelectorAll('.module-item').forEach(item => {
             item.classList.remove('current');
         });
         
-        // Agregar clase current al módulo seleccionado
         const selectedModule = document.querySelector(`[data-module="${moduleId}"]`);
         if (selectedModule) {
             selectedModule.classList.add('current');
         }
         
         this.currentModule = moduleId;
-        
-        // 🎥 CAMBIAR VIDEO POR MÓDULO
         this.changeVideoByModule(moduleId);
-        
-        // Actualizar información del módulo
         this.updateModuleInfo(moduleId);
-        
-        // Cargar contenido del módulo
         this.loadModuleContent(moduleId);
     }
     
@@ -1084,6 +1094,317 @@ class ChatOnline {
         window.addEventListener('resize', () => {
             this.checkScreenSize();
         });
+    }
+    
+    // ===== PROGRESS MANAGER =====
+    async initializeProgressManager() {
+        try {
+            console.log('📊 Inicializando Progress Manager...');
+            
+            // Esperar a que esté disponible CourseProgressManager
+            if (typeof window.courseProgressManager === 'undefined') {
+                console.log('⏳ Esperando CourseProgressManager...');
+                await this.waitForProgressManager();
+            }
+            
+            this.progressManager = window.courseProgressManager;
+            
+            // Obtener progreso inicial
+            this.courseProgress = await this.progressManager.getCourseProgress();
+            
+            // Actualizar UI con el progreso actual
+            this.updateProgressUI();
+            
+            console.log('✅ Progress Manager inicializado');
+            
+        } catch (error) {
+            console.error('❌ Error inicializando Progress Manager:', error);
+            // Continuar sin progress manager en modo fallback
+            this.progressManager = null;
+        }
+    }
+    
+    waitForProgressManager() {
+        return new Promise((resolve) => {
+            const checkInterval = setInterval(() => {
+                if (typeof window.courseProgressManager !== 'undefined') {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 100);
+            
+            // Timeout después de 5 segundos
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                resolve(); // Continuar sin progress manager
+            }, 5000);
+        });
+    }
+    
+    setupProgressEvents() {
+        // Escuchar eventos de actualización de progreso
+        window.addEventListener('courseProgressUpdated', (event) => {
+            console.log('📡 Progreso actualizado:', event.detail);
+            this.courseProgress = event.detail.progress;
+            this.updateProgressUI();
+        });
+        
+        window.addEventListener('videoProgressUpdated', (event) => {
+            console.log('📡 Progreso de video actualizado:', event.detail);
+            this.courseProgress = event.detail.progress;
+            this.updateProgressUI();
+            
+            if (event.detail.moduleCompleted) {
+                this.showModuleCompletedNotification(event.detail.moduleNumber);
+            }
+        });
+    }
+    
+    // ===== ACTUALIZAR UI DEL PROGRESO =====
+    updateProgressUI() {
+        if (!this.courseProgress) return;
+        
+        console.log('🎨 Actualizando UI del progreso...');
+        
+        // Actualizar progreso general
+        this.updateOverallProgress();
+        
+        // Actualizar progress dots
+        this.updateProgressDots();
+        
+        // Actualizar estados de módulos
+        this.updateModuleStates();
+        
+        // Actualizar información del módulo actual
+        this.updateCurrentModuleInfo();
+    }
+    
+    updateOverallProgress() {
+        const progressPercentage = document.querySelector('.progress-percentage');
+        const progressFill = document.querySelector('.progress-fill');
+        
+        const percentage = this.courseProgress.overall_progress_percentage || 0;
+        
+        if (progressPercentage) {
+            progressPercentage.textContent = `${percentage}%`;
+        }
+        
+        if (progressFill) {
+            progressFill.style.width = `${percentage}%`;
+        }
+        
+        console.log(`📊 Progreso general actualizado: ${percentage}%`);
+    }
+    
+    updateProgressDots() {
+        const progressDots = document.querySelectorAll('.progress-dot');
+        const modules = this.courseProgress.modules || [];
+        
+        progressDots.forEach((dot, index) => {
+            const moduleNumber = index + 1;
+            const moduleData = modules.find(m => m.module_number === moduleNumber);
+            
+            if (moduleData) {
+                // Limpiar clases existentes
+                dot.classList.remove('completed', 'current', 'pending');
+                
+                // Aplicar clase según el estado
+                if (moduleData.status === 'completed') {
+                    dot.classList.add('completed');
+                } else if (moduleData.status === 'in_progress') {
+                    dot.classList.add('current');
+                } else {
+                    dot.classList.add('pending');
+                }
+                
+                // Actualizar tooltip
+                const statusText = {
+                    'completed': 'Completado',
+                    'in_progress': 'En Progreso', 
+                    'not_started': 'Pendiente',
+                    'locked': 'Bloqueado'
+                };
+                
+                dot.title = `Módulo ${moduleNumber} ${statusText[moduleData.status]}`;
+            }
+        });
+        
+        console.log('🔵 Progress dots actualizados');
+    }
+    
+    updateModuleStates() {
+        const moduleItems = document.querySelectorAll('.module-item');
+        const modules = this.courseProgress.modules || [];
+        
+        moduleItems.forEach(item => {
+            const moduleNumber = parseInt(item.dataset.module);
+            const moduleData = modules.find(m => m.module_number === moduleNumber);
+            
+            if (moduleData) {
+                // Limpiar clases existentes
+                item.classList.remove('completed', 'current', 'pending', 'locked');
+                
+                // Aplicar clase según el estado
+                item.classList.add(moduleData.status === 'in_progress' ? 'current' : moduleData.status);
+                
+                // Deshabilitar si está bloqueado
+                if (moduleData.status === 'locked') {
+                    item.style.opacity = '0.5';
+                    item.style.pointerEvents = 'none';
+                } else {
+                    item.style.opacity = '1';
+                    item.style.pointerEvents = 'auto';
+                }
+            }
+        });
+        
+        console.log('📚 Estados de módulos actualizados');
+    }
+    
+    updateCurrentModuleInfo() {
+        const currentModuleInfo = document.querySelector('.current-module-info span');
+        const currentModule = this.courseProgress.current_module || 1;
+        const modules = this.courseProgress.modules || [];
+        const moduleData = modules.find(m => m.module_number === currentModule);
+        
+        if (currentModuleInfo && moduleData) {
+            currentModuleInfo.textContent = `Módulo ${currentModule}: ${moduleData.module_name}`;
+        }
+        
+        console.log(`📍 Módulo actual: ${currentModule}`);
+    }
+    
+    // ===== MÉTODOS CON PROGRESO =====
+    async selectModuleWithProgress(moduleId) {
+        console.log(`📚 Seleccionando módulo ${moduleId} con progreso...`);
+        
+        // Verificar si el módulo está disponible
+        if (this.progressManager && this.progressManager.isModuleLocked(moduleId)) {
+            console.warn(`🔒 Módulo ${moduleId} está bloqueado`);
+            this.showLockedModuleMessage(moduleId);
+            return;
+        }
+        
+        // Ejecutar selección básica (evitar recursión)
+        this.selectModuleBasic(moduleId);
+        
+        // Marcar como iniciado si no ha comenzado
+        if (this.progressManager) {
+            const moduleData = this.progressManager.getModuleProgress(moduleId);
+            
+            if (moduleData && moduleData.status === 'not_started') {
+                try {
+                    await this.progressManager.startModule(moduleId);
+                    console.log(`▶️ Módulo ${moduleId} iniciado`);
+                } catch (error) {
+                    console.error('❌ Error iniciando módulo:', error);
+                }
+            }
+        }
+    }
+    
+    async markVideoSectionCompleted(sectionNumber) {
+        if (!this.progressManager) return;
+        
+        try {
+            console.log(`✅ Marcando sección ${sectionNumber} como completada...`);
+            
+            await this.progressManager.markVideoSectionCompleted(
+                this.currentModule,
+                sectionNumber,
+                0, // start time - se puede mejorar con datos reales del video
+                0  // end time - se puede mejorar con datos reales del video
+            );
+            
+        } catch (error) {
+            console.error('❌ Error marcando sección completada:', error);
+        }
+    }
+    
+    async updateVideoPosition(currentTime, duration, percentageComplete) {
+        if (!this.progressManager || !currentTime || !duration) return;
+        
+        try {
+            // Actualizar cada 30 segundos o cada 10% de progreso
+            const shouldUpdate = (
+                currentTime % 30 < 1 || 
+                Math.floor(percentageComplete) % 10 === 0
+            );
+            
+            if (shouldUpdate) {
+                await this.progressManager.updateVideoProgress(this.currentModule, {
+                    last_video_position: Math.floor(currentTime),
+                    video_progress_percentage: Math.floor(percentageComplete),
+                    video_completed: percentageComplete >= 95, // Considerar completo al 95%
+                    time_watched_seconds: 30 // Asumiendo actualización cada 30 segundos
+                });
+                
+                console.log(`🎥 Posición del video actualizada: ${Math.floor(percentageComplete)}%`);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error actualizando posición del video:', error);
+        }
+    }
+    
+    showLockedModuleMessage(moduleId) {
+        const message = `🔒 El Módulo ${moduleId} está bloqueado. Completa los módulos anteriores para desbloquearlo.`;
+        
+        // Mostrar notificación temporal
+        this.showTemporaryNotification(message, 'warning');
+    }
+    
+    showModuleCompletedNotification(moduleNumber) {
+        const message = `🎉 ¡Felicitaciones! Has completado el Módulo ${moduleNumber}`;
+        
+        // Mostrar notificación de éxito
+        this.showTemporaryNotification(message, 'success');
+        
+        // Si no es el último módulo, sugerir continuar
+        if (moduleNumber < 5) {
+            setTimeout(() => {
+                const continueMessage = `¿Quieres continuar con el Módulo ${moduleNumber + 1}?`;
+                this.showTemporaryNotification(continueMessage, 'info');
+            }, 3000);
+        }
+    }
+    
+    showTemporaryNotification(message, type = 'info') {
+        // Crear elemento de notificación
+        const notification = document.createElement('div');
+        notification.className = `progress-notification progress-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span>${message}</span>
+                <button onclick="this.parentElement.parentElement.remove()">×</button>
+            </div>
+        `;
+        
+        // Estilos inline para asegurar visibilidad
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--glass-surface);
+            border: var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            max-width: 350px;
+            animation: slideInRight 0.3s ease;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remover después de 5 segundos
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, 5000);
     }
     
     checkScreenSize() {
@@ -2105,6 +2426,86 @@ function showModuleVideos() {
         return moduleVideos;
     }
 }
+
+// ===== FUNCIONES DE PROGRESO PARA TESTING =====
+
+// Obtener progreso del curso
+async function getProgress() {
+    if (window.courseProgressManager) {
+        const progress = await window.courseProgressManager.getCourseProgress(true);
+        console.log('📊 Progreso actual:', progress);
+        return progress;
+    } else {
+        console.warn('⚠️ Course Progress Manager no disponible');
+    }
+}
+
+// Marcar módulo como completado (para testing)
+async function completeModule(moduleNumber) {
+    if (window.courseProgressManager) {
+        try {
+            const result = await window.courseProgressManager.completeModule(moduleNumber);
+            console.log(`✅ Módulo ${moduleNumber} completado:`, result);
+            return result;
+        } catch (error) {
+            console.error('❌ Error:', error);
+        }
+    }
+}
+
+// Iniciar un módulo (para testing)
+async function startModule(moduleNumber) {
+    if (window.courseProgressManager) {
+        try {
+            const result = await window.courseProgressManager.startModule(moduleNumber);
+            console.log(`▶️ Módulo ${moduleNumber} iniciado:`, result);
+            return result;
+        } catch (error) {
+            console.error('❌ Error:', error);
+        }
+    }
+}
+
+// Actualizar progreso del video (para testing)
+async function updateVideoProgress(moduleNumber, percentage, position = 0) {
+    if (window.courseProgressManager) {
+        try {
+            const result = await window.courseProgressManager.updateVideoProgress(moduleNumber, {
+                video_progress_percentage: percentage,
+                last_video_position: position,
+                video_completed: percentage >= 95
+            });
+            console.log(`🎥 Video del módulo ${moduleNumber} actualizado:`, result);
+            return result;
+        } catch (error) {
+            console.error('❌ Error:', error);
+        }
+    }
+}
+
+// Reset del progreso (para testing - USAR CON CUIDADO)
+async function resetProgress() {
+    if (confirm('⚠️ ¿Estás seguro de que quieres resetear el progreso? Esta acción no se puede deshacer.')) {
+        console.log('🔄 Resetting progress no implementado por seguridad');
+        console.log('Para resetear manualmente, limpia las tablas de progreso en la base de datos');
+    }
+}
+
+// Mostrar comandos disponibles
+function showProgressCommands() {
+    console.log('📋 Comandos de progreso disponibles:');
+    console.log('• getProgress() - Obtener progreso actual');
+    console.log('• startModule(n) - Iniciar módulo n (1-5)');
+    console.log('• completeModule(n) - Completar módulo n (1-5)');
+    console.log('• updateVideoProgress(module, percentage, position) - Actualizar video');
+    console.log('• selectModule(n) - Cambiar a módulo n');
+    console.log('• showModuleVideos() - Ver videos disponibles');
+    console.log('• resetProgress() - Reset completo (usar con cuidado)');
+}
+
+// Auto-mostrar comandos disponibles
+console.log('🚀 Course Progress System cargado');
+console.log('💡 Escribe showProgressCommands() para ver comandos disponibles');
 
 // ===== EXPORTAR PARA USO EXTERNO =====
 if (typeof module !== 'undefined' && module.exports) {
