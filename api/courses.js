@@ -29,13 +29,14 @@ async function getCourseFullStructure(req, res) {
         const { data: courseData, error: courseError } = await supabase
             .from('courses')
             .select('*')
-            .eq('id', courseId)
+            .eq('slug', courseId) // Usar slug en lugar de id
             .eq('is_active', true)
             .single();
 
         if (courseError || !courseData) {
             console.error('❌ Error obteniendo curso:', courseError);
             return res.status(404).json({ 
+                success: false,
                 error: 'Curso no encontrado',
                 details: courseError?.message 
             });
@@ -52,12 +53,13 @@ async function getCourseFullStructure(req, res) {
                 ),
                 module_materials (*)
             `)
-            .eq('course_id', courseId)
+            .eq('course_id', courseData.id) // Usar el id real del curso
             .order('order_index', { ascending: true });
 
         if (modulesError) {
             console.error('❌ Error obteniendo módulos:', modulesError);
             return res.status(500).json({ 
+                success: false,
                 error: 'Error obteniendo módulos',
                 details: modulesError.message 
             });
@@ -70,7 +72,7 @@ async function getCourseFullStructure(req, res) {
                 .from('user_course_progress')
                 .select('*')
                 .eq('user_id', userId)
-                .eq('course_id', courseId)
+                .eq('course_id', courseData.id)
                 .single();
 
             if (!progressError && progressData) {
@@ -82,7 +84,7 @@ async function getCourseFullStructure(req, res) {
                 .from('user_progress')
                 .select('*')
                 .eq('user_id', userId)
-                .eq('course_id', courseId);
+                .eq('course_id', courseData.id);
 
             if (videoProgressData) {
                 // Agregar progreso a cada video
@@ -101,12 +103,15 @@ async function getCourseFullStructure(req, res) {
 
         // 4. Estructurar respuesta
         const response = {
+            success: true,
             course: courseData,
             modules: modulesData.map(module => ({
                 ...module,
                 videos: module.module_videos.map(video => ({
                     ...video,
-                    checkpoints: video.video_checkpoints
+                    checkpoints: video.video_checkpoints,
+                    youtube_embed_url: `https://www.youtube.com/embed/${video.youtube_video_id}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0`,
+                    youtube_thumbnail_url: `https://img.youtube.com/vi/${video.youtube_video_id}/maxresdefault.jpg`
                 })),
                 materials: module.module_materials
             })),
@@ -124,6 +129,7 @@ async function getCourseFullStructure(req, res) {
     } catch (error) {
         console.error('💥 Error en getCourseFullStructure:', error);
         res.status(500).json({ 
+            success: false,
             error: 'Error interno del servidor',
             details: error.message 
         });
@@ -501,12 +507,29 @@ async function getCurrentModule(req, res) {
 
         console.log(`📍 Obteniendo módulo actual para usuario ${userId} en curso ${courseId}`);
 
+        // 0. Obtener datos del curso por slug
+        const { data: courseData, error: courseError } = await supabase
+            .from('courses')
+            .select('*')
+            .eq('slug', courseId)
+            .eq('is_active', true)
+            .single();
+
+        if (courseError || !courseData) {
+            console.error('❌ Error obteniendo curso:', courseError);
+            return res.status(404).json({ 
+                success: false,
+                error: 'Curso no encontrado',
+                details: courseError?.message 
+            });
+        }
+
         // 1. Obtener progreso del curso
         let { data: courseProgress } = await supabase
             .from('user_course_progress')
             .select('*')
             .eq('user_id', userId)
-            .eq('course_id', courseId)
+            .eq('course_id', courseData.id)
             .single();
 
         // Si no existe progreso, crear uno inicial con el primer módulo
@@ -514,7 +537,7 @@ async function getCurrentModule(req, res) {
             const { data: firstModule } = await supabase
                 .from('course_modules')
                 .select('id')
-                .eq('course_id', courseId)
+                .eq('course_id', courseData.id)
                 .order('order_index', { ascending: true })
                 .limit(1)
                 .single();
@@ -524,7 +547,7 @@ async function getCurrentModule(req, res) {
                     .from('user_course_progress')
                     .insert({
                         user_id: userId,
-                        course_id: courseId,
+                        course_id: courseData.id,
                         current_module_id: firstModule.id,
                         total_modules: 0, // Se actualizará con trigger
                         total_videos: 0   // Se actualizará con trigger
@@ -554,6 +577,7 @@ async function getCurrentModule(req, res) {
         if (moduleError && courseProgress?.current_module_id) {
             console.error('❌ Error obteniendo módulo actual:', moduleError);
             return res.status(500).json({ 
+                success: false,
                 error: 'Error obteniendo módulo actual',
                 details: moduleError.message 
             });
@@ -575,6 +599,7 @@ async function getCurrentModule(req, res) {
         }
 
         const response = {
+            success: true,
             course_progress: courseProgress,
             current_module: currentModule,
             current_video: currentVideo ? {
@@ -593,6 +618,7 @@ async function getCurrentModule(req, res) {
     } catch (error) {
         console.error('💥 Error en getCurrentModule:', error);
         res.status(500).json({ 
+            success: false,
             error: 'Error interno del servidor',
             details: error.message 
         });

@@ -544,30 +544,136 @@ class ChatOnline {
     }
     
     async getLiaResponse(message) {
-        // Simular delay de respuesta
-        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-        
-        // Respuestas contextuales basadas en el mensaje
-        const lowerMessage = message.toLowerCase();
-        
-        if (lowerMessage.includes('hola') || lowerMessage.includes('buenos')) {
-            return '¡Hola! ¿En qué puedo ayudarte hoy con el curso de IA?';
+        try {
+            console.log('[LIA] 🚀 Generando respuesta para:', message);
+            
+            // Obtener información del usuario actual
+            const currentUser = this.obtenerUsuarioActual();
+            console.log('[LIA] 👤 Usuario actual:', currentUser);
+            
+            // Obtener contexto del taller actual usando la función hardcodeada
+            const context = typeof obtenerContextoCurso === 'function' ? obtenerContextoCurso() : this.obtenerContextoFallback();
+            console.log('[LIA] 📚 Contexto del taller:', context);
+            
+            // Preparar prompt con contexto específico del taller
+            const prompt = `Usuario: ${message}\n\nContexto del Taller: ${context}`;
+            console.log('[LIA] 📝 Prompt preparado:', prompt);
+            
+            console.log('[LIA] 🔄 Enviando solicitud a API...');
+            
+            // Determinar URL de API según el entorno
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const currentPort = window.location.port;
+            let apiUrl;
+            
+            if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
+                apiUrl = '/api/openai';
+            } else if (isLocalhost && currentPort === '8888') {
+                apiUrl = '/.netlify/functions/openai';
+            } else if (isLocalhost) {
+                apiUrl = '/api/openai';
+            } else {
+                apiUrl = '/.netlify/functions/openai';
+            }
+            
+            console.log('[LIA] 🎯 URL de API:', apiUrl);
+            
+            // Llamar a la API de OpenAI
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.obtenerTokenAuth()}`,
+                    'X-User-Id': currentUser?.id || 'taller-ia-user'
+                },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    context: `Información del usuario: ${JSON.stringify(currentUser || {})}`
+                })
+            });
+            
+            console.log('[LIA] 📡 Respuesta del servidor:', response.status, response.statusText);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('[LIA] ✅ Datos recibidos:', data);
+                
+                if (data.response) {
+                    console.log('[LIA] 🎯 Respuesta de API obtenida exitosamente');
+                    return data.response;
+                } else {
+                    console.log('[LIA] ⚠️ Respuesta vacía de la API');
+                    return '❌ Lo siento, hubo un problema técnico. Verifica la configuración de OpenAI.';
+                }
+            } else {
+                const errorText = await response.text();
+                console.log('[LIA] ❌ Error de API:', response.status, response.statusText);
+                console.log('[LIA] 📄 Texto del error:', errorText);
+                
+                if (response.status === 404) {
+                    return `❌ Error de configuración: No se encuentra la API en ${apiUrl}. Verifica que tu servidor esté corriendo correctamente.`;
+                } else if (response.status === 401) {
+                    return `🔐 Error de autenticación: Token inválido. Verifica la configuración de autenticación.`;
+                } else if (response.status === 500) {
+                    return `⚙️ Error del servidor: ${errorText}. Verifica tu configuración de OPENAI_API_KEY.`;
+                } else {
+                    return `❌ Error HTTP ${response.status}: ${errorText}. Verifica la configuración del servidor.`;
+                }
+            }
+            
+        } catch (error) {
+            console.error('[LIA] 💥 Error al conectar con API:', error);
+            return `❌ Error de conexión: No se pudo conectar con la API. Error: ${error.message}`;
+        }
+    }
+    
+    // Función auxiliar para obtener contexto de fallback si la función global no existe
+    obtenerContextoFallback() {
+        return `
+            Taller: Taller de fundamentos de Inteligencia Artificial con tutor personalizado
+            Tipo: Taller interactivo  
+            Módulo actual: 1 - Fundamentos de Inteligencia Artificial
+            Descripción: Conceptos básicos de IA, Machine Learning y aplicaciones prácticas con acompañamiento personalizado
+            Tutor: LIA - Tutor Personalizado de IA
+            Modalidad: 100% online con tutor personalizado IA
+            Documento de apoyo: Doc de apoyo - Fundamentos de IA.pdf
+            Objetivos del módulo: Comprender los conceptos fundamentales de IA, Identificar tipos de Machine Learning, Reconocer aplicaciones prácticas de IA, Desarrollar pensamiento crítico sobre IA
+        `;
+    }
+    
+    // Función auxiliar para obtener usuario actual
+    obtenerUsuarioActual() {
+        try {
+            const userData = localStorage.getItem('userData');
+            if (userData) {
+                return JSON.parse(userData);
+            }
+            return {
+                id: 'taller-ia-user',
+                username: 'Estudiante',
+                email: 'estudiante@ejemplo.com'
+            };
+        } catch (error) {
+            console.log('[LIA] Error obteniendo usuario:', error);
+            return {
+                id: 'taller-ia-user',
+                username: 'Estudiante',
+                email: 'estudiante@ejemplo.com'
+            };
+        }
+    }
+    
+    // Función auxiliar para obtener token de autenticación
+    obtenerTokenAuth() {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            console.log('[LIA] 🔑 Usando token real del localStorage');
+            return token;
         }
         
-        if (lowerMessage.includes('redes neuronales') || lowerMessage.includes('neural')) {
-            return 'Las redes neuronales son sistemas de aprendizaje automático inspirados en el cerebro humano. Están compuestas por capas de neuronas artificiales que procesan información de manera similar a las neuronas biológicas. ¿Te gustaría que profundice en algún aspecto específico?';
-        }
-        
-        if (lowerMessage.includes('machine learning') || lowerMessage.includes('ml')) {
-            return 'Machine Learning es un subcampo de la IA que permite a las computadoras aprender y mejorar automáticamente a partir de la experiencia sin ser programadas explícitamente. ¿Hay algún algoritmo específico que te interese?';
-        }
-        
-        if (lowerMessage.includes('ayuda') || lowerMessage.includes('ayudar')) {
-            return '¡Por supuesto! Puedo ayudarte con:\n• Explicar conceptos del video\n• Resolver dudas sobre IA\n• Proporcionar ejemplos prácticos\n• Crear resúmenes de temas\n\n¿Qué te gustaría saber?';
-        }
-        
-        // Respuesta por defecto
-        return 'Interesante pregunta. Basándome en el contexto del curso actual, puedo ayudarte a entender mejor los conceptos de IA. ¿Podrías ser más específico sobre lo que te gustaría aprender?';
+        const devToken = 'dev-token-taller-ia-user-' + Date.now();
+        console.log('[LIA] 🔧 Usando token de desarrollo:', devToken);
+        return devToken;
     }
     
     // ===== PESTAÑAS DE CONTENIDO =====

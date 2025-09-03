@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Video Loader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .video-container {
+            width: 100%;
+            height: 400px;
+            background: #f0f0f0;
+            margin: 20px 0;
+            border: 2px solid #ddd;
+            position: relative;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+        }
+        .debug {
+            background: #f8f8f8;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 3px solid #007cba;
+        }
+        .error {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+        .success {
+            background: #e8f5e8;
+            border-left-color: #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Video Loader</h1>
+    
+    <div id="debugInfo" class="debug">
+        <h3>Debug Information:</h3>
+        <div id="logs"></div>
+    </div>
+
+    <div id="courseInfo" class="debug">
+        <h3>Course Information:</h3>
+        <div id="courseData">Loading...</div>
+    </div>
+
+    <div class="video-container">
+        <iframe id="youtubePlayer" src="" frameborder="0" allowfullscreen></iframe>
+    </div>
+
+    <div id="videoInfo" class="debug">
+        <h3>Video Information:</h3>
+        <div id="videoData">Loading...</div>
+    </div>
+
+    <!-- Cargar DynamicVideoLoader -->
+    <script src="scripts/dynamic-video-loader.js"></script>
+
+    <script>
+        // Función para mostrar logs
+        function addLog(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            logsDiv.appendChild(logEntry);
+            console.log(message);
+        }
+
+        // Override console.log para mostrar en la página
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLog(args.join(' '), 'success');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLog(args.join(' '), 'error');
+        };
+
+        // Inicializar el sistema
+        document.addEventListener('DOMContentLoaded', async function() {
+            addLog('🚀 DOM loaded, starting test...');
+            
+            try {
+                if (!window.DynamicVideoLoader) {
+                    throw new Error('DynamicVideoLoader class not found');
+                }
+                
+                addLog('✅ DynamicVideoLoader class found');
+                
+                // Crear instancia
+                const loader = new DynamicVideoLoader();
+                addLog('✅ DynamicVideoLoader instance created');
+                
+                // Inicializar
+                await loader.init();
+                addLog('✅ DynamicVideoLoader initialized successfully');
+                
+                // Mostrar datos del curso
+                if (loader.courseData) {
+                    document.getElementById('courseData').innerHTML = `
+                        <p><strong>Título:</strong> ${loader.courseData.course.title}</p>
+                        <p><strong>Módulos:</strong> ${loader.courseData.modules.length}</p>
+                        <p><strong>Duración:</strong> ${loader.courseData.summary.total_duration_minutes} min</p>
+                    `;
+                }
+                
+                // Mostrar datos del video actual
+                if (loader.currentVideo) {
+                    document.getElementById('videoData').innerHTML = `
+                        <p><strong>Título:</strong> ${loader.currentVideo.video_title}</p>
+                        <p><strong>Duración:</strong> ${loader.currentVideo.duration_seconds} s</p>
+                        <p><strong>YouTube ID:</strong> ${loader.currentVideo.youtube_video_id}</p>
+                        <p><strong>URL de Embed:</strong> ${loader.currentVideo.youtube_embed_url}</p>
+                    `;
+                    
+                    // Cargar el video en el iframe
+                    const iframe = document.getElementById('youtubePlayer');
+                    iframe.src = loader.currentVideo.youtube_embed_url;
+                    addLog(`🎥 Video loaded: ${loader.currentVideo.video_title}`);
+                } else {
+                    addLog('⚠️ No current video found');
+                }
+                
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+                console.error('Full error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
