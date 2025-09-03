@@ -2500,6 +2500,48 @@ body {
     animation: fadeIn 0.5s ease-out;
 }
 
+/* ===== ESTILOS PARA COMUNIDAD ===== */
+.community-content {
+    color: var(--glass-text-secondary);
+    line-height: 1.6;
+    padding: 2rem;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.community-features {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.community-section {
+    background: rgba(68, 229, 255, 0.05);
+    border: 1px solid rgba(68, 229, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.community-section:hover {
+    background: rgba(68, 229, 255, 0.08);
+    border-color: rgba(68, 229, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.community-section h5 {
+    color: var(--glass-primary);
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.community-section p {
+    margin: 0;
+    color: var(--glass-text-secondary);
+    font-size: 0.9rem;
+}
+
 .quiz-header {
     text-align: center;
     margin-bottom: 2rem;

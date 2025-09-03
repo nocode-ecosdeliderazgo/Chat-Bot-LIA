@@ -635,6 +635,27 @@ class ChatOnline {
                     </div>
                 `;
                 break;
+            case 'community':
+                contentArea.innerHTML = `
+                    <div class="community-content">
+                        <h4>Comunidad de Aprendizaje</h4>
+                        <div class="community-features">
+                            <div class="community-section">
+                                <h5>📚 Foros de Discusión</h5>
+                                <p>Comparte ideas y resuelve dudas con otros estudiantes</p>
+                            </div>
+                            <div class="community-section">
+                                <h5>🤝 Grupos de Estudio</h5>
+                                <p>Únete a grupos según tu nivel y intereses</p>
+                            </div>
+                            <div class="community-section">
+                                <h5>💡 Proyectos Colaborativos</h5>
+                                <p>Participa en proyectos de IA con la comunidad</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                break;
         }
     }
     
