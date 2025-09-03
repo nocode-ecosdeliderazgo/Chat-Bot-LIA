@@ -6,7 +6,7 @@
 
 class DynamicVideoLoader {
     constructor() {
-        this.courseId = 'introduccion-ia'; // O puede venir del URL
+        this.courseId = '550e8400-e29b-41d4-a716-446655440001'; // ID real del curso de IA
         this.userId = null;
         this.currentModule = null;
         this.currentVideo = null;

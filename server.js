@@ -4595,4 +4595,300 @@ function generateZoomSignature(sessionName, roleType) {
     return mockSignature;
 }
 
+// =====================================================
+// ENDPOINTS PARA DYNAMIC VIDEO LOADER
+// =====================================================
+
+// Obtener estructura completa del curso con videos
+app.get('/api/course-structure/:courseId', async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
+        
+        const { courseId } = req.params;
+        const { userId } = req.query;
+        
+        console.log(`📚 Obteniendo estructura del curso: ${courseId} para usuario: ${userId}`);
+
+        // Información del curso
+        const courseQuery = `
+            SELECT 
+                id_ai_courses as id,
+                name as title,
+                short_description as category,
+                long_description as description,
+                session_count,
+                total_duration
+            FROM public.ai_courses 
+            WHERE id_ai_courses = $1 OR name = $1
+        `;
+
+        // Obtener módulos con videos (simulados)
+        const modulesQuery = `
+            SELECT 
+                cm.id,
+                cm.title,
+                cm.description,
+                cm.session_id as module_number,
+                cm.position,
+                COALESCE(cm.total_duration, 30) as duration_minutes
+            FROM public.course_module cm
+            WHERE cm.course_id = $1
+            ORDER BY cm.session_id, cm.position
+        `;
+
+        const [courseResult, modulesResult] = await Promise.all([
+            pool.query(courseQuery, [courseId]),
+            pool.query(modulesQuery, [courseId])
+        ]);
+
+        if (courseResult.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Curso no encontrado' 
+            });
+        }
+
+        const course = courseResult.rows[0];
+        
+        // Estructura los módulos con videos simulados
+        const modules = modulesResult.rows.map((module, index) => ({
+            id: module.id,
+            title: module.title,
+            description: module.description,
+            module_number: module.module_number || (index + 1),
+            duration_minutes: module.duration_minutes,
+            videos: [{
+                id: `video_${module.id}`,
+                video_title: module.title,
+                duration_seconds: (module.duration_minutes || 30) * 60,
+                youtube_embed_url: `https://www.youtube.com/embed/dQw4w9WgXcQ?start=0&rel=0&modestbranding=1&showinfo=0`,
+                checkpoints: [
+                    {
+                        checkpoint_time_seconds: Math.floor((module.duration_minutes || 30) * 60 * 0.25),
+                        checkpoint_label: "Introducción"
+                    },
+                    {
+                        checkpoint_time_seconds: Math.floor((module.duration_minutes || 30) * 60 * 0.5),
+                        checkpoint_label: "Desarrollo"
+                    },
+                    {
+                        checkpoint_time_seconds: Math.floor((module.duration_minutes || 30) * 60 * 0.75),
+                        checkpoint_label: "Ejercicios"
+                    },
+                    {
+                        checkpoint_time_seconds: (module.duration_minutes || 30) * 60,
+                        checkpoint_label: "Conclusión"
+                    }
+                ],
+                user_progress: {
+                    current_time_seconds: 0,
+                    is_completed: false
+                }
+            }]
+        }));
+
+        const response = {
+            success: true,
+            course: {
+                id: course.id,
+                title: course.title,
+                category: course.category || 'IA',
+                description: course.description
+            },
+            modules: modules,
+            summary: {
+                total_modules: modules.length,
+                total_videos: modules.length,
+                total_duration_minutes: modules.reduce((sum, m) => sum + m.duration_minutes, 0)
+            }
+        };
+
+        console.log(`✅ Estructura del curso obtenida: ${modules.length} módulos`);
+        res.json(response);
+
+    } catch (error) {
+        console.error('❌ Error obteniendo estructura del curso:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Error interno del servidor' 
+        });
+    }
+});
+
+// Obtener módulo actual del usuario
+app.get('/api/current-module/:courseId/:userId', async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
+        
+        const { courseId, userId } = req.params;
+        
+        console.log(`📍 Obteniendo módulo actual del usuario: ${userId} en curso: ${courseId}`);
+
+        // Por ahora, siempre retornamos el primer módulo como actual
+        const moduleQuery = `
+            SELECT 
+                cm.id,
+                cm.title,
+                cm.description,
+                cm.session_id as module_number,
+                cm.position,
+                COALESCE(cm.total_duration, 30) as duration_minutes
+            FROM public.course_module cm
+            WHERE cm.course_id = $1
+            ORDER BY cm.session_id, cm.position
+            LIMIT 1
+        `;
+
+        const result = await pool.query(moduleQuery, [courseId]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'No se encontraron módulos para este curso' 
+            });
+        }
+
+        const module = result.rows[0];
+        
+        const currentModule = {
+            id: module.id,
+            title: module.title,
+            description: module.description,
+            module_number: module.module_number || 1,
+            duration_minutes: module.duration_minutes
+        };
+
+        const currentVideo = {
+            id: `video_${module.id}`,
+            video_title: module.title,
+            duration_seconds: (module.duration_minutes || 30) * 60,
+            youtube_embed_url: `https://www.youtube.com/embed/dQw4w9WgXcQ?start=0&rel=0&modestbranding=1&showinfo=0`,
+            checkpoints: [
+                {
+                    checkpoint_time_seconds: Math.floor((module.duration_minutes || 30) * 60 * 0.25),
+                    checkpoint_label: "Introducción"
+                },
+                {
+                    checkpoint_time_seconds: Math.floor((module.duration_minutes || 30) * 60 * 0.5),
+                    checkpoint_label: "Desarrollo"
+                },
+                {
+                    checkpoint_time_seconds: Math.floor((module.duration_minutes || 30) * 60 * 0.75),
+                    checkpoint_label: "Ejercicios"
+                },
+                {
+                    checkpoint_time_seconds: (module.duration_minutes || 30) * 60,
+                    checkpoint_label: "Conclusión"
+                }
+            ],
+            user_progress: {
+                current_time_seconds: 0,
+                is_completed: false
+            }
+        };
+
+        console.log(`✅ Módulo actual obtenido: ${currentModule.title}`);
+        
+        res.json({
+            success: true,
+            current_module: currentModule,
+            current_video: currentVideo
+        });
+
+    } catch (error) {
+        console.error('❌ Error obteniendo módulo actual:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Error interno del servidor' 
+        });
+    }
+});
+
+// Cambiar a un módulo específico
+app.post('/api/switch-module', async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ error: 'Base de datos no configurada' });
+        
+        const { userId, courseId, moduleId } = req.body;
+        
+        console.log(`🔄 Usuario ${userId} cambiando a módulo: ${moduleId}`);
+
+        // Obtener información del módulo
+        const moduleQuery = `
+            SELECT 
+                cm.id,
+                cm.title,
+                cm.description,
+                cm.session_id as module_number,
+                cm.position,
+                COALESCE(cm.total_duration, 30) as duration_minutes
+            FROM public.course_module cm
+            WHERE cm.id = $1
+        `;
+
+        const result = await pool.query(moduleQuery, [moduleId]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Módulo no encontrado' 
+            });
+        }
+
+        const module = result.rows[0];
+        
+        const moduleData = {
+            id: module.id,
+            title: module.title,
+            description: module.description,
+            module_number: module.module_number || 1,
+            duration_minutes: module.duration_minutes
+        };
+
+        const videoData = {
+            id: `video_${module.id}`,
+            video_title: module.title,
+            duration_seconds: (module.duration_minutes || 30) * 60,
+            youtube_embed_url: `https://www.youtube.com/embed/dQw4w9WgXcQ?start=0&rel=0&modestbranding=1&showinfo=0`,
+            checkpoints: [
+                {
+                    checkpoint_time_seconds: Math.floor((module.duration_minutes || 30) * 60 * 0.25),
+                    checkpoint_label: "Introducción"
+                },
+                {
+                    checkpoint_time_seconds: Math.floor((module.duration_minutes || 30) * 60 * 0.5),
+                    checkpoint_label: "Desarrollo"
+                },
+                {
+                    checkpoint_time_seconds: Math.floor((module.duration_minutes || 30) * 60 * 0.75),
+                    checkpoint_label: "Ejercicios"
+                },
+                {
+                    checkpoint_time_seconds: (module.duration_minutes || 30) * 60,
+                    checkpoint_label: "Conclusión"
+                }
+            ],
+            user_progress: {
+                current_time_seconds: 0,
+                is_completed: false
+            }
+        };
+
+        console.log(`✅ Cambio a módulo completado: ${moduleData.title}`);
+        
+        res.json({
+            success: true,
+            module: moduleData,
+            current_video: videoData
+        });
+
+    } catch (error) {
+        console.error('❌ Error cambiando módulo:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Error interno del servidor' 
+        });
+    }
+});
+
 module.exports = app;
