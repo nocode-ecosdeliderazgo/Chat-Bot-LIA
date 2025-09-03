@@ -2703,3 +2703,234 @@ body {
     }
 }
 
+/* =====================================================
+   ESTILOS PARA VIDEOS DEL MÓDULO 1
+   ===================================================== */
+
+.module-videos-section {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px solid rgba(68, 229, 255, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.module-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: rgba(68, 229, 255, 0.05);
+    border-bottom: 1px solid rgba(68, 229, 255, 0.1);
+}
+
+.module-header h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--glass-primary);
+}
+
+.module-header .icon {
+    width: 16px;
+    height: 16px;
+    color: var(--glass-primary);
+}
+
+.module-video-count {
+    font-size: 0.8rem;
+    color: var(--glass-secondary);
+    background: rgba(68, 229, 255, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.module-videos-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+
+.module-videos-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.module-videos-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.module-videos-list::-webkit-scrollbar-thumb {
+    background: rgba(68, 229, 255, 0.2);
+    border-radius: 2px;
+}
+
+.module-videos-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(68, 229, 255, 0.4);
+}
+
+.video-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(68, 229, 255, 0.05);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 0.5rem;
+}
+
+.video-item:hover {
+    background: rgba(68, 229, 255, 0.08);
+    border-color: rgba(68, 229, 255, 0.2);
+    transform: translateX(2px);
+}
+
+.video-item.active {
+    background: rgba(68, 229, 255, 0.15);
+    border-color: rgba(68, 229, 255, 0.4);
+    box-shadow: 0 0 0 2px rgba(68, 229, 255, 0.1);
+}
+
+.video-item.completed {
+    background: rgba(34, 197, 94, 0.08);
+    border-color: rgba(34, 197, 94, 0.2);
+}
+
+.video-item.completed .video-icon {
+    background: rgba(34, 197, 94, 0.2);
+    color: var(--glass-success);
+}
+
+.video-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(68, 229, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--glass-primary);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.video-icon svg {
+    width: 16px;
+    height: 16px;
+    color: inherit;
+}
+
+.video-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.video-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--glass-text);
+    margin: 0 0 0.25rem 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.video-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--glass-secondary);
+}
+
+.video-duration {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.video-duration .icon {
+    width: 12px;
+    height: 12px;
+}
+
+.video-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.video-progress .icon {
+    width: 12px;
+    height: 12px;
+}
+
+.progress-bar-mini {
+    width: 60px;
+    height: 3px;
+    background: rgba(68, 229, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill-mini {
+    height: 100%;
+    background: var(--glass-primary);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.loading-videos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem 1rem;
+    color: var(--glass-secondary);
+}
+
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(68, 229, 255, 0.1);
+    border-top: 2px solid var(--glass-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem 1rem;
+    color: var(--glass-error, #ef4444);
+    text-align: center;
+}
+
+.error-message .icon {
+    width: 32px;
+    height: 32px;
+    color: var(--glass-error, #ef4444);
+}
+
+.error-message span {
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+

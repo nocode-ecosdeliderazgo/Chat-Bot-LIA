@@ -316,10 +316,27 @@
                 
                 <!-- Lista de Módulos - Se carga dinámicamente -->
                 <div class="modules-list">
-                    <!-- Los módulos se cargarán dinámicamente desde la base de datos -->
-                    <div class="loading-modules">
-                        <div class="loading-spinner"></div>
-                        <span>Cargando módulos del curso...</span>
+                    <!-- Videos del Módulo 1 -->
+                    <div class="module-videos-section">
+                        <div class="module-header">
+                            <h4>
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                                </svg>
+                                Módulo 1: ¿Qué es la IA?
+                            </h4>
+                            <span class="module-video-count">15 videos</span>
+                        </div>
+                        
+                        <!-- Lista de videos del módulo -->
+                        <div class="module-videos-list" id="module1VideosList">
+                            <!-- Los videos se cargarán dinámicamente aquí -->
+                            <div class="loading-videos">
+                                <div class="loading-spinner"></div>
+                                <span>Cargando videos del módulo...</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -689,6 +706,9 @@ Cargando información...
     
     <!-- Script de cambio de tema global -->
     <script src="../scripts/theme-toggle.js">    </script>
+    
+    <!-- Module 1 Videos Loader -->
+    <script src="module1-videos-loader.js"></script>
 </body>
 </html>
                             rows="2"
