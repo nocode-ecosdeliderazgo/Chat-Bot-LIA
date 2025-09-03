@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Scripts</title>
+</head>
+<body>
+    <h1>🐛 Debug Scripts</h1>
+    
+    <div id="status">Iniciando...</div>
+    <div id="console"></div>
+    
+    <script>
+        function log(message) {
+            console.log(message);
+            document.getElementById('console').innerHTML += '<div>' + message + '</div>';
+        }
+        
+        function updateStatus(message, color = 'black') {
+            document.getElementById('status').innerHTML = message;
+            document.getElementById('status').style.color = color;
+        }
+        
+        log('🚀 Página iniciada');
+        
+        // Verificar estado inicial
+        log('📊 Estado inicial:');
+        log('- window.CourseProgressManager: ' + typeof window.CourseProgressManager);
+        log('- window.YouTubeProgressTracker: ' + typeof window.YouTubeProgressTracker);
+        log('- window.courseProgressManager: ' + typeof window.courseProgressManager);
+        
+        // Verificar cada 500ms
+        let checkCount = 0;
+        const checkInterval = setInterval(() => {
+            checkCount++;
+            log(`\n🔍 Verificación #${checkCount}:`);
+            log('- window.CourseProgressManager: ' + typeof window.CourseProgressManager);
+            log('- window.YouTubeProgressTracker: ' + typeof window.YouTubeProgressTracker);
+            log('- window.courseProgressManager: ' + typeof window.courseProgressManager);
+            
+            if (typeof window.CourseProgressManager !== 'undefined' && 
+                typeof window.YouTubeProgressTracker !== 'undefined') {
+                log('✅ Ambos scripts están disponibles!');
+                updateStatus('✅ Scripts disponibles', 'green');
+                clearInterval(checkInterval);
+            } else if (checkCount >= 20) { // 10 segundos
+                log('❌ Timeout - scripts no disponibles después de 10 segundos');
+                updateStatus('❌ Timeout - scripts no disponibles', 'red');
+                clearInterval(checkInterval);
+            }
+        }, 500);
+        
+        // Escuchar eventos
+        window.addEventListener('courseProgressManagerReady', (event) => {
+            log('🎯 Evento courseProgressManagerReady recibido');
+        });
+        
+        window.addEventListener('youtubeProgressTrackerReady', (event) => {
+            log('🎯 Evento youtubeProgressTrackerReady recibido');
+        });
+        
+        // DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            log('📄 DOMContentLoaded disparado');
+        });
+        
+        // window.load
+        window.addEventListener('load', () => {
+            log('🌐 window.load disparado');
+        });
+    </script>
+    
+    <!-- Cargar scripts -->
+    <script src="src/scripts/course-progress-manager.js"></script>
+    <script src="src/scripts/youtube-progress-tracker.js"></script>
+</body>
+</html>

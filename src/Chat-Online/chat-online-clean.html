@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Online - Cursos Dinámicos | LIA</title>
+    
+    <!-- CSS Principal -->
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="chat-online.css">
+</head>
+
+<body>
+    <!-- Contenedor principal -->
+    <div class="container">
+        
+        <!-- Header -->
+        <header class="header neo-card">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>🤖 LIA - Curso IA</h1>
+                </div>
+                <div class="progress-summary">
+                    <div class="progress-circle">
+                        <div class="progress-text">
+                            <span id="overallProgress">0%</span>
+                            <small>Completado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Contenido principal -->
+        <main class="main-content">
+            
+            <!-- Panel izquierdo: Módulos -->
+            <aside class="sidebar neo-card">
+                <div class="modules-header">
+                    <h2>📚 Módulos del Curso</h2>
+                    <div class="course-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="courseProgressBar" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-text" id="courseProgressText">0% completado</span>
+                    </div>
+                </div>
+                
+                <div class="modules-list" id="modulesList">
+                    <div class="loading-message">
+                        🔄 Cargando módulos del curso...
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Panel central: Video y contenido -->
+            <section class="content-area neo-card">
+                
+                <!-- Tabs de navegación -->
+                <nav class="content-tabs">
+                    <button class="tab-button active" data-tab="video">
+                        🎥 Video
+                    </button>
+                    <button class="tab-button" data-tab="materials">
+                        📄 Materiales
+                    </button>
+                    <button class="tab-button" data-tab="quiz">
+                        ❓ Quiz
+                    </button>
+                </nav>
+
+                <!-- Tab: Video -->
+                <div class="tab-content active" id="tab-video">
+                    <!-- Video Player -->
+                    <div class="video-section">
+                        <div class="youtube-player-wrapper">
+                            <iframe 
+                                id="youtubePlayer"
+                                width="100%" 
+                                height="100%" 
+                                src=""
+                                title="Cargando video desde base de datos..."
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" 
+                                allowfullscreen
+                                loading="lazy"
+                                referrerpolicy="strict-origin-when-cross-origin">
+                            </iframe>
+                        </div>
+                        
+                        <!-- Fallback para navegadores antiguos -->
+                        <noscript>
+                            <div class="video-fallback">
+                                <p>Para ver este video, necesitas JavaScript habilitado.</p>
+                                <a href="#" target="_blank" rel="noopener noreferrer" id="fallbackVideoLink">
+                                    Ver en YouTube
+                                </a>
+                            </div>
+                        </noscript>
+                    </div>
+                            
+                    <!-- Información del Video -->
+                    <div class="video-info">
+                        <h3 id="videoTitle">
+                            🔄 Cargando información desde base de datos...
+                        </h3>
+                        <div class="video-stats">
+                            <span id="videoDuration">
+                                ⏱️ Duración: Calculando...
+                            </span>
+                            <span id="videoProgress">
+                                📊 Progreso: 0%
+                            </span>
+                        </div>
+                        <div class="video-progress-dots" id="videoProgressDots">
+                            <!-- Se generará dinámicamente desde checkpoints de BD -->
+                        </div>
+                    </div>
+
+                    <!-- Transcripción -->
+                    <div class="transcript-section">
+                        <h4>📝 Transcripción</h4>
+                        <div class="transcript-content">
+                            <p id="transcriptText">Cargando transcripción desde base de datos...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Materiales -->
+                <div class="tab-content" id="tab-materials">
+                    <div class="materials-section">
+                        <h3>📚 Materiales del Módulo</h3>
+                        <div class="materials-list" id="materialsList">
+                            <div class="loading-message">
+                                🔄 Cargando materiales desde base de datos...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Quiz -->
+                <div class="tab-content" id="tab-quiz">
+                    <div class="quiz-section">
+                        <h3>❓ Evaluación del Módulo</h3>
+                        <div class="quiz-content" id="quizContent">
+                            <div class="loading-message">
+                                🔄 Cargando evaluación desde base de datos...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Panel derecho: Chat LIA -->
+            <aside class="chat-panel neo-card">
+                <div class="chat-header">
+                    <h3>🤖 LIA - Asistente IA</h3>
+                    <div class="chat-status">
+                        <span class="status-dot online"></span>
+                        En línea
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="liaMessages">
+                    <div class="message lia-message">
+                        <div class="message-avatar neo-circle">
+                            🤖
+                        </div>
+                        <div class="message-content neo-card">
+                            <div class="message-text">
+                                ¡Hola! Soy LIA, tu asistente de Inteligencia Artificial. 
+                                Estoy aquí para ayudarte con cualquier pregunta sobre el curso. 
+                                ¿En qué te puedo ayudar?
+                            </div>
+                            <div class="message-time">ahora</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Indicador de escritura -->
+                <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                    <div class="typing-animation">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span>LIA está escribiendo...</span>
+                </div>
+
+                <div class="chat-input">
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="liaMessageInput" 
+                            placeholder="Pregúntale a LIA..." 
+                            maxlength="500"
+                        >
+                        <button id="sendLiaMessage" class="send-button neo-button">
+                            📤
+                        </button>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Scripts del Sistema Dinámico -->
+    <script src="../scripts/dynamic-video-loader.js"></script>
+    <script src="../scripts/course-progress-manager-v2.js"></script>
+    <script src="chat-online-v2.js"></script>
+    <script src="components/lia-chat.js"></script>
+
+    <!-- Inicialización del Sistema Dinámico -->
+    <script>
+        console.log('🚀 Inicializando sistema dinámico limpio...');
+        
+        // Esperar a que el DOM esté listo
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🌟 DOM listo - Inicializando sistema de cursos dinámico');
+            
+            try {
+                // 1. Inicializar Dynamic Video Loader
+                if (window.DynamicVideoLoader) {
+                    window.dynamicVideoLoader = new DynamicVideoLoader();
+                    await window.dynamicVideoLoader.init();
+                    console.log('✅ Dynamic Video Loader inicializado');
+                } else {
+                    console.error('❌ DynamicVideoLoader no encontrado');
+                    return;
+                }
+                
+                // 2. Inicializar Course Progress Manager V2
+                if (window.CourseProgressManagerV2) {
+                    window.courseProgressManager = new CourseProgressManagerV2();
+                    await window.courseProgressManager.init();
+                    console.log('✅ Course Progress Manager V2 inicializado');
+                } else {
+                    console.error('❌ CourseProgressManagerV2 no encontrado');
+                }
+                
+                // 3. Inicializar Chat Online V2
+                if (window.ChatOnlineV2) {
+                    window.chatOnlineV2 = new ChatOnlineV2();
+                    await window.chatOnlineV2.init();
+                    console.log('✅ Chat Online V2 inicializado');
+                } else {
+                    console.error('❌ ChatOnlineV2 no encontrado');
+                }
+                
+                console.log('🎉 Sistema dinámico completamente inicializado');
+                
+                // Actualizar link de fallback si hay video actual
+                if (window.dynamicVideoLoader && window.dynamicVideoLoader.currentVideo) {
+                    const fallbackLink = document.getElementById('fallbackVideoLink');
+                    if (fallbackLink) {
+                        fallbackLink.href = `https://youtu.be/${window.dynamicVideoLoader.currentVideo.youtube_video_id}`;
+                    }
+                }
+                
+            } catch (error) {
+                console.error('💥 Error inicializando sistema dinámico:', error);
+                
+                // Mostrar error en la UI
+                const modulesList = document.getElementById('modulesList');
+                if (modulesList) {
+                    modulesList.innerHTML = `
+                        <div class="error-message">
+                            ❌ Error cargando el curso desde la base de datos.
+                            <br>Por favor, verifica tu conexión y recarga la página.
+                            <br><small>Error: ${error.message}</small>
+                        </div>
+                    `;
+                }
+            }
+        });
+        
+        // Configurar tabs básicos
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('tab-button')) {
+                // Remover active de todos los tabs y contenidos
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                // Activar tab clickeado
+                e.target.classList.add('active');
+                const tabId = 'tab-' + e.target.dataset.tab;
+                const tabContent = document.getElementById(tabId);
+                if (tabContent) {
+                    tabContent.classList.add('active');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

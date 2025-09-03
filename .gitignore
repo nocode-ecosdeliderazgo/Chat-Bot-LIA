@@ -195,3 +195,6 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml 
 nul
+
+# Local Netlify folder
+.netlify
