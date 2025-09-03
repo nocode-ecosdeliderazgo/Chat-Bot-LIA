@@ -3668,7 +3668,46 @@ io.on('connection', (socket) => {
     });
 });
 
+// =====================================================
+// SISTEMA DE CURSOS DINÁMICOS - ENDPOINTS
+// =====================================================
 
+// Importar funciones de cursos
+const coursesApi = require('./api/courses');
+
+// Obtener estructura completa del curso
+app.get('/api/courses/:courseId/full-structure', async (req, res) => {
+    await coursesApi.getCourseFullStructure(req, res);
+});
+
+// Obtener módulo actual del usuario
+app.get('/api/courses/:courseId/current-module/:userId', async (req, res) => {
+    await coursesApi.getCurrentModule(req, res);
+});
+
+// Obtener datos de video de un módulo
+app.get('/api/modules/:moduleId/video-data', async (req, res) => {
+    await coursesApi.getModuleVideoData(req, res);
+});
+
+// Obtener progreso del usuario en un curso
+app.get('/api/users/:userId/progress/:courseId', async (req, res) => {
+    await coursesApi.getUserProgress(req, res);
+});
+
+// Actualizar progreso de video
+app.post('/api/users/:userId/video-progress', async (req, res) => {
+    await coursesApi.updateVideoProgress(req, res);
+});
+
+// Cambiar módulo actual
+app.post('/api/users/:userId/switch-module', async (req, res) => {
+    await coursesApi.switchModule(req, res);
+});
+
+// =====================================================
+// FIN ENDPOINTS DE CURSOS
+// =====================================================
 
 // Iniciar servidor
 server.listen(PORT, () => {

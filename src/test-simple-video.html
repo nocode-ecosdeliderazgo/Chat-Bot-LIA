@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Simple Video</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .video-container { width: 100%; height: 450px; border: 1px solid #ccc; margin: 20px 0; }
+        iframe { width: 100%; height: 100%; }
+        .info { background: #f0f0f0; padding: 15px; margin: 10px 0; }
+        .log { font-family: monospace; background: #000; color: #0f0; padding: 10px; white-space: pre-line; height: 200px; overflow-y: scroll; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Simple Video Player</h1>
+        
+        <div class="info">
+            <h3>Video Information:</h3>
+            <div id="video-info">Loading...</div>
+        </div>
+        
+        <div class="video-container">
+            <iframe id="video-player" src="" frameborder="0" allowfullscreen></iframe>
+        </div>
+        
+        <div class="log" id="console-log"></div>
+    </div>
+
+    <script>
+        // Simple logger
+        const logger = document.getElementById('console-log');
+        function log(message) {
+            logger.textContent += new Date().toISOString() + ' ' + message + '\n';
+            logger.scrollTop = logger.scrollHeight;
+            console.log(message);
+        }
+
+        // Test video loading directly
+        async function loadVideo() {
+            log('🚀 Starting video loading test...');
+            
+            try {
+                const apiUrl = 'http://localhost:3000/api/courses/introduccion-ia/current-module/9562a449-4ade-4d4b-a3e4-b66dddb7e6f0';
+                log('📡 Fetching: ' + apiUrl);
+                
+                const response = await fetch(apiUrl);
+                log('📊 Response status: ' + response.status);
+                
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                }
+                
+                const data = await response.json();
+                log('✅ Data received successfully');
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'API returned success: false');
+                }
+                
+                const video = data.current_video;
+                if (!video) {
+                    throw new Error('No current video found in response');
+                }
+                
+                log('🎥 Video found: ' + video.video_title);
+                log('📺 YouTube ID: ' + video.youtube_video_id);
+                log('🔗 Embed URL: ' + video.youtube_embed_url);
+                
+                // Update UI
+                document.getElementById('video-info').innerHTML = `
+                    <p><strong>Title:</strong> ${video.video_title}</p>
+                    <p><strong>Description:</strong> ${video.description}</p>
+                    <p><strong>Duration:</strong> ${video.duration_seconds} seconds</p>
+                    <p><strong>YouTube ID:</strong> ${video.youtube_video_id}</p>
+                `;
+                
+                // Load video in iframe
+                const iframe = document.getElementById('video-player');
+                iframe.src = video.youtube_embed_url;
+                log('✅ Video loaded in iframe');
+                
+                return video;
+                
+            } catch (error) {
+                log('❌ ERROR: ' + error.message);
+                document.getElementById('video-info').innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+                throw error;
+            }
+        }
+
+        // Start when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            log('📄 DOM loaded, starting test...');
+            loadVideo();
+        });
+    </script>
+</body>
+</html>

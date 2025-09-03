@@ -14,6 +14,7 @@ class DynamicVideoLoader {
         this.apiBaseUrl = this.getApiBaseUrl();
         
         console.log('🎬 Dynamic Video Loader inicializado');
+        console.log('📚 Course ID:', this.courseId);
         console.log('🌐 API Base URL:', this.apiBaseUrl);
     }
 
@@ -56,19 +57,25 @@ class DynamicVideoLoader {
     async loadCourseStructure() {
         try {
             console.log('📚 Cargando estructura del curso...');
+            console.log('🔗 URL de API:', `${this.apiBaseUrl}/courses/${this.courseId}/full-structure?userId=${this.userId}`);
 
-            const response = await fetch(`${this.apiBaseUrl}/course-structure/${this.courseId}?userId=${this.userId}`, {
+            const response = await fetch(`${this.apiBaseUrl}/courses/${this.courseId}/full-structure?userId=${this.userId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
 
+            console.log('📡 Respuesta del servidor:', response.status, response.statusText);
+
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const errorText = await response.text();
+                console.error('❌ Error HTTP:', errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
             }
 
             const data = await response.json();
+            console.log('📦 Datos recibidos:', data);
             
             if (!data.success) {
                 throw new Error(data.error || 'Error obteniendo estructura del curso');
@@ -87,7 +94,7 @@ class DynamicVideoLoader {
         try {
             console.log('📍 Cargando módulo actual del usuario...');
 
-            const response = await fetch(`${this.apiBaseUrl}/current-module/${this.courseId}/${this.userId}`, {
+            const response = await fetch(`${this.apiBaseUrl}/courses/${this.courseId}/current-module/${this.userId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -120,7 +127,7 @@ class DynamicVideoLoader {
         try {
             console.log(`🔄 Cambiando a módulo: ${moduleId}`);
 
-            const response = await fetch(`${this.apiBaseUrl}/switch-module`, {
+            const response = await fetch(`${this.apiBaseUrl}/users/${this.userId}/switch-module`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -582,19 +589,8 @@ class DynamicVideoLoader {
 // Variable global para acceso
 window.dynamicVideoLoader = null;
 
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🎬 Inicializando Dynamic Video Loader...');
-    
-    window.dynamicVideoLoader = new DynamicVideoLoader();
-    
-    try {
-        await window.dynamicVideoLoader.init();
-        console.log('✅ Dynamic Video Loader listo para usar');
-    } catch (error) {
-        console.error('💥 Error inicializando Dynamic Video Loader:', error);
-    }
-});
+// La inicialización se hace manualmente desde chat-online.html
+// para controlar el orden de carga con otros sistemas
 
 // Exportar clase para uso modular
 if (typeof module !== 'undefined' && module.exports) {
