@@ -2964,9 +2964,12 @@ body {
 
 /* Lista de módulos */
 .modules-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+    background: var(--glass-surface);
+    border: var(--glass-border-subtle);
+    border-radius: 12px;
+    padding: 1rem;
+    backdrop-filter: var(--glass-blur-light);
+    box-shadow: var(--glass-shadow-small);
 }
 
 .loading-modules {
@@ -2981,22 +2984,28 @@ body {
 
 /* Módulo individual */
 .module-item {
-    background: var(--glass-surface);
-    border: var(--glass-border-subtle);
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: none;
+    border-bottom: 1px solid rgba(68, 229, 255, 0.1);
+    border-radius: 0;
     overflow: hidden;
     transition: all 0.3s ease;
+    margin-bottom: 0.5rem;
+}
+
+.module-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
 }
 
 .module-item:hover {
-    background: var(--glass-surface-hover);
-    border: var(--glass-border);
-    box-shadow: var(--glass-shadow-small);
+    background: rgba(68, 229, 255, 0.05);
 }
 
 .module-item.current {
-    border: var(--glass-border-strong);
-    background: var(--glass-surface-light);
+    background: rgba(68, 229, 255, 0.08);
+    border-left: 3px solid var(--glass-primary);
+    padding-left: 1rem;
 }
 
 /* Cabecera del módulo */
@@ -3004,14 +3013,14 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem;
+    padding: 0.75rem 0;
     cursor: pointer;
     user-select: none;
     transition: all 0.3s ease;
 }
 
 .module-header:hover {
-    background: rgba(68, 229, 255, 0.05);
+    background: transparent;
 }
 
 .module-info {
@@ -3023,12 +3032,13 @@ body {
 
 .module-info h4 {
     color: var(--glass-text-primary);
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 600;
     margin: 0;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex: 1;
 }
 
 .module-meta {
@@ -3089,19 +3099,21 @@ body {
     max-height: 0;
     overflow: hidden;
     transition: all 0.4s ease;
-    background: rgba(10, 15, 25, 0.3);
+    background: rgba(10, 15, 25, 0.2);
+    margin-top: 0.5rem;
+    border-radius: 6px;
 }
 
 .module-videos.expanded {
-    max-height: 600px;
-    border-top: var(--glass-border-subtle);
+    max-height: 300px;
+    border: 1px solid rgba(68, 229, 255, 0.15);
+    padding: 0.75rem;
 }
 
 .videos-list {
-    padding: 0.5rem;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.5rem;
 }
 
 /* Video individual */
@@ -3110,31 +3122,35 @@ body {
     align-items: center;
     padding: 0.75rem;
     border-radius: 8px;
-    background: transparent;
-    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(68, 229, 255, 0.1);
     cursor: pointer;
     transition: all 0.3s ease;
     gap: 0.75rem;
+    min-height: 64px;
 }
 
 .video-item:hover {
-    background: var(--glass-surface);
-    border-color: rgba(68, 229, 255, 0.2);
+    background: rgba(68, 229, 255, 0.08);
+    border-color: rgba(68, 229, 255, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10, 15, 25, 0.3);
 }
 
 .video-item.current {
-    background: var(--glass-surface-light);
+    background: rgba(68, 229, 255, 0.15);
     border-color: var(--glass-primary);
+    box-shadow: 0 0 0 2px rgba(68, 229, 255, 0.3);
 }
 
 .video-item.completed {
     background: rgba(34, 197, 94, 0.1);
-    border-color: rgba(34, 197, 94, 0.3);
+    border-color: rgba(34, 197, 94, 0.4);
 }
 
 .video-thumbnail {
-    width: 48px;
-    height: 36px;
+    width: 56px;
+    height: 42px;
     border-radius: 6px;
     background: rgba(68, 229, 255, 0.1);
     border: 1px solid rgba(68, 229, 255, 0.2);
@@ -3244,30 +3260,442 @@ body {
 
 /* Estados responsive */
 @media (max-width: 768px) {
-    .module-header {
+    .modules-list {
         padding: 0.75rem;
+    }
+    
+    .module-header {
+        padding: 0.5rem 0;
     }
     
     .module-info h4 {
         font-size: 0.9rem;
     }
     
+    .module-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
     .video-item {
         padding: 0.6rem;
         gap: 0.6rem;
+        min-height: 56px;
     }
     
     .video-thumbnail {
-        width: 40px;
-        height: 30px;
+        width: 48px;
+        height: 36px;
     }
     
     .video-title {
         font-size: 0.8rem;
+        -webkit-line-clamp: 1;
     }
     
     .video-meta {
         font-size: 0.7rem;
+        gap: 0.5rem;
     }
+}
+
+/* ===== SISTEMA DE MÓDULOS EXPANDIBLES ===== */
+
+/* Contenedor principal de módulos */
+.modules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0;
+}
+
+/* Elemento individual del módulo */
+.module-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(68, 229, 255, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: var(--glass-blur-light);
+}
+
+.module-item:hover {
+    border-color: rgba(68, 229, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-1px);
+    box-shadow: var(--glass-shadow-small);
+}
+
+.module-item.current {
+    border-color: var(--glass-primary);
+    background: rgba(68, 229, 255, 0.08);
+    box-shadow: 0 0 0 1px var(--glass-primary), var(--glass-shadow-small);
+}
+
+.module-item.expanded {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(68, 229, 255, 0.25);
+}
+
+/* Encabezado del módulo */
+.module-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.module-header:hover {
+    background: rgba(68, 229, 255, 0.05);
+}
+
+/* Información del módulo */
+.module-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.module-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(68, 229, 255, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(68, 229, 255, 0.2);
+}
+
+.module-icon svg {
+    width: 20px;
+    height: 20px;
+    color: var(--glass-primary);
+}
+
+.module-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.module-details h4 {
+    color: var(--glass-text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+    line-height: 1.3;
+}
+
+.module-details p {
+    color: var(--glass-text-secondary);
+    font-size: 0.85rem;
+    margin: 0;
+    line-height: 1.4;
+    opacity: 0.8;
+}
+
+/* Acciones del módulo */
+.module-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.module-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-end;
+}
+
+.video-count, .progress-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--glass-text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.video-count {
+    color: var(--glass-secondary);
+}
+
+.progress-indicator {
+    color: var(--glass-accent);
+}
+
+.module-toggle {
+    width: 32px;
+    height: 32px;
+    background: rgba(68, 229, 255, 0.1);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(68, 229, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.module-toggle:hover {
+    background: rgba(68, 229, 255, 0.15);
+    border-color: rgba(68, 229, 255, 0.3);
+}
+
+.toggle-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--glass-primary);
+    transition: transform 0.3s ease;
+}
+
+.toggle-icon.expanded {
+    transform: rotate(180deg);
+}
+
+/* Contenido del módulo */
+.module-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(68, 229, 255, 0.1);
+}
+
+.module-content.expanded {
+    max-height: 500px;
+}
+
+/* Lista de videos */
+.videos-list {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Elemento individual del video */
+.video-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(68, 229, 255, 0.08);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    gap: 0.75rem;
+}
+
+.video-item:hover {
+    background: rgba(68, 229, 255, 0.05);
+    border-color: rgba(68, 229, 255, 0.15);
+    transform: translateX(2px);
+}
+
+.video-item.active {
+    background: rgba(68, 229, 255, 0.1);
+    border-color: var(--glass-primary);
+    box-shadow: 0 0 0 1px var(--glass-primary);
+}
+
+/* Información del video */
+.video-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.video-icon {
+    width: 32px;
+    height: 32px;
+    background: rgba(68, 229, 255, 0.1);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(68, 229, 255, 0.2);
+}
+
+.video-icon svg {
+    width: 14px;
+    height: 14px;
+    color: var(--glass-primary);
+}
+
+.video-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.video-details h5 {
+    color: var(--glass-text-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 0 0 0.25rem 0;
+    line-height: 1.3;
+}
+
+.video-duration {
+    color: var(--glass-text-secondary);
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+/* Estado del video */
+.video-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.status-active, .status-pending {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-active {
+    background: var(--glass-secondary);
+    color: var(--glass-text-dark);
+}
+
+.status-pending {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--glass-text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Estados responsive para módulos expandibles */
+@media (max-width: 768px) {
+    .module-header {
+        padding: 0.75rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .module-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .module-stats {
+        flex-direction: row;
+        gap: 1rem;
+    }
+    
+    .videos-list {
+        padding: 0.75rem;
+    }
+    
+    .video-item {
+        padding: 0.6rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .video-info {
+        width: 100%;
+    }
+    
+    .video-status {
+        align-self: flex-end;
+    }
+}
+
+/* Animaciones adicionales */
+@keyframes moduleExpand {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.module-content.expanded {
+    animation: moduleExpand 0.3s ease-out;
+}
+
+/* Indicadores de progreso mejorados */
+.progress-indicator {
+    position: relative;
+}
+
+.progress-indicator::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--glass-accent);
+    border-radius: 1px;
+    opacity: 0.6;
+}
+
+/* Efectos de hover mejorados */
+.module-item:hover .module-icon {
+    background: rgba(68, 229, 255, 0.15);
+    border-color: rgba(68, 229, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.video-item:hover .video-icon {
+    background: rgba(68, 229, 255, 0.15);
+    border-color: rgba(68, 229, 255, 0.3);
+    transform: scale(1.05);
+}
+
+/* Transiciones suaves */
+.module-item,
+.module-header,
+.video-item,
+.module-toggle,
+.video-icon {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estados de carga */
+.loading-modules {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    gap: 1rem;
+    color: var(--glass-text-secondary);
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid rgba(68, 229, 255, 0.2);
+    border-top: 2px solid var(--glass-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
