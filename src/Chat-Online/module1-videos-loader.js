@@ -98,9 +98,10 @@ class Module1VideosLoader {
             // Si tenemos el dynamicVideoLoader, usar sus datos
             if (window.dynamicVideoLoader && window.dynamicVideoLoader.courseData) {
                 const module1 = window.dynamicVideoLoader.courseData.modules.find(m => m.module_number === 1);
-                if (module1 && module1.module_videos) {
+                if (module1 && module1.module_videos && module1.module_videos.length > 0) {
                     this.videos = module1.module_videos;
                     console.log('✅ Videos cargados desde dynamicVideoLoader:', this.videos.length);
+                    console.log('📹 Primer video:', this.videos[0]);
                     return;
                 }
             }
@@ -121,9 +122,10 @@ class Module1VideosLoader {
 
             const data = await response.json();
             
-            if (data.success && data.videos) {
+            if (data.success && data.videos && data.videos.length > 0) {
                 this.videos = data.videos;
                 console.log('✅ Videos cargados desde API:', this.videos.length);
+                console.log('📹 Primer video:', this.videos[0]);
             } else {
                 throw new Error(data.error || 'Error obteniendo videos del módulo 1');
             }
@@ -131,8 +133,11 @@ class Module1VideosLoader {
         } catch (error) {
             console.error('❌ Error cargando videos del módulo 1:', error);
             
-            // Crear datos de ejemplo para desarrollo
-            this.createSampleVideos();
+            // Solo crear videos de ejemplo si realmente no hay datos
+            if (this.videos.length === 0) {
+                console.warn('⚠️ No se pudieron cargar videos de la base de datos, usando datos de ejemplo');
+                this.createSampleVideos();
+            }
         }
     }
 
@@ -142,10 +147,11 @@ class Module1VideosLoader {
 
     createSampleVideos() {
         console.log('🔧 Creando videos de ejemplo para desarrollo...');
+        console.log('⚠️ ATENCIÓN: Estos son videos de ejemplo con IDs de YouTube de prueba');
         
         this.videos = [
             {
-                id: 'video-1',
+                id: 'sample-video-1',
                 video_title: 'Introducción a la Inteligencia Artificial',
                 duration_seconds: 180,
                 youtube_video_id: 'dQw4w9WgXcQ',
@@ -299,6 +305,9 @@ class Module1VideosLoader {
             // Limpiar lista existente
             videosList.innerHTML = '';
 
+            // Verificar si estamos usando videos de ejemplo
+            this.checkIfUsingSampleVideos();
+
             // Actualizar contador de videos
             const videoCount = document.querySelector('.module-video-count');
             if (videoCount) {
@@ -316,6 +325,86 @@ class Module1VideosLoader {
         } catch (error) {
             console.error('❌ Error renderizando lista de videos:', error);
         }
+    }
+
+    // =====================================================
+    // VERIFICAR SI SE ESTÁN USANDO VIDEOS DE EJEMPLO
+    // =====================================================
+
+    checkIfUsingSampleVideos() {
+        if (this.videos.length > 0) {
+            const firstVideo = this.videos[0];
+            if (firstVideo.id && firstVideo.id.startsWith('sample-video-')) {
+                console.warn('⚠️ ATENCIÓN: Se están usando videos de ejemplo en lugar de datos de la base de datos');
+                console.warn('🔍 Esto puede indicar un problema con la conexión a la base de datos');
+                console.warn('📊 Videos disponibles:', this.videos.length);
+                
+                // Intentar recargar videos desde la base de datos
+                this.retryLoadFromDatabase();
+            } else {
+                console.log('✅ Usando videos reales de la base de datos');
+                console.log('📊 Videos disponibles:', this.videos.length);
+            }
+        }
+    }
+
+    // =====================================================
+    // REINTENTAR CARGA DESDE BASE DE DATOS
+    // =====================================================
+
+    async retryLoadFromDatabase() {
+        console.log('🔄 Reintentando cargar videos desde la base de datos...');
+        
+        try {
+            // Limpiar videos actuales
+            this.videos = [];
+            
+            // Intentar cargar nuevamente
+            await this.loadModule1Videos();
+            
+            // Si se cargaron videos reales, re-renderizar
+            if (this.videos.length > 0 && !this.videos[0].id.startsWith('sample-video-')) {
+                console.log('✅ Videos reales cargados exitosamente, re-renderizando...');
+                this.renderVideosList();
+            }
+        } catch (error) {
+            console.error('❌ Error en reintento de carga:', error);
+        }
+    }
+
+    // =====================================================
+    // INFORMACIÓN DE DEBUG
+    // =====================================================
+
+    debugInfo() {
+        console.log('🔍 === INFORMACIÓN DE DEBUG ===');
+        console.log('📊 Estado actual del loader:');
+        console.log('   - Módulo ID:', this.moduleId);
+        console.log('   - Videos cargados:', this.videos.length);
+        console.log('   - Video activo:', this.currentVideoId);
+        
+        if (this.videos.length > 0) {
+            console.log('📹 Primer video:', this.videos[0]);
+            console.log('🎯 Usando videos de ejemplo:', this.videos[0].id.startsWith('sample-video-'));
+        }
+        
+        console.log('🌐 API Base URL:', this.apiBaseUrl);
+        console.log('🔗 dynamicVideoLoader disponible:', !!window.dynamicVideoLoader);
+        
+        if (window.dynamicVideoLoader) {
+            console.log('📚 Course data disponible:', !!window.dynamicVideoLoader.courseData);
+            if (window.dynamicVideoLoader.courseData) {
+                console.log('   - Módulos:', window.dynamicVideoLoader.courseData.modules?.length || 0);
+                const module1 = window.dynamicVideoLoader.courseData.modules?.find(m => m.module_number === 1);
+                console.log('   - Módulo 1 encontrado:', !!module1);
+                if (module1) {
+                    console.log('   - Videos del módulo 1:', module1.module_videos?.length || 0);
+                }
+            }
+        }
+        
+        console.log('🎬 Función loadVideo disponible:', typeof loadVideo === 'function');
+        console.log('=====================================');
     }
 
     // =====================================================
@@ -393,6 +482,8 @@ class Module1VideosLoader {
     selectVideo(video) {
         try {
             console.log('🎬 Seleccionando video:', video.video_title);
+            console.log('🔍 Datos completos del video:', video);
+            console.log('🎯 YouTube ID que se usará:', video.youtube_video_id);
 
             // Actualizar video activo
             this.currentVideoId = video.id;
@@ -426,9 +517,13 @@ class Module1VideosLoader {
 
     loadVideoInPlayer(video) {
         try {
-            // Si tenemos dynamicVideoLoader, usar su método
-            if (window.dynamicVideoLoader && window.dynamicVideoLoader.loadVideo) {
-                window.dynamicVideoLoader.loadVideo(video.youtube_video_id);
+            console.log('🎬 Cargando video en reproductor:', video.video_title);
+            console.log('🔗 YouTube ID:', video.youtube_video_id);
+
+            // Usar la función global loadVideo que está en chat-online.js
+            if (typeof loadVideo === 'function') {
+                loadVideo(video.youtube_video_id, video.video_title, this.formatDuration(video.duration_seconds));
+                console.log('✅ Video cargado usando función global loadVideo');
                 return;
             }
 
@@ -437,7 +532,9 @@ class Module1VideosLoader {
             if (youtubePlayer) {
                 const videoUrl = `https://www.youtube.com/embed/${video.youtube_video_id}?autoplay=1`;
                 youtubePlayer.src = videoUrl;
-                console.log('✅ Video cargado en reproductor:', videoUrl);
+                console.log('✅ Video cargado en reproductor (fallback):', videoUrl);
+            } else {
+                console.warn('⚠️ Elemento youtubePlayer no encontrado');
             }
 
         } catch (error) {
@@ -575,3 +672,4 @@ document.addEventListener('DOMContentLoaded', async function() {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Module1VideosLoader;
 }
+

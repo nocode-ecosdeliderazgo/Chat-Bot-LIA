@@ -2749,6 +2749,32 @@ body {
     font-weight: 500;
 }
 
+.module-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.debug-btn {
+    background: rgba(68, 229, 255, 0.1);
+    border: 1px solid rgba(68, 229, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--glass-primary);
+}
+
+.debug-btn:hover {
+    background: rgba(68, 229, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.debug-btn .icon-sm {
+    width: 16px;
+    height: 16px;
+}
+
 .module-videos-list {
     max-height: 400px;
     overflow-y: auto;
