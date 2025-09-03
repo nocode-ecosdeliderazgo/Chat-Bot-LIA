@@ -3705,6 +3705,16 @@ app.post('/api/users/:userId/switch-module', async (req, res) => {
     await coursesApi.switchModule(req, res);
 });
 
+// Obtener todos los videos de un módulo específico
+app.get('/api/modules/:moduleId/videos', async (req, res) => {
+    await coursesApi.getModuleVideos(req, res);
+});
+
+// Cambiar video actual del usuario
+app.post('/api/users/:userId/switch-video', async (req, res) => {
+    await coursesApi.switchVideo(req, res);
+});
+
 // =====================================================
 // FIN ENDPOINTS DE CURSOS
 // =====================================================

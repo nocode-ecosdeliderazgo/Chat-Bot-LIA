@@ -314,38 +314,12 @@
                     </div>
                 </div>
                 
-                <!-- Lista de Módulos - Se carga dinámicamente -->
-                <div class="modules-list">
-                    <!-- Videos del Módulo 1 -->
-                    <div class="module-videos-section">
-                                        <div class="module-header">
-                    <h4>
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-                        </svg>
-                        Módulo 1: ¿Qué es la IA?
-                    </h4>
-                    <div class="module-header-controls">
-                        <span class="module-video-count">15 videos</span>
-                        <button class="debug-btn" onclick="window.module1VideosLoader?.debugInfo()" title="Información de debug">
-                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 16v-4"/>
-                                <path d="M12 8h.01"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                        
-                        <!-- Lista de videos del módulo -->
-                        <div class="module-videos-list" id="module1VideosList">
-                            <!-- Los videos se cargarán dinámicamente aquí -->
-                            <div class="loading-videos">
-                                <div class="loading-spinner"></div>
-                                <span>Cargando videos del módulo...</span>
-                            </div>
-                        </div>
+                <!-- Lista de Módulos - Sistema de menús desplegables -->
+                <div class="modules-list" id="modulesList">
+                    <!-- Los módulos se cargarán dinámicamente aquí -->
+                    <div class="loading-modules">
+                        <div class="loading-spinner"></div>
+                        <span>Cargando módulos del curso...</span>
                     </div>
                 </div>
             </div>
@@ -716,8 +690,8 @@ Cargando información...
     <!-- Script de cambio de tema global -->
     <script src="../scripts/theme-toggle.js">    </script>
     
-    <!-- Module 1 Videos Loader -->
-    <script src="module1-videos-loader.js"></script>
+    <!-- Modules Static Demo - Demo con datos estáticos -->
+    <script src="../scripts/modules-static-demo.js"></script>
 </body>
 </html>
                             rows="2"
@@ -796,21 +770,9 @@ Cargando información...
 
             try {
 
-                // 1. Inicializar Dynamic Video Loader
+                // 1. Modules Static Demo se inicializa automáticamente con DOMContentLoaded
 
-                if (window.DynamicVideoLoader) {
-
-                    window.dynamicVideoLoader = new DynamicVideoLoader();
-
-                    await window.dynamicVideoLoader.init();
-
-                    console.log('✅ Dynamic Video Loader inicializado');
-
-                } else {
-
-                    console.error('❌ DynamicVideoLoader no encontrado');
-
-                }
+                console.log('✅ Modules Static Demo se inicializará automáticamente');
 
                 
 

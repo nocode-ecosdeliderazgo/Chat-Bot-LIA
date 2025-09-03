@@ -626,6 +626,216 @@ async function getCurrentModule(req, res) {
 }
 
 // =====================================================
+// 7. OBTENER TODOS LOS VIDEOS DE UN MÓDULO ESPECÍFICO
+// =====================================================
+
+/**
+ * GET /api/modules/:moduleId/videos
+ * Obtiene todos los videos de un módulo específico
+ */
+async function getModuleVideos(req, res) {
+    try {
+        const { moduleId } = req.params;
+        const { userId } = req.query;
+
+        console.log(`🎥 Obteniendo videos del módulo: ${moduleId}`);
+
+        // Obtener videos del módulo
+        const { data: videosData, error: videosError } = await supabase
+            .from('module_videos')
+            .select(`
+                *,
+                video_checkpoints (*),
+                course_modules (
+                    id,
+                    title,
+                    module_number,
+                    courses (id, title, slug)
+                )
+            `)
+            .eq('module_id', moduleId)
+            .order('video_order', { ascending: true });
+
+        if (videosError) {
+            console.error('❌ Error obteniendo videos:', videosError);
+            return res.status(500).json({ 
+                success: false,
+                error: 'Error obteniendo videos',
+                details: videosError.message 
+            });
+        }
+
+        if (!videosData || videosData.length === 0) {
+            return res.status(404).json({ 
+                success: false,
+                error: 'No se encontraron videos para este módulo'
+            });
+        }
+
+        // Obtener progreso del usuario si se proporciona
+        let userProgressData = [];
+        if (userId) {
+            const videoIds = videosData.map(v => v.id);
+            const { data: progressData } = await supabase
+                .from('user_progress')
+                .select('*')
+                .eq('user_id', userId)
+                .in('video_id', videoIds);
+
+            userProgressData = progressData || [];
+        }
+
+        // Estructurar respuesta
+        const videos = videosData.map(video => ({
+            ...video,
+            checkpoints: video.video_checkpoints,
+            youtube_embed_url: `https://www.youtube.com/embed/${video.youtube_video_id}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0`,
+            youtube_thumbnail_url: `https://img.youtube.com/vi/${video.youtube_video_id}/maxresdefault.jpg`,
+            user_progress: userProgressData.find(p => p.video_id === video.id) || {
+                current_time_seconds: 0,
+                completion_percentage: 0,
+                is_completed: false
+            }
+        }));
+
+        const response = {
+            success: true,
+            module: videosData[0]?.course_modules,
+            videos: videos,
+            summary: {
+                total_videos: videos.length,
+                completed_videos: userProgressData.filter(p => p.is_completed).length
+            }
+        };
+
+        console.log(`✅ Videos del módulo obtenidos exitosamente`);
+        res.json(response);
+
+    } catch (error) {
+        console.error('💥 Error en getModuleVideos:', error);
+        res.status(500).json({ 
+            success: false,
+            error: 'Error interno del servidor',
+            details: error.message 
+        });
+    }
+}
+
+// =====================================================
+// 8. CAMBIAR VIDEO ACTUAL DEL USUARIO
+// =====================================================
+
+/**
+ * POST /api/users/:userId/switch-video
+ * Cambia el video actual y actualiza el progreso
+ */
+async function switchVideo(req, res) {
+    try {
+        const { userId } = req.params;
+        const { courseId, moduleId, videoId } = req.body;
+
+        console.log(`🔄 Cambiando video para usuario ${userId}: ${videoId}`);
+
+        // Validaciones
+        if (!courseId || !moduleId || !videoId) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Datos requeridos faltantes',
+                required: ['courseId', 'moduleId', 'videoId']
+            });
+        }
+
+        // 1. Obtener datos del video
+        const { data: videoData, error: videoError } = await supabase
+            .from('module_videos')
+            .select(`
+                *,
+                video_checkpoints (*),
+                course_modules (
+                    *,
+                    courses (*)
+                )
+            `)
+            .eq('id', videoId)
+            .eq('module_id', moduleId)
+            .single();
+
+        if (videoError || !videoData) {
+            return res.status(404).json({ 
+                success: false,
+                error: 'Video no encontrado',
+                details: videoError?.message 
+            });
+        }
+
+        // 2. Actualizar progreso del curso con el nuevo módulo/video
+        const { data: courseProgress, error: progressError } = await supabase
+            .from('user_course_progress')
+            .upsert({
+                user_id: userId,
+                course_id: courseId,
+                current_module_id: moduleId,
+                last_activity_at: new Date().toISOString()
+            }, {
+                onConflict: 'user_id,course_id'
+            })
+            .select()
+            .single();
+
+        if (progressError) {
+            console.error('❌ Error actualizando progreso del curso:', progressError);
+        }
+
+        // 3. Obtener progreso del video
+        const { data: videoProgress } = await supabase
+            .from('user_progress')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('video_id', videoId)
+            .single();
+
+        // 4. Registrar actividad
+        await supabase
+            .from('user_activity_log')
+            .insert({
+                user_id: userId,
+                video_id: videoId,
+                action_type: 'video_switch',
+                timestamp: new Date().toISOString()
+            });
+
+        const response = {
+            success: true,
+            video: {
+                ...videoData,
+                checkpoints: videoData.video_checkpoints,
+                youtube_embed_url: `https://www.youtube.com/embed/${videoData.youtube_video_id}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0`,
+                youtube_thumbnail_url: `https://img.youtube.com/vi/${videoData.youtube_video_id}/maxresdefault.jpg`,
+                user_progress: videoProgress || {
+                    current_time_seconds: 0,
+                    completion_percentage: 0,
+                    is_completed: false
+                }
+            },
+            module: videoData.course_modules,
+            course: videoData.course_modules.courses,
+            course_progress: courseProgress
+        };
+
+        console.log(`✅ Video cambiado exitosamente`);
+        res.json(response);
+
+    } catch (error) {
+        console.error('💥 Error en switchVideo:', error);
+        res.status(500).json({ 
+            success: false,
+            error: 'Error interno del servidor',
+            details: error.message 
+        });
+    }
+}
+
+// =====================================================
 // EXPORTAR FUNCIONES
 // =====================================================
 
@@ -635,5 +845,7 @@ module.exports = {
     getUserProgress,
     updateVideoProgress,
     switchModule,
-    getCurrentModule
+    getCurrentModule,
+    getModuleVideos,
+    switchVideo
 };
