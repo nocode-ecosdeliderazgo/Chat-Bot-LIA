@@ -1,206 +1,282 @@
-# PROMPT PARA CLAUDE CODE - REESTRUCTURACIÓN DE CHAT.HTML
+# PROMPT PARA CLAUDE - IMPLEMENTACIÓN BOTÓN COMUNIDAD
 
-## OBJETIVO PRINCIPAL
-Reestructurar `chat.html` para optimizar el espacio y agregar nuevas funcionalidades sin afectar la funcionalidad existente del chat en vivo conectado al servidor de Heroku.
+## OBJETIVO
+Implementar paso a paso un botón de "Comunidad" en la página `chat-online.html` que funcione de manera similar a los botones de "Transcripción" y "Resumen" existentes.
 
-## CAMBIOS REQUERIDOS
+## ANÁLISIS DEL CÓDIGO ACTUAL
 
-### 1. REESTRUCTURACIÓN DEL LAYOUT
+### 1. ESTRUCTURA HTML (Líneas 450-480)
+Los botones de transcripción y resumen están en la sección `.content-tabs`:
 
-#### Panel de Estado de Conexión (Actual: "Desconectado/Conectado")
-- **Ubicación**: Mantener en la parte superior donde está actualmente
-- **Nuevo diseño**: Agregar dos botones de toggle:
-  - **Botón "Chat en Vivo"**: Para mostrar el chat en vivo (funcionalidad existente)
-  - **Botón "Chat con LIA"**: Para mostrar el chat con el asistente IA
-- **Comportamiento**: Solo uno activo a la vez, con indicador visual claro
-- **Estilo**: Botones tipo toggle con estados activo/inactivo
-
-#### Chat Principal (Área Central - MODIFICAR)
-- **Ubicación**: Área central principal (donde está actualmente el chat)
-- **Funcionalidad**: Contenedor que cambia entre dos modos:
-  - **Modo "Chat en Vivo"**: Muestra el chat en vivo existente (funcionalidad actual)
-  - **Modo "Chat con LIA"**: Muestra el chat con el asistente IA
-- **Comportamiento**: El mismo contenedor cambia de contenido según el botón seleccionado
-- **Estado**: Por defecto muestra "Chat en Vivo"
-
-#### Panel de Herramientas (Izquierda - MODIFICAR)
-- **Ubicación**: Panel lateral izquierdo
-- **Nuevo contenido**:
-  - **Sección "Chat en Vivo"**: Mantener la funcionalidad existente
-  - **Sección "Zoom Session"**: NUEVA - Integración de Zoom dentro del panel de herramientas
-- **Estado**: Todas las secciones visibles simultáneamente
-
-#### Panel de Presentación (Derecha - NUEVO)
-- **Ubicación**: Panel lateral derecho (donde antes estaba el chat con LIA)
-- **Funcionalidad**: Carga y visualización de presentaciones
-- **Características**:
-  - Botón "Cargar Presentación"
-  - Soporte para PDF, PowerPoint, Google Slides
-  - Controles de navegación
-  - Modo presentador
-- **Estado**: Siempre visible
-
-### 2. NUEVAS FUNCIONALIDADES
-
-#### Zoom Session (DENTRO del panel de herramientas)
-- **Ubicación**: Dentro del panel lateral izquierdo de herramientas
-- **Funcionalidad**: Integración de Zoom Web SDK
-- **Características**:
-  - Botón "Conectar Zoom"
-  - Controles básicos (unirse, salir, audio, video)
-  - Estado de conexión
-- **Estado**: Siempre visible en el panel de herramientas
-
-#### Presentación (Panel lateral derecho)
-- **Ubicación**: Panel lateral derecho (donde antes estaba el chat con LIA)
-- **Funcionalidad**: Carga y visualización de presentaciones
-- **Características**:
-  - Botón "Cargar Presentación"
-  - Soporte para PDF, PowerPoint, Google Slides
-  - Controles de navegación
-  - Modo presentador
-- **Estado**: Siempre visible
-
-#### Chat con LIA (DENTRO del contenedor principal)
-- **Ubicación**: Mismo contenedor que el chat en vivo
-- **Funcionalidad**: Chat completo con el asistente IA
-- **Características**:
-  - Campo de entrada de texto
-  - Historial de mensajes
-  - Capacidad de hacer preguntas sobre cualquier tema
-  - Integración con la IA existente
-- **Estado**: Se muestra cuando se selecciona "Chat con LIA"
-
-### 3. ESPECIFICACIONES TÉCNICAS
-
-#### Estructura HTML
 ```html
-<!-- Panel de Estado -->
-<div class="connection-panel">
-  <button class="toggle-btn active" data-target="live-chat">Chat en Vivo</button>
-  <button class="toggle-btn" data-target="lia-chat">Chat con LIA</button>
-</div>
-
-<!-- Panel de Herramientas (Izquierda) -->
-<div class="tools-panel">
-  <!-- Sección Chat en Vivo (existente) -->
-  <div class="live-chat-section">
-    <!-- TODO EL CÓDIGO EXISTENTE DEL CHAT EN VIVO SE MANTIENE -->
-  </div>
-  
-  <!-- Sección Zoom Session (NUEVA) -->
-  <div class="zoom-section">
-    <h3>Zoom Session</h3>
-    <button class="zoom-connect-btn">Conectar Zoom</button>
-    <!-- Controles de Zoom aquí -->
-  </div>
-</div>
-
-<!-- Contenedor Principal del Chat (Centro) -->
-<div class="main-chat-container">
-  <!-- Chat en Vivo (EXISTENTE - se muestra por defecto) -->
-  <div class="live-chat-content active">
-    <!-- TODO EL CÓDIGO EXISTENTE DEL CHAT EN VIVO SE MANTIENE -->
-  </div>
-  
-  <!-- Chat con LIA (NUEVO - se muestra al cambiar) -->
-  <div class="lia-chat-content hidden">
-    <!-- Nuevo chat con IA -->
-  </div>
-</div>
-
-<!-- Panel de Presentación (Derecha) -->
-<div class="presentation-panel">
-  <h3>Presentación</h3>
-  <button class="load-presentation-btn">Cargar Presentación</button>
-  <!-- Controles de presentación aquí -->
+<div class="content-tabs">
+    <button class="tab-btn active" data-content="transcript">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/>
+            <line x1="3" y1="12" x2="3.01" y2="12"/>
+            <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+        Transcripción
+    </button>
+    <button class="tab-btn" data-content="summary">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"/>
+            <line x1="8" y1="12" x2="21" y2="12"/>
+            <line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/>
+            <line x1="3" y1="12" x2="3.01" y2="12"/>
+            <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+        Resumen
+    </button>
+    <button class="tab-btn" data-content="quiz">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        Quiz
+    </button>
 </div>
 ```
 
-#### CSS Requerido
-- Layout responsive con flexbox/grid
-- Transiciones suaves entre modos de chat
-- Estados visuales claros para botones toggle
-- Diseño que aproveche el espacio disponible
-- Estilos para las nuevas secciones de Zoom y Presentación
+### 2. ESTILOS CSS (Líneas 939-980)
+Los estilos están definidos en `.content-tabs` y `.tab-btn`:
 
-#### JavaScript Requerido
-- Sistema de toggle entre chats (cambia contenido del contenedor principal)
-- Integración con Zoom Web SDK
-- Sistema de carga de diapositivas
-- Mantener toda la funcionalidad existente del chat en vivo
+```css
+.content-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: var(--glass-border-subtle);
+    padding-bottom: 1rem;
+}
 
-### 4. RESTRICCIONES CRÍTICAS
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--glass-text-secondary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+}
 
-#### NO TOCAR (FUNCIONALIDAD EXISTENTE)
-- **Chat en vivo**: Todo el código relacionado con la conexión al servidor de Heroku
-- **WebSocket connections**: Mantener intactas
-- **Event listeners**: No modificar los existentes
-- **Variables globales**: No cambiar nombres ni estructura
-- **Funciones de conexión**: Mantener exactamente como están
+.tab-btn.active {
+    background: var(--glass-primary);
+    color: var(--glass-text-dark);
+}
+```
 
-#### FUNCIONALIDADES A PRESERVAR
-- Conexión automática al servidor
-- Envío y recepción de mensajes en tiempo real
-- Estados de conexión (conectado/desconectado)
-- Historial de mensajes
-- Cualquier otra funcionalidad que ya esté funcionando
+### 3. FUNCIONALIDAD JAVASCRIPT (Líneas 584-650)
+La lógica está en `setupContentTabs()` y `updateContentArea()`:
 
-### 5. IMPLEMENTACIÓN SEGURA
+```javascript
+setupContentTabs() {
+    const tabButtons = document.querySelectorAll('.content-tabs .tab-btn');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            const contentType = e.currentTarget.dataset.content;
+            console.log(`📄 Cambiando contenido a: ${contentType}`);
+            this.switchContentTab(contentType);
+        });
+    });
+}
 
-#### Enfoque de Desarrollo
-1. **Backup**: Crear copia de seguridad del archivo actual
-2. **Modular**: Agregar nuevas funcionalidades sin tocar el código existente
-3. **Testing**: Verificar que el chat en vivo sigue funcionando después de cada cambio
-4. **Incremental**: Implementar cambios paso a paso
+updateContentArea(contentType) {
+    const contentArea = document.querySelector('.content-area');
+    if (!contentArea) return;
+    
+    switch(contentType) {
+        case 'transcript':
+            contentArea.innerHTML = `
+                <div class="transcript-content">
+                    ${this.getModuleTranscript(this.currentModule)}
+                </div>
+            `;
+            break;
+        case 'summary':
+            contentArea.innerHTML = `
+                <div class="summary-content">
+                    <h4>Resumen del Módulo</h4>
+                    <ul>
+                        <li>Conceptos fundamentales de redes neuronales</li>
+                        <li>Perceptrones simples y su funcionamiento</li>
+                        <li>Funciones de activación (sigmoid, tanh, ReLU)</li>
+                        <li>Aplicaciones prácticas en IA</li>
+                    </ul>
+                </div>
+            `;
+            break;
+        case 'community':
+            contentArea.innerHTML = `
+                <div class="community-content">
+                    <h4>Comunidad de Aprendizaje</h4>
+                    <div class="community-features">
+                        <div class="community-section">
+                            <h5>📚 Foros de Discusión</h5>
+                            <p>Comparte ideas y resuelve dudas con otros estudiantes</p>
+                        </div>
+                        <div class="community-section">
+                            <h5>🤝 Grupos de Estudio</h5>
+                            <p>Únete a grupos según tu nivel y intereses</p>
+                        </div>
+                        <div class="community-section">
+                            <h5>💡 Proyectos Colaborativos</h5>
+                            <p>Participa en proyectos de IA con la comunidad</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            break;
+    }
+}
+```
 
-#### Orden de Implementación
-1. Crear estructura HTML base sin tocar funcionalidad existente
-2. Implementar sistema de toggle entre chats (mismo contenedor)
-3. Agregar sección Zoom dentro del panel de herramientas
-4. Agregar panel de Presentación en el lateral derecho
-5. Integrar chat con LIA en el contenedor principal
-6. Testing completo de funcionalidad existente
+## IMPLEMENTACIÓN PASO A PASO
 
-### 6. CONSIDERACIONES DE UX
+### PASO 1: AGREGAR EL BOTÓN HTML
+Agregar el botón de "Comunidad" después del botón de "Quiz":
 
-#### Navegación Intuitiva
-- Botones claros y descriptivos
-- Indicadores visuales del estado activo
-- Transiciones suaves entre modos de chat
-- Feedback visual inmediato
+```html
+<button class="tab-btn" data-content="community">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+    Comunidad
+</button>
+```
 
-#### Responsive Design
-- Funcionar en desktop, tablet y móvil
-- Adaptar layout según tamaño de pantalla
-- Mantener usabilidad en todos los dispositivos
+### PASO 2: ACTUALIZAR LA FUNCIÓN JAVASCRIPT
+Modificar `updateContentArea()` para incluir el caso de "community":
 
-### 7. TESTING REQUERIDO
+```javascript
+updateContentArea(contentType) {
+    const contentArea = document.querySelector('.content-area');
+    if (!contentArea) return;
+    
+    switch(contentType) {
+        case 'transcript':
+            contentArea.innerHTML = `
+                <div class="transcript-content">
+                    ${this.getModuleTranscript(this.currentModule)}
+                </div>
+            `;
+            break;
+        case 'summary':
+            contentArea.innerHTML = `
+                <div class="summary-content">
+                    <h4>Resumen del Módulo</h4>
+                    <ul>
+                        <li>Conceptos fundamentales de redes neuronales</li>
+                        <li>Perceptrones simples y su funcionamiento</li>
+                        <li>Funciones de activación (sigmoid, tanh, ReLU)</li>
+                        <li>Aplicaciones prácticas en IA</li>
+                    </ul>
+                </div>
+            `;
+            break;
+        case 'community':
+            contentArea.innerHTML = `
+                <div class="community-content">
+                    <h4>Comunidad de Aprendizaje</h4>
+                    <div class="community-features">
+                        <div class="community-section">
+                            <h5>📚 Foros de Discusión</h5>
+                            <p>Comparte ideas y resuelve dudas con otros estudiantes</p>
+                        </div>
+                        <div class="community-section">
+                            <h5>🤝 Grupos de Estudio</h5>
+                            <p>Únete a grupos según tu nivel y intereses</p>
+                        </div>
+                        <div class="community-section">
+                            <h5>💡 Proyectos Colaborativos</h5>
+                            <p>Participa en proyectos de IA con la comunidad</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            break;
+    }
+}
+```
 
-#### Funcionalidad Existente
-- [ ] Chat en vivo conecta correctamente
-- [ ] Mensajes se envían y reciben
-- [ ] Estados de conexión funcionan
-- [ ] No hay errores en consola
+### PASO 3: AGREGAR ESTILOS CSS (OPCIONAL)
+Si se desea personalizar el contenido de la comunidad, agregar estilos específicos:
 
-#### Nueva Funcionalidad
-- [ ] Toggle entre chats funciona (mismo contenedor)
-- [ ] Chat con LIA responde correctamente
-- [ ] Sección Zoom se integra en panel de herramientas
-- [ ] Panel de Presentación funciona en lateral derecho
-- [ ] Layout responsive
+```css
+.community-content {
+    color: var(--glass-text-secondary);
+    line-height: 1.6;
+}
 
-## INSTRUCCIONES FINALES
+.community-features {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
 
-**IMPORTANTE**: Este es un proyecto en producción con funcionalidad crítica. Cualquier cambio debe ser conservador y preservar completamente la funcionalidad existente del chat en vivo.
+.community-section {
+    background: rgba(68, 229, 255, 0.05);
+    border: 1px solid rgba(68, 229, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
 
-**PRIORIDAD**: La funcionalidad existente es más importante que las nuevas características. Si hay conflicto, priorizar mantener lo que ya funciona.
+.community-section:hover {
+    background: rgba(68, 229, 255, 0.08);
+    border-color: rgba(68, 229, 255, 0.2);
+}
 
-**COMUNICACIÓN**: Si encuentras algún problema o conflicto, documentarlo claramente antes de proceder.
+.community-section h5 {
+    color: var(--glass-primary);
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
 
----
+.community-section p {
+    margin: 0;
+    color: var(--glass-text-secondary);
+    font-size: 0.9rem;
+}
+```
 
-**ARCHIVO OBJETIVO**: `src/chat.html`
-**MANTENER INTACTO**: Todo el código relacionado con WebSocket y conexión al servidor de Heroku
-**AGREGAR**: Nuevas funcionalidades de manera modular y segura
-**ESTRUCTURA**: Zoom DENTRO del panel de herramientas, Presentación en panel lateral derecho, Chat con LIA DENTRO del contenedor principal del chat
+## INSTRUCCIONES PARA CLAUDE
+
+1. **PRIMERO**: Analiza el código actual en `chat-online.html` para entender la estructura exacta
+2. **SEGUNDO**: Agrega el botón de "Comunidad" en la sección `.content-tabs` después del botón "Quiz"
+3. **TERCERO**: Modifica la función `updateContentArea()` en `chat-online.js` para incluir el caso "community"
+4. **CUARTO**: Verifica que el botón funcione correctamente al hacer clic
+5. **QUINTO**: Asegúrate de que el contenido de la comunidad se muestre correctamente en el área de contenido
+
+## CONSIDERACIONES IMPORTANTES
+
+- Mantén la consistencia visual con los otros botones
+- Usa el mismo patrón de datos (`data-content="community"`)
+- El icono SVG debe ser apropiado para "comunidad" (grupo de personas)
+- El contenido debe ser relevante para una comunidad de aprendizaje de IA
+- Mantén el mismo estilo de transiciones y estados activos
+
+## VERIFICACIÓN FINAL
+
+Después de implementar:
+1. El botón debe aparecer visualmente igual a los otros
+2. Al hacer clic debe cambiar a estado activo
+3. El contenido de la comunidad debe mostrarse en el área de contenido
+4. Los otros botones deben seguir funcionando normalmente
+5. El diseño debe ser responsive y mantener la estética glassmorphism

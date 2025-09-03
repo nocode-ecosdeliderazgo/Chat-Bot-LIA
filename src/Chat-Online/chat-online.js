@@ -10,6 +10,17 @@ class ChatOnline {
         this.progressManager = null;
         this.courseProgress = null;
         
+        // ===== ESTADO DEL QUIZ =====
+        this.quizData = this.getQuizData();
+        this.currentQuestionIndex = 0;
+        this.userAnswers = {};
+        
+        // ===== CRONÓMETRO DEL QUIZ =====
+        this.quizTimer = null;
+        this.quizTimeLimit = 3 * 60; // 3 minutos en segundos
+        this.quizTimeRemaining = this.quizTimeLimit;
+        this.quizStartTime = null;
+        
         this.init();
     }
 
@@ -2363,13 +2374,29 @@ class ChatOnline {
                         Quiz del Módulo ${this.currentModule}
                     </h2>
                     <p>Pon a prueba tus conocimientos con estas preguntas</p>
+                    
+                    <!-- Cronómetro -->
+                    <div class="quiz-timer-container">
+                        <div class="timer-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
+                        </div>
+                        <div class="timer-display">
+                            <span class="timer-text">Tiempo restante:</span>
+                            <span class="timer-value" id="quizTimer">3:00</span>
+                        </div>
+                        <div class="timer-progress">
+                            <div class="timer-progress-bar" id="timerProgressBar"></div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="quiz-container">
                     <div class="question-card">
                         <div class="question-header">
                             <span class="question-number">Pregunta 1 de 5</span>
-                            <span class="question-timer">⏱️ 02:30</span>
                         </div>
                         
                         <h3 class="question-text">¿Qué es la Inteligencia Artificial?</h3>
@@ -2413,6 +2440,9 @@ class ChatOnline {
         `;
         
         centerPanel.insertAdjacentHTML('beforeend', quizHTML);
+        
+        // Iniciar el cronómetro del quiz
+        this.startQuizTimer();
     }
     
     // ===== FUNCIONES AUXILIARES =====
@@ -2434,8 +2464,610 @@ class ChatOnline {
     }
     
     nextQuestion() {
-        console.log('➡️ Siguiente pregunta');
-        // Implementar navegación entre preguntas
+        console.log('🚀 nextQuestion() llamado');
+        console.log('🔍 Current question index:', this.currentQuestionIndex);
+        console.log('🔍 Quiz data length:', this.quizData?.length);
+        
+        const qData = this.quizData[this.currentQuestionIndex];
+        console.log('🔍 Question data:', qData);
+        
+        let answer;
+
+        switch (qData.type) {
+            case 'single':
+            case 'boolean':
+                const sel = document.querySelector('.answer-options input:checked');
+                console.log('🔍 Selected input:', sel);
+                if (!sel) { 
+                    console.log('❌ No hay respuesta seleccionada');
+                    alert('Selecciona una respuesta.'); 
+                    return; 
+                }
+                answer = sel.value;
+                console.log('✅ Respuesta capturada:', answer);
+                break;
+            case 'multiple':
+                const checks = Array.from(document.querySelectorAll('.answer-options input[type="checkbox"]:checked'));
+                console.log('🔍 Checkboxes seleccionados:', checks);
+                if (checks.length === 0) { alert('Selecciona al menos una opción.'); return; }
+                answer = checks.map(c => c.value);
+                break;
+            case 'text':
+                const txt = document.querySelector('.answer-textarea').value.trim();
+                console.log('🔍 Texto ingresado:', txt);
+                if (!txt) { alert('Por favor escribe tu respuesta.'); return; }
+                answer = txt;
+                break;
+            case 'match':
+                const selects = Array.from(document.querySelectorAll('.match-select'));
+                const pairAns = {};
+                let incomplete = false;
+                selects.forEach((s, idx)=>{
+                    if (!s.value) incomplete = true; else pairAns[idx] = s.value;
+                });
+                if (incomplete) { alert('Completa todas las correspondencias.'); return; }
+                answer = pairAns;
+                break;
+        }
+
+        this.userAnswers[this.currentQuestionIndex] = answer;
+        console.log('✅ Respuesta guardada:', answer);
+        console.log('🔍 Todas las respuestas:', this.userAnswers);
+
+        if (this.currentQuestionIndex < this.quizData.length - 1) {
+            console.log('➡️ Avanzando a siguiente pregunta');
+            this.currentQuestionIndex++;
+            this.renderCurrentQuestion();
+        } else {
+            console.log('🏁 Quiz terminado, mostrando resultados');
+            this.finishQuiz();
+        }
+    }
+    
+    /**
+     * Devuelve las preguntas del quiz para el módulo actual.
+     */
+    getQuizData() {
+        return [
+            {
+                type: 'single',
+                question: '¿Cuál de los siguientes elementos del prompt garantiza la fiabilidad de la investigación solicitada a Gemini?',
+                options: [
+                    { value: 'a', text: 'Incluir casos de uso en finanzas y banca.' },
+                    { value: 'b', text: 'Pedir que actúe "como un analista experto en IA generativa".' },
+                    { value: 'c', text: 'Exigir la cita numerada de cada dato o afirmación.' },
+                    { value: 'd', text: 'Solicitar un resumen de audio al final.' }
+                ],
+                correct: 'c',
+                feedbackCorrect: '¡Exacto! Exigir citas numeradas asegura la trazabilidad y credibilidad de la información.',
+                feedbackIncorrect: 'La opción correcta era exigir la cita numerada; esto permite verificar cada afirmación.'
+            },
+            {
+                type: 'multiple',
+                question: 'El prompt define un ____ profesional ("analista experto") y proporciona una estructura ____ de puntos numerados, lo que facilita a Gemini generar salidas reutilizables como infografías.',
+                options: [
+                    { value: 'clara', text: 'Clara' },
+                    { value: 'rol', text: 'Rol' },
+                    { value: 'fuerte', text: 'Fuerte' },
+                    { value: 'lugar', text: 'Lugar' }
+                ],
+                correct: ['rol', 'clara'],
+                feedbackCorrect: 'Correcto: el prompt establece claramente el rol y una estructura clara.',
+                feedbackIncorrect: 'La respuesta correcta era "Rol" y "Clara": define quién habla y una estructura legible.'
+            },
+            {
+                type: 'boolean',
+                question: 'El flujo de trabajo indica que, después de crear la infografía, el usuario debe cerrar la pestaña de Canvas para volver al proyecto de investigación principal.',
+                options: [
+                    { value: 'true', text: 'Verdadero' },
+                    { value: 'false', text: 'Falso' }
+                ],
+                correct: 'true',
+                feedbackCorrect: '¡Bien! Seguir ese paso asegura volver al flujo principal sin perder contexto.',
+                feedbackIncorrect: 'Incorrecto: El paso correcto es cerrar Canvas para regresar al proyecto principal.'
+            },
+            {
+                type: 'text',
+                question: 'En 1-2 frases, explica por qué el prompt reserva una sección específica para "Desafíos y consideraciones estratégicas para líderes" en la adopción de IA generativa.',
+                options: [],
+                correct: null,
+                feedbackCorrect: 'Gracias por tu reflexión. Un evaluador revisará tu respuesta.',
+                feedbackIncorrect: 'Respuesta registrada. Un evaluador proporcionará comentarios específicos.'
+            },
+            {
+                type: 'match',
+                question: 'Relaciona cada salida del flujo de trabajo con su objetivo principal:',
+                pairs: {
+                    '1. Reporte web interactivo.': ['A', 'B', 'C', 'D'],
+                    '2. Infografía visual.': ['A', 'B', 'C', 'D'],
+                    '3. Cuestionario': ['A', 'B', 'C', 'D'],
+                    '4. Resumen de audio': ['A', 'B', 'C', 'D']
+                },
+                legend: {
+                    A: 'Validar conocimientos adquiridos',
+                    B: 'Repaso auditivo en multitarea',
+                    C: 'Exploración profunda y compartible',
+                    D: 'Impacto rápido y sintético'
+                },
+                correct: {
+                    0: 'C',
+                    1: 'D',
+                    2: 'A',
+                    3: 'B'
+                },
+                feedbackCorrect: '¡Perfecto! Has emparejado correctamente cada salida con su objetivo.',
+                feedbackIncorrect: 'Algunas correspondencias eran distintas. Revisa la leyenda para entender cada objetivo.'
+            }
+        ];
+    }
+    
+    /**
+     * Renderiza la pregunta actual del quiz
+     */
+    renderCurrentQuestion() {
+        console.log('🎨 Renderizando pregunta:', this.currentQuestionIndex);
+        const questionData = this.quizData[this.currentQuestionIndex];
+        if (!questionData) return;
+
+        const questionCard = document.querySelector('.quiz-container .question-card');
+        if (!questionCard) {
+            console.error('❌ No se encontró .question-card');
+            return;
+        }
+
+        // Construir HTML según el tipo
+        let inputHTML = '';
+        switch (questionData.type) {
+            case 'single':
+            case 'boolean':
+                questionData.options.forEach(opt => {
+                    const checked = this.userAnswers[this.currentQuestionIndex] === opt.value;
+                    inputHTML += `
+                        <label class="answer-option">
+                            <input type="radio" name="q${this.currentQuestionIndex}" value="${opt.value}" ${checked ? 'checked' : ''}>
+                            <span class="answer-text">${opt.text}</span>
+                        </label>`;
+                });
+                break;
+            case 'multiple':
+                questionData.options.forEach(opt => {
+                    const checked = Array.isArray(this.userAnswers[this.currentQuestionIndex]) && this.userAnswers[this.currentQuestionIndex].includes(opt.value);
+                    inputHTML += `
+                        <label class="answer-option">
+                            <input type="checkbox" name="q${this.currentQuestionIndex}" value="${opt.value}" ${checked ? 'checked' : ''}>
+                            <span class="answer-text">${opt.text}</span>
+                        </label>`;
+                });
+                break;
+            case 'text':
+                const savedText = this.userAnswers[this.currentQuestionIndex] || '';
+                inputHTML = `<textarea name="q${this.currentQuestionIndex}" rows="4" class="answer-textarea" placeholder="Escribe tu respuesta aquí...">${savedText}</textarea>`;
+                break;
+            case 'match':
+                // mostrar leyenda
+                let legendHTML = '<ul class="match-legend">';
+                Object.entries(questionData.legend).forEach(([key, val]) => {
+                    legendHTML += `<li><strong>${key}</strong>: ${val}</li>`;
+                });
+                legendHTML += '</ul>';
+
+                let pairsHTML = '';
+                const stored = this.userAnswers[this.currentQuestionIndex] || {};
+                Object.keys(questionData.pairs).forEach((key, idx) => {
+                    const options = questionData.pairs[key];
+                    pairsHTML += `
+                        <div class="match-row">
+                            <span class="match-prompt">${key}</span>
+                            <select name="q${this.currentQuestionIndex}_${idx}" class="match-select">
+                                <option value="">---</option>
+                                ${options.map(opt => `<option value="${opt}" ${stored[idx]===opt?'selected':''}>${opt}</option>`).join('')}
+                            </select>
+                        </div>`;
+                });
+                inputHTML = legendHTML + pairsHTML;
+                break;
+        }
+
+        questionCard.innerHTML = `
+            <div class="question-header">
+                <span class="question-number">Pregunta ${this.currentQuestionIndex + 1} de ${this.quizData.length}</span>
+            </div>
+            <h3 class="question-text">${questionData.question}</h3>
+            <div class="answer-options">${inputHTML}</div>
+            <div class="question-actions">
+                <button class="btn-secondary" ${this.currentQuestionIndex === 0 ? 'disabled' : ''} onclick="window.chatOnline.previousQuestion()">Anterior</button>
+                <button class="btn-primary" onclick="window.chatOnline.nextQuestion()">${this.currentQuestionIndex === this.quizData.length - 1 ? 'Finalizar' : 'Siguiente'}</button>
+            </div>`;
+    }
+    
+    /**
+     * Finaliza el quiz y muestra resultados
+     */
+    finishQuiz() {
+        console.log('🏁 Quiz finalizado');
+        
+        // Detener el cronómetro si está activo
+        this.stopQuizTimer();
+        
+        let correctCount = 0;
+        
+        // Calcular respuestas correctas (excluyendo preguntas abiertas)
+        this.quizData.forEach((q, idx) => {
+            const userAns = this.userAnswers[idx];
+            let isCorrect = false;
+            
+            if (q.type === 'text') {
+                // Pregunta abierta - no se evalúa automáticamente
+                return;
+            } else if (q.type === 'multiple') {
+                isCorrect = Array.isArray(userAns) && Array.isArray(q.correct) && 
+                           userAns.sort().join(',') === q.correct.sort().join(',');
+            } else if (q.type === 'match') {
+                isCorrect = JSON.stringify(userAns) === JSON.stringify(q.correct);
+            } else {
+                isCorrect = userAns === q.correct;
+            }
+            
+            if (isCorrect) correctCount++;
+        });
+
+        this.showQuizResults(correctCount);
+    }
+    
+    /**
+     * Muestra pantalla de resultados detallados
+     */
+    showQuizResults(correctCount) {
+        const centerPanel = document.querySelector('.center-panel .course-content');
+        if (!centerPanel) return;
+
+        // Remover quiz anterior
+        centerPanel.querySelectorAll('.quiz-content, .quiz-results').forEach(el => el.remove());
+
+        // Calcular total de preguntas evaluables (excluyendo abiertas)
+        const evaluableQuestions = this.quizData.filter(q => q.type !== 'text').length;
+        
+        let resultsHTML = `
+            <div class="quiz-results">
+                <h2>Resultados del Quiz</h2>
+                <p>Respuestas correctas: <strong>${correctCount}</strong> de ${evaluableQuestions} preguntas evaluables</p>
+        `;
+
+        this.quizData.forEach((q, idx) => {
+            const userAns = this.userAnswers[idx];
+            let isCorrect = false;
+            let cardClass = '';
+            let feedback = '';
+            
+            if (q.type === 'text') {
+                // Pregunta abierta - sin evaluación automática
+                cardClass = 'open-question';
+                feedback = q.feedbackCorrect; // Mensaje neutral para pregunta abierta
+            } else {
+                if (q.type === 'multiple') {
+                    isCorrect = Array.isArray(userAns) && Array.isArray(q.correct) && 
+                               userAns.sort().join(',') === q.correct.sort().join(',');
+                } else if (q.type === 'match') {
+                    isCorrect = JSON.stringify(userAns) === JSON.stringify(q.correct);
+                } else {
+                    isCorrect = userAns === q.correct;
+                }
+                cardClass = isCorrect ? 'correct' : 'incorrect';
+                feedback = isCorrect ? q.feedbackCorrect : q.feedbackIncorrect;
+            }
+
+            let iconSVG = '';
+            if (q.type === 'text') {
+                iconSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10,9 9,9 8,9"/>
+                </svg>`;
+            } else if (isCorrect) {
+                iconSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>`;
+            } else {
+                iconSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"/>
+                    <path d="M6 6l12 12"/>
+                </svg>`;
+            }
+
+            resultsHTML += `
+                <div class="result-card ${cardClass}">
+                    <h3>${iconSVG}Pregunta ${idx + 1}</h3>
+                    <p class="question">${q.question}</p>
+                    <p><strong>Tu respuesta:</strong> ${this.formatAnswer(q, userAns)}</p>
+                    ${q.correct !== null && q.type !== 'text' ? `<p><strong>Respuesta correcta:</strong> ${this.formatAnswer(q, q.correct)}</p>` : ''}
+                    <p class="feedback">${feedback}</p>
+                </div>`;
+        });
+
+        resultsHTML += `
+                <div class="quiz-actions">
+                    <button class="btn-primary" onclick="window.chatOnline.submitQuizResults()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m22 2-7 20-4-9-9-4Z"/>
+                            <path d="M22 2 11 13"/>
+                        </svg>
+                        Enviar Respuestas
+                    </button>
+                    <button class="btn-secondary" onclick="window.chatOnline.restartQuiz()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                            <path d="M21 3v5h-5"/>
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                            <path d="M3 21v-5h5"/>
+                        </svg>
+                        Repetir Cuestionario
+                    </button>
+                </div>
+            </div>`;
+        centerPanel.insertAdjacentHTML('beforeend', resultsHTML);
+    }
+    
+    /**
+     * Formatea respuestas para mostrar
+     */
+    formatAnswer(question, answer) {
+        if (answer === undefined || answer === null) return '-';
+        
+        switch (question.type) {
+            case 'single':
+            case 'boolean':
+                const opt = question.options.find(o => o.value === answer);
+                return opt ? opt.text : answer;
+            case 'multiple':
+                return answer.map(val => {
+                    const o = question.options.find(x => x.value === val);
+                    return o ? o.text : val;
+                }).join(', ');
+            case 'text':
+                return answer;
+            case 'match':
+                return Object.entries(answer).map(([k,v]) => `${parseInt(k)+1}→${v}`).join(', ');
+            default:
+                return String(answer);
+        }
+    }
+    
+    /**
+     * Envía las respuestas del quiz al servidor/instructor
+     */
+    submitQuizResults() {
+        console.log('📤 Enviando respuestas del quiz...');
+        
+        // Preparar datos para enviar
+        const quizSubmission = {
+            userId: this.getCurrentUserId(), // Implementar según tu sistema de auth
+            moduleId: this.currentModule,
+            timestamp: new Date().toISOString(),
+            answers: this.userAnswers,
+            questions: this.quizData,
+            score: this.calculateScore()
+        };
+        
+        console.log('Datos del quiz:', quizSubmission);
+        
+        // Aquí puedes implementar el envío al servidor
+        // Por ahora mostraremos confirmación
+        alert('✅ Respuestas enviadas correctamente al instructor.\n\nLa pregunta abierta será revisada manualmente.');
+        
+        // Opcional: deshabilitar el botón después del envío
+        const submitBtn = document.querySelector('.quiz-actions .btn-primary');
+        if (submitBtn) {
+            submitBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>
+                Enviado`;
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.6';
+        }
+    }
+    
+    /**
+     * Reinicia el quiz para repetirlo
+     */
+    restartQuiz() {
+        console.log('🔄 Reiniciando quiz...');
+        
+        // Confirmar si realmente quiere repetir
+        if (confirm('¿Estás seguro de que quieres repetir el cuestionario? Se perderán las respuestas actuales.')) {
+            // Detener cronómetro actual si existe
+            this.stopQuizTimer();
+            
+            // Resetear estado del quiz
+            this.currentQuestionIndex = 0;
+            this.userAnswers = {};
+            this.quizTimeRemaining = this.quizTimeLimit;
+            
+            // Limpiar el contenido actual del panel central
+            const centerPanel = document.querySelector('.center-panel');
+            if (centerPanel) {
+                centerPanel.innerHTML = '';
+            }
+            
+            // Mostrar el quiz desde el inicio
+            this.createQuizContent();
+            
+            console.log('✅ Quiz reiniciado');
+        }
+    }
+    
+    /**
+     * Calcula el puntaje del quiz
+     */
+    calculateScore() {
+        let correctCount = 0;
+        let totalEvaluable = 0;
+        
+        this.quizData.forEach((q, idx) => {
+            if (q.type === 'text') return; // Saltar preguntas abiertas
+            
+            totalEvaluable++;
+            const userAns = this.userAnswers[idx];
+            let isCorrect = false;
+            
+            if (q.type === 'multiple') {
+                isCorrect = Array.isArray(userAns) && Array.isArray(q.correct) && 
+                           userAns.sort().join(',') === q.correct.sort().join(',');
+            } else if (q.type === 'match') {
+                isCorrect = JSON.stringify(userAns) === JSON.stringify(q.correct);
+            } else {
+                isCorrect = userAns === q.correct;
+            }
+            
+            if (isCorrect) correctCount++;
+        });
+        
+        return {
+            correct: correctCount,
+            total: totalEvaluable,
+            percentage: Math.round((correctCount / totalEvaluable) * 100)
+        };
+    }
+    
+    /**
+     * Obtiene el ID del usuario actual (implementar según tu sistema)
+     */
+    getCurrentUserId() {
+        // Implementar según tu sistema de autenticación
+        // Por ahora retornamos un placeholder
+        return 'user_' + Date.now();
+    }
+    
+    // ===== FUNCIONES DEL CRONÓMETRO =====
+    
+    /**
+     * Inicia el cronómetro del quiz
+     */
+    startQuizTimer() {
+        console.log('⏱️ Iniciando cronómetro del quiz');
+        
+        // Resetear valores
+        this.quizTimeRemaining = this.quizTimeLimit;
+        this.quizStartTime = Date.now();
+        
+        // Actualizar display inicial
+        this.updateTimerDisplay();
+        
+        // Iniciar el intervalo del cronómetro
+        this.quizTimer = setInterval(() => {
+            this.quizTimeRemaining--;
+            this.updateTimerDisplay();
+            
+            // Verificar advertencias de tiempo
+            this.checkTimeWarnings();
+            
+            // Verificar si se acabó el tiempo
+            if (this.quizTimeRemaining <= 0) {
+                this.timeUpQuiz();
+            }
+        }, 1000);
+    }
+    
+    /**
+     * Actualiza la visualización del cronómetro
+     */
+    updateTimerDisplay() {
+        const timerElement = document.getElementById('quizTimer');
+        const progressBar = document.getElementById('timerProgressBar');
+        
+        if (!timerElement || !progressBar) return;
+        
+        // Formatear tiempo
+        const minutes = Math.floor(this.quizTimeRemaining / 60);
+        const seconds = this.quizTimeRemaining % 60;
+        const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        timerElement.textContent = timeString;
+        
+        // Actualizar barra de progreso
+        const progress = ((this.quizTimeLimit - this.quizTimeRemaining) / this.quizTimeLimit) * 100;
+        progressBar.style.width = `${progress}%`;
+        
+        // Cambiar colores según el tiempo restante
+        const container = document.querySelector('.quiz-timer-container');
+        if (container) {
+            container.classList.remove('warning', 'critical');
+            
+            if (this.quizTimeRemaining <= 60) { // Último minuto
+                container.classList.add('critical');
+            } else if (this.quizTimeRemaining <= 120) { // Últimos 2 minutos
+                container.classList.add('warning');
+            }
+        }
+    }
+    
+    /**
+     * Verifica y muestra advertencias de tiempo
+     */
+    checkTimeWarnings() {
+        if (this.quizTimeRemaining === 120) { // 2 minutos restantes
+            this.showTimeWarning('⚠️ Quedan 2 minutos para completar el quiz');
+        } else if (this.quizTimeRemaining === 60) { // 1 minuto restante
+            this.showTimeWarning('🚨 ¡Último minuto! Termina las preguntas que puedas');
+        } else if (this.quizTimeRemaining === 30) { // 30 segundos restantes
+            this.showTimeWarning('🚨 ¡Solo quedan 30 segundos!');
+        }
+    }
+    
+    /**
+     * Muestra advertencia de tiempo
+     */
+    showTimeWarning(message) {
+        // Crear notificación temporal
+        const notification = document.createElement('div');
+        notification.className = 'quiz-time-warning';
+        notification.innerHTML = `
+            <div class="warning-content">
+                <span>${message}</span>
+                <button onclick="this.parentElement.parentElement.remove()">✕</button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remover después de 5 segundos
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+    
+    /**
+     * Termina el quiz cuando se acaba el tiempo
+     */
+    timeUpQuiz() {
+        console.log('⏰ Tiempo agotado - Terminando quiz automáticamente');
+        
+        // Detener el cronómetro
+        if (this.quizTimer) {
+            clearInterval(this.quizTimer);
+            this.quizTimer = null;
+        }
+        
+        // Mostrar mensaje de tiempo agotado
+        alert('⏰ ¡Tiempo agotado! El quiz se ha terminado automáticamente con las respuestas que completaste.');
+        
+        // Finalizar quiz con respuestas actuales
+        this.finishQuiz();
+    }
+    
+    /**
+     * Detiene el cronómetro (cuando se termina el quiz manualmente)
+     */
+    stopQuizTimer() {
+        if (this.quizTimer) {
+            clearInterval(this.quizTimer);
+            this.quizTimer = null;
+            console.log('⏱️ Cronómetro detenido');
+        }
     }
     
     // ===== YOUTUBE VIDEO PLAYER =====
