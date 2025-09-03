@@ -3,7 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Online - Cursos Asincrónicos | LIA</title>
+    <title>Introducción a la IA - Aprende y Aplica</title>
+    
+    <!-- Meta Tags para SEO -->
+    <meta name="description" content="Aprende los fundamentos de la Inteligencia Artificial con nuestro curso interactivo. Videos, transcripciones, resúmenes y comunidad de aprendizaje.">
+    <meta name="keywords" content="inteligencia artificial, IA, machine learning, deep learning, curso online, aprende y aplica">
+    <meta name="author" content="Aprende y Aplica">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Introducción a la IA - Aprende y Aplica">
+    <meta property="og:description" content="Aprende los fundamentos de la Inteligencia Artificial con nuestro curso interactivo.">
+    <meta property="og:image" content="../assets/images/icono.png">
+    <meta property="og:url" content="">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Introducción a la IA - Aprende y Aplica">
+    <meta name="twitter:description" content="Aprende los fundamentos de la Inteligencia Artificial con nuestro curso interactivo.">
+    <meta name="twitter:image" content="../assets/images/icono.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/icono.png" />
     
     <!-- CSS Principal y Neumorphism -->
     <link rel="stylesheet" href="../styles/main.css">
@@ -159,7 +180,7 @@
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
                                 </svg>
-                                Progreso del Curso
+                                Progreso del Taller
                             </span>
                             <span class="progress-percentage">0%</span>
                         </div>
@@ -231,6 +252,16 @@
                                 <polyline points="7,3 7,8 15,8"/>
                             </svg>
                         </button>
+                        <button class="action-btn" id="exportPdfBtn" title="Exportar a PDF">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10,9 9,9 8,9"/>
+                                <path d="M12 18l-2-2 2-2"/>
+                            </svg>
+                        </button>
                         <button class="action-btn" id="cancelNoteBtn" title="Cancelar">
                             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="18" y1="6" x2="6" y2="18"/>
@@ -284,6 +315,29 @@
                                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                             </svg>
                         </button>
+                        <div class="toolbar-separator"></div>
+                        <!-- Selector de tamaño de fuente -->
+                        <div class="font-size-selector">
+                            <button class="toolbar-btn" id="fontSizeBtn" title="Tamaño de fuente">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 7V4h16v3"/>
+                                    <path d="M9 20h6"/>
+                                    <path d="M12 4v16"/>
+                                </svg>
+                                <span class="font-size-text">14</span>
+                            </button>
+                            <div class="font-size-dropdown" id="fontSizeDropdown">
+                                <button class="font-size-option" data-size="10">10</button>
+                                <button class="font-size-option" data-size="12">12</button>
+                                <button class="font-size-option" data-size="14">14</button>
+                                <button class="font-size-option" data-size="16">16</button>
+                                <button class="font-size-option" data-size="18">18</button>
+                                <button class="font-size-option" data-size="20">20</button>
+                                <button class="font-size-option" data-size="24">24</button>
+                                <button class="font-size-option" data-size="28">28</button>
+                                <button class="font-size-option" data-size="32">32</button>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Editor de contenido -->
@@ -455,16 +509,7 @@ Cargando información...
                         </div>
                         <span class="tab-label">Resumen</span>
                     </button>
-                    <button class="tab-btn" data-content="quiz">
-                        <div class="tab-icon">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                                <line x1="12" y1="17" x2="12.01" y2="17"/>
-                            </svg>
-                        </div>
-                        <span class="tab-label">Quiz</span>
-                    </button>
+
                     <button class="tab-btn" data-content="community">
                         <div class="tab-icon">
                             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -812,18 +857,7 @@ Cargando información...
                         </div>
                     </div>
 
-                    <!-- Contenido de Quiz -->
-                    <div class="quiz-content" data-content="quiz" style="display: none;">
-                        <div class="quiz-placeholder">
-                            <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                                <line x1="12" y1="17" x2="12.01" y2="17"/>
-                            </svg>
-                            <h3>Quiz del Módulo</h3>
-                            <p>Esta sección estará disponible próximamente</p>
-                        </div>
-                    </div>
+
                 </div>
                     </div>
         </section>

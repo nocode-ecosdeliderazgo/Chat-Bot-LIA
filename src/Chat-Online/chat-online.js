@@ -1228,6 +1228,7 @@ class ChatOnline {
     setupEditorButtons() {
         const saveBtn = document.getElementById('saveNoteBtn');
         const cancelBtn = document.getElementById('cancelNoteBtn');
+         const exportPdfBtn = document.getElementById('exportPdfBtn');
         
         // Guardar nota
         saveBtn.addEventListener('click', () => {
@@ -1239,6 +1240,327 @@ class ChatOnline {
         cancelBtn.addEventListener('click', () => {
             this.hideNotesCreator();
         });
+        
+        // Exportar a PDF
+        exportPdfBtn.addEventListener('click', () => {
+            this.exportNoteToPDF();
+        });
+        
+        // Configurar selector de tamaño de fuente
+        this.setupFontSizeSelector();
+    }
+    
+    setupFontSizeSelector() {
+        const fontSizeBtn = document.getElementById('fontSizeBtn');
+        const fontSizeDropdown = document.getElementById('fontSizeDropdown');
+        const fontSizeOptions = document.querySelectorAll('.font-size-option');
+        const fontSizeText = document.querySelector('.font-size-text');
+        const editor = document.getElementById('noteContentEditor');
+        
+        // Toggle dropdown
+        fontSizeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            // Actualizar el tamaño mostrado basado en la selección actual o cursor
+            this.updateFontSizeDisplay();
+            
+            fontSizeDropdown.classList.toggle('show');
+        });
+        
+        // Cerrar dropdown al hacer click fuera
+        document.addEventListener('click', () => {
+            fontSizeDropdown.classList.remove('show');
+        });
+        
+        // Manejar selección de tamaño
+        fontSizeOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const size = option.dataset.size;
+                this.changeFontSize(size);
+                
+                // No actualizar el display aquí, se hará en changeFontSize si es exitoso
+                fontSizeDropdown.classList.remove('show');
+            });
+        });
+        
+        // Actualizar display cuando cambie la selección
+        editor.addEventListener('mouseup', () => {
+            setTimeout(() => this.updateFontSizeDisplay(), 10);
+        });
+        
+        editor.addEventListener('keyup', () => {
+            setTimeout(() => this.updateFontSizeDisplay(), 10);
+        });
+    }
+    
+    updateFontSizeDisplay() {
+        const selection = window.getSelection();
+        const fontSizeText = document.querySelector('.font-size-text');
+        const fontSizeOptions = document.querySelectorAll('.font-size-option');
+        const editor = document.getElementById('noteContentEditor');
+        
+        let fontSize = 14; // Tamaño por defecto
+        
+        try {
+            if (selection.rangeCount > 0 && !selection.isCollapsed) {
+                // Hay texto seleccionado - obtener su tamaño
+                const range = selection.getRangeAt(0);
+                const container = range.commonAncestorContainer;
+                const element = container.nodeType === Node.TEXT_NODE ? container.parentElement : container;
+                const computedStyle = window.getComputedStyle(element);
+                fontSize = parseInt(computedStyle.fontSize);
+            } else {
+                // No hay selección - obtener tamaño en la posición del cursor
+                const currentFontSize = this.getCurrentCursorFontSize();
+                fontSize = currentFontSize || 14;
+            }
+            
+            // Actualizar display
+            fontSizeText.textContent = fontSize.toString();
+            
+            // Actualizar estado activo de las opciones
+            fontSizeOptions.forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.size === fontSize.toString());
+            });
+            
+        } catch (error) {
+            // En caso de error, mostrar tamaño por defecto
+            fontSizeText.textContent = '14';
+            fontSizeOptions.forEach(opt => opt.classList.remove('active'));
+        }
+    }
+    
+    getCurrentCursorFontSize() {
+        const selection = window.getSelection();
+        const editor = document.getElementById('noteContentEditor');
+        
+        if (!selection.rangeCount) return 14;
+        
+        try {
+            const range = selection.getRangeAt(0);
+            let element = range.startContainer;
+            
+            // Si es un nodo de texto, obtener su elemento padre
+            if (element.nodeType === Node.TEXT_NODE) {
+                element = element.parentElement;
+            }
+            
+            // Asegurar que estamos dentro del editor
+            if (!editor.contains(element)) {
+                element = editor;
+            }
+            
+            // Obtener el tamaño de fuente computado
+            const computedStyle = window.getComputedStyle(element);
+            return parseInt(computedStyle.fontSize);
+            
+        } catch (error) {
+            return 14;
+        }
+    }
+    
+    changeFontSize(size) {
+        const editor = document.getElementById('noteContentEditor');
+        const selection = window.getSelection();
+        
+        if (selection.rangeCount > 0 && !selection.isCollapsed) {
+            // CASO 1: Hay texto seleccionado - cambiar tamaño de la selección
+            this.changeFontSizeForSelection(size);
+        } else {
+            // CASO 2: No hay selección - cambiar tamaño para texto nuevo
+            this.setFontSizeForNewText(size);
+        }
+        
+        // Actualizar el display del tamaño
+        setTimeout(() => this.updateFontSizeDisplay(), 10);
+        
+        // Mantener el foco en el editor
+        editor.focus();
+    }
+    
+    changeFontSizeForSelection(size) {
+        const editor = document.getElementById('noteContentEditor');
+        const selection = window.getSelection();
+        const range = selection.getRangeAt(0);
+        
+        // Verificar que la selección está dentro del editor
+        if (!editor.contains(range.commonAncestorContainer)) {
+            this.showNotification('Selecciona texto dentro del editor de notas', 'warning');
+            return;
+        }
+        
+        try {
+            // Método más robusto para aplicar tamaño de fuente
+            const selectedText = range.extractContents();
+            const span = document.createElement('span');
+            span.style.fontSize = size + 'px';
+            span.style.display = 'inline';
+            span.appendChild(selectedText);
+            range.insertNode(span);
+            
+            // Restaurar la selección en el nuevo span
+            const newRange = document.createRange();
+            newRange.selectNodeContents(span);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+            
+            console.log(`✅ Tamaño de selección cambiado a ${size}px`);
+            this.showNotification(`Tamaño de selección cambiado a ${size}px`, 'success');
+            
+        } catch (error) {
+            console.error('❌ Error al cambiar tamaño de selección:', error);
+            
+            // Método alternativo usando execCommand
+            try {
+                const tempSize = Math.floor(Math.random() * 1000) + 1000;
+                document.execCommand('fontSize', false, tempSize);
+                
+                const fontElements = editor.querySelectorAll(`font[size="${tempSize}"]`);
+                fontElements.forEach(font => {
+                    const span = document.createElement('span');
+                    span.style.fontSize = size + 'px';
+                    span.style.display = 'inline';
+                    span.innerHTML = font.innerHTML;
+                    font.parentNode.replaceChild(span, font);
+                });
+                
+                console.log(`✅ Tamaño de selección cambiado a ${size}px (método alternativo)`);
+                this.showNotification(`Tamaño de selección cambiado a ${size}px`, 'success');
+                
+            } catch (fallbackError) {
+                console.error('❌ Error en método alternativo:', fallbackError);
+                this.showNotification('Error al cambiar el tamaño de fuente', 'error');
+            }
+        }
+    }
+    
+    setFontSizeForNewText(size) {
+        const editor = document.getElementById('noteContentEditor');
+        const selection = window.getSelection();
+        
+        try {
+            // Crear un span invisible en la posición del cursor para establecer el tamaño
+            const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : document.createRange();
+            
+            // Si no hay rango, crear uno al final del editor
+            if (!selection.rangeCount) {
+                range.selectNodeContents(editor);
+                range.collapse(false);
+            }
+            
+            // Insertar un span con el nuevo tamaño de fuente
+            const span = document.createElement('span');
+            span.style.fontSize = size + 'px';
+            span.style.display = 'inline';
+            span.appendChild(document.createTextNode('\u200B')); // Carácter de ancho cero
+            
+            range.insertNode(span);
+            
+            // Posicionar el cursor después del span
+            const newRange = document.createRange();
+            newRange.setStartAfter(span);
+            newRange.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+            
+            // Configurar el estilo para el próximo texto
+            this.setNextTextStyle(size);
+            
+            console.log(`✅ Tamaño para texto nuevo establecido a ${size}px`);
+            this.showNotification(`Tamaño para texto nuevo: ${size}px`, 'success');
+            
+        } catch (error) {
+            console.error('❌ Error al establecer tamaño para texto nuevo:', error);
+            this.showNotification('Error al establecer el tamaño de fuente', 'error');
+        }
+    }
+    
+    setNextTextStyle(size) {
+        const editor = document.getElementById('noteContentEditor');
+        
+        // Usar execCommand para establecer el tamaño para el próximo texto
+        try {
+            // Crear un estilo temporal
+            const tempSize = '7'; // Tamaño temporal para execCommand
+            document.execCommand('fontSize', false, tempSize);
+            
+            // Buscar y actualizar inmediatamente
+            setTimeout(() => {
+                const fontElements = editor.querySelectorAll(`font[size="${tempSize}"]`);
+                fontElements.forEach(font => {
+                    const span = document.createElement('span');
+                    span.style.fontSize = size + 'px';
+                    span.style.display = 'inline';
+                    span.innerHTML = font.innerHTML;
+                    font.parentNode.replaceChild(span, font);
+                });
+            }, 10);
+            
+        } catch (error) {
+            console.error('❌ Error al establecer estilo para próximo texto:', error);
+        }
+    }
+    
+    async exportNoteToPDF() {
+        const titleInput = document.getElementById('noteTitleInput');
+        const contentEditor = document.getElementById('noteContentEditor');
+        
+        const title = titleInput.value || 'Nota sin título';
+        const content = contentEditor.innerHTML;
+        
+        if (!content.trim()) {
+            alert('No hay contenido para exportar');
+            return;
+        }
+        
+        try {
+            // Crear un elemento temporal para el PDF
+            const printContent = document.createElement('div');
+            printContent.innerHTML = `
+                <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+                    <h1 style="color: #44E5FF; border-bottom: 2px solid #44E5FF; padding-bottom: 10px;">${title}</h1>
+                    <div style="margin-top: 20px; line-height: 1.6;">${content}</div>
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc; font-size: 12px; color: #666;">
+                        <p>Generado por Aprende y Aplica - ${new Date().toLocaleDateString()}</p>
+                    </div>
+                </div>
+            `;
+            
+            // Abrir ventana de impresión
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${title}</title>
+                    <style>
+                        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+                        @media print {
+                            body { margin: 0; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${printContent.innerHTML}
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            
+            // Esperar un momento y luego mostrar diálogo de impresión
+            setTimeout(() => {
+                printWindow.print();
+            }, 250);
+            
+            console.log('✅ PDF exportado correctamente');
+            
+        } catch (error) {
+            console.error('❌ Error al exportar PDF:', error);
+            alert('Error al exportar a PDF. Por favor, intenta de nuevo.');
+        }
     }
     
     searchNotes() {
@@ -3893,3 +4215,4 @@ console.log('• forceInitializeProgress() - Forzar inicialización');
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ChatOnline;
 }
+

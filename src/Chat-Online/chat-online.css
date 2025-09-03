@@ -1769,6 +1769,69 @@ body {
     margin: 0 0.25rem;
 }
 
+/* ===== SELECTOR DE TAMAÑO DE FUENTE ===== */
+.font-size-selector {
+    position: relative;
+    display: inline-block;
+}
+
+.font-size-selector .toolbar-btn {
+    width: auto;
+    padding: 0 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 50px;
+}
+
+.font-size-text {
+    font-size: 0.8rem;
+    font-weight: 500;
+    min-width: 20px;
+    text-align: center;
+}
+
+.font-size-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: rgba(10, 15, 25, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(68, 229, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.5rem 0;
+    display: none;
+    flex-direction: column;
+    min-width: 60px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.font-size-dropdown.show {
+    display: flex;
+}
+
+.font-size-option {
+    background: transparent;
+    border: none;
+    color: var(--glass-text-primary);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.font-size-option:hover {
+    background: rgba(68, 229, 255, 0.1);
+    color: var(--glass-primary);
+}
+
+.font-size-option.active {
+    background: rgba(68, 229, 255, 0.2);
+    color: var(--glass-primary);
+}
+
 /* ===== EDITOR DE CONTENIDO ===== */
 .note-content-editor {
     margin-bottom: 1rem;
