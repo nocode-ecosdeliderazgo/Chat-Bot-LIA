@@ -972,7 +972,7 @@ app.get('/api/config', authenticateRequest, (req, res) => {
         res.json({
             openaiModel: process.env.CHATBOT_MODEL || 'gpt-4o-mini',
             maxTokens: process.env.CHATBOT_MAX_TOKENS || 700,
-            temperature: process.env.CHATBOT_TEMPERATURE || 0.7,
+            temperature: process.env.CHATBOT_TEMPERATURE || 0.5,
             audioEnabled: process.env.AUDIO_ENABLED === 'true',
             audioVolume: process.env.AUDIO_VOLUME || 0.7,
             prompts
@@ -3538,7 +3538,7 @@ Contexto del usuario: ${context || 'No disponible'}`;
                 model: process.env.CHATBOT_MODEL || 'gpt-4o-mini',
                 messages,
                 max_tokens: parseInt(process.env.CHATBOT_MAX_TOKENS || '1000', 10),
-                temperature: parseFloat(process.env.CHATBOT_TEMPERATURE || '0.7'),
+                temperature: parseFloat(process.env.CHATBOT_TEMPERATURE || '0.5'),
                 top_p: 0.9
             })
         });
