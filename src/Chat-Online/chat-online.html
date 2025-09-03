@@ -91,29 +91,40 @@
             </button>
             <div class="nav-tabs">
                 <button class="nav-tab active" data-tab="video">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polygon points="10,8 16,12 10,16"/>
-                    </svg>
-                    Video
+                    <div class="nav-icon">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                            <circle cx="8" cy="8" r="2"/>
+                            <circle cx="16" cy="8" r="2"/>
+                            <circle cx="8" cy="12" r="2"/>
+                            <circle cx="16" cy="12" r="2"/>
+                        </svg>
+                    </div>
+                    <span class="nav-label">Video</span>
                 </button>
                 <button class="nav-tab" data-tab="materials">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14,2 14,8 20,8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
-                        <polyline points="10,9 9,9 8,9"/>
-                    </svg>
-                    Materiales
+                    <div class="nav-icon">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10,9 9,9 8,9"/>
+                        </svg>
+                    </div>
+                    <span class="nav-label">Materiales</span>
                 </button>
                 <button class="nav-tab" data-tab="quiz">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                        <line x1="12" y1="17" x2="12.01" y2="17"/>
-                    </svg>
-                    Quiz
+                    <div class="nav-icon">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                    </div>
+                    <span class="nav-label">Quiz</span>
                 </button>
             </div>
                 </div>
@@ -169,28 +180,25 @@
                             </div>
                             <div class="progress-dot pending" title="Módulo 2 Pendiente">
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12,6 12,12 16,14"/>
+                                    <circle cx="12" cy="12" r="3"/>
                                 </svg>
-                        </div>
+                            </div>
                             <div class="progress-dot pending" title="Módulo 3 Pendiente">
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12,6 12,12 16,14"/>
+                                    <circle cx="12" cy="12" r="3"/>
                                 </svg>
-                </div>
+                            </div>
                             <div class="progress-dot pending" title="Módulo 4 Pendiente">
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12,6 12,12 16,14"/>
+                                    <circle cx="12" cy="12" r="3"/>
                                 </svg>
                             </div>
                             <div class="progress-dot pending" title="Módulo 5 Pendiente">
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12,6 12,12 16,14"/>
+                                    <circle cx="12" cy="12" r="3"/>
                                 </svg>
-                    </div>
+                            </div>
+                        </div>
                 </div>
             </div>
             
@@ -389,17 +397,30 @@ Cargando información...
                             </span>
                                 </div>
                         <div class="video-progress-dots">
-                            <div class="progress-dot filled" title="Sección 1 Completada">
-                                <i class="fas fa-check"></i>
-                                </div>
-                            <div class="progress-dot filled" title="Sección 2 Completada">
-                                <i class="fas fa-check"></i>
+                            <div class="video-section-dot completed" title="Sección 1 Completada">
+                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20,6 9,17 4,12"/>
+                                </svg>
                             </div>
-                            <div class="progress-dot filled" title="Sección 3 Completada">
-                                <i class="fas fa-check"></i>
+                            <div class="video-section-dot completed" title="Sección 2 Completada">
+                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20,6 9,17 4,12"/>
+                                </svg>
                             </div>
-                            <div class="progress-dot" title="Sección 4 Pendiente">
-                                <i class="fas fa-circle"></i>
+                            <div class="video-section-dot completed" title="Sección 3 Completada">
+                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20,6 9,17 4,12"/>
+                                </svg>
+                            </div>
+                            <div class="video-section-dot current" title="Sección 4 En Progreso">
+                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="5,3 19,12 5,21"/>
+                                </svg>
+                            </div>
+                            <div class="video-section-dot pending" title="Sección 5 Pendiente">
+                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
                             </div>
                         </div>
                             </div>
@@ -408,53 +429,402 @@ Cargando información...
                 <!-- Pestañas de Contenido -->
                 <div class="content-tabs">
                     <button class="tab-btn active" data-content="transcript">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14,2 14,8 20,8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                            <polyline points="10,9 9,9 8,9"/>
-                        </svg>
-                                Transcripción
-                            </button>
+                        <div class="tab-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                <line x1="8" y1="21" x2="16" y2="21"/>
+                                <line x1="12" y1="17" x2="12" y2="21"/>
+                                <circle cx="8" cy="8" r="2"/>
+                                <circle cx="16" cy="8" r="2"/>
+                                <circle cx="8" cy="12" r="2"/>
+                                <circle cx="16" cy="12" r="2"/>
+                            </svg>
+                        </div>
+                        <span class="tab-label">Transcripción</span>
+                    </button>
                     <button class="tab-btn" data-content="summary">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="8" y1="6" x2="21" y2="6"/>
-                            <line x1="8" y1="12" x2="21" y2="12"/>
-                            <line x1="8" y1="18" x2="21" y2="18"/>
-                            <line x1="3" y1="6" x2="3.01" y2="6"/>
-                            <line x1="3" y1="12" x2="3.01" y2="12"/>
-                            <line x1="3" y1="18" x2="3.01" y2="18"/>
-                        </svg>
-                                Resumen
-                            </button>
+                        <div class="tab-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6"/>
+                                <line x1="8" y1="12" x2="21" y2="12"/>
+                                <line x1="8" y1="18" x2="21" y2="18"/>
+                                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                <line x1="3" y1="18" x2="3.01" y2="18"/>
+                            </svg>
+                        </div>
+                        <span class="tab-label">Resumen</span>
+                    </button>
                     <button class="tab-btn" data-content="quiz">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                            <line x1="12" y1="17" x2="12.01" y2="17"/>
-                        </svg>
-                        Quiz
+                        <div class="tab-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                        </div>
+                        <span class="tab-label">Quiz</span>
                     </button>
                     <button class="tab-btn" data-content="community">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                        Comunidad
-                    </button>
+                        <div class="tab-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
                         </div>
+                        <span class="tab-label">Comunidad</span>
+                    </button>
+                </div>
 
                 <!-- Contenido de Transcripción -->
                 <div class="content-area">
-                            <div class="transcript-content">
-                                <p>En este módulo vamos a explorar los conceptos fundamentales de las redes neuronales. Comenzaremos con una introducción a los perceptrones simples...</p>
-                                <p>Las redes neuronales artificiales están inspiradas en el funcionamiento del cerebro humano. Cada neurona artificial recibe señales de entrada...</p>
-                                <p>La función de activación es crucial para determinar si una neurona se activa o no. Las funciones más comunes son sigmoid, tanh y ReLU...</p>
+                    <div class="transcript-content" data-content="transcript">
+                        <h4>Transcripción del Video - Módulo 1: ¿Qué es la IA?</h4>
+                        <p>En este módulo vamos a explorar los conceptos fundamentales de las redes neuronales. Comenzaremos con una introducción a los perceptrones simples y cómo estos forman la base de sistemas más complejos de inteligencia artificial.</p>
+                        <p>Las redes neuronales artificiales están inspiradas en el funcionamiento del cerebro humano. Cada neurona artificial recibe señales de entrada, las procesa mediante una función matemática, y produce una salida que puede ser enviada a otras neuronas.</p>
+                        <p>La función de activación es crucial para determinar si una neurona se activa o no. Las funciones más comunes son sigmoid, tanh y ReLU. Cada una tiene sus propias características y se utiliza en diferentes contextos.</p>
+                        <p>El aprendizaje automático, o Machine Learning, es una rama de la inteligencia artificial que permite a las máquinas aprender y mejorar automáticamente a través de la experiencia sin ser programadas explícitamente.</p>
+                        <p>Existen tres tipos principales de aprendizaje automático: supervisado, no supervisado y por refuerzo. Cada tipo tiene sus propias aplicaciones y métodos específicos.</p>
+                        <p>El aprendizaje supervisado utiliza datos etiquetados para entrenar modelos que pueden hacer predicciones sobre nuevos datos. Ejemplos incluyen clasificación de imágenes y predicción de precios.</p>
+                        <p>El aprendizaje no supervisado busca patrones ocultos en datos sin etiquetas. Técnicas como clustering y reducción de dimensionalidad son fundamentales en este enfoque.</p>
+                        <p>El aprendizaje por refuerzo se basa en la interacción con un entorno, donde un agente aprende a tomar decisiones óptimas mediante recompensas y castigos.</p>
+                        <p>Deep Learning, o aprendizaje profundo, es una subcategoría del machine learning que utiliza redes neuronales con múltiples capas ocultas para modelar y entender datos complejos.</p>
+                        <p>Las aplicaciones de la inteligencia artificial son vastas: desde reconocimiento de voz y procesamiento de lenguaje natural hasta vehículos autónomos y diagnóstico médico.</p>
+                        <p>Es importante entender que la IA no es una tecnología única, sino un conjunto de técnicas y enfoques que permiten a las máquinas realizar tareas que tradicionalmente requerían inteligencia humana.</p>
+                        <p>En los próximos módulos profundizaremos en cada uno de estos conceptos, proporcionando ejemplos prácticos y ejercicios que te ayudarán a comprender mejor estos fundamentos.</p>
+                    </div>
+
+                    <!-- Contenido de Comunidad -->
+                    <div class="community-content" data-content="community" style="display: none;">
+                        <!-- Header de Comunidad -->
+                        <div class="community-header">
+                            <div class="community-title">
+                                <h3>
+                                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    </svg>
+                                    Comunidad del Taller
+                                </h3>
+                                <span class="community-subtitle">Preguntas y Respuestas - Introducción a la IA</span>
+                            </div>
+                            <button class="btn-primary" id="askQuestionBtn">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Hacer Pregunta
+                            </button>
+                        </div>
+
+                        <!-- Filtros y Ordenamiento -->
+                        <div class="community-filters">
+                            <div class="filter-tabs">
+                                <button class="filter-tab active" data-filter="all">
+                                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="11" cy="11" r="8"/>
+                                        <path d="m21 21-4.35-4.35"/>
+                                    </svg>
+                                    Todas
+                                </button>
+                                <button class="filter-tab" data-filter="unanswered">
+                                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                    </svg>
+                                    Sin Responder
+                                </button>
+                                <button class="filter-tab" data-filter="answered">
+                                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20,6 9,17 4,12"/>
+                                    </svg>
+                                    Respondidas
+                                </button>
+                                <button class="filter-tab" data-filter="mine">
+                                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                    Mis Preguntas
+                                </button>
+                                <div class="filter-separator"></div>
+                                <select class="module-filter" id="moduleFilter">
+                                    <option value="all">Todos los Módulos</option>
+                                    <option value="module-1">Módulo 1: Conceptos Básicos</option>
+                                    <option value="module-2">Módulo 2: Redes Neuronales</option>
+                                    <option value="module-3">Módulo 3: Herramientas Prácticas</option>
+                                    <option value="module-4">Módulo 4: Proyectos Aplicados</option>
+                                    <option value="module-5">Módulo 5: Deployment y Producción</option>
+                                </select>
+                            </div>
+                            <div class="sort-dropdown">
+                                <select id="sortSelect">
+                                    <option value="recent">Más Recientes</option>
+                                    <option value="votes">Más Votadas</option>
+                                    <option value="answers">Más Respondidas</option>
+                                    <option value="views">Más Vistas</option>
+                                </select>
                             </div>
                         </div>
+
+                        <!-- Lista de Preguntas -->
+                        <div class="questions-list" id="questionsList">
+                            <!-- Pregunta de ejemplo - Módulo 1: Conceptos Básicos -->
+                            <div class="question-item">
+                                <div class="question-votes">
+                                    <button class="vote-btn upvote">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M18 15l-6-6-6 6"/>
+                                        </svg>
+                                    </button>
+                                    <span class="vote-count">15</span>
+                                    <button class="vote-btn downvote">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="question-content">
+                                    <div class="question-header">
+                                        <h4 class="question-title">¿Cuál es la diferencia entre Machine Learning y Deep Learning?</h4>
+                                        <div class="question-meta">
+                                            <span class="question-author">
+                                                <img src="../../assets/images/default-avatar.svg" alt="Usuario" class="author-avatar">
+                                                Carlos Mendez
+                                            </span>
+                                            <span class="question-time">hace 2 horas</span>
+                                            <span class="question-module">Módulo 1</span>
+                                        </div>
+                                    </div>
+                                    <div class="question-preview">
+                                        <p>Estoy viendo el video sobre conceptos básicos de IA pero no me queda claro cuál es la diferencia específica entre estos dos conceptos. ¿Podrían explicármelo con ejemplos prácticos?</p>
+                                    </div>
+                                    <div class="question-tags">
+                                        <span class="tag">machine-learning</span>
+                                        <span class="tag">deep-learning</span>
+                                        <span class="tag">conceptos-básicos</span>
+                                        <span class="tag module-tag">módulo-1</span>
+                                    </div>
+                                    <div class="question-stats">
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                            </svg>
+                                            3 respuestas
+                                        </span>
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                            127 vistas
+                                        </span>
+                                        <span class="stat answered">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="20,6 9,17 4,12"/>
+                                            </svg>
+                                            Respondida
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pregunta sin responder - Módulo 3: Herramientas Prácticas -->
+                            <div class="question-item">
+                                <div class="question-votes">
+                                    <button class="vote-btn upvote">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M18 15l-6-6-6 6"/>
+                                        </svg>
+                                    </button>
+                                    <span class="vote-count">7</span>
+                                    <button class="vote-btn downvote">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="question-content">
+                                    <div class="question-header">
+                                        <h4 class="question-title">¿Qué herramientas recomiendan para empezar con TensorFlow?</h4>
+                                        <div class="question-meta">
+                                            <span class="question-author">
+                                                <img src="../../assets/images/default-avatar.svg" alt="Usuario" class="author-avatar">
+                                                Ana García
+                                            </span>
+                                            <span class="question-time">hace 4 horas</span>
+                                            <span class="question-module">Módulo 3</span>
+                                        </div>
+                                    </div>
+                                    <div class="question-preview">
+                                        <p>Estoy en el módulo de herramientas prácticas y me gustaría saber qué IDE y configuración recomiendan para trabajar con TensorFlow y Keras...</p>
+                                    </div>
+                                    <div class="question-tags">
+                                        <span class="tag">tensorflow</span>
+                                        <span class="tag">herramientas</span>
+                                        <span class="tag">configuración</span>
+                                        <span class="tag module-tag">módulo-3</span>
+                                    </div>
+                                    <div class="question-stats">
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                            </svg>
+                                            0 respuestas
+                                        </span>
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                            45 vistas
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pregunta destacada -->
+                            <div class="question-item featured">
+                                <div class="featured-badge">
+                                    <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                                    </svg>
+                                    Destacada
+                                </div>
+                                <div class="question-votes">
+                                    <button class="vote-btn upvote voted">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M18 15l-6-6-6 6"/>
+                                        </svg>
+                                    </button>
+                                    <span class="vote-count">42</span>
+                                    <button class="vote-btn downvote">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="question-content">
+                                    <div class="question-header">
+                                        <h4 class="question-title">¿Cómo optimizar el rendimiento de modelos CNN en producción?</h4>
+                                        <div class="question-meta">
+                                            <span class="question-author instructor">
+                                                <img src="../../assets/images/instructor-avatar.svg" alt="Instructor" class="author-avatar">
+                                                Dr. María González
+                                                <span class="instructor-badge">Instructor</span>
+                                            </span>
+                                            <span class="question-time">hace 1 día</span>
+                                            <span class="question-module">Módulo 5</span>
+                                        </div>
+                                    </div>
+                                    <div class="question-preview">
+                                        <p>Esta es una pregunta frecuente sobre optimización de modelos en entornos de producción. Les explico las mejores prácticas para deployment de CNNs...</p>
+                                    </div>
+                                    <div class="question-tags">
+                                        <span class="tag">cnn</span>
+                                        <span class="tag">optimización</span>
+                                        <span class="tag">producción</span>
+                                        <span class="tag">deployment</span>
+                                        <span class="tag module-tag">módulo-5</span>
+                                    </div>
+                                    <div class="question-stats">
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                            </svg>
+                                            8 respuestas
+                                        </span>
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                            312 vistas
+                                        </span>
+                                        <span class="stat answered">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="20,6 9,17 4,12"/>
+                                            </svg>
+                                            Respondida
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal para hacer pregunta -->
+                        <div class="question-modal" id="questionModal" style="display: none;">
+                            <div class="modal-overlay"></div>
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3>
+                                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                        </svg>
+                                        Nueva Pregunta
+                                    </h3>
+                                    <button class="modal-close" id="closeQuestionModal">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18"/>
+                                            <line x1="6" y1="6" x2="18" y2="18"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <form class="question-form" id="questionForm">
+                                    <div class="form-group">
+                                        <label for="questionTitle">Título de la pregunta</label>
+                                        <input type="text" id="questionTitle" placeholder="¿Cuál es tu pregunta?" maxlength="500" required>
+                                        <div class="char-counter">
+                                            <span id="titleCharCount">0</span>/500
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="questionContent">Describe tu pregunta en detalle</label>
+                                        <textarea id="questionContent" placeholder="Proporciona más contexto, ejemplos o detalles específicos..." rows="6" required></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="questionTags">Etiquetas (opcional)</label>
+                                        <input type="text" id="questionTags" placeholder="Presiona Enter para agregar etiquetas">
+                                        <div class="tags-list" id="selectedTags"></div>
+                                        <div class="tags-help">
+                                            <small>Agrega etiquetas relevantes para ayudar a otros a encontrar tu pregunta</small>
+                                        </div>
+                                    </div>
+                                    <div class="modal-actions">
+                                        <button type="button" class="btn-secondary" id="cancelQuestionBtn">Cancelar</button>
+                                        <button type="submit" class="btn-primary">
+                                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M22 2L11 13"/>
+                                                <polygon points="22,2 15,22 11,13 2,9"/>
+                                            </svg>
+                                            Publicar Pregunta
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contenido de Quiz -->
+                    <div class="quiz-content" data-content="quiz" style="display: none;">
+                        <div class="quiz-placeholder">
+                            <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            <h3>Quiz del Módulo</h3>
+                            <p>Esta sección estará disponible próximamente</p>
+                        </div>
+                    </div>
+                </div>
                     </div>
         </section>
 
@@ -1158,11 +1528,8 @@ Cargando información...
                 }
 
             }, 500);
-
         });
-
         
-
         // Funciones auxiliares
 
         function obtenerUsuarioActual() {

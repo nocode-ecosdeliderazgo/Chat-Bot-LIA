@@ -611,54 +611,366 @@ class ChatOnline {
     }
     
     updateContentArea(contentType) {
-        const contentArea = document.querySelector('.content-area');
-        if (!contentArea) return;
+        console.log(`🔄 Cambiando contenido a: ${contentType}`);
         
-        switch(contentType) {
-            case 'transcript':
-                contentArea.innerHTML = `
-                    <div class="transcript-content">
-                        ${this.getModuleTranscript(this.currentModule)}
-                    </div>
-                `;
-                break;
-            case 'summary':
-                contentArea.innerHTML = `
-                    <div class="summary-content">
-                        <h4>Resumen del Módulo</h4>
-                        <ul>
-                            <li>Conceptos fundamentales de redes neuronales</li>
-                            <li>Perceptrones simples y su funcionamiento</li>
-                            <li>Funciones de activación (sigmoid, tanh, ReLU)</li>
-                            <li>Aplicaciones prácticas en IA</li>
-                        </ul>
-                    </div>
-                `;
-                break;
-            case 'community':
-                contentArea.innerHTML = `
-                    <div class="community-content">
-                        <h4>Comunidad de Aprendizaje</h4>
-                        <div class="community-features">
-                            <div class="community-section">
-                                <h5>📚 Foros de Discusión</h5>
-                                <p>Comparte ideas y resuelve dudas con otros estudiantes</p>
-                            </div>
-                            <div class="community-section">
-                                <h5>🤝 Grupos de Estudio</h5>
-                                <p>Únete a grupos según tu nivel y intereses</p>
-                            </div>
-                            <div class="community-section">
-                                <h5>💡 Proyectos Colaborativos</h5>
-                                <p>Participa en proyectos de IA con la comunidad</p>
+        // Ocultar todos los contenidos (solo dentro del content-area, no los tabs)
+        const contentArea = document.querySelector('.content-area');
+        if (!contentArea) {
+            console.error('❌ No se encontró .content-area');
+            return;
+        }
+        
+        // Ocultar todos los contenidos
+        contentArea.querySelectorAll('[data-content]').forEach(content => {
+            content.style.display = 'none';
+            console.log(`🔒 Ocultando: ${content.getAttribute('data-content')}`);
+        });
+        
+        // Mostrar el contenido seleccionado
+        const targetContent = contentArea.querySelector(`[data-content="${contentType}"]`);
+        console.log(`🔍 Buscando contenido: [data-content="${contentType}"]`);
+        console.log(`📍 Contenido encontrado:`, targetContent);
+        
+        if (targetContent) {
+            const displayType = contentType === 'community' ? 'flex' : 'block';
+            targetContent.style.display = displayType;
+            console.log(`✅ Mostrando ${contentType} con display: ${displayType}`);
+            
+            // Configurar event listeners específicos si es necesario
+            if (contentType === 'community') {
+                console.log('🏘️ Configurando event listeners de comunidad');
+                this.setupCommunityEventListeners();
+            }
+        } else {
+            console.log(`⚠️ Contenido ${contentType} no encontrado, usando fallback`);
+            // Fallback para contenidos que se generan dinámicamente
+            switch(contentType) {
+                case 'summary':
+                    contentArea.innerHTML = `
+                        <div class="summary-content" data-content="summary">
+                            <h4>Resumen del Módulo 1: ¿Qué es la IA?</h4>
+                            
+                            <h5>🧠 Conceptos Fundamentales</h5>
+                            <ul>
+                                <li><strong>Inteligencia Artificial:</strong> Conjunto de técnicas que permiten a las máquinas realizar tareas que tradicionalmente requerían inteligencia humana</li>
+                                <li><strong>Redes Neuronales:</strong> Sistemas inspirados en el cerebro humano que procesan información mediante neuronas artificiales conectadas</li>
+                                <li><strong>Perceptrones:</strong> Unidades básicas de procesamiento que forman la base de sistemas más complejos</li>
+                            </ul>
+
+                            <h5>🔧 Funciones de Activación</h5>
+                            <ul>
+                                <li><strong>Sigmoid:</strong> Función suave que mapea valores a un rango entre 0 y 1</li>
+                                <li><strong>Tanh:</strong> Similar a sigmoid pero con rango entre -1 y 1</li>
+                                <li><strong>ReLU:</strong> Función lineal rectificada, muy utilizada en deep learning</li>
+                            </ul>
+
+                            <h5>📚 Tipos de Aprendizaje Automático</h5>
+                            <ul>
+                                <li><strong>Supervisado:</strong> Utiliza datos etiquetados para entrenar modelos predictivos</li>
+                                <li><strong>No Supervisado:</strong> Busca patrones ocultos en datos sin etiquetas</li>
+                                <li><strong>Por Refuerzo:</strong> Aprendizaje mediante interacción con el entorno usando recompensas</li>
+                            </ul>
+
+                            <h5>🚀 Aplicaciones Prácticas</h5>
+                            <ul>
+                                <li>Reconocimiento de voz y procesamiento de lenguaje natural</li>
+                                <li>Clasificación y análisis de imágenes</li>
+                                <li>Sistemas de recomendación personalizados</li>
+                                <li>Vehículos autónomos y robótica</li>
+                                <li>Diagnóstico médico asistido por IA</li>
+                                <li>Análisis financiero y detección de fraudes</li>
+                            </ul>
+
+                            <h5>🎯 Puntos Clave para Recordar</h5>
+                            <ul>
+                                <li>La IA no es una tecnología única, sino un conjunto de enfoques</li>
+                                <li>Deep Learning es una subcategoría del Machine Learning</li>
+                                <li>Las funciones de activación son cruciales para el funcionamiento de las redes</li>
+                                <li>Cada tipo de aprendizaje tiene aplicaciones específicas</li>
+                                <li>La práctica y experimentación son fundamentales para el aprendizaje</li>
+                            </ul>
+
+                            <div style="margin-top: 2rem; padding: 1rem; background: rgba(68, 229, 255, 0.1); border-radius: 8px; border-left: 4px solid var(--glass-primary);">
+                                <strong>💡 Próximo Paso:</strong> En el siguiente módulo exploraremos en detalle cómo construir tu primera red neuronal desde cero.
                             </div>
                         </div>
-                    </div>
-                `;
-                break;
+                    `;
+                    break;
+            }
+        }
+        
+        console.log(`📄 Contenido cambiado a: ${contentType}`);
+    }
+    
+    // ===== FUNCIONES DE COMUNIDAD =====
+    
+    setupCommunityEventListeners() {
+        // Botón para hacer pregunta
+        const askQuestionBtn = document.getElementById('askQuestionBtn');
+        if (askQuestionBtn) {
+            askQuestionBtn.addEventListener('click', () => this.showQuestionModal());
+        }
+        
+        // Filtros de preguntas
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                const filter = e.target.getAttribute('data-filter');
+                this.filterQuestions(filter);
+            });
+        });
+        
+        // Selector de ordenamiento
+        const sortSelect = document.getElementById('sortSelect');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', (e) => {
+                this.sortQuestions(e.target.value);
+            });
+        }
+        
+        // Votos en preguntas
+        document.querySelectorAll('.vote-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleVote(e.target.closest('.vote-btn'));
+            });
+        });
+        
+        // Modal de pregunta
+        this.setupQuestionModal();
+        
+        console.log('🔧 Event listeners de comunidad configurados');
+    }
+    
+    showQuestionModal() {
+        const modal = document.getElementById('questionModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            // Focus en el título
+            const titleInput = document.getElementById('questionTitle');
+            if (titleInput) {
+                setTimeout(() => titleInput.focus(), 100);
+            }
+        }
+        
+        console.log('❓ Modal de pregunta abierto');
+    }
+    
+    hideQuestionModal() {
+        const modal = document.getElementById('questionModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            
+            // Limpiar formulario
+            this.clearQuestionForm();
+        }
+        
+        console.log('❌ Modal de pregunta cerrado');
+    }
+    
+    setupQuestionModal() {
+        // Cerrar modal
+        const closeBtn = document.getElementById('closeQuestionModal');
+        const cancelBtn = document.getElementById('cancelQuestionBtn');
+        const overlay = document.querySelector('.modal-overlay');
+        
+        [closeBtn, cancelBtn, overlay].forEach(element => {
+            if (element) {
+                element.addEventListener('click', () => this.hideQuestionModal());
+            }
+        });
+        
+        // Formulario de pregunta
+        const questionForm = document.getElementById('questionForm');
+        if (questionForm) {
+            questionForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.submitQuestion();
+            });
+        }
+        
+        // Contador de caracteres
+        const titleInput = document.getElementById('questionTitle');
+        if (titleInput) {
+            titleInput.addEventListener('input', () => {
+                const count = titleInput.value.length;
+                const counter = document.getElementById('titleCharCount');
+                if (counter) {
+                    counter.textContent = count;
+                }
+            });
+        }
+        
+        // Manejo de tags
+        const tagsInput = document.getElementById('questionTags');
+        if (tagsInput) {
+            tagsInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.addQuestionTag(tagsInput.value.trim());
+                    tagsInput.value = '';
+                }
+            });
         }
     }
     
+    filterQuestions(filter) {
+        console.log(`🔍 Filtrando preguntas por: ${filter}`);
+        // Aquí se implementará la lógica de filtrado cuando tengamos datos reales
+    }
+    
+    sortQuestions(sortBy) {
+        console.log(`📊 Ordenando preguntas por: ${sortBy}`);
+        // Aquí se implementará la lógica de ordenamiento cuando tengamos datos reales
+    }
+    
+    handleVote(voteBtn) {
+        if (!voteBtn) return;
+        
+        const isUpvote = voteBtn.classList.contains('upvote');
+        const questionItem = voteBtn.closest('.question-item');
+        const voteCount = voteBtn.parentElement.querySelector('.vote-count');
+        
+        // Toggle del voto
+        if (voteBtn.classList.contains('voted')) {
+            voteBtn.classList.remove('voted');
+            const currentCount = parseInt(voteCount.textContent);
+            voteCount.textContent = isUpvote ? currentCount - 1 : currentCount + 1;
+        } else {
+            // Remover voto opuesto si existe
+            const oppositeBtn = isUpvote ? 
+                voteBtn.parentElement.querySelector('.downvote') : 
+                voteBtn.parentElement.querySelector('.upvote');
+            
+            if (oppositeBtn && oppositeBtn.classList.contains('voted')) {
+                oppositeBtn.classList.remove('voted');
+                const currentCount = parseInt(voteCount.textContent);
+                voteCount.textContent = isUpvote ? currentCount + 2 : currentCount - 2;
+            } else {
+                const currentCount = parseInt(voteCount.textContent);
+                voteCount.textContent = isUpvote ? currentCount + 1 : currentCount - 1;
+            }
+            
+            voteBtn.classList.add('voted');
+        }
+        
+        console.log(`${isUpvote ? '👍' : '👎'} Voto registrado`);
+    }
+    
+    submitQuestion() {
+        const title = document.getElementById('questionTitle').value.trim();
+        const content = document.getElementById('questionContent').value.trim();
+        const tags = this.getSelectedTags();
+        
+        if (!title || !content) {
+            this.showNotification('Por favor completa todos los campos requeridos', 'error');
+            return;
+        }
+        
+        // Aquí se enviará la pregunta al backend
+        console.log('📝 Enviando pregunta:', { title, content, tags });
+        
+        // Simular envío exitoso
+        this.showNotification('¡Pregunta publicada exitosamente!', 'success');
+        this.hideQuestionModal();
+        
+        // Recargar lista de preguntas (cuando esté conectado al backend)
+    }
+    
+    clearQuestionForm() {
+        const titleInput = document.getElementById('questionTitle');
+        const contentInput = document.getElementById('questionContent');
+        const tagsInput = document.getElementById('questionTags');
+        const selectedTags = document.getElementById('selectedTags');
+        const charCounter = document.getElementById('titleCharCount');
+        
+        if (titleInput) titleInput.value = '';
+        if (contentInput) contentInput.value = '';
+        if (tagsInput) tagsInput.value = '';
+        if (selectedTags) selectedTags.innerHTML = '';
+        if (charCounter) charCounter.textContent = '0';
+        
+        this.questionTags = [];
+    }
+    
+    addQuestionTag(tag) {
+        if (!tag || this.questionTags.includes(tag)) return;
+        
+        this.questionTags = this.questionTags || [];
+        this.questionTags.push(tag);
+        
+        const tagsContainer = document.getElementById('selectedTags');
+        if (tagsContainer) {
+            const tagElement = document.createElement('span');
+            tagElement.className = 'tag-item';
+            tagElement.innerHTML = `
+                ${tag}
+                <button class="tag-remove" onclick="window.chatOnline.removeQuestionTag('${tag}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            `;
+            tagsContainer.appendChild(tagElement);
+        }
+    }
+    
+    removeQuestionTag(tag) {
+        this.questionTags = this.questionTags.filter(t => t !== tag);
+        
+        // Actualizar UI
+        const tagsContainer = document.getElementById('selectedTags');
+        if (tagsContainer) {
+            const tagElements = tagsContainer.querySelectorAll('.tag-item');
+            tagElements.forEach(element => {
+                if (element.textContent.trim().startsWith(tag)) {
+                    element.remove();
+                }
+            });
+        }
+    }
+    
+    getSelectedTags() {
+        return this.questionTags || [];
+    }
+    
+    showNotification(message, type = 'info') {
+        // Crear notificación toast
+        const notification = document.createElement('div');
+        notification.className = `notification toast ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span>${message}</span>
+                <button class="notification-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remover después de 3 segundos
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 3000);
+        
+        // Cerrar manualmente
+        const closeBtn = notification.querySelector('.notification-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => notification.remove());
+        }
+    }
+
     // ===== NOTAS =====
     setupNotes() {
         const addNoteBtn = document.getElementById('addNoteBtn');
