@@ -21,6 +21,16 @@ class ChatOnline {
         this.quizTimeRemaining = this.quizTimeLimit;
         this.quizStartTime = null;
         
+        // ===== ACCESO GLOBAL INMEDIATO =====
+        window.courseManager = this;
+        console.log('✅ window.courseManager asignado en constructor');
+        
+        // Función global de backup para onclick
+        window.switchTab = (contentType) => {
+            console.log(`🔄 switchTab global llamado: ${contentType}`);
+            this.switchContentTab(contentType);
+        };
+        
         this.init();
     }
 
@@ -45,6 +55,7 @@ class ChatOnline {
         this.setupLiaChat();
         
         // Pestañas de contenido
+        this.debugTabsImmediately();
         this.setupContentTabs();
         
         // Notas
@@ -582,28 +593,129 @@ class ChatOnline {
     }
     
     // ===== PESTAÑAS DE CONTENIDO =====
-    setupContentTabs() {
-        const tabButtons = document.querySelectorAll('.content-tabs .tab-btn');
+    
+    debugTabsImmediately() {
+        console.log('🔍 === DEBUG INMEDIATO DE TABS ===');
         
-        tabButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const contentType = e.currentTarget.dataset.content;
-                console.log(`📄 Cambiando contenido a: ${contentType}`);
+        // Verificar contenedor de tabs
+        const contentTabs = document.querySelector('.content-tabs');
+        console.log('📦 .content-tabs encontrado:', !!contentTabs);
+        
+        // Verificar botones
+        const allButtons = document.querySelectorAll('.tab-btn');
+        console.log(`🔘 Total .tab-btn encontrados: ${allButtons.length}`);
+        
+        const tabButtons = document.querySelectorAll('.content-tabs .tab-btn');
+        console.log(`🎯 .content-tabs .tab-btn encontrados: ${tabButtons.length}`);
+        
+        // Listar cada botón
+        tabButtons.forEach((btn, i) => {
+            console.log(`  ${i}: data-content="${btn.dataset.content}" text="${btn.textContent.trim()}"`);
+        });
+        
+        // Verificar contenidos
+        const transcriptContent = document.querySelector('[data-content="transcript"]');
+        const summaryContent = document.querySelector('[data-content="summary"]');
+        const communityContent = document.querySelector('[data-content="community"]');
+        
+        console.log('📄 Contenidos encontrados:');
+        console.log(`  transcript: ${!!transcriptContent}`);
+        console.log(`  summary: ${!!summaryContent}`);
+        console.log(`  community: ${!!communityContent}`);
+        
+        // Verificar acceso a window.courseManager
+        console.log('🌍 window.courseManager:', typeof window.courseManager);
+        console.log('🔧 switchContentTab disponible:', typeof this.switchContentTab);
+    }
+    
+    setupContentTabs() {
+        console.log('🔧 Configurando tabs de contenido...');
+        
+        // Método 1: Event listeners directos
+        this.configureTabButtons();
+        
+        // Método 2: Event delegation como backup
+        this.setupTabDelegation();
+        
+        // Retry después de un momento si no se encontraron todos los botones
+        setTimeout(() => {
+            const currentButtons = document.querySelectorAll('.content-tabs .tab-btn');
+            if (currentButtons.length < 3) {
+                console.log('🔄 Retry: configurando tabs nuevamente...');
+                this.configureTabButtons();
+            }
+        }, 100);
+    }
+    
+    setupTabDelegation() {
+        const contentTabs = document.querySelector('.content-tabs');
+        if (!contentTabs) {
+            console.error('❌ No se encontró .content-tabs para delegation');
+            return;
+        }
+        
+        console.log('🎯 Configurando event delegation para tabs...');
+        
+        contentTabs.addEventListener('click', (e) => {
+            // Buscar el botón más cercano
+            let button = e.target;
+            while (button && !button.classList.contains('tab-btn')) {
+                button = button.parentElement;
+                if (button === contentTabs) break;
+            }
+            
+            if (button && button.classList.contains('tab-btn')) {
+                const contentType = button.dataset.content;
+                console.log(`🎯 DELEGATION CLICK: ${contentType}`);
+                e.preventDefault();
+                e.stopPropagation();
                 this.switchContentTab(contentType);
+            }
+        });
+        
+        console.log('✅ Event delegation configurado');
+    }
+    
+    configureTabButtons() {
+        const tabButtons = document.querySelectorAll('.content-tabs .tab-btn');
+        console.log(`📋 Configurando ${tabButtons.length} botones de tabs`);
+        
+        if (tabButtons.length === 0) {
+            console.error('❌ No se encontraron botones de tabs');
+            return;
+        }
+        
+        tabButtons.forEach((button, index) => {
+            const contentType = button.dataset.content;
+            console.log(`🔗 Configurando: ${contentType}`);
+            
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const clickedContentType = e.currentTarget.dataset.content;
+                console.log(`🔘 CLICK: ${clickedContentType}`);
+                this.switchContentTab(clickedContentType);
             });
         });
+        
+        console.log('✅ Event listeners configurados');
     }
     
     switchContentTab(contentType) {
+        console.log(`🔄 SWITCH TAB: ${contentType}`);
+        
         // Remover clase active de todas las pestañas
         document.querySelectorAll('.content-tabs .tab-btn').forEach(tab => {
             tab.classList.remove('active');
         });
         
         // Agregar clase active a la pestaña seleccionada
-        const activeTab = document.querySelector(`[data-content="${contentType}"]`);
+        const activeTab = document.querySelector(`.content-tabs .tab-btn[data-content="${contentType}"]`);
         if (activeTab) {
             activeTab.classList.add('active');
+            console.log(`✅ Tab activado: ${contentType}`);
+        } else {
+            console.error(`❌ No se encontró tab: ${contentType}`);
         }
         
         // Cambiar contenido
@@ -620,10 +732,19 @@ class ChatOnline {
             return;
         }
         
-        // Ocultar todos los contenidos
+        // Primero verificar que el contenido objetivo existe
+        const targetContent = contentArea.querySelector(`[data-content="${contentType}"]`);
+        if (!targetContent) {
+            console.error(`❌ No se encontró contenido para: ${contentType}`);
+            return;
+        }
+        
+        // Ocultar todos los contenidos EXCEPTO el objetivo
         contentArea.querySelectorAll('[data-content]').forEach(content => {
-            content.style.display = 'none';
-            console.log(`🔒 Ocultando: ${content.getAttribute('data-content')}`);
+            if (content.getAttribute('data-content') !== contentType) {
+                content.style.display = 'none';
+                console.log(`🔒 Ocultando: ${content.getAttribute('data-content')}`);
+            }
         });
         
         // Mostrar el contenido seleccionado
@@ -640,63 +761,25 @@ class ChatOnline {
             if (contentType === 'community') {
                 console.log('🏘️ Configurando event listeners de comunidad');
                 this.setupCommunityEventListeners();
+                
+                // Asegurar que el contenido sea completamente visible
+                setTimeout(() => {
+                    targetContent.style.display = 'flex';
+                    targetContent.style.visibility = 'visible';
+                    targetContent.style.opacity = '1';
+                    
+                    console.log('✅ Comunidad configurada correctamente');
+                }, 10);
             }
         } else {
-            console.log(`⚠️ Contenido ${contentType} no encontrado, usando fallback`);
-            // Fallback para contenidos que se generan dinámicamente
-            switch(contentType) {
-                case 'summary':
-                    contentArea.innerHTML = `
-                        <div class="summary-content" data-content="summary">
-                            <h4>Resumen del Módulo 1: ¿Qué es la IA?</h4>
-                            
-                            <h5>🧠 Conceptos Fundamentales</h5>
-                            <ul>
-                                <li><strong>Inteligencia Artificial:</strong> Conjunto de técnicas que permiten a las máquinas realizar tareas que tradicionalmente requerían inteligencia humana</li>
-                                <li><strong>Redes Neuronales:</strong> Sistemas inspirados en el cerebro humano que procesan información mediante neuronas artificiales conectadas</li>
-                                <li><strong>Perceptrones:</strong> Unidades básicas de procesamiento que forman la base de sistemas más complejos</li>
-                            </ul>
-
-                            <h5>🔧 Funciones de Activación</h5>
-                            <ul>
-                                <li><strong>Sigmoid:</strong> Función suave que mapea valores a un rango entre 0 y 1</li>
-                                <li><strong>Tanh:</strong> Similar a sigmoid pero con rango entre -1 y 1</li>
-                                <li><strong>ReLU:</strong> Función lineal rectificada, muy utilizada en deep learning</li>
-                            </ul>
-
-                            <h5>📚 Tipos de Aprendizaje Automático</h5>
-                            <ul>
-                                <li><strong>Supervisado:</strong> Utiliza datos etiquetados para entrenar modelos predictivos</li>
-                                <li><strong>No Supervisado:</strong> Busca patrones ocultos en datos sin etiquetas</li>
-                                <li><strong>Por Refuerzo:</strong> Aprendizaje mediante interacción con el entorno usando recompensas</li>
-                            </ul>
-
-                            <h5>🚀 Aplicaciones Prácticas</h5>
-                            <ul>
-                                <li>Reconocimiento de voz y procesamiento de lenguaje natural</li>
-                                <li>Clasificación y análisis de imágenes</li>
-                                <li>Sistemas de recomendación personalizados</li>
-                                <li>Vehículos autónomos y robótica</li>
-                                <li>Diagnóstico médico asistido por IA</li>
-                                <li>Análisis financiero y detección de fraudes</li>
-                            </ul>
-
-                            <h5>🎯 Puntos Clave para Recordar</h5>
-                            <ul>
-                                <li>La IA no es una tecnología única, sino un conjunto de enfoques</li>
-                                <li>Deep Learning es una subcategoría del Machine Learning</li>
-                                <li>Las funciones de activación son cruciales para el funcionamiento de las redes</li>
-                                <li>Cada tipo de aprendizaje tiene aplicaciones específicas</li>
-                                <li>La práctica y experimentación son fundamentales para el aprendizaje</li>
-                            </ul>
-
-                            <div style="margin-top: 2rem; padding: 1rem; background: rgba(68, 229, 255, 0.1); border-radius: 8px; border-left: 4px solid var(--glass-primary);">
-                                <strong>💡 Próximo Paso:</strong> En el siguiente módulo exploraremos en detalle cómo construir tu primera red neuronal desde cero.
-                            </div>
-                        </div>
-                    `;
-                    break;
-            }
+            console.error(`❌ No se encontró contenido para: ${contentType}`);
+            
+            // Debug adicional: mostrar todos los elementos con data-content
+            const allDataContent = contentArea.querySelectorAll('[data-content]');
+            console.log('📋 Todos los elementos con data-content:');
+            allDataContent.forEach(el => {
+                console.log(`  - ${el.getAttribute('data-content')}: ${el.className}`);
+            });
         }
         
         console.log(`📄 Contenido cambiado a: ${contentType}`);
@@ -4210,6 +4293,36 @@ async function forceInitializeProgress() {
 console.log('🔧 Funciones de debug disponibles:');
 console.log('• debugProgressSystem() - Debug completo del sistema');
 console.log('• forceInitializeProgress() - Forzar inicialización');
+
+// ===== FUNCIÓN GLOBAL INMEDIATA =====
+window.switchTab = function(contentType) {
+    console.log(`🔄 switchTab global inmediato llamado: ${contentType}`);
+    
+    if (window.courseManager && typeof window.courseManager.switchContentTab === 'function') {
+        window.courseManager.switchContentTab(contentType);
+    } else {
+        console.log('⏳ courseManager no disponible aún, guardando para después...');
+        // Guardar la acción para ejecutar cuando esté disponible
+        window.pendingTabSwitch = contentType;
+    }
+};
+
+console.log('✅ window.switchTab definido globalmente');
+
+// ===== INSTANCIACIÓN AUTOMÁTICA =====
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM cargado, instanciando ChatOnline...');
+    window.chatOnlineInstance = new ChatOnline();
+    
+    // Ejecutar acción pendiente si existe
+    if (window.pendingTabSwitch) {
+        console.log(`🔄 Ejecutando acción pendiente: ${window.pendingTabSwitch}`);
+        setTimeout(() => {
+            window.switchTab(window.pendingTabSwitch);
+            window.pendingTabSwitch = null;
+        }, 100);
+    }
+});
 
 // ===== EXPORTAR PARA USO EXTERNO =====
 if (typeof module !== 'undefined' && module.exports) {

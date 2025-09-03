@@ -30,6 +30,30 @@
     <link rel="stylesheet" href="../styles/main.css">
     <link rel="stylesheet" href="chat-online.css">
     
+    <script>
+        // FUNCIÓN GLOBAL INMEDIATA - DISPONIBLE DESDE EL INICIO
+        window.switchTab = function(contentType) {
+            console.log('🔄 switchTab:', contentType);
+            
+            // Ocultar todos los contenidos
+            const allContents = document.querySelectorAll('.content-area [data-content]');
+            allContents.forEach(content => content.style.display = 'none');
+            
+            // Mostrar el contenido seleccionado
+            const targetContent = document.querySelector(`.content-area [data-content="${contentType}"]`);
+            if (targetContent) {
+                targetContent.style.display = contentType === 'community' ? 'flex' : 'block';
+                console.log('✅ Mostrado:', contentType);
+            }
+            
+            // Actualizar botones
+            document.querySelectorAll('.content-tabs .tab-btn').forEach(tab => tab.classList.remove('active'));
+            const activeTab = document.querySelector(`.content-tabs .tab-btn[data-content="${contentType}"]`);
+            if (activeTab) activeTab.classList.add('active');
+        };
+        console.log('✅ switchTab LISTO EN HEAD');
+    </script>
+    
     <!-- Iconos SVG personalizados -->
     <style>
         .icon {
@@ -482,7 +506,7 @@ Cargando información...
 
                 <!-- Pestañas de Contenido -->
                 <div class="content-tabs">
-                    <button class="tab-btn active" data-content="transcript">
+                    <button class="tab-btn active" data-content="transcript" onclick="window.switchTab('transcript')">
                         <div class="tab-icon">
                             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
@@ -496,7 +520,7 @@ Cargando información...
                         </div>
                         <span class="tab-label">Transcripción</span>
                     </button>
-                    <button class="tab-btn" data-content="summary">
+                    <button class="tab-btn" data-content="summary" onclick="window.switchTab('summary')">
                         <div class="tab-icon">
                             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="8" y1="6" x2="21" y2="6"/>
@@ -510,7 +534,7 @@ Cargando información...
                         <span class="tab-label">Resumen</span>
                     </button>
 
-                    <button class="tab-btn" data-content="community">
+                    <button class="tab-btn" data-content="community" onclick="window.switchTab('community')">
                         <div class="tab-icon">
                             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -539,6 +563,55 @@ Cargando información...
                         <p>Las aplicaciones de la inteligencia artificial son vastas: desde reconocimiento de voz y procesamiento de lenguaje natural hasta vehículos autónomos y diagnóstico médico.</p>
                         <p>Es importante entender que la IA no es una tecnología única, sino un conjunto de técnicas y enfoques que permiten a las máquinas realizar tareas que tradicionalmente requerían inteligencia humana.</p>
                         <p>En los próximos módulos profundizaremos en cada uno de estos conceptos, proporcionando ejemplos prácticos y ejercicios que te ayudarán a comprender mejor estos fundamentos.</p>
+                    </div>
+
+                    <!-- Contenido de Resumen -->
+                    <div class="summary-content" data-content="summary" style="display: none;">
+                        <h4>Resumen del Módulo 1: ¿Qué es la IA?</h4>
+                        
+                        <h5>🧠 Conceptos Fundamentales</h5>
+                        <ul>
+                            <li><strong>Inteligencia Artificial:</strong> Conjunto de técnicas que permiten a las máquinas realizar tareas que tradicionalmente requerían inteligencia humana</li>
+                            <li><strong>Redes Neuronales:</strong> Sistemas inspirados en el cerebro humano que procesan información mediante neuronas artificiales conectadas</li>
+                            <li><strong>Perceptrones:</strong> Unidades básicas de procesamiento que forman la base de sistemas más complejos</li>
+                        </ul>
+
+                        <h5>🔧 Funciones de Activación</h5>
+                        <ul>
+                            <li><strong>Sigmoid:</strong> Función suave que mapea valores a un rango entre 0 y 1</li>
+                            <li><strong>Tanh:</strong> Similar a sigmoid pero con rango entre -1 y 1</li>
+                            <li><strong>ReLU:</strong> Función lineal rectificada, muy utilizada en deep learning</li>
+                        </ul>
+
+                        <h5>📚 Tipos de Aprendizaje Automático</h5>
+                        <ul>
+                            <li><strong>Supervisado:</strong> Utiliza datos etiquetados para entrenar modelos predictivos</li>
+                            <li><strong>No Supervisado:</strong> Busca patrones ocultos en datos sin etiquetas</li>
+                            <li><strong>Por Refuerzo:</strong> Aprendizaje mediante interacción con el entorno usando recompensas</li>
+                        </ul>
+
+                        <h5>🚀 Aplicaciones Prácticas</h5>
+                        <ul>
+                            <li>Reconocimiento de voz y procesamiento de lenguaje natural</li>
+                            <li>Clasificación y análisis de imágenes</li>
+                            <li>Sistemas de recomendación personalizados</li>
+                            <li>Vehículos autónomos y robótica</li>
+                            <li>Diagnóstico médico asistido por IA</li>
+                            <li>Análisis financiero y detección de fraudes</li>
+                        </ul>
+
+                        <h5>🎯 Puntos Clave para Recordar</h5>
+                        <ul>
+                            <li>La IA no es una tecnología única, sino un conjunto de enfoques</li>
+                            <li>Deep Learning es una subcategoría del Machine Learning</li>
+                            <li>Las funciones de activación son cruciales para el funcionamiento de las redes</li>
+                            <li>Cada tipo de aprendizaje tiene aplicaciones específicas</li>
+                            <li>La práctica y experimentación son fundamentales para el aprendizaje</li>
+                        </ul>
+
+                        <div style="margin-top: 2rem; padding: 1rem; background: rgba(68, 229, 255, 0.1); border-radius: 8px; border-left: 4px solid var(--glass-primary);">
+                            <strong>💡 Próximo Paso:</strong> En el siguiente módulo exploraremos en detalle cómo construir tu primera red neuronal desde cero.
+                        </div>
                     </div>
 
                     <!-- Contenido de Comunidad -->
@@ -1676,9 +1749,40 @@ Cargando información...
 
         }
 
+        // ===== FUNCIÓN INMEDIATA PARA TABS - NO DEPENDE DE NADA =====
+        function switchTab(contentType) {
+            console.log('🔄 switchTab directo:', contentType);
+            
+            // Ocultar todos los contenidos
+            const allContents = document.querySelectorAll('[data-content]');
+            allContents.forEach(content => {
+                if (content.closest('.content-area')) {
+                    content.style.display = 'none';
+                }
+            });
+            
+            // Mostrar el contenido seleccionado
+            const targetContent = document.querySelector(`[data-content="${contentType}"]`);
+            if (targetContent && targetContent.closest('.content-area')) {
+                const displayType = contentType === 'community' ? 'flex' : 'block';
+                targetContent.style.display = displayType;
+                console.log('✅ Contenido mostrado:', contentType);
+            }
+            
+            // Actualizar botones activos
+            const allTabs = document.querySelectorAll('.content-tabs .tab-btn');
+            allTabs.forEach(tab => tab.classList.remove('active'));
+            
+            const activeTab = document.querySelector(`.content-tabs .tab-btn[data-content="${contentType}"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+                console.log('✅ Tab activado:', contentType);
+            }
+        }
         
-
-
+        // Hacer disponible globalmente INMEDIATAMENTE
+        window.switchTab = switchTab;
+        console.log('✅ switchTab definido directamente en HTML');
 
     </script>
 
