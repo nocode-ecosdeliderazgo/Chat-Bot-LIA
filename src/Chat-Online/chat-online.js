@@ -81,6 +81,7 @@ class ChatOnline {
         this.setupEventListeners();
         await this.initializeProgressManager();
         await this.initializeYouTubeTracker();
+        await this.initializeCommunitySystem();
         this.loadInitialData();
         this.setupResponsive();
         console.log('✅ Chat Online inicializado correctamente');
@@ -95,6 +96,9 @@ class ChatOnline {
         
         // Chat de LIA
         this.setupLiaChat();
+        
+        // Sistema de comunidad
+        this.setupCommunityEvents();
         
         // Pestañas de contenido
         this.debugTabsImmediately();
@@ -738,6 +742,62 @@ class ChatOnline {
         }
     }
     
+    // Función auxiliar para obtener el ID del curso actual
+    getCurrentCourseId() {
+        try {
+            // Intentar obtener desde el progreso del curso
+            if (this.courseProgress && this.courseProgress.course_id) {
+                console.log('📚 Curso desde courseProgress:', this.courseProgress.course_id);
+                return this.courseProgress.course_id;
+            }
+            
+            // Intentar obtener desde localStorage
+            const courseData = localStorage.getItem('currentCourse');
+            if (courseData) {
+                const parsed = JSON.parse(courseData);
+                console.log('📚 Curso desde localStorage:', parsed.id);
+                return parsed.id;
+            }
+            
+            // Usar el ID por defecto
+            console.log('📚 Usando curso por defecto:', this.currentCourseId);
+            return this.currentCourseId;
+        } catch (error) {
+            console.log('📚 Error obteniendo curso:', error);
+            return this.currentCourseId;
+        }
+    }
+    
+    // Función auxiliar para obtener el ID del módulo actual
+    getCurrentModuleId() {
+        try {
+            // Intentar obtener desde el progreso del curso
+            if (this.courseProgress && this.courseProgress.modules) {
+                const currentModule = this.courseProgress.modules.find(m => m.module_number === this.currentModule);
+                if (currentModule && currentModule.id) {
+                    console.log('📖 Módulo desde courseProgress:', currentModule.id);
+                    return currentModule.id;
+                }
+            }
+            
+            // Intentar obtener desde localStorage
+            const moduleData = localStorage.getItem('currentModule');
+            if (moduleData) {
+                const parsed = JSON.parse(moduleData);
+                console.log('📖 Módulo desde localStorage:', parsed.id);
+                return parsed.id;
+            }
+            
+            // Usar el formato por defecto
+            const defaultModuleId = `module-${this.currentModule}`;
+            console.log('📖 Usando módulo por defecto:', defaultModuleId);
+            return defaultModuleId;
+        } catch (error) {
+            console.log('📖 Error obteniendo módulo:', error);
+            return `module-${this.currentModule}`;
+        }
+    }
+    
     // Función auxiliar para obtener token de autenticación
     obtenerTokenAuth() {
         const token = localStorage.getItem('authToken');
@@ -907,7 +967,6 @@ class ChatOnline {
         });
         
         // Mostrar el contenido seleccionado
-        const targetContent = contentArea.querySelector(`[data-content="${contentType}"]`);
         console.log(`🔍 Buscando contenido: [data-content="${contentType}"]`);
         console.log(`📍 Contenido encontrado:`, targetContent);
         
@@ -1508,58 +1567,6 @@ class ChatOnline {
         }
     }
     
-    async submitQuestion() {
-        const title = document.getElementById('questionTitle').value.trim();
-        const content = document.getElementById('questionContent').value.trim();
-        const tags = this.getSelectedTags();
-        
-        if (!title || !content) {
-            this.showNotification('Por favor completa todos los campos requeridos', 'error');
-            return;
-        }
-        
-        try {
-            // Mostrar estado de carga
-            const submitBtn = document.getElementById('submitQuestionBtn');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Publicando...';
-            }
-            
-            // Preparar datos de la pregunta
-            const questionData = {
-                title,
-                content,
-                tags,
-                course_id: this.currentCourseId || null,
-                module_id: this.currentModule || null
-            };
-            
-            console.log('📝 Enviando pregunta:', questionData);
-            
-            // Llamar a la API
-            const response = await window.communityAPI.createQuestion(questionData);
-            
-            if (response.success) {
-                this.showNotification('¡Pregunta publicada exitosamente!', 'success');
-                this.hideQuestionModal();
-                
-                // Recargar lista de preguntas
-                await this.loadQuestions();
-            }
-            
-        } catch (error) {
-            console.error('❌ Error al crear pregunta:', error);
-            this.showNotification('Error al publicar la pregunta. Inténtalo de nuevo.', 'error');
-        } finally {
-            // Restaurar estado del botón
-            const submitBtn = document.getElementById('submitQuestionBtn');
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Publicar Pregunta';
-            }
-        }
-    }
     
     clearQuestionForm() {
         const titleInput = document.getElementById('questionTitle');
@@ -2676,6 +2683,620 @@ class ChatOnline {
             console.error('❌ Error inicializando YouTube Progress Tracker:', error);
             this.youtubeTracker = null;
         }
+    }
+
+    // =====================================================
+    // SISTEMA DE COMUNIDAD
+    // =====================================================
+
+    async initializeCommunitySystem() {
+        try {
+            console.log('🏘️ Inicializando sistema de comunidad...');
+            
+            // Esperar a que el progress manager esté listo
+            if (this.progressManager && this.courseProgress) {
+                console.log('📊 Progress manager ya está listo, usando datos reales');
+            } else {
+                console.log('⏳ Esperando a que el progress manager esté listo...');
+                // Esperar un poco más para que el progress manager se inicialice
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+            
+            // Inicializar CommunityDatabase si está disponible
+            if (window.CommunityDatabase) {
+                this.communityDB = new window.CommunityDatabase();
+                await this.communityDB.initialize();
+                console.log('✅ CommunityDatabase inicializado');
+            } else {
+                console.warn('⚠️ CommunityDatabase no disponible, usando API directa');
+            }
+            
+            // Cargar preguntas existentes
+            await this.loadCommunityQuestions();
+            
+            console.log('✅ Sistema de comunidad inicializado');
+            
+        } catch (error) {
+            console.error('❌ Error inicializando sistema de comunidad:', error);
+        }
+    }
+
+    setupCommunityEvents() {
+        console.log('🔧 Configurando eventos de comunidad...');
+        
+        // Botón para hacer pregunta
+        const askQuestionBtn = document.getElementById('askQuestionBtn');
+        if (askQuestionBtn) {
+            askQuestionBtn.addEventListener('click', () => {
+                this.showQuestionModal();
+            });
+        }
+
+        // Modal de pregunta
+        const questionModal = document.getElementById('questionModal');
+        if (questionModal) {
+            // Botón cerrar modal
+            const closeBtn = document.getElementById('closeQuestionModal');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    this.hideQuestionModal();
+                });
+            }
+
+            // Botón cancelar
+            const cancelBtn = document.getElementById('cancelQuestionBtn');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    this.hideQuestionModal();
+                });
+            }
+
+            // Formulario de pregunta
+            const questionForm = document.getElementById('questionForm');
+            if (questionForm) {
+                questionForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.submitQuestion();
+                });
+            }
+
+            // Contador de caracteres para el título
+            const titleInput = document.getElementById('questionTitle');
+            const charCount = document.getElementById('titleCharCount');
+            if (titleInput && charCount) {
+                titleInput.addEventListener('input', () => {
+                    charCount.textContent = titleInput.value.length;
+                });
+            }
+        }
+
+        // Filtros de comunidad
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const filter = tab.dataset.filter;
+                this.filterQuestions(filter);
+            });
+        });
+
+        // Ordenamiento
+        const sortSelect = document.getElementById('sortSelect');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', () => {
+                this.sortQuestions(sortSelect.value);
+            });
+        }
+
+        console.log('✅ Eventos de comunidad configurados');
+    }
+
+    showQuestionModal() {
+        console.log('📝 Mostrando modal de pregunta...');
+        const modal = document.getElementById('questionModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            // Limpiar formulario
+            const form = document.getElementById('questionForm');
+            if (form) {
+                form.reset();
+                document.getElementById('titleCharCount').textContent = '0';
+            }
+            
+            console.log('✅ Modal de pregunta mostrado');
+        } else {
+            console.error('❌ Modal de pregunta no encontrado');
+        }
+    }
+
+    hideQuestionModal() {
+        console.log('❌ Ocultando modal de pregunta...');
+        const modal = document.getElementById('questionModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            console.log('✅ Modal de pregunta ocultado');
+        }
+    }
+
+    async submitQuestion() {
+        try {
+            console.log('📤 Enviando pregunta...');
+            
+            const titleInput = document.getElementById('questionTitle');
+            const contentInput = document.getElementById('questionContent');
+            const tagsInput = document.getElementById('questionTags');
+            
+            if (!titleInput || !contentInput) {
+                console.error('❌ Campos de formulario no encontrados');
+                this.showNotification('Error: Campos de formulario no encontrados', 'error');
+                return;
+            }
+            
+            const title = titleInput.value.trim();
+            const content = contentInput.value.trim();
+            const tags = this.getSelectedTags() || [];
+            
+            // Validación más específica
+            if (!title || title.length < 5) {
+                this.showNotification('El título debe tener al menos 5 caracteres', 'error');
+                return;
+            }
+            
+            if (!content || content.length < 10) {
+                this.showNotification('El contenido debe tener al menos 10 caracteres', 'error');
+                return;
+            }
+            
+            // Mostrar indicador de carga
+            const submitBtn = document.getElementById('submitQuestionBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="loading-spinner"></div> Enviando...';
+            submitBtn.disabled = true;
+            
+            // Obtener datos reales de la sesión
+            const currentUser = this.obtenerUsuarioActual();
+            const currentCourseId = this.getCurrentCourseId();
+            const currentModuleId = this.getCurrentModuleId();
+            
+            console.log('👤 Usuario actual:', currentUser);
+            console.log('📚 Curso actual:', currentCourseId);
+            console.log('📖 Módulo actual:', currentModuleId);
+            
+            // Validar datos críticos
+            if (!currentUser || !currentUser.id) {
+                throw new Error('Usuario no identificado. Por favor recarga la página.');
+            }
+            
+            if (!currentCourseId) {
+                throw new Error('Curso no identificado. Por favor recarga la página.');
+            }
+            
+            // Preparar datos de la pregunta con validación
+            const questionData = {
+                title: title,
+                content: content,
+                tags: tags && tags.length > 0 ? tags : [],
+                course_id: currentCourseId,
+                module_id: currentModuleId || `module-${this.currentModule}`,
+                user_id: currentUser.id
+            };
+            
+            console.log('📝 Datos de la pregunta:', questionData);
+            
+            // Usar siempre la API directa para mayor control
+            const result = await this.createQuestionViaAPI(questionData);
+            
+            if (result) {
+                console.log('✅ Pregunta creada exitosamente:', result);
+                
+                // Limpiar formulario
+                this.clearQuestionForm();
+                
+                // Cerrar modal
+                this.hideQuestionModal();
+                
+                // Recargar preguntas
+                await this.loadCommunityQuestions();
+                
+                // Mostrar mensaje de éxito
+                this.showNotification('Pregunta publicada exitosamente', 'success');
+                
+            } else {
+                throw new Error('No se pudo crear la pregunta');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error enviando pregunta:', error);
+            const errorMessage = error.message || 'Error al publicar la pregunta. Inténtalo de nuevo.';
+            this.showNotification(errorMessage, 'error');
+        } finally {
+            // Restaurar botón
+            const submitBtn = document.getElementById('submitQuestionBtn');
+            if (submitBtn) {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+    }
+
+    async createQuestionViaAPI(questionData) {
+        try {
+            console.log('🌐 Enviando pregunta vía API...');
+            console.log('📊 Datos enviados:', questionData);
+            
+            const response = await fetch('/api/community/questions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getAuthToken()}`,
+                    'X-User-Id': questionData.user_id
+                },
+                body: JSON.stringify(questionData)
+            });
+            
+            console.log('📡 Response status:', response.status);
+            console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+            
+            // Obtener el texto de la respuesta primero
+            const responseText = await response.text();
+            console.log('📄 Response text:', responseText);
+            
+            if (!response.ok) {
+                let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                try {
+                    const errorData = JSON.parse(responseText);
+                    errorMessage = errorData.message || errorData.error || errorMessage;
+                } catch (e) {
+                    // Si no es JSON válido, usar el mensaje HTTP por defecto
+                }
+                throw new Error(errorMessage);
+            }
+            
+            // Intentar parsear como JSON
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (e) {
+                console.error('❌ Error parseando JSON:', e);
+                throw new Error('Respuesta del servidor no válida');
+            }
+            
+            console.log('✅ Pregunta creada vía API:', result);
+            return result.data || result;
+            
+        } catch (error) {
+            console.error('❌ Error en API:', error);
+            throw error;
+        }
+    }
+
+    async loadCommunityQuestions() {
+        try {
+            console.log('📋 Cargando preguntas de la comunidad...');
+            
+            // Mostrar indicador de carga
+            const questionsList = document.getElementById('questionsList');
+            if (questionsList) {
+                questionsList.innerHTML = '<div class="loading-questions"><div class="loading-spinner"></div><span>Cargando preguntas...</span></div>';
+            }
+            
+            // Obtener preguntas
+            let questions = [];
+            if (this.communityDB) {
+                questions = await this.communityDB.getQuestions({
+                    course_id: this.currentCourseId,
+                    module_id: `module-${this.currentModule}`
+                });
+            } else {
+                questions = await this.getQuestionsViaAPI();
+            }
+            
+            console.log(`✅ ${questions.length} preguntas cargadas`);
+            
+            // Renderizar preguntas
+            this.renderQuestions(questions);
+            
+        } catch (error) {
+            console.error('❌ Error cargando preguntas:', error);
+            const questionsList = document.getElementById('questionsList');
+            if (questionsList) {
+                questionsList.innerHTML = '<div class="error-message">Error al cargar las preguntas. Inténtalo de nuevo.</div>';
+            }
+        }
+    }
+
+    async getQuestionsViaAPI() {
+        try {
+            const response = await fetch(`/api/community/questions?course_id=${this.currentCourseId}&module_id=module-${this.currentModule}`, {
+                headers: {
+                    'Authorization': `Bearer ${this.getAuthToken()}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            return result.data || [];
+            
+        } catch (error) {
+            console.error('❌ Error obteniendo preguntas vía API:', error);
+            return [];
+        }
+    }
+
+    renderQuestions(questions) {
+        const questionsList = document.getElementById('questionsList');
+        if (!questionsList) {
+            console.error('❌ Lista de preguntas no encontrada');
+            return;
+        }
+        
+        if (!questions || questions.length === 0) {
+            questionsList.innerHTML = `
+                <div class="empty-questions">
+                    <div class="empty-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                    </div>
+                    <h3>No hay preguntas aún</h3>
+                    <p>Sé el primero en hacer una pregunta sobre este módulo</p>
+                    <button class="btn-primary" onclick="window.showQuestionModal()">
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Hacer Primera Pregunta
+                    </button>
+                </div>
+            `;
+            return;
+        }
+        
+        const questionsHTML = questions.map(question => this.renderQuestionItem(question)).join('');
+        questionsList.innerHTML = questionsHTML;
+        
+        console.log(`✅ ${questions.length} preguntas renderizadas`);
+    }
+
+    renderQuestionItem(question) {
+        const timeAgo = this.formatTimeAgo(question.created_at);
+        const tags = question.tags || [];
+        const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+        
+        return `
+            <div class="question-item" data-question-id="${question.id}">
+                <div class="question-votes">
+                    <button class="vote-btn upvote" onclick="window.chatOnline.voteQuestion('${question.id}', 'upvote')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 15l-6-6-6 6"/>
+                        </svg>
+                    </button>
+                    <span class="vote-count">${question.votes_count || 0}</span>
+                    <button class="vote-btn downvote" onclick="window.chatOnline.voteQuestion('${question.id}', 'downvote')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="question-content">
+                    <div class="question-header">
+                        <h4 class="question-title">${this.escapeHtml(question.title)}</h4>
+                        <div class="question-meta">
+                            <span class="question-author">
+                                <img src="${question.users?.avatar_url || '../../assets/images/default-avatar.svg'}" alt="Usuario" class="author-avatar">
+                                ${this.escapeHtml(question.users?.name || 'Usuario')}
+                            </span>
+                            <span class="question-time">${timeAgo}</span>
+                            <span class="question-module">Módulo ${this.currentModule}</span>
+                        </div>
+                    </div>
+                    <div class="question-preview">
+                        <p>${this.escapeHtml(question.content.substring(0, 200))}${question.content.length > 200 ? '...' : ''}</p>
+                    </div>
+                    <div class="question-tags">
+                        ${tagsHTML}
+                        <span class="tag module-tag">módulo-${this.currentModule}</span>
+                    </div>
+                    <div class="question-stats">
+                        <span class="stat">
+                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            ${question.answers_count || 0} respuesta${(question.answers_count || 0) !== 1 ? 's' : ''}
+                        </span>
+                        <span class="stat">
+                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            ${question.views_count || 0} vista${(question.views_count || 0) !== 1 ? 's' : ''}
+                        </span>
+                        ${question.is_answered ? '<span class="stat answered"><svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>Respondida</span>' : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    async voteQuestion(questionId, voteType) {
+        try {
+            console.log(`🗳️ Votando ${voteType} en pregunta ${questionId}`);
+            
+            const voteData = {
+                user_id: this.currentUser.id,
+                target_type: 'question',
+                target_id: questionId,
+                vote_type: voteType
+            };
+            
+            const response = await fetch('/api/community/votes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getAuthToken()}`
+                },
+                body: JSON.stringify(voteData)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            console.log('✅ Voto procesado:', result);
+            
+            // Recargar preguntas para actualizar contadores
+            await this.loadCommunityQuestions();
+            
+        } catch (error) {
+            console.error('❌ Error votando:', error);
+            this.showNotification('Error al procesar el voto', 'error');
+        }
+    }
+
+    filterQuestions(filter) {
+        console.log(`🔍 Filtrando preguntas por: ${filter}`);
+        
+        // Actualizar botones activos
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector(`[data-filter="${filter}"]`)?.classList.add('active');
+        
+        // TODO: Implementar filtrado real cuando se conecte con la API
+        // Por ahora solo recargamos todas las preguntas
+        this.loadCommunityQuestions();
+    }
+
+    sortQuestions(sort) {
+        console.log(`📊 Ordenando preguntas por: ${sort}`);
+        
+        // TODO: Implementar ordenamiento real cuando se conecte con la API
+        // Por ahora solo recargamos todas las preguntas
+        this.loadCommunityQuestions();
+    }
+
+    formatTimeAgo(timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+
+        if (diffInSeconds < 60) {
+            return 'hace un momento';
+        } else if (diffInSeconds < 3600) {
+            const minutes = Math.floor(diffInSeconds / 60);
+            return `hace ${minutes} minuto${minutes > 1 ? 's' : ''}`;
+        } else if (diffInSeconds < 86400) {
+            const hours = Math.floor(diffInSeconds / 3600);
+            return `hace ${hours} hora${hours > 1 ? 's' : ''}`;
+        } else if (diffInSeconds < 2592000) {
+            const days = Math.floor(diffInSeconds / 86400);
+            return `hace ${days} día${days > 1 ? 's' : ''}`;
+        } else {
+            return date.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    getAuthToken() {
+        // Intentar obtener token real
+        const token = localStorage.getItem('authToken');
+        if (token && token !== 'null' && token !== 'undefined') {
+            console.log('🔑 Usando token real:', token.substring(0, 20) + '...');
+            return token;
+        }
+        
+        // Obtener usuario actual para generar token consistente
+        const currentUser = this.obtenerUsuarioActual();
+        const userId = currentUser?.id || 'anonymous';
+        
+        // Token de desarrollo para testing con ID de usuario
+        const devToken = `dev-token-${userId}-${Date.now()}`;
+        console.log('🔧 Usando token de desarrollo:', devToken);
+        return devToken;
+    }
+
+    showNotification(message, type = 'info') {
+        // Crear notificación temporal
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span class="notification-message">${message}</span>
+                <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+            </div>
+        `;
+        
+        // Agregar estilos si no existen
+        if (!document.getElementById('notification-styles')) {
+            const styles = document.createElement('style');
+            styles.id = 'notification-styles';
+            styles.textContent = `
+                .notification {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    z-index: 10000;
+                    padding: 12px 16px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    max-width: 400px;
+                    animation: slideIn 0.3s ease-out;
+                }
+                .notification-success { background: #10b981; color: white; }
+                .notification-error { background: #ef4444; color: white; }
+                .notification-info { background: #3b82f6; color: white; }
+                .notification-content {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 12px;
+                }
+                .notification-close {
+                    background: none;
+                    border: none;
+                    color: inherit;
+                    font-size: 18px;
+                    cursor: pointer;
+                    padding: 0;
+                    width: 20px;
+                    height: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(styles);
+        }
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remover después de 5 segundos
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 5000);
     }
     
     // Esperar a que los componentes estén listos

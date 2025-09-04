@@ -3675,6 +3675,100 @@ io.on('connection', (socket) => {
 // Importar funciones de cursos
 const coursesApi = require('./api/courses');
 
+// Rutas específicas para Module 1 Videos Loader
+app.get('/api/courses/module1-info', async (req, res) => {
+    try {
+        console.log('📚 Obteniendo información del módulo 1...');
+        
+        // Buscar el módulo 1 en la base de datos
+        const { data: moduleData, error } = await supabase
+            .from('course_modules')
+            .select('id, module_number, title')
+            .eq('module_number', 1)
+            .eq('is_required', true)
+            .single();
+
+        if (error || !moduleData) {
+            console.error('❌ Error obteniendo módulo 1:', error);
+            return res.status(404).json({
+                success: false,
+                error: 'Módulo 1 no encontrado',
+                details: error?.message
+            });
+        }
+
+        console.log('✅ Información del módulo 1 obtenida:', moduleData);
+        res.json({
+            success: true,
+            module_id: moduleData.id,
+            module_number: moduleData.module_number,
+            module_title: moduleData.module_title
+        });
+
+    } catch (error) {
+        console.error('💥 Error en /api/courses/module1-info:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+});
+
+app.get('/api/courses/module1-videos', async (req, res) => {
+    try {
+        console.log('🎬 Obteniendo videos del módulo 1...');
+        
+        // Buscar el módulo 1
+        const { data: moduleData, error: moduleError } = await supabase
+            .from('course_modules')
+            .select('id')
+            .eq('module_number', 1)
+            .eq('is_required', true)
+            .single();
+
+        if (moduleError || !moduleData) {
+            console.error('❌ Error obteniendo módulo 1:', moduleError);
+            return res.status(404).json({
+                success: false,
+                error: 'Módulo 1 no encontrado',
+                details: moduleError?.message
+            });
+        }
+
+        // Obtener videos del módulo 1
+        const { data: videosData, error: videosError } = await supabase
+            .from('module_videos')
+            .select('*')
+            .eq('module_id', moduleData.id)
+            .order('video_order', { ascending: true });
+
+        if (videosError) {
+            console.error('❌ Error obteniendo videos del módulo 1:', videosError);
+            return res.status(500).json({
+                success: false,
+                error: 'Error obteniendo videos',
+                details: videosError.message
+            });
+        }
+
+        console.log(`✅ ${videosData.length} videos del módulo 1 obtenidos`);
+        res.json({
+            success: true,
+            videos: videosData || [],
+            module_id: moduleData.id
+        });
+
+    } catch (error) {
+        console.error('💥 Error en /api/courses/module1-videos:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+});
+
 // Obtener estructura completa del curso
 app.get('/api/courses/:courseId/full-structure', async (req, res) => {
     await coursesApi.getCourseFullStructure(req, res);
@@ -4744,25 +4838,45 @@ app.get('/api/community/questions', async (req, res) => {
 // POST /api/community/questions - Crear nueva pregunta
 app.post('/api/community/questions', async (req, res) => {
     try {
+        console.log('📝 === INICIO CREACIÓN PREGUNTA ===');
+        console.log('📋 Headers recibidos:', req.headers);
+        console.log('📋 Body recibido:', req.body);
+        
         const { title, content, tags, course_id, module_id, user_id } = req.body;
         
-        console.log('📝 Creando nueva pregunta:', { title, user_id, course_id, module_id });
+        console.log('📝 Datos extraídos:', { 
+            title: title?.substring(0, 50) + '...', 
+            content: content?.substring(0, 50) + '...', 
+            tags, 
+            course_id, 
+            module_id, 
+            user_id 
+        });
         
         // Validar datos requeridos
         if (!title || !content || !user_id) {
+            console.log('❌ Validación fallida - datos faltantes');
             return res.status(400).json({
                 success: false,
                 error: 'Datos requeridos faltantes',
-                message: 'Título, contenido y usuario son requeridos'
+                message: 'Título, contenido y usuario son requeridos',
+                received: { 
+                    title: !!title, 
+                    content: !!content, 
+                    user_id: !!user_id 
+                }
             });
         }
         
         if (!pool) {
+            console.log('❌ Error: Pool de base de datos no disponible');
             return res.status(500).json({ 
                 success: false,
                 error: 'Base de datos no disponible' 
             });
         }
+        
+        console.log('🗃️ Pool de base de datos disponible, procediendo con INSERT...');
         
         // Crear la pregunta
         const result = await pool.query(`
@@ -4771,6 +4885,12 @@ app.post('/api/community/questions', async (req, res) => {
             VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
             RETURNING *
         `, [title.trim(), content.trim(), tags || [], course_id, module_id, user_id]);
+        
+        console.log('📊 Resultado de INSERT:', {
+            rowCount: result.rowCount,
+            hasRows: result.rows.length > 0,
+            questionId: result.rows[0]?.id
+        });
         
         if (result.rows.length === 0) {
             throw new Error('No se pudo crear la pregunta');
