@@ -550,6 +550,104 @@ class CommunityDatabase {
     }
 
     // ========================================
+    // MÉTODOS DE PREGUNTAS DE COMUNIDAD
+    // ========================================
+
+    async getQuestions(params = {}) {
+        try {
+            console.log('📋 Obteniendo preguntas de comunidad...');
+            
+            let query = this.supabase
+                .from('community_questions')
+                .select(`
+                    *,
+                    users:user_id (
+                        id,
+                        name,
+                        avatar_url
+                    )
+                `);
+
+            // Aplicar filtros
+            if (params.course_id) {
+                query = query.eq('course_id', params.course_id);
+            }
+            if (params.module_id) {
+                query = query.eq('module_id', params.module_id);
+            }
+            if (params.filter === 'unanswered') {
+                query = query.eq('is_answered', false);
+            } else if (params.filter === 'answered') {
+                query = query.eq('is_answered', true);
+            }
+
+            // Aplicar ordenamiento
+            if (params.sort === 'votes') {
+                query = query.order('votes_count', { ascending: false });
+            } else if (params.sort === 'answers') {
+                query = query.order('answers_count', { ascending: false });
+            } else {
+                query = query.order('created_at', { ascending: false });
+            }
+
+            const { data, error } = await query;
+
+            if (error) {
+                console.error('❌ Error obteniendo preguntas:', error);
+                return [];
+            }
+
+            console.log('✅ Preguntas obtenidas:', data);
+            return data;
+        } catch (error) {
+            console.error('❌ Error en getQuestions:', error);
+            return [];
+        }
+    }
+
+    async createQuestion(questionData) {
+        try {
+            if (!this.currentUser) {
+                console.error('❌ No hay usuario actual');
+                return null;
+            }
+
+            console.log('📝 Creando nueva pregunta...');
+            
+            const { data, error } = await this.supabase
+                .from('community_questions')
+                .insert({
+                    title: questionData.title,
+                    content: questionData.content,
+                    tags: questionData.tags || [],
+                    course_id: questionData.course_id,
+                    module_id: questionData.module_id,
+                    user_id: this.currentUser.id
+                })
+                .select(`
+                    *,
+                    users:user_id (
+                        id,
+                        name,
+                        avatar_url
+                    )
+                `)
+                .single();
+
+            if (error) {
+                console.error('❌ Error creando pregunta:', error);
+                return null;
+            }
+
+            console.log('✅ Pregunta creada:', data);
+            return data;
+        } catch (error) {
+            console.error('❌ Error en createQuestion:', error);
+            return null;
+        }
+    }
+
+    // ========================================
     // MÉTODOS DE UTILIDAD
     // ========================================
 

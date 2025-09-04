@@ -3675,6 +3675,100 @@ io.on('connection', (socket) => {
 // Importar funciones de cursos
 const coursesApi = require('./api/courses');
 
+// Rutas específicas para Module 1 Videos Loader
+app.get('/api/courses/module1-info', async (req, res) => {
+    try {
+        console.log('📚 Obteniendo información del módulo 1...');
+        
+        // Buscar el módulo 1 en la base de datos
+        const { data: moduleData, error } = await supabase
+            .from('course_modules')
+            .select('id, module_number, title')
+            .eq('module_number', 1)
+            .eq('is_required', true)
+            .single();
+
+        if (error || !moduleData) {
+            console.error('❌ Error obteniendo módulo 1:', error);
+            return res.status(404).json({
+                success: false,
+                error: 'Módulo 1 no encontrado',
+                details: error?.message
+            });
+        }
+
+        console.log('✅ Información del módulo 1 obtenida:', moduleData);
+        res.json({
+            success: true,
+            module_id: moduleData.id,
+            module_number: moduleData.module_number,
+            module_title: moduleData.module_title
+        });
+
+    } catch (error) {
+        console.error('💥 Error en /api/courses/module1-info:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+});
+
+app.get('/api/courses/module1-videos', async (req, res) => {
+    try {
+        console.log('🎬 Obteniendo videos del módulo 1...');
+        
+        // Buscar el módulo 1
+        const { data: moduleData, error: moduleError } = await supabase
+            .from('course_modules')
+            .select('id')
+            .eq('module_number', 1)
+            .eq('is_required', true)
+            .single();
+
+        if (moduleError || !moduleData) {
+            console.error('❌ Error obteniendo módulo 1:', moduleError);
+            return res.status(404).json({
+                success: false,
+                error: 'Módulo 1 no encontrado',
+                details: moduleError?.message
+            });
+        }
+
+        // Obtener videos del módulo 1
+        const { data: videosData, error: videosError } = await supabase
+            .from('module_videos')
+            .select('*')
+            .eq('module_id', moduleData.id)
+            .order('video_order', { ascending: true });
+
+        if (videosError) {
+            console.error('❌ Error obteniendo videos del módulo 1:', videosError);
+            return res.status(500).json({
+                success: false,
+                error: 'Error obteniendo videos',
+                details: videosError.message
+            });
+        }
+
+        console.log(`✅ ${videosData.length} videos del módulo 1 obtenidos`);
+        res.json({
+            success: true,
+            videos: videosData || [],
+            module_id: moduleData.id
+        });
+
+    } catch (error) {
+        console.error('💥 Error en /api/courses/module1-videos:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+});
+
 // Obtener estructura completa del curso
 app.get('/api/courses/:courseId/full-structure', async (req, res) => {
     await coursesApi.getCourseFullStructure(req, res);
@@ -4641,7 +4735,211 @@ function generateZoomSignature(sessionName, roleType) {
     return mockSignature;
 }
 
-// Middleware para rutas no encontradas (DEBE IR AL FINAL)
+// =====================================================
+// RUTAS DE COMUNIDAD
+// =====================================================
+
+// GET /api/community/questions - Obtener preguntas de la comunidad
+app.get('/api/community/questions', async (req, res) => {
+    try {
+        const { filter = 'all', sort = 'recent', course_id, module_id } = req.query;
+        
+        console.log(`📋 Obteniendo preguntas - Filtro: ${filter}, Orden: ${sort}`);
+        
+        if (!pool) {
+            return res.status(500).json({ 
+                success: false,
+                error: 'Base de datos no disponible' 
+            });
+        }
+        
+        // Construir query base
+        let query = `
+            SELECT q.*, u.username, u.display_name, u.first_name, u.email,
+                   u.profile_picture_url as avatar_url
+            FROM community_questions q
+            LEFT JOIN users u ON q.user_id = u.id
+            WHERE 1=1
+        `;
+        const params = [];
+        
+        // Aplicar filtros
+        if (course_id) {
+            params.push(course_id);
+            query += ` AND q.course_id = $${params.length}`;
+        }
+        if (module_id) {
+            params.push(module_id);
+            query += ` AND q.module_id = $${params.length}`;
+        }
+        
+        if (filter === 'unanswered') {
+            query += ` AND q.answers_count = 0`;
+        } else if (filter === 'answered') {
+            query += ` AND q.answers_count > 0`;
+        } else if (filter === 'featured') {
+            query += ` AND q.is_featured = true`;
+        }
+        
+        // Aplicar ordenamiento
+        if (sort === 'votes') {
+            query += ` ORDER BY q.votes_count DESC`;
+        } else if (sort === 'answers') {
+            query += ` ORDER BY q.answers_count DESC`;
+        } else if (sort === 'views') {
+            query += ` ORDER BY q.views_count DESC`;
+        } else { // recent
+            query += ` ORDER BY q.created_at DESC`;
+        }
+        
+        query += ` LIMIT 50`; // Límite de 50 preguntas
+        
+        const result = await pool.query(query, params);
+        
+        // Formatear respuesta para compatibilidad con el frontend
+        const questions = result.rows.map(row => ({
+            id: row.id,
+            title: row.title,
+            content: row.content,
+            tags: row.tags || [],
+            votes_count: row.votes_count || 0,
+            answers_count: row.answers_count || 0,
+            views_count: row.views_count || 0,
+            is_answered: row.is_answered || false,
+            is_featured: row.is_featured || false,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            course_id: row.course_id,
+            module_id: row.module_id,
+            users: {
+                id: row.user_id,
+                name: row.display_name || row.first_name || row.username || 'Usuario',
+                username: row.username,
+                avatar_url: row.avatar_url || '/assets/images/default-avatar.svg'
+            }
+        }));
+        
+        console.log(`✅ ${questions.length} preguntas obtenidas`);
+        res.json({
+            success: true,
+            data: questions
+        });
+        
+    } catch (error) {
+        console.error('❌ Error obteniendo preguntas:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+});
+
+// POST /api/community/questions - Crear nueva pregunta
+app.post('/api/community/questions', async (req, res) => {
+    try {
+        console.log('📝 === INICIO CREACIÓN PREGUNTA ===');
+        console.log('📋 Headers recibidos:', req.headers);
+        console.log('📋 Body recibido:', req.body);
+        
+        const { title, content, tags, course_id, module_id, user_id } = req.body;
+        
+        console.log('📝 Datos extraídos:', { 
+            title: title?.substring(0, 50) + '...', 
+            content: content?.substring(0, 50) + '...', 
+            tags, 
+            course_id, 
+            module_id, 
+            user_id 
+        });
+        
+        // Validar datos requeridos
+        if (!title || !content || !user_id) {
+            console.log('❌ Validación fallida - datos faltantes');
+            return res.status(400).json({
+                success: false,
+                error: 'Datos requeridos faltantes',
+                message: 'Título, contenido y usuario son requeridos',
+                received: { 
+                    title: !!title, 
+                    content: !!content, 
+                    user_id: !!user_id 
+                }
+            });
+        }
+        
+        if (!pool) {
+            console.log('❌ Error: Pool de base de datos no disponible');
+            return res.status(500).json({ 
+                success: false,
+                error: 'Base de datos no disponible' 
+            });
+        }
+        
+        console.log('🗃️ Pool de base de datos disponible, procediendo con INSERT...');
+        
+        // Crear la pregunta
+        const result = await pool.query(`
+            INSERT INTO community_questions 
+            (title, content, tags, course_id, module_id, user_id, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+            RETURNING *
+        `, [title.trim(), content.trim(), tags || [], course_id, module_id, user_id]);
+        
+        console.log('📊 Resultado de INSERT:', {
+            rowCount: result.rowCount,
+            hasRows: result.rows.length > 0,
+            questionId: result.rows[0]?.id
+        });
+        
+        if (result.rows.length === 0) {
+            throw new Error('No se pudo crear la pregunta');
+        }
+        
+        const question = result.rows[0];
+        
+        // Obtener datos del usuario para la respuesta
+        const userResult = await pool.query(`
+            SELECT username, display_name, first_name, profile_picture_url 
+            FROM users WHERE id = $1
+        `, [user_id]);
+        
+        const userData = userResult.rows[0] || {};
+        
+        const responseData = {
+            id: question.id,
+            title: question.title,
+            content: question.content,
+            tags: question.tags || [],
+            votes_count: 0,
+            answers_count: 0,
+            views_count: 0,
+            created_at: question.created_at,
+            users: {
+                id: user_id,
+                name: userData.display_name || userData.first_name || userData.username || 'Usuario',
+                avatar_url: userData.profile_picture_url || '/assets/images/default-avatar.svg'
+            }
+        };
+        
+        console.log(`✅ Pregunta creada exitosamente: ${question.id}`);
+        res.status(201).json({
+            success: true,
+            data: responseData,
+            message: 'Pregunta creada exitosamente'
+        });
+        
+    } catch (error) {
+        console.error('❌ Error creando pregunta:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error creando pregunta',
+            details: error.message
+        });
+    }
+});
+
+// Middleware para rutas no encontrada (DEBE IR AL FINAL)
 app.use((req, res) => {
     console.log(`❌ Ruta no encontrada: ${req.method} ${req.path}`);
     res.status(404).json({ error: 'Ruta no encontrada' });
