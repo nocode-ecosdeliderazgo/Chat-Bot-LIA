@@ -3,11 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Online - Cursos Asincrónicos | LIA</title>
+    <title>Introducción a la IA - Aprende y Aplica</title>
+    
+    <!-- Meta Tags para SEO -->
+    <meta name="description" content="Aprende los fundamentos de la Inteligencia Artificial con nuestro curso interactivo. Videos, transcripciones, resúmenes y comunidad de aprendizaje.">
+    <meta name="keywords" content="inteligencia artificial, IA, machine learning, deep learning, curso online, aprende y aplica">
+    <meta name="author" content="Aprende y Aplica">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Introducción a la IA - Aprende y Aplica">
+    <meta property="og:description" content="Aprende los fundamentos de la Inteligencia Artificial con nuestro curso interactivo.">
+    <meta property="og:image" content="../assets/images/icono.png">
+    <meta property="og:url" content="">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Introducción a la IA - Aprende y Aplica">
+    <meta name="twitter:description" content="Aprende los fundamentos de la Inteligencia Artificial con nuestro curso interactivo.">
+    <meta name="twitter:image" content="../assets/images/icono.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/icono.png" />
     
     <!-- CSS Principal y Neumorphism -->
     <link rel="stylesheet" href="../styles/main.css">
     <link rel="stylesheet" href="chat-online.css">
+    
+    <script>
+        // FUNCIÓN GLOBAL INMEDIATA - DISPONIBLE DESDE EL INICIO
+        window.switchTab = function(contentType) {
+            console.log('🔄 switchTab:', contentType);
+            
+            // Ocultar todos los contenidos
+            const allContents = document.querySelectorAll('.content-area [data-content]');
+            allContents.forEach(content => content.style.display = 'none');
+            
+            // Mostrar el contenido seleccionado
+            const targetContent = document.querySelector(`.content-area [data-content="${contentType}"]`);
+            if (targetContent) {
+                targetContent.style.display = contentType === 'community' ? 'flex' : 'block';
+                console.log('✅ Mostrado:', contentType);
+            }
+            
+            // Actualizar botones
+            document.querySelectorAll('.content-tabs .tab-btn').forEach(tab => tab.classList.remove('active'));
+            const activeTab = document.querySelector(`.content-tabs .tab-btn[data-content="${contentType}"]`);
+            if (activeTab) activeTab.classList.add('active');
+        };
+        console.log('✅ switchTab LISTO EN HEAD');
+    </script>
     
     <!-- Iconos SVG personalizados -->
     <style>
@@ -91,29 +136,40 @@
             </button>
             <div class="nav-tabs">
                 <button class="nav-tab active" data-tab="video">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polygon points="10,8 16,12 10,16"/>
-                    </svg>
-                    Video
+                    <div class="nav-icon">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                            <circle cx="8" cy="8" r="2"/>
+                            <circle cx="16" cy="8" r="2"/>
+                            <circle cx="8" cy="12" r="2"/>
+                            <circle cx="16" cy="12" r="2"/>
+                        </svg>
+                    </div>
+                    <span class="nav-label">Video</span>
                 </button>
                 <button class="nav-tab" data-tab="materials">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14,2 14,8 20,8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
-                        <polyline points="10,9 9,9 8,9"/>
-                    </svg>
-                    Materiales
+                    <div class="nav-icon">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10,9 9,9 8,9"/>
+                        </svg>
+                    </div>
+                    <span class="nav-label">Materiales</span>
                 </button>
                 <button class="nav-tab" data-tab="quiz">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                        <line x1="12" y1="17" x2="12.01" y2="17"/>
-                    </svg>
-                    Quiz
+                    <div class="nav-icon">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                    </div>
+                    <span class="nav-label">Quiz</span>
                 </button>
             </div>
                 </div>
@@ -148,7 +204,7 @@
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
                                 </svg>
-                                Progreso del Curso
+                                Progreso del Taller
                             </span>
                             <span class="progress-percentage">0%</span>
                         </div>
@@ -169,28 +225,25 @@
                             </div>
                             <div class="progress-dot pending" title="Módulo 2 Pendiente">
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12,6 12,12 16,14"/>
+                                    <circle cx="12" cy="12" r="3"/>
                                 </svg>
-                        </div>
+                            </div>
                             <div class="progress-dot pending" title="Módulo 3 Pendiente">
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12,6 12,12 16,14"/>
+                                    <circle cx="12" cy="12" r="3"/>
                                 </svg>
-                </div>
+                            </div>
                             <div class="progress-dot pending" title="Módulo 4 Pendiente">
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12,6 12,12 16,14"/>
+                                    <circle cx="12" cy="12" r="3"/>
                                 </svg>
                             </div>
                             <div class="progress-dot pending" title="Módulo 5 Pendiente">
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12,6 12,12 16,14"/>
+                                    <circle cx="12" cy="12" r="3"/>
                                 </svg>
-                    </div>
+                            </div>
+                        </div>
                 </div>
             </div>
             
@@ -221,6 +274,16 @@
                                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
                                 <polyline points="17,21 17,13 7,13 7,21"/>
                                 <polyline points="7,3 7,8 15,8"/>
+                            </svg>
+                        </button>
+                        <button class="action-btn" id="exportPdfBtn" title="Exportar a PDF">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10,9 9,9 8,9"/>
+                                <path d="M12 18l-2-2 2-2"/>
                             </svg>
                         </button>
                         <button class="action-btn" id="cancelNoteBtn" title="Cancelar">
@@ -276,6 +339,29 @@
                                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                             </svg>
                         </button>
+                        <div class="toolbar-separator"></div>
+                        <!-- Selector de tamaño de fuente -->
+                        <div class="font-size-selector">
+                            <button class="toolbar-btn" id="fontSizeBtn" title="Tamaño de fuente">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 7V4h16v3"/>
+                                    <path d="M9 20h6"/>
+                                    <path d="M12 4v16"/>
+                                </svg>
+                                <span class="font-size-text">14</span>
+                            </button>
+                            <div class="font-size-dropdown" id="fontSizeDropdown">
+                                <button class="font-size-option" data-size="10">10</button>
+                                <button class="font-size-option" data-size="12">12</button>
+                                <button class="font-size-option" data-size="14">14</button>
+                                <button class="font-size-option" data-size="16">16</button>
+                                <button class="font-size-option" data-size="18">18</button>
+                                <button class="font-size-option" data-size="20">20</button>
+                                <button class="font-size-option" data-size="24">24</button>
+                                <button class="font-size-option" data-size="28">28</button>
+                                <button class="font-size-option" data-size="32">32</button>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Editor de contenido -->
@@ -389,17 +475,30 @@ Cargando información...
                             </span>
                                 </div>
                         <div class="video-progress-dots">
-                            <div class="progress-dot filled" title="Sección 1 Completada">
-                                <i class="fas fa-check"></i>
-                                </div>
-                            <div class="progress-dot filled" title="Sección 2 Completada">
-                                <i class="fas fa-check"></i>
+                            <div class="video-section-dot completed" title="Sección 1 Completada">
+                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20,6 9,17 4,12"/>
+                                </svg>
                             </div>
-                            <div class="progress-dot filled" title="Sección 3 Completada">
-                                <i class="fas fa-check"></i>
+                            <div class="video-section-dot completed" title="Sección 2 Completada">
+                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20,6 9,17 4,12"/>
+                                </svg>
                             </div>
-                            <div class="progress-dot" title="Sección 4 Pendiente">
-                                <i class="fas fa-circle"></i>
+                            <div class="video-section-dot completed" title="Sección 3 Completada">
+                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20,6 9,17 4,12"/>
+                                </svg>
+                            </div>
+                            <div class="video-section-dot current" title="Sección 4 En Progreso">
+                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="5,3 19,12 5,21"/>
+                                </svg>
+                            </div>
+                            <div class="video-section-dot pending" title="Sección 5 Pendiente">
+                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
                             </div>
                         </div>
                             </div>
@@ -407,37 +506,432 @@ Cargando información...
 
                 <!-- Pestañas de Contenido -->
                 <div class="content-tabs">
-                    <button class="tab-btn active" data-content="transcript">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14,2 14,8 20,8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                            <polyline points="10,9 9,9 8,9"/>
-                        </svg>
-                                Transcripción
-                            </button>
-                    <button class="tab-btn" data-content="summary">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="8" y1="6" x2="21" y2="6"/>
-                            <line x1="8" y1="12" x2="21" y2="12"/>
-                            <line x1="8" y1="18" x2="21" y2="18"/>
-                            <line x1="3" y1="6" x2="3.01" y2="6"/>
-                            <line x1="3" y1="12" x2="3.01" y2="12"/>
-                            <line x1="3" y1="18" x2="3.01" y2="18"/>
-                        </svg>
-                                Resumen
-                            </button>
+                    <button class="tab-btn active" data-content="transcript" onclick="window.switchTab('transcript')">
+                        <div class="tab-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                <line x1="8" y1="21" x2="16" y2="21"/>
+                                <line x1="12" y1="17" x2="12" y2="21"/>
+                                <circle cx="8" cy="8" r="2"/>
+                                <circle cx="16" cy="8" r="2"/>
+                                <circle cx="8" cy="12" r="2"/>
+                                <circle cx="16" cy="12" r="2"/>
+                            </svg>
                         </div>
+                        <span class="tab-label">Transcripción</span>
+                    </button>
+                    <button class="tab-btn" data-content="summary" onclick="window.switchTab('summary')">
+                        <div class="tab-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6"/>
+                                <line x1="8" y1="12" x2="21" y2="12"/>
+                                <line x1="8" y1="18" x2="21" y2="18"/>
+                                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                <line x1="3" y1="18" x2="3.01" y2="18"/>
+                            </svg>
+                        </div>
+                        <span class="tab-label">Resumen</span>
+                    </button>
+
+                    <button class="tab-btn" data-content="community" onclick="window.switchTab('community')">
+                        <div class="tab-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+                        <span class="tab-label">Comunidad</span>
+                    </button>
+                </div>
 
                 <!-- Contenido de Transcripción -->
                 <div class="content-area">
-                            <div class="transcript-content">
-                                <p>En este módulo vamos a explorar los conceptos fundamentales de las redes neuronales. Comenzaremos con una introducción a los perceptrones simples...</p>
-                                <p>Las redes neuronales artificiales están inspiradas en el funcionamiento del cerebro humano. Cada neurona artificial recibe señales de entrada...</p>
-                                <p>La función de activación es crucial para determinar si una neurona se activa o no. Las funciones más comunes son sigmoid, tanh y ReLU...</p>
+                    <div class="transcript-content" data-content="transcript">
+                        <h4>Transcripción del Video - Módulo 1: ¿Qué es la IA?</h4>
+                        <p>En este módulo vamos a explorar los conceptos fundamentales de las redes neuronales. Comenzaremos con una introducción a los perceptrones simples y cómo estos forman la base de sistemas más complejos de inteligencia artificial.</p>
+                        <p>Las redes neuronales artificiales están inspiradas en el funcionamiento del cerebro humano. Cada neurona artificial recibe señales de entrada, las procesa mediante una función matemática, y produce una salida que puede ser enviada a otras neuronas.</p>
+                        <p>La función de activación es crucial para determinar si una neurona se activa o no. Las funciones más comunes son sigmoid, tanh y ReLU. Cada una tiene sus propias características y se utiliza en diferentes contextos.</p>
+                        <p>El aprendizaje automático, o Machine Learning, es una rama de la inteligencia artificial que permite a las máquinas aprender y mejorar automáticamente a través de la experiencia sin ser programadas explícitamente.</p>
+                        <p>Existen tres tipos principales de aprendizaje automático: supervisado, no supervisado y por refuerzo. Cada tipo tiene sus propias aplicaciones y métodos específicos.</p>
+                        <p>El aprendizaje supervisado utiliza datos etiquetados para entrenar modelos que pueden hacer predicciones sobre nuevos datos. Ejemplos incluyen clasificación de imágenes y predicción de precios.</p>
+                        <p>El aprendizaje no supervisado busca patrones ocultos en datos sin etiquetas. Técnicas como clustering y reducción de dimensionalidad son fundamentales en este enfoque.</p>
+                        <p>El aprendizaje por refuerzo se basa en la interacción con un entorno, donde un agente aprende a tomar decisiones óptimas mediante recompensas y castigos.</p>
+                        <p>Deep Learning, o aprendizaje profundo, es una subcategoría del machine learning que utiliza redes neuronales con múltiples capas ocultas para modelar y entender datos complejos.</p>
+                        <p>Las aplicaciones de la inteligencia artificial son vastas: desde reconocimiento de voz y procesamiento de lenguaje natural hasta vehículos autónomos y diagnóstico médico.</p>
+                        <p>Es importante entender que la IA no es una tecnología única, sino un conjunto de técnicas y enfoques que permiten a las máquinas realizar tareas que tradicionalmente requerían inteligencia humana.</p>
+                        <p>En los próximos módulos profundizaremos en cada uno de estos conceptos, proporcionando ejemplos prácticos y ejercicios que te ayudarán a comprender mejor estos fundamentos.</p>
+                    </div>
+
+                    <!-- Contenido de Resumen -->
+                    <div class="summary-content" data-content="summary" style="display: none;">
+                        <h4>Resumen del Módulo 1: ¿Qué es la IA?</h4>
+                        
+                        <h5>🧠 Conceptos Fundamentales</h5>
+                        <ul>
+                            <li><strong>Inteligencia Artificial:</strong> Conjunto de técnicas que permiten a las máquinas realizar tareas que tradicionalmente requerían inteligencia humana</li>
+                            <li><strong>Redes Neuronales:</strong> Sistemas inspirados en el cerebro humano que procesan información mediante neuronas artificiales conectadas</li>
+                            <li><strong>Perceptrones:</strong> Unidades básicas de procesamiento que forman la base de sistemas más complejos</li>
+                        </ul>
+
+                        <h5>🔧 Funciones de Activación</h5>
+                        <ul>
+                            <li><strong>Sigmoid:</strong> Función suave que mapea valores a un rango entre 0 y 1</li>
+                            <li><strong>Tanh:</strong> Similar a sigmoid pero con rango entre -1 y 1</li>
+                            <li><strong>ReLU:</strong> Función lineal rectificada, muy utilizada en deep learning</li>
+                        </ul>
+
+                        <h5>📚 Tipos de Aprendizaje Automático</h5>
+                        <ul>
+                            <li><strong>Supervisado:</strong> Utiliza datos etiquetados para entrenar modelos predictivos</li>
+                            <li><strong>No Supervisado:</strong> Busca patrones ocultos en datos sin etiquetas</li>
+                            <li><strong>Por Refuerzo:</strong> Aprendizaje mediante interacción con el entorno usando recompensas</li>
+                        </ul>
+
+                        <h5>🚀 Aplicaciones Prácticas</h5>
+                        <ul>
+                            <li>Reconocimiento de voz y procesamiento de lenguaje natural</li>
+                            <li>Clasificación y análisis de imágenes</li>
+                            <li>Sistemas de recomendación personalizados</li>
+                            <li>Vehículos autónomos y robótica</li>
+                            <li>Diagnóstico médico asistido por IA</li>
+                            <li>Análisis financiero y detección de fraudes</li>
+                        </ul>
+
+                        <h5>🎯 Puntos Clave para Recordar</h5>
+                        <ul>
+                            <li>La IA no es una tecnología única, sino un conjunto de enfoques</li>
+                            <li>Deep Learning es una subcategoría del Machine Learning</li>
+                            <li>Las funciones de activación son cruciales para el funcionamiento de las redes</li>
+                            <li>Cada tipo de aprendizaje tiene aplicaciones específicas</li>
+                            <li>La práctica y experimentación son fundamentales para el aprendizaje</li>
+                        </ul>
+
+                        <div style="margin-top: 2rem; padding: 1rem; background: rgba(68, 229, 255, 0.1); border-radius: 8px; border-left: 4px solid var(--glass-primary);">
+                            <strong>💡 Próximo Paso:</strong> En el siguiente módulo exploraremos en detalle cómo construir tu primera red neuronal desde cero.
+                        </div>
+                    </div>
+
+                    <!-- Contenido de Comunidad -->
+                    <div class="community-content" data-content="community" style="display: none;">
+                        <!-- Header de Comunidad -->
+                        <div class="community-header">
+                            <div class="community-title">
+                                <h3>
+                                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    </svg>
+                                    Comunidad del Taller
+                                </h3>
+                                <span class="community-subtitle">Preguntas y Respuestas - Introducción a la IA</span>
+                            </div>
+                            <button class="btn-primary" id="askQuestionBtn">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Hacer Pregunta
+                            </button>
+                        </div>
+
+                        <!-- Filtros y Ordenamiento -->
+                        <div class="community-filters">
+                            <div class="filter-tabs">
+                                <button class="filter-tab active" data-filter="all">
+                                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="11" cy="11" r="8"/>
+                                        <path d="m21 21-4.35-4.35"/>
+                                    </svg>
+                                    Todas
+                                </button>
+                                <button class="filter-tab" data-filter="unanswered">
+                                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                    </svg>
+                                    Sin Responder
+                                </button>
+                                <button class="filter-tab" data-filter="answered">
+                                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20,6 9,17 4,12"/>
+                                    </svg>
+                                    Respondidas
+                                </button>
+                                <button class="filter-tab" data-filter="mine">
+                                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                    Mis Preguntas
+                                </button>
+                                <div class="filter-separator"></div>
+                                <select class="module-filter" id="moduleFilter">
+                                    <option value="all">Todos los Módulos</option>
+                                    <option value="module-1">Módulo 1: Conceptos Básicos</option>
+                                    <option value="module-2">Módulo 2: Redes Neuronales</option>
+                                    <option value="module-3">Módulo 3: Herramientas Prácticas</option>
+                                    <option value="module-4">Módulo 4: Proyectos Aplicados</option>
+                                    <option value="module-5">Módulo 5: Deployment y Producción</option>
+                                </select>
+                            </div>
+                            <div class="sort-dropdown">
+                                <select id="sortSelect">
+                                    <option value="recent">Más Recientes</option>
+                                    <option value="votes">Más Votadas</option>
+                                    <option value="answers">Más Respondidas</option>
+                                    <option value="views">Más Vistas</option>
+                                </select>
                             </div>
                         </div>
+
+                        <!-- Lista de Preguntas -->
+                        <div class="questions-list" id="questionsList">
+                            <!-- Pregunta de ejemplo - Módulo 1: Conceptos Básicos -->
+                            <div class="question-item">
+                                <div class="question-votes">
+                                    <button class="vote-btn upvote">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M18 15l-6-6-6 6"/>
+                                        </svg>
+                                    </button>
+                                    <span class="vote-count">15</span>
+                                    <button class="vote-btn downvote">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="question-content">
+                                    <div class="question-header">
+                                        <h4 class="question-title">¿Cuál es la diferencia entre Machine Learning y Deep Learning?</h4>
+                                        <div class="question-meta">
+                                            <span class="question-author">
+                                                <img src="../../assets/images/default-avatar.svg" alt="Usuario" class="author-avatar">
+                                                Carlos Mendez
+                                            </span>
+                                            <span class="question-time">hace 2 horas</span>
+                                            <span class="question-module">Módulo 1</span>
+                                        </div>
+                                    </div>
+                                    <div class="question-preview">
+                                        <p>Estoy viendo el video sobre conceptos básicos de IA pero no me queda claro cuál es la diferencia específica entre estos dos conceptos. ¿Podrían explicármelo con ejemplos prácticos?</p>
+                                    </div>
+                                    <div class="question-tags">
+                                        <span class="tag">machine-learning</span>
+                                        <span class="tag">deep-learning</span>
+                                        <span class="tag">conceptos-básicos</span>
+                                        <span class="tag module-tag">módulo-1</span>
+                                    </div>
+                                    <div class="question-stats">
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                            </svg>
+                                            3 respuestas
+                                        </span>
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                            127 vistas
+                                        </span>
+                                        <span class="stat answered">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="20,6 9,17 4,12"/>
+                                            </svg>
+                                            Respondida
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pregunta sin responder - Módulo 3: Herramientas Prácticas -->
+                            <div class="question-item">
+                                <div class="question-votes">
+                                    <button class="vote-btn upvote">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M18 15l-6-6-6 6"/>
+                                        </svg>
+                                    </button>
+                                    <span class="vote-count">7</span>
+                                    <button class="vote-btn downvote">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="question-content">
+                                    <div class="question-header">
+                                        <h4 class="question-title">¿Qué herramientas recomiendan para empezar con TensorFlow?</h4>
+                                        <div class="question-meta">
+                                            <span class="question-author">
+                                                <img src="../../assets/images/default-avatar.svg" alt="Usuario" class="author-avatar">
+                                                Ana García
+                                            </span>
+                                            <span class="question-time">hace 4 horas</span>
+                                            <span class="question-module">Módulo 3</span>
+                                        </div>
+                                    </div>
+                                    <div class="question-preview">
+                                        <p>Estoy en el módulo de herramientas prácticas y me gustaría saber qué IDE y configuración recomiendan para trabajar con TensorFlow y Keras...</p>
+                                    </div>
+                                    <div class="question-tags">
+                                        <span class="tag">tensorflow</span>
+                                        <span class="tag">herramientas</span>
+                                        <span class="tag">configuración</span>
+                                        <span class="tag module-tag">módulo-3</span>
+                                    </div>
+                                    <div class="question-stats">
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                            </svg>
+                                            0 respuestas
+                                        </span>
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                            45 vistas
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pregunta destacada -->
+                            <div class="question-item featured">
+                                <div class="featured-badge">
+                                    <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                                    </svg>
+                                    Destacada
+                                </div>
+                                <div class="question-votes">
+                                    <button class="vote-btn upvote voted">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M18 15l-6-6-6 6"/>
+                                        </svg>
+                                    </button>
+                                    <span class="vote-count">42</span>
+                                    <button class="vote-btn downvote">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="question-content">
+                                    <div class="question-header">
+                                        <h4 class="question-title">¿Cómo optimizar el rendimiento de modelos CNN en producción?</h4>
+                                        <div class="question-meta">
+                                            <span class="question-author instructor">
+                                                <img src="../../assets/images/instructor-avatar.svg" alt="Instructor" class="author-avatar">
+                                                Dr. María González
+                                                <span class="instructor-badge">Instructor</span>
+                                            </span>
+                                            <span class="question-time">hace 1 día</span>
+                                            <span class="question-module">Módulo 5</span>
+                                        </div>
+                                    </div>
+                                    <div class="question-preview">
+                                        <p>Esta es una pregunta frecuente sobre optimización de modelos en entornos de producción. Les explico las mejores prácticas para deployment de CNNs...</p>
+                                    </div>
+                                    <div class="question-tags">
+                                        <span class="tag">cnn</span>
+                                        <span class="tag">optimización</span>
+                                        <span class="tag">producción</span>
+                                        <span class="tag">deployment</span>
+                                        <span class="tag module-tag">módulo-5</span>
+                                    </div>
+                                    <div class="question-stats">
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                            </svg>
+                                            8 respuestas
+                                        </span>
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                            312 vistas
+                                        </span>
+                                        <span class="stat answered">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="20,6 9,17 4,12"/>
+                                            </svg>
+                                            Respondida
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal para hacer pregunta -->
+                        <div class="question-modal" id="questionModal" style="display: none;">
+                            <div class="modal-overlay"></div>
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3>
+                                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                        </svg>
+                                        Nueva Pregunta
+                                    </h3>
+                                    <button class="modal-close" id="closeQuestionModal">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18"/>
+                                            <line x1="6" y1="6" x2="18" y2="18"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <form class="question-form" id="questionForm">
+                                    <div class="form-group">
+                                        <label for="questionTitle">Título de la pregunta</label>
+                                        <input type="text" id="questionTitle" placeholder="¿Cuál es tu pregunta?" maxlength="500" required>
+                                        <div class="char-counter">
+                                            <span id="titleCharCount">0</span>/500
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="questionContent">Describe tu pregunta en detalle</label>
+                                        <textarea id="questionContent" placeholder="Proporciona más contexto, ejemplos o detalles específicos..." rows="6" required></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="questionTags">Etiquetas (opcional)</label>
+                                        <input type="text" id="questionTags" placeholder="Presiona Enter para agregar etiquetas">
+                                        <div class="tags-list" id="selectedTags"></div>
+                                        <div class="tags-help">
+                                            <small>Agrega etiquetas relevantes para ayudar a otros a encontrar tu pregunta</small>
+                                        </div>
+                                    </div>
+                                    <div class="modal-actions">
+                                        <button type="button" class="btn-secondary" id="cancelQuestionBtn">Cancelar</button>
+                                        <button type="submit" class="btn-primary">
+                                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M22 2L11 13"/>
+                                                <polygon points="22,2 15,22 11,13 2,9"/>
+                                            </svg>
+                                            Publicar Pregunta
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
                     </div>
         </section>
 
@@ -562,105 +1056,15 @@ Cargando información...
                     </div>
                 </div>
                 
-                <!-- Lista de Notas -->
-                        <div class="notes-list" id="notesList">
-                    <div class="note-item">
-                                <div class="note-header">
-                            <span class="note-title">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                                </svg>
-                                Conceptos clave IA
-                            </span>
-                            <span class="note-time">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12,6 12,12 16,14"/>
-                                </svg>
-                                hace 2h
-                            </span>
-                                </div>
-                                <div class="note-content">
-                            <p>Machine Learning es un subcampo de la IA que permite a las máquinas aprender...</p>
-                                </div>
-                                <div class="note-tags">
-                            <span class="tag">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                                    <line x1="7" y1="7" x2="7.01" y2="7"/>
-                                </svg>
-                                ML
-                            </span>
-                            <span class="tag">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                                    <line x1="7" y1="7" x2="7.01" y2="7"/>
-                                </svg>
-                                Conceptos
-                            </span>
-                                </div>
-                            </div>
-                            
-                    <div class="note-item">
-                                <div class="note-header">
-                            <span class="note-title">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                </svg>
-                                Algoritmos importantes
-                            </span>
-                            <span class="note-time">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12,6 12,12 16,14"/>
-                                </svg>
-                                ayer
-                            </span>
-                                </div>
-                                <div class="note-content">
-                            <p>Redes neuronales, SVM, Random Forest... cada uno tiene sus ventajas dependiend...</p>
-                                </div>
-                                <div class="note-tags">
-                            <span class="tag">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                                    <line x1="7" y1="7" x2="7.01" y2="7"/>
-                                </svg>
-                                Algoritmos
-                            </span>
-                            <span class="tag">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                                    <line x1="7" y1="7" x2="7.01" y2="7"/>
-                                </svg>
-                                Estudio
-                            </span>
+                <!-- Lista de Notas (sin notas plantilla) -->
+                <div class="notes-list" id="notesList">
+                    <!-- Las notas se cargarán dinámicamente aquí -->
+                    <div class="empty-notes">
+                        <p>No hay notas aún. ¡Agrega tu primera nota!</p>
                     </div>
                 </div>
             </div>
             
-                <!-- Dudas para revisar -->
-                <div class="dudas-section">
-                    <div class="dudas-header">
-                        <span>
-                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                                <line x1="12" y1="17" x2="12.01" y2="17"/>
-                            </svg>
-                            Dudas para revisar
-                        </span>
-                        <span class="dudas-time">
-                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                <line x1="16" y1="2" x2="16" y2="6"/>
-                                <line x1="8" y1="2" x2="8" y2="6"/>
-                                <line x1="3" y1="10" x2="21" y2="10"/>
-                            </svg>
-                            3 dias
-                        </span>
-                    </div>
-                </div>
             </div>
 
         </aside>
@@ -1277,11 +1681,8 @@ Cargando información...
                 }
 
             }, 500);
-
         });
-
         
-
         // Funciones auxiliares
 
         function obtenerUsuarioActual() {
@@ -1394,9 +1795,40 @@ Cargando información...
 
         }
 
+        // ===== FUNCIÓN INMEDIATA PARA TABS - NO DEPENDE DE NADA =====
+        function switchTab(contentType) {
+            console.log('🔄 switchTab directo:', contentType);
+            
+            // Ocultar todos los contenidos
+            const allContents = document.querySelectorAll('[data-content]');
+            allContents.forEach(content => {
+                if (content.closest('.content-area')) {
+                    content.style.display = 'none';
+                }
+            });
+            
+            // Mostrar el contenido seleccionado
+            const targetContent = document.querySelector(`[data-content="${contentType}"]`);
+            if (targetContent && targetContent.closest('.content-area')) {
+                const displayType = contentType === 'community' ? 'flex' : 'block';
+                targetContent.style.display = displayType;
+                console.log('✅ Contenido mostrado:', contentType);
+            }
+            
+            // Actualizar botones activos
+            const allTabs = document.querySelectorAll('.content-tabs .tab-btn');
+            allTabs.forEach(tab => tab.classList.remove('active'));
+            
+            const activeTab = document.querySelector(`.content-tabs .tab-btn[data-content="${contentType}"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+                console.log('✅ Tab activado:', contentType);
+            }
+        }
         
-
-
+        // Hacer disponible globalmente INMEDIATAMENTE
+        window.switchTab = switchTab;
+        console.log('✅ switchTab definido directamente en HTML');
 
     </script>
 

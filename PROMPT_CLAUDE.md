@@ -1,257 +1,282 @@
-Quiero que transformes mi vista de curso para que el panel izquierdo “Material del Curso” muestre un menú desplegable por módulos (acordeón). Cada módulo debe listar exactamente 2 videos (los 2 primeros por video_order). Al hacer clic en un video, se debe actualizar el reproductor de YouTube del panel central, el título, la duración y la transcripción. Todo debe venir de Supabase (course_modules, module_videos) y no debe haber datos hardcodeados.
+# PROMPT PARA CLAUDE - IMPLEMENTACIÓN BOTÓN COMUNIDAD
 
-Contexto y puntos de integración
+## OBJETIVO
+Implementar paso a paso un botón de "Comunidad" en la página `chat-online.html` que funcione de manera similar a los botones de "Transcripción" y "Resumen" existentes.
 
-El contenedor donde debes renderizar los módulos ya existe: #modulesList. Úsalo para pintar el acordeón. 
+## ANÁLISIS DEL CÓDIGO ACTUAL
 
-El iframe del reproductor también existe: #youtubePlayer. Es el que debes actualizar al seleccionar video. 
+### 1. ESTRUCTURA HTML (Líneas 450-480)
+Los botones de transcripción y resumen están en la sección `.content-tabs`:
 
-El JS actual inicia en class ChatOnline, corre loadInitialData() y maneja pestañas, notas, etc. Debes reemplazar la carga inicial para leer de Supabase y poblar el panel izquierdo. 
+```html
+<div class="content-tabs">
+    <button class="tab-btn active" data-content="transcript">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/>
+            <line x1="3" y1="12" x2="3.01" y2="12"/>
+            <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+        Transcripción
+    </button>
+    <button class="tab-btn" data-content="summary">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"/>
+            <line x1="8" y1="12" x2="21" y2="12"/>
+            <line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/>
+            <line x1="3" y1="12" x2="3.01" y2="12"/>
+            <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+        Resumen
+    </button>
+    <button class="tab-btn" data-content="quiz">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        Quiz
+    </button>
+</div>
+```
 
-Hoy hay títulos y lógica de módulos “de ejemplo” (hardcode) que debes eliminar/sustituir. Ej.: moduleNames dentro de changeVideoByModule y la playlist de pruebas loadTestVideos(). 
- 
+### 2. ESTILOS CSS (Líneas 939-980)
+Los estilos están definidos en `.content-tabs` y `.tab-btn`:
 
-Esquema relevante de BD (Supabase)
-
-course_modules: id (uuid), course_id (uuid), module_number (int), title (varchar), order_index (int)… Úsalo para construir el acordeón (1 item por módulo, ordenado por order_index o module_number). 
-
-module_videos: id (uuid), module_id (uuid), video_title, youtube_video_id, duration_seconds, transcript_text, video_order… Saca los 2 primeros por video_order ASC. 
-
-Nota: transcript_text debe mostrarse en la pestaña “Transcripción” cuando cambie el video. 
-
-Requerimientos funcionales
-
-Resolver el curso usando (en este orden):
-
-data-course-id o data-course-slug en el elemento #modulesList,
-
-o ?course_id=/?course_slug= en URL,
-
-o localStorage.currentCourseId/currentCourseSlug.
-No hardcodear un curso por defecto.
-
-Fetch de módulos:
-
-Query a course_modules filtrando por course_id (o por courses.slug si recibimos slug), ordenado por order_index (fallback module_number).
-
-Por cada módulo, fetch de videos a module_videos filtrando module_id, ordenado por video_order ASC, y tomar 2.
-
-Render:
-
-Acordeón:
-
-Header del módulo (número + título + duración total opcional).
-
-Sublista con 2 videos (mostrar título y duración mm:ss).
-
-Al hacer clic en un video:
-
-Actualiza #youtubePlayer con https://www.youtube.com/embed/${youtube_video_id}?enablejsapi=1&modestbranding=1&rel=0 (respeta el patrón que ya usa la app). 
-
-Actualiza título y duración visibles bajo el player. 
-
-Rellena la pestaña Transcripción con transcript_text.
-
-Si un módulo tiene <2 videos, muestra sólo los existentes; si tiene >2, muestra sólo los 2 primeros.
-
-Nada hardcodeado: eliminar/ignorar moduleNames y loadTestVideos en el flujo principal. 
- 
-
-No romper lo demás: mantener navegación superior, notas, progreso y estilos existentes.
-
-Cambios concretos (parches)
-1) HTML — insertar Supabase (si no existe)
-
-Antes de </body> agrega:
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  window.SUPABASE_URL = '<TU_URL>';
-  window.SUPABASE_ANON_KEY = '<TU_ANON_KEY>';
-</script>
-
-
-(El iframe#youtubePlayer y #modulesList ya existen; no los toques. 
- 
-)
-
-2) CSS — agrega estilos mínimos del submenú (al final de chat-online.css)
-/* ===== Acordeón de módulos (panel izquierdo) ===== */
-.module-accordion { border: 1px solid rgba(68,229,255,.12); border-radius: 10px; overflow: hidden; }
-.module-accordion + .module-accordion { margin-top: .5rem; }
-
-.module-header {
-  width: 100%; background: rgba(255,255,255,.05); color: var(--glass-text-primary);
-  border: 0; text-align: left; padding: .75rem 1rem; display:flex; align-items:center; justify-content:space-between;
-  cursor: pointer; transition: .2s ease;
+```css
+.content-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: var(--glass-border-subtle);
+    padding-bottom: 1rem;
 }
-.module-header:hover { background: rgba(68,229,255,.10); }
 
-.video-sublist { list-style: none; margin: 0; padding: .5rem 0; background: rgba(255,255,255,.03); }
-.video-item { padding: .5rem 1rem; display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
-.video-item:hover { background: rgba(68,229,255,.08); }
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--glass-text-secondary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+}
 
-.video-item .v-title { color: var(--glass-text-primary); font-size: .92rem; }
-.video-item .v-time  { color: var(--glass-text-muted); font-size: .82rem; }
+.tab-btn.active {
+    background: var(--glass-primary);
+    color: var(--glass-text-dark);
+}
+```
 
-3) JS — insertar utilidades Supabase y la nueva carga de datos
+### 3. FUNCIONALIDAD JAVASCRIPT (Líneas 584-650)
+La lógica está en `setupContentTabs()` y `updateContentArea()`:
 
-En chat-online.js, dentro de la clase ChatOnline, añade estos métodos y úsalo en init() en lugar de la carga hardcodeada. (El archivo ya expone funciones para cambiar el video y título; reúsalas). 
- 
-
-// === SUPABASE CLIENT ===
-initSupabase() {
-  if (!window.supabase) { console.error('Supabase SDK no está cargado'); return null; }
-  if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) { console.error('Faltan credenciales Supabase'); return null; }
-  this.sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-  return this.sb;
-},
-
-// === RESOLVER CONTEXTO DE CURSO ===
-resolveCourseContext() {
-  const modulesEl = document.getElementById('modulesList');
-  const url = new URL(window.location.href);
-  const ctx = {
-    course_id: modulesEl?.dataset?.courseId || localStorage.getItem('currentCourseId') || url.searchParams.get('course_id') || null,
-    course_slug: modulesEl?.dataset?.courseSlug || localStorage.getItem('currentCourseSlug') || url.searchParams.get('course_slug') || null,
-  };
-  return ctx;
-},
-
-// === CARGA INICIAL: módulos + 2 videos/módulo ===
-async loadInitialData() {
-  // 1) Supabase
-  if (!this.initSupabase()) return;
-
-  // 2) Resolver curso
-  const ctx = this.resolveCourseContext();
-
-  let courseId = ctx.course_id;
-  if (!courseId && ctx.course_slug) {
-    // lookup por slug en courses.slug
-    const { data: course, error: eCourse } = await this.sb
-      .from('courses').select('id').eq('slug', ctx.course_slug).maybeSingle();
-    if (eCourse) { console.error(eCourse); return; }
-    courseId = course?.id || null;
-  }
-  if (!courseId) { console.error('No hay course_id/course_slug'); return; }
-
-  // 3) Traer módulos
-  const { data: modules, error: eModules } = await this.sb
-    .from('course_modules')
-    .select('id, module_number, title, description, order_index')
-    .eq('course_id', courseId)
-    .order('order_index', { ascending: true });
-  if (eModules) { console.error(eModules); return; }
-  if (!modules?.length) { this.renderModules([]); return; }
-
-  // 4) Traer videos de todos los módulos (y quedarnos con los 2 primeros por módulo)
-  const moduleIds = modules.map(m => m.id);
-  const { data: videos, error: eVideos } = await this.sb
-    .from('module_videos')
-    .select('id, module_id, video_title, youtube_video_id, duration_seconds, transcript_text, video_order')
-    .in('module_id', moduleIds)
-    .order('video_order', { ascending: true });
-  if (eVideos) { console.error(eVideos); return; }
-
-  const vidsByModule = moduleIds.reduce((acc, mid) => {
-    acc[mid] = [];
-    return acc;
-  }, {});
-  (videos || []).forEach(v => { if (vidsByModule[v.module_id]) vidsByModule[v.module_id].push(v); });
-
-  // 5) Pintar acordeón (2 videos por módulo)
-  this.renderModules(modules, vidsByModule);
-
-  // 6) Autoplay: primer video del primer módulo (si existe)
-  const firstModule = modules[0];
-  const firstTwo = (vidsByModule[firstModule.id] || []).slice(0, 2);
-  if (firstTwo[0]) this.playDbVideo(firstTwo[0]);
-},
-
-renderModules(modules = [], vidsByModule = {}) {
-  const host = document.getElementById('modulesList');
-  if (!host) return;
-  host.innerHTML = '';
-
-  modules.forEach(m => {
-    const two = (vidsByModule[m.id] || []).slice(0, 2);
-    const acc = document.createElement('div');
-    acc.className = 'module-accordion';
-    acc.innerHTML = `
-      <button class="module-header" aria-expanded="false">
-        <span> Módulo ${m.module_number || ''}: ${m.title || ''}</span>
-        <svg class="icon" viewBox="0 0 24 24" width="16" height="16"><polyline points="6,9 12,15 18,9"/></svg>
-      </button>
-      <ul class="video-sublist" hidden>
-        ${two.map(v => `
-          <li class="video-item" data-video-id="${v.id}">
-            <span class="v-title">${v.video_title}</span>
-            <span class="v-time">${this.formatSeconds(v.duration_seconds)}</span>
-          </li>
-        `).join('')}
-      </ul>
-    `;
-    host.appendChild(acc);
-  });
-
-  // toggle acordeón
-  host.querySelectorAll('.module-header').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const list = btn.nextElementSibling;
-      const open = btn.getAttribute('aria-expanded') === 'true';
-      btn.setAttribute('aria-expanded', String(!open));
-      list.hidden = open;
+```javascript
+setupContentTabs() {
+    const tabButtons = document.querySelectorAll('.content-tabs .tab-btn');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            const contentType = e.currentTarget.dataset.content;
+            console.log(`📄 Cambiando contenido a: ${contentType}`);
+            this.switchContentTab(contentType);
+        });
     });
-  });
+}
 
-  // click de video
-  host.querySelectorAll('.video-item').forEach(li => {
-    li.addEventListener('click', () => {
-      const id = li.dataset.videoId;
-      // buscar video en cache vidsByModule
-      const found = Object.values(vidsByModule).flat().find(v => v.id === id);
-      if (found) this.playDbVideo(found);
-    });
-  });
-},
+updateContentArea(contentType) {
+    const contentArea = document.querySelector('.content-area');
+    if (!contentArea) return;
+    
+    switch(contentType) {
+        case 'transcript':
+            contentArea.innerHTML = `
+                <div class="transcript-content">
+                    ${this.getModuleTranscript(this.currentModule)}
+                </div>
+            `;
+            break;
+        case 'summary':
+            contentArea.innerHTML = `
+                <div class="summary-content">
+                    <h4>Resumen del Módulo</h4>
+                    <ul>
+                        <li>Conceptos fundamentales de redes neuronales</li>
+                        <li>Perceptrones simples y su funcionamiento</li>
+                        <li>Funciones de activación (sigmoid, tanh, ReLU)</li>
+                        <li>Aplicaciones prácticas en IA</li>
+                    </ul>
+                </div>
+            `;
+            break;
+        case 'community':
+            contentArea.innerHTML = `
+                <div class="community-content">
+                    <h4>Comunidad de Aprendizaje</h4>
+                    <div class="community-features">
+                        <div class="community-section">
+                            <h5>📚 Foros de Discusión</h5>
+                            <p>Comparte ideas y resuelve dudas con otros estudiantes</p>
+                        </div>
+                        <div class="community-section">
+                            <h5>🤝 Grupos de Estudio</h5>
+                            <p>Únete a grupos según tu nivel y intereses</p>
+                        </div>
+                        <div class="community-section">
+                            <h5>💡 Proyectos Colaborativos</h5>
+                            <p>Participa en proyectos de IA con la comunidad</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            break;
+    }
+}
+```
 
-playDbVideo(v) {
-  // 1) Player
-  this.changeYouTubeVideo(v.youtube_video_id, v.video_title, this.formatSeconds(v.duration_seconds));
-  // 2) Transcripción
-  const transcript = document.querySelector('.transcript-content');
-  if (transcript) transcript.textContent = v.transcript_text || 'Sin transcripción.';
-},
+## IMPLEMENTACIÓN PASO A PASO
 
-formatSeconds(s = 0) {
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-},
+### PASO 1: AGREGAR EL BOTÓN HTML
+Agregar el botón de "Comunidad" después del botón de "Quiz":
 
+```html
+<button class="tab-btn" data-content="community">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+    Comunidad
+</button>
+```
 
-Importante: Reusar la función existente changeYouTubeVideo(videoId, title, duration) para no duplicar lógica de UI del player. 
+### PASO 2: ACTUALIZAR LA FUNCIÓN JAVASCRIPT
+Modificar `updateContentArea()` para incluir el caso de "community":
 
-Eliminar del flujo cualquier uso de loadTestVideos() y la asignación de moduleNames en changeVideoByModule, porque ahora el menú y los títulos vienen de BD. 
- 
+```javascript
+updateContentArea(contentType) {
+    const contentArea = document.querySelector('.content-area');
+    if (!contentArea) return;
+    
+    switch(contentType) {
+        case 'transcript':
+            contentArea.innerHTML = `
+                <div class="transcript-content">
+                    ${this.getModuleTranscript(this.currentModule)}
+                </div>
+            `;
+            break;
+        case 'summary':
+            contentArea.innerHTML = `
+                <div class="summary-content">
+                    <h4>Resumen del Módulo</h4>
+                    <ul>
+                        <li>Conceptos fundamentales de redes neuronales</li>
+                        <li>Perceptrones simples y su funcionamiento</li>
+                        <li>Funciones de activación (sigmoid, tanh, ReLU)</li>
+                        <li>Aplicaciones prácticas en IA</li>
+                    </ul>
+                </div>
+            `;
+            break;
+        case 'community':
+            contentArea.innerHTML = `
+                <div class="community-content">
+                    <h4>Comunidad de Aprendizaje</h4>
+                    <div class="community-features">
+                        <div class="community-section">
+                            <h5>📚 Foros de Discusión</h5>
+                            <p>Comparte ideas y resuelve dudas con otros estudiantes</p>
+                        </div>
+                        <div class="community-section">
+                            <h5>🤝 Grupos de Estudio</h5>
+                            <p>Únete a grupos según tu nivel y intereses</p>
+                        </div>
+                        <div class="community-section">
+                            <h5>💡 Proyectos Colaborativos</h5>
+                            <p>Participa en proyectos de IA con la comunidad</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            break;
+    }
+}
+```
 
-Criterios de aceptación (QA)
+### PASO 3: AGREGAR ESTILOS CSS (OPCIONAL)
+Si se desea personalizar el contenido de la comunidad, agregar estilos específicos:
 
-Panel izquierdo muestra N módulos en acordeón, tomados de course_modules del curso activo. 
+```css
+.community-content {
+    color: var(--glass-text-secondary);
+    line-height: 1.6;
+}
 
-Cada módulo lista exactamente 2 videos (si existen) desde module_videos ordenados por video_order. 
+.community-features {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
 
-Al hacer clic en un video:
+.community-section {
+    background: rgba(68, 229, 255, 0.05);
+    border: 1px solid rgba(68, 229, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
 
-Cambia el iframe#youtubePlayer al ID correcto,
+.community-section:hover {
+    background: rgba(68, 229, 255, 0.08);
+    border-color: rgba(68, 229, 255, 0.2);
+}
 
-Se actualiza el título y la duración visibles bajo el video,
+.community-section h5 {
+    color: var(--glass-primary);
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
 
-La pestaña Transcripción muestra transcript_text. 
- 
+.community-section p {
+    margin: 0;
+    color: var(--glass-text-secondary);
+    font-size: 0.9rem;
+}
+```
 
-No quedan restos de contenido hardcodeado (nombres de módulos, playlist de prueba). 
- 
+## INSTRUCCIONES PARA CLAUDE
 
-Si un módulo no tiene 2 videos, no rompe la UI; muestra 0, 1 o 2 según disponibilidad.
+1. **PRIMERO**: Analiza el código actual en `chat-online.html` para entender la estructura exacta
+2. **SEGUNDO**: Agrega el botón de "Comunidad" en la sección `.content-tabs` después del botón "Quiz"
+3. **TERCERO**: Modifica la función `updateContentArea()` en `chat-online.js` para incluir el caso "community"
+4. **CUARTO**: Verifica que el botón funcione correctamente al hacer clic
+5. **QUINTO**: Asegúrate de que el contenido de la comunidad se muestre correctamente en el área de contenido
+
+## CONSIDERACIONES IMPORTANTES
+
+- Mantén la consistencia visual con los otros botones
+- Usa el mismo patrón de datos (`data-content="community"`)
+- El icono SVG debe ser apropiado para "comunidad" (grupo de personas)
+- El contenido debe ser relevante para una comunidad de aprendizaje de IA
+- Mantén el mismo estilo de transiciones y estados activos
+
+## VERIFICACIÓN FINAL
+
+Después de implementar:
+1. El botón debe aparecer visualmente igual a los otros
+2. Al hacer clic debe cambiar a estado activo
+3. El contenido de la comunidad debe mostrarse en el área de contenido
+4. Los otros botones deben seguir funcionando normalmente
+5. El diseño debe ser responsive y mantener la estética glassmorphism
