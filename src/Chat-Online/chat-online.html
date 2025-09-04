@@ -630,7 +630,7 @@ Cargando información...
                                 </h3>
                                 <span class="community-subtitle">Preguntas y Respuestas - Introducción a la IA</span>
                             </div>
-                            <button class="btn-primary" id="askQuestionBtn">
+                            <button class="btn-primary" id="askQuestionBtn" onclick="window.showQuestionModal()">
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <line x1="12" y1="5" x2="12" y2="19"/>
                                     <line x1="5" y1="12" x2="19" y2="12"/>
@@ -917,7 +917,7 @@ Cargando información...
                                     </div>
                                     <div class="modal-actions">
                                         <button type="button" class="btn-secondary" id="cancelQuestionBtn">Cancelar</button>
-                                        <button type="submit" class="btn-primary">
+                                        <button type="submit" class="btn-primary" id="submitQuestionBtn">
                                             <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <path d="M22 2L11 13"/>
                                                 <polygon points="22,2 15,22 11,13 2,9"/>
@@ -1084,6 +1084,25 @@ Cargando información...
     
     <!-- Community API -->
     <script src="api/community-api.js"></script>
+    
+    <!-- Script inline para funciones globales inmediatas -->
+    <script>
+        // Función global inmediata para el botón de pregunta
+        window.showQuestionModal = function() {
+            console.log('🔘 Función de respaldo ejecutada');
+            const modal = document.getElementById('questionModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                console.log('✅ Modal abierto con función de respaldo');
+            } else {
+                console.error('❌ Modal no encontrado');
+            }
+        };
+        
+        // Verificar que la función esté disponible
+        console.log('✅ Función showQuestionModal definida:', typeof window.showQuestionModal);
+    </script>
     
     <!-- Chat Online Main Script -->
     <script src="chat-online.js"></script>

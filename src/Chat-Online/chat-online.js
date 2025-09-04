@@ -1,5 +1,38 @@
 // ===== CHAT ONLINE - JAVASCRIPT PRINCIPAL =====
 
+// ===== FUNCIONES GLOBALES INMEDIATAS =====
+// Definir funciones globales antes de la clase para que estén disponibles inmediatamente
+window.openQuestionModal = function() {
+    console.log('🔘 Función global de fallback ejecutada');
+    if (window.chatOnline && window.chatOnline.showQuestionModal) {
+        window.chatOnline.showQuestionModal();
+    } else {
+        console.error('❌ ChatOnline no está disponible');
+        // Fallback directo
+        const modal = document.getElementById('questionModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            console.log('✅ Modal abierto con fallback directo');
+        } else {
+            console.error('❌ Modal no encontrado');
+        }
+    }
+};
+
+// También definir una función más simple como respaldo
+window.showQuestionModal = function() {
+    console.log('🔘 Función de respaldo ejecutada');
+    const modal = document.getElementById('questionModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        console.log('✅ Modal abierto con función de respaldo');
+    } else {
+        console.error('❌ Modal no encontrado');
+    }
+};
+
 class ChatOnline {
     constructor() {
         this.currentModule = 1;
@@ -893,17 +926,44 @@ class ChatOnline {
     
     // ===== FUNCIONES DE COMUNIDAD =====
     
+    debugCommunitySetup() {
+        console.log('🔍 Debug: Verificando elementos de comunidad...');
+        
+        // Verificar botón de hacer pregunta
+        const askBtn = document.getElementById('askQuestionBtn');
+        console.log('🔍 Botón "Hacer Pregunta":', !!askBtn);
+        
+        // Verificar modal
+        const modal = document.getElementById('questionModal');
+        console.log('🔍 Modal de pregunta:', !!modal);
+        
+        // Verificar formulario
+        const form = document.getElementById('questionForm');
+        console.log('🔍 Formulario de pregunta:', !!form);
+        
+        // Verificar inputs
+        const titleInput = document.getElementById('questionTitle');
+        const contentInput = document.getElementById('questionContent');
+        console.log('🔍 Input de título:', !!titleInput);
+        console.log('🔍 Input de contenido:', !!contentInput);
+        
+        // Verificar botón de submit
+        const submitBtn = document.getElementById('submitQuestionBtn');
+        console.log('🔍 Botón de submit:', !!submitBtn);
+        
+        // Verificar si window.chatOnline está disponible
+        console.log('🔍 window.chatOnline disponible:', !!window.chatOnline);
+        console.log('🔍 showQuestionModal disponible:', !!(window.chatOnline && window.chatOnline.showQuestionModal));
+    }
+    
     setupCommunityEventListeners() {
         // Configurar usuario actual en la API
         if (window.communityAPI && this.currentUser) {
             window.communityAPI.setCurrentUser(this.currentUser);
         }
         
-        // Botón para hacer pregunta
-        const askQuestionBtn = document.getElementById('askQuestionBtn');
-        if (askQuestionBtn) {
-            askQuestionBtn.addEventListener('click', () => this.showQuestionModal());
-        }
+        // Botón para hacer pregunta - con múltiples intentos
+        this.setupAskQuestionButton();
         
         // Filtros de preguntas
         document.querySelectorAll('.filter-tab').forEach(tab => {
@@ -929,23 +989,69 @@ class ChatOnline {
         // Cargar preguntas iniciales
         this.loadQuestions();
         
+        // Debug: verificar que todo esté configurado correctamente
+        this.debugCommunitySetup();
+        
         console.log('🔧 Event listeners de comunidad configurados');
+    }
+
+    setupAskQuestionButton() {
+        // Intentar configurar el botón con retry
+        const setupButton = () => {
+            const askQuestionBtn = document.getElementById('askQuestionBtn');
+            if (askQuestionBtn) {
+                // Remover listeners existentes para evitar duplicados
+                askQuestionBtn.removeEventListener('click', this.handleAskQuestionClick);
+                
+                // Agregar nuevo listener
+                this.handleAskQuestionClick = () => {
+                    console.log('🔘 Botón "Hacer Pregunta" clickeado');
+                    this.showQuestionModal();
+                };
+                
+                askQuestionBtn.addEventListener('click', this.handleAskQuestionClick);
+                console.log('✅ Event listener del botón "Hacer Pregunta" configurado');
+                return true;
+            }
+            return false;
+        };
+
+        // Intentar inmediatamente
+        if (!setupButton()) {
+            // Si no funciona, intentar después de un delay
+            setTimeout(() => {
+                if (!setupButton()) {
+                    console.warn('⚠️ No se pudo configurar el botón "Hacer Pregunta"');
+                }
+            }, 100);
+        }
     }
     
     showQuestionModal() {
+        console.log('🔍 Intentando abrir modal de pregunta...');
+        
         const modal = document.getElementById('questionModal');
+        console.log('🔍 Modal encontrado:', !!modal);
+        
         if (modal) {
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
             
             // Focus en el título
             const titleInput = document.getElementById('questionTitle');
+            console.log('🔍 Input de título encontrado:', !!titleInput);
+            
             if (titleInput) {
-                setTimeout(() => titleInput.focus(), 100);
+                setTimeout(() => {
+                    titleInput.focus();
+                    console.log('✅ Focus aplicado al input de título');
+                }, 100);
             }
+            
+            console.log('✅ Modal de pregunta abierto exitosamente');
+        } else {
+            console.error('❌ No se encontró el modal de pregunta');
         }
-        
-        console.log('❓ Modal de pregunta abierto');
     }
     
     hideQuestionModal() {
@@ -4446,6 +4552,7 @@ class ChatOnline {
         return testVideos;
     }
 }
+
 
 // ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', function() {
