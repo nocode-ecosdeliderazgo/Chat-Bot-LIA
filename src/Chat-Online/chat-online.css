@@ -3699,3 +3699,61 @@ body {
     100% { transform: rotate(360deg); }
 }
 
+/* ===== Acordeón de módulos (panel izquierdo) ===== */
+.module-accordion { 
+    border: 1px solid rgba(68,229,255,.12); 
+    border-radius: 10px; 
+    overflow: hidden; 
+}
+
+.module-accordion + .module-accordion { 
+    margin-top: .5rem; 
+}
+
+.module-header {
+    width: 100%; 
+    background: rgba(255,255,255,.05); 
+    color: var(--glass-text-primary);
+    border: 0; 
+    text-align: left; 
+    padding: .75rem 1rem; 
+    display:flex; 
+    align-items:center; 
+    justify-content:space-between;
+    cursor: pointer; 
+    transition: .2s ease;
+}
+
+.module-header:hover { 
+    background: rgba(68,229,255,.10); 
+}
+
+.video-sublist { 
+    list-style: none; 
+    margin: 0; 
+    padding: .5rem 0; 
+    background: rgba(255,255,255,.03); 
+}
+
+.video-item { 
+    padding: .5rem 1rem; 
+    display:flex; 
+    justify-content:space-between; 
+    align-items:center; 
+    cursor:pointer; 
+}
+
+.video-item:hover { 
+    background: rgba(68,229,255,.08); 
+}
+
+.video-item .v-title { 
+    color: var(--glass-text-primary); 
+    font-size: .92rem; 
+}
+
+.video-item .v-time  { 
+    color: var(--glass-text-muted); 
+    font-size: .82rem; 
+}
+

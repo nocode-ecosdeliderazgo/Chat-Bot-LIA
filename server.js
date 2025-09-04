@@ -983,6 +983,19 @@ app.get('/api/config', authenticateRequest, (req, res) => {
     }
 });
 
+// Endpoint para obtener configuración de Supabase (no sensible)
+app.get('/api/supabase-config', (req, res) => {
+    try {
+        res.json({
+            url: process.env.SUPABASE_URL,
+            anon_key: process.env.SUPABASE_ANON_KEY
+        });
+    } catch (error) {
+        console.error('Error obteniendo configuración de Supabase:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 // ====== PERFIL DE USUARIO (lectura/actualización simple) ======
 app.get('/api/profile', async (req, res) => {
     try {

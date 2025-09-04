@@ -18,7 +18,7 @@ class ChatOnline {
         this.setupEventListeners();
         await this.initializeProgressManager();
         await this.initializeYouTubeTracker();
-        this.loadInitialData();
+        await this.loadInitialData();
         this.setupResponsive();
         console.log('✅ Chat Online inicializado correctamente');
     }
@@ -2064,20 +2064,7 @@ class ChatOnline {
         }
     }
     
-    loadInitialData() {
-        // Cargar datos iniciales
-        console.log('📊 Cargando datos iniciales...');
-        
-        // Cargar video del módulo actual (1)
-        console.log('🎥 Cargando video del módulo inicial...');
-        this.changeVideoByModule(this.currentModule);
-        
-        // Simular carga de progreso inicial
-        this.updateProgress(0);
-        
-        // Cargar notas de ejemplo
-        this.loadSampleNotes();
-    }
+    // loadInitialData() - Reemplazado por versión de Supabase más abajo
     
     cleanDuplicateNotes() {
         const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
@@ -2547,7 +2534,8 @@ class ChatOnline {
     // ===== YOUTUBE VIDEO PLAYER =====
     
     /**
-     * Videos asignados a cada módulo
+     * Videos asignados a cada módulo (DEPRECATED - usar Supabase)
+     * Mantenido solo para funciones de testing
      */
     getModuleVideos() {
         return {
@@ -2633,18 +2621,7 @@ class ChatOnline {
             console.log(`🎯 Cargando video del Módulo ${moduleNumber}`);
             this.changeYouTubeVideo(videoData.id, videoData.title, videoData.duration);
             
-            // Actualizar la información del módulo actual si existe
-            const currentModuleInfo = document.querySelector('.current-module-info span');
-            if (currentModuleInfo) {
-                const moduleNames = {
-                    1: 'Módulo 1: ¿Qué es la IA?',
-                    2: 'Módulo 2: Historia de la IA', 
-                    3: 'Módulo 3: Fundamentos del ML',
-                    4: 'Módulo 4: Redes Neuronales',
-                    5: 'Módulo 5: Aplicaciones Prácticas'
-                };
-                currentModuleInfo.textContent = moduleNames[moduleNumber] || `Módulo ${moduleNumber}`;
-            }
+            // Información del módulo actual se actualiza ahora desde Supabase en renderModules()
         } else {
             console.error(`❌ No hay video configurado para el módulo ${moduleNumber}`);
         }
@@ -2797,6 +2774,137 @@ class ChatOnline {
         
         console.log('🎬 Videos de prueba disponibles:', testVideos);
         return testVideos;
+    }
+
+    // === SUPABASE CLIENT ===
+    initSupabase() {
+        if (!window.supabase) { console.error('Supabase SDK no está cargado'); return null; }
+        if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) { console.error('Faltan credenciales Supabase'); return null; }
+        this.sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        return this.sb;
+    }
+
+    // === RESOLVER CONTEXTO DE CURSO ===
+    resolveCourseContext() {
+        const modulesEl = document.getElementById('modulesList');
+        const url = new URL(window.location.href);
+        const ctx = {
+            course_id: modulesEl?.dataset?.courseId || localStorage.getItem('currentCourseId') || url.searchParams.get('course_id') || null,
+            course_slug: modulesEl?.dataset?.courseSlug || localStorage.getItem('currentCourseSlug') || url.searchParams.get('course_slug') || null,
+        };
+        return ctx;
+    }
+
+    // === CARGA INICIAL: módulos + 2 videos/módulo ===
+    async loadInitialData() {
+        // 1) Supabase
+        if (!this.initSupabase()) return;
+
+        // 2) Resolver curso
+        const ctx = this.resolveCourseContext();
+
+        let courseId = ctx.course_id;
+        if (!courseId && ctx.course_slug) {
+            // lookup por slug en courses.slug
+            const { data: course, error: eCourse } = await this.sb
+                .from('courses').select('id').eq('slug', ctx.course_slug).maybeSingle();
+            if (eCourse) { console.error(eCourse); return; }
+            courseId = course?.id || null;
+        }
+        if (!courseId) { console.error('No hay course_id/course_slug'); return; }
+
+        // 3) Traer módulos
+        const { data: modules, error: eModules } = await this.sb
+            .from('course_modules')
+            .select('id, module_number, title, description, order_index')
+            .eq('course_id', courseId)
+            .order('order_index', { ascending: true });
+        if (eModules) { console.error(eModules); return; }
+        if (!modules?.length) { this.renderModules([]); return; }
+
+        // 4) Traer videos de todos los módulos (y quedarnos con los 2 primeros por módulo)
+        const moduleIds = modules.map(m => m.id);
+        const { data: videos, error: eVideos } = await this.sb
+            .from('module_videos')
+            .select('id, module_id, video_title, youtube_video_id, duration_seconds, transcript_text, video_order')
+            .in('module_id', moduleIds)
+            .order('video_order', { ascending: true });
+        if (eVideos) { console.error(eVideos); return; }
+
+        const vidsByModule = moduleIds.reduce((acc, mid) => {
+            acc[mid] = [];
+            return acc;
+        }, {});
+        (videos || []).forEach(v => { if (vidsByModule[v.module_id]) vidsByModule[v.module_id].push(v); });
+
+        // 5) Pintar acordeón (2 videos por módulo)
+        this.renderModules(modules, vidsByModule);
+
+        // 6) Autoplay: primer video del primer módulo (si existe)
+        const firstModule = modules[0];
+        const firstTwo = (vidsByModule[firstModule.id] || []).slice(0, 2);
+        if (firstTwo[0]) this.playDbVideo(firstTwo[0]);
+    }
+
+    renderModules(modules = [], vidsByModule = {}) {
+        const host = document.getElementById('modulesList');
+        if (!host) return;
+        host.innerHTML = '';
+
+        modules.forEach(m => {
+            const two = (vidsByModule[m.id] || []).slice(0, 2);
+            const acc = document.createElement('div');
+            acc.className = 'module-accordion';
+            acc.innerHTML = `
+                <button class="module-header" aria-expanded="false">
+                    <span> Módulo ${m.module_number || ''}: ${m.title || ''}</span>
+                    <svg class="icon" viewBox="0 0 24 24" width="16" height="16"><polyline points="6,9 12,15 18,9"/></svg>
+                </button>
+                <ul class="video-sublist" hidden>
+                    ${two.map(v => `
+                        <li class="video-item" data-video-id="${v.id}">
+                            <span class="v-title">${v.video_title}</span>
+                            <span class="v-time">${this.formatSeconds(v.duration_seconds)}</span>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+            host.appendChild(acc);
+        });
+
+        // toggle acordeón
+        host.querySelectorAll('.module-header').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const list = btn.nextElementSibling;
+                const open = btn.getAttribute('aria-expanded') === 'true';
+                btn.setAttribute('aria-expanded', String(!open));
+                list.hidden = open;
+            });
+        });
+
+        // click de video
+        host.querySelectorAll('.video-item').forEach(li => {
+            li.addEventListener('click', () => {
+                const id = li.dataset.videoId;
+                // buscar video en cache vidsByModule
+                const found = Object.values(vidsByModule).flat().find(v => v.id === id);
+                if (found) this.playDbVideo(found);
+            });
+        });
+    }
+
+    playDbVideo(v) {
+        // 1) Player
+        this.changeYouTubeVideo(v.youtube_video_id, v.video_title, this.formatSeconds(v.duration_seconds));
+        // 2) Transcripción
+        const transcript = document.querySelector('.transcript-content');
+        if (transcript) transcript.textContent = v.transcript_text || 'Sin transcripción.';
+    }
+
+    formatSeconds(s = 0) {
+        const m = Math.floor(s / 60);
+        const sec = s % 60;
+        return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
     }
 }
 

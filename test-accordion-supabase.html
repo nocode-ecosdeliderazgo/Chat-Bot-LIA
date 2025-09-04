@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Acordeón Supabase</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        
+        .status {
+            padding: 8px;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+        
+        .success { background: rgba(0,255,0,0.1); border: 1px solid #0f0; }
+        .error { background: rgba(255,0,0,0.1); border: 1px solid #f00; }
+        .info { background: rgba(0,100,255,0.1); border: 1px solid #06f; }
+        
+        button {
+            padding: 10px 15px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #0052a3;
+        }
+        
+        #testResults {
+            max-height: 400px;
+            overflow-y: auto;
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        pre {
+            white-space: pre-wrap;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test - Acordeón con Supabase</h1>
+    <p>Esta página prueba la implementación del acordeón de módulos con datos de Supabase.</p>
+    
+    <div class="test-section">
+        <h2>1. Configuración</h2>
+        <div id="configStatus" class="status info">Verificando configuración...</div>
+        <button onclick="testConfig()">Verificar Configuración</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Conexión a Supabase</h2>
+        <div id="connectionStatus" class="status info">No verificado</div>
+        <button onclick="testSupabaseConnection()">Probar Conexión</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Datos de Módulos</h2>
+        <div id="modulesStatus" class="status info">No verificado</div>
+        <button onclick="testModulesData()">Cargar Módulos</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Datos de Videos</h2>
+        <div id="videosStatus" class="status info">No verificado</div>
+        <button onclick="testVideosData()">Cargar Videos</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>📊 Resultados de Pruebas</h2>
+        <button onclick="runAllTests()">🚀 Ejecutar Todas las Pruebas</button>
+        <button onclick="clearResults()">🧹 Limpiar</button>
+        <div id="testResults"></div>
+    </div>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        let supabaseClient = null;
+        
+        function log(message, type = 'info') {
+            const results = document.getElementById('testResults');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            results.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearResults() {
+            document.getElementById('testResults').innerHTML = '';
+        }
+        
+        async function loadSupabaseConfig() {
+            try {
+                const response = await fetch('/api/supabase-config');
+                if (response.ok) {
+                    const config = await response.json();
+                    return config;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                throw new Error(`Error cargando configuración: ${error.message}`);
+            }
+        }
+        
+        async function testConfig() {
+            const statusEl = document.getElementById('configStatus');
+            
+            try {
+                log('🔧 Verificando configuración de Supabase...', 'info');
+                
+                // 1. Verificar SDK
+                if (!window.supabase) {
+                    throw new Error('Supabase SDK no está cargado');
+                }
+                log('✅ Supabase SDK cargado correctamente', 'success');
+                
+                // 2. Cargar configuración desde API
+                const config = await loadSupabaseConfig();
+                
+                if (!config.url || !config.anon_key) {
+                    throw new Error('Configuración incompleta');
+                }
+                
+                log(`✅ URL: ${config.url}`, 'success');
+                log(`✅ Anon Key: ${config.anon_key.substring(0, 20)}...`, 'success');
+                
+                // 3. Crear cliente
+                supabaseClient = window.supabase.createClient(config.url, config.anon_key);
+                log('✅ Cliente Supabase creado', 'success');
+                
+                statusEl.innerHTML = '✅ Configuración válida';
+                statusEl.className = 'status success';
+                
+            } catch (error) {
+                log(`❌ Error de configuración: ${error.message}`, 'error');
+                statusEl.innerHTML = `❌ Error: ${error.message}`;
+                statusEl.className = 'status error';
+            }
+        }
+        
+        async function testSupabaseConnection() {
+            const statusEl = document.getElementById('connectionStatus');
+            
+            if (!supabaseClient) {
+                await testConfig();
+                if (!supabaseClient) return;
+            }
+            
+            try {
+                log('🔗 Probando conexión a Supabase...', 'info');
+                
+                // Probar con una consulta simple
+                const { data, error } = await supabaseClient
+                    .from('course_modules')
+                    .select('count(*)')
+                    .limit(1);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                log('✅ Conexión exitosa a Supabase', 'success');
+                statusEl.innerHTML = '✅ Conexión exitosa';
+                statusEl.className = 'status success';
+                
+            } catch (error) {
+                log(`❌ Error de conexión: ${error.message}`, 'error');
+                statusEl.innerHTML = `❌ Error: ${error.message}`;
+                statusEl.className = 'status error';
+            }
+        }
+        
+        async function testModulesData() {
+            const statusEl = document.getElementById('modulesStatus');
+            
+            if (!supabaseClient) {
+                await testConfig();
+                if (!supabaseClient) return;
+            }
+            
+            try {
+                log('📚 Cargando datos de módulos...', 'info');
+                
+                // Consultar módulos (sin filtrar por curso específico para la prueba)
+                const { data: modules, error } = await supabaseClient
+                    .from('course_modules')
+                    .select('id, module_number, title, description, order_index')
+                    .order('order_index', { ascending: true })
+                    .limit(10);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                log(`✅ Encontrados ${modules.length} módulos`, 'success');
+                
+                modules.forEach(module => {
+                    log(`  📖 Módulo ${module.module_number}: ${module.title}`, 'info');
+                });
+                
+                statusEl.innerHTML = `✅ ${modules.length} módulos cargados`;
+                statusEl.className = 'status success';
+                
+            } catch (error) {
+                log(`❌ Error cargando módulos: ${error.message}`, 'error');
+                statusEl.innerHTML = `❌ Error: ${error.message}`;
+                statusEl.className = 'status error';
+            }
+        }
+        
+        async function testVideosData() {
+            const statusEl = document.getElementById('videosStatus');
+            
+            if (!supabaseClient) {
+                await testConfig();
+                if (!supabaseClient) return;
+            }
+            
+            try {
+                log('🎥 Cargando datos de videos...', 'info');
+                
+                // Consultar videos
+                const { data: videos, error } = await supabaseClient
+                    .from('module_videos')
+                    .select('id, module_id, video_title, youtube_video_id, duration_seconds, video_order')
+                    .order('video_order', { ascending: true })
+                    .limit(20);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                log(`✅ Encontrados ${videos.length} videos`, 'success');
+                
+                // Agrupar por módulo
+                const videosByModule = {};
+                videos.forEach(video => {
+                    if (!videosByModule[video.module_id]) {
+                        videosByModule[video.module_id] = [];
+                    }
+                    videosByModule[video.module_id].push(video);
+                });
+                
+                Object.keys(videosByModule).forEach(moduleId => {
+                    const moduleVideos = videosByModule[moduleId];
+                    log(`  📁 Módulo ${moduleId}: ${moduleVideos.length} videos`, 'info');
+                    
+                    moduleVideos.slice(0, 2).forEach((video, index) => {
+                        const duration = Math.floor(video.duration_seconds / 60) + ':' + 
+                                       String(video.duration_seconds % 60).padStart(2, '0');
+                        log(`    🎬 ${index + 1}. ${video.video_title} (${duration}) - ${video.youtube_video_id}`, 'info');
+                    });
+                });
+                
+                statusEl.innerHTML = `✅ ${videos.length} videos cargados`;
+                statusEl.className = 'status success';
+                
+            } catch (error) {
+                log(`❌ Error cargando videos: ${error.message}`, 'error');
+                statusEl.innerHTML = `❌ Error: ${error.message}`;
+                statusEl.className = 'status error';
+            }
+        }
+        
+        async function runAllTests() {
+            log('🚀 ===== EJECUTANDO TODAS LAS PRUEBAS =====', 'info');
+            clearResults();
+            
+            await testConfig();
+            if (supabaseClient) {
+                await testSupabaseConnection();
+                await testModulesData();
+                await testVideosData();
+            }
+            
+            log('✅ ===== PRUEBAS COMPLETADAS =====', 'success');
+        }
+        
+        // Inicialización automática
+        window.addEventListener('load', async () => {
+            log('🔄 Página cargada - Sistema listo para pruebas', 'info');
+        });
+    </script>
+</body>
+</html>

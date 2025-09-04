@@ -1,206 +1,257 @@
-# PROMPT PARA CLAUDE CODE - REESTRUCTURACIÓN DE CHAT.HTML
+Quiero que transformes mi vista de curso para que el panel izquierdo “Material del Curso” muestre un menú desplegable por módulos (acordeón). Cada módulo debe listar exactamente 2 videos (los 2 primeros por video_order). Al hacer clic en un video, se debe actualizar el reproductor de YouTube del panel central, el título, la duración y la transcripción. Todo debe venir de Supabase (course_modules, module_videos) y no debe haber datos hardcodeados.
 
-## OBJETIVO PRINCIPAL
-Reestructurar `chat.html` para optimizar el espacio y agregar nuevas funcionalidades sin afectar la funcionalidad existente del chat en vivo conectado al servidor de Heroku.
+Contexto y puntos de integración
 
-## CAMBIOS REQUERIDOS
+El contenedor donde debes renderizar los módulos ya existe: #modulesList. Úsalo para pintar el acordeón. 
 
-### 1. REESTRUCTURACIÓN DEL LAYOUT
+El iframe del reproductor también existe: #youtubePlayer. Es el que debes actualizar al seleccionar video. 
 
-#### Panel de Estado de Conexión (Actual: "Desconectado/Conectado")
-- **Ubicación**: Mantener en la parte superior donde está actualmente
-- **Nuevo diseño**: Agregar dos botones de toggle:
-  - **Botón "Chat en Vivo"**: Para mostrar el chat en vivo (funcionalidad existente)
-  - **Botón "Chat con LIA"**: Para mostrar el chat con el asistente IA
-- **Comportamiento**: Solo uno activo a la vez, con indicador visual claro
-- **Estilo**: Botones tipo toggle con estados activo/inactivo
+El JS actual inicia en class ChatOnline, corre loadInitialData() y maneja pestañas, notas, etc. Debes reemplazar la carga inicial para leer de Supabase y poblar el panel izquierdo. 
 
-#### Chat Principal (Área Central - MODIFICAR)
-- **Ubicación**: Área central principal (donde está actualmente el chat)
-- **Funcionalidad**: Contenedor que cambia entre dos modos:
-  - **Modo "Chat en Vivo"**: Muestra el chat en vivo existente (funcionalidad actual)
-  - **Modo "Chat con LIA"**: Muestra el chat con el asistente IA
-- **Comportamiento**: El mismo contenedor cambia de contenido según el botón seleccionado
-- **Estado**: Por defecto muestra "Chat en Vivo"
+Hoy hay títulos y lógica de módulos “de ejemplo” (hardcode) que debes eliminar/sustituir. Ej.: moduleNames dentro de changeVideoByModule y la playlist de pruebas loadTestVideos(). 
+ 
 
-#### Panel de Herramientas (Izquierda - MODIFICAR)
-- **Ubicación**: Panel lateral izquierdo
-- **Nuevo contenido**:
-  - **Sección "Chat en Vivo"**: Mantener la funcionalidad existente
-  - **Sección "Zoom Session"**: NUEVA - Integración de Zoom dentro del panel de herramientas
-- **Estado**: Todas las secciones visibles simultáneamente
+Esquema relevante de BD (Supabase)
 
-#### Panel de Presentación (Derecha - NUEVO)
-- **Ubicación**: Panel lateral derecho (donde antes estaba el chat con LIA)
-- **Funcionalidad**: Carga y visualización de presentaciones
-- **Características**:
-  - Botón "Cargar Presentación"
-  - Soporte para PDF, PowerPoint, Google Slides
-  - Controles de navegación
-  - Modo presentador
-- **Estado**: Siempre visible
+course_modules: id (uuid), course_id (uuid), module_number (int), title (varchar), order_index (int)… Úsalo para construir el acordeón (1 item por módulo, ordenado por order_index o module_number). 
 
-### 2. NUEVAS FUNCIONALIDADES
+module_videos: id (uuid), module_id (uuid), video_title, youtube_video_id, duration_seconds, transcript_text, video_order… Saca los 2 primeros por video_order ASC. 
 
-#### Zoom Session (DENTRO del panel de herramientas)
-- **Ubicación**: Dentro del panel lateral izquierdo de herramientas
-- **Funcionalidad**: Integración de Zoom Web SDK
-- **Características**:
-  - Botón "Conectar Zoom"
-  - Controles básicos (unirse, salir, audio, video)
-  - Estado de conexión
-- **Estado**: Siempre visible en el panel de herramientas
+Nota: transcript_text debe mostrarse en la pestaña “Transcripción” cuando cambie el video. 
 
-#### Presentación (Panel lateral derecho)
-- **Ubicación**: Panel lateral derecho (donde antes estaba el chat con LIA)
-- **Funcionalidad**: Carga y visualización de presentaciones
-- **Características**:
-  - Botón "Cargar Presentación"
-  - Soporte para PDF, PowerPoint, Google Slides
-  - Controles de navegación
-  - Modo presentador
-- **Estado**: Siempre visible
+Requerimientos funcionales
 
-#### Chat con LIA (DENTRO del contenedor principal)
-- **Ubicación**: Mismo contenedor que el chat en vivo
-- **Funcionalidad**: Chat completo con el asistente IA
-- **Características**:
-  - Campo de entrada de texto
-  - Historial de mensajes
-  - Capacidad de hacer preguntas sobre cualquier tema
-  - Integración con la IA existente
-- **Estado**: Se muestra cuando se selecciona "Chat con LIA"
+Resolver el curso usando (en este orden):
 
-### 3. ESPECIFICACIONES TÉCNICAS
+data-course-id o data-course-slug en el elemento #modulesList,
 
-#### Estructura HTML
-```html
-<!-- Panel de Estado -->
-<div class="connection-panel">
-  <button class="toggle-btn active" data-target="live-chat">Chat en Vivo</button>
-  <button class="toggle-btn" data-target="lia-chat">Chat con LIA</button>
-</div>
+o ?course_id=/?course_slug= en URL,
 
-<!-- Panel de Herramientas (Izquierda) -->
-<div class="tools-panel">
-  <!-- Sección Chat en Vivo (existente) -->
-  <div class="live-chat-section">
-    <!-- TODO EL CÓDIGO EXISTENTE DEL CHAT EN VIVO SE MANTIENE -->
-  </div>
-  
-  <!-- Sección Zoom Session (NUEVA) -->
-  <div class="zoom-section">
-    <h3>Zoom Session</h3>
-    <button class="zoom-connect-btn">Conectar Zoom</button>
-    <!-- Controles de Zoom aquí -->
-  </div>
-</div>
+o localStorage.currentCourseId/currentCourseSlug.
+No hardcodear un curso por defecto.
 
-<!-- Contenedor Principal del Chat (Centro) -->
-<div class="main-chat-container">
-  <!-- Chat en Vivo (EXISTENTE - se muestra por defecto) -->
-  <div class="live-chat-content active">
-    <!-- TODO EL CÓDIGO EXISTENTE DEL CHAT EN VIVO SE MANTIENE -->
-  </div>
-  
-  <!-- Chat con LIA (NUEVO - se muestra al cambiar) -->
-  <div class="lia-chat-content hidden">
-    <!-- Nuevo chat con IA -->
-  </div>
-</div>
+Fetch de módulos:
 
-<!-- Panel de Presentación (Derecha) -->
-<div class="presentation-panel">
-  <h3>Presentación</h3>
-  <button class="load-presentation-btn">Cargar Presentación</button>
-  <!-- Controles de presentación aquí -->
-</div>
-```
+Query a course_modules filtrando por course_id (o por courses.slug si recibimos slug), ordenado por order_index (fallback module_number).
 
-#### CSS Requerido
-- Layout responsive con flexbox/grid
-- Transiciones suaves entre modos de chat
-- Estados visuales claros para botones toggle
-- Diseño que aproveche el espacio disponible
-- Estilos para las nuevas secciones de Zoom y Presentación
+Por cada módulo, fetch de videos a module_videos filtrando module_id, ordenado por video_order ASC, y tomar 2.
 
-#### JavaScript Requerido
-- Sistema de toggle entre chats (cambia contenido del contenedor principal)
-- Integración con Zoom Web SDK
-- Sistema de carga de diapositivas
-- Mantener toda la funcionalidad existente del chat en vivo
+Render:
 
-### 4. RESTRICCIONES CRÍTICAS
+Acordeón:
 
-#### NO TOCAR (FUNCIONALIDAD EXISTENTE)
-- **Chat en vivo**: Todo el código relacionado con la conexión al servidor de Heroku
-- **WebSocket connections**: Mantener intactas
-- **Event listeners**: No modificar los existentes
-- **Variables globales**: No cambiar nombres ni estructura
-- **Funciones de conexión**: Mantener exactamente como están
+Header del módulo (número + título + duración total opcional).
 
-#### FUNCIONALIDADES A PRESERVAR
-- Conexión automática al servidor
-- Envío y recepción de mensajes en tiempo real
-- Estados de conexión (conectado/desconectado)
-- Historial de mensajes
-- Cualquier otra funcionalidad que ya esté funcionando
+Sublista con 2 videos (mostrar título y duración mm:ss).
 
-### 5. IMPLEMENTACIÓN SEGURA
+Al hacer clic en un video:
 
-#### Enfoque de Desarrollo
-1. **Backup**: Crear copia de seguridad del archivo actual
-2. **Modular**: Agregar nuevas funcionalidades sin tocar el código existente
-3. **Testing**: Verificar que el chat en vivo sigue funcionando después de cada cambio
-4. **Incremental**: Implementar cambios paso a paso
+Actualiza #youtubePlayer con https://www.youtube.com/embed/${youtube_video_id}?enablejsapi=1&modestbranding=1&rel=0 (respeta el patrón que ya usa la app). 
 
-#### Orden de Implementación
-1. Crear estructura HTML base sin tocar funcionalidad existente
-2. Implementar sistema de toggle entre chats (mismo contenedor)
-3. Agregar sección Zoom dentro del panel de herramientas
-4. Agregar panel de Presentación en el lateral derecho
-5. Integrar chat con LIA en el contenedor principal
-6. Testing completo de funcionalidad existente
+Actualiza título y duración visibles bajo el player. 
 
-### 6. CONSIDERACIONES DE UX
+Rellena la pestaña Transcripción con transcript_text.
 
-#### Navegación Intuitiva
-- Botones claros y descriptivos
-- Indicadores visuales del estado activo
-- Transiciones suaves entre modos de chat
-- Feedback visual inmediato
+Si un módulo tiene <2 videos, muestra sólo los existentes; si tiene >2, muestra sólo los 2 primeros.
 
-#### Responsive Design
-- Funcionar en desktop, tablet y móvil
-- Adaptar layout según tamaño de pantalla
-- Mantener usabilidad en todos los dispositivos
+Nada hardcodeado: eliminar/ignorar moduleNames y loadTestVideos en el flujo principal. 
+ 
 
-### 7. TESTING REQUERIDO
+No romper lo demás: mantener navegación superior, notas, progreso y estilos existentes.
 
-#### Funcionalidad Existente
-- [ ] Chat en vivo conecta correctamente
-- [ ] Mensajes se envían y reciben
-- [ ] Estados de conexión funcionan
-- [ ] No hay errores en consola
+Cambios concretos (parches)
+1) HTML — insertar Supabase (si no existe)
 
-#### Nueva Funcionalidad
-- [ ] Toggle entre chats funciona (mismo contenedor)
-- [ ] Chat con LIA responde correctamente
-- [ ] Sección Zoom se integra en panel de herramientas
-- [ ] Panel de Presentación funciona en lateral derecho
-- [ ] Layout responsive
+Antes de </body> agrega:
 
-## INSTRUCCIONES FINALES
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.SUPABASE_URL = '<TU_URL>';
+  window.SUPABASE_ANON_KEY = '<TU_ANON_KEY>';
+</script>
 
-**IMPORTANTE**: Este es un proyecto en producción con funcionalidad crítica. Cualquier cambio debe ser conservador y preservar completamente la funcionalidad existente del chat en vivo.
 
-**PRIORIDAD**: La funcionalidad existente es más importante que las nuevas características. Si hay conflicto, priorizar mantener lo que ya funciona.
+(El iframe#youtubePlayer y #modulesList ya existen; no los toques. 
+ 
+)
 
-**COMUNICACIÓN**: Si encuentras algún problema o conflicto, documentarlo claramente antes de proceder.
+2) CSS — agrega estilos mínimos del submenú (al final de chat-online.css)
+/* ===== Acordeón de módulos (panel izquierdo) ===== */
+.module-accordion { border: 1px solid rgba(68,229,255,.12); border-radius: 10px; overflow: hidden; }
+.module-accordion + .module-accordion { margin-top: .5rem; }
 
----
+.module-header {
+  width: 100%; background: rgba(255,255,255,.05); color: var(--glass-text-primary);
+  border: 0; text-align: left; padding: .75rem 1rem; display:flex; align-items:center; justify-content:space-between;
+  cursor: pointer; transition: .2s ease;
+}
+.module-header:hover { background: rgba(68,229,255,.10); }
 
-**ARCHIVO OBJETIVO**: `src/chat.html`
-**MANTENER INTACTO**: Todo el código relacionado con WebSocket y conexión al servidor de Heroku
-**AGREGAR**: Nuevas funcionalidades de manera modular y segura
-**ESTRUCTURA**: Zoom DENTRO del panel de herramientas, Presentación en panel lateral derecho, Chat con LIA DENTRO del contenedor principal del chat
+.video-sublist { list-style: none; margin: 0; padding: .5rem 0; background: rgba(255,255,255,.03); }
+.video-item { padding: .5rem 1rem; display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
+.video-item:hover { background: rgba(68,229,255,.08); }
+
+.video-item .v-title { color: var(--glass-text-primary); font-size: .92rem; }
+.video-item .v-time  { color: var(--glass-text-muted); font-size: .82rem; }
+
+3) JS — insertar utilidades Supabase y la nueva carga de datos
+
+En chat-online.js, dentro de la clase ChatOnline, añade estos métodos y úsalo en init() en lugar de la carga hardcodeada. (El archivo ya expone funciones para cambiar el video y título; reúsalas). 
+ 
+
+// === SUPABASE CLIENT ===
+initSupabase() {
+  if (!window.supabase) { console.error('Supabase SDK no está cargado'); return null; }
+  if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) { console.error('Faltan credenciales Supabase'); return null; }
+  this.sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  return this.sb;
+},
+
+// === RESOLVER CONTEXTO DE CURSO ===
+resolveCourseContext() {
+  const modulesEl = document.getElementById('modulesList');
+  const url = new URL(window.location.href);
+  const ctx = {
+    course_id: modulesEl?.dataset?.courseId || localStorage.getItem('currentCourseId') || url.searchParams.get('course_id') || null,
+    course_slug: modulesEl?.dataset?.courseSlug || localStorage.getItem('currentCourseSlug') || url.searchParams.get('course_slug') || null,
+  };
+  return ctx;
+},
+
+// === CARGA INICIAL: módulos + 2 videos/módulo ===
+async loadInitialData() {
+  // 1) Supabase
+  if (!this.initSupabase()) return;
+
+  // 2) Resolver curso
+  const ctx = this.resolveCourseContext();
+
+  let courseId = ctx.course_id;
+  if (!courseId && ctx.course_slug) {
+    // lookup por slug en courses.slug
+    const { data: course, error: eCourse } = await this.sb
+      .from('courses').select('id').eq('slug', ctx.course_slug).maybeSingle();
+    if (eCourse) { console.error(eCourse); return; }
+    courseId = course?.id || null;
+  }
+  if (!courseId) { console.error('No hay course_id/course_slug'); return; }
+
+  // 3) Traer módulos
+  const { data: modules, error: eModules } = await this.sb
+    .from('course_modules')
+    .select('id, module_number, title, description, order_index')
+    .eq('course_id', courseId)
+    .order('order_index', { ascending: true });
+  if (eModules) { console.error(eModules); return; }
+  if (!modules?.length) { this.renderModules([]); return; }
+
+  // 4) Traer videos de todos los módulos (y quedarnos con los 2 primeros por módulo)
+  const moduleIds = modules.map(m => m.id);
+  const { data: videos, error: eVideos } = await this.sb
+    .from('module_videos')
+    .select('id, module_id, video_title, youtube_video_id, duration_seconds, transcript_text, video_order')
+    .in('module_id', moduleIds)
+    .order('video_order', { ascending: true });
+  if (eVideos) { console.error(eVideos); return; }
+
+  const vidsByModule = moduleIds.reduce((acc, mid) => {
+    acc[mid] = [];
+    return acc;
+  }, {});
+  (videos || []).forEach(v => { if (vidsByModule[v.module_id]) vidsByModule[v.module_id].push(v); });
+
+  // 5) Pintar acordeón (2 videos por módulo)
+  this.renderModules(modules, vidsByModule);
+
+  // 6) Autoplay: primer video del primer módulo (si existe)
+  const firstModule = modules[0];
+  const firstTwo = (vidsByModule[firstModule.id] || []).slice(0, 2);
+  if (firstTwo[0]) this.playDbVideo(firstTwo[0]);
+},
+
+renderModules(modules = [], vidsByModule = {}) {
+  const host = document.getElementById('modulesList');
+  if (!host) return;
+  host.innerHTML = '';
+
+  modules.forEach(m => {
+    const two = (vidsByModule[m.id] || []).slice(0, 2);
+    const acc = document.createElement('div');
+    acc.className = 'module-accordion';
+    acc.innerHTML = `
+      <button class="module-header" aria-expanded="false">
+        <span> Módulo ${m.module_number || ''}: ${m.title || ''}</span>
+        <svg class="icon" viewBox="0 0 24 24" width="16" height="16"><polyline points="6,9 12,15 18,9"/></svg>
+      </button>
+      <ul class="video-sublist" hidden>
+        ${two.map(v => `
+          <li class="video-item" data-video-id="${v.id}">
+            <span class="v-title">${v.video_title}</span>
+            <span class="v-time">${this.formatSeconds(v.duration_seconds)}</span>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+    host.appendChild(acc);
+  });
+
+  // toggle acordeón
+  host.querySelectorAll('.module-header').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const list = btn.nextElementSibling;
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      list.hidden = open;
+    });
+  });
+
+  // click de video
+  host.querySelectorAll('.video-item').forEach(li => {
+    li.addEventListener('click', () => {
+      const id = li.dataset.videoId;
+      // buscar video en cache vidsByModule
+      const found = Object.values(vidsByModule).flat().find(v => v.id === id);
+      if (found) this.playDbVideo(found);
+    });
+  });
+},
+
+playDbVideo(v) {
+  // 1) Player
+  this.changeYouTubeVideo(v.youtube_video_id, v.video_title, this.formatSeconds(v.duration_seconds));
+  // 2) Transcripción
+  const transcript = document.querySelector('.transcript-content');
+  if (transcript) transcript.textContent = v.transcript_text || 'Sin transcripción.';
+},
+
+formatSeconds(s = 0) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+},
+
+
+Importante: Reusar la función existente changeYouTubeVideo(videoId, title, duration) para no duplicar lógica de UI del player. 
+
+Eliminar del flujo cualquier uso de loadTestVideos() y la asignación de moduleNames en changeVideoByModule, porque ahora el menú y los títulos vienen de BD. 
+ 
+
+Criterios de aceptación (QA)
+
+Panel izquierdo muestra N módulos en acordeón, tomados de course_modules del curso activo. 
+
+Cada módulo lista exactamente 2 videos (si existen) desde module_videos ordenados por video_order. 
+
+Al hacer clic en un video:
+
+Cambia el iframe#youtubePlayer al ID correcto,
+
+Se actualiza el título y la duración visibles bajo el video,
+
+La pestaña Transcripción muestra transcript_text. 
+ 
+
+No quedan restos de contenido hardcodeado (nombres de módulos, playlist de prueba). 
+ 
+
+Si un módulo no tiene 2 videos, no rompe la UI; muestra 0, 1 o 2 según disponibilidad.

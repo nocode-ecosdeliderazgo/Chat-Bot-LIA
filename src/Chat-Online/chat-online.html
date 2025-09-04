@@ -1403,6 +1403,34 @@ Cargando información...
     <!-- Module 1 Videos Loader -->
     <script src="module1-videos-loader.js"></script>
 
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      // Configuración de Supabase se cargará dinámicamente desde el servidor
+      window.SUPABASE_URL = null;
+      window.SUPABASE_ANON_KEY = null;
+      
+      // Función para cargar configuración de Supabase
+      async function loadSupabaseConfig() {
+        try {
+          const response = await fetch('/api/supabase-config');
+          if (response.ok) {
+            const config = await response.json();
+            window.SUPABASE_URL = config.url;
+            window.SUPABASE_ANON_KEY = config.anon_key;
+            console.log('✅ Configuración de Supabase cargada');
+          } else {
+            console.error('❌ Error cargando configuración de Supabase');
+          }
+        } catch (error) {
+          console.error('❌ Error de conexión al cargar Supabase config:', error);
+        }
+      }
+      
+      // Cargar configuración al inicio
+      loadSupabaseConfig();
+    </script>
+
 </body>
 
 </html>
