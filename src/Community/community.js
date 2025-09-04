@@ -96,49 +96,41 @@ class CommunityPage {
     }
 
     setupProfileMenu() {
-        // Intentar varias veces para asegurar que los elementos existan
-        let attempts = 0;
-        const maxAttempts = 10;
+        const avatarBtn = document.querySelector('.header-profile');
+        const menu = document.getElementById('profileMenu');
+        if (!avatarBtn || !menu) {
+            console.error('[PROFILE] ❌ Elementos del menú de perfil no encontrados');
+            return;
+        }
+        console.log('[PROFILE] ✅ Menú de perfil configurado correctamente');
         
-        const trySetup = () => {
-            const avatarBtn = document.querySelector('.header-profile');
-            const menu = document.getElementById('profileMenu');
-            
-            if(avatarBtn && menu) {
-                console.log('Setting up profile menu');
-                
-                // Remover listeners previos para evitar duplicados
-                avatarBtn.removeEventListener('click', this.handleProfileClick);
-                
-                // Crear función bound para poder removerla después
-                this.handleProfileClick = (e) => { 
-                    e.preventDefault(); 
-                    e.stopPropagation();
-                    console.log('Profile button clicked');
-                    menu.classList.toggle('show');
-                };
-                
-                avatarBtn.addEventListener('click', this.handleProfileClick);
-                
-                // Click fuera para cerrar
-                document.addEventListener('click', (e) => { 
-                    if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
-                        menu.classList.remove('show');
-                    }
-                });
-                
-                return true;
-            } else {
-                attempts++;
-                console.log(`Profile elements not found, attempt ${attempts}/${maxAttempts}`);
-                if(attempts < maxAttempts) {
-                    setTimeout(trySetup, 100);
-                }
-                return false;
+        avatarBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            menu.classList.toggle('show');
+        });
+        
+        // Cerrar menú al hacer click fuera
+        document.addEventListener('click', (e) => {
+            if (!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+                menu.classList.remove('show');
             }
-        };
+        });
         
-        trySetup();
+        // Llenar datos del usuario
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            const nameEl = document.getElementById('pmName');
+            const emailEl = document.getElementById('pmEmail');
+            if (nameEl) nameEl.textContent = currentUser.display_name || currentUser.username || 'Usuario';
+            if (emailEl) emailEl.textContent = currentUser.email || currentUser.user?.email || currentUser.data?.email || '';
+            // avatar
+            if (currentUser.avatar_url) {
+                document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {
+                    img.src = currentUser.avatar_url;
+                });
+            }
+        } catch (e) { /* noop */ }
     }
 
     // ===== NAVIGATION HANDLING =====
@@ -186,20 +178,10 @@ class CommunityPage {
         // Estadísticas
         this.communityStats = { totalMembers: 2103, totalPosts: 0 };
 
-        // Grid Discover (categorías solicitadas)
+        // Grid Discover (solo las dos comunidades principales)
         this.communities = [
             { id:0, rank:0, title:'Comunidad General', category:'general', members:'1.2k', price:'Free', desc:'Comunidad principal para todos los miembros. Comparte experiencias, haz preguntas y conecta con otros estudiantes.', thumb:'./images/comunidad-general.png', icon:'fas fa-globe' },
-            { id:-1, rank:-1, title:'Openminder', category:'general', members:'856', price:'Free', desc:'Comunidad para mentes abiertas. Explora nuevas ideas, comparte perspectivas únicas y expande tu horizonte mental.', thumb:'./images/openminder.png', icon:'fas fa-lightbulb' },
-            { id:1, rank:1, title:'Skoolers', category:'negocios', members:'74.3k', price:'Free', desc:"Private club for skool owners. Let's build communities together.", thumb:'', icon:'fas fa-users' },
-            { id:2, rank:2, title:'AI Automation Agency Hub', category:'ia', members:'225.4k', price:'Free', desc:'Start Your AI Automation Agency — plantillas y recursos.', thumb:'', icon:'fas fa-robot' },
-            { id:3, rank:3, title:'AI Automation (A-Z)', category:'ia', members:'87.4k', price:'Free', desc:'Learn to build and scale your agency.', thumb:'', icon:'fas fa-microchip' },
-            { id:4, rank:4, title:'AI Automation Society', category:'ia', members:'116.8k', price:'Free', desc:'Mastering AI-driven automation and agents.', thumb:'', icon:'fas fa-brain' },
-            { id:5, rank:5, title:'UDNIA', category:'negocios', members:'2.1k', price:'$49/month', desc:'Comunidad hispana para ganar dinero con IA.', thumb:'', icon:'fas fa-briefcase' },
-            { id:6, rank:6, title:'KubeCraft Career Accelerator', category:'it', members:'783', price:'Paid', desc:'Upskill with job‑ready projects.', thumb:'', icon:'fas fa-gear' },
-            { id:7, rank:7, title:'Data Wizards', category:'datos', members:'12.4k', price:'Free', desc:'Ingeniería de datos, analytics y BI.', thumb:'', icon:'fas fa-database' },
-            { id:8, rank:8, title:'Dev Builders', category:'desarrollo', members:'32.1k', price:'Free', desc:'Full‑stack, APIs y automatización.', thumb:'', icon:'fas fa-code' },
-            { id:9, rank:9, title:'Creative Design Hub', category:'diseno', members:'9.8k', price:'Free', desc:'UI/UX, motion y branding.', thumb:'', icon:'fas fa-pen-nib' },
-            { id:10, rank:10, title:'Growth Marketers', category:'marketing', members:'18.6k', price:'Free', desc:'Ads, SEO y growth.', thumb:'', icon:'fas fa-bullhorn' }
+            { id:-1, rank:-1, title:'Amigos, Directores y Empresarios', category:'negocios', members:'856', price:'Free', desc:'Comunidad para mentes abiertas. Explora nuevas ideas, comparte perspectivas únicas y expande tu horizonte mental.', thumb:'./images/openminder.png', icon:'fas fa-lightbulb' }
         ];
 
         // (sin posts/leaderboard)
@@ -394,59 +376,7 @@ let communityPage;
 
 document.addEventListener('DOMContentLoaded', () => {
     communityPage = new CommunityPage();
-    
-    // Configuración adicional del perfil como backup
-    setTimeout(() => {
-        setupProfileMenuDirect();
-    }, 500);
-});
-
-// Función directa para configurar el menú de perfil
-function setupProfileMenuDirect() {
-    const avatarBtn = document.querySelector('.header-profile');
-    const menu = document.getElementById('profileMenu');
-    
-    if(avatarBtn && menu) {
-        console.log('Direct profile menu setup');
-        
-        avatarBtn.onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Direct profile click handler');
-            menu.classList.toggle('show');
-        };
-        
-        document.onclick = function(e) {
-            if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
-                menu.classList.remove('show');
-            }
-        };
-    } else {
-        console.log('Profile elements still not found in direct setup');
-    }
-}
-
-// Función global para toggle del menú (inline handler)
-function toggleProfileMenu(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    console.log('Inline toggle profile menu');
-    const menu = document.getElementById('profileMenu');
-    if(menu) {
-        menu.classList.toggle('show');
-    }
-}
-
-// Click fuera para cerrar (configurar una sola vez)
-document.addEventListener('click', function(e) {
-    const menu = document.getElementById('profileMenu');
-    const avatarBtn = document.querySelector('.header-profile');
-    if(menu && avatarBtn && !menu.contains(e.target) && !avatarBtn.contains(e.target)) {
-        menu.classList.remove('show');
-    }
 });
 
 // ===== GLOBAL FUNCTIONS =====
 window.communityPage = communityPage;
-window.setupProfileMenuDirect = setupProfileMenuDirect;
-window.toggleProfileMenu = toggleProfileMenu;
