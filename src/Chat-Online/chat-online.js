@@ -2851,45 +2851,84 @@ class ChatOnline {
         if (!host) return;
         host.innerHTML = '';
 
-        modules.forEach(m => {
+        modules.forEach((m, index) => {
             const two = (vidsByModule[m.id] || []).slice(0, 2);
             const acc = document.createElement('div');
             acc.className = 'module-accordion';
-            acc.innerHTML = `
-                <button class="module-header" aria-expanded="false">
-                    <span> Módulo ${m.module_number || ''}: ${m.title || ''}</span>
-                    <svg class="icon" viewBox="0 0 24 24" width="16" height="16"><polyline points="6,9 12,15 18,9"/></svg>
-                </button>
-                <ul class="video-sublist" hidden>
-                    ${two.map(v => `
-                        <li class="video-item" data-video-id="${v.id}">
-                            <span class="v-title">${v.video_title}</span>
-                            <span class="v-time">${this.formatSeconds(v.duration_seconds)}</span>
-                        </li>
-                    `).join('')}
-                </ul>
-            `;
+            acc.style.zIndex = modules.length - index; // Z-index decreciente para evitar superposiciones
+            
+            // Crear el header del módulo
+            const header = document.createElement('button');
+            header.className = 'module-header';
+            header.setAttribute('aria-expanded', 'false');
+            header.setAttribute('type', 'button');
+            
+            const headerContent = document.createElement('span');
+            headerContent.textContent = `Módulo ${m.module_number || ''}: ${m.title || ''}`;
+            
+            const chevron = document.createElement('svg');
+            chevron.className = 'icon';
+            chevron.setAttribute('viewBox', '0 0 24 24');
+            chevron.setAttribute('width', '16');
+            chevron.setAttribute('height', '16');
+            chevron.innerHTML = '<polyline points="6,9 12,15 18,9"/>';
+            
+            header.appendChild(headerContent);
+            header.appendChild(chevron);
+            
+            // Crear la lista de videos
+            const videoList = document.createElement('ul');
+            videoList.className = 'video-sublist';
+            videoList.hidden = true;
+            
+            if (two.length > 0) {
+                two.forEach(v => {
+                    const videoItem = document.createElement('li');
+                    videoItem.className = 'video-item';
+                    videoItem.setAttribute('data-video-id', v.id);
+                    
+                    const title = document.createElement('span');
+                    title.className = 'v-title';
+                    title.textContent = v.video_title;
+                    
+                    const time = document.createElement('span');
+                    time.className = 'v-time';
+                    time.textContent = this.formatSeconds(v.duration_seconds);
+                    
+                    videoItem.appendChild(title);
+                    videoItem.appendChild(time);
+                    
+                    // Evento click para el video
+                    videoItem.addEventListener('click', () => {
+                        const found = Object.values(vidsByModule).flat().find(video => video.id === v.id);
+                        if (found) this.playDbVideo(found);
+                    });
+                    
+                    videoList.appendChild(videoItem);
+                });
+            } else {
+                // Si no hay videos, mostrar mensaje
+                const noVideos = document.createElement('li');
+                noVideos.className = 'video-item';
+                noVideos.style.opacity = '0.6';
+                noVideos.innerHTML = '<span class="v-title">No hay videos disponibles</span>';
+                videoList.appendChild(noVideos);
+            }
+            
+            // Evento click para el header del módulo
+            header.addEventListener('click', () => {
+                const isOpen = header.getAttribute('aria-expanded') === 'true';
+                header.setAttribute('aria-expanded', String(!isOpen));
+                videoList.hidden = isOpen;
+                
+                // Rotar el chevron
+                chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+            });
+            
+            // Ensamblar el acordeón
+            acc.appendChild(header);
+            acc.appendChild(videoList);
             host.appendChild(acc);
-        });
-
-        // toggle acordeón
-        host.querySelectorAll('.module-header').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const list = btn.nextElementSibling;
-                const open = btn.getAttribute('aria-expanded') === 'true';
-                btn.setAttribute('aria-expanded', String(!open));
-                list.hidden = open;
-            });
-        });
-
-        // click de video
-        host.querySelectorAll('.video-item').forEach(li => {
-            li.addEventListener('click', () => {
-                const id = li.dataset.videoId;
-                // buscar video en cache vidsByModule
-                const found = Object.values(vidsByModule).flat().find(v => v.id === id);
-                if (found) this.playDbVideo(found);
-            });
         });
     }
 
