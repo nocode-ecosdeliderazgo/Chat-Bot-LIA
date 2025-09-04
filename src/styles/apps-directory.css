@@ -651,17 +651,9 @@
 .btn-outline:focus,
 .cat-tab:focus {
     outline: none;
-    box-shadow: 
-        0 0 0 3px rgba(68, 229, 255, 0.3),
-        0 8px 25px rgba(68, 229, 255, 0.4);
+    box-shadow: 0 0 0 3px rgba(68, 229, 255, 0.3), 0 8px 25px rgba(68, 229, 255, 0.4);
 }
 
-.search:focus-within {
-    outline: none;
-    box-shadow: 
-        0 12px 40px rgba(68, 229, 255, 0.25),
-        0 0 0 3px rgba(68, 229, 255, 0.2);
-}
 
 /* ===== HEADER STYLES ===== */
 
@@ -1103,6 +1095,62 @@ body.bg-glow-global .cat-tab::before {
     background: #0066CC !important;
 }
 
+/* CORRECCIÓN CRÍTICA: Override para permitir scroll en apps-directory */
+.auth-container {
+    height: auto !important; /* Permitir altura automática */
+    min-height: 100vh !important; /* Mantener altura mínima */
+    overflow: visible !important; /* Permitir scroll */
+}
+
+body.bg-glow-global {
+    overflow: auto !important; /* Permitir scroll en el body */
+    height: auto !important; /* Altura automática */
+}
+
+/* Barra de búsqueda con azul sólido #0066CC */
+.bg-glow-global .search,
+.auth-container .search,
+body.bg-glow-global .search {
+    background: linear-gradient(135deg, 
+        rgba(0, 102, 204, 0.08) 0%, 
+        rgba(0, 102, 204, 0.12) 50%, 
+        rgba(0, 102, 204, 0.05) 100%) !important;
+    border: 2px solid rgba(0, 102, 204, 0.3) !important;
+    box-shadow: 0 8px 32px rgba(0, 102, 204, 0.15) !important;
+}
+
+.bg-glow-global .search:focus-within,
+.auth-container .search:focus-within,
+body.bg-glow-global .search:focus-within {
+    border-color: #0066CC !important;
+    box-shadow: 0 12px 40px rgba(0, 102, 204, 0.25) !important;
+}
+
+.bg-glow-global .search i,
+.auth-container .search i,
+body.bg-glow-global .search i {
+    color: #0066CC !important;
+}
+
+.bg-glow-global .search:focus-within i,
+.auth-container .search:focus-within i,
+body.bg-glow-global .search:focus-within i {
+    filter: drop-shadow(0 0 8px rgba(0, 102, 204, 0.5)) !important;
+}
+
+.bg-glow-global .search:focus-within input::placeholder,
+.auth-container .search:focus-within input::placeholder,
+body.bg-glow-global .search:focus-within input::placeholder {
+    color: rgba(0, 102, 204, 0.6) !important;
+}
+
+/* Efecto de focus mejorado para barra de búsqueda */
+.bg-glow-global .search:focus-within,
+.auth-container .search:focus-within,
+body.bg-glow-global .search:focus-within {
+    outline: none !important;
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
     .filters-sidebar {
@@ -1118,7 +1166,8 @@ body.bg-glow-global .cat-tab::before {
     }
     
     main.container {
-        padding-top: 60px;
+        padding-top: 80px;
+        padding-bottom: 40px;
     }
     
     .hero-cta {
@@ -1180,7 +1229,8 @@ body.bg-glow-global .cat-tab::before {
 /* Media query para tablets y pantallas medianas */
 @media (max-width: 1024px) {
     main.container {
-        padding-top: 60px;
+        padding-top: 80px;
+        padding-bottom: 40px;
     }
 }
 
@@ -1190,7 +1240,8 @@ body.bg-glow-global .cat-tab::before {
     }
     
     main.container {
-        padding-top: 60px;
+        padding-top: 80px;
+        padding-bottom: 40px;
     }
     
     .hero-copy h1 {
@@ -1319,31 +1370,47 @@ body.bg-glow-global .cat-tab::before {
     color: #2D3748 !important;
 }
 
-/* Estilos para barra de búsqueda en modo claro */
-[data-theme="light"] .search {
+/* Estilos para barra de búsqueda en modo claro con azul #0066CC */
+[data-theme="light"] .bg-glow-global .search,
+[data-theme="light"] .auth-container .search,
+[data-theme="light"] body.bg-glow-global .search {
     background: linear-gradient(135deg, 
-        rgba(68, 229, 255, 0.08) 0%, 
-        rgba(34, 197, 94, 0.08) 50%, 
-        rgba(68, 229, 255, 0.05) 100%) !important;
-    border: 2px solid rgba(68, 229, 255, 0.2) !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+        rgba(0, 102, 204, 0.08) 0%, 
+        rgba(0, 102, 204, 0.12) 50%, 
+        rgba(0, 102, 204, 0.05) 100%) !important;
+    border: 2px solid rgba(0, 102, 204, 0.3) !important;
+    box-shadow: 0 4px 16px rgba(0, 102, 204, 0.15) !important;
 }
 
-[data-theme="light"] .search:focus-within {
-    border-color: var(--turq) !important;
-    box-shadow: 0 8px 24px rgba(68, 229, 255, 0.25) !important;
+[data-theme="light"] .bg-glow-global .search:focus-within,
+[data-theme="light"] .auth-container .search:focus-within,
+[data-theme="light"] body.bg-glow-global .search:focus-within {
+    border-color: #0066CC !important;
+    box-shadow: 0 8px 24px rgba(0, 102, 204, 0.25) !important;
 }
 
-[data-theme="light"] .search input {
+[data-theme="light"] .bg-glow-global .search i,
+[data-theme="light"] .auth-container .search i,
+[data-theme="light"] body.bg-glow-global .search i {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .bg-glow-global .search input,
+[data-theme="light"] .auth-container .search input,
+[data-theme="light"] body.bg-glow-global .search input {
     color: #2D3748 !important;
 }
 
-[data-theme="light"] .search input::placeholder {
+[data-theme="light"] .bg-glow-global .search input::placeholder,
+[data-theme="light"] .auth-container .search input::placeholder,
+[data-theme="light"] body.bg-glow-global .search input::placeholder {
     color: #4A5568 !important;
 }
 
-[data-theme="light"] .search:focus-within input::placeholder {
-    color: rgba(68, 229, 255, 0.8) !important;
+[data-theme="light"] .bg-glow-global .search:focus-within input::placeholder,
+[data-theme="light"] .auth-container .search:focus-within input::placeholder,
+[data-theme="light"] body.bg-glow-global .search:focus-within input::placeholder {
+    color: rgba(0, 102, 204, 0.8) !important;
 }
 
 /* Estilos para botones de categorías en modo claro */
@@ -1433,7 +1500,8 @@ body.bg-glow-global .hero-copy h1 {
 
 /* Espaciado superior para evitar solapamiento con navbar fijo */
 main.container {
-    padding-top: 60px;
+    padding-top: 80px; /* Aumentamos el padding para dar más espacio */
+    padding-bottom: 40px; /* Agregamos padding inferior para mejor scroll */
 }
 
 /* Espaciado mejorado para el grid */
@@ -1441,7 +1509,7 @@ main.container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 24px;
-    padding: 20px 0 40px;
+    padding: 20px 0 60px; /* Más padding inferior para mejor scroll */
     align-items: stretch;
 }
 

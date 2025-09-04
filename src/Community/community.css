@@ -512,33 +512,141 @@ body {
 
 /* ===== DISCOVER (tipo Skool) ===== */
 .discover-section { padding: var(--spacing-xxl) 0; }
-.discover-search { display:flex; align-items:center; gap:10px; margin-bottom: 14px; background: rgba(255,255,255,.02); border:0; border-radius: 14px; padding: 10px 12px; box-shadow: none; }
-.discover-search:focus-within { border:0; box-shadow:none; }
-.discover-search i { color:#8fdcf0; }
-.discover-input { flex:1; background: transparent; border: 0; color: #eaffff; font-size: .95rem; outline: none; box-shadow: none; }
+.discover-search { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    margin-bottom: 14px; 
+    background: linear-gradient(135deg, 
+        rgba(0, 102, 204, 0.08) 0%, 
+        rgba(0, 102, 204, 0.12) 50%, 
+        rgba(0, 102, 204, 0.05) 100%); 
+    border: 2px solid rgba(0, 102, 204, 0.3); 
+    border-radius: 24px; 
+    padding: 16px 20px; 
+    box-shadow: 0 8px 32px rgba(0, 102, 204, 0.15); 
+    backdrop-filter: blur(15px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.discover-search::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(0, 102, 204, 0.1), 
+        transparent);
+    transition: left 0.6s ease;
+}
+
+.discover-search:focus-within::before {
+    left: 100%;
+}
+
+.discover-search:focus-within { 
+    border-color: #0066CC; 
+    box-shadow: 0 12px 40px rgba(0, 102, 204, 0.25);
+    transform: translateY(-2px);
+}
+.discover-search i { 
+    color: #0066CC; 
+    font-size: 20px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.discover-search:focus-within i {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 8px rgba(0, 102, 204, 0.5));
+}
+
+.discover-input { 
+    flex: 1; 
+    background: transparent; 
+    border: 0; 
+    color: var(--text-primary); 
+    font-size: 16px; 
+    font-weight: 500;
+    outline: none; 
+    box-shadow: none;
+    min-width: 0;
+    transition: all 0.3s ease;
+}
+
 .discover-input:focus { outline: none; box-shadow: none; }
-.discover-input::placeholder { color:#8bbccc; }
+
+.discover-input::placeholder { 
+    color: var(--text-muted);
+    transition: color 0.3s ease;
+    opacity: 0.7;
+}
+
+.discover-search:focus-within .discover-input::placeholder {
+    color: rgba(0, 102, 204, 0.6);
+    opacity: 1;
+}
 .discover-clear { background: transparent; border:0; color:#9bdcf0; cursor:pointer; border-radius: 10px; padding:6px; }
 .discover-clear:hover { background: rgba(68,229,255,.12); color:#fff; }
 .discover-filters { display:flex; gap:10px; flex-wrap: wrap; margin-bottom: var(--spacing-lg); }
-/* Chips con estilo propio (distinto a cursos) */
+/* Chips con efectos de relleno deslizante */
 .discover-chip { 
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.12);
-    color: #d6f5ff; 
-    padding: 10px 14px; 
+    background: transparent;
+    border: 2px solid #0066CC;
+    color: #0066CC; 
+    padding: 10px 16px; 
     border-radius: 999px; 
     cursor: pointer; 
-    font-weight: 700; 
+    font-weight: 600; 
     letter-spacing: .2px;
-    transition: all .2s ease; 
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+    position: relative;
+    overflow: hidden;
+    font-size: 14px;
+    white-space: nowrap;
 }
-.discover-chip:hover { background: rgba(255,255,255,0.07); border-color: rgba(68,229,255,.25); }
+
+/* Efecto de relleno deslizante para discover-chip */
+.discover-chip::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: #0066CC;
+    transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.discover-chip:hover::before {
+    left: 0;
+}
+
+.discover-chip:hover { 
+    background: #0066CC;
+    color: white;
+    border-color: #0066CC;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+}
+
 .discover-chip.active { 
-    background: rgba(68,229,255,0.14);
-    border-color: var(--turq);
-    box-shadow: inset 0 0 0 1px rgba(68,229,255,.35), 0 6px 16px rgba(0,0,0,.25);
-    color: #ffffff;
+    background: #0066CC;
+    border-color: #0066CC;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+    color: white;
+    transform: translateY(-1px);
+    font-weight: 600;
+}
+
+.discover-chip.active::before {
+    left: 0;
 }
 .discover-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: var(--spacing-lg); }
 .discover-card { background: rgba(255,255,255,.04); border:1px solid rgba(68,229,255,.18); border-radius: 16px; overflow:hidden; display:flex; flex-direction: column; cursor: pointer; transition: transform .2s ease, border-color .2s ease; }
@@ -3035,9 +3143,17 @@ body {
 }
 
 [data-theme="light"] .discover-search {
-    background: rgba(255, 255, 255, 0.95) !important;
-    border: 1px solid rgba(0, 102, 204, 0.2) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+    background: linear-gradient(135deg, 
+        rgba(0, 102, 204, 0.08) 0%, 
+        rgba(0, 102, 204, 0.12) 50%, 
+        rgba(0, 102, 204, 0.05) 100%) !important;
+    border: 2px solid rgba(0, 102, 204, 0.3) !important;
+    box-shadow: 0 4px 16px rgba(0, 102, 204, 0.15) !important;
+}
+
+[data-theme="light"] .discover-search:focus-within {
+    border-color: #0066CC !important;
+    box-shadow: 0 8px 24px rgba(0, 102, 204, 0.25) !important;
 }
 
 [data-theme="light"] .discover-input {
@@ -3046,7 +3162,11 @@ body {
 }
 
 [data-theme="light"] .discover-input::placeholder {
-    color: #718096 !important;
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] .discover-search:focus-within .discover-input::placeholder {
+    color: rgba(0, 102, 204, 0.8) !important;
 }
 
 [data-theme="light"] .discover-search i {
@@ -3063,21 +3183,24 @@ body {
 }
 
 [data-theme="light"] .discover-chip {
-    background: rgba(255, 255, 255, 0.9) !important;
-    color: #4A5568 !important;
-    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    background: transparent !important;
+    color: #0066CC !important;
+    border: 2px solid #0066CC !important;
 }
 
 [data-theme="light"] .discover-chip:hover {
-    background: rgba(0, 102, 204, 0.1) !important;
-    color: #0066CC !important;
-    border-color: rgba(0, 102, 204, 0.3) !important;
+    background: #0066CC !important;
+    color: white !important;
+    border-color: #0066CC !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
 }
 
 [data-theme="light"] .discover-chip.active {
     background: #0066CC !important;
     color: white !important;
     border-color: #0066CC !important;
+    transform: translateY(-1px) !important;
     box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
 }
 
