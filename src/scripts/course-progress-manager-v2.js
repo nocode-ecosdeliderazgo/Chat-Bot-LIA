@@ -54,7 +54,7 @@ class CourseProgressManagerV2 {
         try {
             console.log('📊 Cargando progreso inicial...');
 
-            const response = await this.apiCall(`/user-progress/progress/${this.userId}/${this.courseId}`, {
+            const response = await this.apiCall(`/users/${this.userId}/progress/${this.courseId}`, {
                 method: 'GET'
             });
 
@@ -318,7 +318,7 @@ class CourseProgressManagerV2 {
 
             console.log(`📊 Actualizando progreso: ${Math.round(completionPercentage)}% (${time}s/${videoDuration}s)`);
 
-            const response = await this.apiCall('/user-progress/video-progress', {
+            const response = await this.apiCall(`/users/${this.userId}/video-progress`, {
                 method: 'POST',
                 body: JSON.stringify({
                     userId: this.userId,
@@ -417,7 +417,7 @@ class CourseProgressManagerV2 {
         try {
             console.log(`🔄 Cambiando progreso a módulo: ${moduleId}`);
 
-            const response = await this.apiCall('/user-progress/switch-module', {
+            const response = await this.apiCall('/users/switch-module', {
                 method: 'POST',
                 body: JSON.stringify({
                     userId: this.userId,
@@ -446,7 +446,7 @@ class CourseProgressManagerV2 {
             const currentVideo = window.dynamicVideoLoader?.currentVideo;
             if (!currentVideo) return;
 
-            await this.apiCall('/user-progress/video-progress', {
+            await this.apiCall(`/users/${this.userId}/video-progress`, {
                 method: 'POST',
                 body: JSON.stringify({
                     userId: this.userId,
@@ -469,7 +469,7 @@ class CourseProgressManagerV2 {
 
     async getProgressSummary() {
         try {
-            const response = await this.apiCall(`/user-progress/progress/${this.userId}/${this.courseId}`, {
+            const response = await this.apiCall(`/users/${this.userId}/progress/${this.courseId}`, {
                 method: 'GET'
             });
 

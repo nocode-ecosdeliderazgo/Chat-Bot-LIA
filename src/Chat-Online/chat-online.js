@@ -43,6 +43,15 @@ class ChatOnline {
         this.progressManager = null;
         this.courseProgress = null;
         
+        // IDs para la base de datos
+        this.currentCourseId = '550e8400-e29b-41d4-a716-446655440001';
+        this.currentUser = {
+            id: '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0',
+            username: 'Estudiante',
+            email: 'estudiante@ejemplo.com',
+            name: 'Estudiante IA'
+        };
+        
         // ===== ESTADO DEL QUIZ =====
         this.quizData = this.getQuizData();
         this.currentQuestionIndex = 0;
@@ -701,20 +710,31 @@ class ChatOnline {
         try {
             const userData = localStorage.getItem('userData');
             if (userData) {
-                return JSON.parse(userData);
+                const parsed = JSON.parse(userData);
+                console.log('[LIA] 👤 Usuario desde localStorage:', parsed);
+                return parsed;
             }
-            return {
-                id: 'taller-ia-user',
+            
+            // Usuario por defecto con los IDs correctos
+            const defaultUser = {
+                id: '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0',
                 username: 'Estudiante',
-                email: 'estudiante@ejemplo.com'
+                email: 'estudiante@ejemplo.com',
+                name: 'Estudiante IA'
             };
+            
+            console.log('[LIA] 👤 Usuario por defecto:', defaultUser);
+            return defaultUser;
         } catch (error) {
             console.log('[LIA] Error obteniendo usuario:', error);
-            return {
-                id: 'taller-ia-user',
+            const fallbackUser = {
+                id: '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0',
                 username: 'Estudiante',
-                email: 'estudiante@ejemplo.com'
+                email: 'estudiante@ejemplo.com',
+                name: 'Estudiante IA'
             };
+            console.log('[LIA] 👤 Usuario fallback:', fallbackUser);
+            return fallbackUser;
         }
     }
     
@@ -1120,18 +1140,106 @@ class ChatOnline {
             // Mostrar estado de carga
             this.showQuestionsLoading();
             
-            // Llamar a la API
-            const response = await window.communityAPI.getQuestions({
-                filter,
-                sort,
-                course_id: this.currentCourseId,
-                module_id: this.currentModule
-            });
+            // Preguntas de demostración hardcodeadas
+            const demoQuestions = [
+                {
+                    id: 'demo-1',
+                    title: '¿Cómo implementar ChatGPT en mi empresa?',
+                    content: 'Estoy buscando las mejores prácticas para integrar ChatGPT en los procesos empresariales de mi compañía. ¿Qué herramientas recomiendan y cuáles son los aspectos de seguridad más importantes a considerar?',
+                    tags: ['ChatGPT', 'Empresa', 'Implementación'],
+                    votes_count: 15,
+                    answers_count: 8,
+                    views_count: 147,
+                    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 días atrás
+                    users: {
+                        name: 'María González',
+                        avatar_url: '/assets/images/avatars/maria.jpg'
+                    }
+                },
+                {
+                    id: 'demo-2', 
+                    title: '¿Cuáles son las diferencias entre GPT-4 y Claude?',
+                    content: 'He estado probando diferentes modelos de IA y me gustaría entender las principales diferencias entre GPT-4 y Claude. ¿En qué casos es mejor usar uno u otro?',
+                    tags: ['GPT-4', 'Claude', 'Comparación'],
+                    votes_count: 23,
+                    answers_count: 12,
+                    views_count: 289,
+                    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 días atrás
+                    users: {
+                        name: 'Carlos Martínez',
+                        avatar_url: '/assets/images/avatars/carlos.jpg'
+                    }
+                },
+                {
+                    id: 'demo-3',
+                    title: 'Automatización de emails con IA - ¿Es ético?',
+                    content: 'Quiero implementar IA para automatizar respuestas de email, pero me preocupan las implicaciones éticas. ¿Cómo manejan ustedes la transparencia con los clientes?',
+                    tags: ['Ética', 'Email', 'Automatización'],
+                    votes_count: 7,
+                    answers_count: 5,
+                    views_count: 95,
+                    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 día atrás
+                    users: {
+                        name: 'Ana Rodríguez',
+                        avatar_url: '/assets/images/avatars/ana.jpg'
+                    }
+                }
+            ];
             
-            if (response.success) {
-                this.displayQuestions(response.data);
-                console.log(`✅ ${response.data.length} preguntas cargadas`);
+            let allQuestions = [...demoQuestions];
+            
+            // Asegurar que el usuario esté configurado en la API
+            if (window.communityAPI) {
+                const currentUser = this.obtenerUsuarioActual() || this.currentUser;
+                if (currentUser) {
+                    window.communityAPI.setCurrentUser(currentUser);
+                    console.log('👤 Usuario configurado en communityAPI:', currentUser);
+                }
             }
+            
+            // Intentar cargar preguntas reales de la API
+            try {
+                if (window.communityAPI) {
+                    const response = await window.communityAPI.getQuestions({
+                        filter,
+                        sort,
+                        course_id: this.currentCourseId,
+                        module_id: this.currentModule
+                    });
+                    
+                    if (response.success && response.data && response.data.length > 0) {
+                        console.log(`✅ ${response.data.length} preguntas reales cargadas de la base de datos`);
+                        // Agregar preguntas reales al inicio del array
+                        allQuestions = [...response.data, ...demoQuestions];
+                    } else {
+                        console.log('ℹ️ API response:', response);
+                    }
+                } else {
+                    console.warn('⚠️ window.communityAPI no disponible');
+                }
+            } catch (apiError) {
+                console.warn('⚠️ Error al cargar preguntas de la API, usando solo preguntas de demostración:', apiError);
+            }
+            
+            // Aplicar filtrado
+            let filteredQuestions = allQuestions;
+            if (filter === 'unanswered') {
+                filteredQuestions = allQuestions.filter(q => (q.answers_count || 0) === 0);
+            } else if (filter === 'answered') {
+                filteredQuestions = allQuestions.filter(q => (q.answers_count || 0) > 0);
+            }
+            
+            // Aplicar ordenamiento
+            if (sort === 'votes') {
+                filteredQuestions.sort((a, b) => (b.votes_count || 0) - (a.votes_count || 0));
+            } else if (sort === 'answers') {
+                filteredQuestions.sort((a, b) => (b.answers_count || 0) - (a.answers_count || 0));
+            } else { // recent
+                filteredQuestions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            }
+            
+            this.displayQuestions(filteredQuestions);
+            console.log(`✅ ${filteredQuestions.length} preguntas mostradas (${allQuestions.length - demoQuestions.length} reales + ${demoQuestions.length} demo)`);
             
         } catch (error) {
             console.error('❌ Error al cargar preguntas:', error);
