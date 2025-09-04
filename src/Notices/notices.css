@@ -88,6 +88,16 @@ body {
     padding: 0;
     min-height: 100vh;
     position: relative;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Asegurar transiciones suaves para el cambio de tema */
+.theme-transitioning {
+    transition: all 0.3s ease !important;
+}
+
+.theme-transitioning * {
+    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
 /* ===== PARTICLES BACKGROUND ===== */
@@ -261,8 +271,15 @@ body {
 }
 
 [data-theme="light"] .header-profile {
-    border: 2px solid rgba(0, 102, 204, 0.35) !important;
-    background: rgba(255, 255, 255, 0.8) !important;
+    border: 2px solid rgba(68,229,255,.55) !important;
+    background: rgba(7,17,36,.5) !important;
+    box-shadow: 0 0 0 3px rgba(68,229,255,.22), 0 10px 24px rgba(0,0,0,.45) !important;
+}
+
+[data-theme="light"] .header-profile:hover {
+    border-color: var(--turq) !important;
+    transform: scale(1.05) !important;
+    box-shadow: 0 6px 20px rgba(68,229,255,.3) !important;
 }
 
 [data-theme="light"] .profile-menu {
@@ -468,17 +485,38 @@ body[data-theme="light"] #profileMenu {
 }
 
 /* ===== BODY AND BACKGROUND LIGHT MODE ===== */
+/* Asegurar máxima especificidad para el fondo en modo claro */
+html[data-theme="light"] body,
+body[data-theme="light"],
 [data-theme="light"] body {
     background: var(--gradient-background) !important;
     color: var(--text-primary) !important;
+    transition: background 0.3s ease, color 0.3s ease !important;
 }
 
+/* Forzar aplicación del gradiente con variables específicas */
+html[data-theme="light"] body,
+body[data-theme="light"] {
+    background: linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%) !important;
+}
+
+/* Aplicar también a la clase bg-glow-global */
+html[data-theme="light"] .bg-glow-global,
+body[data-theme="light"] .bg-glow-global,
 [data-theme="light"] .bg-glow-global {
     background: var(--gradient-background) !important;
 }
 
 [data-theme="light"] .particles-container {
     opacity: 0.3 !important;
+}
+
+/* Asegurar que el efecto glow funcione en modo claro */
+html[data-theme="light"] .bg-glow-global::before,
+body[data-theme="light"] .bg-glow-global::before,
+[data-theme="light"] .bg-glow-global::before {
+    background: radial-gradient(ellipse at top, rgba(0, 102, 204, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(0, 102, 204, 0.05) 0%, transparent 50%) !important;
 }
 
 .tab-button {

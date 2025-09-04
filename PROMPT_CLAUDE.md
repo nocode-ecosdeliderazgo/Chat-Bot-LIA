@@ -1,110 +1,128 @@
-# PROMPT PARA INTEGRAR MODO CLARO EN PÁGINA DE NOTICIAS
+# PROMPT PARA SOLUCIONAR PROBLEMA DE TEMA EN NOTICES.HTML
 
-## CONTEXTO
-Necesito integrar un modo claro en la página de noticias (`src/Notices/notices.html` y `src/Notices/notices.css`) tomando como referencia la implementación existente en otras páginas como `community.html` y `cursos.html`. La página de noticias actualmente solo tiene modo oscuro y necesita mantener la misma estructura de tarjetas, imágenes y navbar.
+## CONTEXTO DEL PROBLEMA
 
-## ANÁLISIS DE LA IMPLEMENTACIÓN ACTUAL
+La página `src/Notices/notices.html` tiene un problema específico con el sistema de temas claro/oscuro:
 
-### Estructura de la página de noticias:
-- **HTML**: `src/Notices/notices.html` - Página completa con navbar, hero section, secciones de noticias destacadas, categorías, últimas noticias y newsletter
-- **CSS**: `src/Notices/notices.css` - Estilos completos con variables CSS, glassmorphism, partículas de fondo
-- **Elementos clave**: 
-  - Navbar con pestañas (course-tabs)
-  - Perfil de usuario (header-profile, profile-menu)
-  - Hero section con estadísticas
-  - Tarjetas de noticias destacadas (featured-card)
-  - Categorías (category-card)
-  - Grid de noticias (news-item)
-  - Newsletter section
-  - Overlays de búsqueda y loading
+### Síntomas:
+1. **Problema principal**: Al estar en modo claro y entrar a la página notices, al intentar cambiar a modo oscuro, el fondo no cambia correctamente y se queda en blanco
+2. **Comportamiento correcto**: Si se entra directamente en modo oscuro, funciona bien y los cambios entre temas funcionan correctamente
+3. **Problema específico**: Solo ocurre cuando se recarga/entra a la página desde modo claro
 
-### Implementación de tema en otras páginas:
-- **Sistema de variables**: Uso de `[data-theme="light"]` y `[data-theme="dark"]` para definir estilos
-- **Colores del modo claro**:
-  - `--text-primary: #2D3748` (texto principal)
-  - `--text-secondary: rgba(45, 55, 72, 0.8)` (texto secundario)
-  - `--text-muted: rgba(45, 55, 72, 0.6)` (texto atenuado)
-  - `--bg-primary: #E6F3FF` (fondo principal)
-  - `--bg-secondary: #D4E6F1` (fondo secundario)
-  - `--card-bg: rgba(255,255,255,.85)` (fondo de tarjetas)
-  - `--card-border: rgba(68,229,255,.15)` (bordes de tarjetas)
-- **Scripts necesarios**: `theme-manager.js`, `theme-toggle.js`, `global-theme-setup.js`
+### Archivos involucrados:
+- `src/Notices/notices.html` - Página principal
+- `src/Notices/notices.css` - Estilos con variables CSS para temas
+- `src/Notices/notices.js` - JavaScript de la página
+- `src/scripts/theme-manager.js` - Gestor de temas
+- `src/scripts/global-theme-setup.js` - Configuración global de temas
+- `src/scripts/force-theme-init.js` - Inicialización forzada del tema
 
-## TAREAS A REALIZAR
+## ANÁLISIS DEL PROBLEMA
 
-### 1. MODIFICAR `notices.html`
-- [ ] Agregar el botón de toggle de tema en el menú de perfil (igual que en community.html)
-- [ ] Incluir los scripts necesarios para el manejo de temas
-- [ ] Asegurar que el HTML tenga la estructura correcta para el sistema de temas
-
-### 2. MODIFICAR `notices.css`
-- [ ] Agregar variables CSS para modo claro siguiendo el patrón de otras páginas
-- [ ] Implementar estilos específicos para `[data-theme="light"]` para todos los elementos:
-  - **Fondo general**: Cambiar gradiente de fondo oscuro a claro
-  - **Navbar (course-tabs)**: Fondo blanco con bordes azules
-  - **Perfil de usuario**: Menú con fondo blanco y texto oscuro
-  - **Hero section**: Fondo claro con texto oscuro
-  - **Tarjetas de noticias**: Fondo blanco con bordes sutiles
-  - **Categorías**: Mismo estilo de tarjetas claras
-  - **Newsletter**: Fondo claro con formulario visible
-  - **Overlays**: Búsqueda y loading con fondos claros
-  - **Partículas**: Reducir opacidad en modo claro
-
-### 3. ELEMENTOS ESPECÍFICOS A ADAPTAR
-
-#### Navbar y navegación:
+### Variables CSS problemáticas:
+En `notices.css`, las variables para modo claro están definidas así:
 ```css
-[data-theme="light"] .course-tabs {
-    background: rgba(255, 255, 255, 0.95) !important;
-    border: 1px solid rgba(0, 102, 204, 0.15) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+[data-theme="light"] {
+    --bg-1: #E6F3FF;
+    --bg-2: #D4E6F1;
+    --gradient-background: linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%);
 }
 ```
 
-#### Tarjetas de noticias:
+### Posibles causas:
+1. **Conflicto de inicialización**: Los scripts de tema se cargan en orden específico y puede haber conflictos
+2. **Variables CSS no aplicadas**: Las variables del modo claro pueden no estar siendo aplicadas correctamente al fondo
+3. **Timing de carga**: El tema se aplica antes de que el CSS esté completamente cargado
+4. **Especificidad CSS**: Los estilos del modo claro pueden tener menor especificidad
+
+## SOLUCIÓN REQUERIDA
+
+### Objetivos:
+1. **Asegurar que el fondo cambie correctamente** de claro a oscuro en notices.html
+2. **Mantener la funcionalidad existente** que ya funciona bien
+3. **No afectar otras páginas** del sistema
+4. **Solución robusta** que funcione en todos los escenarios
+
+### Estrategias a implementar:
+
+#### 1. **Verificación y corrección de variables CSS**
+- Revisar que todas las variables del modo claro estén correctamente definidas
+- Asegurar que el `body` y elementos principales usen las variables correctas
+- Verificar especificidad de selectores
+
+#### 2. **Mejora del sistema de inicialización de temas**
+- Asegurar que el tema se aplique después de que el CSS esté cargado
+- Implementar verificación de que las variables CSS estén disponibles
+- Agregar fallbacks para casos donde las variables no se carguen
+
+#### 3. **Sincronización entre scripts**
+- Coordinar la carga de `global-theme-setup.js`, `force-theme-init.js` y `theme-manager.js`
+- Evitar conflictos entre diferentes sistemas de tema
+- Implementar un sistema de eventos para sincronizar cambios
+
+#### 4. **Debugging y logging**
+- Agregar logs detallados para identificar cuándo y por qué falla el cambio
+- Verificar que las variables CSS se estén aplicando correctamente
+- Monitorear el estado del `data-theme` attribute
+
+### Implementación específica:
+
+#### A. **Corrección en notices.css**
 ```css
-[data-theme="light"] .featured-card,
-[data-theme="light"] .category-card,
-[data-theme="light"] .news-item {
-    background: rgba(255, 255, 255, 0.85) !important;
-    border: 1px solid rgba(68, 229, 255, 0.15) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+/* Asegurar que el body use las variables correctas */
+body[data-theme="light"] {
+    background: var(--gradient-background) !important;
+}
+
+/* Forzar aplicación de variables en modo claro */
+[data-theme="light"] body {
+    background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%) !important;
 }
 ```
 
-#### Títulos y texto:
-```css
-[data-theme="light"] .hero-title,
-[data-theme="light"] .section-title {
-    color: #2D3748 !important;
-    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
-    -webkit-background-clip: text !important;
-    background-clip: text !important;
-}
-```
+#### B. **Mejora en notices.js**
+- Agregar listener para cambios de tema
+- Forzar re-aplicación de estilos cuando cambie el tema
+- Verificar que las variables CSS estén disponibles
 
-### 4. CONSIDERACIONES TÉCNICAS
-- **Especificidad CSS**: Usar `!important` donde sea necesario para sobrescribir estilos existentes
-- **Transiciones**: Mantener las transiciones suaves entre temas
-- **Consistencia**: Seguir exactamente el patrón de colores y estilos de las otras páginas
-- **Responsive**: Asegurar que el modo claro funcione en todas las resoluciones
-- **Accesibilidad**: Mantener contraste adecuado en modo claro
+#### C. **Coordinación de scripts**
+- Modificar el orden de carga si es necesario
+- Implementar sistema de eventos para sincronización
+- Agregar verificaciones de estado
 
-### 5. ESTRUCTURA DE IMPLEMENTACIÓN
-1. **Variables CSS**: Definir todas las variables para modo claro al inicio del archivo
-2. **Estilos base**: Aplicar estilos generales (body, fondo, partículas)
-3. **Componentes**: Estilos específicos para cada componente (navbar, tarjetas, etc.)
-4. **Estados**: Hover, active, focus para modo claro
-5. **Responsive**: Media queries para modo claro
+## CRITERIOS DE ÉXITO
 
-## RESULTADO ESPERADO
-Una página de noticias que mantenga exactamente la misma estructura y funcionalidad, pero con un modo claro que sea consistente con el resto de la aplicación, permitiendo a los usuarios alternar entre modo oscuro y claro usando el botón en el menú de perfil.
+1. ✅ **Cambio de tema funcional**: Al estar en modo claro y cambiar a oscuro, el fondo debe cambiar correctamente
+2. ✅ **Consistencia**: El comportamiento debe ser igual independientemente del tema inicial
+3. ✅ **Sin regresiones**: No debe afectar el funcionamiento en otras páginas
+4. ✅ **Robustez**: Debe funcionar en diferentes navegadores y condiciones de carga
 
 ## ARCHIVOS A MODIFICAR
-- `src/Notices/notices.html` - Agregar botón de tema y scripts
-- `src/Notices/notices.css` - Implementar estilos de modo claro
 
-## REFERENCIAS
-- `src/Community/community.css` - Líneas 2706-3500+ (implementación completa de modo claro)
-- `src/styles/cursos.css` - Líneas 21-100 (variables y estilos de modo claro)
-- `src/Community/community.html` - Líneas 62-66 (botón de toggle de tema)
+1. `src/Notices/notices.css` - Corrección de variables y especificidad
+2. `src/Notices/notices.js` - Agregar listeners y verificaciones
+3. `src/scripts/theme-manager.js` - Mejorar sincronización (si es necesario)
+4. `src/scripts/global-theme-setup.js` - Asegurar aplicación correcta (si es necesario)
+
+## TESTING
+
+### Casos de prueba:
+1. **Caso 1**: Entrar a notices en modo claro → cambiar a oscuro → verificar fondo
+2. **Caso 2**: Entrar a notices en modo oscuro → cambiar a claro → cambiar a oscuro
+3. **Caso 3**: Recargar página en modo claro → cambiar a oscuro
+4. **Caso 4**: Navegar desde otra página en modo claro → cambiar a oscuro en notices
+
+### Verificaciones:
+- [ ] Fondo cambia correctamente
+- [ ] Variables CSS se aplican
+- [ ] No hay errores en consola
+- [ ] Otras páginas siguen funcionando
+- [ ] Transiciones suaves entre temas
+
+## NOTAS ADICIONALES
+
+- El problema parece estar relacionado con la aplicación de variables CSS en modo claro
+- La página funciona correctamente cuando se inicia en modo oscuro
+- Necesitamos asegurar que las variables del modo claro se apliquen correctamente al fondo
+- Considerar usar `!important` estratégicamente para forzar la aplicación de estilos
+- Implementar verificaciones de estado para detectar cuándo las variables no se aplican

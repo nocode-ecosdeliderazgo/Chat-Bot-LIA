@@ -20,6 +20,7 @@ class NoticesPage {
         this.updateStats();
         this.setupAnimations();
         this.fillUserHeader();
+        this.setupThemeListener();
     }
 
     // ===== EVENT LISTENERS =====
@@ -165,6 +166,86 @@ class NoticesPage {
         if(avatarBtn && menu){
             avatarBtn.addEventListener('click', (e)=>{ e.preventDefault(); menu.classList.toggle('show');});
             document.addEventListener('click', (e)=>{ if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) menu.classList.remove('show');});
+        }
+    }
+
+    // ===== THEME MANAGEMENT =====
+    setupThemeListener() {
+        // Escuchar cambios en el atributo data-theme
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                    this.handleThemeChange();
+                }
+            });
+        });
+
+        // Observar cambios en el documentElement
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme']
+        });
+
+        // Escuchar eventos globales de cambio de tema
+        window.addEventListener('themeChanged', (e) => {
+            this.handleThemeChange();
+        });
+
+        // Verificar tema inicial
+        this.handleThemeChange();
+    }
+
+    handleThemeChange() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        console.log('🎨 Notice page theme changed to:', currentTheme);
+        
+        // Forzar re-aplicación de estilos del body
+        this.forceBackgroundUpdate();
+        
+        // Actualizar iconos de tema
+        this.updateThemeIcons(currentTheme);
+    }
+
+    forceBackgroundUpdate() {
+        const body = document.body;
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        
+        // Agregar clase de transición
+        body.classList.add('theme-transitioning');
+        
+        // Forzar re-renderizado
+        if (currentTheme === 'light') {
+            // Aplicar fondo claro manualmente
+            body.style.background = 'linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%)';
+            console.log('🎨 Forced light background application');
+        } else {
+            // Remover estilo inline para que use el CSS por defecto
+            body.style.background = '';
+            console.log('🎨 Restored dark background');
+        }
+        
+        // Remover clase de transición después de un tiempo
+        setTimeout(() => {
+            body.classList.remove('theme-transitioning');
+        }, 300);
+    }
+
+    updateThemeIcons(theme) {
+        const sunIcon = document.querySelector('.theme-icon-sun');
+        const moonIcon = document.querySelector('.theme-icon-moon');
+        
+        if (sunIcon && moonIcon) {
+            if (theme === 'light') {
+                sunIcon.style.opacity = '0';
+                sunIcon.style.transform = 'rotate(90deg)';
+                moonIcon.style.opacity = '1';
+                moonIcon.style.transform = 'rotate(0deg)';
+            } else {
+                sunIcon.style.opacity = '1';
+                sunIcon.style.transform = 'rotate(0deg)';
+                moonIcon.style.opacity = '0';
+                moonIcon.style.transform = 'rotate(-90deg)';
+            }
         }
     }
 
@@ -952,6 +1033,30 @@ function toggleProfileMenu(event) {
         menu.classList.toggle('show');
     }
 }
+
+// Función global para toggle del tema - conectada con el botón del menú
+window.toggleTheme = function() {
+    console.log('🎨 Theme toggle called from notices');
+    
+    // Usar la función global de cambio de tema
+    if (window.toggleGlobalTheme) {
+        const newTheme = window.toggleGlobalTheme();
+        console.log('🎨 Theme toggled via global function to:', newTheme);
+    } else {
+        // Fallback manual si el script global no está disponible
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        // Aplicar tema
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        
+        // Disparar evento personalizado
+        window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
+        
+        console.log('🎨 Theme toggled via fallback to:', newTheme);
+    }
+};
 
 // ===== GLOBAL FUNCTIONS =====
 window.noticesPage = noticesPage;
