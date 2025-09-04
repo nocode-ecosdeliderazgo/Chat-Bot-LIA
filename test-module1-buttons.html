@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Módulo 1 Botones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-btn:hover {
+            background: #0056b3;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Test Módulo 1 Botones</h1>
+
+    <div class="test-section">
+        <h2>1. Verificar Script Cargado</h2>
+        <button class="test-btn" onclick="checkScriptLoaded()">Verificar Script</button>
+        <div class="log" id="scriptLog"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Verificar Elementos HTML</h2>
+        <button class="test-btn" onclick="checkHTMLElements()">Verificar HTML</button>
+        <div class="log" id="htmlLog"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Verificar CSS</h2>
+        <button class="test-btn" onclick="checkCSS()">Verificar CSS</button>
+        <div class="log" id="cssLog"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Simular Carga de Videos</h2>
+        <button class="test-btn" onclick="simulateVideoLoad()">Simular Carga</button>
+        <div class="log" id="simulationLog"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Estado del Loader</h2>
+        <button class="test-btn" onclick="checkLoaderStatus()">Verificar Estado</button>
+        <div class="log" id="statusLog"></div>
+    </div>
+
+    <script>
+        function logToElement(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent += message + '\n';
+                element.scrollTop = element.scrollHeight;
+            }
+        }
+
+        function checkScriptLoaded() {
+            const log = document.getElementById('scriptLog');
+            log.textContent = '';
+            
+            logToElement('scriptLog', '🔍 Verificando si el script está cargado...');
+            
+            if (typeof Module1VideosLoader !== 'undefined') {
+                logToElement('scriptLog', '✅ Clase Module1VideosLoader disponible');
+            } else {
+                logToElement('scriptLog', '❌ Clase Module1VideosLoader NO disponible');
+            }
+            
+            if (window.module1VideosLoader) {
+                logToElement('scriptLog', '✅ Instancia module1VideosLoader disponible');
+                logToElement('scriptLog', '📊 Estado:', window.module1VideosLoader);
+            } else {
+                logToElement('scriptLog', '❌ Instancia module1VideosLoader NO disponible');
+            }
+        }
+
+        function checkHTMLElements() {
+            const log = document.getElementById('htmlLog');
+            log.textContent = '';
+            
+            logToElement('htmlLog', '🔍 Verificando elementos HTML...');
+            
+            const moduleSection = document.querySelector('.module-videos-section');
+            if (moduleSection) {
+                logToElement('htmlLog', '✅ Sección module-videos-section encontrada');
+            } else {
+                logToElement('htmlLog', '❌ Sección module-videos-section NO encontrada');
+            }
+            
+            const videosList = document.getElementById('module1VideosList');
+            if (videosList) {
+                logToElement('htmlLog', '✅ Lista module1VideosList encontrada');
+                logToElement('htmlLog', '📝 Contenido HTML:', videosList.innerHTML.substring(0, 200) + '...');
+            } else {
+                logToElement('htmlLog', '❌ Lista module1VideosList NO encontrada');
+            }
+            
+            const moduleHeader = document.querySelector('.module-header');
+            if (moduleHeader) {
+                logToElement('htmlLog', '✅ Header del módulo encontrado');
+            } else {
+                logToElement('htmlLog', '❌ Header del módulo NO encontrado');
+            }
+        }
+
+        function checkCSS() {
+            const log = document.getElementById('cssLog');
+            log.textContent = '';
+            
+            logToElement('cssLog', '🔍 Verificando estilos CSS...');
+            
+            const moduleSection = document.querySelector('.module-videos-section');
+            if (moduleSection) {
+                const styles = window.getComputedStyle(moduleSection);
+                logToElement('cssLog', '✅ Estilos de module-videos-section:');
+                logToElement('cssLog', `   - display: ${styles.display}`);
+                logToElement('cssLog', `   - visibility: ${styles.visibility}`);
+                logToElement('cssLog', `   - opacity: ${styles.opacity}`);
+                logToElement('cssLog', `   - background: ${styles.background}`);
+            }
+            
+            const videosList = document.getElementById('module1VideosList');
+            if (videosList) {
+                const styles = window.getComputedStyle(videosList);
+                logToElement('cssLog', '✅ Estilos de module1VideosList:');
+                logToElement('cssLog', `   - display: ${styles.display}`);
+                logToElement('cssLog', `   - visibility: ${styles.visibility}`);
+                logToElement('cssLog', `   - max-height: ${styles.maxHeight}`);
+                logToElement('cssLog', `   - overflow-y: ${styles.overflowY}`);
+            }
+        }
+
+        function simulateVideoLoad() {
+            const log = document.getElementById('simulationLog');
+            log.textContent = '';
+            
+            logToElement('simulationLog', '🎬 Simulando carga de videos...');
+            
+            if (window.module1VideosLoader) {
+                logToElement('simulationLog', '✅ Loader disponible, creando videos de ejemplo...');
+                
+                // Crear videos de ejemplo
+                const sampleVideos = [
+                    {
+                        id: 'test-video-1',
+                        video_title: 'Video de Prueba 1',
+                        youtube_video_id: 'dQw4w9WgXcQ',
+                        duration_seconds: 180,
+                        user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
+                    },
+                    {
+                        id: 'test-video-2',
+                        video_title: 'Video de Prueba 2',
+                        youtube_video_id: 'dQw4w9WgXcQ',
+                        duration_seconds: 240,
+                        user_progress: { current_time_seconds: 60, completion_percentage: 25, is_completed: false }
+                    }
+                ];
+                
+                window.module1VideosLoader.videos = sampleVideos;
+                window.module1VideosLoader.renderVideosList();
+                
+                logToElement('simulationLog', '✅ Videos de ejemplo creados y renderizados');
+                logToElement('simulationLog', '📊 Videos en la lista:', window.module1VideosLoader.videos.length);
+            } else {
+                logToElement('simulationLog', '❌ Loader no disponible');
+            }
+        }
+
+        function checkLoaderStatus() {
+            const log = document.getElementById('statusLog');
+            log.textContent = '';
+            
+            logToElement('statusLog', '🔍 Verificando estado del loader...');
+            
+            if (window.module1VideosLoader) {
+                const loader = window.module1VideosLoader;
+                logToElement('statusLog', '📊 Estado del loader:');
+                logToElement('statusLog', `   - Módulo ID: ${loader.moduleId}`);
+                logToElement('statusLog', `   - Videos cargados: ${loader.videos.length}`);
+                logToElement('statusLog', `   - Video activo: ${loader.currentVideoId}`);
+                logToElement('statusLog', `   - API Base URL: ${loader.apiBaseUrl}`);
+                
+                if (loader.videos.length > 0) {
+                    logToElement('statusLog', '📹 Primer video:', JSON.stringify(loader.videos[0], null, 2));
+                }
+            } else {
+                logToElement('statusLog', '❌ Loader no disponible');
+            }
+        }
+
+        // Verificar al cargar la página
+        window.addEventListener('load', function() {
+            console.log('🚀 Página cargada, verificando estado...');
+            setTimeout(() => {
+                checkScriptLoaded();
+                checkHTMLElements();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

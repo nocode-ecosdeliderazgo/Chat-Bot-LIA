@@ -1,14 +1,68 @@
 // ===== CHAT ONLINE - JAVASCRIPT PRINCIPAL =====
 
+// ===== FUNCIONES GLOBALES INMEDIATAS =====
+// Definir funciones globales antes de la clase para que estén disponibles inmediatamente
+window.openQuestionModal = function() {
+    console.log('🔘 Función global de fallback ejecutada');
+    if (window.chatOnline && window.chatOnline.showQuestionModal) {
+        window.chatOnline.showQuestionModal();
+    } else {
+        console.error('❌ ChatOnline no está disponible');
+        // Fallback directo
+        const modal = document.getElementById('questionModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            console.log('✅ Modal abierto con fallback directo');
+        } else {
+            console.error('❌ Modal no encontrado');
+        }
+    }
+};
+
+// También definir una función más simple como respaldo
+window.showQuestionModal = function() {
+    console.log('🔘 Función de respaldo ejecutada');
+    const modal = document.getElementById('questionModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        console.log('✅ Modal abierto con función de respaldo');
+    } else {
+        console.error('❌ Modal no encontrado');
+    }
+};
+
 class ChatOnline {
     constructor() {
-        this.currentModule = 3;
+        this.currentModule = 1;
         this.currentTab = 'video';
         this.isLiaTyping = false;
         this.notes = [];
         this.isSearchMode = false;
         this.progressManager = null;
         this.courseProgress = null;
+        
+        // ===== ESTADO DEL QUIZ =====
+        this.quizData = this.getQuizData();
+        this.currentQuestionIndex = 0;
+        this.userAnswers = {};
+        
+        // ===== CRONÓMETRO DEL QUIZ =====
+        this.quizTimer = null;
+        this.quizTimeLimit = 3 * 60; // 3 minutos en segundos
+        this.quizTimeRemaining = this.quizTimeLimit;
+        this.quizStartTime = null;
+        
+        // ===== ACCESO GLOBAL INMEDIATO =====
+        window.courseManager = this;
+        console.log('✅ window.courseManager asignado en constructor');
+        
+        // Función global de backup para onclick
+        window.switchTab = (contentType) => {
+            console.log(`🔄 switchTab global llamado: ${contentType}`);
+            this.switchContentTab(contentType);
+        };
         
         this.init();
     }
@@ -17,6 +71,7 @@ class ChatOnline {
         console.log('🚀 Inicializando Chat Online...');
         this.setupEventListeners();
         await this.initializeProgressManager();
+        await this.initializeYouTubeTracker();
         this.loadInitialData();
         this.setupResponsive();
         console.log('✅ Chat Online inicializado correctamente');
@@ -33,6 +88,7 @@ class ChatOnline {
         this.setupLiaChat();
         
         // Pestañas de contenido
+        this.debugTabsImmediately();
         this.setupContentTabs();
         
         // Notas
@@ -213,9 +269,9 @@ class ChatOnline {
     
     getModuleData(moduleId) {
         const modules = {
-            1: { title: 'Módulo 1: ¿Qué es la IA?', duration: '15:30', progress: 100 },
-            2: { title: 'Módulo 2: Historia de la IA', duration: '22:00', progress: 100 },
-            3: { title: 'Módulo 3: Fundamentos del ML', duration: '18:30', progress: 65 },
+            1: { title: 'Módulo 1: ¿Qué es la IA?', duration: '15:30', progress: 0 },
+            2: { title: 'Módulo 2: Historia de la IA', duration: '22:00', progress: 0 },
+            3: { title: 'Módulo 3: Fundamentos del ML', duration: '18:30', progress: 0 },
             4: { title: 'Módulo 4: Redes Neuronales', duration: '25:00', progress: 0 },
             5: { title: 'Módulo 5: IA en el Futuro', duration: '20:00', progress: 0 }
         };
@@ -264,7 +320,7 @@ class ChatOnline {
             `
         };
         
-        return transcripts[moduleId] || transcripts[3];
+        return transcripts[moduleId] || transcripts[1];
     }
     
     // ===== CHAT DE LIA =====
@@ -543,55 +599,262 @@ class ChatOnline {
     }
     
     async getLiaResponse(message) {
-        // Simular delay de respuesta
-        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-        
-        // Respuestas contextuales basadas en el mensaje
-        const lowerMessage = message.toLowerCase();
-        
-        if (lowerMessage.includes('hola') || lowerMessage.includes('buenos')) {
-            return '¡Hola! ¿En qué puedo ayudarte hoy con el curso de IA?';
+        try {
+            console.log('[LIA] 🚀 Generando respuesta para:', message);
+            
+            // Obtener información del usuario actual
+            const currentUser = this.obtenerUsuarioActual();
+            console.log('[LIA] 👤 Usuario actual:', currentUser);
+            
+            // Obtener contexto del taller actual usando la función hardcodeada
+            const context = typeof obtenerContextoCurso === 'function' ? obtenerContextoCurso() : this.obtenerContextoFallback();
+            console.log('[LIA] 📚 Contexto del taller:', context);
+            
+            // Preparar prompt con contexto específico del taller
+            const prompt = `Usuario: ${message}\n\nContexto del Taller: ${context}`;
+            console.log('[LIA] 📝 Prompt preparado:', prompt);
+            
+            console.log('[LIA] 🔄 Enviando solicitud a API...');
+            
+            // Determinar URL de API según el entorno
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const currentPort = window.location.port;
+            let apiUrl;
+            
+            if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
+                apiUrl = '/api/openai';
+            } else if (isLocalhost && currentPort === '8888') {
+                apiUrl = '/.netlify/functions/openai';
+            } else if (isLocalhost) {
+                apiUrl = '/api/openai';
+            } else {
+                apiUrl = '/.netlify/functions/openai';
+            }
+            
+            console.log('[LIA] 🎯 URL de API:', apiUrl);
+            
+            // Llamar a la API de OpenAI
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.obtenerTokenAuth()}`,
+                    'X-User-Id': currentUser?.id || 'taller-ia-user'
+                },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    context: `Información del usuario: ${JSON.stringify(currentUser || {})}`
+                })
+            });
+            
+            console.log('[LIA] 📡 Respuesta del servidor:', response.status, response.statusText);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('[LIA] ✅ Datos recibidos:', data);
+                
+                if (data.response) {
+                    console.log('[LIA] 🎯 Respuesta de API obtenida exitosamente');
+                    return data.response;
+                } else {
+                    console.log('[LIA] ⚠️ Respuesta vacía de la API');
+                    return '❌ Lo siento, hubo un problema técnico. Verifica la configuración de OpenAI.';
+                }
+            } else {
+                const errorText = await response.text();
+                console.log('[LIA] ❌ Error de API:', response.status, response.statusText);
+                console.log('[LIA] 📄 Texto del error:', errorText);
+                
+                if (response.status === 404) {
+                    return `❌ Error de configuración: No se encuentra la API en ${apiUrl}. Verifica que tu servidor esté corriendo correctamente.`;
+                } else if (response.status === 401) {
+                    return `🔐 Error de autenticación: Token inválido. Verifica la configuración de autenticación.`;
+                } else if (response.status === 500) {
+                    return `⚙️ Error del servidor: ${errorText}. Verifica tu configuración de OPENAI_API_KEY.`;
+                } else {
+                    return `❌ Error HTTP ${response.status}: ${errorText}. Verifica la configuración del servidor.`;
+                }
+            }
+            
+        } catch (error) {
+            console.error('[LIA] 💥 Error al conectar con API:', error);
+            return `❌ Error de conexión: No se pudo conectar con la API. Error: ${error.message}`;
+        }
+    }
+    
+    // Función auxiliar para obtener contexto de fallback si la función global no existe
+    obtenerContextoFallback() {
+        return `
+            Taller: Taller de fundamentos de Inteligencia Artificial con tutor personalizado
+            Tipo: Taller interactivo  
+            Módulo actual: 1 - Fundamentos de Inteligencia Artificial
+            Descripción: Conceptos básicos de IA, Machine Learning y aplicaciones prácticas con acompañamiento personalizado
+            Tutor: LIA - Tutor Personalizado de IA
+            Modalidad: 100% online con tutor personalizado IA
+            Documento de apoyo: Doc de apoyo - Fundamentos de IA.pdf
+            Objetivos del módulo: Comprender los conceptos fundamentales de IA, Identificar tipos de Machine Learning, Reconocer aplicaciones prácticas de IA, Desarrollar pensamiento crítico sobre IA
+        `;
+    }
+    
+    // Función auxiliar para obtener usuario actual
+    obtenerUsuarioActual() {
+        try {
+            const userData = localStorage.getItem('userData');
+            if (userData) {
+                return JSON.parse(userData);
+            }
+            return {
+                id: 'taller-ia-user',
+                username: 'Estudiante',
+                email: 'estudiante@ejemplo.com'
+            };
+        } catch (error) {
+            console.log('[LIA] Error obteniendo usuario:', error);
+            return {
+                id: 'taller-ia-user',
+                username: 'Estudiante',
+                email: 'estudiante@ejemplo.com'
+            };
+        }
+    }
+    
+    // Función auxiliar para obtener token de autenticación
+    obtenerTokenAuth() {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            console.log('[LIA] 🔑 Usando token real del localStorage');
+            return token;
         }
         
-        if (lowerMessage.includes('redes neuronales') || lowerMessage.includes('neural')) {
-            return 'Las redes neuronales son sistemas de aprendizaje automático inspirados en el cerebro humano. Están compuestas por capas de neuronas artificiales que procesan información de manera similar a las neuronas biológicas. ¿Te gustaría que profundice en algún aspecto específico?';
-        }
-        
-        if (lowerMessage.includes('machine learning') || lowerMessage.includes('ml')) {
-            return 'Machine Learning es un subcampo de la IA que permite a las computadoras aprender y mejorar automáticamente a partir de la experiencia sin ser programadas explícitamente. ¿Hay algún algoritmo específico que te interese?';
-        }
-        
-        if (lowerMessage.includes('ayuda') || lowerMessage.includes('ayudar')) {
-            return '¡Por supuesto! Puedo ayudarte con:\n• Explicar conceptos del video\n• Resolver dudas sobre IA\n• Proporcionar ejemplos prácticos\n• Crear resúmenes de temas\n\n¿Qué te gustaría saber?';
-        }
-        
-        // Respuesta por defecto
-        return 'Interesante pregunta. Basándome en el contexto del curso actual, puedo ayudarte a entender mejor los conceptos de IA. ¿Podrías ser más específico sobre lo que te gustaría aprender?';
+        const devToken = 'dev-token-taller-ia-user-' + Date.now();
+        console.log('[LIA] 🔧 Usando token de desarrollo:', devToken);
+        return devToken;
     }
     
     // ===== PESTAÑAS DE CONTENIDO =====
-    setupContentTabs() {
-        const tabButtons = document.querySelectorAll('.content-tabs .tab-btn');
+    
+    debugTabsImmediately() {
+        console.log('🔍 === DEBUG INMEDIATO DE TABS ===');
         
-        tabButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const contentType = e.currentTarget.dataset.content;
-                console.log(`📄 Cambiando contenido a: ${contentType}`);
+        // Verificar contenedor de tabs
+        const contentTabs = document.querySelector('.content-tabs');
+        console.log('📦 .content-tabs encontrado:', !!contentTabs);
+        
+        // Verificar botones
+        const allButtons = document.querySelectorAll('.tab-btn');
+        console.log(`🔘 Total .tab-btn encontrados: ${allButtons.length}`);
+        
+        const tabButtons = document.querySelectorAll('.content-tabs .tab-btn');
+        console.log(`🎯 .content-tabs .tab-btn encontrados: ${tabButtons.length}`);
+        
+        // Listar cada botón
+        tabButtons.forEach((btn, i) => {
+            console.log(`  ${i}: data-content="${btn.dataset.content}" text="${btn.textContent.trim()}"`);
+        });
+        
+        // Verificar contenidos
+        const transcriptContent = document.querySelector('[data-content="transcript"]');
+        const summaryContent = document.querySelector('[data-content="summary"]');
+        const communityContent = document.querySelector('[data-content="community"]');
+        
+        console.log('📄 Contenidos encontrados:');
+        console.log(`  transcript: ${!!transcriptContent}`);
+        console.log(`  summary: ${!!summaryContent}`);
+        console.log(`  community: ${!!communityContent}`);
+        
+        // Verificar acceso a window.courseManager
+        console.log('🌍 window.courseManager:', typeof window.courseManager);
+        console.log('🔧 switchContentTab disponible:', typeof this.switchContentTab);
+    }
+    
+    setupContentTabs() {
+        console.log('🔧 Configurando tabs de contenido...');
+        
+        // Método 1: Event listeners directos
+        this.configureTabButtons();
+        
+        // Método 2: Event delegation como backup
+        this.setupTabDelegation();
+        
+        // Retry después de un momento si no se encontraron todos los botones
+        setTimeout(() => {
+            const currentButtons = document.querySelectorAll('.content-tabs .tab-btn');
+            if (currentButtons.length < 3) {
+                console.log('🔄 Retry: configurando tabs nuevamente...');
+                this.configureTabButtons();
+            }
+        }, 100);
+    }
+    
+    setupTabDelegation() {
+        const contentTabs = document.querySelector('.content-tabs');
+        if (!contentTabs) {
+            console.error('❌ No se encontró .content-tabs para delegation');
+            return;
+        }
+        
+        console.log('🎯 Configurando event delegation para tabs...');
+        
+        contentTabs.addEventListener('click', (e) => {
+            // Buscar el botón más cercano
+            let button = e.target;
+            while (button && !button.classList.contains('tab-btn')) {
+                button = button.parentElement;
+                if (button === contentTabs) break;
+            }
+            
+            if (button && button.classList.contains('tab-btn')) {
+                const contentType = button.dataset.content;
+                console.log(`🎯 DELEGATION CLICK: ${contentType}`);
+                e.preventDefault();
+                e.stopPropagation();
                 this.switchContentTab(contentType);
+            }
+        });
+        
+        console.log('✅ Event delegation configurado');
+    }
+    
+    configureTabButtons() {
+        const tabButtons = document.querySelectorAll('.content-tabs .tab-btn');
+        console.log(`📋 Configurando ${tabButtons.length} botones de tabs`);
+        
+        if (tabButtons.length === 0) {
+            console.error('❌ No se encontraron botones de tabs');
+            return;
+        }
+        
+        tabButtons.forEach((button, index) => {
+            const contentType = button.dataset.content;
+            console.log(`🔗 Configurando: ${contentType}`);
+            
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const clickedContentType = e.currentTarget.dataset.content;
+                console.log(`🔘 CLICK: ${clickedContentType}`);
+                this.switchContentTab(clickedContentType);
             });
         });
+        
+        console.log('✅ Event listeners configurados');
     }
     
     switchContentTab(contentType) {
+        console.log(`🔄 SWITCH TAB: ${contentType}`);
+        
         // Remover clase active de todas las pestañas
         document.querySelectorAll('.content-tabs .tab-btn').forEach(tab => {
             tab.classList.remove('active');
         });
         
         // Agregar clase active a la pestaña seleccionada
-        const activeTab = document.querySelector(`[data-content="${contentType}"]`);
+        const activeTab = document.querySelector(`.content-tabs .tab-btn[data-content="${contentType}"]`);
         if (activeTab) {
             activeTab.classList.add('active');
+            console.log(`✅ Tab activado: ${contentType}`);
+        } else {
+            console.error(`❌ No se encontró tab: ${contentType}`);
         }
         
         // Cambiar contenido
@@ -599,33 +862,687 @@ class ChatOnline {
     }
     
     updateContentArea(contentType) {
-        const contentArea = document.querySelector('.content-area');
-        if (!contentArea) return;
+        console.log(`🔄 Cambiando contenido a: ${contentType}`);
         
-        switch(contentType) {
-            case 'transcript':
-                contentArea.innerHTML = `
-                    <div class="transcript-content">
-                        ${this.getModuleTranscript(this.currentModule)}
-                    </div>
-                `;
-                break;
-            case 'summary':
-                contentArea.innerHTML = `
-                    <div class="summary-content">
-                        <h4>Resumen del Módulo</h4>
-                        <ul>
-                            <li>Conceptos fundamentales de redes neuronales</li>
-                            <li>Perceptrones simples y su funcionamiento</li>
-                            <li>Funciones de activación (sigmoid, tanh, ReLU)</li>
-                            <li>Aplicaciones prácticas en IA</li>
-                        </ul>
-                    </div>
-                `;
-                break;
+        // Ocultar todos los contenidos (solo dentro del content-area, no los tabs)
+        const contentArea = document.querySelector('.content-area');
+        if (!contentArea) {
+            console.error('❌ No se encontró .content-area');
+            return;
+        }
+        
+        // Primero verificar que el contenido objetivo existe
+        const targetContent = contentArea.querySelector(`[data-content="${contentType}"]`);
+        if (!targetContent) {
+            console.error(`❌ No se encontró contenido para: ${contentType}`);
+            return;
+        }
+        
+        // Ocultar todos los contenidos EXCEPTO el objetivo
+        contentArea.querySelectorAll('[data-content]').forEach(content => {
+            if (content.getAttribute('data-content') !== contentType) {
+                content.style.display = 'none';
+                console.log(`🔒 Ocultando: ${content.getAttribute('data-content')}`);
+            }
+        });
+        
+        // Mostrar el contenido seleccionado
+        const targetContent = contentArea.querySelector(`[data-content="${contentType}"]`);
+        console.log(`🔍 Buscando contenido: [data-content="${contentType}"]`);
+        console.log(`📍 Contenido encontrado:`, targetContent);
+        
+        if (targetContent) {
+            const displayType = contentType === 'community' ? 'flex' : 'block';
+            targetContent.style.display = displayType;
+            console.log(`✅ Mostrando ${contentType} con display: ${displayType}`);
+            
+            // Configurar event listeners específicos si es necesario
+            if (contentType === 'community') {
+                console.log('🏘️ Configurando event listeners de comunidad');
+                this.setupCommunityEventListeners();
+                
+                // Asegurar que el contenido sea completamente visible
+                setTimeout(() => {
+                    targetContent.style.display = 'flex';
+                    targetContent.style.visibility = 'visible';
+                    targetContent.style.opacity = '1';
+                    
+                    console.log('✅ Comunidad configurada correctamente');
+                }, 10);
+            }
+        } else {
+            console.error(`❌ No se encontró contenido para: ${contentType}`);
+            
+            // Debug adicional: mostrar todos los elementos con data-content
+            const allDataContent = contentArea.querySelectorAll('[data-content]');
+            console.log('📋 Todos los elementos con data-content:');
+            allDataContent.forEach(el => {
+                console.log(`  - ${el.getAttribute('data-content')}: ${el.className}`);
+            });
+        }
+        
+        console.log(`📄 Contenido cambiado a: ${contentType}`);
+    }
+    
+    // ===== FUNCIONES DE COMUNIDAD =====
+    
+    debugCommunitySetup() {
+        console.log('🔍 Debug: Verificando elementos de comunidad...');
+        
+        // Verificar botón de hacer pregunta
+        const askBtn = document.getElementById('askQuestionBtn');
+        console.log('🔍 Botón "Hacer Pregunta":', !!askBtn);
+        
+        // Verificar modal
+        const modal = document.getElementById('questionModal');
+        console.log('🔍 Modal de pregunta:', !!modal);
+        
+        // Verificar formulario
+        const form = document.getElementById('questionForm');
+        console.log('🔍 Formulario de pregunta:', !!form);
+        
+        // Verificar inputs
+        const titleInput = document.getElementById('questionTitle');
+        const contentInput = document.getElementById('questionContent');
+        console.log('🔍 Input de título:', !!titleInput);
+        console.log('🔍 Input de contenido:', !!contentInput);
+        
+        // Verificar botón de submit
+        const submitBtn = document.getElementById('submitQuestionBtn');
+        console.log('🔍 Botón de submit:', !!submitBtn);
+        
+        // Verificar si window.chatOnline está disponible
+        console.log('🔍 window.chatOnline disponible:', !!window.chatOnline);
+        console.log('🔍 showQuestionModal disponible:', !!(window.chatOnline && window.chatOnline.showQuestionModal));
+    }
+    
+    setupCommunityEventListeners() {
+        // Configurar usuario actual en la API
+        if (window.communityAPI && this.currentUser) {
+            window.communityAPI.setCurrentUser(this.currentUser);
+        }
+        
+        // Botón para hacer pregunta - con múltiples intentos
+        this.setupAskQuestionButton();
+        
+        // Filtros de preguntas
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                const filter = e.target.getAttribute('data-filter');
+                this.filterQuestions(filter);
+            });
+        });
+        
+        // Selector de ordenamiento
+        const sortSelect = document.getElementById('sortSelect');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', (e) => {
+                this.sortQuestions(e.target.value);
+            });
+        }
+        
+        // Modal de pregunta
+        this.setupQuestionModal();
+        
+        // Cargar preguntas iniciales
+        this.loadQuestions();
+        
+        // Debug: verificar que todo esté configurado correctamente
+        this.debugCommunitySetup();
+        
+        console.log('🔧 Event listeners de comunidad configurados');
+    }
+
+    setupAskQuestionButton() {
+        // Intentar configurar el botón con retry
+        const setupButton = () => {
+            const askQuestionBtn = document.getElementById('askQuestionBtn');
+            if (askQuestionBtn) {
+                // Remover listeners existentes para evitar duplicados
+                askQuestionBtn.removeEventListener('click', this.handleAskQuestionClick);
+                
+                // Agregar nuevo listener
+                this.handleAskQuestionClick = () => {
+                    console.log('🔘 Botón "Hacer Pregunta" clickeado');
+                    this.showQuestionModal();
+                };
+                
+                askQuestionBtn.addEventListener('click', this.handleAskQuestionClick);
+                console.log('✅ Event listener del botón "Hacer Pregunta" configurado');
+                return true;
+            }
+            return false;
+        };
+
+        // Intentar inmediatamente
+        if (!setupButton()) {
+            // Si no funciona, intentar después de un delay
+            setTimeout(() => {
+                if (!setupButton()) {
+                    console.warn('⚠️ No se pudo configurar el botón "Hacer Pregunta"');
+                }
+            }, 100);
         }
     }
     
+    showQuestionModal() {
+        console.log('🔍 Intentando abrir modal de pregunta...');
+        
+        const modal = document.getElementById('questionModal');
+        console.log('🔍 Modal encontrado:', !!modal);
+        
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            // Focus en el título
+            const titleInput = document.getElementById('questionTitle');
+            console.log('🔍 Input de título encontrado:', !!titleInput);
+            
+            if (titleInput) {
+                setTimeout(() => {
+                    titleInput.focus();
+                    console.log('✅ Focus aplicado al input de título');
+                }, 100);
+            }
+            
+            console.log('✅ Modal de pregunta abierto exitosamente');
+        } else {
+            console.error('❌ No se encontró el modal de pregunta');
+        }
+    }
+    
+    hideQuestionModal() {
+        const modal = document.getElementById('questionModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            
+            // Limpiar formulario
+            this.clearQuestionForm();
+        }
+        
+        console.log('❌ Modal de pregunta cerrado');
+    }
+    
+    setupQuestionModal() {
+        // Cerrar modal
+        const closeBtn = document.getElementById('closeQuestionModal');
+        const cancelBtn = document.getElementById('cancelQuestionBtn');
+        const overlay = document.querySelector('.modal-overlay');
+        
+        [closeBtn, cancelBtn, overlay].forEach(element => {
+            if (element) {
+                element.addEventListener('click', () => this.hideQuestionModal());
+            }
+        });
+        
+        // Formulario de pregunta
+        const questionForm = document.getElementById('questionForm');
+        if (questionForm) {
+            questionForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.submitQuestion();
+            });
+        }
+        
+        // Contador de caracteres
+        const titleInput = document.getElementById('questionTitle');
+        if (titleInput) {
+            titleInput.addEventListener('input', () => {
+                const count = titleInput.value.length;
+                const counter = document.getElementById('titleCharCount');
+                if (counter) {
+                    counter.textContent = count;
+                }
+            });
+        }
+        
+        // Manejo de tags
+        const tagsInput = document.getElementById('questionTags');
+        if (tagsInput) {
+            tagsInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.addQuestionTag(tagsInput.value.trim());
+                    tagsInput.value = '';
+                }
+            });
+        }
+    }
+    
+    async loadQuestions(filter = 'all', sort = 'recent') {
+        try {
+            console.log(`📋 Cargando preguntas - Filtro: ${filter}, Orden: ${sort}`);
+            
+            // Mostrar estado de carga
+            this.showQuestionsLoading();
+            
+            // Llamar a la API
+            const response = await window.communityAPI.getQuestions({
+                filter,
+                sort,
+                course_id: this.currentCourseId,
+                module_id: this.currentModule
+            });
+            
+            if (response.success) {
+                this.displayQuestions(response.data);
+                console.log(`✅ ${response.data.length} preguntas cargadas`);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error al cargar preguntas:', error);
+            this.showNotification('Error al cargar las preguntas', 'error');
+            this.showQuestionsError();
+        }
+    }
+
+    async filterQuestions(filter) {
+        console.log(`🔍 Filtrando preguntas por: ${filter}`);
+        
+        // Actualizar pestañas activas
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector(`[data-filter="${filter}"]`)?.classList.add('active');
+        
+        // Cargar preguntas con el filtro
+        await this.loadQuestions(filter, this.currentSort || 'recent');
+    }
+    
+    async sortQuestions(sortBy) {
+        console.log(`📊 Ordenando preguntas por: ${sortBy}`);
+        this.currentSort = sortBy;
+        
+        // Cargar preguntas con el ordenamiento
+        const currentFilter = document.querySelector('.filter-tab.active')?.getAttribute('data-filter') || 'all';
+        await this.loadQuestions(currentFilter, sortBy);
+    }
+
+    showQuestionsLoading() {
+        const questionsContainer = document.getElementById('questionsList');
+        if (questionsContainer) {
+            questionsContainer.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Cargando preguntas...</p>
+                </div>
+            `;
+        }
+    }
+
+    showQuestionsError() {
+        const questionsContainer = document.getElementById('questionsList');
+        if (questionsContainer) {
+            questionsContainer.innerHTML = `
+                <div class="error-state">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    <p>Error al cargar las preguntas</p>
+                    <button class="btn-secondary" onclick="window.chatOnline.loadQuestions()">
+                        Reintentar
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    displayQuestions(questions) {
+        const questionsContainer = document.getElementById('questionsList');
+        if (!questionsContainer) return;
+
+        if (questions.length === 0) {
+            questionsContainer.innerHTML = `
+                <div class="empty-state">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <h3>No hay preguntas aún</h3>
+                    <p>Sé el primero en hacer una pregunta sobre este tema</p>
+                    <button class="btn-primary" onclick="window.chatOnline.showQuestionModal()">
+                        Hacer Primera Pregunta
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        const questionsHTML = questions.map(question => this.createQuestionHTML(question)).join('');
+        questionsContainer.innerHTML = questionsHTML;
+
+        // Reconfigurar event listeners para los nuevos elementos
+        this.setupQuestionEventListeners();
+    }
+
+    createQuestionHTML(question) {
+        const timeAgo = this.getTimeAgo(question.created_at);
+        const tagsHTML = question.tags?.map(tag => `<span class="tag">${tag}</span>`).join('') || '';
+        
+        return `
+            <div class="question-item" data-question-id="${question.id}">
+                <div class="question-votes">
+                    <button class="vote-btn upvote" title="Votar positivamente">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="18,15 12,9 6,15"/>
+                        </svg>
+                    </button>
+                    <span class="vote-count">${question.votes_count || 0}</span>
+                    <button class="vote-btn downvote" title="Votar negativamente">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6,9 12,15 18,9"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="question-content">
+                    <div class="question-header">
+                        <h4 class="question-title">${this.escapeHtml(question.title)}</h4>
+                        <div class="question-meta">
+                            <span class="question-author">
+                                <img src="${question.users?.avatar_url || '/assets/images/default-avatar.svg'}" 
+                                     alt="${question.users?.name || 'Usuario'}" class="author-avatar">
+                                ${question.users?.name || 'Usuario'}
+                            </span>
+                            <span class="question-time">${timeAgo}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="question-body">
+                        <p>${this.escapeHtml(question.content.substring(0, 200))}${question.content.length > 200 ? '...' : ''}</p>
+                    </div>
+                    
+                    <div class="question-footer">
+                        <div class="question-tags">
+                            ${tagsHTML}
+                        </div>
+                        <div class="question-stats">
+                            <span class="stat">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                ${question.answers_count || 0} respuestas
+                            </span>
+                            <span class="stat">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                                ${question.views_count || 0} vistas
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    setupQuestionEventListeners() {
+        // Votos en preguntas
+        document.querySelectorAll('.question-item .vote-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleVote(e.target.closest('.vote-btn'));
+            });
+        });
+
+        // Click en pregunta para ver detalles
+        document.querySelectorAll('.question-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (!e.target.closest('.vote-btn')) {
+                    const questionId = item.getAttribute('data-question-id');
+                    this.showQuestionDetails(questionId);
+                }
+            });
+        });
+    }
+
+    showQuestionDetails(questionId) {
+        console.log(`📖 Mostrando detalles de pregunta: ${questionId}`);
+        // Aquí se implementará la vista de detalles de la pregunta
+        this.showNotification('Funcionalidad de detalles próximamente', 'info');
+    }
+
+    getTimeAgo(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) return 'hace un momento';
+        if (diffInSeconds < 3600) return `hace ${Math.floor(diffInSeconds / 60)} minutos`;
+        if (diffInSeconds < 86400) return `hace ${Math.floor(diffInSeconds / 3600)} horas`;
+        if (diffInSeconds < 2592000) return `hace ${Math.floor(diffInSeconds / 86400)} días`;
+        return date.toLocaleDateString();
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    async handleVote(voteBtn) {
+        if (!voteBtn) return;
+        
+        const isUpvote = voteBtn.classList.contains('upvote');
+        const questionItem = voteBtn.closest('.question-item');
+        const voteCount = voteBtn.parentElement.querySelector('.vote-count');
+        const questionId = questionItem?.getAttribute('data-question-id');
+        
+        if (!questionId) {
+            console.error('❌ No se encontró ID de pregunta');
+            return;
+        }
+
+        try {
+            // Mostrar estado de carga
+            voteBtn.disabled = true;
+            voteBtn.classList.add('loading');
+
+            // Determinar tipo de voto
+            const voteType = isUpvote ? 'upvote' : 'downvote';
+            
+            // Llamar a la API
+            const response = await window.communityAPI.vote('question', questionId, voteType);
+            
+            if (response.success) {
+                // Actualizar UI basado en la respuesta
+                this.updateVoteUI(voteBtn, response.data, voteCount);
+                console.log(`✅ Voto ${response.data.action} exitosamente`);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error al votar:', error);
+            this.showNotification('Error al procesar el voto', 'error');
+        } finally {
+            // Restaurar estado del botón
+            voteBtn.disabled = false;
+            voteBtn.classList.remove('loading');
+        }
+    }
+
+    updateVoteUI(voteBtn, voteData, voteCount) {
+        const isUpvote = voteBtn.classList.contains('upvote');
+        const oppositeBtn = isUpvote ? 
+            voteBtn.parentElement.querySelector('.downvote') : 
+            voteBtn.parentElement.querySelector('.upvote');
+        
+        // Limpiar estados previos
+        voteBtn.classList.remove('voted');
+        if (oppositeBtn) oppositeBtn.classList.remove('voted');
+        
+        // Aplicar nuevo estado
+        if (voteData.action === 'created' || voteData.action === 'updated') {
+            voteBtn.classList.add('voted');
+            
+            // Actualizar contador (simplificado - en producción deberías obtener el contador real)
+            const currentCount = parseInt(voteCount.textContent) || 0;
+            if (voteData.vote_type === 'upvote') {
+                voteCount.textContent = currentCount + 1;
+            } else {
+                voteCount.textContent = currentCount - 1;
+            }
+        } else if (voteData.action === 'removed') {
+            // Restaurar contador original
+            const currentCount = parseInt(voteCount.textContent) || 0;
+            if (isUpvote) {
+                voteCount.textContent = currentCount - 1;
+            } else {
+                voteCount.textContent = currentCount + 1;
+            }
+        }
+    }
+    
+    async submitQuestion() {
+        const title = document.getElementById('questionTitle').value.trim();
+        const content = document.getElementById('questionContent').value.trim();
+        const tags = this.getSelectedTags();
+        
+        if (!title || !content) {
+            this.showNotification('Por favor completa todos los campos requeridos', 'error');
+            return;
+        }
+        
+        try {
+            // Mostrar estado de carga
+            const submitBtn = document.getElementById('submitQuestionBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Publicando...';
+            }
+            
+            // Preparar datos de la pregunta
+            const questionData = {
+                title,
+                content,
+                tags,
+                course_id: this.currentCourseId || null,
+                module_id: this.currentModule || null
+            };
+            
+            console.log('📝 Enviando pregunta:', questionData);
+            
+            // Llamar a la API
+            const response = await window.communityAPI.createQuestion(questionData);
+            
+            if (response.success) {
+                this.showNotification('¡Pregunta publicada exitosamente!', 'success');
+                this.hideQuestionModal();
+                
+                // Recargar lista de preguntas
+                await this.loadQuestions();
+            }
+            
+        } catch (error) {
+            console.error('❌ Error al crear pregunta:', error);
+            this.showNotification('Error al publicar la pregunta. Inténtalo de nuevo.', 'error');
+        } finally {
+            // Restaurar estado del botón
+            const submitBtn = document.getElementById('submitQuestionBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Publicar Pregunta';
+            }
+        }
+    }
+    
+    clearQuestionForm() {
+        const titleInput = document.getElementById('questionTitle');
+        const contentInput = document.getElementById('questionContent');
+        const tagsInput = document.getElementById('questionTags');
+        const selectedTags = document.getElementById('selectedTags');
+        const charCounter = document.getElementById('titleCharCount');
+        
+        if (titleInput) titleInput.value = '';
+        if (contentInput) contentInput.value = '';
+        if (tagsInput) tagsInput.value = '';
+        if (selectedTags) selectedTags.innerHTML = '';
+        if (charCounter) charCounter.textContent = '0';
+        
+        this.questionTags = [];
+    }
+    
+    addQuestionTag(tag) {
+        if (!tag || this.questionTags.includes(tag)) return;
+        
+        this.questionTags = this.questionTags || [];
+        this.questionTags.push(tag);
+        
+        const tagsContainer = document.getElementById('selectedTags');
+        if (tagsContainer) {
+            const tagElement = document.createElement('span');
+            tagElement.className = 'tag-item';
+            tagElement.innerHTML = `
+                ${tag}
+                <button class="tag-remove" onclick="window.chatOnline.removeQuestionTag('${tag}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            `;
+            tagsContainer.appendChild(tagElement);
+        }
+    }
+    
+    removeQuestionTag(tag) {
+        this.questionTags = this.questionTags.filter(t => t !== tag);
+        
+        // Actualizar UI
+        const tagsContainer = document.getElementById('selectedTags');
+        if (tagsContainer) {
+            const tagElements = tagsContainer.querySelectorAll('.tag-item');
+            tagElements.forEach(element => {
+                if (element.textContent.trim().startsWith(tag)) {
+                    element.remove();
+                }
+            });
+        }
+    }
+    
+    getSelectedTags() {
+        return this.questionTags || [];
+    }
+    
+    showNotification(message, type = 'info') {
+        // Crear notificación toast
+        const notification = document.createElement('div');
+        notification.className = `notification toast ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span>${message}</span>
+                <button class="notification-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remover después de 3 segundos
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 3000);
+        
+        // Cerrar manualmente
+        const closeBtn = notification.querySelector('.notification-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => notification.remove());
+        }
+    }
+
     // ===== NOTAS =====
     setupNotes() {
         const addNoteBtn = document.getElementById('addNoteBtn');
@@ -883,6 +1800,7 @@ class ChatOnline {
     setupEditorButtons() {
         const saveBtn = document.getElementById('saveNoteBtn');
         const cancelBtn = document.getElementById('cancelNoteBtn');
+         const exportPdfBtn = document.getElementById('exportPdfBtn');
         
         // Guardar nota
         saveBtn.addEventListener('click', () => {
@@ -894,6 +1812,327 @@ class ChatOnline {
         cancelBtn.addEventListener('click', () => {
             this.hideNotesCreator();
         });
+        
+        // Exportar a PDF
+        exportPdfBtn.addEventListener('click', () => {
+            this.exportNoteToPDF();
+        });
+        
+        // Configurar selector de tamaño de fuente
+        this.setupFontSizeSelector();
+    }
+    
+    setupFontSizeSelector() {
+        const fontSizeBtn = document.getElementById('fontSizeBtn');
+        const fontSizeDropdown = document.getElementById('fontSizeDropdown');
+        const fontSizeOptions = document.querySelectorAll('.font-size-option');
+        const fontSizeText = document.querySelector('.font-size-text');
+        const editor = document.getElementById('noteContentEditor');
+        
+        // Toggle dropdown
+        fontSizeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            // Actualizar el tamaño mostrado basado en la selección actual o cursor
+            this.updateFontSizeDisplay();
+            
+            fontSizeDropdown.classList.toggle('show');
+        });
+        
+        // Cerrar dropdown al hacer click fuera
+        document.addEventListener('click', () => {
+            fontSizeDropdown.classList.remove('show');
+        });
+        
+        // Manejar selección de tamaño
+        fontSizeOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const size = option.dataset.size;
+                this.changeFontSize(size);
+                
+                // No actualizar el display aquí, se hará en changeFontSize si es exitoso
+                fontSizeDropdown.classList.remove('show');
+            });
+        });
+        
+        // Actualizar display cuando cambie la selección
+        editor.addEventListener('mouseup', () => {
+            setTimeout(() => this.updateFontSizeDisplay(), 10);
+        });
+        
+        editor.addEventListener('keyup', () => {
+            setTimeout(() => this.updateFontSizeDisplay(), 10);
+        });
+    }
+    
+    updateFontSizeDisplay() {
+        const selection = window.getSelection();
+        const fontSizeText = document.querySelector('.font-size-text');
+        const fontSizeOptions = document.querySelectorAll('.font-size-option');
+        const editor = document.getElementById('noteContentEditor');
+        
+        let fontSize = 14; // Tamaño por defecto
+        
+        try {
+            if (selection.rangeCount > 0 && !selection.isCollapsed) {
+                // Hay texto seleccionado - obtener su tamaño
+                const range = selection.getRangeAt(0);
+                const container = range.commonAncestorContainer;
+                const element = container.nodeType === Node.TEXT_NODE ? container.parentElement : container;
+                const computedStyle = window.getComputedStyle(element);
+                fontSize = parseInt(computedStyle.fontSize);
+            } else {
+                // No hay selección - obtener tamaño en la posición del cursor
+                const currentFontSize = this.getCurrentCursorFontSize();
+                fontSize = currentFontSize || 14;
+            }
+            
+            // Actualizar display
+            fontSizeText.textContent = fontSize.toString();
+            
+            // Actualizar estado activo de las opciones
+            fontSizeOptions.forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.size === fontSize.toString());
+            });
+            
+        } catch (error) {
+            // En caso de error, mostrar tamaño por defecto
+            fontSizeText.textContent = '14';
+            fontSizeOptions.forEach(opt => opt.classList.remove('active'));
+        }
+    }
+    
+    getCurrentCursorFontSize() {
+        const selection = window.getSelection();
+        const editor = document.getElementById('noteContentEditor');
+        
+        if (!selection.rangeCount) return 14;
+        
+        try {
+            const range = selection.getRangeAt(0);
+            let element = range.startContainer;
+            
+            // Si es un nodo de texto, obtener su elemento padre
+            if (element.nodeType === Node.TEXT_NODE) {
+                element = element.parentElement;
+            }
+            
+            // Asegurar que estamos dentro del editor
+            if (!editor.contains(element)) {
+                element = editor;
+            }
+            
+            // Obtener el tamaño de fuente computado
+            const computedStyle = window.getComputedStyle(element);
+            return parseInt(computedStyle.fontSize);
+            
+        } catch (error) {
+            return 14;
+        }
+    }
+    
+    changeFontSize(size) {
+        const editor = document.getElementById('noteContentEditor');
+        const selection = window.getSelection();
+        
+        if (selection.rangeCount > 0 && !selection.isCollapsed) {
+            // CASO 1: Hay texto seleccionado - cambiar tamaño de la selección
+            this.changeFontSizeForSelection(size);
+        } else {
+            // CASO 2: No hay selección - cambiar tamaño para texto nuevo
+            this.setFontSizeForNewText(size);
+        }
+        
+        // Actualizar el display del tamaño
+        setTimeout(() => this.updateFontSizeDisplay(), 10);
+        
+        // Mantener el foco en el editor
+        editor.focus();
+    }
+    
+    changeFontSizeForSelection(size) {
+        const editor = document.getElementById('noteContentEditor');
+        const selection = window.getSelection();
+        const range = selection.getRangeAt(0);
+        
+        // Verificar que la selección está dentro del editor
+        if (!editor.contains(range.commonAncestorContainer)) {
+            this.showNotification('Selecciona texto dentro del editor de notas', 'warning');
+            return;
+        }
+        
+        try {
+            // Método más robusto para aplicar tamaño de fuente
+            const selectedText = range.extractContents();
+            const span = document.createElement('span');
+            span.style.fontSize = size + 'px';
+            span.style.display = 'inline';
+            span.appendChild(selectedText);
+            range.insertNode(span);
+            
+            // Restaurar la selección en el nuevo span
+            const newRange = document.createRange();
+            newRange.selectNodeContents(span);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+            
+            console.log(`✅ Tamaño de selección cambiado a ${size}px`);
+            this.showNotification(`Tamaño de selección cambiado a ${size}px`, 'success');
+            
+        } catch (error) {
+            console.error('❌ Error al cambiar tamaño de selección:', error);
+            
+            // Método alternativo usando execCommand
+            try {
+                const tempSize = Math.floor(Math.random() * 1000) + 1000;
+                document.execCommand('fontSize', false, tempSize);
+                
+                const fontElements = editor.querySelectorAll(`font[size="${tempSize}"]`);
+                fontElements.forEach(font => {
+                    const span = document.createElement('span');
+                    span.style.fontSize = size + 'px';
+                    span.style.display = 'inline';
+                    span.innerHTML = font.innerHTML;
+                    font.parentNode.replaceChild(span, font);
+                });
+                
+                console.log(`✅ Tamaño de selección cambiado a ${size}px (método alternativo)`);
+                this.showNotification(`Tamaño de selección cambiado a ${size}px`, 'success');
+                
+            } catch (fallbackError) {
+                console.error('❌ Error en método alternativo:', fallbackError);
+                this.showNotification('Error al cambiar el tamaño de fuente', 'error');
+            }
+        }
+    }
+    
+    setFontSizeForNewText(size) {
+        const editor = document.getElementById('noteContentEditor');
+        const selection = window.getSelection();
+        
+        try {
+            // Crear un span invisible en la posición del cursor para establecer el tamaño
+            const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : document.createRange();
+            
+            // Si no hay rango, crear uno al final del editor
+            if (!selection.rangeCount) {
+                range.selectNodeContents(editor);
+                range.collapse(false);
+            }
+            
+            // Insertar un span con el nuevo tamaño de fuente
+            const span = document.createElement('span');
+            span.style.fontSize = size + 'px';
+            span.style.display = 'inline';
+            span.appendChild(document.createTextNode('\u200B')); // Carácter de ancho cero
+            
+            range.insertNode(span);
+            
+            // Posicionar el cursor después del span
+            const newRange = document.createRange();
+            newRange.setStartAfter(span);
+            newRange.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+            
+            // Configurar el estilo para el próximo texto
+            this.setNextTextStyle(size);
+            
+            console.log(`✅ Tamaño para texto nuevo establecido a ${size}px`);
+            this.showNotification(`Tamaño para texto nuevo: ${size}px`, 'success');
+            
+        } catch (error) {
+            console.error('❌ Error al establecer tamaño para texto nuevo:', error);
+            this.showNotification('Error al establecer el tamaño de fuente', 'error');
+        }
+    }
+    
+    setNextTextStyle(size) {
+        const editor = document.getElementById('noteContentEditor');
+        
+        // Usar execCommand para establecer el tamaño para el próximo texto
+        try {
+            // Crear un estilo temporal
+            const tempSize = '7'; // Tamaño temporal para execCommand
+            document.execCommand('fontSize', false, tempSize);
+            
+            // Buscar y actualizar inmediatamente
+            setTimeout(() => {
+                const fontElements = editor.querySelectorAll(`font[size="${tempSize}"]`);
+                fontElements.forEach(font => {
+                    const span = document.createElement('span');
+                    span.style.fontSize = size + 'px';
+                    span.style.display = 'inline';
+                    span.innerHTML = font.innerHTML;
+                    font.parentNode.replaceChild(span, font);
+                });
+            }, 10);
+            
+        } catch (error) {
+            console.error('❌ Error al establecer estilo para próximo texto:', error);
+        }
+    }
+    
+    async exportNoteToPDF() {
+        const titleInput = document.getElementById('noteTitleInput');
+        const contentEditor = document.getElementById('noteContentEditor');
+        
+        const title = titleInput.value || 'Nota sin título';
+        const content = contentEditor.innerHTML;
+        
+        if (!content.trim()) {
+            alert('No hay contenido para exportar');
+            return;
+        }
+        
+        try {
+            // Crear un elemento temporal para el PDF
+            const printContent = document.createElement('div');
+            printContent.innerHTML = `
+                <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+                    <h1 style="color: #44E5FF; border-bottom: 2px solid #44E5FF; padding-bottom: 10px;">${title}</h1>
+                    <div style="margin-top: 20px; line-height: 1.6;">${content}</div>
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc; font-size: 12px; color: #666;">
+                        <p>Generado por Aprende y Aplica - ${new Date().toLocaleDateString()}</p>
+                    </div>
+                </div>
+            `;
+            
+            // Abrir ventana de impresión
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${title}</title>
+                    <style>
+                        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+                        @media print {
+                            body { margin: 0; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${printContent.innerHTML}
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            
+            // Esperar un momento y luego mostrar diálogo de impresión
+            setTimeout(() => {
+                printWindow.print();
+            }, 250);
+            
+            console.log('✅ PDF exportado correctamente');
+            
+        } catch (error) {
+            console.error('❌ Error al exportar PDF:', error);
+            alert('Error al exportar a PDF. Por favor, intenta de nuevo.');
+        }
     }
     
     searchNotes() {
@@ -1101,44 +2340,339 @@ class ChatOnline {
         try {
             console.log('📊 Inicializando Progress Manager...');
             
-            // Esperar a que esté disponible CourseProgressManager
-            if (typeof window.courseProgressManager === 'undefined') {
+            // Intentar múltiples estrategias para obtener el progress manager
+            let manager = null;
+            
+            // Estrategia 1: Verificar si ya está disponible
+            if (window.courseProgressManager && typeof window.courseProgressManager.getCourseProgress === 'function') {
+                console.log('✅ CourseProgressManager ya disponible');
+                manager = window.courseProgressManager;
+            } 
+            // Estrategia 2: Esperar con timeout
+            else {
                 console.log('⏳ Esperando CourseProgressManager...');
-                await this.waitForProgressManager();
+                manager = await this.waitForProgressManager();
             }
             
-            this.progressManager = window.courseProgressManager;
+            // Estrategia 3: Si aún no está disponible, crear uno básico
+            if (!manager || typeof manager.getCourseProgress !== 'function') {
+                console.warn('⚠️ CreatingFallback Progress Manager');
+                manager = this.createFallbackProgressManager();
+            }
             
-            // Obtener progreso inicial
-            this.courseProgress = await this.progressManager.getCourseProgress();
+            this.progressManager = manager;
             
-            // Actualizar UI con el progreso actual
-            this.updateProgressUI();
-            
-            console.log('✅ Progress Manager inicializado');
+            // Validar que el manager es funcional antes de usarlo
+            if (this.progressManager && typeof this.progressManager.getCourseProgress === 'function') {
+                // Obtener progreso inicial
+                console.log('📊 Obteniendo progreso inicial...');
+                this.courseProgress = await this.progressManager.getCourseProgress();
+                console.log('📊 Progreso obtenido:', this.courseProgress);
+                
+                // Actualizar UI con el progreso actual
+                this.updateProgressUI();
+                
+                console.log('✅ Progress Manager inicializado exitosamente');
+            } else {
+                throw new Error('Progress Manager no es funcional');
+            }
             
         } catch (error) {
             console.error('❌ Error inicializando Progress Manager:', error);
-            // Continuar sin progress manager en modo fallback
-            this.progressManager = null;
+            console.error('📊 Stack trace:', error.stack);
+            
+            // Crear un manager de fallback que no cause errores
+            this.progressManager = this.createFallbackProgressManager();
+            this.courseProgress = {
+                overall_progress_percentage: 0,
+                modules: [],
+                status: 'fallback'
+            };
+            
+            console.log('🔄 Usando Progress Manager de fallback');
         }
     }
     
     waitForProgressManager() {
         return new Promise((resolve) => {
+            let attempts = 0;
+            const maxAttempts = 50; // 5 segundos con intervalos de 100ms
+            
             const checkInterval = setInterval(() => {
-                if (typeof window.courseProgressManager !== 'undefined') {
+                attempts++;
+                
+                // Verificar múltiples condiciones
+                if (window.courseProgressManager && typeof window.courseProgressManager.getCourseProgress === 'function') {
+                    console.log(`✅ Progress Manager encontrado después de ${attempts} intentos`);
                     clearInterval(checkInterval);
-                    resolve();
+                    resolve(window.courseProgressManager);
+                    return;
+                }
+                
+                // También escuchar el evento de inicialización
+                const onReady = (event) => {
+                    console.log('📡 Evento courseProgressManagerReady recibido');
+                    window.removeEventListener('courseProgressManagerReady', onReady);
+                    clearInterval(checkInterval);
+                    resolve(event.detail.manager);
+                };
+                
+                if (attempts === 1) { // Solo agregar el listener una vez
+                    window.addEventListener('courseProgressManagerReady', onReady);
+                }
+                
+                // Timeout después de maxAttempts
+                if (attempts >= maxAttempts) {
+                    console.warn(`⚠️ Timeout esperando CourseProgressManager después de ${attempts} intentos`);
+                    clearInterval(checkInterval);
+                    window.removeEventListener('courseProgressManagerReady', onReady);
+                    resolve(null); // Devolver null para que se cree un fallback
                 }
             }, 100);
-            
-            // Timeout después de 5 segundos
-            setTimeout(() => {
-                clearInterval(checkInterval);
-                resolve(); // Continuar sin progress manager
-            }, 5000);
         });
+    }
+    
+    createFallbackProgressManager() {
+        console.log('🔄 Creando Progress Manager de fallback...');
+        
+        // Crear manager básico que no cause errores
+        return {
+            getCourseProgress: async (forceRefresh = false) => {
+                console.log('📦 Usando progreso de fallback local');
+                return {
+                    course_progress_id: 'fallback-progress',
+                    user_id: 'demo-user',
+                    course_identifier: 'intro-to-ai',
+                    overall_progress_percentage: 0,
+                    status: 'in_progress',
+                    started_at: new Date().toISOString(),
+                    current_module: 1,
+                    modules: [
+                        {
+                            module_number: 1,
+                            module_name: '¿Qué es la IA?',
+                            status: 'in_progress',
+                            progress_percentage: 0,
+                            video_id: 'Yy_eZ65jzmo'
+                        },
+                        {
+                            module_number: 2,
+                            module_name: 'Historia de la IA',
+                            status: 'locked',
+                            progress_percentage: 0,
+                            video_id: 'dhsy6epaJGs'
+                        },
+                        {
+                            module_number: 3,
+                            module_name: 'Fundamentos del ML',
+                            status: 'locked',
+                            progress_percentage: 0,
+                            video_id: 'DvyOm9HeT-k'
+                        },
+                        {
+                            module_number: 4,
+                            module_name: 'Redes Neuronales',
+                            status: 'locked',
+                            progress_percentage: 0,
+                            video_id: 'oiKj0Z_Xnjc'
+                        },
+                        {
+                            module_number: 5,
+                            module_name: 'Aplicaciones Prácticas',
+                            status: 'locked',
+                            progress_percentage: 0,
+                            video_id: 'HMoaRIbOaN0'
+                        }
+                    ],
+                    total_modules: 5,
+                    completed_modules: 0,
+                    current_module: 1,
+                    total_time_spent: 0
+                };
+            },
+            
+            updateModuleProgress: async (moduleNumber, updates = {}) => {
+                console.log(`📝 Fallback: Actualizando módulo ${moduleNumber}`, updates);
+                return Promise.resolve({ success: true });
+            },
+            
+            updateVideoProgress: async (moduleNumber, videoUpdates = {}) => {
+                console.log(`🎥 Fallback: Actualizando video ${moduleNumber}`, videoUpdates);
+                return Promise.resolve({ success: true });
+            },
+            
+            completeModule: async (moduleNumber) => {
+                console.log(`🎯 Fallback: Completando módulo ${moduleNumber}`);
+                return Promise.resolve({ success: true });
+            },
+            
+            startModule: async (moduleNumber) => {
+                console.log(`▶️ Fallback: Iniciando módulo ${moduleNumber}`);
+                return Promise.resolve({ success: true });
+            },
+            
+            getModuleProgress: (moduleNumber) => {
+                return null;
+            },
+            
+            isModuleCompleted: (moduleNumber) => false,
+            isModuleLocked: (moduleNumber) => moduleNumber > 1
+        };
+    }
+    
+    // ===== YOUTUBE PROGRESS TRACKER =====
+    async initializeYouTubeTracker() {
+        try {
+            console.log('🎥 Inicializando YouTube Progress Tracker...');
+            
+            // Esperar a que ambos componentes estén listos
+            await this.waitForComponents();
+            
+            // Verificar si YouTube Progress Tracker está disponible
+            if (typeof window.YouTubeProgressTracker === 'undefined') {
+                console.warn('⚠️ YouTubeProgressTracker no disponible, saltando inicialización');
+                return;
+            }
+            
+            // Verificar que tenemos un progress manager
+            if (!this.progressManager) {
+                console.warn('⚠️ Progress Manager no disponible, usando tracker básico');
+                this.youtubeTracker = new window.YouTubeProgressTracker(null);
+            } else {
+                this.youtubeTracker = new window.YouTubeProgressTracker(this.progressManager);
+            }
+            
+            // Configurar eventos del tracker
+            this.setupYouTubeEvents();
+            
+            // Inicializar con el video actual si hay datos de progreso
+            if (this.courseProgress && this.courseProgress.modules && this.courseProgress.current_module) {
+                const currentModule = this.courseProgress.modules.find(m => m.module_number === this.courseProgress.current_module);
+                if (currentModule && currentModule.video_id) {
+                    console.log(`🎥 Inicializando player con video: ${currentModule.video_id} (Módulo ${currentModule.module_number})`);
+                    
+                    // Esperar un momento para que el DOM esté listo
+                    setTimeout(() => {
+                        this.youtubeTracker.initializePlayer(
+                            'youtubePlayer',
+                            currentModule.video_id,
+                            currentModule.module_number
+                        );
+                    }, 1000);
+                }
+            }
+            
+            console.log('✅ YouTube Progress Tracker inicializado');
+            
+        } catch (error) {
+            console.error('❌ Error inicializando YouTube Progress Tracker:', error);
+            this.youtubeTracker = null;
+        }
+    }
+    
+    // Esperar a que los componentes estén listos
+    async waitForComponents() {
+        return new Promise((resolve) => {
+            const checkComponents = () => {
+                if (typeof window.YouTubeProgressTracker !== 'undefined' && 
+                    typeof window.CourseProgressManager !== 'undefined') {
+                    console.log('✅ Todos los componentes están disponibles');
+                    resolve();
+                    return;
+                }
+                
+                console.log('⏳ Esperando componentes...', {
+                    YouTubeProgressTracker: typeof window.YouTubeProgressTracker,
+                    CourseProgressManager: typeof window.CourseProgressManager
+                });
+                
+                setTimeout(checkComponents, 100);
+            };
+            
+            checkComponents();
+        });
+    }
+    
+    setupYouTubeEvents() {
+        // Escuchar eventos del tracker
+        window.addEventListener('moduleCompleted', (event) => {
+            console.log('🎯 Módulo completado:', event.detail);
+            this.handleModuleCompleted(event.detail.moduleNumber);
+        });
+        
+        window.addEventListener('moduleUnlocked', (event) => {
+            console.log('🔓 Módulo desbloqueado:', event.detail);
+            this.handleModuleUnlocked(event.detail.unlockedModule);
+        });
+    }
+    
+    handleModuleCompleted(moduleNumber) {
+        console.log(`🎉 Manejando completación del módulo ${moduleNumber}`);
+        
+        // Actualizar UI de progreso
+        this.updateProgressUI();
+        
+        // Actualizar estado del módulo en la lista
+        this.updateModuleStatus(moduleNumber, 'completed');
+        
+        // Auto-seleccionar siguiente módulo si está disponible
+        const nextModule = moduleNumber + 1;
+        if (this.courseProgress && this.courseProgress.modules) {
+            const nextModuleData = this.courseProgress.modules.find(m => m.module_number === nextModule);
+            if (nextModuleData && nextModuleData.status !== 'locked') {
+                setTimeout(() => {
+                    console.log(`🔄 Auto-seleccionando módulo ${nextModule}`);
+                    this.selectModule(nextModule);
+                }, 2000);
+            }
+        }
+    }
+    
+    handleModuleUnlocked(moduleNumber) {
+        console.log(`🔓 Manejando desbloqueo del módulo ${moduleNumber}`);
+        
+        // Actualizar estado del módulo desbloqueado
+        this.updateModuleStatus(moduleNumber, 'not_started');
+        
+        // Actualizar UI
+        this.updateProgressUI();
+    }
+    
+    updateModuleStatus(moduleNumber, status) {
+        // Actualizar en los datos locales
+        if (this.courseProgress && this.courseProgress.modules) {
+            const module = this.courseProgress.modules.find(m => m.module_number === moduleNumber);
+            if (module) {
+                module.status = status;
+                if (status === 'completed') {
+                    module.progress_percentage = 100;
+                    module.video_completed = true;
+                    module.video_progress_percentage = 100;
+                }
+            }
+        }
+        
+        // Actualizar en la UI
+        const moduleElement = document.querySelector(`[data-module="${moduleNumber}"]`);
+        if (moduleElement) {
+            moduleElement.classList.remove('locked', 'not_started', 'in_progress', 'completed');
+            moduleElement.classList.add(status);
+            
+            // Actualizar el círculo de progreso
+            const progressCircle = moduleElement.querySelector('.progress-circle');
+            if (progressCircle) {
+                if (status === 'completed') {
+                    progressCircle.style.background = 'var(--glass-primary)';
+                    progressCircle.innerHTML = '<i class="fas fa-check"></i>';
+                } else if (status === 'locked') {
+                    progressCircle.style.background = 'var(--glass-border)';
+                    progressCircle.innerHTML = '<i class="fas fa-lock"></i>';
+                } else {
+                    progressCircle.style.background = 'var(--glass-secondary)';
+                    progressCircle.innerHTML = moduleNumber;
+                }
+            }
+        }
     }
     
     setupProgressEvents() {
@@ -1288,6 +2822,36 @@ class ChatOnline {
         // Ejecutar selección básica (evitar recursión)
         this.selectModuleBasic(moduleId);
         
+        // Obtener datos del módulo para el video
+        let moduleVideoId = null;
+        if (this.courseProgress && this.courseProgress.modules) {
+            const moduleData = this.courseProgress.modules.find(m => m.module_number === moduleId);
+            if (moduleData && moduleData.video_id) {
+                moduleVideoId = moduleData.video_id;
+            }
+        }
+        
+        // Si no tenemos el video ID desde progreso, usar datos estáticos
+        if (!moduleVideoId) {
+            const moduleVideos = {
+                1: 'Yy_eZ65jzmo',  // ¿Qué es la IA?
+                2: 'dhsy6epaJGs',  // Historia de la IA
+                3: 'DvyOm9HeT-k',  // Fundamentos del ML
+                4: 'oiKj0Z_Xnjc',  // Redes Neuronales
+                5: 'HMoaRIbOaN0'   // Aplicaciones Prácticas
+            };
+            moduleVideoId = moduleVideos[moduleId];
+        }
+        
+        // Cambiar video usando YouTube Tracker si está disponible
+        if (this.youtubeTracker && moduleVideoId) {
+            console.log(`🎥 Cambiando video a: ${moduleVideoId} (Módulo ${moduleId})`);
+            this.youtubeTracker.changeVideo(moduleVideoId, moduleId);
+        } else {
+            // Fallback al método tradicional
+            this.changeVideoByModule(moduleId);
+        }
+        
         // Marcar como iniciado si no ha comenzado
         if (this.progressManager) {
             const moduleData = this.progressManager.getModuleProgress(moduleId);
@@ -1301,6 +2865,16 @@ class ChatOnline {
                 }
             }
         }
+        
+        // Emitir evento de cambio de módulo para el tracker
+        const event = new CustomEvent('moduleChanged', {
+            detail: {
+                moduleNumber: moduleId,
+                videoId: moduleVideoId,
+                timestamp: Date.now()
+            }
+        });
+        window.dispatchEvent(event);
     }
     
     async markVideoSectionCompleted(sectionNumber) {
@@ -1626,12 +3200,12 @@ class ChatOnline {
         // Cargar datos iniciales
         console.log('📊 Cargando datos iniciales...');
         
-        // Cargar video del módulo actual (3)
+        // Cargar video del módulo actual (1)
         console.log('🎥 Cargando video del módulo inicial...');
         this.changeVideoByModule(this.currentModule);
         
-        // Simular carga de progreso
-        this.updateProgress(65);
+        // Simular carga de progreso inicial
+        this.updateProgress(0);
         
         // Cargar notas de ejemplo
         this.loadSampleNotes();
@@ -2027,13 +3601,29 @@ class ChatOnline {
                         Quiz del Módulo ${this.currentModule}
                     </h2>
                     <p>Pon a prueba tus conocimientos con estas preguntas</p>
+                    
+                    <!-- Cronómetro -->
+                    <div class="quiz-timer-container">
+                        <div class="timer-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
+                        </div>
+                        <div class="timer-display">
+                            <span class="timer-text">Tiempo restante:</span>
+                            <span class="timer-value" id="quizTimer">3:00</span>
+                        </div>
+                        <div class="timer-progress">
+                            <div class="timer-progress-bar" id="timerProgressBar"></div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="quiz-container">
                     <div class="question-card">
                         <div class="question-header">
                             <span class="question-number">Pregunta 1 de 5</span>
-                            <span class="question-timer">⏱️ 02:30</span>
                         </div>
                         
                         <h3 class="question-text">¿Qué es la Inteligencia Artificial?</h3>
@@ -2077,6 +3667,9 @@ class ChatOnline {
         `;
         
         centerPanel.insertAdjacentHTML('beforeend', quizHTML);
+        
+        // Iniciar el cronómetro del quiz
+        this.startQuizTimer();
     }
     
     // ===== FUNCIONES AUXILIARES =====
@@ -2098,8 +3691,610 @@ class ChatOnline {
     }
     
     nextQuestion() {
-        console.log('➡️ Siguiente pregunta');
-        // Implementar navegación entre preguntas
+        console.log('🚀 nextQuestion() llamado');
+        console.log('🔍 Current question index:', this.currentQuestionIndex);
+        console.log('🔍 Quiz data length:', this.quizData?.length);
+        
+        const qData = this.quizData[this.currentQuestionIndex];
+        console.log('🔍 Question data:', qData);
+        
+        let answer;
+
+        switch (qData.type) {
+            case 'single':
+            case 'boolean':
+                const sel = document.querySelector('.answer-options input:checked');
+                console.log('🔍 Selected input:', sel);
+                if (!sel) { 
+                    console.log('❌ No hay respuesta seleccionada');
+                    alert('Selecciona una respuesta.'); 
+                    return; 
+                }
+                answer = sel.value;
+                console.log('✅ Respuesta capturada:', answer);
+                break;
+            case 'multiple':
+                const checks = Array.from(document.querySelectorAll('.answer-options input[type="checkbox"]:checked'));
+                console.log('🔍 Checkboxes seleccionados:', checks);
+                if (checks.length === 0) { alert('Selecciona al menos una opción.'); return; }
+                answer = checks.map(c => c.value);
+                break;
+            case 'text':
+                const txt = document.querySelector('.answer-textarea').value.trim();
+                console.log('🔍 Texto ingresado:', txt);
+                if (!txt) { alert('Por favor escribe tu respuesta.'); return; }
+                answer = txt;
+                break;
+            case 'match':
+                const selects = Array.from(document.querySelectorAll('.match-select'));
+                const pairAns = {};
+                let incomplete = false;
+                selects.forEach((s, idx)=>{
+                    if (!s.value) incomplete = true; else pairAns[idx] = s.value;
+                });
+                if (incomplete) { alert('Completa todas las correspondencias.'); return; }
+                answer = pairAns;
+                break;
+        }
+
+        this.userAnswers[this.currentQuestionIndex] = answer;
+        console.log('✅ Respuesta guardada:', answer);
+        console.log('🔍 Todas las respuestas:', this.userAnswers);
+
+        if (this.currentQuestionIndex < this.quizData.length - 1) {
+            console.log('➡️ Avanzando a siguiente pregunta');
+            this.currentQuestionIndex++;
+            this.renderCurrentQuestion();
+        } else {
+            console.log('🏁 Quiz terminado, mostrando resultados');
+            this.finishQuiz();
+        }
+    }
+    
+    /**
+     * Devuelve las preguntas del quiz para el módulo actual.
+     */
+    getQuizData() {
+        return [
+            {
+                type: 'single',
+                question: '¿Cuál de los siguientes elementos del prompt garantiza la fiabilidad de la investigación solicitada a Gemini?',
+                options: [
+                    { value: 'a', text: 'Incluir casos de uso en finanzas y banca.' },
+                    { value: 'b', text: 'Pedir que actúe "como un analista experto en IA generativa".' },
+                    { value: 'c', text: 'Exigir la cita numerada de cada dato o afirmación.' },
+                    { value: 'd', text: 'Solicitar un resumen de audio al final.' }
+                ],
+                correct: 'c',
+                feedbackCorrect: '¡Exacto! Exigir citas numeradas asegura la trazabilidad y credibilidad de la información.',
+                feedbackIncorrect: 'La opción correcta era exigir la cita numerada; esto permite verificar cada afirmación.'
+            },
+            {
+                type: 'multiple',
+                question: 'El prompt define un ____ profesional ("analista experto") y proporciona una estructura ____ de puntos numerados, lo que facilita a Gemini generar salidas reutilizables como infografías.',
+                options: [
+                    { value: 'clara', text: 'Clara' },
+                    { value: 'rol', text: 'Rol' },
+                    { value: 'fuerte', text: 'Fuerte' },
+                    { value: 'lugar', text: 'Lugar' }
+                ],
+                correct: ['rol', 'clara'],
+                feedbackCorrect: 'Correcto: el prompt establece claramente el rol y una estructura clara.',
+                feedbackIncorrect: 'La respuesta correcta era "Rol" y "Clara": define quién habla y una estructura legible.'
+            },
+            {
+                type: 'boolean',
+                question: 'El flujo de trabajo indica que, después de crear la infografía, el usuario debe cerrar la pestaña de Canvas para volver al proyecto de investigación principal.',
+                options: [
+                    { value: 'true', text: 'Verdadero' },
+                    { value: 'false', text: 'Falso' }
+                ],
+                correct: 'true',
+                feedbackCorrect: '¡Bien! Seguir ese paso asegura volver al flujo principal sin perder contexto.',
+                feedbackIncorrect: 'Incorrecto: El paso correcto es cerrar Canvas para regresar al proyecto principal.'
+            },
+            {
+                type: 'text',
+                question: 'En 1-2 frases, explica por qué el prompt reserva una sección específica para "Desafíos y consideraciones estratégicas para líderes" en la adopción de IA generativa.',
+                options: [],
+                correct: null,
+                feedbackCorrect: 'Gracias por tu reflexión. Un evaluador revisará tu respuesta.',
+                feedbackIncorrect: 'Respuesta registrada. Un evaluador proporcionará comentarios específicos.'
+            },
+            {
+                type: 'match',
+                question: 'Relaciona cada salida del flujo de trabajo con su objetivo principal:',
+                pairs: {
+                    '1. Reporte web interactivo.': ['A', 'B', 'C', 'D'],
+                    '2. Infografía visual.': ['A', 'B', 'C', 'D'],
+                    '3. Cuestionario': ['A', 'B', 'C', 'D'],
+                    '4. Resumen de audio': ['A', 'B', 'C', 'D']
+                },
+                legend: {
+                    A: 'Validar conocimientos adquiridos',
+                    B: 'Repaso auditivo en multitarea',
+                    C: 'Exploración profunda y compartible',
+                    D: 'Impacto rápido y sintético'
+                },
+                correct: {
+                    0: 'C',
+                    1: 'D',
+                    2: 'A',
+                    3: 'B'
+                },
+                feedbackCorrect: '¡Perfecto! Has emparejado correctamente cada salida con su objetivo.',
+                feedbackIncorrect: 'Algunas correspondencias eran distintas. Revisa la leyenda para entender cada objetivo.'
+            }
+        ];
+    }
+    
+    /**
+     * Renderiza la pregunta actual del quiz
+     */
+    renderCurrentQuestion() {
+        console.log('🎨 Renderizando pregunta:', this.currentQuestionIndex);
+        const questionData = this.quizData[this.currentQuestionIndex];
+        if (!questionData) return;
+
+        const questionCard = document.querySelector('.quiz-container .question-card');
+        if (!questionCard) {
+            console.error('❌ No se encontró .question-card');
+            return;
+        }
+
+        // Construir HTML según el tipo
+        let inputHTML = '';
+        switch (questionData.type) {
+            case 'single':
+            case 'boolean':
+                questionData.options.forEach(opt => {
+                    const checked = this.userAnswers[this.currentQuestionIndex] === opt.value;
+                    inputHTML += `
+                        <label class="answer-option">
+                            <input type="radio" name="q${this.currentQuestionIndex}" value="${opt.value}" ${checked ? 'checked' : ''}>
+                            <span class="answer-text">${opt.text}</span>
+                        </label>`;
+                });
+                break;
+            case 'multiple':
+                questionData.options.forEach(opt => {
+                    const checked = Array.isArray(this.userAnswers[this.currentQuestionIndex]) && this.userAnswers[this.currentQuestionIndex].includes(opt.value);
+                    inputHTML += `
+                        <label class="answer-option">
+                            <input type="checkbox" name="q${this.currentQuestionIndex}" value="${opt.value}" ${checked ? 'checked' : ''}>
+                            <span class="answer-text">${opt.text}</span>
+                        </label>`;
+                });
+                break;
+            case 'text':
+                const savedText = this.userAnswers[this.currentQuestionIndex] || '';
+                inputHTML = `<textarea name="q${this.currentQuestionIndex}" rows="4" class="answer-textarea" placeholder="Escribe tu respuesta aquí...">${savedText}</textarea>`;
+                break;
+            case 'match':
+                // mostrar leyenda
+                let legendHTML = '<ul class="match-legend">';
+                Object.entries(questionData.legend).forEach(([key, val]) => {
+                    legendHTML += `<li><strong>${key}</strong>: ${val}</li>`;
+                });
+                legendHTML += '</ul>';
+
+                let pairsHTML = '';
+                const stored = this.userAnswers[this.currentQuestionIndex] || {};
+                Object.keys(questionData.pairs).forEach((key, idx) => {
+                    const options = questionData.pairs[key];
+                    pairsHTML += `
+                        <div class="match-row">
+                            <span class="match-prompt">${key}</span>
+                            <select name="q${this.currentQuestionIndex}_${idx}" class="match-select">
+                                <option value="">---</option>
+                                ${options.map(opt => `<option value="${opt}" ${stored[idx]===opt?'selected':''}>${opt}</option>`).join('')}
+                            </select>
+                        </div>`;
+                });
+                inputHTML = legendHTML + pairsHTML;
+                break;
+        }
+
+        questionCard.innerHTML = `
+            <div class="question-header">
+                <span class="question-number">Pregunta ${this.currentQuestionIndex + 1} de ${this.quizData.length}</span>
+            </div>
+            <h3 class="question-text">${questionData.question}</h3>
+            <div class="answer-options">${inputHTML}</div>
+            <div class="question-actions">
+                <button class="btn-secondary" ${this.currentQuestionIndex === 0 ? 'disabled' : ''} onclick="window.chatOnline.previousQuestion()">Anterior</button>
+                <button class="btn-primary" onclick="window.chatOnline.nextQuestion()">${this.currentQuestionIndex === this.quizData.length - 1 ? 'Finalizar' : 'Siguiente'}</button>
+            </div>`;
+    }
+    
+    /**
+     * Finaliza el quiz y muestra resultados
+     */
+    finishQuiz() {
+        console.log('🏁 Quiz finalizado');
+        
+        // Detener el cronómetro si está activo
+        this.stopQuizTimer();
+        
+        let correctCount = 0;
+        
+        // Calcular respuestas correctas (excluyendo preguntas abiertas)
+        this.quizData.forEach((q, idx) => {
+            const userAns = this.userAnswers[idx];
+            let isCorrect = false;
+            
+            if (q.type === 'text') {
+                // Pregunta abierta - no se evalúa automáticamente
+                return;
+            } else if (q.type === 'multiple') {
+                isCorrect = Array.isArray(userAns) && Array.isArray(q.correct) && 
+                           userAns.sort().join(',') === q.correct.sort().join(',');
+            } else if (q.type === 'match') {
+                isCorrect = JSON.stringify(userAns) === JSON.stringify(q.correct);
+            } else {
+                isCorrect = userAns === q.correct;
+            }
+            
+            if (isCorrect) correctCount++;
+        });
+
+        this.showQuizResults(correctCount);
+    }
+    
+    /**
+     * Muestra pantalla de resultados detallados
+     */
+    showQuizResults(correctCount) {
+        const centerPanel = document.querySelector('.center-panel .course-content');
+        if (!centerPanel) return;
+
+        // Remover quiz anterior
+        centerPanel.querySelectorAll('.quiz-content, .quiz-results').forEach(el => el.remove());
+
+        // Calcular total de preguntas evaluables (excluyendo abiertas)
+        const evaluableQuestions = this.quizData.filter(q => q.type !== 'text').length;
+        
+        let resultsHTML = `
+            <div class="quiz-results">
+                <h2>Resultados del Quiz</h2>
+                <p>Respuestas correctas: <strong>${correctCount}</strong> de ${evaluableQuestions} preguntas evaluables</p>
+        `;
+
+        this.quizData.forEach((q, idx) => {
+            const userAns = this.userAnswers[idx];
+            let isCorrect = false;
+            let cardClass = '';
+            let feedback = '';
+            
+            if (q.type === 'text') {
+                // Pregunta abierta - sin evaluación automática
+                cardClass = 'open-question';
+                feedback = q.feedbackCorrect; // Mensaje neutral para pregunta abierta
+            } else {
+                if (q.type === 'multiple') {
+                    isCorrect = Array.isArray(userAns) && Array.isArray(q.correct) && 
+                               userAns.sort().join(',') === q.correct.sort().join(',');
+                } else if (q.type === 'match') {
+                    isCorrect = JSON.stringify(userAns) === JSON.stringify(q.correct);
+                } else {
+                    isCorrect = userAns === q.correct;
+                }
+                cardClass = isCorrect ? 'correct' : 'incorrect';
+                feedback = isCorrect ? q.feedbackCorrect : q.feedbackIncorrect;
+            }
+
+            let iconSVG = '';
+            if (q.type === 'text') {
+                iconSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10,9 9,9 8,9"/>
+                </svg>`;
+            } else if (isCorrect) {
+                iconSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>`;
+            } else {
+                iconSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"/>
+                    <path d="M6 6l12 12"/>
+                </svg>`;
+            }
+
+            resultsHTML += `
+                <div class="result-card ${cardClass}">
+                    <h3>${iconSVG}Pregunta ${idx + 1}</h3>
+                    <p class="question">${q.question}</p>
+                    <p><strong>Tu respuesta:</strong> ${this.formatAnswer(q, userAns)}</p>
+                    ${q.correct !== null && q.type !== 'text' ? `<p><strong>Respuesta correcta:</strong> ${this.formatAnswer(q, q.correct)}</p>` : ''}
+                    <p class="feedback">${feedback}</p>
+                </div>`;
+        });
+
+        resultsHTML += `
+                <div class="quiz-actions">
+                    <button class="btn-primary" onclick="window.chatOnline.submitQuizResults()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m22 2-7 20-4-9-9-4Z"/>
+                            <path d="M22 2 11 13"/>
+                        </svg>
+                        Enviar Respuestas
+                    </button>
+                    <button class="btn-secondary" onclick="window.chatOnline.restartQuiz()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                            <path d="M21 3v5h-5"/>
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                            <path d="M3 21v-5h5"/>
+                        </svg>
+                        Repetir Cuestionario
+                    </button>
+                </div>
+            </div>`;
+        centerPanel.insertAdjacentHTML('beforeend', resultsHTML);
+    }
+    
+    /**
+     * Formatea respuestas para mostrar
+     */
+    formatAnswer(question, answer) {
+        if (answer === undefined || answer === null) return '-';
+        
+        switch (question.type) {
+            case 'single':
+            case 'boolean':
+                const opt = question.options.find(o => o.value === answer);
+                return opt ? opt.text : answer;
+            case 'multiple':
+                return answer.map(val => {
+                    const o = question.options.find(x => x.value === val);
+                    return o ? o.text : val;
+                }).join(', ');
+            case 'text':
+                return answer;
+            case 'match':
+                return Object.entries(answer).map(([k,v]) => `${parseInt(k)+1}→${v}`).join(', ');
+            default:
+                return String(answer);
+        }
+    }
+    
+    /**
+     * Envía las respuestas del quiz al servidor/instructor
+     */
+    submitQuizResults() {
+        console.log('📤 Enviando respuestas del quiz...');
+        
+        // Preparar datos para enviar
+        const quizSubmission = {
+            userId: this.getCurrentUserId(), // Implementar según tu sistema de auth
+            moduleId: this.currentModule,
+            timestamp: new Date().toISOString(),
+            answers: this.userAnswers,
+            questions: this.quizData,
+            score: this.calculateScore()
+        };
+        
+        console.log('Datos del quiz:', quizSubmission);
+        
+        // Aquí puedes implementar el envío al servidor
+        // Por ahora mostraremos confirmación
+        alert('✅ Respuestas enviadas correctamente al instructor.\n\nLa pregunta abierta será revisada manualmente.');
+        
+        // Opcional: deshabilitar el botón después del envío
+        const submitBtn = document.querySelector('.quiz-actions .btn-primary');
+        if (submitBtn) {
+            submitBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>
+                Enviado`;
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.6';
+        }
+    }
+    
+    /**
+     * Reinicia el quiz para repetirlo
+     */
+    restartQuiz() {
+        console.log('🔄 Reiniciando quiz...');
+        
+        // Confirmar si realmente quiere repetir
+        if (confirm('¿Estás seguro de que quieres repetir el cuestionario? Se perderán las respuestas actuales.')) {
+            // Detener cronómetro actual si existe
+            this.stopQuizTimer();
+            
+            // Resetear estado del quiz
+            this.currentQuestionIndex = 0;
+            this.userAnswers = {};
+            this.quizTimeRemaining = this.quizTimeLimit;
+            
+            // Limpiar el contenido actual del panel central
+            const centerPanel = document.querySelector('.center-panel');
+            if (centerPanel) {
+                centerPanel.innerHTML = '';
+            }
+            
+            // Mostrar el quiz desde el inicio
+            this.createQuizContent();
+            
+            console.log('✅ Quiz reiniciado');
+        }
+    }
+    
+    /**
+     * Calcula el puntaje del quiz
+     */
+    calculateScore() {
+        let correctCount = 0;
+        let totalEvaluable = 0;
+        
+        this.quizData.forEach((q, idx) => {
+            if (q.type === 'text') return; // Saltar preguntas abiertas
+            
+            totalEvaluable++;
+            const userAns = this.userAnswers[idx];
+            let isCorrect = false;
+            
+            if (q.type === 'multiple') {
+                isCorrect = Array.isArray(userAns) && Array.isArray(q.correct) && 
+                           userAns.sort().join(',') === q.correct.sort().join(',');
+            } else if (q.type === 'match') {
+                isCorrect = JSON.stringify(userAns) === JSON.stringify(q.correct);
+            } else {
+                isCorrect = userAns === q.correct;
+            }
+            
+            if (isCorrect) correctCount++;
+        });
+        
+        return {
+            correct: correctCount,
+            total: totalEvaluable,
+            percentage: Math.round((correctCount / totalEvaluable) * 100)
+        };
+    }
+    
+    /**
+     * Obtiene el ID del usuario actual (implementar según tu sistema)
+     */
+    getCurrentUserId() {
+        // Implementar según tu sistema de autenticación
+        // Por ahora retornamos un placeholder
+        return 'user_' + Date.now();
+    }
+    
+    // ===== FUNCIONES DEL CRONÓMETRO =====
+    
+    /**
+     * Inicia el cronómetro del quiz
+     */
+    startQuizTimer() {
+        console.log('⏱️ Iniciando cronómetro del quiz');
+        
+        // Resetear valores
+        this.quizTimeRemaining = this.quizTimeLimit;
+        this.quizStartTime = Date.now();
+        
+        // Actualizar display inicial
+        this.updateTimerDisplay();
+        
+        // Iniciar el intervalo del cronómetro
+        this.quizTimer = setInterval(() => {
+            this.quizTimeRemaining--;
+            this.updateTimerDisplay();
+            
+            // Verificar advertencias de tiempo
+            this.checkTimeWarnings();
+            
+            // Verificar si se acabó el tiempo
+            if (this.quizTimeRemaining <= 0) {
+                this.timeUpQuiz();
+            }
+        }, 1000);
+    }
+    
+    /**
+     * Actualiza la visualización del cronómetro
+     */
+    updateTimerDisplay() {
+        const timerElement = document.getElementById('quizTimer');
+        const progressBar = document.getElementById('timerProgressBar');
+        
+        if (!timerElement || !progressBar) return;
+        
+        // Formatear tiempo
+        const minutes = Math.floor(this.quizTimeRemaining / 60);
+        const seconds = this.quizTimeRemaining % 60;
+        const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        timerElement.textContent = timeString;
+        
+        // Actualizar barra de progreso
+        const progress = ((this.quizTimeLimit - this.quizTimeRemaining) / this.quizTimeLimit) * 100;
+        progressBar.style.width = `${progress}%`;
+        
+        // Cambiar colores según el tiempo restante
+        const container = document.querySelector('.quiz-timer-container');
+        if (container) {
+            container.classList.remove('warning', 'critical');
+            
+            if (this.quizTimeRemaining <= 60) { // Último minuto
+                container.classList.add('critical');
+            } else if (this.quizTimeRemaining <= 120) { // Últimos 2 minutos
+                container.classList.add('warning');
+            }
+        }
+    }
+    
+    /**
+     * Verifica y muestra advertencias de tiempo
+     */
+    checkTimeWarnings() {
+        if (this.quizTimeRemaining === 120) { // 2 minutos restantes
+            this.showTimeWarning('⚠️ Quedan 2 minutos para completar el quiz');
+        } else if (this.quizTimeRemaining === 60) { // 1 minuto restante
+            this.showTimeWarning('🚨 ¡Último minuto! Termina las preguntas que puedas');
+        } else if (this.quizTimeRemaining === 30) { // 30 segundos restantes
+            this.showTimeWarning('🚨 ¡Solo quedan 30 segundos!');
+        }
+    }
+    
+    /**
+     * Muestra advertencia de tiempo
+     */
+    showTimeWarning(message) {
+        // Crear notificación temporal
+        const notification = document.createElement('div');
+        notification.className = 'quiz-time-warning';
+        notification.innerHTML = `
+            <div class="warning-content">
+                <span>${message}</span>
+                <button onclick="this.parentElement.parentElement.remove()">✕</button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remover después de 5 segundos
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+    
+    /**
+     * Termina el quiz cuando se acaba el tiempo
+     */
+    timeUpQuiz() {
+        console.log('⏰ Tiempo agotado - Terminando quiz automáticamente');
+        
+        // Detener el cronómetro
+        if (this.quizTimer) {
+            clearInterval(this.quizTimer);
+            this.quizTimer = null;
+        }
+        
+        // Mostrar mensaje de tiempo agotado
+        alert('⏰ ¡Tiempo agotado! El quiz se ha terminado automáticamente con las respuestas que completaste.');
+        
+        // Finalizar quiz con respuestas actuales
+        this.finishQuiz();
+    }
+    
+    /**
+     * Detiene el cronómetro (cuando se termina el quiz manualmente)
+     */
+    stopQuizTimer() {
+        if (this.quizTimer) {
+            clearInterval(this.quizTimer);
+            this.quizTimer = null;
+            console.log('⏱️ Cronómetro detenido');
+        }
     }
     
     // ===== YOUTUBE VIDEO PLAYER =====
@@ -2358,6 +4553,7 @@ class ChatOnline {
     }
 }
 
+
 // ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Iniciando Chat Online...');
@@ -2507,7 +4703,119 @@ function showProgressCommands() {
 console.log('🚀 Course Progress System cargado');
 console.log('💡 Escribe showProgressCommands() para ver comandos disponibles');
 
+// Debug del sistema de progreso
+async function debugProgressSystem() {
+    console.log('🔧 === DEBUG PROGRESS SYSTEM ===');
+    
+    // 1. Verificar Progress Manager
+    console.log('1. Progress Manager:', window.courseProgressManager ? '✅ Disponible' : '❌ No disponible');
+    
+    if (!window.courseProgressManager) {
+        console.log('⚠️ CourseProgressManager no está disponible');
+        return;
+    }
+    
+    // 2. Verificar Chat Online
+    console.log('2. Chat Online:', window.chatOnline ? '✅ Disponible' : '❌ No disponible');
+    
+    // 3. Obtener progreso
+    try {
+        console.log('3. Obteniendo progreso...');
+        const progress = await window.courseProgressManager.getCourseProgress(true);
+        console.log('✅ Progreso obtenido:', progress);
+        
+        // 4. Verificar elementos DOM
+        console.log('4. Verificando elementos DOM...');
+        const progressPercentage = document.querySelector('.progress-percentage');
+        const progressFill = document.querySelector('.progress-fill');
+        const progressDots = document.querySelectorAll('.progress-dot');
+        
+        console.log('• Progress percentage element:', progressPercentage ? '✅' : '❌');
+        console.log('• Progress fill element:', progressFill ? '✅' : '❌'); 
+        console.log('• Progress dots count:', progressDots.length);
+        
+        // 5. Forzar actualización UI
+        if (window.chatOnline) {
+            console.log('5. Forzando actualización UI...');
+            window.chatOnline.courseProgress = progress;
+            window.chatOnline.updateProgressUI();
+            console.log('✅ UI actualizada');
+        }
+        
+        // 6. Verificar clases aplicadas
+        console.log('6. Verificando clases de progress dots:');
+        progressDots.forEach((dot, index) => {
+            const classes = Array.from(dot.classList);
+            console.log(`• Dot ${index + 1}:`, classes);
+        });
+        
+    } catch (error) {
+        console.error('❌ Error en debug:', error);
+    }
+}
+
+// Función para inicializar manualmente si no funciona automáticamente  
+async function forceInitializeProgress() {
+    console.log('🚀 Forzando inicialización del progreso...');
+    
+    if (!window.courseProgressManager) {
+        console.error('❌ CourseProgressManager no disponible');
+        return;
+    }
+    
+    try {
+        // Forzar obtención de progreso
+        const progress = await window.courseProgressManager.getCourseProgress(true);
+        console.log('✅ Progreso inicializado:', progress);
+        
+        if (window.chatOnline) {
+            window.chatOnline.courseProgress = progress;
+            window.chatOnline.updateProgressUI();
+            console.log('✅ UI actualizada manualmente');
+        }
+        
+        return progress;
+    } catch (error) {
+        console.error('❌ Error forzando inicialización:', error);
+    }
+}
+
+console.log('🔧 Funciones de debug disponibles:');
+console.log('• debugProgressSystem() - Debug completo del sistema');
+console.log('• forceInitializeProgress() - Forzar inicialización');
+
+// ===== FUNCIÓN GLOBAL INMEDIATA =====
+window.switchTab = function(contentType) {
+    console.log(`🔄 switchTab global inmediato llamado: ${contentType}`);
+    
+    if (window.courseManager && typeof window.courseManager.switchContentTab === 'function') {
+        window.courseManager.switchContentTab(contentType);
+    } else {
+        console.log('⏳ courseManager no disponible aún, guardando para después...');
+        // Guardar la acción para ejecutar cuando esté disponible
+        window.pendingTabSwitch = contentType;
+    }
+};
+
+console.log('✅ window.switchTab definido globalmente');
+
+// ===== INSTANCIACIÓN AUTOMÁTICA =====
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM cargado, instanciando ChatOnline...');
+    window.chatOnlineInstance = new ChatOnline();
+    
+    // Ejecutar acción pendiente si existe
+    if (window.pendingTabSwitch) {
+        console.log(`🔄 Ejecutando acción pendiente: ${window.pendingTabSwitch}`);
+        setTimeout(() => {
+            window.switchTab(window.pendingTabSwitch);
+            window.pendingTabSwitch = null;
+        }, 100);
+    }
+});
+
 // ===== EXPORTAR PARA USO EXTERNO =====
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ChatOnline;
 }
+

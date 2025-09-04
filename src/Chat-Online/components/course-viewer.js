@@ -6,15 +6,15 @@
 class CourseViewer {
     constructor() {
         this.currentCourse = null;
-        this.currentModule = 3;
+        this.currentModule = 1;
         this.modules = [];
         this.resources = [];
         this.notes = [];
         this.progress = {
-            completedModules: [1, 2],
-            currentModule: 3,
+            completedModules: [],
+            currentModule: 1,
             totalModules: 5,
-            overallProgress: 65
+            overallProgress: 0
         };
         
         this.init();
@@ -53,7 +53,8 @@ class CourseViewer {
                 id: 1,
                 title: '¿Qué es la IA?',
                 duration: 15,
-                status: 'completed',
+                status: 'current',
+                progress: 0,
                 description: 'Introducción básica a los conceptos de Inteligencia Artificial',
                 videoUrl: 'https://example.com/video1.mp4',
                 resources: ['intro-ia.pdf', 'conceptos-basicos.md'],
@@ -63,7 +64,7 @@ class CourseViewer {
                 id: 2,
                 title: 'Historia de la IA',
                 duration: 22,
-                status: 'completed',
+                status: 'locked',
                 description: 'Evolución histórica de la Inteligencia Artificial',
                 videoUrl: 'https://example.com/video2.mp4',
                 resources: ['historia-ia.pdf', 'timeline.png'],
@@ -73,8 +74,8 @@ class CourseViewer {
                 id: 3,
                 title: 'Fundamentos del ML',
                 duration: 18,
-                status: 'current',
-                progress: 60,
+                status: 'locked',
+                progress: 0,
                 description: 'Conceptos fundamentales del Machine Learning',
                 videoUrl: 'https://example.com/video3.mp4',
                 resources: ['ml-basics.pdf', 'algorithms-guide.md', 'code-examples.zip'],

@@ -972,7 +972,7 @@ app.get('/api/config', authenticateRequest, (req, res) => {
         res.json({
             openaiModel: process.env.CHATBOT_MODEL || 'gpt-4o-mini',
             maxTokens: process.env.CHATBOT_MAX_TOKENS || 700,
-            temperature: process.env.CHATBOT_TEMPERATURE || 0.7,
+            temperature: process.env.CHATBOT_TEMPERATURE || 0.5,
             audioEnabled: process.env.AUDIO_ENABLED === 'true',
             audioVolume: process.env.AUDIO_VOLUME || 0.7,
             prompts
@@ -2777,10 +2777,7 @@ app.use((error, req, res, next) => {
     res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-// Middleware para rutas no encontradas
-app.use((req, res) => {
-    res.status(404).json({ error: 'Ruta no encontrada' });
-});
+// NOTA: Middleware catch-all movido al final del archivo
 
 // Crear servidor HTTP y configurar Socket.IO
 const server = createServer(app);
@@ -3541,7 +3538,7 @@ Contexto del usuario: ${context || 'No disponible'}`;
                 model: process.env.CHATBOT_MODEL || 'gpt-4o-mini',
                 messages,
                 max_tokens: parseInt(process.env.CHATBOT_MAX_TOKENS || '1000', 10),
-                temperature: parseFloat(process.env.CHATBOT_TEMPERATURE || '0.7'),
+                temperature: parseFloat(process.env.CHATBOT_TEMPERATURE || '0.5'),
                 top_p: 0.9
             })
         });
@@ -3671,7 +3668,56 @@ io.on('connection', (socket) => {
     });
 });
 
+// =====================================================
+// SISTEMA DE CURSOS DINÁMICOS - ENDPOINTS
+// =====================================================
 
+// Importar funciones de cursos
+const coursesApi = require('./api/courses');
+
+// Obtener estructura completa del curso
+app.get('/api/courses/:courseId/full-structure', async (req, res) => {
+    await coursesApi.getCourseFullStructure(req, res);
+});
+
+// Obtener módulo actual del usuario
+app.get('/api/courses/:courseId/current-module/:userId', async (req, res) => {
+    await coursesApi.getCurrentModule(req, res);
+});
+
+// Obtener datos de video de un módulo
+app.get('/api/modules/:moduleId/video-data', async (req, res) => {
+    await coursesApi.getModuleVideoData(req, res);
+});
+
+// Obtener progreso del usuario en un curso
+app.get('/api/users/:userId/progress/:courseId', async (req, res) => {
+    await coursesApi.getUserProgress(req, res);
+});
+
+// Actualizar progreso de video
+app.post('/api/users/:userId/video-progress', async (req, res) => {
+    await coursesApi.updateVideoProgress(req, res);
+});
+
+// Cambiar módulo actual
+app.post('/api/users/:userId/switch-module', async (req, res) => {
+    await coursesApi.switchModule(req, res);
+});
+
+// Obtener todos los videos de un módulo específico
+app.get('/api/modules/:moduleId/videos', async (req, res) => {
+    await coursesApi.getModuleVideos(req, res);
+});
+
+// Cambiar video actual del usuario
+app.post('/api/users/:userId/switch-video', async (req, res) => {
+    await coursesApi.switchVideo(req, res);
+});
+
+// =====================================================
+// FIN ENDPOINTS DE CURSOS
+// =====================================================
 
 // Iniciar servidor
 server.listen(PORT, () => {
@@ -4594,5 +4640,11 @@ function generateZoomSignature(sessionName, roleType) {
     console.log(`🔐 Generando signature mock de Zoom: ${mockSignature}`);
     return mockSignature;
 }
+
+// Middleware para rutas no encontradas (DEBE IR AL FINAL)
+app.use((req, res) => {
+    console.log(`❌ Ruta no encontrada: ${req.method} ${req.path}`);
+    res.status(404).json({ error: 'Ruta no encontrada' });
+});
 
 module.exports = app;

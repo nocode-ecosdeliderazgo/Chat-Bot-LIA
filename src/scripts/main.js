@@ -23,7 +23,7 @@ const CHATBOT_CONFIG = {
         apiKey: null, // Se cargará dinámicamente
         model: 'gpt-4',
         maxTokens: 1000,
-        temperature: 0.7
+        temperature: 0.5
     },
     // Configuración de base de datos (se cargará desde variables de entorno)
     database: {
@@ -1488,7 +1488,7 @@ async function initializeSecurity() {
             const config = await configResponse.json();
             CHATBOT_CONFIG.openai.model = config.openaiModel || 'gpt-4';
             CHATBOT_CONFIG.openai.maxTokens = config.maxTokens || 1000;
-            CHATBOT_CONFIG.openai.temperature = config.temperature || 0.7;
+            CHATBOT_CONFIG.openai.temperature = config.temperature || 0.5;
             CHATBOT_CONFIG.audioEnabled = config.audioEnabled !== false;
             console.log('Configuración cargada de forma segura');
         } else {

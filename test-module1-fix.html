@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Module 1 Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-btn:hover {
+            background: #0056b3;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Test Module 1 Fix</h1>
+    
+    <div class="test-section">
+        <h2>1. Verificar Función loadVideo</h2>
+        <button class="test-btn" onclick="testLoadVideo()">Probar loadVideo</button>
+        <button class="test-btn" onclick="testLoadVideoFunction()">Verificar si existe</button>
+        <div class="log" id="loadVideoLog"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Simular Selección de Video</h2>
+        <button class="test-btn" onclick="testVideoSelection()">Simular Selección</button>
+        <div class="log" id="selectionLog"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Verificar Console Logs</h2>
+        <p>Revisa la consola del navegador para ver los logs detallados</p>
+        <button class="test-btn" onclick="clearLogs()">Limpiar Logs</button>
+    </div>
+
+    <script>
+        // Función para agregar logs
+        function addLog(containerId, message) {
+            const container = document.getElementById(containerId);
+            const timestamp = new Date().toLocaleTimeString();
+            container.textContent += `[${timestamp}] ${message}\n`;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Función para limpiar logs
+        function clearLogs() {
+            document.querySelectorAll('.log').forEach(log => {
+                log.textContent = '';
+            });
+        }
+
+        // Test 1: Verificar función loadVideo
+        function testLoadVideoFunction() {
+            addLog('loadVideoLog', '🔍 Verificando función loadVideo...');
+            
+            if (typeof loadVideo === 'function') {
+                addLog('loadVideoLog', '✅ Función loadVideo está disponible');
+                addLog('loadVideoLog', `📝 Tipo: ${typeof loadVideo}`);
+                addLog('loadVideoLog', `🔗 Función: ${loadVideo.toString().substring(0, 100)}...`);
+            } else {
+                addLog('loadVideoLog', '❌ Función loadVideo NO está disponible');
+                addLog('loadVideoLog', '🔍 Buscando en window...');
+                
+                if (window.loadVideo) {
+                    addLog('loadVideoLog', '✅ Función loadVideo encontrada en window');
+                } else {
+                    addLog('loadVideoLog', '❌ Función loadVideo no encontrada en window');
+                }
+            }
+        }
+
+        // Test 2: Probar función loadVideo
+        function testLoadVideo() {
+            addLog('loadVideoLog', '🎬 Probando función loadVideo...');
+            
+            try {
+                if (typeof loadVideo === 'function') {
+                    // Simular llamada a loadVideo
+                    loadVideo('test-video-id', 'Video de Prueba', '3:45');
+                    addLog('loadVideoLog', '✅ Función loadVideo llamada exitosamente');
+                } else {
+                    addLog('loadVideoLog', '❌ No se puede probar: función loadVideo no disponible');
+                }
+            } catch (error) {
+                addLog('loadVideoLog', `❌ Error al llamar loadVideo: ${error.message}`);
+            }
+        }
+
+        // Test 3: Simular selección de video
+        function testVideoSelection() {
+            addLog('selectionLog', '🎯 Simulando selección de video...');
+            
+            // Crear un video de prueba
+            const testVideo = {
+                id: 'test-video-1',
+                video_title: 'Video de Prueba',
+                youtube_video_id: 'test-youtube-id',
+                duration_seconds: 225,
+                description: 'Descripción de prueba'
+            };
+            
+            addLog('selectionLog', `📹 Video de prueba creado:`);
+            addLog('selectionLog', `   - ID: ${testVideo.id}`);
+            addLog('selectionLog', `   - Título: ${testVideo.video_title}`);
+            addLog('selectionLog', `   - YouTube ID: ${testVideo.youtube_video_id}`);
+            
+            // Simular la lógica de selección
+            try {
+                if (typeof loadVideo === 'function') {
+                    loadVideo(testVideo.youtube_video_id, testVideo.video_title, '3:45');
+                    addLog('selectionLog', '✅ Video cargado usando loadVideo');
+                } else {
+                    addLog('selectionLog', '❌ Función loadVideo no disponible para cargar video');
+                }
+            } catch (error) {
+                addLog('selectionLog', `❌ Error al cargar video: ${error.message}`);
+            }
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('loadVideoLog', '🚀 Página cargada, verificando funciones...');
+            testLoadVideoFunction();
+        });
+    </script>
+</body>
+</html>
