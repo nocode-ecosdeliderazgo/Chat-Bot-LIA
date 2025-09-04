@@ -1,282 +1,110 @@
-# PROMPT PARA CLAUDE - IMPLEMENTACIÓN BOTÓN COMUNIDAD
+# PROMPT PARA INTEGRAR MODO CLARO EN PÁGINA DE NOTICIAS
 
-## OBJETIVO
-Implementar paso a paso un botón de "Comunidad" en la página `chat-online.html` que funcione de manera similar a los botones de "Transcripción" y "Resumen" existentes.
+## CONTEXTO
+Necesito integrar un modo claro en la página de noticias (`src/Notices/notices.html` y `src/Notices/notices.css`) tomando como referencia la implementación existente en otras páginas como `community.html` y `cursos.html`. La página de noticias actualmente solo tiene modo oscuro y necesita mantener la misma estructura de tarjetas, imágenes y navbar.
 
-## ANÁLISIS DEL CÓDIGO ACTUAL
+## ANÁLISIS DE LA IMPLEMENTACIÓN ACTUAL
 
-### 1. ESTRUCTURA HTML (Líneas 450-480)
-Los botones de transcripción y resumen están en la sección `.content-tabs`:
+### Estructura de la página de noticias:
+- **HTML**: `src/Notices/notices.html` - Página completa con navbar, hero section, secciones de noticias destacadas, categorías, últimas noticias y newsletter
+- **CSS**: `src/Notices/notices.css` - Estilos completos con variables CSS, glassmorphism, partículas de fondo
+- **Elementos clave**: 
+  - Navbar con pestañas (course-tabs)
+  - Perfil de usuario (header-profile, profile-menu)
+  - Hero section con estadísticas
+  - Tarjetas de noticias destacadas (featured-card)
+  - Categorías (category-card)
+  - Grid de noticias (news-item)
+  - Newsletter section
+  - Overlays de búsqueda y loading
 
-```html
-<div class="content-tabs">
-    <button class="tab-btn active" data-content="transcript">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14,2 14,8 20,8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <line x1="3" y1="6" x2="3.01" y2="6"/>
-            <line x1="3" y1="12" x2="3.01" y2="12"/>
-            <line x1="3" y1="18" x2="3.01" y2="18"/>
-        </svg>
-        Transcripción
-    </button>
-    <button class="tab-btn" data-content="summary">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="8" y1="6" x2="21" y2="6"/>
-            <line x1="8" y1="12" x2="21" y2="12"/>
-            <line x1="8" y1="18" x2="21" y2="18"/>
-            <line x1="3" y1="6" x2="3.01" y2="6"/>
-            <line x1="3" y1="12" x2="3.01" y2="12"/>
-            <line x1="3" y1="18" x2="3.01" y2="18"/>
-        </svg>
-        Resumen
-    </button>
-    <button class="tab-btn" data-content="quiz">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
-        </svg>
-        Quiz
-    </button>
-</div>
-```
+### Implementación de tema en otras páginas:
+- **Sistema de variables**: Uso de `[data-theme="light"]` y `[data-theme="dark"]` para definir estilos
+- **Colores del modo claro**:
+  - `--text-primary: #2D3748` (texto principal)
+  - `--text-secondary: rgba(45, 55, 72, 0.8)` (texto secundario)
+  - `--text-muted: rgba(45, 55, 72, 0.6)` (texto atenuado)
+  - `--bg-primary: #E6F3FF` (fondo principal)
+  - `--bg-secondary: #D4E6F1` (fondo secundario)
+  - `--card-bg: rgba(255,255,255,.85)` (fondo de tarjetas)
+  - `--card-border: rgba(68,229,255,.15)` (bordes de tarjetas)
+- **Scripts necesarios**: `theme-manager.js`, `theme-toggle.js`, `global-theme-setup.js`
 
-### 2. ESTILOS CSS (Líneas 939-980)
-Los estilos están definidos en `.content-tabs` y `.tab-btn`:
+## TAREAS A REALIZAR
 
+### 1. MODIFICAR `notices.html`
+- [ ] Agregar el botón de toggle de tema en el menú de perfil (igual que en community.html)
+- [ ] Incluir los scripts necesarios para el manejo de temas
+- [ ] Asegurar que el HTML tenga la estructura correcta para el sistema de temas
+
+### 2. MODIFICAR `notices.css`
+- [ ] Agregar variables CSS para modo claro siguiendo el patrón de otras páginas
+- [ ] Implementar estilos específicos para `[data-theme="light"]` para todos los elementos:
+  - **Fondo general**: Cambiar gradiente de fondo oscuro a claro
+  - **Navbar (course-tabs)**: Fondo blanco con bordes azules
+  - **Perfil de usuario**: Menú con fondo blanco y texto oscuro
+  - **Hero section**: Fondo claro con texto oscuro
+  - **Tarjetas de noticias**: Fondo blanco con bordes sutiles
+  - **Categorías**: Mismo estilo de tarjetas claras
+  - **Newsletter**: Fondo claro con formulario visible
+  - **Overlays**: Búsqueda y loading con fondos claros
+  - **Partículas**: Reducir opacidad en modo claro
+
+### 3. ELEMENTOS ESPECÍFICOS A ADAPTAR
+
+#### Navbar y navegación:
 ```css
-.content-tabs {
-    display: flex;
-    gap: 0.5rem;
-    border-bottom: var(--glass-border-subtle);
-    padding-bottom: 1rem;
-}
-
-.tab-btn {
-    background: transparent;
-    border: none;
-    color: var(--glass-text-secondary);
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.95rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    min-height: 44px;
-}
-
-.tab-btn.active {
-    background: var(--glass-primary);
-    color: var(--glass-text-dark);
+[data-theme="light"] .course-tabs {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 102, 204, 0.15) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
 }
 ```
 
-### 3. FUNCIONALIDAD JAVASCRIPT (Líneas 584-650)
-La lógica está en `setupContentTabs()` y `updateContentArea()`:
-
-```javascript
-setupContentTabs() {
-    const tabButtons = document.querySelectorAll('.content-tabs .tab-btn');
-    
-    tabButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            const contentType = e.currentTarget.dataset.content;
-            console.log(`📄 Cambiando contenido a: ${contentType}`);
-            this.switchContentTab(contentType);
-        });
-    });
-}
-
-updateContentArea(contentType) {
-    const contentArea = document.querySelector('.content-area');
-    if (!contentArea) return;
-    
-    switch(contentType) {
-        case 'transcript':
-            contentArea.innerHTML = `
-                <div class="transcript-content">
-                    ${this.getModuleTranscript(this.currentModule)}
-                </div>
-            `;
-            break;
-        case 'summary':
-            contentArea.innerHTML = `
-                <div class="summary-content">
-                    <h4>Resumen del Módulo</h4>
-                    <ul>
-                        <li>Conceptos fundamentales de redes neuronales</li>
-                        <li>Perceptrones simples y su funcionamiento</li>
-                        <li>Funciones de activación (sigmoid, tanh, ReLU)</li>
-                        <li>Aplicaciones prácticas en IA</li>
-                    </ul>
-                </div>
-            `;
-            break;
-        case 'community':
-            contentArea.innerHTML = `
-                <div class="community-content">
-                    <h4>Comunidad de Aprendizaje</h4>
-                    <div class="community-features">
-                        <div class="community-section">
-                            <h5>📚 Foros de Discusión</h5>
-                            <p>Comparte ideas y resuelve dudas con otros estudiantes</p>
-                        </div>
-                        <div class="community-section">
-                            <h5>🤝 Grupos de Estudio</h5>
-                            <p>Únete a grupos según tu nivel y intereses</p>
-                        </div>
-                        <div class="community-section">
-                            <h5>💡 Proyectos Colaborativos</h5>
-                            <p>Participa en proyectos de IA con la comunidad</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            break;
-    }
-}
-```
-
-## IMPLEMENTACIÓN PASO A PASO
-
-### PASO 1: AGREGAR EL BOTÓN HTML
-Agregar el botón de "Comunidad" después del botón de "Quiz":
-
-```html
-<button class="tab-btn" data-content="community">
-    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-    </svg>
-    Comunidad
-</button>
-```
-
-### PASO 2: ACTUALIZAR LA FUNCIÓN JAVASCRIPT
-Modificar `updateContentArea()` para incluir el caso de "community":
-
-```javascript
-updateContentArea(contentType) {
-    const contentArea = document.querySelector('.content-area');
-    if (!contentArea) return;
-    
-    switch(contentType) {
-        case 'transcript':
-            contentArea.innerHTML = `
-                <div class="transcript-content">
-                    ${this.getModuleTranscript(this.currentModule)}
-                </div>
-            `;
-            break;
-        case 'summary':
-            contentArea.innerHTML = `
-                <div class="summary-content">
-                    <h4>Resumen del Módulo</h4>
-                    <ul>
-                        <li>Conceptos fundamentales de redes neuronales</li>
-                        <li>Perceptrones simples y su funcionamiento</li>
-                        <li>Funciones de activación (sigmoid, tanh, ReLU)</li>
-                        <li>Aplicaciones prácticas en IA</li>
-                    </ul>
-                </div>
-            `;
-            break;
-        case 'community':
-            contentArea.innerHTML = `
-                <div class="community-content">
-                    <h4>Comunidad de Aprendizaje</h4>
-                    <div class="community-features">
-                        <div class="community-section">
-                            <h5>📚 Foros de Discusión</h5>
-                            <p>Comparte ideas y resuelve dudas con otros estudiantes</p>
-                        </div>
-                        <div class="community-section">
-                            <h5>🤝 Grupos de Estudio</h5>
-                            <p>Únete a grupos según tu nivel y intereses</p>
-                        </div>
-                        <div class="community-section">
-                            <h5>💡 Proyectos Colaborativos</h5>
-                            <p>Participa en proyectos de IA con la comunidad</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            break;
-    }
-}
-```
-
-### PASO 3: AGREGAR ESTILOS CSS (OPCIONAL)
-Si se desea personalizar el contenido de la comunidad, agregar estilos específicos:
-
+#### Tarjetas de noticias:
 ```css
-.community-content {
-    color: var(--glass-text-secondary);
-    line-height: 1.6;
-}
-
-.community-features {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    margin-top: 1rem;
-}
-
-.community-section {
-    background: rgba(68, 229, 255, 0.05);
-    border: 1px solid rgba(68, 229, 255, 0.1);
-    border-radius: 8px;
-    padding: 1rem;
-    transition: all 0.3s ease;
-}
-
-.community-section:hover {
-    background: rgba(68, 229, 255, 0.08);
-    border-color: rgba(68, 229, 255, 0.2);
-}
-
-.community-section h5 {
-    color: var(--glass-primary);
-    margin-bottom: 0.5rem;
-    font-size: 1rem;
-}
-
-.community-section p {
-    margin: 0;
-    color: var(--glass-text-secondary);
-    font-size: 0.9rem;
+[data-theme="light"] .featured-card,
+[data-theme="light"] .category-card,
+[data-theme="light"] .news-item {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid rgba(68, 229, 255, 0.15) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
 }
 ```
 
-## INSTRUCCIONES PARA CLAUDE
+#### Títulos y texto:
+```css
+[data-theme="light"] .hero-title,
+[data-theme="light"] .section-title {
+    color: #2D3748 !important;
+    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+}
+```
 
-1. **PRIMERO**: Analiza el código actual en `chat-online.html` para entender la estructura exacta
-2. **SEGUNDO**: Agrega el botón de "Comunidad" en la sección `.content-tabs` después del botón "Quiz"
-3. **TERCERO**: Modifica la función `updateContentArea()` en `chat-online.js` para incluir el caso "community"
-4. **CUARTO**: Verifica que el botón funcione correctamente al hacer clic
-5. **QUINTO**: Asegúrate de que el contenido de la comunidad se muestre correctamente en el área de contenido
+### 4. CONSIDERACIONES TÉCNICAS
+- **Especificidad CSS**: Usar `!important` donde sea necesario para sobrescribir estilos existentes
+- **Transiciones**: Mantener las transiciones suaves entre temas
+- **Consistencia**: Seguir exactamente el patrón de colores y estilos de las otras páginas
+- **Responsive**: Asegurar que el modo claro funcione en todas las resoluciones
+- **Accesibilidad**: Mantener contraste adecuado en modo claro
 
-## CONSIDERACIONES IMPORTANTES
+### 5. ESTRUCTURA DE IMPLEMENTACIÓN
+1. **Variables CSS**: Definir todas las variables para modo claro al inicio del archivo
+2. **Estilos base**: Aplicar estilos generales (body, fondo, partículas)
+3. **Componentes**: Estilos específicos para cada componente (navbar, tarjetas, etc.)
+4. **Estados**: Hover, active, focus para modo claro
+5. **Responsive**: Media queries para modo claro
 
-- Mantén la consistencia visual con los otros botones
-- Usa el mismo patrón de datos (`data-content="community"`)
-- El icono SVG debe ser apropiado para "comunidad" (grupo de personas)
-- El contenido debe ser relevante para una comunidad de aprendizaje de IA
-- Mantén el mismo estilo de transiciones y estados activos
+## RESULTADO ESPERADO
+Una página de noticias que mantenga exactamente la misma estructura y funcionalidad, pero con un modo claro que sea consistente con el resto de la aplicación, permitiendo a los usuarios alternar entre modo oscuro y claro usando el botón en el menú de perfil.
 
-## VERIFICACIÓN FINAL
+## ARCHIVOS A MODIFICAR
+- `src/Notices/notices.html` - Agregar botón de tema y scripts
+- `src/Notices/notices.css` - Implementar estilos de modo claro
 
-Después de implementar:
-1. El botón debe aparecer visualmente igual a los otros
-2. Al hacer clic debe cambiar a estado activo
-3. El contenido de la comunidad debe mostrarse en el área de contenido
-4. Los otros botones deben seguir funcionando normalmente
-5. El diseño debe ser responsive y mantener la estética glassmorphism
+## REFERENCIAS
+- `src/Community/community.css` - Líneas 2706-3500+ (implementación completa de modo claro)
+- `src/styles/cursos.css` - Líneas 21-100 (variables y estilos de modo claro)
+- `src/Community/community.html` - Líneas 62-66 (botón de toggle de tema)

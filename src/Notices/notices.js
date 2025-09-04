@@ -804,12 +804,33 @@ function setupProfileMenuImmediate() {
             e.preventDefault();
             e.stopPropagation();
             
-            // Método directo - forzar estilos inline
+            // Método directo - aplicar estilos según el tema actual
             if(menu.style.display === 'block') {
                 menu.style.display = 'none';
                 console.log('Menu hidden');
             } else {
-                menu.style.cssText = `
+                // Detectar el tema actual
+                const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light' || 
+                                   document.body.getAttribute('data-theme') === 'light';
+                
+                // Aplicar estilos según el tema
+                const lightStyles = `
+                    position: fixed !important;
+                    top: 76px !important;
+                    right: 20px !important;
+                    width: 260px !important;
+                    background: rgba(255, 255, 255, 0.96) !important;
+                    border: 1px solid rgba(0, 102, 204, 0.18) !important;
+                    border-radius: 14px !important;
+                    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.1) !important;
+                    backdrop-filter: blur(10px) !important;
+                    z-index: 99999 !important;
+                    display: block !important;
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                `;
+                
+                const darkStyles = `
                     position: fixed !important;
                     top: 76px !important;
                     right: 20px !important;
@@ -824,7 +845,9 @@ function setupProfileMenuImmediate() {
                     opacity: 1 !important;
                     visibility: visible !important;
                 `;
-                console.log('Menu shown with forced styles');
+                
+                menu.style.cssText = isLightTheme ? lightStyles : darkStyles;
+                console.log('Menu shown with theme-aware styles:', isLightTheme ? 'light' : 'dark');
             }
         });
         
@@ -837,6 +860,60 @@ function setupProfileMenuImmediate() {
         
         // Cargar datos del usuario
         loadUserDataIntoMenu();
+        
+        // Escuchar cambios de tema para actualizar el menú si está abierto
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                    // Si el menú está abierto, actualizar sus estilos
+                    if (menu.style.display === 'block') {
+                        const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light' || 
+                                           document.body.getAttribute('data-theme') === 'light';
+                        
+                        const lightStyles = `
+                            position: fixed !important;
+                            top: 76px !important;
+                            right: 20px !important;
+                            width: 260px !important;
+                            background: rgba(255, 255, 255, 0.96) !important;
+                            border: 1px solid rgba(0, 102, 204, 0.18) !important;
+                            border-radius: 14px !important;
+                            box-shadow: 0 18px 46px rgba(0, 0, 0, 0.1) !important;
+                            backdrop-filter: blur(10px) !important;
+                            z-index: 99999 !important;
+                            display: block !important;
+                            opacity: 1 !important;
+                            visibility: visible !important;
+                        `;
+                        
+                        const darkStyles = `
+                            position: fixed !important;
+                            top: 76px !important;
+                            right: 20px !important;
+                            width: 260px !important;
+                            background: rgba(10,16,28,0.96) !important;
+                            border: 1px solid rgba(68,229,255,0.18) !important;
+                            border-radius: 14px !important;
+                            box-shadow: 0 18px 46px rgba(0,0,0,0.45) !important;
+                            backdrop-filter: blur(10px) !important;
+                            z-index: 99999 !important;
+                            display: block !important;
+                            opacity: 1 !important;
+                            visibility: visible !important;
+                        `;
+                        
+                        menu.style.cssText = isLightTheme ? lightStyles : darkStyles;
+                        console.log('Menu styles updated for theme:', isLightTheme ? 'light' : 'dark');
+                    }
+                }
+            });
+        });
+        
+        // Observar cambios en el atributo data-theme del documentElement
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme']
+        });
         
         console.log('Profile menu setup completed successfully!');
     } else {
