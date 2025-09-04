@@ -119,21 +119,189 @@ body {
     -ms-overflow-style: none;
 }
 
-/* Avatar + dropdown replicado de cursos */
-.header-profile { position: fixed; top: 12px; right: 20px; z-index: 1001; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(68,229,255,.35); padding: 0; background: rgba(7,17,36,.4); cursor:pointer; display: block; }
-.header-profile:hover { filter: brightness(1.05); }
-.header-profile img { width: 100%; height: 100%; object-fit: cover; display:block; }
-.profile-menu { position: fixed; top: 76px; right: 20px; width: 260px; background: rgba(10,16,28,.96); border:1px solid rgba(68,229,255,.18); border-radius: 14px; box-shadow: 0 18px 46px rgba(0,0,0,.45); backdrop-filter: blur(10px); display:none; z-index: 1002; overflow: hidden; }
-.profile-menu.show { display:block; }
-.profile-menu .pm-header { display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid rgba(68,229,255,.12); }
-.profile-menu .pm-avatar { width:36px; height:36px; border-radius:50%; overflow:hidden; border:1px solid rgba(68,229,255,.25); }
-.profile-menu .pm-avatar img { width:100%; height:100%; object-fit:cover; }
-.profile-menu .pm-name { font-weight:700; font-size:14px; }
-.profile-menu .pm-email { font-size:12px; color:#8fb2bf; }
-.profile-menu .pm-section { border-top:1px solid rgba(68,229,255,.08); }
-.profile-menu .pm-item { display:flex; align-items:center; gap:10px; padding:12px 14px; cursor:pointer; }
-.profile-menu .pm-item:hover { background: rgba(68,229,255,.08); }
-.profile-menu .pm-item i { color: #44e5ff; }
+/* ===== PROFILE MENU STYLES ===== */
+
+/* Botón Perfil dentro del header */
+.header-profile { 
+    position: fixed !important; 
+    top: 12px !important;
+    right: 16px !important; 
+    left: auto !important;
+    z-index: 1001; 
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(68,229,255,.35);
+    padding: 0;
+    background: rgba(7,17,36,.4);
+    cursor: pointer;
+    display: block;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Efecto de relleno deslizante para header-profile */
+.header-profile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(68,229,255,.15);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+    border-radius: 50%;
+}
+
+.header-profile:hover::before {
+    left: 0;
+}
+
+.header-profile:hover { 
+    border-color: var(--turq);
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(68,229,255,.3);
+}
+
+.header-profile img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    display: block; 
+}
+
+.header-profile:active {
+    transform: translateY(-1px) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+.header-profile:focus {
+    outline: none;
+    box-shadow: 
+        0 0 0 3px rgba(68, 229, 255, 0.3),
+        0 8px 25px rgba(68, 229, 255, 0.4);
+}
+
+/* Mejora específica para la comunidad: avatar más grande con aro azul */
+.bg-glow-global .header-profile {
+    position: fixed !important;
+    top: 12px !important;
+    right: 16px !important;
+    left: auto !important;
+    width: 56px;
+    height: 56px;
+    border: 2px solid rgba(68,229,255,.55);
+    background: rgba(7,17,36,.5);
+    box-shadow: 0 0 0 3px rgba(68,229,255,.22), 0 10px 24px rgba(0,0,0,.45);
+}
+
+/* Dropdown del avatar */
+.profile-menu { 
+    position: fixed !important; 
+    top: 76px !important; 
+    right: 16px !important; 
+    left: auto !important;
+    width: 260px; 
+    background: rgba(10,16,28,.96); 
+    border: 1px solid rgba(68,229,255,.18); 
+    border-radius: 14px; 
+    box-shadow: 0 18px 46px rgba(0,0,0,.45); 
+    backdrop-filter: blur(10px); 
+    display: none; 
+    z-index: 1002; 
+    overflow: hidden; 
+}
+
+.profile-menu.show { 
+    display: block; 
+}
+
+.profile-menu .pm-header { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    padding: 12px 14px; 
+    border-bottom: 1px solid rgba(68,229,255,.12); 
+}
+
+.profile-menu .pm-avatar { 
+    width: 36px; 
+    height: 36px; 
+    border-radius: 50%; 
+    overflow: hidden; 
+    border: 1px solid rgba(68,229,255,.25); 
+}
+
+.profile-menu .pm-avatar img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+}
+
+.profile-menu .pm-name { 
+    font-weight: 700; 
+    font-size: 14px; 
+    color: #fff;
+}
+
+.profile-menu .pm-email { 
+    font-size: 12px; 
+    color: #8fb2bf; 
+}
+
+.profile-menu .pm-section { 
+    border-top: 1px solid rgba(68,229,255,.08); 
+}
+
+.profile-menu .pm-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    padding: 12px 14px; 
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    color: #fff;
+}
+
+/* Efecto de relleno deslizante para pm-item */
+.profile-menu .pm-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(68,229,255,.08);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.profile-menu .pm-item:hover::before {
+    left: 0;
+}
+
+.profile-menu .pm-item:hover { 
+    transform: translateX(4px);
+}
+
+.profile-menu .pm-item i { 
+    color: var(--turq); 
+}
+
+.profile-menu .pm-item:active {
+    transform: translateY(-1px) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+.profile-menu .pm-item:focus {
+    outline: none;
+    box-shadow: 
+        0 0 0 3px rgba(68, 229, 255, 0.3),
+        0 8px 25px rgba(68, 229, 255, 0.4);
+}
 
 .course-tabs::-webkit-scrollbar {
     display: none;
@@ -401,7 +569,7 @@ body {
 .discover-title { font-weight:800; }
 .discover-meta { color:#9bdcf0; font-size:.9rem; margin-top:6px; display:flex; gap:12px; align-items:center; }
 .dot { width:4px; height:4px; border-radius:50%; background:#7fd8f3; display:inline-block; }
-.discover-desc { color:#cfefff; margin-top:6px; }
+.discover-desc { color:#e2f4ff; margin-top:6px; }
 
 /* ===== COMMUNITY BANNER ===== */
 .community-banner {
@@ -2339,7 +2507,7 @@ body {
 }
 
 .guideline-description {
-    color: var(--text-secondary);
+    color: var(--text-primary);
     line-height: 1.6;
 }
 
@@ -2756,21 +2924,16 @@ body {
     box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
 }
 
-/* Profile Menu en modo claro */
-[data-theme="light"] .header-profile {
-    background: rgba(255, 255, 255, 0.9) !important;
-    border: 1px solid rgba(0, 102, 204, 0.2) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
-}
-
+/* Light mode styles for profile menu */
 [data-theme="light"] .profile-menu {
-    background: rgba(255, 255, 255, 0.98) !important;
-    border: 1px solid rgba(0, 102, 204, 0.2) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(68, 229, 255, 0.2) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
 }
 
 [data-theme="light"] .pm-header {
-    border-bottom: 1px solid rgba(0, 102, 204, 0.1) !important;
+    border-bottom: 1px solid rgba(68, 229, 255, 0.1) !important;
 }
 
 [data-theme="light"] .pm-name {
@@ -2785,9 +2948,12 @@ body {
     color: #2D3748 !important;
 }
 
-[data-theme="light"] .pm-item:hover {
-    background: rgba(0, 102, 204, 0.1) !important;
-    color: #0066CC !important;
+[data-theme="light"] .pm-section {
+    border-top: 1px solid rgba(68, 229, 255, 0.08) !important;
+}
+
+[data-theme="light"] .pm-item:hover::before {
+    background: rgba(68, 229, 255, 0.05) !important;
 }
 
 /* Hero Section en modo claro */
@@ -2860,7 +3026,7 @@ body {
 }
 
 [data-theme="light"] .guideline-description {
-    color: #4A5568 !important;
+    color: #2D3748 !important;
 }
 
 /* Discover Section en modo claro */
@@ -2913,6 +3079,35 @@ body {
     color: white !important;
     border-color: #0066CC !important;
     box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
+}
+
+/* Tarjetas de comunidad en modo claro */
+[data-theme="light"] .discover-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 102, 204, 0.15) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .discover-card:hover {
+    border-color: rgba(0, 102, 204, 0.3) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+}
+
+[data-theme="light"] .discover-title {
+    color: #1A202C !important;
+}
+
+[data-theme="light"] .discover-desc {
+    color: #2D3748 !important;
+}
+
+[data-theme="light"] .discover-meta {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] .discover-icon {
+    background: radial-gradient(circle at 30% 30%, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.1)) !important;
+    color: #0066CC !important;
 }
 
 /* Loading Overlay en modo claro */
@@ -2995,64 +3190,6 @@ body {
     transform: translateX(-2px);
 }
 
-/* ===== BOTÓN DE CAMBIO DE TEMA ===== */
-
-.theme-toggle-btn {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: rgba(68, 229, 255, 0.1);
-    border: 1px solid rgba(68, 229, 255, 0.25);
-    color: #44e5ff;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    z-index: 1000;
-    backdrop-filter: blur(10px);
-}
-
-.theme-toggle-btn:hover {
-    background: rgba(68, 229, 255, 0.2);
-    border-color: #44e5ff;
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(68, 229, 255, 0.3);
-}
-
-.theme-toggle-btn:active {
-    transform: scale(0.95);
-}
-
-.theme-toggle-btn svg {
-    position: absolute;
-    transition: all 0.3s ease;
-}
-
-.theme-icon-sun {
-    opacity: 1;
-    transform: rotate(0deg);
-}
-
-.theme-icon-moon {
-    opacity: 0;
-    transform: rotate(-90deg);
-}
-
-[data-theme="light"] .theme-toggle-btn {
-    background: rgba(0, 102, 204, 0.1);
-    border: 1px solid rgba(0, 102, 204, 0.25);
-    color: #0066CC;
-}
-
-[data-theme="light"] .theme-toggle-btn:hover {
-    background: rgba(0, 102, 204, 0.2);
-    border-color: #0066CC;
-    box-shadow: 0 0 20px rgba(0, 102, 204, 0.3);
-}
 
 /* Botón de regreso en modo claro */
 [data-theme="light"] .back-btn {

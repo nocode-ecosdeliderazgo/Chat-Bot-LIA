@@ -771,17 +771,15 @@ body.bg-glow-global .catalog-header .course-tabs {
         0 0 0 1px rgba(68, 229, 255, 0.2);
 }
 
-.tab-button.active {
-    background: linear-gradient(135deg, 
-        rgba(68, 229, 255, 0.25) 0%, 
-        rgba(68, 229, 255, 0.15) 100%);
-    color: var(--course-accent, var(--turq));
-    box-shadow: 
-        0 4px 12px rgba(68, 229, 255, 0.3),
-        0 0 0 1px rgba(68, 229, 255, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    transform: translateY(-1px);
-    font-weight: 600;
+/* Estilos específicos para apps-directory con máxima prioridad */
+.bg-glow-global .catalog-header .course-tabs .tab-button.active,
+.auth-container .catalog-header .course-tabs .tab-button.active,
+body.bg-glow-global .tab-button.active {
+    background: #0066CC !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
+    transform: translateY(-1px) !important;
+    font-weight: 600 !important;
 }
 
 .tab-button i {
@@ -793,9 +791,13 @@ body.bg-glow-global .catalog-header .course-tabs {
     transform: scale(1.05);
 }
 
-.tab-button.active i {
-    transform: scale(1.05);
-    filter: drop-shadow(0 0 6px rgba(68, 229, 255, 0.5));
+/* Iconos de pestañas activas con máxima prioridad */
+.bg-glow-global .catalog-header .course-tabs .tab-button.active i,
+.auth-container .catalog-header .course-tabs .tab-button.active i,
+body.bg-glow-global .tab-button.active i {
+    transform: scale(1.05) !important;
+    color: white !important;
+    filter: drop-shadow(0 0 6px rgba(0, 102, 204, 0.5)) !important;
 }
 
 /* ===== PROFILE MENU STYLES ===== */
@@ -1008,6 +1010,97 @@ body.bg-glow-global .catalog-header .course-tabs {
 
 [data-theme="light"] .pm-item:hover::before {
     background: rgba(68, 229, 255, 0.05) !important;
+}
+
+/* ===== ESTILOS DE ALTA ESPECIFICIDAD PARA COLORES AZULES ===== */
+
+/* Botones outline con azul sólido */
+.bg-glow-global .btn-outline,
+.auth-container .btn-outline,
+body.bg-glow-global .btn-outline { 
+    border: 2px solid #0066CC !important; 
+    background: transparent !important; 
+    color: #0066CC !important; 
+}
+
+.bg-glow-global .btn-outline:hover,
+.auth-container .btn-outline:hover,
+body.bg-glow-global .btn-outline:hover { 
+    background: #0066CC !important;
+    color: white !important; 
+    border-color: #0066CC !important;
+}
+
+/* Etiquetas (tags) con azul sólido para consistencia */
+.bg-glow-global .app-tag,
+.auth-container .app-tag,
+body.bg-glow-global .app-tag { 
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important; 
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+}
+
+/* Filtros de categorías con azul sólido */
+.bg-glow-global .cat-tab,
+.auth-container .cat-tab,
+body.bg-glow-global .cat-tab { 
+    border: 2px solid #0066CC !important; 
+    background: transparent !important; 
+    color: #0066CC !important; 
+}
+
+.bg-glow-global .cat-tab:hover,
+.auth-container .cat-tab:hover,
+body.bg-glow-global .cat-tab:hover { 
+    background: #0066CC !important;
+    color: white !important; 
+    border-color: #0066CC !important;
+}
+
+.bg-glow-global .cat-tab.active,
+.auth-container .cat-tab.active,
+body.bg-glow-global .cat-tab.active { 
+    background: #0066CC !important; 
+    color: white !important; 
+    border-color: #0066CC !important;
+}
+
+/* Botones descubrir en tarjetas con azul sólido */
+.bg-glow-global .discover-btn,
+.auth-container .discover-btn,
+body.bg-glow-global .discover-btn { 
+    border: 2px solid #0066CC !important; 
+    background: transparent !important; 
+    color: #0066CC !important; 
+}
+
+.bg-glow-global .discover-btn:hover,
+.auth-container .discover-btn:hover,
+body.bg-glow-global .discover-btn:hover { 
+    background: #0066CC !important;
+    color: white !important; 
+    border-color: #0066CC !important;
+}
+
+/* Efecto de relleno deslizante con azul sólido para botones descubrir */
+.bg-glow-global .discover-btn::before,
+.auth-container .discover-btn::before,
+body.bg-glow-global .discover-btn::before { 
+    background: #0066CC !important;
+}
+
+/* Efecto de relleno deslizante con azul sólido para botones outline */
+.bg-glow-global .btn-outline::before,
+.auth-container .btn-outline::before,
+body.bg-glow-global .btn-outline::before { 
+    background: #0066CC !important;
+}
+
+/* Efecto de relleno deslizante con azul sólido para filtros de categorías */
+.bg-glow-global .cat-tab::before,
+.auth-container .cat-tab::before,
+body.bg-glow-global .cat-tab::before { 
+    background: #0066CC !important;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
@@ -1271,8 +1364,14 @@ body.bg-glow-global .catalog-header .course-tabs {
 }
 
 /* Estilos para hero en modo claro */
-[data-theme="light"] .hero-copy h1 {
-    color: #2D3748 !important;
+/* Títulos tema claro con máxima especificidad */
+[data-theme="light"] .bg-glow-global .hero-copy h1,
+[data-theme="light"] .auth-container .hero-copy h1,
+[data-theme="light"] body.bg-glow-global .hero-copy h1 {
+    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
 }
 
 [data-theme="light"] .hero-copy p {
@@ -1294,13 +1393,19 @@ body.bg-glow-global .catalog-header .course-tabs {
     flex: 1;
 }
 
-.hero-copy h1 {
-    font-family: var(--font-heading, Montserrat);
-    font-weight: 800;
-    font-size: 32px;
-    margin: 0 0 12px;
-    color: var(--text-primary);
-    line-height: 1.2;
+/* Títulos con máxima especificidad */
+.bg-glow-global .hero-copy h1,
+.auth-container .hero-copy h1,
+body.bg-glow-global .hero-copy h1 {
+    font-family: var(--font-heading, Montserrat) !important;
+    font-weight: 800 !important;
+    font-size: 32px !important;
+    margin: 0 0 12px !important;
+    background: linear-gradient(135deg, #44e5ff, #3dd4eb) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    line-height: 1.2 !important;
 }
 
 .hero-copy p {
