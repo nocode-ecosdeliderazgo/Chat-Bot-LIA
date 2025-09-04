@@ -763,6 +763,218 @@ main.container { padding-top: 120px; }
     filter: drop-shadow(0 0 8px rgba(68, 229, 255, 0.5));
 }
 
+/* Navbar con azul sólido #0066CC para consistencia */
+.bg-glow-global .tab-button.active,
+.auth-container .tab-button.active,
+body.bg-glow-global .tab-button.active {
+    background: #0066CC !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
+    transform: translateY(-1px) !important;
+    font-weight: 600 !important;
+}
+
+.bg-glow-global .tab-button.active i,
+.auth-container .tab-button.active i,
+body.bg-glow-global .tab-button.active i {
+    transform: scale(1.05) !important;
+    color: white !important;
+    filter: drop-shadow(0 0 6px rgba(0, 102, 204, 0.5)) !important;
+}
+
+/* Títulos principales con azul #0066CC */
+.bg-glow-global .hero-copy h1,
+.auth-container .hero-copy h1,
+body.bg-glow-global .hero-copy h1 {
+    font-family: var(--font-heading, Montserrat) !important;
+    font-weight: 800 !important;
+    font-size: 32px !important;
+    margin: 0 0 12px !important;
+    background: linear-gradient(135deg, #44e5ff, #3dd4eb) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    line-height: 1.2 !important;
+}
+
+/* Títulos en modo claro con azul #0066CC */
+[data-theme="light"] .bg-glow-global .hero-copy h1,
+[data-theme="light"] .auth-container .hero-copy h1,
+[data-theme="light"] body.bg-glow-global .hero-copy h1 {
+    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+/* Barra de búsqueda con azul #0066CC */
+.bg-glow-global .search,
+.auth-container .search,
+body.bg-glow-global .search {
+    background: linear-gradient(135deg, 
+        rgba(0, 102, 204, 0.08) 0%, 
+        rgba(0, 102, 204, 0.12) 50%, 
+        rgba(0, 102, 204, 0.05) 100%) !important;
+    border: 2px solid rgba(0, 102, 204, 0.3) !important;
+    box-shadow: 0 8px 32px rgba(0, 102, 204, 0.15) !important;
+}
+
+.bg-glow-global .search:focus-within,
+.auth-container .search:focus-within,
+body.bg-glow-global .search:focus-within {
+    border-color: #0066CC !important;
+    box-shadow: 0 12px 40px rgba(0, 102, 204, 0.25) !important;
+}
+
+.bg-glow-global .search i,
+.auth-container .search i,
+body.bg-glow-global .search i {
+    color: #0066CC !important;
+}
+
+/* Filtros de categorías con azul #0066CC */
+.bg-glow-global .cat-tab,
+.auth-container .cat-tab,
+body.bg-glow-global .cat-tab {
+    border: 2px solid #0066CC !important;
+    background: transparent !important;
+    color: #0066CC !important;
+}
+
+.bg-glow-global .cat-tab:hover,
+.auth-container .cat-tab:hover,
+body.bg-glow-global .cat-tab:hover {
+    background: #0066CC !important;
+    color: white !important;
+    border-color: #0066CC !important;
+}
+
+.bg-glow-global .cat-tab.active,
+.auth-container .cat-tab.active,
+body.bg-glow-global .cat-tab.active {
+    background: #0066CC !important;
+    color: white !important;
+    border-color: #0066CC !important;
+}
+
+/* Botones primarios con azul #0066CC */
+.bg-glow-global .btn-primary,
+.auth-container .btn-primary,
+body.bg-glow-global .btn-primary {
+    background: #0066CC !important;
+    border: 2px solid #0066CC !important;
+    color: white !important;
+}
+
+.bg-glow-global .btn-primary:hover,
+.auth-container .btn-primary:hover,
+body.bg-glow-global .btn-primary:hover {
+    background: #0052A3 !important;
+    border-color: #0052A3 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.4) !important;
+}
+
+/* Efectos de relleno deslizante con azul #0066CC para todos los botones */
+.bg-glow-global .cat-tab::before,
+.auth-container .cat-tab::before,
+body.bg-glow-global .cat-tab::before {
+    background: #0066CC !important;
+}
+
+.bg-glow-global .btn-primary::before,
+.auth-container .btn-primary::before,
+body.bg-glow-global .btn-primary::before {
+    background: #0066CC !important;
+}
+
+/* Restaurar colores originales para botones especiales */
+.bg-glow-global .cta .enroll.acquired::before,
+.auth-container .cta .enroll.acquired::before,
+body.bg-glow-global .cta .enroll.acquired::before {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important; /* Verde original */
+}
+
+.bg-glow-global .cta .wishlist::before,
+.auth-container .cta .wishlist::before,
+body.bg-glow-global .cta .wishlist::before {
+    background: rgba(68,229,255,.1) !important; /* Color original del wishlist */
+}
+
+/* Restaurar colores de bordes y textos para botones especiales */
+.bg-glow-global .cta .enroll.acquired,
+.auth-container .cta .enroll.acquired,
+body.bg-glow-global .cta .enroll.acquired {
+    border: 2px solid #22c55e !important; /* Borde verde */
+    color: #22c55e !important; /* Texto verde */
+}
+
+.bg-glow-global .cta .enroll.acquired:hover,
+.auth-container .cta .enroll.acquired:hover,
+body.bg-glow-global .cta .enroll.acquired:hover {
+    color: #03130a !important; /* Texto oscuro al hover */
+    border-color: transparent !important;
+    box-shadow: 0 6px 20px rgba(34,197,94,.3) !important; /* Sombra verde */
+}
+
+.bg-glow-global .cta .wishlist,
+.auth-container .cta .wishlist,
+body.bg-glow-global .cta .wishlist {
+    border: 2px solid rgba(68,229,255,.3) !important; /* Borde cian original */
+    color: #fff !important; /* Texto blanco */
+}
+
+.bg-glow-global .cta .wishlist:hover,
+.auth-container .cta .wishlist:hover,
+body.bg-glow-global .cta .wishlist:hover {
+    border-color: var(--turq) !important; /* Borde cian al hover */
+    box-shadow: 0 4px 16px rgba(68,229,255,.2) !important; /* Sombra cian */
+}
+
+/* CORRECCIÓN CRÍTICA: Override para permitir scroll en cursos */
+.auth-container {
+    height: auto !important; /* Permitir altura automática */
+    min-height: 100vh !important; /* Mantener altura mínima */
+    overflow: visible !important; /* Permitir scroll */
+}
+
+body.bg-glow-global {
+    overflow: auto !important; /* Permitir scroll en el body */
+    height: auto !important; /* Altura automática */
+}
+
+/* Navbar con fondo semitransparente como apps-directory y community */
+.bg-glow-global .catalog-header .course-tabs,
+.auth-container .catalog-header .course-tabs,
+body.bg-glow-global .catalog-header .course-tabs {
+    background: rgba(20, 30, 45, 0.95) !important; /* Fondo semitransparente oscuro */
+    backdrop-filter: blur(20px) !important; /* Blur para legibilidad */
+    border: 1px solid rgba(68, 229, 255, 0.15) !important; /* Borde cian sutil */
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(68, 229, 255, 0.1) inset !important; /* Sombra como apps-directory */
+    border-radius: 20px !important; /* Bordes redondeados */
+}
+
+/* Override específico para modo claro - header transparente pero navbar con fondo */
+[data-theme="light"] .bg-glow-global .catalog-header,
+[data-theme="light"] .auth-container .catalog-header,
+[data-theme="light"] body.bg-glow-global .catalog-header {
+    background: transparent !important; /* Header transparente */
+    backdrop-filter: none !important; /* Sin blur en el header */
+}
+
+[data-theme="light"] .bg-glow-global .catalog-header .course-tabs,
+[data-theme="light"] .auth-container .catalog-header .course-tabs,
+[data-theme="light"] body.bg-glow-global .catalog-header .course-tabs,
+[data-theme="light"] .bg-glow-global .course-tabs,
+[data-theme="light"] .auth-container .course-tabs,
+[data-theme="light"] body.bg-glow-global .course-tabs {
+    background: rgba(255, 255, 255, 0.9) !important; /* Fondo blanco semitransparente */
+    backdrop-filter: blur(10px) !important; /* Blur para legibilidad */
+    border: 1px solid rgba(68, 229, 255, 0.2) !important; /* Borde azul sutil */
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important; /* Sombra suave */
+    border-radius: 20px !important; /* Bordes redondeados */
+}
+
 /* Efecto de clic para todos los botones */
 .tab-button:active,
 .cat-tab:active,
