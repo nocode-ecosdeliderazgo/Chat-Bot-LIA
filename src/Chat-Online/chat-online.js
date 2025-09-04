@@ -10,6 +10,27 @@ class ChatOnline {
         this.progressManager = null;
         this.courseProgress = null;
         
+        // ===== ESTADO DEL QUIZ =====
+        this.quizData = this.getQuizData();
+        this.currentQuestionIndex = 0;
+        this.userAnswers = {};
+        
+        // ===== CRONÓMETRO DEL QUIZ =====
+        this.quizTimer = null;
+        this.quizTimeLimit = 3 * 60; // 3 minutos en segundos
+        this.quizTimeRemaining = this.quizTimeLimit;
+        this.quizStartTime = null;
+        
+        // ===== ACCESO GLOBAL INMEDIATO =====
+        window.courseManager = this;
+        console.log('✅ window.courseManager asignado en constructor');
+        
+        // Función global de backup para onclick
+        window.switchTab = (contentType) => {
+            console.log(`🔄 switchTab global llamado: ${contentType}`);
+            this.switchContentTab(contentType);
+        };
+        
         this.init();
     }
 
@@ -34,6 +55,7 @@ class ChatOnline {
         this.setupLiaChat();
         
         // Pestañas de contenido
+        this.debugTabsImmediately();
         this.setupContentTabs();
         
         // Notas
@@ -677,28 +699,129 @@ class ChatOnline {
     }
     
     // ===== PESTAÑAS DE CONTENIDO =====
-    setupContentTabs() {
-        const tabButtons = document.querySelectorAll('.content-tabs .tab-btn');
+    
+    debugTabsImmediately() {
+        console.log('🔍 === DEBUG INMEDIATO DE TABS ===');
         
-        tabButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const contentType = e.currentTarget.dataset.content;
-                console.log(`📄 Cambiando contenido a: ${contentType}`);
+        // Verificar contenedor de tabs
+        const contentTabs = document.querySelector('.content-tabs');
+        console.log('📦 .content-tabs encontrado:', !!contentTabs);
+        
+        // Verificar botones
+        const allButtons = document.querySelectorAll('.tab-btn');
+        console.log(`🔘 Total .tab-btn encontrados: ${allButtons.length}`);
+        
+        const tabButtons = document.querySelectorAll('.content-tabs .tab-btn');
+        console.log(`🎯 .content-tabs .tab-btn encontrados: ${tabButtons.length}`);
+        
+        // Listar cada botón
+        tabButtons.forEach((btn, i) => {
+            console.log(`  ${i}: data-content="${btn.dataset.content}" text="${btn.textContent.trim()}"`);
+        });
+        
+        // Verificar contenidos
+        const transcriptContent = document.querySelector('[data-content="transcript"]');
+        const summaryContent = document.querySelector('[data-content="summary"]');
+        const communityContent = document.querySelector('[data-content="community"]');
+        
+        console.log('📄 Contenidos encontrados:');
+        console.log(`  transcript: ${!!transcriptContent}`);
+        console.log(`  summary: ${!!summaryContent}`);
+        console.log(`  community: ${!!communityContent}`);
+        
+        // Verificar acceso a window.courseManager
+        console.log('🌍 window.courseManager:', typeof window.courseManager);
+        console.log('🔧 switchContentTab disponible:', typeof this.switchContentTab);
+    }
+    
+    setupContentTabs() {
+        console.log('🔧 Configurando tabs de contenido...');
+        
+        // Método 1: Event listeners directos
+        this.configureTabButtons();
+        
+        // Método 2: Event delegation como backup
+        this.setupTabDelegation();
+        
+        // Retry después de un momento si no se encontraron todos los botones
+        setTimeout(() => {
+            const currentButtons = document.querySelectorAll('.content-tabs .tab-btn');
+            if (currentButtons.length < 3) {
+                console.log('🔄 Retry: configurando tabs nuevamente...');
+                this.configureTabButtons();
+            }
+        }, 100);
+    }
+    
+    setupTabDelegation() {
+        const contentTabs = document.querySelector('.content-tabs');
+        if (!contentTabs) {
+            console.error('❌ No se encontró .content-tabs para delegation');
+            return;
+        }
+        
+        console.log('🎯 Configurando event delegation para tabs...');
+        
+        contentTabs.addEventListener('click', (e) => {
+            // Buscar el botón más cercano
+            let button = e.target;
+            while (button && !button.classList.contains('tab-btn')) {
+                button = button.parentElement;
+                if (button === contentTabs) break;
+            }
+            
+            if (button && button.classList.contains('tab-btn')) {
+                const contentType = button.dataset.content;
+                console.log(`🎯 DELEGATION CLICK: ${contentType}`);
+                e.preventDefault();
+                e.stopPropagation();
                 this.switchContentTab(contentType);
+            }
+        });
+        
+        console.log('✅ Event delegation configurado');
+    }
+    
+    configureTabButtons() {
+        const tabButtons = document.querySelectorAll('.content-tabs .tab-btn');
+        console.log(`📋 Configurando ${tabButtons.length} botones de tabs`);
+        
+        if (tabButtons.length === 0) {
+            console.error('❌ No se encontraron botones de tabs');
+            return;
+        }
+        
+        tabButtons.forEach((button, index) => {
+            const contentType = button.dataset.content;
+            console.log(`🔗 Configurando: ${contentType}`);
+            
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const clickedContentType = e.currentTarget.dataset.content;
+                console.log(`🔘 CLICK: ${clickedContentType}`);
+                this.switchContentTab(clickedContentType);
             });
         });
+        
+        console.log('✅ Event listeners configurados');
     }
     
     switchContentTab(contentType) {
+        console.log(`🔄 SWITCH TAB: ${contentType}`);
+        
         // Remover clase active de todas las pestañas
         document.querySelectorAll('.content-tabs .tab-btn').forEach(tab => {
             tab.classList.remove('active');
         });
         
         // Agregar clase active a la pestaña seleccionada
-        const activeTab = document.querySelector(`[data-content="${contentType}"]`);
+        const activeTab = document.querySelector(`.content-tabs .tab-btn[data-content="${contentType}"]`);
         if (activeTab) {
             activeTab.classList.add('active');
+            console.log(`✅ Tab activado: ${contentType}`);
+        } else {
+            console.error(`❌ No se encontró tab: ${contentType}`);
         }
         
         // Cambiar contenido
@@ -706,33 +829,337 @@ class ChatOnline {
     }
     
     updateContentArea(contentType) {
-        const contentArea = document.querySelector('.content-area');
-        if (!contentArea) return;
+        console.log(`🔄 Cambiando contenido a: ${contentType}`);
         
-        switch(contentType) {
-            case 'transcript':
-                contentArea.innerHTML = `
-                    <div class="transcript-content">
-                        ${this.getModuleTranscript(this.currentModule)}
-                    </div>
-                `;
-                break;
-            case 'summary':
-                contentArea.innerHTML = `
-                    <div class="summary-content">
-                        <h4>Resumen del Módulo</h4>
-                        <ul>
-                            <li>Conceptos fundamentales de redes neuronales</li>
-                            <li>Perceptrones simples y su funcionamiento</li>
-                            <li>Funciones de activación (sigmoid, tanh, ReLU)</li>
-                            <li>Aplicaciones prácticas en IA</li>
-                        </ul>
-                    </div>
-                `;
-                break;
+        // Ocultar todos los contenidos (solo dentro del content-area, no los tabs)
+        const contentArea = document.querySelector('.content-area');
+        if (!contentArea) {
+            console.error('❌ No se encontró .content-area');
+            return;
+        }
+        
+        // Primero verificar que el contenido objetivo existe
+        const targetContent = contentArea.querySelector(`[data-content="${contentType}"]`);
+        if (!targetContent) {
+            console.error(`❌ No se encontró contenido para: ${contentType}`);
+            return;
+        }
+        
+        // Ocultar todos los contenidos EXCEPTO el objetivo
+        contentArea.querySelectorAll('[data-content]').forEach(content => {
+            if (content.getAttribute('data-content') !== contentType) {
+                content.style.display = 'none';
+                console.log(`🔒 Ocultando: ${content.getAttribute('data-content')}`);
+            }
+        });
+        
+        // Mostrar el contenido seleccionado
+        const targetContent = contentArea.querySelector(`[data-content="${contentType}"]`);
+        console.log(`🔍 Buscando contenido: [data-content="${contentType}"]`);
+        console.log(`📍 Contenido encontrado:`, targetContent);
+        
+        if (targetContent) {
+            const displayType = contentType === 'community' ? 'flex' : 'block';
+            targetContent.style.display = displayType;
+            console.log(`✅ Mostrando ${contentType} con display: ${displayType}`);
+            
+            // Configurar event listeners específicos si es necesario
+            if (contentType === 'community') {
+                console.log('🏘️ Configurando event listeners de comunidad');
+                this.setupCommunityEventListeners();
+                
+                // Asegurar que el contenido sea completamente visible
+                setTimeout(() => {
+                    targetContent.style.display = 'flex';
+                    targetContent.style.visibility = 'visible';
+                    targetContent.style.opacity = '1';
+                    
+                    console.log('✅ Comunidad configurada correctamente');
+                }, 10);
+            }
+        } else {
+            console.error(`❌ No se encontró contenido para: ${contentType}`);
+            
+            // Debug adicional: mostrar todos los elementos con data-content
+            const allDataContent = contentArea.querySelectorAll('[data-content]');
+            console.log('📋 Todos los elementos con data-content:');
+            allDataContent.forEach(el => {
+                console.log(`  - ${el.getAttribute('data-content')}: ${el.className}`);
+            });
+        }
+        
+        console.log(`📄 Contenido cambiado a: ${contentType}`);
+    }
+    
+    // ===== FUNCIONES DE COMUNIDAD =====
+    
+    setupCommunityEventListeners() {
+        // Botón para hacer pregunta
+        const askQuestionBtn = document.getElementById('askQuestionBtn');
+        if (askQuestionBtn) {
+            askQuestionBtn.addEventListener('click', () => this.showQuestionModal());
+        }
+        
+        // Filtros de preguntas
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                const filter = e.target.getAttribute('data-filter');
+                this.filterQuestions(filter);
+            });
+        });
+        
+        // Selector de ordenamiento
+        const sortSelect = document.getElementById('sortSelect');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', (e) => {
+                this.sortQuestions(e.target.value);
+            });
+        }
+        
+        // Votos en preguntas
+        document.querySelectorAll('.vote-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleVote(e.target.closest('.vote-btn'));
+            });
+        });
+        
+        // Modal de pregunta
+        this.setupQuestionModal();
+        
+        console.log('🔧 Event listeners de comunidad configurados');
+    }
+    
+    showQuestionModal() {
+        const modal = document.getElementById('questionModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            // Focus en el título
+            const titleInput = document.getElementById('questionTitle');
+            if (titleInput) {
+                setTimeout(() => titleInput.focus(), 100);
+            }
+        }
+        
+        console.log('❓ Modal de pregunta abierto');
+    }
+    
+    hideQuestionModal() {
+        const modal = document.getElementById('questionModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            
+            // Limpiar formulario
+            this.clearQuestionForm();
+        }
+        
+        console.log('❌ Modal de pregunta cerrado');
+    }
+    
+    setupQuestionModal() {
+        // Cerrar modal
+        const closeBtn = document.getElementById('closeQuestionModal');
+        const cancelBtn = document.getElementById('cancelQuestionBtn');
+        const overlay = document.querySelector('.modal-overlay');
+        
+        [closeBtn, cancelBtn, overlay].forEach(element => {
+            if (element) {
+                element.addEventListener('click', () => this.hideQuestionModal());
+            }
+        });
+        
+        // Formulario de pregunta
+        const questionForm = document.getElementById('questionForm');
+        if (questionForm) {
+            questionForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.submitQuestion();
+            });
+        }
+        
+        // Contador de caracteres
+        const titleInput = document.getElementById('questionTitle');
+        if (titleInput) {
+            titleInput.addEventListener('input', () => {
+                const count = titleInput.value.length;
+                const counter = document.getElementById('titleCharCount');
+                if (counter) {
+                    counter.textContent = count;
+                }
+            });
+        }
+        
+        // Manejo de tags
+        const tagsInput = document.getElementById('questionTags');
+        if (tagsInput) {
+            tagsInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.addQuestionTag(tagsInput.value.trim());
+                    tagsInput.value = '';
+                }
+            });
         }
     }
     
+    filterQuestions(filter) {
+        console.log(`🔍 Filtrando preguntas por: ${filter}`);
+        // Aquí se implementará la lógica de filtrado cuando tengamos datos reales
+    }
+    
+    sortQuestions(sortBy) {
+        console.log(`📊 Ordenando preguntas por: ${sortBy}`);
+        // Aquí se implementará la lógica de ordenamiento cuando tengamos datos reales
+    }
+    
+    handleVote(voteBtn) {
+        if (!voteBtn) return;
+        
+        const isUpvote = voteBtn.classList.contains('upvote');
+        const questionItem = voteBtn.closest('.question-item');
+        const voteCount = voteBtn.parentElement.querySelector('.vote-count');
+        
+        // Toggle del voto
+        if (voteBtn.classList.contains('voted')) {
+            voteBtn.classList.remove('voted');
+            const currentCount = parseInt(voteCount.textContent);
+            voteCount.textContent = isUpvote ? currentCount - 1 : currentCount + 1;
+        } else {
+            // Remover voto opuesto si existe
+            const oppositeBtn = isUpvote ? 
+                voteBtn.parentElement.querySelector('.downvote') : 
+                voteBtn.parentElement.querySelector('.upvote');
+            
+            if (oppositeBtn && oppositeBtn.classList.contains('voted')) {
+                oppositeBtn.classList.remove('voted');
+                const currentCount = parseInt(voteCount.textContent);
+                voteCount.textContent = isUpvote ? currentCount + 2 : currentCount - 2;
+            } else {
+                const currentCount = parseInt(voteCount.textContent);
+                voteCount.textContent = isUpvote ? currentCount + 1 : currentCount - 1;
+            }
+            
+            voteBtn.classList.add('voted');
+        }
+        
+        console.log(`${isUpvote ? '👍' : '👎'} Voto registrado`);
+    }
+    
+    submitQuestion() {
+        const title = document.getElementById('questionTitle').value.trim();
+        const content = document.getElementById('questionContent').value.trim();
+        const tags = this.getSelectedTags();
+        
+        if (!title || !content) {
+            this.showNotification('Por favor completa todos los campos requeridos', 'error');
+            return;
+        }
+        
+        // Aquí se enviará la pregunta al backend
+        console.log('📝 Enviando pregunta:', { title, content, tags });
+        
+        // Simular envío exitoso
+        this.showNotification('¡Pregunta publicada exitosamente!', 'success');
+        this.hideQuestionModal();
+        
+        // Recargar lista de preguntas (cuando esté conectado al backend)
+    }
+    
+    clearQuestionForm() {
+        const titleInput = document.getElementById('questionTitle');
+        const contentInput = document.getElementById('questionContent');
+        const tagsInput = document.getElementById('questionTags');
+        const selectedTags = document.getElementById('selectedTags');
+        const charCounter = document.getElementById('titleCharCount');
+        
+        if (titleInput) titleInput.value = '';
+        if (contentInput) contentInput.value = '';
+        if (tagsInput) tagsInput.value = '';
+        if (selectedTags) selectedTags.innerHTML = '';
+        if (charCounter) charCounter.textContent = '0';
+        
+        this.questionTags = [];
+    }
+    
+    addQuestionTag(tag) {
+        if (!tag || this.questionTags.includes(tag)) return;
+        
+        this.questionTags = this.questionTags || [];
+        this.questionTags.push(tag);
+        
+        const tagsContainer = document.getElementById('selectedTags');
+        if (tagsContainer) {
+            const tagElement = document.createElement('span');
+            tagElement.className = 'tag-item';
+            tagElement.innerHTML = `
+                ${tag}
+                <button class="tag-remove" onclick="window.chatOnline.removeQuestionTag('${tag}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            `;
+            tagsContainer.appendChild(tagElement);
+        }
+    }
+    
+    removeQuestionTag(tag) {
+        this.questionTags = this.questionTags.filter(t => t !== tag);
+        
+        // Actualizar UI
+        const tagsContainer = document.getElementById('selectedTags');
+        if (tagsContainer) {
+            const tagElements = tagsContainer.querySelectorAll('.tag-item');
+            tagElements.forEach(element => {
+                if (element.textContent.trim().startsWith(tag)) {
+                    element.remove();
+                }
+            });
+        }
+    }
+    
+    getSelectedTags() {
+        return this.questionTags || [];
+    }
+    
+    showNotification(message, type = 'info') {
+        // Crear notificación toast
+        const notification = document.createElement('div');
+        notification.className = `notification toast ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span>${message}</span>
+                <button class="notification-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remover después de 3 segundos
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 3000);
+        
+        // Cerrar manualmente
+        const closeBtn = notification.querySelector('.notification-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => notification.remove());
+        }
+    }
+
     // ===== NOTAS =====
     setupNotes() {
         const addNoteBtn = document.getElementById('addNoteBtn');
@@ -990,6 +1417,7 @@ class ChatOnline {
     setupEditorButtons() {
         const saveBtn = document.getElementById('saveNoteBtn');
         const cancelBtn = document.getElementById('cancelNoteBtn');
+         const exportPdfBtn = document.getElementById('exportPdfBtn');
         
         // Guardar nota
         saveBtn.addEventListener('click', () => {
@@ -1001,6 +1429,327 @@ class ChatOnline {
         cancelBtn.addEventListener('click', () => {
             this.hideNotesCreator();
         });
+        
+        // Exportar a PDF
+        exportPdfBtn.addEventListener('click', () => {
+            this.exportNoteToPDF();
+        });
+        
+        // Configurar selector de tamaño de fuente
+        this.setupFontSizeSelector();
+    }
+    
+    setupFontSizeSelector() {
+        const fontSizeBtn = document.getElementById('fontSizeBtn');
+        const fontSizeDropdown = document.getElementById('fontSizeDropdown');
+        const fontSizeOptions = document.querySelectorAll('.font-size-option');
+        const fontSizeText = document.querySelector('.font-size-text');
+        const editor = document.getElementById('noteContentEditor');
+        
+        // Toggle dropdown
+        fontSizeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            // Actualizar el tamaño mostrado basado en la selección actual o cursor
+            this.updateFontSizeDisplay();
+            
+            fontSizeDropdown.classList.toggle('show');
+        });
+        
+        // Cerrar dropdown al hacer click fuera
+        document.addEventListener('click', () => {
+            fontSizeDropdown.classList.remove('show');
+        });
+        
+        // Manejar selección de tamaño
+        fontSizeOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const size = option.dataset.size;
+                this.changeFontSize(size);
+                
+                // No actualizar el display aquí, se hará en changeFontSize si es exitoso
+                fontSizeDropdown.classList.remove('show');
+            });
+        });
+        
+        // Actualizar display cuando cambie la selección
+        editor.addEventListener('mouseup', () => {
+            setTimeout(() => this.updateFontSizeDisplay(), 10);
+        });
+        
+        editor.addEventListener('keyup', () => {
+            setTimeout(() => this.updateFontSizeDisplay(), 10);
+        });
+    }
+    
+    updateFontSizeDisplay() {
+        const selection = window.getSelection();
+        const fontSizeText = document.querySelector('.font-size-text');
+        const fontSizeOptions = document.querySelectorAll('.font-size-option');
+        const editor = document.getElementById('noteContentEditor');
+        
+        let fontSize = 14; // Tamaño por defecto
+        
+        try {
+            if (selection.rangeCount > 0 && !selection.isCollapsed) {
+                // Hay texto seleccionado - obtener su tamaño
+                const range = selection.getRangeAt(0);
+                const container = range.commonAncestorContainer;
+                const element = container.nodeType === Node.TEXT_NODE ? container.parentElement : container;
+                const computedStyle = window.getComputedStyle(element);
+                fontSize = parseInt(computedStyle.fontSize);
+            } else {
+                // No hay selección - obtener tamaño en la posición del cursor
+                const currentFontSize = this.getCurrentCursorFontSize();
+                fontSize = currentFontSize || 14;
+            }
+            
+            // Actualizar display
+            fontSizeText.textContent = fontSize.toString();
+            
+            // Actualizar estado activo de las opciones
+            fontSizeOptions.forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.size === fontSize.toString());
+            });
+            
+        } catch (error) {
+            // En caso de error, mostrar tamaño por defecto
+            fontSizeText.textContent = '14';
+            fontSizeOptions.forEach(opt => opt.classList.remove('active'));
+        }
+    }
+    
+    getCurrentCursorFontSize() {
+        const selection = window.getSelection();
+        const editor = document.getElementById('noteContentEditor');
+        
+        if (!selection.rangeCount) return 14;
+        
+        try {
+            const range = selection.getRangeAt(0);
+            let element = range.startContainer;
+            
+            // Si es un nodo de texto, obtener su elemento padre
+            if (element.nodeType === Node.TEXT_NODE) {
+                element = element.parentElement;
+            }
+            
+            // Asegurar que estamos dentro del editor
+            if (!editor.contains(element)) {
+                element = editor;
+            }
+            
+            // Obtener el tamaño de fuente computado
+            const computedStyle = window.getComputedStyle(element);
+            return parseInt(computedStyle.fontSize);
+            
+        } catch (error) {
+            return 14;
+        }
+    }
+    
+    changeFontSize(size) {
+        const editor = document.getElementById('noteContentEditor');
+        const selection = window.getSelection();
+        
+        if (selection.rangeCount > 0 && !selection.isCollapsed) {
+            // CASO 1: Hay texto seleccionado - cambiar tamaño de la selección
+            this.changeFontSizeForSelection(size);
+        } else {
+            // CASO 2: No hay selección - cambiar tamaño para texto nuevo
+            this.setFontSizeForNewText(size);
+        }
+        
+        // Actualizar el display del tamaño
+        setTimeout(() => this.updateFontSizeDisplay(), 10);
+        
+        // Mantener el foco en el editor
+        editor.focus();
+    }
+    
+    changeFontSizeForSelection(size) {
+        const editor = document.getElementById('noteContentEditor');
+        const selection = window.getSelection();
+        const range = selection.getRangeAt(0);
+        
+        // Verificar que la selección está dentro del editor
+        if (!editor.contains(range.commonAncestorContainer)) {
+            this.showNotification('Selecciona texto dentro del editor de notas', 'warning');
+            return;
+        }
+        
+        try {
+            // Método más robusto para aplicar tamaño de fuente
+            const selectedText = range.extractContents();
+            const span = document.createElement('span');
+            span.style.fontSize = size + 'px';
+            span.style.display = 'inline';
+            span.appendChild(selectedText);
+            range.insertNode(span);
+            
+            // Restaurar la selección en el nuevo span
+            const newRange = document.createRange();
+            newRange.selectNodeContents(span);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+            
+            console.log(`✅ Tamaño de selección cambiado a ${size}px`);
+            this.showNotification(`Tamaño de selección cambiado a ${size}px`, 'success');
+            
+        } catch (error) {
+            console.error('❌ Error al cambiar tamaño de selección:', error);
+            
+            // Método alternativo usando execCommand
+            try {
+                const tempSize = Math.floor(Math.random() * 1000) + 1000;
+                document.execCommand('fontSize', false, tempSize);
+                
+                const fontElements = editor.querySelectorAll(`font[size="${tempSize}"]`);
+                fontElements.forEach(font => {
+                    const span = document.createElement('span');
+                    span.style.fontSize = size + 'px';
+                    span.style.display = 'inline';
+                    span.innerHTML = font.innerHTML;
+                    font.parentNode.replaceChild(span, font);
+                });
+                
+                console.log(`✅ Tamaño de selección cambiado a ${size}px (método alternativo)`);
+                this.showNotification(`Tamaño de selección cambiado a ${size}px`, 'success');
+                
+            } catch (fallbackError) {
+                console.error('❌ Error en método alternativo:', fallbackError);
+                this.showNotification('Error al cambiar el tamaño de fuente', 'error');
+            }
+        }
+    }
+    
+    setFontSizeForNewText(size) {
+        const editor = document.getElementById('noteContentEditor');
+        const selection = window.getSelection();
+        
+        try {
+            // Crear un span invisible en la posición del cursor para establecer el tamaño
+            const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : document.createRange();
+            
+            // Si no hay rango, crear uno al final del editor
+            if (!selection.rangeCount) {
+                range.selectNodeContents(editor);
+                range.collapse(false);
+            }
+            
+            // Insertar un span con el nuevo tamaño de fuente
+            const span = document.createElement('span');
+            span.style.fontSize = size + 'px';
+            span.style.display = 'inline';
+            span.appendChild(document.createTextNode('\u200B')); // Carácter de ancho cero
+            
+            range.insertNode(span);
+            
+            // Posicionar el cursor después del span
+            const newRange = document.createRange();
+            newRange.setStartAfter(span);
+            newRange.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+            
+            // Configurar el estilo para el próximo texto
+            this.setNextTextStyle(size);
+            
+            console.log(`✅ Tamaño para texto nuevo establecido a ${size}px`);
+            this.showNotification(`Tamaño para texto nuevo: ${size}px`, 'success');
+            
+        } catch (error) {
+            console.error('❌ Error al establecer tamaño para texto nuevo:', error);
+            this.showNotification('Error al establecer el tamaño de fuente', 'error');
+        }
+    }
+    
+    setNextTextStyle(size) {
+        const editor = document.getElementById('noteContentEditor');
+        
+        // Usar execCommand para establecer el tamaño para el próximo texto
+        try {
+            // Crear un estilo temporal
+            const tempSize = '7'; // Tamaño temporal para execCommand
+            document.execCommand('fontSize', false, tempSize);
+            
+            // Buscar y actualizar inmediatamente
+            setTimeout(() => {
+                const fontElements = editor.querySelectorAll(`font[size="${tempSize}"]`);
+                fontElements.forEach(font => {
+                    const span = document.createElement('span');
+                    span.style.fontSize = size + 'px';
+                    span.style.display = 'inline';
+                    span.innerHTML = font.innerHTML;
+                    font.parentNode.replaceChild(span, font);
+                });
+            }, 10);
+            
+        } catch (error) {
+            console.error('❌ Error al establecer estilo para próximo texto:', error);
+        }
+    }
+    
+    async exportNoteToPDF() {
+        const titleInput = document.getElementById('noteTitleInput');
+        const contentEditor = document.getElementById('noteContentEditor');
+        
+        const title = titleInput.value || 'Nota sin título';
+        const content = contentEditor.innerHTML;
+        
+        if (!content.trim()) {
+            alert('No hay contenido para exportar');
+            return;
+        }
+        
+        try {
+            // Crear un elemento temporal para el PDF
+            const printContent = document.createElement('div');
+            printContent.innerHTML = `
+                <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+                    <h1 style="color: #44E5FF; border-bottom: 2px solid #44E5FF; padding-bottom: 10px;">${title}</h1>
+                    <div style="margin-top: 20px; line-height: 1.6;">${content}</div>
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc; font-size: 12px; color: #666;">
+                        <p>Generado por Aprende y Aplica - ${new Date().toLocaleDateString()}</p>
+                    </div>
+                </div>
+            `;
+            
+            // Abrir ventana de impresión
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${title}</title>
+                    <style>
+                        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+                        @media print {
+                            body { margin: 0; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${printContent.innerHTML}
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            
+            // Esperar un momento y luego mostrar diálogo de impresión
+            setTimeout(() => {
+                printWindow.print();
+            }, 250);
+            
+            console.log('✅ PDF exportado correctamente');
+            
+        } catch (error) {
+            console.error('❌ Error al exportar PDF:', error);
+            alert('Error al exportar a PDF. Por favor, intenta de nuevo.');
+        }
     }
     
     searchNotes() {
@@ -2469,13 +3218,29 @@ class ChatOnline {
                         Quiz del Módulo ${this.currentModule}
                     </h2>
                     <p>Pon a prueba tus conocimientos con estas preguntas</p>
+                    
+                    <!-- Cronómetro -->
+                    <div class="quiz-timer-container">
+                        <div class="timer-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
+                        </div>
+                        <div class="timer-display">
+                            <span class="timer-text">Tiempo restante:</span>
+                            <span class="timer-value" id="quizTimer">3:00</span>
+                        </div>
+                        <div class="timer-progress">
+                            <div class="timer-progress-bar" id="timerProgressBar"></div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="quiz-container">
                     <div class="question-card">
                         <div class="question-header">
                             <span class="question-number">Pregunta 1 de 5</span>
-                            <span class="question-timer">⏱️ 02:30</span>
                         </div>
                         
                         <h3 class="question-text">¿Qué es la Inteligencia Artificial?</h3>
@@ -2519,6 +3284,9 @@ class ChatOnline {
         `;
         
         centerPanel.insertAdjacentHTML('beforeend', quizHTML);
+        
+        // Iniciar el cronómetro del quiz
+        this.startQuizTimer();
     }
     
     // ===== FUNCIONES AUXILIARES =====
@@ -2540,8 +3308,610 @@ class ChatOnline {
     }
     
     nextQuestion() {
-        console.log('➡️ Siguiente pregunta');
-        // Implementar navegación entre preguntas
+        console.log('🚀 nextQuestion() llamado');
+        console.log('🔍 Current question index:', this.currentQuestionIndex);
+        console.log('🔍 Quiz data length:', this.quizData?.length);
+        
+        const qData = this.quizData[this.currentQuestionIndex];
+        console.log('🔍 Question data:', qData);
+        
+        let answer;
+
+        switch (qData.type) {
+            case 'single':
+            case 'boolean':
+                const sel = document.querySelector('.answer-options input:checked');
+                console.log('🔍 Selected input:', sel);
+                if (!sel) { 
+                    console.log('❌ No hay respuesta seleccionada');
+                    alert('Selecciona una respuesta.'); 
+                    return; 
+                }
+                answer = sel.value;
+                console.log('✅ Respuesta capturada:', answer);
+                break;
+            case 'multiple':
+                const checks = Array.from(document.querySelectorAll('.answer-options input[type="checkbox"]:checked'));
+                console.log('🔍 Checkboxes seleccionados:', checks);
+                if (checks.length === 0) { alert('Selecciona al menos una opción.'); return; }
+                answer = checks.map(c => c.value);
+                break;
+            case 'text':
+                const txt = document.querySelector('.answer-textarea').value.trim();
+                console.log('🔍 Texto ingresado:', txt);
+                if (!txt) { alert('Por favor escribe tu respuesta.'); return; }
+                answer = txt;
+                break;
+            case 'match':
+                const selects = Array.from(document.querySelectorAll('.match-select'));
+                const pairAns = {};
+                let incomplete = false;
+                selects.forEach((s, idx)=>{
+                    if (!s.value) incomplete = true; else pairAns[idx] = s.value;
+                });
+                if (incomplete) { alert('Completa todas las correspondencias.'); return; }
+                answer = pairAns;
+                break;
+        }
+
+        this.userAnswers[this.currentQuestionIndex] = answer;
+        console.log('✅ Respuesta guardada:', answer);
+        console.log('🔍 Todas las respuestas:', this.userAnswers);
+
+        if (this.currentQuestionIndex < this.quizData.length - 1) {
+            console.log('➡️ Avanzando a siguiente pregunta');
+            this.currentQuestionIndex++;
+            this.renderCurrentQuestion();
+        } else {
+            console.log('🏁 Quiz terminado, mostrando resultados');
+            this.finishQuiz();
+        }
+    }
+    
+    /**
+     * Devuelve las preguntas del quiz para el módulo actual.
+     */
+    getQuizData() {
+        return [
+            {
+                type: 'single',
+                question: '¿Cuál de los siguientes elementos del prompt garantiza la fiabilidad de la investigación solicitada a Gemini?',
+                options: [
+                    { value: 'a', text: 'Incluir casos de uso en finanzas y banca.' },
+                    { value: 'b', text: 'Pedir que actúe "como un analista experto en IA generativa".' },
+                    { value: 'c', text: 'Exigir la cita numerada de cada dato o afirmación.' },
+                    { value: 'd', text: 'Solicitar un resumen de audio al final.' }
+                ],
+                correct: 'c',
+                feedbackCorrect: '¡Exacto! Exigir citas numeradas asegura la trazabilidad y credibilidad de la información.',
+                feedbackIncorrect: 'La opción correcta era exigir la cita numerada; esto permite verificar cada afirmación.'
+            },
+            {
+                type: 'multiple',
+                question: 'El prompt define un ____ profesional ("analista experto") y proporciona una estructura ____ de puntos numerados, lo que facilita a Gemini generar salidas reutilizables como infografías.',
+                options: [
+                    { value: 'clara', text: 'Clara' },
+                    { value: 'rol', text: 'Rol' },
+                    { value: 'fuerte', text: 'Fuerte' },
+                    { value: 'lugar', text: 'Lugar' }
+                ],
+                correct: ['rol', 'clara'],
+                feedbackCorrect: 'Correcto: el prompt establece claramente el rol y una estructura clara.',
+                feedbackIncorrect: 'La respuesta correcta era "Rol" y "Clara": define quién habla y una estructura legible.'
+            },
+            {
+                type: 'boolean',
+                question: 'El flujo de trabajo indica que, después de crear la infografía, el usuario debe cerrar la pestaña de Canvas para volver al proyecto de investigación principal.',
+                options: [
+                    { value: 'true', text: 'Verdadero' },
+                    { value: 'false', text: 'Falso' }
+                ],
+                correct: 'true',
+                feedbackCorrect: '¡Bien! Seguir ese paso asegura volver al flujo principal sin perder contexto.',
+                feedbackIncorrect: 'Incorrecto: El paso correcto es cerrar Canvas para regresar al proyecto principal.'
+            },
+            {
+                type: 'text',
+                question: 'En 1-2 frases, explica por qué el prompt reserva una sección específica para "Desafíos y consideraciones estratégicas para líderes" en la adopción de IA generativa.',
+                options: [],
+                correct: null,
+                feedbackCorrect: 'Gracias por tu reflexión. Un evaluador revisará tu respuesta.',
+                feedbackIncorrect: 'Respuesta registrada. Un evaluador proporcionará comentarios específicos.'
+            },
+            {
+                type: 'match',
+                question: 'Relaciona cada salida del flujo de trabajo con su objetivo principal:',
+                pairs: {
+                    '1. Reporte web interactivo.': ['A', 'B', 'C', 'D'],
+                    '2. Infografía visual.': ['A', 'B', 'C', 'D'],
+                    '3. Cuestionario': ['A', 'B', 'C', 'D'],
+                    '4. Resumen de audio': ['A', 'B', 'C', 'D']
+                },
+                legend: {
+                    A: 'Validar conocimientos adquiridos',
+                    B: 'Repaso auditivo en multitarea',
+                    C: 'Exploración profunda y compartible',
+                    D: 'Impacto rápido y sintético'
+                },
+                correct: {
+                    0: 'C',
+                    1: 'D',
+                    2: 'A',
+                    3: 'B'
+                },
+                feedbackCorrect: '¡Perfecto! Has emparejado correctamente cada salida con su objetivo.',
+                feedbackIncorrect: 'Algunas correspondencias eran distintas. Revisa la leyenda para entender cada objetivo.'
+            }
+        ];
+    }
+    
+    /**
+     * Renderiza la pregunta actual del quiz
+     */
+    renderCurrentQuestion() {
+        console.log('🎨 Renderizando pregunta:', this.currentQuestionIndex);
+        const questionData = this.quizData[this.currentQuestionIndex];
+        if (!questionData) return;
+
+        const questionCard = document.querySelector('.quiz-container .question-card');
+        if (!questionCard) {
+            console.error('❌ No se encontró .question-card');
+            return;
+        }
+
+        // Construir HTML según el tipo
+        let inputHTML = '';
+        switch (questionData.type) {
+            case 'single':
+            case 'boolean':
+                questionData.options.forEach(opt => {
+                    const checked = this.userAnswers[this.currentQuestionIndex] === opt.value;
+                    inputHTML += `
+                        <label class="answer-option">
+                            <input type="radio" name="q${this.currentQuestionIndex}" value="${opt.value}" ${checked ? 'checked' : ''}>
+                            <span class="answer-text">${opt.text}</span>
+                        </label>`;
+                });
+                break;
+            case 'multiple':
+                questionData.options.forEach(opt => {
+                    const checked = Array.isArray(this.userAnswers[this.currentQuestionIndex]) && this.userAnswers[this.currentQuestionIndex].includes(opt.value);
+                    inputHTML += `
+                        <label class="answer-option">
+                            <input type="checkbox" name="q${this.currentQuestionIndex}" value="${opt.value}" ${checked ? 'checked' : ''}>
+                            <span class="answer-text">${opt.text}</span>
+                        </label>`;
+                });
+                break;
+            case 'text':
+                const savedText = this.userAnswers[this.currentQuestionIndex] || '';
+                inputHTML = `<textarea name="q${this.currentQuestionIndex}" rows="4" class="answer-textarea" placeholder="Escribe tu respuesta aquí...">${savedText}</textarea>`;
+                break;
+            case 'match':
+                // mostrar leyenda
+                let legendHTML = '<ul class="match-legend">';
+                Object.entries(questionData.legend).forEach(([key, val]) => {
+                    legendHTML += `<li><strong>${key}</strong>: ${val}</li>`;
+                });
+                legendHTML += '</ul>';
+
+                let pairsHTML = '';
+                const stored = this.userAnswers[this.currentQuestionIndex] || {};
+                Object.keys(questionData.pairs).forEach((key, idx) => {
+                    const options = questionData.pairs[key];
+                    pairsHTML += `
+                        <div class="match-row">
+                            <span class="match-prompt">${key}</span>
+                            <select name="q${this.currentQuestionIndex}_${idx}" class="match-select">
+                                <option value="">---</option>
+                                ${options.map(opt => `<option value="${opt}" ${stored[idx]===opt?'selected':''}>${opt}</option>`).join('')}
+                            </select>
+                        </div>`;
+                });
+                inputHTML = legendHTML + pairsHTML;
+                break;
+        }
+
+        questionCard.innerHTML = `
+            <div class="question-header">
+                <span class="question-number">Pregunta ${this.currentQuestionIndex + 1} de ${this.quizData.length}</span>
+            </div>
+            <h3 class="question-text">${questionData.question}</h3>
+            <div class="answer-options">${inputHTML}</div>
+            <div class="question-actions">
+                <button class="btn-secondary" ${this.currentQuestionIndex === 0 ? 'disabled' : ''} onclick="window.chatOnline.previousQuestion()">Anterior</button>
+                <button class="btn-primary" onclick="window.chatOnline.nextQuestion()">${this.currentQuestionIndex === this.quizData.length - 1 ? 'Finalizar' : 'Siguiente'}</button>
+            </div>`;
+    }
+    
+    /**
+     * Finaliza el quiz y muestra resultados
+     */
+    finishQuiz() {
+        console.log('🏁 Quiz finalizado');
+        
+        // Detener el cronómetro si está activo
+        this.stopQuizTimer();
+        
+        let correctCount = 0;
+        
+        // Calcular respuestas correctas (excluyendo preguntas abiertas)
+        this.quizData.forEach((q, idx) => {
+            const userAns = this.userAnswers[idx];
+            let isCorrect = false;
+            
+            if (q.type === 'text') {
+                // Pregunta abierta - no se evalúa automáticamente
+                return;
+            } else if (q.type === 'multiple') {
+                isCorrect = Array.isArray(userAns) && Array.isArray(q.correct) && 
+                           userAns.sort().join(',') === q.correct.sort().join(',');
+            } else if (q.type === 'match') {
+                isCorrect = JSON.stringify(userAns) === JSON.stringify(q.correct);
+            } else {
+                isCorrect = userAns === q.correct;
+            }
+            
+            if (isCorrect) correctCount++;
+        });
+
+        this.showQuizResults(correctCount);
+    }
+    
+    /**
+     * Muestra pantalla de resultados detallados
+     */
+    showQuizResults(correctCount) {
+        const centerPanel = document.querySelector('.center-panel .course-content');
+        if (!centerPanel) return;
+
+        // Remover quiz anterior
+        centerPanel.querySelectorAll('.quiz-content, .quiz-results').forEach(el => el.remove());
+
+        // Calcular total de preguntas evaluables (excluyendo abiertas)
+        const evaluableQuestions = this.quizData.filter(q => q.type !== 'text').length;
+        
+        let resultsHTML = `
+            <div class="quiz-results">
+                <h2>Resultados del Quiz</h2>
+                <p>Respuestas correctas: <strong>${correctCount}</strong> de ${evaluableQuestions} preguntas evaluables</p>
+        `;
+
+        this.quizData.forEach((q, idx) => {
+            const userAns = this.userAnswers[idx];
+            let isCorrect = false;
+            let cardClass = '';
+            let feedback = '';
+            
+            if (q.type === 'text') {
+                // Pregunta abierta - sin evaluación automática
+                cardClass = 'open-question';
+                feedback = q.feedbackCorrect; // Mensaje neutral para pregunta abierta
+            } else {
+                if (q.type === 'multiple') {
+                    isCorrect = Array.isArray(userAns) && Array.isArray(q.correct) && 
+                               userAns.sort().join(',') === q.correct.sort().join(',');
+                } else if (q.type === 'match') {
+                    isCorrect = JSON.stringify(userAns) === JSON.stringify(q.correct);
+                } else {
+                    isCorrect = userAns === q.correct;
+                }
+                cardClass = isCorrect ? 'correct' : 'incorrect';
+                feedback = isCorrect ? q.feedbackCorrect : q.feedbackIncorrect;
+            }
+
+            let iconSVG = '';
+            if (q.type === 'text') {
+                iconSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10,9 9,9 8,9"/>
+                </svg>`;
+            } else if (isCorrect) {
+                iconSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>`;
+            } else {
+                iconSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"/>
+                    <path d="M6 6l12 12"/>
+                </svg>`;
+            }
+
+            resultsHTML += `
+                <div class="result-card ${cardClass}">
+                    <h3>${iconSVG}Pregunta ${idx + 1}</h3>
+                    <p class="question">${q.question}</p>
+                    <p><strong>Tu respuesta:</strong> ${this.formatAnswer(q, userAns)}</p>
+                    ${q.correct !== null && q.type !== 'text' ? `<p><strong>Respuesta correcta:</strong> ${this.formatAnswer(q, q.correct)}</p>` : ''}
+                    <p class="feedback">${feedback}</p>
+                </div>`;
+        });
+
+        resultsHTML += `
+                <div class="quiz-actions">
+                    <button class="btn-primary" onclick="window.chatOnline.submitQuizResults()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m22 2-7 20-4-9-9-4Z"/>
+                            <path d="M22 2 11 13"/>
+                        </svg>
+                        Enviar Respuestas
+                    </button>
+                    <button class="btn-secondary" onclick="window.chatOnline.restartQuiz()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                            <path d="M21 3v5h-5"/>
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                            <path d="M3 21v-5h5"/>
+                        </svg>
+                        Repetir Cuestionario
+                    </button>
+                </div>
+            </div>`;
+        centerPanel.insertAdjacentHTML('beforeend', resultsHTML);
+    }
+    
+    /**
+     * Formatea respuestas para mostrar
+     */
+    formatAnswer(question, answer) {
+        if (answer === undefined || answer === null) return '-';
+        
+        switch (question.type) {
+            case 'single':
+            case 'boolean':
+                const opt = question.options.find(o => o.value === answer);
+                return opt ? opt.text : answer;
+            case 'multiple':
+                return answer.map(val => {
+                    const o = question.options.find(x => x.value === val);
+                    return o ? o.text : val;
+                }).join(', ');
+            case 'text':
+                return answer;
+            case 'match':
+                return Object.entries(answer).map(([k,v]) => `${parseInt(k)+1}→${v}`).join(', ');
+            default:
+                return String(answer);
+        }
+    }
+    
+    /**
+     * Envía las respuestas del quiz al servidor/instructor
+     */
+    submitQuizResults() {
+        console.log('📤 Enviando respuestas del quiz...');
+        
+        // Preparar datos para enviar
+        const quizSubmission = {
+            userId: this.getCurrentUserId(), // Implementar según tu sistema de auth
+            moduleId: this.currentModule,
+            timestamp: new Date().toISOString(),
+            answers: this.userAnswers,
+            questions: this.quizData,
+            score: this.calculateScore()
+        };
+        
+        console.log('Datos del quiz:', quizSubmission);
+        
+        // Aquí puedes implementar el envío al servidor
+        // Por ahora mostraremos confirmación
+        alert('✅ Respuestas enviadas correctamente al instructor.\n\nLa pregunta abierta será revisada manualmente.');
+        
+        // Opcional: deshabilitar el botón después del envío
+        const submitBtn = document.querySelector('.quiz-actions .btn-primary');
+        if (submitBtn) {
+            submitBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>
+                Enviado`;
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.6';
+        }
+    }
+    
+    /**
+     * Reinicia el quiz para repetirlo
+     */
+    restartQuiz() {
+        console.log('🔄 Reiniciando quiz...');
+        
+        // Confirmar si realmente quiere repetir
+        if (confirm('¿Estás seguro de que quieres repetir el cuestionario? Se perderán las respuestas actuales.')) {
+            // Detener cronómetro actual si existe
+            this.stopQuizTimer();
+            
+            // Resetear estado del quiz
+            this.currentQuestionIndex = 0;
+            this.userAnswers = {};
+            this.quizTimeRemaining = this.quizTimeLimit;
+            
+            // Limpiar el contenido actual del panel central
+            const centerPanel = document.querySelector('.center-panel');
+            if (centerPanel) {
+                centerPanel.innerHTML = '';
+            }
+            
+            // Mostrar el quiz desde el inicio
+            this.createQuizContent();
+            
+            console.log('✅ Quiz reiniciado');
+        }
+    }
+    
+    /**
+     * Calcula el puntaje del quiz
+     */
+    calculateScore() {
+        let correctCount = 0;
+        let totalEvaluable = 0;
+        
+        this.quizData.forEach((q, idx) => {
+            if (q.type === 'text') return; // Saltar preguntas abiertas
+            
+            totalEvaluable++;
+            const userAns = this.userAnswers[idx];
+            let isCorrect = false;
+            
+            if (q.type === 'multiple') {
+                isCorrect = Array.isArray(userAns) && Array.isArray(q.correct) && 
+                           userAns.sort().join(',') === q.correct.sort().join(',');
+            } else if (q.type === 'match') {
+                isCorrect = JSON.stringify(userAns) === JSON.stringify(q.correct);
+            } else {
+                isCorrect = userAns === q.correct;
+            }
+            
+            if (isCorrect) correctCount++;
+        });
+        
+        return {
+            correct: correctCount,
+            total: totalEvaluable,
+            percentage: Math.round((correctCount / totalEvaluable) * 100)
+        };
+    }
+    
+    /**
+     * Obtiene el ID del usuario actual (implementar según tu sistema)
+     */
+    getCurrentUserId() {
+        // Implementar según tu sistema de autenticación
+        // Por ahora retornamos un placeholder
+        return 'user_' + Date.now();
+    }
+    
+    // ===== FUNCIONES DEL CRONÓMETRO =====
+    
+    /**
+     * Inicia el cronómetro del quiz
+     */
+    startQuizTimer() {
+        console.log('⏱️ Iniciando cronómetro del quiz');
+        
+        // Resetear valores
+        this.quizTimeRemaining = this.quizTimeLimit;
+        this.quizStartTime = Date.now();
+        
+        // Actualizar display inicial
+        this.updateTimerDisplay();
+        
+        // Iniciar el intervalo del cronómetro
+        this.quizTimer = setInterval(() => {
+            this.quizTimeRemaining--;
+            this.updateTimerDisplay();
+            
+            // Verificar advertencias de tiempo
+            this.checkTimeWarnings();
+            
+            // Verificar si se acabó el tiempo
+            if (this.quizTimeRemaining <= 0) {
+                this.timeUpQuiz();
+            }
+        }, 1000);
+    }
+    
+    /**
+     * Actualiza la visualización del cronómetro
+     */
+    updateTimerDisplay() {
+        const timerElement = document.getElementById('quizTimer');
+        const progressBar = document.getElementById('timerProgressBar');
+        
+        if (!timerElement || !progressBar) return;
+        
+        // Formatear tiempo
+        const minutes = Math.floor(this.quizTimeRemaining / 60);
+        const seconds = this.quizTimeRemaining % 60;
+        const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        timerElement.textContent = timeString;
+        
+        // Actualizar barra de progreso
+        const progress = ((this.quizTimeLimit - this.quizTimeRemaining) / this.quizTimeLimit) * 100;
+        progressBar.style.width = `${progress}%`;
+        
+        // Cambiar colores según el tiempo restante
+        const container = document.querySelector('.quiz-timer-container');
+        if (container) {
+            container.classList.remove('warning', 'critical');
+            
+            if (this.quizTimeRemaining <= 60) { // Último minuto
+                container.classList.add('critical');
+            } else if (this.quizTimeRemaining <= 120) { // Últimos 2 minutos
+                container.classList.add('warning');
+            }
+        }
+    }
+    
+    /**
+     * Verifica y muestra advertencias de tiempo
+     */
+    checkTimeWarnings() {
+        if (this.quizTimeRemaining === 120) { // 2 minutos restantes
+            this.showTimeWarning('⚠️ Quedan 2 minutos para completar el quiz');
+        } else if (this.quizTimeRemaining === 60) { // 1 minuto restante
+            this.showTimeWarning('🚨 ¡Último minuto! Termina las preguntas que puedas');
+        } else if (this.quizTimeRemaining === 30) { // 30 segundos restantes
+            this.showTimeWarning('🚨 ¡Solo quedan 30 segundos!');
+        }
+    }
+    
+    /**
+     * Muestra advertencia de tiempo
+     */
+    showTimeWarning(message) {
+        // Crear notificación temporal
+        const notification = document.createElement('div');
+        notification.className = 'quiz-time-warning';
+        notification.innerHTML = `
+            <div class="warning-content">
+                <span>${message}</span>
+                <button onclick="this.parentElement.parentElement.remove()">✕</button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remover después de 5 segundos
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+    
+    /**
+     * Termina el quiz cuando se acaba el tiempo
+     */
+    timeUpQuiz() {
+        console.log('⏰ Tiempo agotado - Terminando quiz automáticamente');
+        
+        // Detener el cronómetro
+        if (this.quizTimer) {
+            clearInterval(this.quizTimer);
+            this.quizTimer = null;
+        }
+        
+        // Mostrar mensaje de tiempo agotado
+        alert('⏰ ¡Tiempo agotado! El quiz se ha terminado automáticamente con las respuestas que completaste.');
+        
+        // Finalizar quiz con respuestas actuales
+        this.finishQuiz();
+    }
+    
+    /**
+     * Detiene el cronómetro (cuando se termina el quiz manualmente)
+     */
+    stopQuizTimer() {
+        if (this.quizTimer) {
+            clearInterval(this.quizTimer);
+            this.quizTimer = null;
+            console.log('⏱️ Cronómetro detenido');
+        }
     }
     
     // ===== YOUTUBE VIDEO PLAYER =====
@@ -3030,7 +4400,38 @@ console.log('🔧 Funciones de debug disponibles:');
 console.log('• debugProgressSystem() - Debug completo del sistema');
 console.log('• forceInitializeProgress() - Forzar inicialización');
 
+// ===== FUNCIÓN GLOBAL INMEDIATA =====
+window.switchTab = function(contentType) {
+    console.log(`🔄 switchTab global inmediato llamado: ${contentType}`);
+    
+    if (window.courseManager && typeof window.courseManager.switchContentTab === 'function') {
+        window.courseManager.switchContentTab(contentType);
+    } else {
+        console.log('⏳ courseManager no disponible aún, guardando para después...');
+        // Guardar la acción para ejecutar cuando esté disponible
+        window.pendingTabSwitch = contentType;
+    }
+};
+
+console.log('✅ window.switchTab definido globalmente');
+
+// ===== INSTANCIACIÓN AUTOMÁTICA =====
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM cargado, instanciando ChatOnline...');
+    window.chatOnlineInstance = new ChatOnline();
+    
+    // Ejecutar acción pendiente si existe
+    if (window.pendingTabSwitch) {
+        console.log(`🔄 Ejecutando acción pendiente: ${window.pendingTabSwitch}`);
+        setTimeout(() => {
+            window.switchTab(window.pendingTabSwitch);
+            window.pendingTabSwitch = null;
+        }, 100);
+    }
+});
+
 // ===== EXPORTAR PARA USO EXTERNO =====
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ChatOnline;
 }
+
