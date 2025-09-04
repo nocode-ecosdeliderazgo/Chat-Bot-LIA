@@ -673,7 +673,7 @@
     right: 0;
     background: rgba(10, 16, 28, 0.95);
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(68, 229, 255, 0.2);
+    border-bottom: none; /* Quitamos la barra azul */
     z-index: 1000;
     padding: 2px 0;
     height: 45px;

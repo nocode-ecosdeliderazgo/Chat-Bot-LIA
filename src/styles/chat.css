@@ -3545,3 +3545,524 @@ html, body {
 [data-theme="light"] ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, rgba(68, 229, 255, 0.7), rgba(0, 119, 166, 0.7));
 }
+
+/* ===== ZOOM VIDEO SDK STYLES ===== */
+
+/* Contenedor principal de Zoom Video SDK */
+.zoom-video-wrapper {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    background: rgba(20, 30, 45, 0.98);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+/* Canvas de video de Zoom */
+.zoom-video-canvas {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    background: rgba(15, 20, 30, 0.95);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Overlay para controles de Zoom */
+.zoom-controls-overlay {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5));
+    border: 1px solid rgba(68, 229, 255, 0.15);
+    border-radius: 12px;
+    padding: 12px 16px;
+    backdrop-filter: blur(15px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 1;
+    transition: all 0.3s ease;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Información de participantes */
+.zoom-participant-info {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex: 1;
+}
+
+.participant-count {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.connection-status {
+    color: #44e5ff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    background: rgba(68, 229, 255, 0.15);
+    border-radius: 6px;
+    border: 1px solid rgba(68, 229, 255, 0.2);
+}
+
+.connection-status.connected {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.connection-status.connecting {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.connection-status.disconnected {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Controles de video básicos */
+.video-basic-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.video-control-btn {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(68, 229, 255, 0.2);
+    border-radius: 10px;
+    padding: 8px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(5px);
+}
+
+.video-control-btn:hover {
+    background: linear-gradient(145deg, rgba(68, 229, 255, 0.2), rgba(68, 229, 255, 0.1));
+    color: #44e5ff;
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 16px rgba(68, 229, 255, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.video-control-btn.active {
+    background: linear-gradient(145deg, rgba(68, 229, 255, 0.25), rgba(68, 229, 255, 0.15));
+    color: #44e5ff;
+    border-color: rgba(68, 229, 255, 0.3);
+}
+
+.video-control-btn.disabled {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    color: #64748b;
+    cursor: not-allowed;
+    opacity: 0.5;
+    border-color: rgba(100, 116, 139, 0.2);
+}
+
+.video-control-btn.disabled:hover {
+    transform: none;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    color: #64748b;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Botón de cámara específico */
+.video-control-btn#cameraToggleBtn.camera-off {
+    background: linear-gradient(145deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.video-control-btn#cameraToggleBtn.camera-off:hover {
+    background: linear-gradient(145deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.2));
+    box-shadow: 
+        0 6px 16px rgba(239, 68, 68, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Botón de micrófono específico */
+.video-control-btn#microphoneToggleBtn.microphone-off {
+    background: linear-gradient(145deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.video-control-btn#microphoneToggleBtn.microphone-off:hover {
+    background: linear-gradient(145deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.2));
+    box-shadow: 
+        0 6px 16px rgba(239, 68, 68, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Botón de volumen específico */
+.video-control-btn#volumeControlBtn.volume-muted {
+    background: linear-gradient(145deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.video-control-btn#volumeControlBtn.volume-muted:hover {
+    background: linear-gradient(145deg, rgba(245, 158, 11, 0.3), rgba(245, 158, 11, 0.2));
+    box-shadow: 
+        0 6px 16px rgba(245, 158, 11, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Botón de pantalla completa */
+.video-control-btn#fullscreenToggleBtn {
+    margin-left: 4px;
+}
+
+/* Estados específicos para el panel cuando Zoom está activo */
+.live-stream-main-panel.zoom-active {
+    border-color: rgba(68, 229, 255, 0.3);
+    box-shadow: 
+        0 12px 40px rgba(68, 229, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.live-stream-main-panel.zoom-active .live-stream-main-header {
+    background: linear-gradient(135deg, rgba(68, 229, 255, 0.18), rgba(68, 229, 255, 0.08));
+    border-bottom-color: rgba(68, 229, 255, 0.25);
+}
+
+.live-stream-main-panel.zoom-active .live-stream-main-header h3 {
+    color: #44e5ff;
+    text-shadow: 0 0 10px rgba(68, 229, 255, 0.3);
+}
+
+/* Responsive design para Zoom Video SDK */
+@media (max-width: 1024px) {
+    .zoom-controls-overlay {
+        bottom: 8px;
+        left: 8px;
+        right: 8px;
+        padding: 8px 12px;
+        border-radius: 8px;
+    }
+    
+    .zoom-participant-info {
+        gap: 8px;
+    }
+    
+    .participant-count {
+        font-size: 0.75rem;
+    }
+    
+    .connection-status {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+    }
+    
+    .video-control-btn {
+        min-width: 32px;
+        height: 32px;
+        padding: 6px;
+        border-radius: 8px;
+    }
+}
+
+@media (max-width: 768px) {
+    .zoom-controls-overlay {
+        bottom: 4px;
+        left: 4px;
+        right: 4px;
+        padding: 6px 8px;
+        border-radius: 6px;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .zoom-participant-info {
+        justify-content: center;
+    }
+    
+    .participant-count {
+        font-size: 0.7rem;
+    }
+    
+    .connection-status {
+        font-size: 0.65rem;
+        padding: 2px 4px;
+    }
+    
+    .video-basic-controls {
+        gap: 4px;
+        justify-content: center;
+    }
+    
+    .video-control-btn {
+        min-width: 28px;
+        height: 28px;
+        padding: 4px;
+        border-radius: 6px;
+    }
+}
+
+/* ===== ZOOM VIDEO SDK - CONTROLES DIFERENCIADOS POR ROL ===== */
+
+/* Controles básicos para todos los usuarios */
+.zoom-basic-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: rgba(15, 25, 40, 0.95);
+    border-radius: 12px;
+    border: 1px solid rgba(68, 229, 255, 0.2);
+    margin-top: 8px;
+}
+
+.zoom-control-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 10px;
+    background: linear-gradient(145deg, rgba(68, 229, 255, 0.15), rgba(68, 229, 255, 0.05));
+    border: 1px solid rgba(68, 229, 255, 0.3);
+    border-radius: 10px;
+    color: #44e5ff;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.zoom-control-btn:hover {
+    background: linear-gradient(145deg, rgba(68, 229, 255, 0.25), rgba(68, 229, 255, 0.15));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(68, 229, 255, 0.2);
+}
+
+.zoom-control-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(68, 229, 255, 0.3);
+}
+
+/* Estados específicos para controles */
+.zoom-control-btn.camera-off {
+    background: linear-gradient(145deg, rgba(239, 68, 68, 0.25), rgba(239, 68, 68, 0.15));
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+}
+
+.zoom-control-btn.microphone-off {
+    background: linear-gradient(145deg, rgba(239, 68, 68, 0.25), rgba(239, 68, 68, 0.15));
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+}
+
+.zoom-control-btn.volume-muted {
+    background: linear-gradient(145deg, rgba(245, 158, 11, 0.25), rgba(245, 158, 11, 0.15));
+    border-color: rgba(245, 158, 11, 0.4);
+    color: #f59e0b;
+}
+
+.zoom-control-btn.recording-active {
+    background: linear-gradient(145deg, rgba(239, 68, 68, 0.35), rgba(239, 68, 68, 0.25));
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #ef4444;
+    animation: recordingPulse 2s ease-in-out infinite;
+}
+
+@keyframes recordingPulse {
+    0%, 100% { 
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    }
+    50% { 
+        box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+    }
+}
+
+.zoom-control-btn.screen-sharing {
+    background: linear-gradient(145deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.15));
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #10b981;
+}
+
+/* Controles solo para HOST */
+.zoom-host-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.host-controls-separator {
+    width: 1px;
+    height: 30px;
+    background: rgba(68, 229, 255, 0.3);
+    margin: 0 8px;
+}
+
+/* Ocultar controles de host por defecto */
+.host-only {
+    display: none !important;
+}
+
+/* Mostrar controles de host cuando el usuario es host */
+.zoom-user-host .host-only {
+    display: flex !important;
+}
+
+/* Indicador de rol de usuario */
+.user-role-indicator {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.role-badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.role-badge.host-badge {
+    background: linear-gradient(145deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.role-badge.participant-badge {
+    background: linear-gradient(145deg, rgba(68, 229, 255, 0.2), rgba(68, 229, 255, 0.1));
+    color: #44e5ff;
+    border: 1px solid rgba(68, 229, 255, 0.3);
+}
+
+/* Tooltips mejorados para controles */
+.zoom-control-btn::before {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 20, 30, 0.95);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: 8px;
+    border: 1px solid rgba(68, 229, 255, 0.2);
+    z-index: 1000;
+}
+
+.zoom-control-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border: 4px solid transparent;
+    border-top-color: rgba(15, 20, 30, 0.95);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: 4px;
+    z-index: 1000;
+}
+
+.zoom-control-btn:hover::before,
+.zoom-control-btn:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Responsive para controles de Zoom */
+@media (max-width: 768px) {
+    .zoom-basic-controls {
+        gap: 8px;
+        padding: 6px 8px;
+        border-radius: 8px;
+    }
+    
+    .zoom-control-btn {
+        min-width: 32px;
+        height: 32px;
+        padding: 6px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .host-controls-separator {
+        height: 24px;
+        margin: 0 4px;
+    }
+    
+    .role-badge {
+        font-size: 0.65rem;
+        padding: 3px 6px;
+    }
+    
+    .zoom-control-btn::before {
+        font-size: 0.65rem;
+        padding: 4px 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .zoom-basic-controls {
+        gap: 6px;
+        padding: 4px 6px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .zoom-control-btn {
+        min-width: 28px;
+        height: 28px;
+        padding: 4px;
+        font-size: 0.8rem;
+    }
+    
+    .user-role-indicator {
+        width: 100%;
+        margin: 4px 0 0 0;
+        justify-content: center;
+    }
+    
+    .host-controls-separator {
+        display: none;
+    }
+}

@@ -1,7 +1,320 @@
 /**
  * Datos hardcodeados del curso "Aprende y Aplica IA"
  * Este archivo contiene toda la información del curso estructurada para el agente de IA
+ * 
+ * INCLUYE CONTENIDO ESPECÍFICO DEL CURSO "APRENDE Y APLICA IA®" PARA SIF ICAP
  */
+
+// ===== CONTENIDO REAL DEL CURSO "EXPERTO EN IA PARA PROFESIONALES" =====
+const SIF_ICAP_COURSE_CONTENT = {
+    // Información General del Curso
+    courseInfo: {
+        title: "Experto en IA para Profesionales: Dominando ChatGPT y Gemini para la Productividad",
+        subtitle: "Programa de Capacitación Integral en Inteligencia Artificial Generativa",
+        description: "Programa transformador que enseña a integrar ChatGPT y Gemini para maximizar la productividad profesional y transformar radicalmente el perfil profesional.",
+        target: "Profesionales que buscan transformar su forma de trabajar con IA generativa",
+        focus: "Aplicación práctica de IA generativa en entornos profesionales reales",
+        methodology: "Modalidad 100% online y en vivo con actividades colaborativas e individuales",
+        instructor: "Ernesto Hernández - Experto en IA aplicada con 30+ años de experiencia empresarial",
+        duration: "4 sesiones transformadoras",
+        platform: "Plataforma de Aprende y Aplica IA"
+    },
+
+    // Objetivos del Curso
+    objectives: {
+        general: "Transformar radicalmente el perfil profesional mediante la integración de IA generativa",
+        specific: [
+            {
+                title: "Sesión 1: Descubriendo la IA para Profesionales",
+                description: "Dominar los fundamentos clave y configurar ChatGPT y Gemini para transformar radicalmente el perfil profesional."
+            },
+            {
+                title: "Sesión 2: Dominando la Comunicación con IA",
+                description: "Crear prompts de élite, levantar y personalizar su propio agente GPT y su Gema de Gemini."
+            },
+            {
+                title: "Sesión 3: IMPULSO con ChatGPT",
+                description: "Aplicar el método IMPULSO para resolver desafíos reales y cotidianos mediante prompts cuidadosamente optimizados."
+            },
+            {
+                title: "Sesión 4: Estrategia y Proyecto Integrador",
+                description: "Diseñar e implementar un plan estratégico de IA generativa adaptado a las actividades diarias, midiendo y demostrando los resultados alcanzados."
+            }
+        ]
+    },
+
+    // Contexto y Diagnóstico
+    context: {
+        currentSituation: {
+            operations: "Los profesionales enfrentan jornadas llenas de desafíos y expectativas en entornos laborales cada vez más demandantes",
+            requirements: "Necesidad de transformar la forma de trabajar para lograr resultados más rápidos, precisos y satisfactorios",
+            needs: "Herramientas que permitan integrar IA generativa de manera práctica para maximizar la productividad",
+            challenges: [
+                "Miedo inicial a lo desconocido en IA generativa",
+                "Falta de conocimiento sobre cómo integrar estas tecnologías",
+                "Necesidad de crear flujos de trabajo inteligentes",
+                "Demanda de resultados inmediatos y medibles"
+            ],
+            dataHandling: "Manejo de información profesional con enfoque en productividad y eficiencia",
+            automation: "Oportunidad de automatizar tareas repetitivas para enfocarse en lo esencialmente humano"
+        }
+    },
+
+    // Módulos Transversales (Para Todos)
+    transversalModules: [
+        {
+            id: 1,
+            title: "Gen-AI: El Despertar de una Nueva Era Humana",
+            duration: "Sesión completa",
+            description: "Exploración profunda de la evolución de la percepción de la IA generativa, desde el miedo inicial hasta el entusiasmo actual, y su impacto transformador en la sociedad.",
+            content: [
+                "Del miedo al entusiasmo - Evolución de la percepción",
+                "Liderar un renacimiento consciente",
+                "Transformar nuestra humanidad",
+                "El mundo ya cambió - Casos reales de transformación",
+                "Emociones frente a la Gen-AI - Curva de adopción",
+                "La nueva ola de entusiasmo - Estadísticas y casos",
+                "Un cambio de paradigma - Antes vs Ahora",
+                "El líder del futuro - Competencias clave",
+                "¿Qué mundo elegimos construir? - Trascendencia, colaboración y propósito",
+                "Liderar el renacimiento - Estrategias prácticas",
+                "No se trata de adaptarse al futuro: se trata de diseñarlo"
+            ]
+        },
+        {
+            id: 2,
+            title: "Actividad Colaborativa con Gemini",
+            duration: "40 minutos",
+            description: "Práctica integral de investigación aumentada con IA, transformando una sola investigación en múltiples formatos interactivos.",
+            content: [
+                "Flujo de trabajo inteligente con IA de principio a fin",
+                "La semilla de todo - Prompt de investigación detallado",
+                "Creación de formatos interactivos desde la investigación",
+                "Reporte web interactivo en Canvas",
+                "Infografía visual atractiva",
+                "Cuestionario de evaluación",
+                "Resumen de audio para aprendizaje auditivo",
+                "Trabajo colaborativo en equipos de 3-6 personas",
+                "Roles de piloto y copiloto",
+                "Evaluación mediante entregables y cuestionarios"
+            ]
+        },
+        {
+            id: 3,
+            title: "Metodología y Evaluación",
+            duration: "Sesión completa",
+            description: "Sistema de aprendizaje híbrido con actividades colaborativas e individuales, evaluación continua y recursos de apoyo.",
+            content: [
+                "Modalidad 100% online y en vivo",
+                "Actividades colaborativas en salas de Zoom",
+                "Actividades individuales con videos y audios de apoyo",
+                "Evaluación mediante entregables sencillos",
+                "Cuestionarios de refuerzo en plataforma",
+                "Sin presión de fechas límite",
+                "Recursos disponibles hasta el cierre del curso",
+                "Acompañamiento constante del instructor"
+            ]
+        },
+        {
+            id: 4,
+            title: "Productividad con IA",
+            duration: "3 horas",
+            description: "Aplicaciones prácticas de IA para aumentar la productividad diaria. Uso de asistentes, generación de contenido y automatización de tareas repetitivas en el contexto financiero.",
+            content: [
+                "Asistentes virtuales para productividad",
+                "Generación de contenido con IA",
+                "Automatización de tareas repetitivas",
+                "Herramientas de IA para análisis",
+                "Optimización de flujos de trabajo",
+                "Integración de IA en procesos diarios"
+            ]
+        }
+    ],
+
+    // Módulos Específicos por Área
+    specificModules: {
+        brokers: {
+            title: "IA para Brokers y Operadores",
+            description: "Optimización de operaciones de trading, análisis de mercado en tiempo real y gestión de riesgos mediante IA generativa.",
+            content: [
+                "Análisis predictivo de mercados con ChatGPT y Gemini",
+                "Detección automática de anomalías en operaciones",
+                "Optimización de portafolios mediante prompts especializados",
+                "Gestión de riesgos automatizada con IA generativa",
+                "Reportes regulatorios inteligentes",
+                "Integración con sistemas de trading existentes"
+            ],
+            duration: "4 horas"
+        },
+        ti: {
+            title: "IA para Tecnologías de la Información",
+            description: "Implementación de soluciones de IA generativa en infraestructura tecnológica y desarrollo de aplicaciones.",
+            content: [
+                "Arquitectura de sistemas de IA generativa",
+                "Integración de ChatGPT y Gemini en sistemas existentes",
+                "Desarrollo de aplicaciones inteligentes con prompts",
+                "Gestión de datos y machine learning",
+                "Seguridad y monitoreo de sistemas de IA",
+                "Escalabilidad y mantenimiento de soluciones"
+            ],
+            duration: "4 horas"
+        },
+        legal: {
+            title: "Legal/Contraloría",
+            description: "Análisis automatizado de contratos, extracción de cláusulas clave y herramientas de auditoría potenciadas por IA para identificación de riesgos regulatorios.",
+            content: [
+                "Análisis automatizado de contratos",
+                "Extracción de cláusulas clave",
+                "Herramientas de auditoría con IA",
+                "Identificación de riesgos regulatorios",
+                "Revisión legal automatizada",
+                "Cumplimiento normativo"
+            ],
+            duration: "3-4 horas"
+        },
+        nuevosNegocios: {
+            title: "Nuevos Negocios",
+            description: "Generación de perfiles enriquecidos de prospectos, análisis de potencial de mercado y resúmenes automatizados de documentos de emisoras.",
+            content: [
+                "Perfiles enriquecidos de prospectos",
+                "Análisis de potencial de mercado",
+                "Resúmenes automatizados de documentos",
+                "Evaluación de emisoras",
+                "Identificación de oportunidades",
+                "Análisis de competencia"
+            ],
+            duration: "3-4 horas"
+        },
+        administracion: {
+            title: "Administración/Finanzas",
+            description: "Automatización de conciliaciones contables, generación de reportes financieros y detección de patrones inusuales en registros transaccionales.",
+            content: [
+                "Automatización de conciliaciones",
+                "Generación de reportes financieros",
+                "Detección de patrones inusuales",
+                "Análisis de registros transaccionales",
+                "Control interno automatizado",
+                "Análisis de riesgos financieros"
+            ],
+            duration: "3-4 horas"
+        },
+        auxiliares: {
+            title: "Auxiliares/Dirección",
+            description: "Implementación de asistentes virtuales para agenda y seguimiento, así como generación y mantenimiento de documentación corporativa automatizada.",
+            content: [
+                "Asistentes virtuales para agenda",
+                "Seguimiento automatizado",
+                "Documentación corporativa automatizada",
+                "Gestión de tareas administrativas",
+                "Comunicación interna optimizada",
+                "Organización de información"
+            ],
+            duration: "3-4 horas"
+        }
+    },
+
+    // Casos de Uso Específicos
+    useCases: {
+        brokers: [
+            "Detección de oportunidades de arbitraje en tiempo real",
+            "Análisis de sentimiento de noticias financieras",
+            "Identificación de patrones anómalos en trading",
+            "Alertas automáticas de movimientos de mercado"
+        ],
+        ti: [
+            "Implementación de pipeline MLOps para modelos de riesgo",
+            "Integración con APIs de Bloomberg y Reuters",
+            "Análisis de similitud de documentos regulatorios",
+            "Monitoreo de performance de modelos en producción"
+        ],
+        legal: [
+            "Revisión automatizada de contratos de derivados",
+            "Extracción de cláusulas de riesgo en documentos",
+            "Auditoría automatizada de cumplimiento regulatorio",
+            "Generación de reportes de cumplimiento"
+        ],
+        nuevosNegocios: [
+            "Análisis de prospectos para nuevos emisores",
+            "Evaluación automatizada de documentos de emisoras",
+            "Identificación de oportunidades de mercado",
+            "Generación de perfiles de riesgo de emisores"
+        ],
+        administracion: [
+            "Conciliación automática de operaciones",
+            "Detección de transacciones inusuales",
+            "Generación de reportes regulatorios",
+            "Análisis de flujos de efectivo"
+        ],
+        auxiliares: [
+            "Asistente virtual para gestión de agenda",
+            "Automatización de documentación corporativa",
+            "Seguimiento de tareas administrativas",
+            "Organización de información interna"
+        ]
+    },
+
+    // Metodología y Enfoque
+    methodology: {
+        approach: "Transversal garantiza que cada área obtenga beneficios tangibles",
+        measurement: "KPIs definidos en conjunto con equipo directivo",
+        adaptation: "Diseñado para adaptarse a prioridades estratégicas",
+        challenges: "Abordar desafíos específicos del mercado financiero mexicano",
+        delivery: "Modalidad adaptable: presencial, virtual o híbrida",
+        evaluation: "Evaluaciones pre y post para medir impacto del aprendizaje",
+        materials: "Materiales de referencia personalizados para contexto SIF ICAP"
+    },
+
+    // Certificación y Resultados
+    certification: {
+        type: "Certificación por módulo completado",
+        benefits: [
+            "Conocimiento aplicable inmediatamente",
+            "Mejora en eficiencia operativa",
+            "Reducción de riesgos regulatorios",
+            "Ventaja competitiva en el mercado",
+            "Preparación para transformación digital"
+        ]
+    },
+
+    // Tecnologías y Herramientas
+    technologies: [
+        "Machine Learning",
+        "Procesamiento de Lenguaje Natural (NLP)",
+        "Análisis de Series de Tiempo",
+        "Embeddings y Análisis de Similitud",
+        "APIs Financieras",
+        "MLOps",
+        "Herramientas de Automatización",
+        "Sistemas de Monitoreo"
+    ],
+
+    // Regulaciones y Compliance
+    regulations: {
+        mexican: [
+            "CNBV (Comisión Nacional Bancaria y de Valores)",
+            "Ley del Mercado de Valores (LMV)",
+            "Ley General de Protección de Datos (LGPD)"
+        ],
+        international: [
+            "GDPR (General Data Protection Regulation)",
+            "Mejores prácticas internacionales de IA"
+        ]
+    },
+
+    // Beneficios Esperados
+    expectedBenefits: [
+        "Reducción de tiempos de procesamiento",
+        "Incremento en precisión analítica",
+        "Mejora en detección de anomalías",
+        "Automatización de tareas repetitivas",
+        "Mejor cumplimiento regulatorio",
+        "Ventaja competitiva en el mercado",
+        "Optimización de recursos operativos",
+        "Reducción de errores humanos"
+    ]
+};
+
+// ===== CONTENIDO GENERAL DEL CURSO (MANTENIDO) =====
 
 const COURSE_DATA = {
     info: {

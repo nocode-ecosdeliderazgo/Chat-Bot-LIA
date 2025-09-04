@@ -926,7 +926,7 @@ netlify dev --live   # Desarrollo local con functions
 - **Design**: Figma, Adobe XD
 - **Testing**: Postman, Thunder Client
 - **Database**: pgAdmin, DBeaver
-- **Monitoring**: Google Analytics, Grafana
+- **Monitoring**: Google Analytics
 
 ---
 

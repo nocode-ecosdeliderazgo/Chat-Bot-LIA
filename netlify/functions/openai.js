@@ -19,11 +19,12 @@ function getPrompts() {
     const safety = safeRead(path.join(base, 'safety.es.md'));
     const useCases = safeRead(path.join(base, 'use_cases.es.md'));
     const examples = safeRead(path.join(base, 'examples.es.md'));
-    const combined = [system, style, safety, tools, useCases]
+    const courseSpecific = safeRead(path.join(base, 'course-specific.es.md'));
+    const combined = [system, style, safety, tools, useCases, courseSpecific]
         .filter(Boolean)
         .join('\n\n')
         .trim();
-    return { system, style, tools, safety, useCases, examples, combined };
+    return { system, style, tools, safety, useCases, examples, courseSpecific, combined };
 }
 
 function verifyUser(event) {
