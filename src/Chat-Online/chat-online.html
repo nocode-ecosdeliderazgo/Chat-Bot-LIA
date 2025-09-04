@@ -4,32 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Introducción a la IA - Aprende y Aplica</title>
-    
     <!-- Meta Tags para SEO -->
     <meta name="description" content="Aprende los fundamentos de la Inteligencia Artificial con nuestro curso interactivo. Videos, transcripciones, resúmenes y comunidad de aprendizaje.">
     <meta name="keywords" content="inteligencia artificial, IA, machine learning, deep learning, curso online, aprende y aplica">
     <meta name="author" content="Aprende y Aplica">
-    
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Introducción a la IA - Aprende y Aplica">
     <meta property="og:description" content="Aprende los fundamentos de la Inteligencia Artificial con nuestro curso interactivo.">
     <meta property="og:image" content="../assets/images/icono.png">
     <meta property="og:url" content="">
-    
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Introducción a la IA - Aprende y Aplica">
     <meta name="twitter:description" content="Aprende los fundamentos de la Inteligencia Artificial con nuestro curso interactivo.">
     <meta name="twitter:image" content="../assets/images/icono.png">
-    
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="../assets/images/icono.png" />
-    
     <!-- CSS Principal y Neumorphism -->
     <link rel="stylesheet" href="../styles/main.css">
     <link rel="stylesheet" href="chat-online.css">
-    
     <script>
         // FUNCIÓN GLOBAL INMEDIATA - DISPONIBLE DESDE EL INICIO
         window.switchTab = function(contentType) {
@@ -53,7 +47,7 @@
         };
         console.log('✅ switchTab LISTO EN HEAD');
     </script>
-    
+
     <!-- Iconos SVG personalizados -->
     <style>
         .icon {
@@ -96,15 +90,12 @@
             justify-content: center;
         }
     </style>
-    
     <!-- Favicon -->
     <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
-    
     <!-- Global theme setup - Configuración global del tema -->
     <script src="../scripts/global-theme-setup.js"></script>
 </head>
 <body>
-    
     <!-- Botón de cambio de tema -->
     <button class="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">
         <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -125,7 +116,6 @@
 
     <!-- Contenedor Principal con 3 Paneles -->
     <main class="layout-3panels">
-        
         <!-- Barra de Navegación Superior -->
         <div class="top-navigation">
                 <button class="neo-btn neo-btn-small back-btn" onclick="goBack()">
@@ -172,11 +162,8 @@
                     <span class="nav-label">Quiz</span>
                 </button>
             </div>
-                </div>
-                
-        <!-- Panel Izquierdo - Material del Curso -->
+                </div>        <!-- Panel Izquierdo - Material del Curso -->
         <aside class="left-panel neo-panel" id="sidebarLeft">
-            
             <!-- Información del Curso -->
             <div class="course-info-section">
                 <div class="course-card">
@@ -187,7 +174,6 @@
                         </svg>
                             <span>Inteligencia Artificial</span>
                     </div>
-                    
                     <!-- Título del Curso -->
                     <h2 class="course-title">
                         <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -196,7 +182,6 @@
                         </svg>
                         <span>Introducción a la IA</span>
                     </h2>
-                    
                     <!-- Información de Progreso -->
                     <div class="course-progress-section">
                         <div class="progress-header">
@@ -208,14 +193,12 @@
                             </span>
                             <span class="progress-percentage">0%</span>
                         </div>
-                        
                         <!-- Barra de Progreso -->
                         <div class="progress-bar-container">
                             <div class="progress-bar">
                                 <div class="progress-fill" style="width: 0%"></div>
                                 </div>
                             </div>
-                        
                         <!-- Indicadores de Módulos -->
                         <div class="progress-indicators">
                             <div class="progress-dot current" title="Módulo 1 En Progreso">
@@ -246,7 +229,6 @@
                         </div>
                 </div>
             </div>
-            
                     <!-- Módulo Actual -->
                     <div class="current-module-info">
                         <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -257,7 +239,6 @@
                     </div>
                 </div>
             </div>
-            
             <!-- Área de Creación de Notas -->
             <div class="notes-creator-section" id="notesCreatorSection" style="display: none;">
                 <div class="notes-creator-header">
@@ -294,13 +275,13 @@
                 </button>
                     </div>
             </div>
-            
+
                 <div class="notes-creator-content">
                     <!-- Título de la nota -->
                     <div class="note-title-input">
                         <input type="text" id="noteTitleInput" placeholder="Título de la nota..." maxlength="100">
                     </div>
-                    
+
                     <!-- Barra de herramientas del editor -->
                     <div class="editor-toolbar">
                         <button class="toolbar-btn" id="boldBtn" title="Negrita">
@@ -363,12 +344,12 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Editor de contenido -->
                     <div class="note-content-editor">
                         <div class="editor-content" id="noteContentEditor" contenteditable="true" placeholder="Escribe el contenido de tu nota aquí..."></div>
                     </div>
-                    
+
                     <!-- Etiquetas -->
                     <div class="note-tags-section">
                         <div class="tags-input-container">
@@ -376,11 +357,11 @@
                             <div class="tags-list" id="tagsList"></div>
                         </div>
                     </div>
-                    
+
 
                 </div>
             </div>
-            
+
             <!-- Material del Curso -->
             <div class="course-materials-section">
                 <div class="materials-header">
@@ -399,7 +380,6 @@
                         </button>
                     </div>
                 </div>
-                
                 <!-- Lista de Módulos - Sistema de menús desplegables -->
                 <div class="modules-list" id="modulesList">
                     <!-- Los módulos se cargarán dinámicamente aquí -->
@@ -409,12 +389,6 @@
                     </div>
                 </div>
             </div>
-            
-
-            
-
-            
-
         </aside>
 
         <!-- Panel Central - Contenido del Curso -->
@@ -1131,19 +1105,10 @@ Cargando información...
                 </div>
 
             </div>
-
-            
-
-
-
         </aside>
 
     </main>
-
-
-
     <!-- JavaScript -->
-
     <script src="../utils/helpers.js"></script>
 
     <script src="components/course-viewer.js"></script>
@@ -1153,13 +1118,8 @@ Cargando información...
     <script src="components/lia-chat.js"></script>
 
     <!-- Sistema dinámico V2 ya cargado arriba -->
-
-    
-
     <!-- Inicialización del Sistema Dinámico -->
-
     <script>
-
         console.log('🚀 Inicializando sistema dinámico...');
 
         
@@ -1635,9 +1595,6 @@ Cargando información...
                         }
 
                     }
-
-                    
-
                     // Event listener para el botón
 
                     sendBtn.addEventListener('click', function(e) {
@@ -1649,9 +1606,6 @@ Cargando información...
                         enviarMensaje();
 
                     });
-
-                    
-
                     // Event listener para Enter
 
                     input.addEventListener('keydown', function(e) {
@@ -1668,29 +1622,17 @@ Cargando información...
 
                     });
 
-                    
-
                     console.log('✅ Event listeners configurados correctamente');
-
-                    
-
                 } else {
 
                     console.error('❌ No se encontraron todos los elementos necesarios');
-
                 }
-
             }, 500);
-        });
-        
+        }); 
         // Funciones auxiliares
-
         function obtenerUsuarioActual() {
-
             try {
-
                 // Intentar obtener del localStorage
-
                 const userData = localStorage.getItem('userData');
 
                 if (userData) {
@@ -1698,9 +1640,6 @@ Cargando información...
                     return JSON.parse(userData);
 
                 }
-
-                
-
                 // Fallback para desarrollo
 
                 return {
@@ -1712,7 +1651,6 @@ Cargando información...
                     email: 'usuario@ejemplo.com'
 
                 };
-
             } catch (error) {
 
                 console.log('[LIA] Error obteniendo usuario:', error);
@@ -1726,13 +1664,9 @@ Cargando información...
                     email: 'usuario@ejemplo.com'
 
                 };
-
             }
 
         }
-
-        
-
         function obtenerContextoCurso() {
 
             try {
@@ -1741,13 +1675,9 @@ Cargando información...
 
                 const currentModule = document.querySelector('.module-item.current .module-info h4')?.textContent || '¿Qué es la IA?';
 
-                
-
                 // Obtener tiempo del video si está disponible
 
                 const videoTime = document.getElementById('currentTime')?.textContent || '00:00';
-
-                
 
                 // Obtener contenido de la transcripción visible
 
@@ -1762,13 +1692,8 @@ Cargando información...
                 console.log('[LIA] Error obteniendo contexto:', error);
 
                 return 'Módulo: ¿Qué es la IA?. Contexto: Curso de Inteligencia Artificial.';
-
             }
-
         }
-
-        
-
         function obtenerTokenAuth() {
 
             // Intentar obtener token real
@@ -1782,8 +1707,6 @@ Cargando información...
                 return token;
 
             }
-
-            
 
             // Token de desarrollo para testing - más compatible con el servidor
 
