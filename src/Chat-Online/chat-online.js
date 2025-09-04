@@ -894,6 +894,11 @@ class ChatOnline {
     // ===== FUNCIONES DE COMUNIDAD =====
     
     setupCommunityEventListeners() {
+        // Configurar usuario actual en la API
+        if (window.communityAPI && this.currentUser) {
+            window.communityAPI.setCurrentUser(this.currentUser);
+        }
+        
         // Botón para hacer pregunta
         const askQuestionBtn = document.getElementById('askQuestionBtn');
         if (askQuestionBtn) {
@@ -918,16 +923,11 @@ class ChatOnline {
             });
         }
         
-        // Votos en preguntas
-        document.querySelectorAll('.vote-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.handleVote(e.target.closest('.vote-btn'));
-            });
-        });
-        
         // Modal de pregunta
         this.setupQuestionModal();
+        
+        // Cargar preguntas iniciales
+        this.loadQuestions();
         
         console.log('🔧 Event listeners de comunidad configurados');
     }
@@ -1007,50 +1007,294 @@ class ChatOnline {
         }
     }
     
-    filterQuestions(filter) {
+    async loadQuestions(filter = 'all', sort = 'recent') {
+        try {
+            console.log(`📋 Cargando preguntas - Filtro: ${filter}, Orden: ${sort}`);
+            
+            // Mostrar estado de carga
+            this.showQuestionsLoading();
+            
+            // Llamar a la API
+            const response = await window.communityAPI.getQuestions({
+                filter,
+                sort,
+                course_id: this.currentCourseId,
+                module_id: this.currentModule
+            });
+            
+            if (response.success) {
+                this.displayQuestions(response.data);
+                console.log(`✅ ${response.data.length} preguntas cargadas`);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error al cargar preguntas:', error);
+            this.showNotification('Error al cargar las preguntas', 'error');
+            this.showQuestionsError();
+        }
+    }
+
+    async filterQuestions(filter) {
         console.log(`🔍 Filtrando preguntas por: ${filter}`);
-        // Aquí se implementará la lógica de filtrado cuando tengamos datos reales
+        
+        // Actualizar pestañas activas
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector(`[data-filter="${filter}"]`)?.classList.add('active');
+        
+        // Cargar preguntas con el filtro
+        await this.loadQuestions(filter, this.currentSort || 'recent');
     }
     
-    sortQuestions(sortBy) {
+    async sortQuestions(sortBy) {
         console.log(`📊 Ordenando preguntas por: ${sortBy}`);
-        // Aquí se implementará la lógica de ordenamiento cuando tengamos datos reales
+        this.currentSort = sortBy;
+        
+        // Cargar preguntas con el ordenamiento
+        const currentFilter = document.querySelector('.filter-tab.active')?.getAttribute('data-filter') || 'all';
+        await this.loadQuestions(currentFilter, sortBy);
+    }
+
+    showQuestionsLoading() {
+        const questionsContainer = document.getElementById('questionsList');
+        if (questionsContainer) {
+            questionsContainer.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Cargando preguntas...</p>
+                </div>
+            `;
+        }
+    }
+
+    showQuestionsError() {
+        const questionsContainer = document.getElementById('questionsList');
+        if (questionsContainer) {
+            questionsContainer.innerHTML = `
+                <div class="error-state">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    <p>Error al cargar las preguntas</p>
+                    <button class="btn-secondary" onclick="window.chatOnline.loadQuestions()">
+                        Reintentar
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    displayQuestions(questions) {
+        const questionsContainer = document.getElementById('questionsList');
+        if (!questionsContainer) return;
+
+        if (questions.length === 0) {
+            questionsContainer.innerHTML = `
+                <div class="empty-state">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <h3>No hay preguntas aún</h3>
+                    <p>Sé el primero en hacer una pregunta sobre este tema</p>
+                    <button class="btn-primary" onclick="window.chatOnline.showQuestionModal()">
+                        Hacer Primera Pregunta
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        const questionsHTML = questions.map(question => this.createQuestionHTML(question)).join('');
+        questionsContainer.innerHTML = questionsHTML;
+
+        // Reconfigurar event listeners para los nuevos elementos
+        this.setupQuestionEventListeners();
+    }
+
+    createQuestionHTML(question) {
+        const timeAgo = this.getTimeAgo(question.created_at);
+        const tagsHTML = question.tags?.map(tag => `<span class="tag">${tag}</span>`).join('') || '';
+        
+        return `
+            <div class="question-item" data-question-id="${question.id}">
+                <div class="question-votes">
+                    <button class="vote-btn upvote" title="Votar positivamente">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="18,15 12,9 6,15"/>
+                        </svg>
+                    </button>
+                    <span class="vote-count">${question.votes_count || 0}</span>
+                    <button class="vote-btn downvote" title="Votar negativamente">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6,9 12,15 18,9"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="question-content">
+                    <div class="question-header">
+                        <h4 class="question-title">${this.escapeHtml(question.title)}</h4>
+                        <div class="question-meta">
+                            <span class="question-author">
+                                <img src="${question.users?.avatar_url || '/assets/images/default-avatar.svg'}" 
+                                     alt="${question.users?.name || 'Usuario'}" class="author-avatar">
+                                ${question.users?.name || 'Usuario'}
+                            </span>
+                            <span class="question-time">${timeAgo}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="question-body">
+                        <p>${this.escapeHtml(question.content.substring(0, 200))}${question.content.length > 200 ? '...' : ''}</p>
+                    </div>
+                    
+                    <div class="question-footer">
+                        <div class="question-tags">
+                            ${tagsHTML}
+                        </div>
+                        <div class="question-stats">
+                            <span class="stat">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                ${question.answers_count || 0} respuestas
+                            </span>
+                            <span class="stat">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                                ${question.views_count || 0} vistas
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    setupQuestionEventListeners() {
+        // Votos en preguntas
+        document.querySelectorAll('.question-item .vote-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleVote(e.target.closest('.vote-btn'));
+            });
+        });
+
+        // Click en pregunta para ver detalles
+        document.querySelectorAll('.question-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (!e.target.closest('.vote-btn')) {
+                    const questionId = item.getAttribute('data-question-id');
+                    this.showQuestionDetails(questionId);
+                }
+            });
+        });
+    }
+
+    showQuestionDetails(questionId) {
+        console.log(`📖 Mostrando detalles de pregunta: ${questionId}`);
+        // Aquí se implementará la vista de detalles de la pregunta
+        this.showNotification('Funcionalidad de detalles próximamente', 'info');
+    }
+
+    getTimeAgo(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) return 'hace un momento';
+        if (diffInSeconds < 3600) return `hace ${Math.floor(diffInSeconds / 60)} minutos`;
+        if (diffInSeconds < 86400) return `hace ${Math.floor(diffInSeconds / 3600)} horas`;
+        if (diffInSeconds < 2592000) return `hace ${Math.floor(diffInSeconds / 86400)} días`;
+        return date.toLocaleDateString();
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
     
-    handleVote(voteBtn) {
+    async handleVote(voteBtn) {
         if (!voteBtn) return;
         
         const isUpvote = voteBtn.classList.contains('upvote');
         const questionItem = voteBtn.closest('.question-item');
         const voteCount = voteBtn.parentElement.querySelector('.vote-count');
+        const questionId = questionItem?.getAttribute('data-question-id');
         
-        // Toggle del voto
-        if (voteBtn.classList.contains('voted')) {
-            voteBtn.classList.remove('voted');
-            const currentCount = parseInt(voteCount.textContent);
-            voteCount.textContent = isUpvote ? currentCount - 1 : currentCount + 1;
-        } else {
-            // Remover voto opuesto si existe
-            const oppositeBtn = isUpvote ? 
-                voteBtn.parentElement.querySelector('.downvote') : 
-                voteBtn.parentElement.querySelector('.upvote');
+        if (!questionId) {
+            console.error('❌ No se encontró ID de pregunta');
+            return;
+        }
+
+        try {
+            // Mostrar estado de carga
+            voteBtn.disabled = true;
+            voteBtn.classList.add('loading');
+
+            // Determinar tipo de voto
+            const voteType = isUpvote ? 'upvote' : 'downvote';
             
-            if (oppositeBtn && oppositeBtn.classList.contains('voted')) {
-                oppositeBtn.classList.remove('voted');
-                const currentCount = parseInt(voteCount.textContent);
-                voteCount.textContent = isUpvote ? currentCount + 2 : currentCount - 2;
-            } else {
-                const currentCount = parseInt(voteCount.textContent);
-                voteCount.textContent = isUpvote ? currentCount + 1 : currentCount - 1;
+            // Llamar a la API
+            const response = await window.communityAPI.vote('question', questionId, voteType);
+            
+            if (response.success) {
+                // Actualizar UI basado en la respuesta
+                this.updateVoteUI(voteBtn, response.data, voteCount);
+                console.log(`✅ Voto ${response.data.action} exitosamente`);
             }
             
-            voteBtn.classList.add('voted');
+        } catch (error) {
+            console.error('❌ Error al votar:', error);
+            this.showNotification('Error al procesar el voto', 'error');
+        } finally {
+            // Restaurar estado del botón
+            voteBtn.disabled = false;
+            voteBtn.classList.remove('loading');
         }
+    }
+
+    updateVoteUI(voteBtn, voteData, voteCount) {
+        const isUpvote = voteBtn.classList.contains('upvote');
+        const oppositeBtn = isUpvote ? 
+            voteBtn.parentElement.querySelector('.downvote') : 
+            voteBtn.parentElement.querySelector('.upvote');
         
-        console.log(`${isUpvote ? '👍' : '👎'} Voto registrado`);
+        // Limpiar estados previos
+        voteBtn.classList.remove('voted');
+        if (oppositeBtn) oppositeBtn.classList.remove('voted');
+        
+        // Aplicar nuevo estado
+        if (voteData.action === 'created' || voteData.action === 'updated') {
+            voteBtn.classList.add('voted');
+            
+            // Actualizar contador (simplificado - en producción deberías obtener el contador real)
+            const currentCount = parseInt(voteCount.textContent) || 0;
+            if (voteData.vote_type === 'upvote') {
+                voteCount.textContent = currentCount + 1;
+            } else {
+                voteCount.textContent = currentCount - 1;
+            }
+        } else if (voteData.action === 'removed') {
+            // Restaurar contador original
+            const currentCount = parseInt(voteCount.textContent) || 0;
+            if (isUpvote) {
+                voteCount.textContent = currentCount - 1;
+            } else {
+                voteCount.textContent = currentCount + 1;
+            }
+        }
     }
     
-    submitQuestion() {
+    async submitQuestion() {
         const title = document.getElementById('questionTitle').value.trim();
         const content = document.getElementById('questionContent').value.trim();
         const tags = this.getSelectedTags();
@@ -1060,14 +1304,47 @@ class ChatOnline {
             return;
         }
         
-        // Aquí se enviará la pregunta al backend
-        console.log('📝 Enviando pregunta:', { title, content, tags });
-        
-        // Simular envío exitoso
-        this.showNotification('¡Pregunta publicada exitosamente!', 'success');
-        this.hideQuestionModal();
-        
-        // Recargar lista de preguntas (cuando esté conectado al backend)
+        try {
+            // Mostrar estado de carga
+            const submitBtn = document.getElementById('submitQuestionBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Publicando...';
+            }
+            
+            // Preparar datos de la pregunta
+            const questionData = {
+                title,
+                content,
+                tags,
+                course_id: this.currentCourseId || null,
+                module_id: this.currentModule || null
+            };
+            
+            console.log('📝 Enviando pregunta:', questionData);
+            
+            // Llamar a la API
+            const response = await window.communityAPI.createQuestion(questionData);
+            
+            if (response.success) {
+                this.showNotification('¡Pregunta publicada exitosamente!', 'success');
+                this.hideQuestionModal();
+                
+                // Recargar lista de preguntas
+                await this.loadQuestions();
+            }
+            
+        } catch (error) {
+            console.error('❌ Error al crear pregunta:', error);
+            this.showNotification('Error al publicar la pregunta. Inténtalo de nuevo.', 'error');
+        } finally {
+            // Restaurar estado del botón
+            const submitBtn = document.getElementById('submitQuestionBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Publicar Pregunta';
+            }
+        }
     }
     
     clearQuestionForm() {
