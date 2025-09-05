@@ -1474,6 +1474,26 @@ class ChatOnline {
                                 ${question.views_count || 0} vistas
                             </span>
                         </div>
+                        <div class="question-actions">
+                            <button class="action-btn answer-btn" data-question-id="${question.id}" title="Responder pregunta">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                Responder
+                            </button>
+                            <button class="action-btn comment-btn" data-question-id="${question.id}" title="Comentar pregunta">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 3h18v18l-3-3H3V3z"/>
+                                </svg>
+                                Comentar
+                            </button>
+                            <button class="action-btn bookmark-btn" data-question-id="${question.id}" title="Guardar pregunta">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                Guardar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1489,10 +1509,39 @@ class ChatOnline {
             });
         });
 
+        // Botones de acción - Responder
+        document.querySelectorAll('.question-item .answer-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const questionId = btn.getAttribute('data-question-id');
+                this.handleAnswer(questionId, btn);
+            });
+        });
+
+        // Botones de acción - Comentar
+        document.querySelectorAll('.question-item .comment-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const questionId = btn.getAttribute('data-question-id');
+                this.handleComment(questionId, btn);
+            });
+        });
+
+        // Botones de acción - Guardar/Bookmark
+        document.querySelectorAll('.question-item .bookmark-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const questionId = btn.getAttribute('data-question-id');
+                this.handleBookmark(questionId, btn);
+            });
+        });
+
         // Click en pregunta para ver detalles
         document.querySelectorAll('.question-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                if (!e.target.closest('.vote-btn')) {
+                // Solo mostrar detalles si no se hizo clic en ningún botón de acción
+                if (!e.target.closest('.vote-btn') && 
+                    !e.target.closest('.action-btn')) {
                     const questionId = item.getAttribute('data-question-id');
                     this.showQuestionDetails(questionId);
                 }
@@ -1504,6 +1553,108 @@ class ChatOnline {
         console.log(`📖 Mostrando detalles de pregunta: ${questionId}`);
         // Aquí se implementará la vista de detalles de la pregunta
         this.showNotification('Funcionalidad de detalles próximamente', 'info');
+    }
+
+    // ===== FUNCIONES DE MANEJO DE ACCIONES =====
+
+    handleVote(voteBtn) {
+        console.log('🗳️ Manejando voto...');
+        
+        const questionItem = voteBtn.closest('.question-item');
+        const questionId = questionItem.getAttribute('data-question-id');
+        const isUpvote = voteBtn.classList.contains('upvote');
+        const voteType = isUpvote ? 'upvote' : 'downvote';
+        
+        console.log(`🗳️ Voto ${voteType} para pregunta: ${questionId}`);
+        
+        // Feedback visual inmediato
+        const wasActive = voteBtn.classList.contains(isUpvote ? 'upvoted' : 'downvoted');
+        const otherVoteBtn = questionItem.querySelector(isUpvote ? '.downvote' : '.upvote');
+        const voteCountEl = questionItem.querySelector('.vote-count');
+        let currentCount = parseInt(voteCountEl.textContent) || 0;
+
+        // Resetear estados de ambos botones
+        voteBtn.classList.remove('upvoted', 'downvoted');
+        otherVoteBtn.classList.remove('upvoted', 'downvoted');
+
+        if (!wasActive) {
+            // Aplicar nuevo voto
+            voteBtn.classList.add(isUpvote ? 'upvoted' : 'downvoted');
+            currentCount += isUpvote ? 1 : -1;
+            this.showNotification(`${isUpvote ? 'Voto positivo' : 'Voto negativo'} registrado`, 'success');
+        } else {
+            // Quitar voto existente
+            currentCount += isUpvote ? -1 : 1;
+            this.showNotification('Voto removido', 'info');
+        }
+
+        voteCountEl.textContent = currentCount;
+        
+        // TODO: Aquí se enviará la petición al backend cuando esté listo
+        // this.sendVoteToBackend(questionId, voteType, !wasActive);
+    }
+
+    handleAnswer(questionId, answerBtn) {
+        console.log('💬 Manejando respuesta...');
+        console.log(`💬 Responder a pregunta: ${questionId}`);
+        
+        // Feedback visual
+        answerBtn.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            answerBtn.style.transform = '';
+        }, 150);
+        
+        this.showNotification('Abriendo editor de respuesta...', 'info');
+        
+        // TODO: Aquí se abrirá el modal de respuesta cuando esté implementado
+        // this.showAnswerModal(questionId);
+    }
+
+    handleComment(questionId, commentBtn) {
+        console.log('💭 Manejando comentario...');
+        console.log(`💭 Comentar pregunta: ${questionId}`);
+        
+        // Feedback visual
+        commentBtn.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            commentBtn.style.transform = '';
+        }, 150);
+        
+        this.showNotification('Abriendo editor de comentario...', 'info');
+        
+        // TODO: Aquí se abrirá el modal de comentario cuando esté implementado
+        // this.showCommentModal(questionId);
+    }
+
+    handleBookmark(questionId, bookmarkBtn) {
+        console.log('🔖 Manejando bookmark...');
+        console.log(`🔖 Guardar/quitar pregunta: ${questionId}`);
+        
+        const isBookmarked = bookmarkBtn.classList.contains('bookmarked');
+        
+        // Toggle del estado visual
+        if (!isBookmarked) {
+            bookmarkBtn.classList.add('bookmarked');
+            bookmarkBtn.innerHTML = `
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+                Guardado
+            `;
+            this.showNotification('Pregunta guardada en favoritos', 'success');
+        } else {
+            bookmarkBtn.classList.remove('bookmarked');
+            bookmarkBtn.innerHTML = `
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+                Guardar
+            `;
+            this.showNotification('Pregunta removida de favoritos', 'info');
+        }
+        
+        // TODO: Aquí se enviará la petición al backend cuando esté listo
+        // this.sendBookmarkToBackend(questionId, !isBookmarked);
     }
 
     getTimeAgo(dateString) {
@@ -3208,7 +3359,10 @@ class ChatOnline {
         const questionsHTML = uniqueQuestions.map(question => this.renderQuestionItem(question)).join('');
         questionsList.innerHTML = questionsHTML;
         
-        console.log(`✅ ${uniqueQuestions.length} preguntas únicas renderizadas`);
+        // Configurar event listeners para las preguntas renderizadas
+        this.setupQuestionEventListeners();
+        
+        console.log(`✅ ${uniqueQuestions.length} preguntas únicas renderizadas y event listeners configurados`);
     }
 
     removeDuplicateQuestions(questions) {
@@ -3248,15 +3402,15 @@ class ChatOnline {
         return `
             <div class="question-item" data-question-id="${question.id}">
                 <div class="question-votes">
-                    <button class="vote-btn upvote" onclick="window.chatOnline.voteQuestion('${question.id}', 'upvote')">
+                    <button class="vote-btn upvote" title="Votar positivamente">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 15l-6-6-6 6"/>
+                            <polyline points="18,15 12,9 6,15"/>
                         </svg>
                     </button>
                     <span class="vote-count">${question.votes_count || 0}</span>
-                    <button class="vote-btn downvote" onclick="window.chatOnline.voteQuestion('${question.id}', 'downvote')">
+                    <button class="vote-btn downvote" title="Votar negativamente">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 9l6 6 6-6"/>
+                            <polyline points="6,9 12,15 18,9"/>
                         </svg>
                     </button>
                 </div>
@@ -3294,6 +3448,26 @@ class ChatOnline {
                             ${question.views_count || 0} vista${(question.views_count || 0) !== 1 ? 's' : ''}
                         </span>
                         ${question.is_answered ? '<span class="stat answered"><svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>Respondida</span>' : ''}
+                    </div>
+                    <div class="question-actions">
+                        <button class="action-btn answer-btn" data-question-id="${question.id}" title="Responder pregunta">
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            Responder
+                        </button>
+                        <button class="action-btn comment-btn" data-question-id="${question.id}" title="Comentar pregunta">
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 3h18v18l-3-3H3V3z"/>
+                            </svg>
+                            Comentar
+                        </button>
+                        <button class="action-btn bookmark-btn" data-question-id="${question.id}" title="Guardar pregunta">
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            Guardar
+                        </button>
                     </div>
                 </div>
             </div>
