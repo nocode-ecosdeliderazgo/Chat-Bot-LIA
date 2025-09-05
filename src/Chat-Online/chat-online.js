@@ -43,6 +43,9 @@ class ChatOnline {
         this.progressManager = null;
         this.courseProgress = null;
         this.loadingQuestions = false;
+        this.communityEventListenersSetup = false;
+        this.communityQuestionsLoaded = false;
+        this.submittingQuestion = false;
         
         // IDs para la base de datos
         this.currentCourseId = '550e8400-e29b-41d4-a716-446655440001';
@@ -987,10 +990,14 @@ class ChatOnline {
                     targetContent.style.visibility = 'visible';
                     targetContent.style.opacity = '1';
                     
-                    // Cargar preguntas de la base de datos
-                    await this.loadCommunityQuestions();
-                    
-                    console.log('✅ Comunidad configurada y preguntas cargadas');
+                    // Solo cargar preguntas si no se han cargado antes
+                    if (!this.communityQuestionsLoaded) {
+                        await this.loadCommunityQuestions();
+                        this.communityQuestionsLoaded = true;
+                        console.log('✅ Comunidad configurada y preguntas cargadas');
+                    } else {
+                        console.log('✅ Comunidad ya cargada previamente, saltando carga...');
+                    }
                 }, 10);
             }
         } else {
@@ -1040,6 +1047,12 @@ class ChatOnline {
     }
     
     setupCommunityEventListeners() {
+        // Evitar configurar múltiples veces
+        if (this.communityEventListenersSetup) {
+            console.log('⚠️ Event listeners de comunidad ya configurados, saltando...');
+            return;
+        }
+        
         // Configurar usuario actual en la API
         if (window.communityAPI && this.currentUser) {
             window.communityAPI.setCurrentUser(this.currentUser);
@@ -1050,32 +1063,56 @@ class ChatOnline {
         
         // Filtros de preguntas
         document.querySelectorAll('.filter-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
+            // Remover listener existente si existe
+            const existingHandler = tab._communityFilterHandler;
+            if (existingHandler) {
+                tab.removeEventListener('click', existingHandler);
+            }
+            
+            // Crear nuevo handler
+            const handler = (e) => {
                 document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
                 e.target.classList.add('active');
                 const filter = e.target.getAttribute('data-filter');
                 this.filterQuestions(filter);
-            });
+            };
+            
+            // Guardar referencia al handler y agregar listener
+            tab._communityFilterHandler = handler;
+            tab.addEventListener('click', handler);
         });
         
         // Selector de ordenamiento
         const sortSelect = document.getElementById('sortSelect');
         if (sortSelect) {
-            sortSelect.addEventListener('change', (e) => {
+            // Remover listener existente si existe
+            if (sortSelect._communitySortHandler) {
+                sortSelect.removeEventListener('change', sortSelect._communitySortHandler);
+            }
+            
+            // Crear nuevo handler
+            const handler = (e) => {
                 this.sortQuestions(e.target.value);
-            });
+            };
+            
+            // Guardar referencia al handler y agregar listener
+            sortSelect._communitySortHandler = handler;
+            sortSelect.addEventListener('change', handler);
         }
         
         // Modal de pregunta
         this.setupQuestionModal();
         
-        // Cargar preguntas iniciales
-        this.loadQuestions();
+        // NO cargar preguntas aquí - ya se cargan en updateContentArea
+        // this.loadQuestions(); // ELIMINADO para evitar carga múltiple
         
         // Debug: verificar que todo esté configurado correctamente
         this.debugCommunitySetup();
         
-        console.log('🔧 Event listeners de comunidad configurados');
+        // Marcar como configurado
+        this.communityEventListenersSetup = true;
+        
+        console.log('🔧 Event listeners de comunidad configurados (primera vez)');
     }
 
     setupAskQuestionButton() {
@@ -1197,6 +1234,13 @@ class ChatOnline {
     }
     
     async loadQuestions(filter = 'all', sort = 'recent') {
+        // FUNCIÓN DESHABILITADA - Usaba preguntas hardcodeadas
+        // Redirigir a la función real que usa la base de datos
+        console.log(`📋 Redirigiendo loadQuestions a loadCommunityQuestions - Filtro: ${filter}, Orden: ${sort}`);
+        return this.loadCommunityQuestionsWithParams({ filter, sort });
+        
+        // CÓDIGO ORIGINAL COMENTADO PARA EVITAR PREGUNTAS HARDCODEADAS
+        /*
         try {
             console.log(`📋 Cargando preguntas - Filtro: ${filter}, Orden: ${sort}`);
             
@@ -1309,29 +1353,10 @@ class ChatOnline {
             this.showNotification('Error al cargar las preguntas', 'error');
             this.showQuestionsError();
         }
+        */
     }
 
-    async filterQuestions(filter) {
-        console.log(`🔍 Filtrando preguntas por: ${filter}`);
-        
-        // Actualizar pestañas activas
-        document.querySelectorAll('.filter-tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        document.querySelector(`[data-filter="${filter}"]`)?.classList.add('active');
-        
-        // Cargar preguntas con el filtro
-        await this.loadQuestions(filter, this.currentSort || 'recent');
-    }
-    
-    async sortQuestions(sortBy) {
-        console.log(`📊 Ordenando preguntas por: ${sortBy}`);
-        this.currentSort = sortBy;
-        
-        // Cargar preguntas con el ordenamiento
-        const currentFilter = document.querySelector('.filter-tab.active')?.getAttribute('data-filter') || 'all';
-        await this.loadQuestions(currentFilter, sortBy);
-    }
+    // FUNCIONES ELIMINADAS - Duplicadas más abajo
 
     showQuestionsLoading() {
         const questionsContainer = document.getElementById('questionsList');
@@ -2757,14 +2782,7 @@ class ChatOnline {
                 });
             }
 
-            // Formulario de pregunta
-            const questionForm = document.getElementById('questionForm');
-            if (questionForm) {
-                questionForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    this.submitQuestion();
-                });
-            }
+            // Formulario de pregunta - Ya configurado en setupCommunityEventListeners(), evitar duplicados
 
             // Contador de caracteres para el título
             const titleInput = document.getElementById('questionTitle');
@@ -2827,8 +2845,19 @@ class ChatOnline {
     }
 
     async submitQuestion() {
+        // Protección contra múltiples envíos simultáneos
+        if (this.submittingQuestion) {
+            console.log('⏳ Ya se está enviando una pregunta, saltando...');
+            return;
+        }
+
+        console.log('📤 Enviando pregunta...');
+        this.submittingQuestion = true;
+        
+        let originalText = '';
+        const submitBtn = document.getElementById('submitQuestionBtn');
+        
         try {
-            console.log('📤 Enviando pregunta...');
             
             const titleInput = document.getElementById('questionTitle');
             const contentInput = document.getElementById('questionContent');
@@ -2856,10 +2885,11 @@ class ChatOnline {
             }
             
             // Mostrar indicador de carga
-            const submitBtn = document.getElementById('submitQuestionBtn');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<div class="loading-spinner"></div> Enviando...';
-            submitBtn.disabled = true;
+            if (submitBtn) {
+                originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<div class="loading-spinner"></div> Enviando...';
+                submitBtn.disabled = true;
+            }
             
             // Obtener datos reales de la sesión
             const currentUser = this.obtenerUsuarioActual();
@@ -2905,7 +2935,9 @@ class ChatOnline {
                 
                 // Recargar preguntas una sola vez para evitar duplicaciones
                 setTimeout(async () => {
+                    this.communityQuestionsLoaded = false; // Permitir recarga
                     await this.loadCommunityQuestions();
+                    this.communityQuestionsLoaded = true; // Marcar como cargadas
                 }, 500);
                 
                 // Mostrar mensaje de éxito
@@ -2920,12 +2952,12 @@ class ChatOnline {
             const errorMessage = error.message || 'Error al publicar la pregunta. Inténtalo de nuevo.';
             this.showNotification(errorMessage, 'error');
         } finally {
-            // Restaurar botón
-            const submitBtn = document.getElementById('submitQuestionBtn');
-            if (submitBtn) {
+            // Restaurar botón y resetear bandera de envío
+            if (submitBtn && originalText) {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
             }
+            this.submittingQuestion = false;
         }
     }
 
@@ -3032,6 +3064,70 @@ class ChatOnline {
                         <p>No se pudieron cargar las preguntas desde la base de datos.</p>
                         <button class="btn-secondary" onclick="window.chatOnline.loadCommunityQuestions()">
                             Reintentar
+                        </button>
+                    </div>
+                `;
+            }
+        } finally {
+            this.loadingQuestions = false;
+        }
+    }
+
+    async loadCommunityQuestionsWithParams(params = {}) {
+        // Esta función es similar a loadCommunityQuestions pero acepta parámetros de filtro y ordenamiento
+        // Evita múltiples cargas simultáneas
+        if (this.loadingQuestions) {
+            console.log('⏳ Ya se están cargando preguntas con parámetros, saltando...');
+            return;
+        }
+        
+        try {
+            this.loadingQuestions = true;
+            console.log('📋 Cargando preguntas con parámetros:', params);
+            
+            // Mostrar indicador de carga
+            const questionsList = document.getElementById('questionsList');
+            if (questionsList) {
+                questionsList.innerHTML = '<div class="loading-questions"><div class="loading-spinner"></div><span>Filtrando preguntas...</span></div>';
+            }
+            
+            // Combinar parámetros por defecto con los recibidos
+            const queryParams = {
+                course_id: this.currentCourseId,
+                module_id: `module-${this.currentModule}`,
+                ...params
+            };
+            
+            // Obtener preguntas
+            let questions = [];
+            if (this.communityDB) {
+                questions = await this.communityDB.getQuestions(queryParams);
+            } else {
+                questions = await this.getQuestionsViaAPI(); // TODO: Pasar parámetros a la API
+            }
+            
+            console.log(`✅ ${questions.length} preguntas cargadas con parámetros`);
+            
+            // Renderizar preguntas
+            this.renderQuestions(questions);
+            
+        } catch (error) {
+            console.error('❌ Error cargando preguntas con parámetros:', error);
+            const questionsList = document.getElementById('questionsList');
+            if (questionsList) {
+                questionsList.innerHTML = `
+                    <div class="error-message">
+                        <div class="error-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        </div>
+                        <h3>Error al filtrar las preguntas</h3>
+                        <p>No se pudieron cargar las preguntas con los filtros aplicados.</p>
+                        <button class="btn-secondary" onclick="window.chatOnline.loadCommunityQuestions()">
+                            Mostrar Todas
                         </button>
                     </div>
                 `;
@@ -3231,8 +3327,9 @@ class ChatOnline {
             const result = await response.json();
             console.log('✅ Voto procesado:', result);
             
-            // Recargar preguntas para actualizar contadores
-            await this.loadCommunityQuestions();
+            // TODO: Actualizar solo el contador del elemento específico sin recargar todas las preguntas
+            // Por ahora comentamos la recarga para evitar duplicaciones
+            // await this.loadCommunityQuestions();
             
         } catch (error) {
             console.error('❌ Error votando:', error);
@@ -3240,7 +3337,7 @@ class ChatOnline {
         }
     }
 
-    filterQuestions(filter) {
+    async filterQuestions(filter) {
         console.log(`🔍 Filtrando preguntas por: ${filter}`);
         
         // Actualizar botones activos
@@ -3249,17 +3346,15 @@ class ChatOnline {
         });
         document.querySelector(`[data-filter="${filter}"]`)?.classList.add('active');
         
-        // TODO: Implementar filtrado real cuando se conecte con la API
-        // Por ahora solo recargamos todas las preguntas
-        this.loadCommunityQuestions();
+        // Cargar preguntas con el filtro aplicado (evitar llamada duplicada)
+        await this.loadCommunityQuestionsWithParams({ filter });
     }
 
-    sortQuestions(sort) {
+    async sortQuestions(sort) {
         console.log(`📊 Ordenando preguntas por: ${sort}`);
         
-        // TODO: Implementar ordenamiento real cuando se conecte con la API
-        // Por ahora solo recargamos todas las preguntas
-        this.loadCommunityQuestions();
+        // Cargar preguntas con el ordenamiento aplicado (evitar llamada duplicada)
+        await this.loadCommunityQuestionsWithParams({ sort });
     }
 
     formatTimeAgo(timestamp) {
