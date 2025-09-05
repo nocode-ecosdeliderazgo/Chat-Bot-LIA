@@ -42,6 +42,7 @@ class ChatOnline {
         this.isSearchMode = false;
         this.progressManager = null;
         this.courseProgress = null;
+        this.loadingQuestions = false;
         
         // IDs para la base de datos
         this.currentCourseId = '550e8400-e29b-41d4-a716-446655440001';
@@ -980,13 +981,16 @@ class ChatOnline {
                 console.log('🏘️ Configurando event listeners de comunidad');
                 this.setupCommunityEventListeners();
                 
-                // Asegurar que el contenido sea completamente visible
-                setTimeout(() => {
+                // Cargar preguntas de la comunidad cuando se accede a la pestaña
+                setTimeout(async () => {
                     targetContent.style.display = 'flex';
                     targetContent.style.visibility = 'visible';
                     targetContent.style.opacity = '1';
                     
-                    console.log('✅ Comunidad configurada correctamente');
+                    // Cargar preguntas de la base de datos
+                    await this.loadCommunityQuestions();
+                    
+                    console.log('✅ Comunidad configurada y preguntas cargadas');
                 }, 10);
             }
         } else {
@@ -2711,13 +2715,15 @@ class ChatOnline {
                 console.warn('⚠️ CommunityDatabase no disponible, usando API directa');
             }
             
-            // Cargar preguntas existentes
-            await this.loadCommunityQuestions();
+            // Las preguntas se cargarán cuando el usuario acceda a la pestaña de comunidad
+            console.log('📝 Sistema de comunidad listo, preguntas se cargarán al acceder a la pestaña');
             
             console.log('✅ Sistema de comunidad inicializado');
             
         } catch (error) {
             console.error('❌ Error inicializando sistema de comunidad:', error);
+            // En caso de error, al menos limpiar las preguntas hardcodeadas
+            this.clearHardcodedQuestions();
         }
     }
 
@@ -2897,8 +2903,10 @@ class ChatOnline {
                 // Cerrar modal
                 this.hideQuestionModal();
                 
-                // Recargar preguntas
-                await this.loadCommunityQuestions();
+                // Recargar preguntas una sola vez para evitar duplicaciones
+                setTimeout(async () => {
+                    await this.loadCommunityQuestions();
+                }, 500);
                 
                 // Mostrar mensaje de éxito
                 this.showNotification('Pregunta publicada exitosamente', 'success');
@@ -2973,12 +2981,21 @@ class ChatOnline {
     }
 
     async loadCommunityQuestions() {
+        // Evitar múltiples cargas simultáneas
+        if (this.loadingQuestions) {
+            console.log('⏳ Ya se están cargando preguntas, saltando...');
+            return;
+        }
+        
         try {
+            this.loadingQuestions = true;
             console.log('📋 Cargando preguntas de la comunidad...');
             
             // Mostrar indicador de carga
             const questionsList = document.getElementById('questionsList');
             if (questionsList) {
+                // Limpiar primero las preguntas hardcodeadas si existen
+                this.clearHardcodedQuestions();
                 questionsList.innerHTML = '<div class="loading-questions"><div class="loading-spinner"></div><span>Cargando preguntas...</span></div>';
             }
             
@@ -2993,7 +3010,7 @@ class ChatOnline {
                 questions = await this.getQuestionsViaAPI();
             }
             
-            console.log(`✅ ${questions.length} preguntas cargadas`);
+            console.log(`✅ ${questions.length} preguntas cargadas desde ${this.communityDB ? 'base de datos' : 'API'}`);
             
             // Renderizar preguntas
             this.renderQuestions(questions);
@@ -3002,8 +3019,25 @@ class ChatOnline {
             console.error('❌ Error cargando preguntas:', error);
             const questionsList = document.getElementById('questionsList');
             if (questionsList) {
-                questionsList.innerHTML = '<div class="error-message">Error al cargar las preguntas. Inténtalo de nuevo.</div>';
+                questionsList.innerHTML = `
+                    <div class="error-message">
+                        <div class="error-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        </div>
+                        <h3>Error al cargar las preguntas</h3>
+                        <p>No se pudieron cargar las preguntas desde la base de datos.</p>
+                        <button class="btn-secondary" onclick="window.chatOnline.loadCommunityQuestions()">
+                            Reintentar
+                        </button>
+                    </div>
+                `;
             }
+        } finally {
+            this.loadingQuestions = false;
         }
     }
 
@@ -3028,12 +3062,25 @@ class ChatOnline {
         }
     }
 
+    clearHardcodedQuestions() {
+        const questionsList = document.getElementById('questionsList');
+        if (questionsList) {
+            // Remover todas las preguntas hardcodeadas del HTML
+            const hardcodedQuestions = questionsList.querySelectorAll('.question-item:not([data-question-id])');
+            hardcodedQuestions.forEach(question => question.remove());
+            console.log('🧹 Preguntas hardcodeadas limpiadas');
+        }
+    }
+
     renderQuestions(questions) {
         const questionsList = document.getElementById('questionsList');
         if (!questionsList) {
             console.error('❌ Lista de preguntas no encontrada');
             return;
         }
+        
+        // Limpiar completamente el contenedor para evitar duplicaciones
+        questionsList.innerHTML = '';
         
         if (!questions || questions.length === 0) {
             questionsList.innerHTML = `
@@ -3059,10 +3106,42 @@ class ChatOnline {
             return;
         }
         
-        const questionsHTML = questions.map(question => this.renderQuestionItem(question)).join('');
+        // Filtrar preguntas duplicadas basándose en el ID
+        const uniqueQuestions = this.removeDuplicateQuestions(questions);
+        
+        const questionsHTML = uniqueQuestions.map(question => this.renderQuestionItem(question)).join('');
         questionsList.innerHTML = questionsHTML;
         
-        console.log(`✅ ${questions.length} preguntas renderizadas`);
+        console.log(`✅ ${uniqueQuestions.length} preguntas únicas renderizadas`);
+    }
+
+    removeDuplicateQuestions(questions) {
+        if (!questions || questions.length === 0) {
+            return [];
+        }
+        
+        // Usar Map para eliminar duplicados basándose en el ID
+        const questionMap = new Map();
+        
+        questions.forEach(question => {
+            // Usar el ID de la pregunta como clave única
+            const key = question.id || question.question_id || `temp-${question.title}-${question.created_at}`;
+            if (!questionMap.has(key)) {
+                questionMap.set(key, question);
+            }
+        });
+        
+        const uniqueQuestions = Array.from(questionMap.values());
+        
+        // Ordenar por fecha de creación (más recientes primero)
+        uniqueQuestions.sort((a, b) => {
+            const dateA = new Date(a.created_at || 0);
+            const dateB = new Date(b.created_at || 0);
+            return dateB - dateA;
+        });
+        
+        console.log(`🔄 Filtradas ${questions.length} preguntas → ${uniqueQuestions.length} únicas`);
+        return uniqueQuestions;
     }
 
     renderQuestionItem(question) {
