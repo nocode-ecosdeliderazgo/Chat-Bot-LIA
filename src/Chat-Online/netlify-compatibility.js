@@ -151,4 +151,60 @@ window.initializeWithNetlifyFallback = async function() {
     return componentsReady;
 };
 
+// Función para probar conectividad de API
+window.testApiConnectivity = async function() {
+    console.log('🔬 Probando conectividad de APIs...');
+    
+    const testEndpoints = [
+        '/api/users/demo-user/progress/550e8400-e29b-41d4-a716-446655440001',
+        '/api/courses/550e8400-e29b-41d4-a716-446655440001/full-structure'
+    ];
+    
+    const results = {};
+    
+    for (const endpoint of testEndpoints) {
+        try {
+            console.log(`🔍 Probando: ${endpoint}`);
+            const response = await fetch(endpoint, { method: 'GET' });
+            
+            results[endpoint] = {
+                status: response.status,
+                ok: response.ok,
+                contentType: response.headers.get('content-type')
+            };
+            
+            if (!response.ok) {
+                const text = await response.text();
+                results[endpoint].isHtml = text.includes('<!DOCTYPE') || text.includes('<html');
+                results[endpoint].preview = text.substring(0, 100) + '...';
+            }
+            
+            console.log(`${response.ok ? '✅' : '❌'} ${endpoint}: ${response.status}`);
+            
+        } catch (error) {
+            results[endpoint] = {
+                error: error.message,
+                status: 'network_error'
+            };
+            console.error(`❌ Error probando ${endpoint}:`, error.message);
+        }
+    }
+    
+    return results;
+};
+
+// Auto-ejecutar prueba en entorno de desarrollo o cuando se detectan problemas
+if (window.location.hostname.includes('netlify') || window.location.hostname === 'localhost') {
+    setTimeout(() => {
+        window.testApiConnectivity().then(results => {
+            const hasErrors = Object.values(results).some(r => !r.ok || r.error);
+            if (hasErrors) {
+                console.warn('⚠️ Detectados problemas de conectividad de API:', results);
+            } else {
+                console.log('✅ Todas las APIs responden correctamente');
+            }
+        });
+    }, 1000);
+}
+
 console.log('✅ Netlify Compatibility Layer inicializado');
