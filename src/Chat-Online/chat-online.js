@@ -67,6 +67,7 @@ class ChatOnline {
         this.quizTimeLimit = 3 * 60; // 3 minutos en segundos
         this.quizTimeRemaining = this.quizTimeLimit;
         this.quizStartTime = null;
+        this.timeUpAlertShown = false; // Control para evitar bucle infinito
         
         // ===== ACCESO GLOBAL INMEDIATO =====
         window.courseManager = this;
@@ -4617,7 +4618,6 @@ class ChatOnline {
                     </h2>
                     <p>Recursos adicionales para complementar tu aprendizaje</p>
                 </div>
-                
                 <div class="materials-grid">
                     <div class="material-card">
                         <div class="material-icon">
@@ -5246,6 +5246,9 @@ class ChatOnline {
             // Resetear estado de resultados
             this.quizResultsShown = false;
             
+            // Resetear estado de alerta de tiempo agotado
+            this.timeUpAlertShown = false;
+            
             // Mostrar el quiz desde el inicio
             this.createQuizContent();
             
@@ -5306,6 +5309,7 @@ class ChatOnline {
         // Resetear valores
         this.quizTimeRemaining = this.quizTimeLimit;
         this.quizStartTime = Date.now();
+        this.timeUpAlertShown = false; // Resetear estado de alerta
         
         // Actualizar display inicial
         this.updateTimerDisplay();
@@ -5399,6 +5403,13 @@ class ChatOnline {
      * Muestra alerta de tiempo agotado con diseño estético
      */
     showTimeUpAlert() {
+        // Verificar si ya existe una alerta para evitar duplicación
+        const existingOverlay = document.querySelector('.quiz-time-up-overlay');
+        if (existingOverlay) {
+            console.log('⏰ Alerta de tiempo agotado ya existe, evitando duplicación');
+            return;
+        }
+        
         // Crear overlay de fondo
         const overlay = document.createElement('div');
         overlay.className = 'quiz-time-up-overlay';
@@ -5456,7 +5467,16 @@ class ChatOnline {
      * Termina el quiz cuando se acaba el tiempo
      */
     timeUpQuiz() {
+        // Verificar si ya se ha mostrado la alerta para evitar bucle infinito
+        if (this.timeUpAlertShown) {
+            console.log('⏰ Alerta de tiempo agotado ya mostrada, evitando duplicación');
+            return;
+        }
+        
         console.log('⏰ Tiempo agotado - Terminando quiz automáticamente');
+        
+        // Marcar que la alerta ya se ha mostrado
+        this.timeUpAlertShown = true;
         
         // Detener el cronómetro
         if (this.quizTimer) {
