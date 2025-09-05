@@ -42,6 +42,10 @@ class ChatOnline {
         this.isSearchMode = false;
         this.progressManager = null;
         this.courseProgress = null;
+        this.loadingQuestions = false;
+        this.communityEventListenersSetup = false;
+        this.communityQuestionsLoaded = false;
+        this.submittingQuestion = false;
         
         // IDs para la base de datos
         this.currentCourseId = '550e8400-e29b-41d4-a716-446655440001';
@@ -981,13 +985,20 @@ class ChatOnline {
                 console.log('🏘️ Configurando event listeners de comunidad');
                 this.setupCommunityEventListeners();
                 
-                // Asegurar que el contenido sea completamente visible
-                setTimeout(() => {
+                // Cargar preguntas de la comunidad cuando se accede a la pestaña
+                setTimeout(async () => {
                     targetContent.style.display = 'flex';
                     targetContent.style.visibility = 'visible';
                     targetContent.style.opacity = '1';
                     
-                    console.log('✅ Comunidad configurada correctamente');
+                    // Solo cargar preguntas si no se han cargado antes
+                    if (!this.communityQuestionsLoaded) {
+                        await this.loadCommunityQuestions();
+                        this.communityQuestionsLoaded = true;
+                        console.log('✅ Comunidad configurada y preguntas cargadas');
+                    } else {
+                        console.log('✅ Comunidad ya cargada previamente, saltando carga...');
+                    }
                 }, 10);
             }
         } else {
@@ -1037,6 +1048,12 @@ class ChatOnline {
     }
     
     setupCommunityEventListeners() {
+        // Evitar configurar múltiples veces
+        if (this.communityEventListenersSetup) {
+            console.log('⚠️ Event listeners de comunidad ya configurados, saltando...');
+            return;
+        }
+        
         // Configurar usuario actual en la API
         if (window.communityAPI && this.currentUser) {
             window.communityAPI.setCurrentUser(this.currentUser);
@@ -1047,32 +1064,56 @@ class ChatOnline {
         
         // Filtros de preguntas
         document.querySelectorAll('.filter-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
+            // Remover listener existente si existe
+            const existingHandler = tab._communityFilterHandler;
+            if (existingHandler) {
+                tab.removeEventListener('click', existingHandler);
+            }
+            
+            // Crear nuevo handler
+            const handler = (e) => {
                 document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
                 e.target.classList.add('active');
                 const filter = e.target.getAttribute('data-filter');
                 this.filterQuestions(filter);
-            });
+            };
+            
+            // Guardar referencia al handler y agregar listener
+            tab._communityFilterHandler = handler;
+            tab.addEventListener('click', handler);
         });
         
         // Selector de ordenamiento
         const sortSelect = document.getElementById('sortSelect');
         if (sortSelect) {
-            sortSelect.addEventListener('change', (e) => {
+            // Remover listener existente si existe
+            if (sortSelect._communitySortHandler) {
+                sortSelect.removeEventListener('change', sortSelect._communitySortHandler);
+            }
+            
+            // Crear nuevo handler
+            const handler = (e) => {
                 this.sortQuestions(e.target.value);
-            });
+            };
+            
+            // Guardar referencia al handler y agregar listener
+            sortSelect._communitySortHandler = handler;
+            sortSelect.addEventListener('change', handler);
         }
         
         // Modal de pregunta
         this.setupQuestionModal();
         
-        // Cargar preguntas iniciales
-        this.loadQuestions();
+        // NO cargar preguntas aquí - ya se cargan en updateContentArea
+        // this.loadQuestions(); // ELIMINADO para evitar carga múltiple
         
         // Debug: verificar que todo esté configurado correctamente
         this.debugCommunitySetup();
         
-        console.log('🔧 Event listeners de comunidad configurados');
+        // Marcar como configurado
+        this.communityEventListenersSetup = true;
+        
+        console.log('🔧 Event listeners de comunidad configurados (primera vez)');
     }
 
     setupAskQuestionButton() {
@@ -1194,6 +1235,13 @@ class ChatOnline {
     }
     
     async loadQuestions(filter = 'all', sort = 'recent') {
+        // FUNCIÓN DESHABILITADA - Usaba preguntas hardcodeadas
+        // Redirigir a la función real que usa la base de datos
+        console.log(`📋 Redirigiendo loadQuestions a loadCommunityQuestions - Filtro: ${filter}, Orden: ${sort}`);
+        return this.loadCommunityQuestionsWithParams({ filter, sort });
+        
+        // CÓDIGO ORIGINAL COMENTADO PARA EVITAR PREGUNTAS HARDCODEADAS
+        /*
         try {
             console.log(`📋 Cargando preguntas - Filtro: ${filter}, Orden: ${sort}`);
             
@@ -1306,29 +1354,10 @@ class ChatOnline {
             this.showNotification('Error al cargar las preguntas', 'error');
             this.showQuestionsError();
         }
+        */
     }
 
-    async filterQuestions(filter) {
-        console.log(`🔍 Filtrando preguntas por: ${filter}`);
-        
-        // Actualizar pestañas activas
-        document.querySelectorAll('.filter-tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        document.querySelector(`[data-filter="${filter}"]`)?.classList.add('active');
-        
-        // Cargar preguntas con el filtro
-        await this.loadQuestions(filter, this.currentSort || 'recent');
-    }
-    
-    async sortQuestions(sortBy) {
-        console.log(`📊 Ordenando preguntas por: ${sortBy}`);
-        this.currentSort = sortBy;
-        
-        // Cargar preguntas con el ordenamiento
-        const currentFilter = document.querySelector('.filter-tab.active')?.getAttribute('data-filter') || 'all';
-        await this.loadQuestions(currentFilter, sortBy);
-    }
+    // FUNCIONES ELIMINADAS - Duplicadas más abajo
 
     showQuestionsLoading() {
         const questionsContainer = document.getElementById('questionsList');
@@ -1446,6 +1475,26 @@ class ChatOnline {
                                 ${question.views_count || 0} vistas
                             </span>
                         </div>
+                        <div class="question-actions">
+                            <button class="action-btn answer-btn" data-question-id="${question.id}" title="Responder pregunta">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                Responder
+                            </button>
+                            <button class="action-btn comment-btn" data-question-id="${question.id}" title="Comentar pregunta">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 3h18v18l-3-3H3V3z"/>
+                                </svg>
+                                Comentar
+                            </button>
+                            <button class="action-btn bookmark-btn" data-question-id="${question.id}" title="Guardar pregunta">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                Guardar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1461,10 +1510,39 @@ class ChatOnline {
             });
         });
 
+        // Botones de acción - Responder
+        document.querySelectorAll('.question-item .answer-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const questionId = btn.getAttribute('data-question-id');
+                this.handleAnswer(questionId, btn);
+            });
+        });
+
+        // Botones de acción - Comentar
+        document.querySelectorAll('.question-item .comment-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const questionId = btn.getAttribute('data-question-id');
+                this.handleComment(questionId, btn);
+            });
+        });
+
+        // Botones de acción - Guardar/Bookmark
+        document.querySelectorAll('.question-item .bookmark-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const questionId = btn.getAttribute('data-question-id');
+                this.handleBookmark(questionId, btn);
+            });
+        });
+
         // Click en pregunta para ver detalles
         document.querySelectorAll('.question-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                if (!e.target.closest('.vote-btn')) {
+                // Solo mostrar detalles si no se hizo clic en ningún botón de acción
+                if (!e.target.closest('.vote-btn') && 
+                    !e.target.closest('.action-btn')) {
                     const questionId = item.getAttribute('data-question-id');
                     this.showQuestionDetails(questionId);
                 }
@@ -1476,6 +1554,108 @@ class ChatOnline {
         console.log(`📖 Mostrando detalles de pregunta: ${questionId}`);
         // Aquí se implementará la vista de detalles de la pregunta
         this.showNotification('Funcionalidad de detalles próximamente', 'info');
+    }
+
+    // ===== FUNCIONES DE MANEJO DE ACCIONES =====
+
+    handleVote(voteBtn) {
+        console.log('🗳️ Manejando voto...');
+        
+        const questionItem = voteBtn.closest('.question-item');
+        const questionId = questionItem.getAttribute('data-question-id');
+        const isUpvote = voteBtn.classList.contains('upvote');
+        const voteType = isUpvote ? 'upvote' : 'downvote';
+        
+        console.log(`🗳️ Voto ${voteType} para pregunta: ${questionId}`);
+        
+        // Feedback visual inmediato
+        const wasActive = voteBtn.classList.contains(isUpvote ? 'upvoted' : 'downvoted');
+        const otherVoteBtn = questionItem.querySelector(isUpvote ? '.downvote' : '.upvote');
+        const voteCountEl = questionItem.querySelector('.vote-count');
+        let currentCount = parseInt(voteCountEl.textContent) || 0;
+
+        // Resetear estados de ambos botones
+        voteBtn.classList.remove('upvoted', 'downvoted');
+        otherVoteBtn.classList.remove('upvoted', 'downvoted');
+
+        if (!wasActive) {
+            // Aplicar nuevo voto
+            voteBtn.classList.add(isUpvote ? 'upvoted' : 'downvoted');
+            currentCount += isUpvote ? 1 : -1;
+            this.showNotification(`${isUpvote ? 'Voto positivo' : 'Voto negativo'} registrado`, 'success');
+        } else {
+            // Quitar voto existente
+            currentCount += isUpvote ? -1 : 1;
+            this.showNotification('Voto removido', 'info');
+        }
+
+        voteCountEl.textContent = currentCount;
+        
+        // TODO: Aquí se enviará la petición al backend cuando esté listo
+        // this.sendVoteToBackend(questionId, voteType, !wasActive);
+    }
+
+    handleAnswer(questionId, answerBtn) {
+        console.log('💬 Manejando respuesta...');
+        console.log(`💬 Responder a pregunta: ${questionId}`);
+        
+        // Feedback visual
+        answerBtn.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            answerBtn.style.transform = '';
+        }, 150);
+        
+        this.showNotification('Abriendo editor de respuesta...', 'info');
+        
+        // TODO: Aquí se abrirá el modal de respuesta cuando esté implementado
+        // this.showAnswerModal(questionId);
+    }
+
+    handleComment(questionId, commentBtn) {
+        console.log('💭 Manejando comentario...');
+        console.log(`💭 Comentar pregunta: ${questionId}`);
+        
+        // Feedback visual
+        commentBtn.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            commentBtn.style.transform = '';
+        }, 150);
+        
+        this.showNotification('Abriendo editor de comentario...', 'info');
+        
+        // TODO: Aquí se abrirá el modal de comentario cuando esté implementado
+        // this.showCommentModal(questionId);
+    }
+
+    handleBookmark(questionId, bookmarkBtn) {
+        console.log('🔖 Manejando bookmark...');
+        console.log(`🔖 Guardar/quitar pregunta: ${questionId}`);
+        
+        const isBookmarked = bookmarkBtn.classList.contains('bookmarked');
+        
+        // Toggle del estado visual
+        if (!isBookmarked) {
+            bookmarkBtn.classList.add('bookmarked');
+            bookmarkBtn.innerHTML = `
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+                Guardado
+            `;
+            this.showNotification('Pregunta guardada en favoritos', 'success');
+        } else {
+            bookmarkBtn.classList.remove('bookmarked');
+            bookmarkBtn.innerHTML = `
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+                Guardar
+            `;
+            this.showNotification('Pregunta removida de favoritos', 'info');
+        }
+        
+        // TODO: Aquí se enviará la petición al backend cuando esté listo
+        // this.sendBookmarkToBackend(questionId, !isBookmarked);
     }
 
     getTimeAgo(dateString) {
@@ -2712,13 +2892,15 @@ class ChatOnline {
                 console.warn('⚠️ CommunityDatabase no disponible, usando API directa');
             }
             
-            // Cargar preguntas existentes
-            await this.loadCommunityQuestions();
+            // Las preguntas se cargarán cuando el usuario acceda a la pestaña de comunidad
+            console.log('📝 Sistema de comunidad listo, preguntas se cargarán al acceder a la pestaña');
             
             console.log('✅ Sistema de comunidad inicializado');
             
         } catch (error) {
             console.error('❌ Error inicializando sistema de comunidad:', error);
+            // En caso de error, al menos limpiar las preguntas hardcodeadas
+            this.clearHardcodedQuestions();
         }
     }
 
@@ -2752,14 +2934,7 @@ class ChatOnline {
                 });
             }
 
-            // Formulario de pregunta
-            const questionForm = document.getElementById('questionForm');
-            if (questionForm) {
-                questionForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    this.submitQuestion();
-                });
-            }
+            // Formulario de pregunta - Ya configurado en setupCommunityEventListeners(), evitar duplicados
 
             // Contador de caracteres para el título
             const titleInput = document.getElementById('questionTitle');
@@ -2822,8 +2997,19 @@ class ChatOnline {
     }
 
     async submitQuestion() {
+        // Protección contra múltiples envíos simultáneos
+        if (this.submittingQuestion) {
+            console.log('⏳ Ya se está enviando una pregunta, saltando...');
+            return;
+        }
+
+        console.log('📤 Enviando pregunta...');
+        this.submittingQuestion = true;
+        
+        let originalText = '';
+        const submitBtn = document.getElementById('submitQuestionBtn');
+        
         try {
-            console.log('📤 Enviando pregunta...');
             
             const titleInput = document.getElementById('questionTitle');
             const contentInput = document.getElementById('questionContent');
@@ -2851,10 +3037,11 @@ class ChatOnline {
             }
             
             // Mostrar indicador de carga
-            const submitBtn = document.getElementById('submitQuestionBtn');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<div class="loading-spinner"></div> Enviando...';
-            submitBtn.disabled = true;
+            if (submitBtn) {
+                originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<div class="loading-spinner"></div> Enviando...';
+                submitBtn.disabled = true;
+            }
             
             // Obtener datos reales de la sesión
             const currentUser = this.obtenerUsuarioActual();
@@ -2898,8 +3085,12 @@ class ChatOnline {
                 // Cerrar modal
                 this.hideQuestionModal();
                 
-                // Recargar preguntas
-                await this.loadCommunityQuestions();
+                // Recargar preguntas una sola vez para evitar duplicaciones
+                setTimeout(async () => {
+                    this.communityQuestionsLoaded = false; // Permitir recarga
+                    await this.loadCommunityQuestions();
+                    this.communityQuestionsLoaded = true; // Marcar como cargadas
+                }, 500);
                 
                 // Mostrar mensaje de éxito
                 this.showNotification('Pregunta publicada exitosamente', 'success');
@@ -2913,12 +3104,12 @@ class ChatOnline {
             const errorMessage = error.message || 'Error al publicar la pregunta. Inténtalo de nuevo.';
             this.showNotification(errorMessage, 'error');
         } finally {
-            // Restaurar botón
-            const submitBtn = document.getElementById('submitQuestionBtn');
-            if (submitBtn) {
+            // Restaurar botón y resetear bandera de envío
+            if (submitBtn && originalText) {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
             }
+            this.submittingQuestion = false;
         }
     }
 
@@ -2974,12 +3165,21 @@ class ChatOnline {
     }
 
     async loadCommunityQuestions() {
+        // Evitar múltiples cargas simultáneas
+        if (this.loadingQuestions) {
+            console.log('⏳ Ya se están cargando preguntas, saltando...');
+            return;
+        }
+        
         try {
+            this.loadingQuestions = true;
             console.log('📋 Cargando preguntas de la comunidad...');
             
             // Mostrar indicador de carga
             const questionsList = document.getElementById('questionsList');
             if (questionsList) {
+                // Limpiar primero las preguntas hardcodeadas si existen
+                this.clearHardcodedQuestions();
                 questionsList.innerHTML = '<div class="loading-questions"><div class="loading-spinner"></div><span>Cargando preguntas...</span></div>';
             }
             
@@ -2994,7 +3194,7 @@ class ChatOnline {
                 questions = await this.getQuestionsViaAPI();
             }
             
-            console.log(`✅ ${questions.length} preguntas cargadas`);
+            console.log(`✅ ${questions.length} preguntas cargadas desde ${this.communityDB ? 'base de datos' : 'API'}`);
             
             // Renderizar preguntas
             this.renderQuestions(questions);
@@ -3003,8 +3203,89 @@ class ChatOnline {
             console.error('❌ Error cargando preguntas:', error);
             const questionsList = document.getElementById('questionsList');
             if (questionsList) {
-                questionsList.innerHTML = '<div class="error-message">Error al cargar las preguntas. Inténtalo de nuevo.</div>';
+                questionsList.innerHTML = `
+                    <div class="error-message">
+                        <div class="error-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        </div>
+                        <h3>Error al cargar las preguntas</h3>
+                        <p>No se pudieron cargar las preguntas desde la base de datos.</p>
+                        <button class="btn-secondary" onclick="window.chatOnline.loadCommunityQuestions()">
+                            Reintentar
+                        </button>
+                    </div>
+                `;
             }
+        } finally {
+            this.loadingQuestions = false;
+        }
+    }
+
+    async loadCommunityQuestionsWithParams(params = {}) {
+        // Esta función es similar a loadCommunityQuestions pero acepta parámetros de filtro y ordenamiento
+        // Evita múltiples cargas simultáneas
+        if (this.loadingQuestions) {
+            console.log('⏳ Ya se están cargando preguntas con parámetros, saltando...');
+            return;
+        }
+        
+        try {
+            this.loadingQuestions = true;
+            console.log('📋 Cargando preguntas con parámetros:', params);
+            
+            // Mostrar indicador de carga
+            const questionsList = document.getElementById('questionsList');
+            if (questionsList) {
+                questionsList.innerHTML = '<div class="loading-questions"><div class="loading-spinner"></div><span>Filtrando preguntas...</span></div>';
+            }
+            
+            // Combinar parámetros por defecto con los recibidos
+            const queryParams = {
+                course_id: this.currentCourseId,
+                module_id: `module-${this.currentModule}`,
+                ...params
+            };
+            
+            // Obtener preguntas
+            let questions = [];
+            if (this.communityDB) {
+                questions = await this.communityDB.getQuestions(queryParams);
+            } else {
+                questions = await this.getQuestionsViaAPI(); // TODO: Pasar parámetros a la API
+            }
+            
+            console.log(`✅ ${questions.length} preguntas cargadas con parámetros`);
+            
+            // Renderizar preguntas
+            this.renderQuestions(questions);
+            
+        } catch (error) {
+            console.error('❌ Error cargando preguntas con parámetros:', error);
+            const questionsList = document.getElementById('questionsList');
+            if (questionsList) {
+                questionsList.innerHTML = `
+                    <div class="error-message">
+                        <div class="error-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        </div>
+                        <h3>Error al filtrar las preguntas</h3>
+                        <p>No se pudieron cargar las preguntas con los filtros aplicados.</p>
+                        <button class="btn-secondary" onclick="window.chatOnline.loadCommunityQuestions()">
+                            Mostrar Todas
+                        </button>
+                    </div>
+                `;
+            }
+        } finally {
+            this.loadingQuestions = false;
         }
     }
 
@@ -3029,12 +3310,25 @@ class ChatOnline {
         }
     }
 
+    clearHardcodedQuestions() {
+        const questionsList = document.getElementById('questionsList');
+        if (questionsList) {
+            // Remover todas las preguntas hardcodeadas del HTML
+            const hardcodedQuestions = questionsList.querySelectorAll('.question-item:not([data-question-id])');
+            hardcodedQuestions.forEach(question => question.remove());
+            console.log('🧹 Preguntas hardcodeadas limpiadas');
+        }
+    }
+
     renderQuestions(questions) {
         const questionsList = document.getElementById('questionsList');
         if (!questionsList) {
             console.error('❌ Lista de preguntas no encontrada');
             return;
         }
+        
+        // Limpiar completamente el contenedor para evitar duplicaciones
+        questionsList.innerHTML = '';
         
         if (!questions || questions.length === 0) {
             questionsList.innerHTML = `
@@ -3060,10 +3354,45 @@ class ChatOnline {
             return;
         }
         
-        const questionsHTML = questions.map(question => this.renderQuestionItem(question)).join('');
+        // Filtrar preguntas duplicadas basándose en el ID
+        const uniqueQuestions = this.removeDuplicateQuestions(questions);
+        
+        const questionsHTML = uniqueQuestions.map(question => this.renderQuestionItem(question)).join('');
         questionsList.innerHTML = questionsHTML;
         
-        console.log(`✅ ${questions.length} preguntas renderizadas`);
+        // Configurar event listeners para las preguntas renderizadas
+        this.setupQuestionEventListeners();
+        
+        console.log(`✅ ${uniqueQuestions.length} preguntas únicas renderizadas y event listeners configurados`);
+    }
+
+    removeDuplicateQuestions(questions) {
+        if (!questions || questions.length === 0) {
+            return [];
+        }
+        
+        // Usar Map para eliminar duplicados basándose en el ID
+        const questionMap = new Map();
+        
+        questions.forEach(question => {
+            // Usar el ID de la pregunta como clave única
+            const key = question.id || question.question_id || `temp-${question.title}-${question.created_at}`;
+            if (!questionMap.has(key)) {
+                questionMap.set(key, question);
+            }
+        });
+        
+        const uniqueQuestions = Array.from(questionMap.values());
+        
+        // Ordenar por fecha de creación (más recientes primero)
+        uniqueQuestions.sort((a, b) => {
+            const dateA = new Date(a.created_at || 0);
+            const dateB = new Date(b.created_at || 0);
+            return dateB - dateA;
+        });
+        
+        console.log(`🔄 Filtradas ${questions.length} preguntas → ${uniqueQuestions.length} únicas`);
+        return uniqueQuestions;
     }
 
     renderQuestionItem(question) {
@@ -3074,15 +3403,15 @@ class ChatOnline {
         return `
             <div class="question-item" data-question-id="${question.id}">
                 <div class="question-votes">
-                    <button class="vote-btn upvote" onclick="window.chatOnline.voteQuestion('${question.id}', 'upvote')">
+                    <button class="vote-btn upvote" title="Votar positivamente">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 15l-6-6-6 6"/>
+                            <polyline points="18,15 12,9 6,15"/>
                         </svg>
                     </button>
                     <span class="vote-count">${question.votes_count || 0}</span>
-                    <button class="vote-btn downvote" onclick="window.chatOnline.voteQuestion('${question.id}', 'downvote')">
+                    <button class="vote-btn downvote" title="Votar negativamente">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 9l6 6 6-6"/>
+                            <polyline points="6,9 12,15 18,9"/>
                         </svg>
                     </button>
                 </div>
@@ -3121,6 +3450,26 @@ class ChatOnline {
                         </span>
                         ${question.is_answered ? '<span class="stat answered"><svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>Respondida</span>' : ''}
                     </div>
+                    <div class="question-actions">
+                        <button class="action-btn answer-btn" data-question-id="${question.id}" title="Responder pregunta">
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            Responder
+                        </button>
+                        <button class="action-btn comment-btn" data-question-id="${question.id}" title="Comentar pregunta">
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 3h18v18l-3-3H3V3z"/>
+                            </svg>
+                            Comentar
+                        </button>
+                        <button class="action-btn bookmark-btn" data-question-id="${question.id}" title="Guardar pregunta">
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            Guardar
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -3153,8 +3502,9 @@ class ChatOnline {
             const result = await response.json();
             console.log('✅ Voto procesado:', result);
             
-            // Recargar preguntas para actualizar contadores
-            await this.loadCommunityQuestions();
+            // TODO: Actualizar solo el contador del elemento específico sin recargar todas las preguntas
+            // Por ahora comentamos la recarga para evitar duplicaciones
+            // await this.loadCommunityQuestions();
             
         } catch (error) {
             console.error('❌ Error votando:', error);
@@ -3162,7 +3512,7 @@ class ChatOnline {
         }
     }
 
-    filterQuestions(filter) {
+    async filterQuestions(filter) {
         console.log(`🔍 Filtrando preguntas por: ${filter}`);
         
         // Actualizar botones activos
@@ -3171,17 +3521,15 @@ class ChatOnline {
         });
         document.querySelector(`[data-filter="${filter}"]`)?.classList.add('active');
         
-        // TODO: Implementar filtrado real cuando se conecte con la API
-        // Por ahora solo recargamos todas las preguntas
-        this.loadCommunityQuestions();
+        // Cargar preguntas con el filtro aplicado (evitar llamada duplicada)
+        await this.loadCommunityQuestionsWithParams({ filter });
     }
 
-    sortQuestions(sort) {
+    async sortQuestions(sort) {
         console.log(`📊 Ordenando preguntas por: ${sort}`);
         
-        // TODO: Implementar ordenamiento real cuando se conecte con la API
-        // Por ahora solo recargamos todas las preguntas
-        this.loadCommunityQuestions();
+        // Cargar preguntas con el ordenamiento aplicado (evitar llamada duplicada)
+        await this.loadCommunityQuestionsWithParams({ sort });
     }
 
     formatTimeAgo(timestamp) {
@@ -5719,9 +6067,12 @@ window.switchTab = function(contentType) {
 console.log('✅ window.switchTab definido globalmente');
 
 // ===== INSTANCIACIÓN AUTOMÁTICA =====
+// ELIMINADO: Instanciación duplicada que causaba event listeners duplicados
+// La instancia se crea en la línea 5442 como window.chatOnline
+
+// Ejecutar acción pendiente cuando el DOM esté cargado
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 DOM cargado, instanciando ChatOnline...');
-    window.chatOnlineInstance = new ChatOnline();
+    console.log('🚀 DOM cargado, verificando acciones pendientes...');
     
     // Ejecutar acción pendiente si existe
     if (window.pendingTabSwitch) {
