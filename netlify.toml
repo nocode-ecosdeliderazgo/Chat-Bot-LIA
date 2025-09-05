@@ -63,7 +63,7 @@
   to   = "/.netlify/functions/update-avatar"
   status = 200
 
-# Course Progress API redirects (Legacy)
+# Course Progress API redirects (Legacy - mantener para compatibilidad)
 [[redirects]]
   from = "/api/course-progress"
   to   = "/.netlify/functions/get-course-progress"
@@ -79,34 +79,44 @@
   to   = "/.netlify/functions/update-video-progress"
   status = 200
 
-# Dynamic Course System API redirects (NEW)
+# Dynamic Course System API redirects (NEW - rutas corregidas)
 [[redirects]]
-  from = "/.netlify/functions/course-data/course-structure/*"
+  from = "/api/courses/*/full-structure"
   to   = "/.netlify/functions/course-data"
   status = 200
 
 [[redirects]]
-  from = "/.netlify/functions/course-data/current-module/*/*"
+  from = "/api/courses/*/current-module/*"
   to   = "/.netlify/functions/course-data"
   status = 200
 
 [[redirects]]
-  from = "/.netlify/functions/course-data/video-data/*"
+  from = "/api/modules/*/video-data"
   to   = "/.netlify/functions/course-data"
   status = 200
 
 [[redirects]]
-  from = "/.netlify/functions/user-progress/progress/*/*"
+  from = "/api/modules/*/videos"
+  to   = "/.netlify/functions/course-data"
+  status = 200
+
+[[redirects]]
+  from = "/api/users/*/progress/*"
   to   = "/.netlify/functions/user-progress"
   status = 200
 
 [[redirects]]
-  from = "/.netlify/functions/user-progress/video-progress"
+  from = "/api/users/*/video-progress"
   to   = "/.netlify/functions/user-progress"
   status = 200
 
 [[redirects]]
-  from = "/.netlify/functions/user-progress/switch-module"
+  from = "/api/users/*/switch-module"
+  to   = "/.netlify/functions/user-progress"
+  status = 200
+
+[[redirects]]
+  from = "/api/users/*/switch-video"
   to   = "/.netlify/functions/user-progress"
   status = 200
 

@@ -46,19 +46,55 @@ exports.handler = async (event, context) => {
         console.log(`📡 ${method} ${path}`);
 
         if (method === 'GET' && path.includes('/progress/')) {
-            // GET /progress/{userId}/{courseId}
+            // GET /api/users/{userId}/progress/{courseId}
             const pathParts = path.split('/');
-            const courseId = pathParts.pop();
-            const userId = pathParts.pop();
+            let userId, courseId;
+            
+            const usersIndex = pathParts.indexOf('users');
+            const progressIndex = pathParts.indexOf('progress');
+            
+            if (usersIndex !== -1 && progressIndex !== -1) {
+                // Nueva ruta: /api/users/{userId}/progress/{courseId}
+                userId = pathParts[usersIndex + 1];
+                courseId = pathParts[progressIndex + 1];
+            } else {
+                // Ruta legacy: /progress/{userId}/{courseId}
+                courseId = pathParts.pop();
+                userId = pathParts.pop();
+            }
+            
+            console.log(`📊 Extrayendo parámetros - userId: ${userId}, courseId: ${courseId}`);
             return await getUserProgress(userId, courseId, headers);
             
         } else if (method === 'POST' && path.includes('/video-progress')) {
-            // POST /video-progress
-            return await updateVideoProgress(body, headers);
+            // POST /api/users/{userId}/video-progress
+            const pathParts = path.split('/');
+            const usersIndex = pathParts.indexOf('users');
+            const userId = usersIndex !== -1 ? pathParts[usersIndex + 1] : null;
+            
+            const requestData = { ...body, userId: userId || body.userId };
+            console.log(`🎥 Actualizando progreso de video - userId: ${requestData.userId}`);
+            return await updateVideoProgress(requestData, headers);
             
         } else if (method === 'POST' && path.includes('/switch-module')) {
-            // POST /switch-module
-            return await switchModule(body, headers);
+            // POST /api/users/{userId}/switch-module
+            const pathParts = path.split('/');
+            const usersIndex = pathParts.indexOf('users');
+            const userId = usersIndex !== -1 ? pathParts[usersIndex + 1] : null;
+            
+            const requestData = { ...body, userId: userId || body.userId };
+            console.log(`🔄 Cambiando módulo - userId: ${requestData.userId}`);
+            return await switchModule(requestData, headers);
+            
+        } else if (method === 'POST' && path.includes('/switch-video')) {
+            // POST /api/users/{userId}/switch-video
+            const pathParts = path.split('/');
+            const usersIndex = pathParts.indexOf('users');
+            const userId = usersIndex !== -1 ? pathParts[usersIndex + 1] : null;
+            
+            const requestData = { ...body, userId: userId || body.userId };
+            console.log(`🎬 Cambiando video - userId: ${requestData.userId}`);
+            return await switchVideo(requestData, headers);
             
         } else {
             return {
@@ -415,6 +451,131 @@ async function switchModule(requestBody, headers) {
 
     } catch (error) {
         console.error('💥 Error en switchModule:', error);
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ 
+                error: 'Error interno del servidor',
+                details: error.message 
+            })
+        };
+    }
+}
+
+async function switchVideo(requestBody, headers) {
+    try {
+        const { userId, courseId, videoId, moduleId } = requestBody;
+
+        console.log(`🎬 Cambiando a video ${videoId} para usuario ${userId}`);
+
+        // Validaciones
+        if (!userId || !videoId) {
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ 
+                    error: 'Datos requeridos faltantes',
+                    required: ['userId', 'videoId']
+                })
+            };
+        }
+
+        // 1. Obtener información del video
+        const { data: videoData, error: videoError } = await supabase
+            .from('module_videos')
+            .select(`
+                *,
+                video_checkpoints (*),
+                course_modules!inner (
+                    *,
+                    courses (*)
+                )
+            `)
+            .eq('id', videoId)
+            .eq('is_active', true)
+            .single();
+
+        if (videoError || !videoData) {
+            return {
+                statusCode: 404,
+                headers,
+                body: JSON.stringify({ 
+                    error: 'Video no encontrado',
+                    details: videoError?.message 
+                })
+            };
+        }
+
+        // 2. Actualizar progreso del curso con el módulo actual si se proporciona
+        if (moduleId || videoData.module_id) {
+            const targetModuleId = moduleId || videoData.module_id;
+            
+            await supabase
+                .from('user_course_progress')
+                .upsert({
+                    user_id: userId,
+                    course_id: courseId || videoData.course_modules.course_id,
+                    current_module_id: targetModuleId,
+                    current_video_id: videoId,
+                    last_activity_at: new Date().toISOString()
+                }, {
+                    onConflict: 'user_id,course_id'
+                });
+        }
+
+        // 3. Obtener progreso actual del video
+        const { data: existingProgress } = await supabase
+            .from('user_progress')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('video_id', videoId)
+            .single();
+
+        // 4. Crear registro de progreso si no existe
+        if (!existingProgress) {
+            await supabase
+                .from('user_progress')
+                .insert({
+                    user_id: userId,
+                    course_id: courseId || videoData.course_modules.course_id,
+                    module_id: videoData.module_id,
+                    video_id: videoId,
+                    current_time_seconds: 0,
+                    completion_percentage: 0,
+                    is_completed: false,
+                    last_watched_at: new Date().toISOString()
+                });
+        }
+
+        // 5. Estructurar respuesta con URLs de YouTube
+        const response = {
+            success: true,
+            video: {
+                ...videoData,
+                checkpoints: videoData.video_checkpoints,
+                youtube_embed_url: `https://www.youtube.com/embed/${videoData.youtube_video_id}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0`,
+                youtube_thumbnail_url: `https://img.youtube.com/vi/${videoData.youtube_video_id}/maxresdefault.jpg`,
+                youtube_watch_url: `https://www.youtube.com/watch?v=${videoData.youtube_video_id}`
+            },
+            module: videoData.course_modules,
+            course: videoData.course_modules.courses,
+            user_progress: existingProgress || {
+                current_time_seconds: 0,
+                completion_percentage: 0,
+                is_completed: false
+            }
+        };
+
+        console.log(`✅ Video cambiado exitosamente`);
+        
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify(response)
+        };
+
+    } catch (error) {
+        console.error('💥 Error en switchVideo:', error);
         return {
             statusCode: 500,
             headers,

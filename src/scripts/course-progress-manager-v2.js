@@ -54,7 +54,7 @@ class CourseProgressManagerV2 {
         try {
             console.log('📊 Cargando progreso inicial...');
 
-            const response = await this.apiCall(`/user-progress/progress/${this.userId}/${this.courseId}`, {
+            const response = await this.apiCall(`/users/${this.userId}/progress/${this.courseId}`, {
                 method: 'GET'
             });
 
@@ -121,16 +121,24 @@ class CourseProgressManagerV2 {
 
     getApiBaseUrl() {
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const isNetlify = window.location.hostname.includes('netlify.app') || 
+                         window.location.hostname.includes('netlify.com');
         const currentPort = window.location.port;
 
+        console.log(`🔍 Detectando entorno - localhost: ${isLocalhost}, netlify: ${isNetlify}, port: ${currentPort}`);
+
         if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
+            console.log('🏠 Entorno: Node.js local puerto 3000');
             return '/api';
         } else if (isLocalhost && currentPort === '8888') {
+            console.log('🏠 Entorno: Netlify Dev local');
             return '/.netlify/functions';
         } else if (isLocalhost) {
+            console.log('🏠 Entorno: Servidor local genérico');
             return '/api';
         } else {
-            return '/.netlify/functions';
+            console.log('🌐 Entorno: Netlify producción - usando rutas con redirects');
+            return '/api'; // Cambiar a /api para usar los redirects de Netlify
         }
     }
 
@@ -154,7 +162,25 @@ class CourseProgressManagerV2 {
             
             if (!response.ok) {
                 const errorText = await response.text();
+                
+                // Detectar si recibimos HTML en lugar de JSON (error 404 de Netlify)
+                if (errorText.includes('<!DOCTYPE') || errorText.includes('<html')) {
+                    console.warn('⚠️ Recibido HTML en lugar de JSON - posible problema de routing');
+                    throw new Error(`Endpoint no encontrado: ${fullUrl} (Status: ${response.status})`);
+                }
+                
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
+            // Verificar que la respuesta es JSON válida
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+                    console.warn('⚠️ Respuesta HTML recibida en lugar de JSON');
+                    throw new Error(`Respuesta inválida del servidor: ${fullUrl} - recibido HTML en lugar de JSON`);
+                }
+                throw new Error(`Respuesta no es JSON: ${contentType}`);
             }
 
             const data = await response.json();
@@ -162,6 +188,12 @@ class CourseProgressManagerV2 {
             
         } catch (error) {
             console.error(`❌ API Error: ${fullUrl}`, error);
+            
+            // Si es un error de parsing JSON y el mensaje incluye 'DOCTYPE', es un error 404/routing
+            if (error.message.includes('Unexpected token') && error.message.includes('DOCTYPE')) {
+                throw new Error(`Endpoint no disponible en Netlify: ${fullUrl}. Verifica la configuración de redirects.`);
+            }
+            
             throw error;
         }
     }
@@ -318,7 +350,7 @@ class CourseProgressManagerV2 {
 
             console.log(`📊 Actualizando progreso: ${Math.round(completionPercentage)}% (${time}s/${videoDuration}s)`);
 
-            const response = await this.apiCall('/user-progress/video-progress', {
+            const response = await this.apiCall(`/users/${this.userId}/video-progress`, {
                 method: 'POST',
                 body: JSON.stringify({
                     userId: this.userId,
@@ -417,7 +449,7 @@ class CourseProgressManagerV2 {
         try {
             console.log(`🔄 Cambiando progreso a módulo: ${moduleId}`);
 
-            const response = await this.apiCall('/user-progress/switch-module', {
+            const response = await this.apiCall('/users/switch-module', {
                 method: 'POST',
                 body: JSON.stringify({
                     userId: this.userId,
@@ -446,7 +478,7 @@ class CourseProgressManagerV2 {
             const currentVideo = window.dynamicVideoLoader?.currentVideo;
             if (!currentVideo) return;
 
-            await this.apiCall('/user-progress/video-progress', {
+            await this.apiCall(`/users/${this.userId}/video-progress`, {
                 method: 'POST',
                 body: JSON.stringify({
                     userId: this.userId,
@@ -469,7 +501,7 @@ class CourseProgressManagerV2 {
 
     async getProgressSummary() {
         try {
-            const response = await this.apiCall(`/user-progress/progress/${this.userId}/${this.courseId}`, {
+            const response = await this.apiCall(`/users/${this.userId}/progress/${this.courseId}`, {
                 method: 'GET'
             });
 

@@ -604,7 +604,7 @@ Cargando información...
                                 </h3>
                                 <span class="community-subtitle">Preguntas y Respuestas - Introducción a la IA</span>
                             </div>
-                            <button class="btn-primary" id="askQuestionBtn">
+                            <button class="btn-primary" id="askQuestionBtn" onclick="window.showQuestionModal()">
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <line x1="12" y1="5" x2="12" y2="19"/>
                                     <line x1="5" y1="12" x2="19" y2="12"/>
@@ -891,7 +891,7 @@ Cargando información...
                                     </div>
                                     <div class="modal-actions">
                                         <button type="button" class="btn-secondary" id="cancelQuestionBtn">Cancelar</button>
-                                        <button type="submit" class="btn-primary">
+                                        <button type="submit" class="btn-primary" id="submitQuestionBtn">
                                             <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <path d="M22 2L11 13"/>
                                                 <polygon points="22,2 15,22 11,13 2,9"/>
@@ -1047,17 +1047,48 @@ Cargando información...
     <!-- JavaScript -->
     <script src="../utils/helpers.js"></script>
     
+    <!-- Netlify Compatibility Layer -->
+    <script src="netlify-compatibility.js"></script>
+    
     <!-- Dynamic Video Loader -->
     <script src="../scripts/dynamic-video-loader.js"></script>
     
-    <!-- Course Progress Manager V2 -->
-    <script src="../scripts/course-progress-manager-v2.js"></script>
+    <!-- Course Progress Manager V2 - Ruta verificada -->
+    <script src="../scripts/course-progress-manager-v2.js" onerror="console.error('❌ Error cargando course-progress-manager-v2.js')"></script>
     
-    <!-- YouTube Progress Tracker -->
-    <script src="../scripts/youtube-progress-tracker.js"></script>
+    <!-- YouTube Progress Tracker - Ruta verificada -->
+    <script src="../scripts/youtube-progress-tracker.js" onerror="console.error('❌ Error cargando youtube-progress-tracker.js')"></script>
     
-    <!-- Chat Online V2 - Dynamic System -->
-    <script src="chat-online-v2.js"></script>
+    <!-- Community API -->
+    <script src="api/community-api.js"></script>
+    
+    <!-- Supabase Client -->
+    <script src="../scripts/supabase-client.js"></script>
+    
+    <!-- Community Database -->
+    <script src="../scripts/community-database.js"></script>
+    
+    <!-- Script inline para funciones globales inmediatas -->
+    <script>
+        // Función global inmediata para el botón de pregunta
+        window.showQuestionModal = function() {
+            console.log('🔘 Función de respaldo ejecutada');
+            const modal = document.getElementById('questionModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                console.log('✅ Modal abierto con función de respaldo');
+            } else {
+                console.error('❌ Modal no encontrado');
+            }
+        };
+        
+        // Verificar que la función esté disponible
+        console.log('✅ Función showQuestionModal definida:', typeof window.showQuestionModal);
+    </script>
+    
+    <!-- Chat Online Main Script -->
+    <script src="chat-online.js"></script>
     
     <!-- Quick Video Fix - Carga videos desde la base de datos -->
     <script src="../scripts/quick-video-fix.js"></script>
@@ -1130,7 +1161,11 @@ Cargando información...
 
             console.log('🌟 DOM listo - Inicializando sistema de cursos dinámico');
 
-            
+            // Verificación previa de scripts cargados
+            console.log('🔍 Verificando componentes disponibles...');
+            console.log('CourseProgressManagerV2:', typeof window.CourseProgressManagerV2);
+            console.log('YouTubeProgressTracker:', typeof window.YouTubeProgressTracker);
+            console.log('ChatOnlineV2:', typeof window.ChatOnlineV2);
 
             try {
 
@@ -1153,6 +1188,25 @@ Cargando información...
                 } else {
 
                     console.error('❌ CourseProgressManagerV2 no encontrado');
+                    
+                    // Fallback: intentar cargar el script dinámicamente
+                    try {
+                        console.log('🔄 Intentando cargar CourseProgressManagerV2 dinámicamente...');
+                        const script = document.createElement('script');
+                        script.src = '../scripts/course-progress-manager-v2.js';
+                        script.onload = async () => {
+                            console.log('✅ Script cargado dinámicamente');
+                            if (window.CourseProgressManagerV2) {
+                                window.courseProgressManager = new CourseProgressManagerV2();
+                                await window.courseProgressManager.init();
+                                console.log('✅ Course Progress Manager V2 inicializado (carga dinámica)');
+                            }
+                        };
+                        script.onerror = () => console.error('❌ Error en carga dinámica del script');
+                        document.head.appendChild(script);
+                    } catch (error) {
+                        console.error('❌ Error en fallback de carga:', error);
+                    }
 
                 }
 
@@ -1178,11 +1232,47 @@ Cargando información...
 
                 console.log('🎉 Sistema dinámico completamente inicializado');
 
-                
+                // Verificación final de componentes
+                setTimeout(() => {
+                    console.log('🔍 Verificación final de componentes:');
+                    console.log('- CourseProgressManager:', window.courseProgressManager ? '✅' : '❌');
+                    console.log('- ChatOnlineV2:', window.chatOnlineV2 ? '✅' : '❌');
+                    
+                    if (!window.courseProgressManager) {
+                        console.warn('⚠️ CourseProgressManager no inicializado - puede afectar la carga de videos');
+                        // Mostrar mensaje de advertencia al usuario
+                        const videoContainer = document.querySelector('.main-video-player');
+                        if (videoContainer && !videoContainer.querySelector('.loading-warning')) {
+                            const warning = document.createElement('div');
+                            warning.className = 'loading-warning';
+                            warning.innerHTML = `
+                                <div style="padding: 15px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 8px; margin: 10px; text-align: center;">
+                                    <strong>⚠️ Cargando sistema de videos...</strong><br>
+                                    <small>Si los videos no aparecen, recarga la página.</small>
+                                </div>
+                            `;
+                            videoContainer.appendChild(warning);
+                        }
+                    }
+                }, 2000);
 
             } catch (error) {
 
                 console.error('💥 Error inicializando sistema dinámico:', error);
+                
+                // Mostrar error al usuario
+                const videoContainer = document.querySelector('.main-video-player');
+                if (videoContainer && !videoContainer.querySelector('.error-message')) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.innerHTML = `
+                        <div style="padding: 15px; background: rgba(220,53,69,0.2); border: 1px solid #dc3545; border-radius: 8px; margin: 10px; text-align: center;">
+                            <strong>❌ Error cargando sistema de videos</strong><br>
+                            <small>Por favor, recarga la página. Si el problema persiste, verifica tu conexión.</small>
+                        </div>
+                    `;
+                    videoContainer.appendChild(errorDiv);
+                }
 
                         console.log('📝 Mensaje:', mensaje);
 
