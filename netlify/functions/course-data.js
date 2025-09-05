@@ -65,29 +65,61 @@ exports.handler = async (event, context) => {
 
         console.log(`📡 ${method} ${path}`);
 
-        // Routing basado en path
-        if (path.includes('/course-structure/')) {
-            // GET /course-structure/{courseId}
-            const courseId = path.split('/').pop();
+        // Routing basado en path - compatible con nuevos redirects
+        if (path.includes('/full-structure')) {
+            // GET /api/courses/{courseId}/full-structure
+            const pathParts = path.split('/');
+            const courseIndex = pathParts.indexOf('courses');
+            const courseId = pathParts[courseIndex + 1];
             return await getCourseFullStructure(courseId, queryParams, headers);
             
         } else if (path.includes('/current-module/')) {
-            // GET /current-module/{courseId}/{userId}
+            // GET /api/courses/{courseId}/current-module/{userId} o legacy
             const pathParts = path.split('/');
-            const userId = pathParts.pop();
-            const courseId = pathParts.pop();
+            const courseIndex = pathParts.indexOf('courses');
+            const moduleIndex = pathParts.indexOf('current-module');
+            
+            let courseId, userId;
+            if (courseIndex !== -1) {
+                // Nueva ruta: /api/courses/{courseId}/current-module/{userId}
+                courseId = pathParts[courseIndex + 1];
+                userId = pathParts[moduleIndex + 1];
+            } else {
+                // Ruta legacy: /current-module/{courseId}/{userId}
+                userId = pathParts.pop();
+                courseId = pathParts.pop();
+            }
             return await getCurrentModule(courseId, userId, headers);
             
-        } else if (path.includes('/video-data/')) {
-            // GET /video-data/{moduleId}
-            const moduleId = path.split('/').pop();
+        } else if (path.includes('/video-data')) {
+            // GET /api/modules/{moduleId}/video-data
+            const pathParts = path.split('/');
+            const moduleIndex = pathParts.indexOf('modules');
+            const moduleId = moduleIndex !== -1 ? pathParts[moduleIndex + 1] : path.split('/').pop();
             return await getModuleVideoData(moduleId, queryParams, headers);
             
+        } else if (path.includes('/videos')) {
+            // GET /api/modules/{moduleId}/videos
+            const pathParts = path.split('/');
+            const moduleIndex = pathParts.indexOf('modules');
+            const moduleId = moduleIndex !== -1 ? pathParts[moduleIndex + 1] : path.split('/').slice(-2)[0];
+            return await getModuleVideos(moduleId, queryParams, headers);
+            
         } else {
+            console.warn(`⚠️ Ruta no reconocida: ${path}`);
             return {
                 statusCode: 404,
                 headers,
-                body: JSON.stringify({ error: 'Endpoint no encontrado' })
+                body: JSON.stringify({ 
+                    error: 'Endpoint no encontrado',
+                    path: path,
+                    availableEndpoints: [
+                        '/api/courses/{courseId}/full-structure',
+                        '/api/courses/{courseId}/current-module/{userId}',
+                        '/api/modules/{moduleId}/video-data',
+                        '/api/modules/{moduleId}/videos'
+                    ]
+                })
             };
         }
 
@@ -450,6 +482,116 @@ async function getModuleVideoData(moduleId, queryParams, headers) {
 
     } catch (error) {
         console.error('💥 Error en getModuleVideoData:', error);
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ 
+                error: 'Error interno del servidor',
+                details: error.message 
+            })
+        };
+    }
+}
+
+// =====================================================
+// FUNCIÓN: OBTENER TODOS LOS VIDEOS DE UN MÓDULO
+// =====================================================
+
+async function getModuleVideos(moduleId, queryParams, headers) {
+    try {
+        console.log(`🎬 Obteniendo videos del módulo: ${moduleId}`);
+
+        // Obtener videos del módulo
+        const { data: videosData, error: videosError } = await supabase
+            .from('module_videos')
+            .select(`
+                *,
+                video_checkpoints (*),
+                course_modules!inner (
+                    id, title, slug, order_index,
+                    courses!inner (
+                        id, title, slug, is_active
+                    )
+                )
+            `)
+            .eq('module_id', moduleId)
+            .eq('is_active', true)
+            .order('order_index', { ascending: true });
+
+        if (videosError) {
+            console.error('❌ Error obteniendo videos:', videosError);
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({ 
+                    error: 'Error obteniendo videos del módulo',
+                    details: videosError.message 
+                })
+            };
+        }
+
+        if (!videosData || videosData.length === 0) {
+            return {
+                statusCode: 404,
+                headers,
+                body: JSON.stringify({ 
+                    error: 'No se encontraron videos para este módulo',
+                    moduleId: moduleId 
+                })
+            };
+        }
+
+        // Obtener progreso del usuario si se proporciona userId
+        const { userId } = queryParams;
+        if (userId) {
+            // Obtener progreso para todos los videos del módulo
+            const { data: progressData } = await supabase
+                .from('user_progress')
+                .select('*')
+                .eq('user_id', userId)
+                .in('video_id', videosData.map(v => v.id));
+
+            // Agregar progreso a cada video
+            videosData.forEach(video => {
+                const progress = progressData?.find(p => p.video_id === video.id);
+                video.user_progress = progress || {
+                    current_time_seconds: 0,
+                    completion_percentage: 0,
+                    is_completed: false
+                };
+            });
+        }
+
+        // Estructurar videos con URLs de YouTube
+        const structuredVideos = videosData.map(video => ({
+            ...video,
+            checkpoints: video.video_checkpoints,
+            youtube_embed_url: `https://www.youtube.com/embed/${video.youtube_video_id}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0`,
+            youtube_thumbnail_url: `https://img.youtube.com/vi/${video.youtube_video_id}/maxresdefault.jpg`,
+            youtube_watch_url: `https://www.youtube.com/watch?v=${video.youtube_video_id}`
+        }));
+
+        const response = {
+            success: true,
+            module: videosData[0]?.course_modules,
+            course: videosData[0]?.course_modules?.courses,
+            videos: structuredVideos,
+            summary: {
+                total_videos: structuredVideos.length,
+                total_duration_minutes: structuredVideos.reduce((sum, v) => sum + (v.duration_minutes || 0), 0)
+            }
+        };
+
+        console.log(`✅ Videos del módulo obtenidos exitosamente (${structuredVideos.length} videos)`);
+        
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify(response)
+        };
+
+    } catch (error) {
+        console.error('💥 Error en getModuleVideos:', error);
         return {
             statusCode: 500,
             headers,
