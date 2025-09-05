@@ -5680,9 +5680,12 @@ window.switchTab = function(contentType) {
 console.log('✅ window.switchTab definido globalmente');
 
 // ===== INSTANCIACIÓN AUTOMÁTICA =====
+// ELIMINADO: Instanciación duplicada que causaba event listeners duplicados
+// La instancia se crea en la línea 5442 como window.chatOnline
+
+// Ejecutar acción pendiente cuando el DOM esté cargado
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 DOM cargado, instanciando ChatOnline...');
-    window.chatOnlineInstance = new ChatOnline();
+    console.log('🚀 DOM cargado, verificando acciones pendientes...');
     
     // Ejecutar acción pendiente si existe
     if (window.pendingTabSwitch) {
