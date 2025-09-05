@@ -412,6 +412,55 @@
             .vote-count {
                 font-size: 13px;
             }
+
+            .question-context {
+                padding: 12px;
+                margin-bottom: 16px;
+            }
+        }
+
+        /* ===== ESTILOS PARA CONTEXTO DE PREGUNTA EN MODALES ===== */
+        .question-context {
+            background: var(--background-secondary, #f8f9fa);
+            border: 1px solid var(--border-color, #e1e5e9);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .question-context h4 {
+            margin: 0 0 8px 0;
+            color: var(--text-primary, #212529);
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .question-context p {
+            margin: 0;
+            color: var(--text-secondary, #6c757d);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .question-context-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--text-secondary, #6c757d);
+        }
+
+        .question-context-author {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .question-context-author img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
         }
     </style>
     <!-- Favicon -->
@@ -1272,6 +1321,86 @@ Cargando información...
                                                 <polygon points="22,2 15,22 11,13 2,9"/>
                                             </svg>
                                             Publicar Pregunta
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Modal para responder pregunta -->
+                        <div class="question-modal" id="answerModal" style="display: none;">
+                            <div class="modal-overlay"></div>
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3>
+                                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        Responder Pregunta
+                                    </h3>
+                                    <button class="modal-close" id="closeAnswerModal">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18"/>
+                                            <line x1="6" y1="6" x2="18" y2="18"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="question-context" id="answerQuestionContext">
+                                    <!-- Aquí se mostrará el contexto de la pregunta -->
+                                </div>
+                                <form class="answer-form" id="answerForm">
+                                    <div class="form-group">
+                                        <label for="answerContent">Tu respuesta</label>
+                                        <textarea id="answerContent" placeholder="Escribe tu respuesta detallada aquí..." rows="8" required></textarea>
+                                    </div>
+                                    <div class="modal-actions">
+                                        <button type="button" class="btn-secondary" id="cancelAnswerBtn">Cancelar</button>
+                                        <button type="submit" class="btn-primary" id="submitAnswerBtn">
+                                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M22 2L11 13"/>
+                                                <polygon points="22,2 15,22 11,13 2,9"/>
+                                            </svg>
+                                            Publicar Respuesta
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Modal para comentar pregunta -->
+                        <div class="question-modal" id="commentModal" style="display: none;">
+                            <div class="modal-overlay"></div>
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3>
+                                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 3h18v18l-3-3H3V3z"/>
+                                        </svg>
+                                        Comentar Pregunta
+                                    </h3>
+                                    <button class="modal-close" id="closeCommentModal">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18"/>
+                                            <line x1="6" y1="6" x2="18" y2="18"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="question-context" id="commentQuestionContext">
+                                    <!-- Aquí se mostrará el contexto de la pregunta -->
+                                </div>
+                                <form class="comment-form" id="commentForm">
+                                    <div class="form-group">
+                                        <label for="commentContent">Tu comentario</label>
+                                        <textarea id="commentContent" placeholder="Escribe tu comentario aquí..." rows="4" required></textarea>
+                                    </div>
+                                    <div class="modal-actions">
+                                        <button type="button" class="btn-secondary" id="cancelCommentBtn">Cancelar</button>
+                                        <button type="submit" class="btn-primary" id="submitCommentBtn">
+                                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M22 2L11 13"/>
+                                                <polygon points="22,2 15,22 11,13 2,9"/>
+                                            </svg>
+                                            Publicar Comentario
                                         </button>
                                     </div>
                                 </form>
