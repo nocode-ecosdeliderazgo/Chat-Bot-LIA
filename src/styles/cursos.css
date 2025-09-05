@@ -289,14 +289,14 @@
 }
 
 [data-theme="light"] .tab-button:hover {
-  background: rgba(68, 229, 255, 0.1) !important;
-  color: #2D3748 !important;
+  background: rgba(0, 102, 204, 0.1) !important;
+  color: #0066CC !important;
 }
 
 [data-theme="light"] .tab-button.active {
-  background: linear-gradient(135deg, var(--turq), var(--turq-2)) !important;
-  color: #001018 !important;
-  box-shadow: 0 4px 12px rgba(68, 229, 255, 0.3) !important;
+  background: #0066CC !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
 }
 
 [data-theme="light"] .tab-button i {
@@ -694,15 +694,17 @@ main.container { padding-top: 120px; }
 .tab-button {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 14px 24px;
+    gap: 8px;
+    padding: 16px 20px;
     border: none;
     background: rgba(68, 229, 255, 0.05);
     color: var(--course-text-secondary, #b8c5d1);
     border-radius: 16px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: var(--font-primary);
     font-weight: 500;
+    font-size: 1rem;
     white-space: nowrap;
     position: relative;
     overflow: hidden;
@@ -746,7 +748,6 @@ main.container { padding-top: 120px; }
         0 0 0 1px rgba(68, 229, 255, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     transform: translateY(-2px);
-    font-weight: 600;
 }
 
 .tab-button i {
@@ -771,7 +772,6 @@ body.bg-glow-global .tab-button.active {
     color: white !important;
     box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
     transform: translateY(-1px) !important;
-    font-weight: 600 !important;
 }
 
 .bg-glow-global .tab-button.active i,
@@ -1005,6 +1005,26 @@ body.bg-glow-global .catalog-header .course-tabs {
 @media (max-width: 820px){ .courses-grid{ grid-template-columns: repeat(2, 1fr);} .catalog-categories{ overflow:auto; } }
 @media (max-width: 560px){ .courses-grid{ grid-template-columns: 1fr;} }
 
+/* Estilos responsive para tab-button */
+@media (max-width: 768px) {
+    .course-tabs {
+        margin: 10px auto;
+        padding: 6px;
+        gap: 4px;
+        width: min(430px, 92vw);
+    }
+    
+    .tab-button {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        gap: 8px;
+    }
+    
+    .tab-button i {
+        font-size: 18px;
+    }
+}
+
 .category-group { margin: 18px 0 30px; }
 .group-title { font-family: var(--font-heading, Montserrat); font-weight:800; font-size:22px; margin: 14px 0 12px; color:#fff; }
 
@@ -1179,6 +1199,29 @@ body.bg-glow-global .catalog-header .course-tabs {
 .category-group .meta { font-size: 12px; }
 .category-group .cta .enroll { padding: 8px 10px; font-size: 13px; }
 .category-group .cta .wishlist { width: 36px; }
+
+/* Estilos base del navbar para coincidir con community.css */
+.course-tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 12px;
+    gap: 10px;
+    overflow-x: auto;
+    border: 1px solid rgba(68, 229, 255, 0.18);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(20px);
+    position: relative;
+    margin: 20px auto;
+    width: min(600px, 90vw);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.course-tabs::-webkit-scrollbar {
+    display: none;
+}
 
 /* Reducir ancho del navbar (no altura) solo en cursos */
 .catalog-header .course-tabs { width: min(600px, 90vw); margin: 0 auto; }

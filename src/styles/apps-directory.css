@@ -726,12 +726,13 @@ body.bg-glow-global .catalog-header .course-tabs {
     border-radius: 16px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: var(--font-primary);
     font-weight: 500;
+    font-size: 1rem;
     white-space: nowrap;
     position: relative;
     overflow: hidden;
     border: 1px solid rgba(68, 229, 255, 0.1);
-    font-size: 1rem;
     min-height: auto;
     text-align: center;
 }
@@ -771,7 +772,6 @@ body.bg-glow-global .tab-button.active {
     color: white !important;
     box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
     transform: translateY(-1px) !important;
-    font-weight: 600 !important;
 }
 
 .tab-button i {
@@ -1153,6 +1153,13 @@ body.bg-glow-global .search:focus-within {
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
+    .course-tabs {
+        margin: 10px auto;
+        padding: 6px;
+        gap: 4px;
+        width: min(430px, 92vw);
+    }
+    
     .filters-sidebar {
         width: 100%;
         right: -100%;
@@ -1173,6 +1180,16 @@ body.bg-glow-global .search:focus-within {
     .hero-cta {
         justify-content: center;
         width: 100%;
+    }
+    
+    .tab-button {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        gap: 8px;
+    }
+    
+    .tab-button i {
+        font-size: 18px;
     }
     
     .search {
@@ -1443,6 +1460,23 @@ body.bg-glow-global .search:focus-within {
 
 [data-theme="light"] .hero-copy p {
     color: rgba(45, 55, 72, 0.8) !important;
+}
+
+/* Estilos de tema claro para tab-button */
+[data-theme="light"] .tab-button {
+    color: #4A5568 !important;
+    background: transparent !important;
+}
+
+[data-theme="light"] .tab-button:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .tab-button.active {
+    background: #0066CC !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
 }
 
 /* ===== LAYOUT Y DISTRIBUCIÓN MEJORADA ===== */
