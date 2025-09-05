@@ -4122,6 +4122,16 @@ class ChatOnline {
         this.hideMaterialsContent();
         this.hideQuizContent();
         
+        // Asegurar que los resultados del quiz estén ocultos específicamente
+        const quizResults = document.querySelector('.quiz-results');
+        if (quizResults) {
+            quizResults.style.display = 'none';
+            quizResults.classList.remove('content-visible');
+        }
+        
+        // NO resetear el estado de resultados del quiz - deben persistir
+        // this.quizResultsShown = false; // Comentado para mantener persistencia
+        
         // Mostrar contenido de video
         const videoContent = document.querySelector('.main-video-player');
         const contentTabs = document.querySelector('.content-tabs');
@@ -4157,21 +4167,37 @@ class ChatOnline {
         this.hideVideoContent();
         this.hideMaterialsContent();
         
-        // Crear y mostrar contenido de quiz
-        this.createQuizContent();
+        // Verificar si ya hay resultados mostrados
+        const existingResults = document.querySelector('.quiz-results');
+        const existingQuiz = document.querySelector('.quiz-content');
         
-        // Agregar clase para animación
-        const quizContent = document.querySelector('.quiz-content');
-        const quizResults = document.querySelector('.quiz-results');
-        
-        if (quizContent) {
-            quizContent.style.display = 'block';
-            quizContent.classList.add('content-visible');
-        }
-        
-        if (quizResults) {
-            quizResults.style.display = 'block';
-            quizResults.classList.add('content-visible');
+        if (this.quizResultsShown && existingResults) {
+            // Si hay resultados, solo mostrarlos (no crear nuevo quiz)
+            console.log('📊 Mostrando resultados existentes del quiz');
+            existingResults.style.display = 'block';
+            existingResults.classList.add('content-visible');
+            
+            // Ocultar quiz si existe
+            if (existingQuiz) {
+                existingQuiz.style.display = 'none';
+                existingQuiz.classList.remove('content-visible');
+            }
+        } else {
+            // Si no hay resultados, crear/mostrar el quiz
+            this.createQuizContent();
+            
+            // Agregar clase para animación
+            const quizContent = document.querySelector('.quiz-content');
+            if (quizContent) {
+                quizContent.style.display = 'block';
+                quizContent.classList.add('content-visible');
+            }
+            
+            // Asegurar que no hay resultados visibles
+            if (existingResults) {
+                existingResults.style.display = 'none';
+                existingResults.classList.remove('content-visible');
+            }
         }
     }
     
@@ -4194,6 +4220,13 @@ class ChatOnline {
         if (materialsContent) {
             materialsContent.style.display = 'none';
             materialsContent.classList.remove('content-visible');
+        }
+        
+        // También ocultar resultados del quiz si están visibles
+        const quizResults = document.querySelector('.quiz-results');
+        if (quizResults) {
+            quizResults.style.display = 'none';
+            quizResults.classList.remove('content-visible');
         }
     }
     
