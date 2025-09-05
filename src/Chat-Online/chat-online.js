@@ -4691,6 +4691,206 @@ class ChatOnline {
                         </button>
                     </div>
                     
+                    <!-- Lección 4 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">04</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Redes Neuronales</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Arquitectura y funcionamiento de las redes neuronales artificiales</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 25 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Lección 5 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">05</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Procesamiento de Lenguaje Natural</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Cómo las máquinas comprenden y procesan el lenguaje humano</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 20 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Lección 6 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">06</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Visión por Computadora</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Tecnologías para el reconocimiento y análisis de imágenes</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 28 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Lección 7 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">07</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Ética en IA</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Consideraciones éticas y responsabilidad en el desarrollo de IA</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 16 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Lección 8 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">08</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">IA Generativa</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Modelos de IA capaces de generar contenido original</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 24 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Lección 9 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">09</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Automatización con IA</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Aplicación de IA para automatizar procesos y tareas</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 30 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Lección 10 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">10</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Futuro de la IA</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Tendencias y perspectivas futuras en Inteligencia Artificial</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 19 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Lección 11 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">11</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Proyecto Final</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Proyecto integrador para aplicar todos los conocimientos adquiridos</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 45 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
                 </div>
             </div>
         `;
@@ -4813,26 +5013,150 @@ class ChatOnline {
     }
     
     playLesson(lessonNumber) {
-        console.log(`▶️ Reproduciendo lección ${lessonNumber}`);
+        // Definir información de cada lección
+        const lessons = {
+            1: { 
+                title: "Introducción a la IA", 
+                duration: "15 min",
+                status: "available",
+                description: "Conceptos fundamentales y aplicaciones de la Inteligencia Artificial"
+            },
+            2: { 
+                title: "Historia de la IA", 
+                duration: "22 min",
+                status: "available",
+                description: "Evolución histórica desde los primeros algoritmos hasta la actualidad"
+            },
+            3: { 
+                title: "Machine Learning Básico", 
+                duration: "18 min",
+                status: "locked",
+                description: "Fundamentos del aprendizaje automático y sus aplicaciones"
+            },
+            4: { 
+                title: "Redes Neuronales", 
+                duration: "25 min",
+                status: "locked",
+                description: "Arquitectura y funcionamiento de las redes neuronales artificiales"
+            },
+            5: { 
+                title: "Procesamiento de Lenguaje Natural", 
+                duration: "20 min",
+                status: "locked",
+                description: "Cómo las máquinas comprenden y procesan el lenguaje humano"
+            },
+            6: { 
+                title: "Visión por Computadora", 
+                duration: "28 min",
+                status: "locked",
+                description: "Tecnologías para el reconocimiento y análisis de imágenes"
+            },
+            7: { 
+                title: "Ética en IA", 
+                duration: "16 min",
+                status: "locked",
+                description: "Consideraciones éticas y responsabilidad en el desarrollo de IA"
+            },
+            8: { 
+                title: "IA Generativa", 
+                duration: "24 min",
+                status: "locked",
+                description: "Modelos de IA capaces de generar contenido original"
+            },
+            9: { 
+                title: "Automatización con IA", 
+                duration: "30 min",
+                status: "locked",
+                description: "Aplicación de IA para automatizar procesos y tareas"
+            },
+            10: { 
+                title: "Futuro de la IA", 
+                duration: "19 min",
+                status: "locked",
+                description: "Tendencias y perspectivas futuras en Inteligencia Artificial"
+            },
+            11: { 
+                title: "Proyecto Final", 
+                duration: "45 min",
+                status: "locked",
+                description: "Proyecto integrador para aplicar todos los conocimientos adquiridos"
+            }
+        };
+
+        const lesson = lessons[lessonNumber];
+        
+        if (!lesson) {
+            console.log(`❌ Lección ${lessonNumber} no encontrada`);
+            return;
+        }
+
+        if (lesson.status === 'locked') {
+            console.log(`🔒 Lección ${lessonNumber} bloqueada`);
+            alert(`La lección "${lesson.title}" está bloqueada. Complete las lecciones anteriores para desbloquearla.`);
+            return;
+        }
+
+        console.log(`▶️ Reproduciendo lección ${lessonNumber}: ${lesson.title}`);
+        
         // Cambiar a la pestaña de video y cargar la lección específica
         this.showVideoContent();
         
-        // Simular carga de video
+        // Simular carga de video con información específica
         setTimeout(() => {
             const videoPlayer = document.querySelector('.main-video-player');
             if (videoPlayer) {
                 videoPlayer.innerHTML = `
-                    <div class="video-container">
-                        <div class="video-placeholder">
-                            <div class="video-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <div class="video-container" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 2rem; text-align: center; margin: 2rem 0;">
+                        <div class="video-header" style="margin-bottom: 2rem;">
+                            <div class="lesson-number-large" style="background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.5rem; margin: 0 auto 1rem;">
+                                ${String(lessonNumber).padStart(2, '0')}
+                            </div>
+                            <h2 style="color: #FFFFFF; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem;">${lesson.title}</h2>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 1.1rem; margin-bottom: 1rem;">${lesson.description}</p>
+                            <div class="video-meta" style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
+                                <span style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ ${lesson.duration}</span>
+                                <span style="background: linear-gradient(135deg, #22C55E, #16A34A); color: white; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; border: 1px solid #16A34A;">📚 Lección ${lessonNumber} de 11</span>
+                            </div>
+                        </div>
+                        
+                        <div class="video-placeholder" style="background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 4rem 2rem; margin-bottom: 1.5rem; border: 2px dashed rgba(0, 102, 204, 0.3);">
+                            <div class="video-icon" style="margin-bottom: 1rem;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 80px; height: 80px; color: #0066CC; margin: 0 auto; display: block;">
                                     <polygon points="5,3 19,12 5,21"/>
                                 </svg>
                             </div>
-                            <h3>Lección ${lessonNumber}</h3>
-                            <p>Reproduciendo video de la lección...</p>
+                            <h3 style="color: #FFFFFF; font-size: 1.3rem; margin-bottom: 1rem;">Video en reproducción</h3>
+                            <p style="color: rgba(255, 255, 255, 0.7); font-size: 1rem;">Contenido de la lección "${lesson.title}"</p>
+                            <div class="loading-bar" style="width: 100%; height: 4px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; margin-top: 1.5rem; overflow: hidden;">
+                                <div class="loading-progress" style="width: 0%; height: 100%; background: linear-gradient(90deg, #0066CC, #00A3FF); border-radius: 2px; animation: loading 3s ease-in-out infinite;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="video-controls" style="display: flex; justify-content: center; gap: 1rem;">
+                            <button onclick="alert('⏸️ Video pausado')" style="background: linear-gradient(135deg, #0066CC, #0052A3); border: 2px solid #0066CC; border-radius: 8px; color: white; padding: 0.8rem 1.5rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                                ⏸️ Pausar
+                            </button>
+                            <button onclick="alert('📝 Tomando notas...')" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 8px; color: #0066CC; padding: 0.8rem 1.5rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                                📝 Notas
+                            </button>
+                            <button onclick="alert('⚡ Aumentando velocidad de reproducción')" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 8px; color: #0066CC; padding: 0.8rem 1.5rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                                ⚡ Velocidad
+                            </button>
                         </div>
                     </div>
+
+                    <style>
+                        @keyframes loading {
+                            0% { width: 0%; }
+                            50% { width: 70%; }
+                            100% { width: 100%; }
+                        }
+                        
+                        .video-controls button:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+                        }
+                    </style>
                 `;
             }
         }, 300);

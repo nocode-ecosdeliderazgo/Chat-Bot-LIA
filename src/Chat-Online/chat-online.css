@@ -4349,10 +4349,12 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 }
 
 .lesson-card .material-info p {
-    color: var(--glass-text-secondary);
+    color: rgba(255, 255, 255, 0.8) !important;
     font-size: 0.95rem;
     line-height: 1.5;
     margin-bottom: 1rem;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .lesson-meta {
@@ -6377,5 +6379,205 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     color: var(--glass-text-muted); 
     font-size: .82rem; 
     flex-shrink: 0;
+}
+
+/* ===== ESTILOS ESPECÍFICOS PARA VISIBILIDAD DE TEXTO EN MATERIALES ===== */
+/* Garantizar visibilidad completa de todos los elementos de texto */
+
+.materials-content .lesson-card h3 {
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+}
+
+.materials-content .lesson-card p {
+    color: rgba(255, 255, 255, 0.8) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+}
+
+.materials-content .lesson-duration {
+    color: #0066CC !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-block !important;
+}
+
+.materials-content .lesson-status {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-block !important;
+}
+
+.materials-content .lesson-status.completed {
+    background: linear-gradient(135deg, #22C55E, #16A34A) !important;
+    color: white !important;
+}
+
+.materials-content .lesson-status.current {
+    background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+    color: white !important;
+}
+
+.materials-content .lesson-status.locked {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.materials-content .lesson-number {
+    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
+    color: white !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+}
+
+.materials-content .material-info * {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.materials-content .lesson-meta * {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Forzar visibilidad de todos los textos */
+.materials-content * {
+    text-rendering: optimizeLegibility !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Asegurar contraste adecuado */
+.materials-content .lesson-card {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)) !important;
+    border: 2px solid rgba(0, 102, 204, 0.2) !important;
+}
+
+.materials-content .lesson-card:hover {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)) !important;
+    border: 2px solid #0066CC !important;
+}
+
+/* ========================================
+   SOLUCION DEFINITIVA - VISIBILIDAD FORZADA
+   ======================================== */
+.materials-content .lesson-card h3,
+.materials-content .lesson-card p,
+.materials-content .lesson-card span,
+.materials-content .lesson-card .lesson-duration,
+.materials-content .lesson-card .lesson-status,
+.materials-content .lesson-card .lesson-number,
+.materials-content .material-info h3,
+.materials-content .material-info p {
+    color: #FFFFFF !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    font-weight: 700 !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    -webkit-font-smoothing: antialiased !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+    margin: inherit !important;
+    padding: inherit !important;
+}
+
+.materials-content .lesson-card p {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500 !important;
+}
+
+/* Forzar visibilidad de todos los elementos del grid */
+.materials-content .materials-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)) !important;
+    gap: 1.5rem !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Asegurar que todas las tarjetas sean visibles */
+.materials-content .lesson-card {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.12), rgba(0, 102, 204, 0.08)) !important;
+    border: 2px solid rgba(0, 102, 204, 0.3) !important;
+    min-height: 120px !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1rem !important;
+}
+
+/* Estados específicos con colores forzados */
+.materials-content .lesson-status.completed {
+    background: linear-gradient(135deg, #22C55E, #16A34A) !important;
+    color: #FFFFFF !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.materials-content .lesson-status.current {
+    background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+    color: #FFFFFF !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.materials-content .lesson-status.locked {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Duración de lecciones con colores específicos */
+.materials-content .lesson-duration {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)) !important;
+    color: #66B3FF !important;
+    border: 1px solid rgba(0, 102, 204, 0.4) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    padding: 0.4rem 0.8rem !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+}
+
+/* Números de lección siempre visibles */
+.materials-content .lesson-number {
+    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
+    color: #FFFFFF !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    z-index: 10 !important;
+}
+
+/* Forzar el contenedor principal */
+.materials-content {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    padding: 2rem !important;
+}
+
+/* Header del módulo */
+.materials-content .materials-header h2 {
+    color: #FFFFFF !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    font-weight: 700 !important;
+    font-size: 1.75rem !important;
+}
+
+.materials-content .materials-header p {
+    color: rgba(255, 255, 255, 0.8) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    font-size: 0.95rem !important;
 }
 
