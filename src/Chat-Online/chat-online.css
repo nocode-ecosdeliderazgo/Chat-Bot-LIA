@@ -4734,6 +4734,86 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     max-width: 300px;
 }
 
+/* ===== ALERTA DE TIEMPO AGOTADO ===== */
+.quiz-time-up-alert {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10000;
+    background: var(--glass-surface);
+    border: var(--glass-border);
+    border-left: 4px solid #ef4444;
+    border-radius: 16px;
+    padding: 2rem;
+    backdrop-filter: var(--glass-blur);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    animation: fadeInScale 0.4s ease-out;
+    max-width: 400px;
+    text-align: center;
+}
+
+.time-up-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    color: var(--glass-text-primary);
+}
+
+.time-up-icon {
+    font-size: 3rem;
+    color: #ef4444;
+    animation: pulse 1s infinite;
+}
+
+.time-up-message {
+    font-size: 1.1rem;
+    font-weight: 500;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.time-up-button {
+    background: linear-gradient(135deg, #0066CC, #004499);
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 2rem;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+    user-select: none;
+}
+
+.time-up-button:hover {
+    background: linear-gradient(135deg, #004499, #003366);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
 .warning-content {
     display: flex;
     align-items: center;
@@ -5010,6 +5090,28 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
         right: 10px;
         left: 10px;
         max-width: none;
+    }
+    
+    .quiz-time-up-alert {
+        top: 50%;
+        left: 10px;
+        right: 10px;
+        transform: translateY(-50%);
+        max-width: none;
+        padding: 1.5rem;
+    }
+    
+    .time-up-icon {
+        font-size: 2.5rem;
+    }
+    
+    .time-up-message {
+        font-size: 1rem;
+    }
+    
+    .time-up-button {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
     }
 }
 

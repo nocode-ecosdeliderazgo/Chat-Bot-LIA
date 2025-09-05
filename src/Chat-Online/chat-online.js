@@ -56,6 +56,7 @@ class ChatOnline {
         this.quizData = this.getQuizData();
         this.currentQuestionIndex = 0;
         this.userAnswers = {};
+        this.quizResultsShown = false;
         
         // ===== CRONÓMETRO DEL QUIZ =====
         this.quizTimer = null;
@@ -4161,7 +4162,17 @@ class ChatOnline {
         
         // Agregar clase para animación
         const quizContent = document.querySelector('.quiz-content');
-        if (quizContent) quizContent.classList.add('content-visible');
+        const quizResults = document.querySelector('.quiz-results');
+        
+        if (quizContent) {
+            quizContent.style.display = 'block';
+            quizContent.classList.add('content-visible');
+        }
+        
+        if (quizResults) {
+            quizResults.style.display = 'block';
+            quizResults.classList.add('content-visible');
+        }
     }
     
     // ===== FUNCIONES DE OCULTAR CONTENIDO =====
@@ -4188,9 +4199,16 @@ class ChatOnline {
     
     hideQuizContent() {
         const quizContent = document.querySelector('.quiz-content');
+        const quizResults = document.querySelector('.quiz-results');
+        
         if (quizContent) {
             quizContent.style.display = 'none';
             quizContent.classList.remove('content-visible');
+        }
+        
+        if (quizResults) {
+            quizResults.style.display = 'none';
+            quizResults.classList.remove('content-visible');
         }
     }
     
@@ -4302,6 +4320,12 @@ class ChatOnline {
         const existingQuiz = document.querySelector('.quiz-content');
         if (existingQuiz) {
             existingQuiz.remove();
+        }
+        
+        // Si hay resultados mostrados, no crear nuevo quiz (mantener resultados)
+        if (this.quizResultsShown) {
+            console.log('📊 Resultados ya mostrados, no creando nuevo quiz');
+            return;
         }
         
         // Crear nuevo contenido de quiz
@@ -4666,6 +4690,9 @@ class ChatOnline {
 
         // Remover quiz anterior
         centerPanel.querySelectorAll('.quiz-content, .quiz-results').forEach(el => el.remove());
+        
+        // Marcar que los resultados están mostrados
+        this.quizResultsShown = true;
 
         // Calcular total de preguntas evaluables (excluyendo abiertas)
         const evaluableQuestions = this.quizData.filter(q => q.type !== 'text').length;
@@ -4828,11 +4855,15 @@ class ChatOnline {
             this.userAnswers = {};
             this.quizTimeRemaining = this.quizTimeLimit;
             
-            // Limpiar el contenido actual del panel central
-            const centerPanel = document.querySelector('.center-panel');
+            // Limpiar el contenido actual del panel central (consistente con showQuizResults)
+            const centerPanel = document.querySelector('.center-panel .course-content');
             if (centerPanel) {
-                centerPanel.innerHTML = '';
+                // Limpiar específicamente quiz y resultados existentes
+                centerPanel.querySelectorAll('.quiz-content, .quiz-results').forEach(el => el.remove());
             }
+            
+            // Resetear estado de resultados
+            this.quizResultsShown = false;
             
             // Mostrar el quiz desde el inicio
             this.createQuizContent();
@@ -4984,6 +5015,63 @@ class ChatOnline {
     }
     
     /**
+     * Muestra alerta de tiempo agotado con diseño estético
+     */
+    showTimeUpAlert() {
+        // Crear overlay de fondo
+        const overlay = document.createElement('div');
+        overlay.className = 'quiz-time-up-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+            cursor: pointer;
+        `;
+        
+        // Crear alerta principal
+        const alert = document.createElement('div');
+        alert.className = 'quiz-time-up-alert';
+        alert.innerHTML = `
+            <div class="time-up-content">
+                <div class="time-up-icon">⏰</div>
+                <p class="time-up-message">¡Tiempo agotado!<br>El quiz se ha terminado automáticamente con las respuestas que completaste.</p>
+                <button class="time-up-button">
+                    Aceptar
+                </button>
+            </div>
+        `;
+        
+        // Agregar event listener para el botón de cerrar
+        const closeButton = alert.querySelector('.time-up-button');
+        closeButton.addEventListener('click', () => {
+            overlay.remove();
+        });
+        
+        // Agregar event listener para cerrar al hacer clic en el overlay (fondo)
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+            }
+        });
+        
+        // Agregar al DOM
+        overlay.appendChild(alert);
+        document.body.appendChild(overlay);
+        
+        // Auto-remover después de 10 segundos como fallback
+        setTimeout(() => {
+            if (overlay.parentElement) {
+                overlay.remove();
+            }
+        }, 10000);
+    }
+    
+    /**
      * Termina el quiz cuando se acaba el tiempo
      */
     timeUpQuiz() {
@@ -4995,11 +5083,13 @@ class ChatOnline {
             this.quizTimer = null;
         }
         
-        // Mostrar mensaje de tiempo agotado
-        alert('⏰ ¡Tiempo agotado! El quiz se ha terminado automáticamente con las respuestas que completaste.');
+        // Mostrar mensaje de tiempo agotado con diseño estético
+        this.showTimeUpAlert();
         
-        // Finalizar quiz con respuestas actuales
-        this.finishQuiz();
+        // Finalizar quiz con respuestas actuales después de un breve delay
+        setTimeout(() => {
+            this.finishQuiz();
+        }, 1000);
     }
     
     /**
@@ -5257,6 +5347,78 @@ class ChatOnline {
         console.log('🎬 Videos de prueba disponibles:', testVideos);
         return testVideos;
     }
+    
+    /**
+     * FUNCIÓN DE PRUEBA TEMPORAL - Eliminar después de probar
+     * Para probar la nueva alerta de tiempo agotado
+     */
+    testTimeUpAlert() {
+        console.log('🧪 Probando nueva alerta de tiempo agotado...');
+        this.showTimeUpAlert();
+    }
+    
+    /**
+     * FUNCIÓN DE PRUEBA TEMPORAL - Eliminar después de probar
+     * Para probar el flujo completo del quiz y verificar que no hay superposición
+     */
+    testQuizFlow() {
+        console.log('🧪 Probando flujo completo del quiz...');
+        
+        // Simular datos de quiz para prueba
+        this.quizData = [
+            {
+                id: 1,
+                question: "¿Cuál es la capital de España?",
+                type: "single",
+                options: ["Madrid", "Barcelona", "Valencia", "Sevilla"],
+                correct: "Madrid",
+                feedbackCorrect: "¡Correcto! Madrid es la capital de España.",
+                feedbackIncorrect: "Incorrecto. La capital de España es Madrid."
+            },
+            {
+                id: 2,
+                question: "¿Qué colores tiene la bandera de España?",
+                type: "multiple",
+                options: ["Rojo", "Amarillo", "Azul", "Verde"],
+                correct: ["Rojo", "Amarillo"],
+                feedbackCorrect: "¡Correcto! La bandera tiene rojo y amarillo.",
+                feedbackIncorrect: "Incorrecto. La bandera tiene rojo y amarillo."
+            }
+        ];
+        
+        this.userAnswers = {
+            0: "Madrid",
+            1: ["Rojo", "Amarillo"]
+        };
+        
+        // Simular finalización del quiz
+        console.log('📊 Mostrando resultados...');
+        this.showQuizResults(2);
+        
+        // Después de 2 segundos, cambiar a materiales
+        setTimeout(() => {
+            console.log('📚 Cambiando a materiales...');
+            this.switchTab('materials');
+        }, 2000);
+        
+        // Después de 4 segundos, cambiar a video
+        setTimeout(() => {
+            console.log('🎥 Cambiando a video...');
+            this.switchTab('video');
+        }, 4000);
+        
+        // Después de 6 segundos, volver a quiz
+        setTimeout(() => {
+            console.log('❓ Volviendo a quiz...');
+            this.switchTab('quiz');
+        }, 6000);
+        
+        // Después de 8 segundos, simular reinicio
+        setTimeout(() => {
+            console.log('🔄 Reiniciando quiz...');
+            this.restartQuiz();
+        }, 8000);
+    }
 }
 
 
@@ -5266,6 +5428,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Crear instancia de ChatOnline
     window.chatOnline = new ChatOnline();
+    
+    // Función global para probar la nueva alerta (TEMPORAL)
+    window.testTimeUpAlert = function() {
+        if (window.chatOnline) {
+            window.chatOnline.testTimeUpAlert();
+        } else {
+            console.error('❌ ChatOnline no está disponible');
+        }
+    };
+    
+    // Función global para probar el flujo del quiz (TEMPORAL)
+    window.testQuizFlow = function() {
+        if (window.chatOnline) {
+            window.chatOnline.testQuizFlow();
+        } else {
+            console.error('❌ ChatOnline no está disponible');
+        }
+    };
     
     // Configurar tema global
     if (typeof setupGlobalTheme === 'function') {
