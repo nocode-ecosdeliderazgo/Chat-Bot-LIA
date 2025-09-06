@@ -1352,6 +1352,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    text-align: left;
 }
 
 .video-info h3 {
@@ -1361,6 +1362,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    text-align: left;
 }
 
 .video-info h3 svg {
@@ -1375,6 +1377,7 @@ body {
     gap: 1rem;
     color: var(--glass-text-secondary);
     font-size: 0.9rem;
+    justify-content: flex-start;
 }
 
 .video-stats span {
