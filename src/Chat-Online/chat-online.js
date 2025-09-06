@@ -281,11 +281,158 @@ class ChatOnline {
                         <div class="module-progress">${module.progress}% completado</div>
                     </div>
                 </div>
+                <div class="module-actions">
+                    <button class="action-btn module-toggle-btn" data-module="${module.id}" title="Expandir/Contraer Módulo">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6,9 12,15 18,9"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         `).join('');
 
         modulesList.innerHTML = modulesHTML;
         console.log('📚 Módulos del sidebar populados correctamente');
+        
+        // Agregar event listeners para los botones de expandir/contraer
+        this.setupModuleToggleButtons();
+    }
+
+    // ===== CONFIGURAR BOTONES DE EXPANDIR/CONTRAR MÓDULOS =====
+    setupModuleToggleButtons() {
+        const toggleButtons = document.querySelectorAll('.module-toggle-btn');
+        
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const moduleId = button.getAttribute('data-module');
+                const moduleItem = button.closest('.module-item');
+                const icon = button.querySelector('svg');
+                
+                // Toggle del estado expandido
+                const isExpanded = moduleItem.classList.contains('expanded');
+                
+                if (isExpanded) {
+                    // Contraer
+                    this.collapseModule(moduleItem, icon, button, moduleId);
+                } else {
+                    // Expandir
+                    this.expandModule(moduleItem, icon, button, moduleId);
+                }
+            });
+        });
+    }
+
+    // ===== EXPANDIR MÓDULO =====
+    expandModule(moduleItem, icon, button, moduleId) {
+        // Agregar clase expanded
+        moduleItem.classList.add('expanded');
+        
+        // Cambiar icono
+        icon.innerHTML = '<polyline points="6,15 12,9 18,15"/>';
+        button.title = 'Contraer Módulo';
+        
+        // Crear contenido de videos si no existe
+        let videosContent = document.querySelector(`.module-videos-content-${moduleId}`);
+        if (!videosContent) {
+            videosContent = this.createVideosContent(moduleId);
+            // Insertar después del módulo, no dentro
+            moduleItem.parentNode.insertBefore(videosContent, moduleItem.nextSibling);
+        }
+        
+        // Mostrar contenido inmediatamente
+        videosContent.style.display = 'block';
+        videosContent.style.maxHeight = '400px';
+        videosContent.style.opacity = '1';
+        
+        console.log(`📤 Módulo ${moduleId} expandido`);
+    }
+
+    // ===== CONTRAR MÓDULO =====
+    collapseModule(moduleItem, icon, button, moduleId) {
+        // Remover clase expanded
+        moduleItem.classList.remove('expanded');
+        
+        // Cambiar icono
+        icon.innerHTML = '<polyline points="6,9 12,15 18,9"/>';
+        button.title = 'Expandir Módulo';
+        
+        // Ocultar contenido inmediatamente
+        const videosContent = document.querySelector(`.module-videos-content-${moduleId}`);
+        if (videosContent) {
+            videosContent.style.display = 'none';
+            videosContent.style.maxHeight = '0';
+            videosContent.style.opacity = '0';
+        }
+        
+        console.log(`📦 Módulo ${moduleId} contraído`);
+    }
+
+    // ===== CREAR CONTENIDO DE VIDEOS =====
+    createVideosContent(moduleId) {
+        const videosContent = document.createElement('div');
+        videosContent.className = `module-videos-content module-videos-content-${moduleId}`;
+        
+        // Contenido de ejemplo para el módulo 1
+        if (moduleId === 'module-1') {
+            videosContent.innerHTML = `
+                <div class="videos-list">
+                    <div class="video-item">
+                        <div class="video-thumbnail">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="video-info">
+                            <h4>Introducción a la IA</h4>
+                            <p>Conceptos básicos y fundamentales</p>
+                            <span class="video-duration">15:30</span>
+                        </div>
+                        <div class="video-status">
+                            <span class="progress-badge">0%</span>
+                        </div>
+                    </div>
+                    <div class="video-item">
+                        <div class="video-thumbnail">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="video-info">
+                            <h4>Historia de la IA</h4>
+                            <p>Evolución y hitos importantes</p>
+                            <span class="video-duration">12:45</span>
+                        </div>
+                        <div class="video-status">
+                            <span class="progress-badge">0%</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Contenido para otros módulos
+            videosContent.innerHTML = `
+                <div class="videos-list">
+                    <div class="video-item">
+                        <div class="video-thumbnail">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="video-info">
+                            <h4>Video del Módulo ${moduleId}</h4>
+                            <p>Contenido del módulo</p>
+                            <span class="video-duration">10:00</span>
+                        </div>
+                        <div class="video-status">
+                            <span class="progress-badge">0%</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        return videosContent;
     }
 
     // ===== PROGRESS DOTS =====
@@ -1653,8 +1800,11 @@ class ChatOnline {
                 return;
             }
             
-            // Verificar si ya existe una sección de detalles
-            let detailsSection = questionElement.querySelector('.question-details');
+            // Verificar si ya existe una sección de detalles (buscar como siguiente hermano)
+            let detailsSection = questionElement.nextElementSibling;
+            if (detailsSection && !detailsSection.classList.contains('question-details')) {
+                detailsSection = null; // No es la sección de detalles
+            }
             
             if (detailsSection) {
                 // Si ya existe, toggle de visibilidad
@@ -1672,13 +1822,16 @@ class ChatOnline {
                 // Crear sección de detalles si no existe
                 detailsSection = document.createElement('div');
                 detailsSection.className = 'question-details';
+                detailsSection.style.display = 'block';
                 detailsSection.innerHTML = `
                     <div class="details-loading">
                         <div class="loading-spinner"></div>
                         Cargando respuestas y comentarios...
                     </div>
                 `;
-                questionElement.appendChild(detailsSection);
+                
+                // Insertar DESPUÉS del questionElement (como siguiente hermano)
+                questionElement.parentNode.insertBefore(detailsSection, questionElement.nextSibling);
                 
                 // Actualizar el texto del botón
                 const detailsBtn = questionElement.querySelector('.details-btn');
@@ -1719,9 +1872,10 @@ class ChatOnline {
         } catch (error) {
             console.error('❌ Error cargando detalles de pregunta:', error);
             
-            // Mostrar error en la sección de detalles si existe
-            const detailsSection = document.querySelector(`[data-question-id="${questionId}"] .question-details`);
-            if (detailsSection) {
+            // Mostrar error en la sección de detalles si existe (como hermano siguiente)
+            const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+            const detailsSection = questionElement ? questionElement.nextElementSibling : null;
+            if (detailsSection && detailsSection.classList.contains('question-details')) {
                 detailsSection.innerHTML = `
                     <div class="details-error">
                         <p>❌ Error cargando los detalles: ${error.message}</p>
@@ -1804,6 +1958,16 @@ class ChatOnline {
         
         return `
             <div class="question-details-content">
+                <div class="details-header">
+                    <h3 class="details-main-title">Detalles de la Pregunta</h3>
+                    <button class="close-details-btn" title="Cerrar detalles">
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                
                 <div class="details-section answers-section">
                     <h4 class="section-title">
                         <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1839,6 +2003,18 @@ class ChatOnline {
     }
     
     setupDetailsEventListeners(detailsSection) {
+        // Event listener para botón de cerrar detalles
+        const closeBtn = detailsSection.querySelector('.close-details-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Colapsar la sección de detalles
+                detailsSection.style.display = 'none';
+                detailsSection.classList.remove('expanded');
+            });
+        }
+        
         // Event listeners para votos en respuestas
         detailsSection.querySelectorAll('.answer-item .vote-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
