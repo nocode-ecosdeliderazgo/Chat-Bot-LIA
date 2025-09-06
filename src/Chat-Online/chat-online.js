@@ -956,33 +956,29 @@ class ChatOnline {
     // Función auxiliar para obtener usuario actual
     obtenerUsuarioActual() {
         try {
+            // Intentar obtener desde userData (primary)
             const userData = localStorage.getItem('userData');
             if (userData) {
                 const parsed = JSON.parse(userData);
-                console.log('[LIA] 👤 Usuario desde localStorage:', parsed);
+                console.log('[LIA] 👤 Usuario desde userData:', parsed);
                 return parsed;
             }
             
-            // Usuario por defecto con los IDs correctos
-            const defaultUser = {
-                id: '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0',
-                username: 'Estudiante',
-                email: 'estudiante@ejemplo.com',
-                name: 'Estudiante IA'
-            };
+            // Intentar obtener desde currentUser (compatibility)
+            const currentUser = localStorage.getItem('currentUser');
+            if (currentUser) {
+                const parsed = JSON.parse(currentUser);
+                console.log('[LIA] 👤 Usuario desde currentUser:', parsed);
+                return parsed;
+            }
             
-            console.log('[LIA] 👤 Usuario por defecto:', defaultUser);
-            return defaultUser;
+            // Si no hay usuario autenticado, devolver null
+            console.log('[LIA] ⚠️ No hay usuario autenticado');
+            return null;
+            
         } catch (error) {
-            console.log('[LIA] Error obteniendo usuario:', error);
-            const fallbackUser = {
-                id: '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0',
-                username: 'Estudiante',
-                email: 'estudiante@ejemplo.com',
-                name: 'Estudiante IA'
-            };
-            console.log('[LIA] 👤 Usuario fallback:', fallbackUser);
-            return fallbackUser;
+            console.error('[LIA] ❌ Error obteniendo usuario:', error);
+            return null;
         }
     }
     
@@ -1294,8 +1290,12 @@ class ChatOnline {
         }
         
         // Configurar usuario actual en la API
-        if (window.communityAPI && this.currentUser) {
-            window.communityAPI.setCurrentUser(this.currentUser);
+        if (window.communityAPI) {
+            const currentUser = this.obtenerUsuarioActual() || this.currentUser;
+            if (currentUser) {
+                window.communityAPI.setCurrentUser(currentUser);
+                console.log('👤 Usuario configurado en communityAPI al inicializar:', currentUser);
+            }
         }
         
         // Botón para hacer pregunta - con múltiples intentos
@@ -6901,11 +6901,21 @@ class ChatOnline {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Enviando...';
             
+            // Obtener usuario actual
+            const currentUser = this.obtenerUsuarioActual();
+            console.log('👤 Usuario para respuesta:', currentUser);
+            
+            // Verificar que hay un usuario autenticado
+            if (!currentUser || !currentUser.id) {
+                this.showNotification('Debes iniciar sesión para responder preguntas', 'warning');
+                return;
+            }
+            
             // Crear datos de la respuesta
             const answerData = {
                 question_id: questionId,
                 content: content,
-                user_id: this.obtenerTokenAuth() || 'demo-user'
+                user_id: currentUser.id
             };
             
             // Llamar a la API de comunidad
@@ -6965,12 +6975,22 @@ class ChatOnline {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Enviando...';
             
+            // Obtener usuario actual
+            const currentUser = this.obtenerUsuarioActual();
+            console.log('👤 Usuario para comentario:', currentUser);
+            
+            // Verificar que hay un usuario autenticado
+            if (!currentUser || !currentUser.id) {
+                this.showNotification('Debes iniciar sesión para comentar', 'warning');
+                return;
+            }
+            
             // Crear datos del comentario
             const commentData = {
                 parent_type: targetType,
                 parent_id: targetId,
                 content: content,
-                user_id: this.obtenerTokenAuth() || 'demo-user'
+                user_id: currentUser.id
             };
             
             // Llamar a la API de comunidad
