@@ -357,7 +357,14 @@ class ModulesExpandableSystem {
         const activeVideo = document.querySelector(`[data-video-id="${videoId}"]`);
         if (activeVideo) {
             activeVideo.classList.add('active');
-            activeVideo.querySelector('.status-active').textContent = 'Reproduciendo';
+            
+            // Buscar elemento de estado y actualizar si existe
+            const statusElement = activeVideo.querySelector('.status-active, .video-status, .status');
+            if (statusElement) {
+                statusElement.textContent = 'Reproduciendo';
+            } else {
+                console.log('⚠️ Elemento de estado no encontrado para video:', videoId);
+            }
         }
     }
 

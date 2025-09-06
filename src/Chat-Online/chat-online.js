@@ -4444,18 +4444,37 @@ class ChatOnline {
     
     // Esperar a que los componentes estén listos
     async waitForComponents() {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
+            let attempts = 0;
+            const maxAttempts = 100; // Máximo 10 segundos
+            
             const checkComponents = () => {
-                if (typeof window.YouTubeProgressTracker !== 'undefined' && 
-                    typeof window.CourseProgressManager !== 'undefined') {
+                attempts++;
+                
+                // Verificar si courseProgressManager está disponible (instancia, no clase)
+                const progressManagerReady = window.courseProgressManager && 
+                                           typeof window.courseProgressManager === 'object';
+                const youtubeTrackerReady = typeof window.YouTubeProgressTracker !== 'undefined';
+                
+                if (youtubeTrackerReady && progressManagerReady) {
                     console.log('✅ Todos los componentes están disponibles');
                     resolve();
                     return;
                 }
                 
+                // Timeout para evitar loops infinitos
+                if (attempts >= maxAttempts) {
+                    console.warn('⚠️ Timeout esperando componentes después de', maxAttempts, 'intentos');
+                    console.warn('🔧 Continuando con funcionalidad limitada...');
+                    resolve(); // Resolver en lugar de rechazar para permitir que la aplicación continúe
+                    return;
+                }
+                
                 console.log('⏳ Esperando componentes...', {
                     YouTubeProgressTracker: typeof window.YouTubeProgressTracker,
-                    CourseProgressManager: typeof window.CourseProgressManager
+                    courseProgressManager: typeof window.courseProgressManager,
+                    progressManagerReady: progressManagerReady,
+                    attempt: attempts
                 });
                 
                 setTimeout(checkComponents, 100);
@@ -5068,7 +5087,14 @@ class ChatOnline {
         }
     }
     
-    // loadInitialData() - Reemplazado por versión de Supabase más abajo
+    // Método placeholder - Los datos iniciales se cargan por otros sistemas
+    loadInitialData() {
+        console.log('📊 loadInitialData() - Los datos se cargan mediante otros sistemas (CourseProgressManager, etc.)');
+        // Este método es llamado por compatibilidad, pero los datos ahora se cargan por:
+        // - CourseProgressManager para progreso de cursos
+        // - Module1VideosLoader para videos del módulo 1  
+        // - DynamicVideoLoader para estructura general
+    }
     
     cleanDuplicateNotes() {
         const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
