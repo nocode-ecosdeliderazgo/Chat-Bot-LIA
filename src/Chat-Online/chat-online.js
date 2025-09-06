@@ -6519,6 +6519,78 @@ class ChatOnline {
             submitBtn.textContent = 'Publicar Comentario';
         }
     }
+    
+    /**
+     * FUNCIÓN DE PRUEBA TEMPORAL - Eliminar después de probar
+     * Para probar la nueva alerta de tiempo agotado
+     */
+    testTimeUpAlert() {
+        console.log('🧪 Probando nueva alerta de tiempo agotado...');
+        this.showTimeUpAlert();
+    }
+    
+    /**
+     * FUNCIÓN DE PRUEBA TEMPORAL - Eliminar después de probar
+     * Para probar el flujo completo del quiz y verificar que no hay superposición
+     */
+    testQuizFlow() {
+        console.log('🧪 Probando flujo completo del quiz...');
+        
+        // Simular datos de quiz para prueba
+        this.quizData = [
+            {
+                id: 1,
+                question: "¿Cuál es la capital de España?",
+                type: "single",
+                options: ["Madrid", "Barcelona", "Valencia", "Sevilla"],
+                correct: "Madrid",
+                feedbackCorrect: "¡Correcto! Madrid es la capital de España.",
+                feedbackIncorrect: "Incorrecto. La capital de España es Madrid."
+            },
+            {
+                id: 2,
+                question: "¿Qué colores tiene la bandera de España?",
+                type: "multiple",
+                options: ["Rojo", "Amarillo", "Azul", "Verde"],
+                correct: ["Rojo", "Amarillo"],
+                feedbackCorrect: "¡Correcto! La bandera tiene rojo y amarillo.",
+                feedbackIncorrect: "Incorrecto. La bandera tiene rojo y amarillo."
+            }
+        ];
+        
+        this.userAnswers = {
+            0: "Madrid",
+            1: ["Rojo", "Amarillo"]
+        };
+        
+        // Simular finalización del quiz
+        console.log('📊 Mostrando resultados...');
+        this.showQuizResults(2);
+        
+        // Después de 2 segundos, cambiar a materiales
+        setTimeout(() => {
+            console.log('📚 Cambiando a materiales...');
+            this.switchTab('materials');
+        }, 2000);
+        
+        // Después de 4 segundos, cambiar a video
+        setTimeout(() => {
+            console.log('🎥 Cambiando a video...');
+            this.switchTab('video');
+        }, 4000);
+        
+        // Después de 6 segundos, volver a quiz
+        setTimeout(() => {
+            console.log('❓ Volviendo a quiz...');
+            this.switchTab('quiz');
+        }, 6000);
+        
+        // Después de 8 segundos, simular reinicio
+        setTimeout(() => {
+            console.log('🔄 Reiniciando quiz...');
+            this.restartQuiz();
+        }, 8000);
+    }
 }
 
 
