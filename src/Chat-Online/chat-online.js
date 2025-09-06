@@ -1622,35 +1622,54 @@ class ChatOnline {
         this.showCommentModal(questionId);
     }
 
-    handleBookmark(questionId, bookmarkBtn) {
+    async handleBookmark(questionId, bookmarkBtn) {
         console.log('🔖 Manejando bookmark...');
         console.log(`🔖 Guardar/quitar pregunta: ${questionId}`);
         
         const isBookmarked = bookmarkBtn.classList.contains('bookmarked');
         
-        // Toggle del estado visual
-        if (!isBookmarked) {
-            bookmarkBtn.classList.add('bookmarked');
-            bookmarkBtn.innerHTML = `
-                <svg class="icon-sm" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                </svg>
-                Guardado
-            `;
-            this.showNotification('Pregunta guardada en favoritos', 'success');
-        } else {
-            bookmarkBtn.classList.remove('bookmarked');
-            bookmarkBtn.innerHTML = `
-                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                </svg>
-                Guardar
-            `;
-            this.showNotification('Pregunta removida de favoritos', 'info');
+        try {
+            // Deshabilitar botón mientras se procesa
+            bookmarkBtn.disabled = true;
+            
+            // Llamar al backend para toggle bookmark
+            const response = await window.communityAPI.toggleBookmark(questionId);
+            
+            if (response.success) {
+                // Actualizar UI basado en la respuesta del backend
+                const newIsBookmarked = response.data.action === 'created';
+                
+                if (newIsBookmarked) {
+                    bookmarkBtn.classList.add('bookmarked');
+                    bookmarkBtn.innerHTML = `
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Guardado
+                    `;
+                    this.showNotification('Pregunta guardada en favoritos', 'success');
+                } else {
+                    bookmarkBtn.classList.remove('bookmarked');
+                    bookmarkBtn.innerHTML = `
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Guardar
+                    `;
+                    this.showNotification('Pregunta removida de favoritos', 'info');
+                }
+            } else {
+                throw new Error(response.error || 'Error al procesar bookmark');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error al manejar bookmark:', error);
+            this.showNotification('Error al procesar bookmark. Intenta de nuevo.', 'error');
+            
+        } finally {
+            // Restaurar botón
+            bookmarkBtn.disabled = false;
         }
-        
-        // TODO: Aquí se enviará la petición al backend cuando esté listo
-        // this.sendBookmarkToBackend(questionId, !isBookmarked);
     }
 
     // ===== FUNCIONES DE MODALES =====
@@ -5791,7 +5810,8 @@ class ChatOnline {
         
         const form = document.getElementById('answerForm');
         const content = document.getElementById('answerContent').value.trim();
-        const questionId = this.currentQuestionId;
+        const modal = document.getElementById('answerModal');
+        const questionId = modal.getAttribute('data-question-id');
         
         if (!content) {
             this.showNotification('Por favor, escribe tu respuesta', 'warning');
@@ -5853,7 +5873,8 @@ class ChatOnline {
         
         const form = document.getElementById('commentForm');
         const content = document.getElementById('commentContent').value.trim();
-        const questionId = this.currentQuestionId;
+        const modal = document.getElementById('commentModal');
+        const questionId = modal.getAttribute('data-question-id');
         
         if (!content) {
             this.showNotification('Por favor, escribe tu comentario', 'warning');
