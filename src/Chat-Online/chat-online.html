@@ -1641,83 +1641,23 @@ Cargando información...
                     videoContainer.appendChild(errorDiv);
                 }
 
-                        console.log('📝 Mensaje:', mensaje);
+                // Configurar event listeners para el chat
+                setTimeout(() => {
+                    const input = document.getElementById('chatInput');
+                    const sendBtn = document.getElementById('sendBtn');
+                    const messagesContainer = document.getElementById('messagesContainer');
 
-                        
+                    if (input && sendBtn && messagesContainer) {
+                        console.log('✅ Event listeners configurados correctamente');
+                    } else {
+                        console.error('❌ No se encontraron todos los elementos necesarios');
+                    }
+                }, 500);
 
-                        if (!mensaje) {
-
-                            console.log('⚠️ Mensaje vacío');
-
-                            return;
-
-                        }
-
-                        
-
-                        // Limpiar input
-
-                        input.value = '';
-
-                        
-
-                        // Crear mensaje del usuario
-
-                        const userMsg = document.createElement('div');
-
-                        userMsg.className = 'message user-message';
-
-                        userMsg.innerHTML = `
-
-                            <div class="message-avatar neo-circle">
-
-                                <span>U</span>
-
-                            </div>
-
-                            <div class="message-content neo-card">
-
-                                <div class="message-text">${mensaje}</div>
-
-                                <div class="message-time">ahora</div>
-
-                            </div>
-
-                        `;
-
-                        
-
-                        messagesContainer.appendChild(userMsg);
-
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-                        
-
-                        console.log('✅ Mensaje del usuario agregado');
-
-                        
-
-                        // Mostrar indicador de escritura
-
-                        const typingIndicator = document.getElementById('typingIndicator');
-
-                        if (typingIndicator) {
-
-                            typingIndicator.style.display = 'flex';
-
-                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-                        }
-
-                        
-
-                        try {
-
-                            console.log('[LIA] 🚀 Generando respuesta para:', mensaje);
-
-                            
-
-                            // Obtener información del usuario actual
+            } catch (error) {
+                console.error('💥 Error inicializando sistema dinámico:', error);
+            }
+        });
 
                             const currentUser = obtenerUsuarioActual();
 
@@ -2081,7 +2021,6 @@ Cargando información...
 
                     console.log('✅ Event listeners configurados correctamente');
                 } else {
-
                     console.error('❌ No se encontraron todos los elementos necesarios');
                 }
             }, 500);
