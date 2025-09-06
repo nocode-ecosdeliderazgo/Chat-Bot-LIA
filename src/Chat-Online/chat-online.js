@@ -186,6 +186,9 @@ class ChatOnline {
         // Configurar progress dots
         this.setupProgressDots();
         
+        // Poblar módulos del sidebar
+        this.populateModulesSidebar();
+        
         // Configurar módulos
         const moduleItems = document.querySelectorAll('.module-item');
         moduleItems.forEach(item => {
@@ -195,6 +198,92 @@ class ChatOnline {
                 this.selectModule(moduleId);
             });
         });
+    }
+
+    // ===== POBLAR MÓDULOS DEL SIDEBAR =====
+    populateModulesSidebar() {
+        const modulesList = document.querySelector('.modules-list');
+        if (!modulesList) return;
+        
+        const modules = [
+            {
+                id: 1,
+                title: 'Módulo 1: ¿Qué es la IA?',
+                description: 'Introducción a los conceptos fundamentales de la Inteligencia Artificial',
+                duration: '15:30',
+                videos: 2,
+                progress: 0,
+                status: 'current'
+            },
+            {
+                id: 2,
+                title: 'Módulo 2: Historia de la IA',
+                description: 'Evolución histórica y hitos importantes en el desarrollo de la IA',
+                duration: '22:00',
+                videos: 3,
+                progress: 0,
+                status: 'pending'
+            },
+            {
+                id: 3,
+                title: 'Módulo 3: Fundamentos del ML',
+                description: 'Conceptos básicos del Machine Learning y sus aplicaciones',
+                duration: '18:30',
+                videos: 2,
+                progress: 0,
+                status: 'pending'
+            },
+            {
+                id: 4,
+                title: 'Módulo 4: Redes Neuronales',
+                description: 'Arquitecturas de redes neuronales y deep learning',
+                duration: '25:00',
+                videos: 4,
+                progress: 0,
+                status: 'pending'
+            },
+            {
+                id: 5,
+                title: 'Módulo 5: IA en el Futuro',
+                description: 'Tendencias futuras y aplicaciones emergentes de la IA',
+                duration: '20:00',
+                videos: 3,
+                progress: 0,
+                status: 'pending'
+            }
+        ];
+
+        // Función getIconSvg eliminada - ya no se usan iconos
+
+        const modulesHTML = modules.map(module => `
+            <div class="module-item ${module.status}" data-module="${module.id}">
+                <div class="module-info">
+                    <h4>${module.title}</h4>
+                    <p class="module-description">${module.description}</p>
+                    <div class="module-meta">
+                        <div class="module-duration">
+                            <div class="duration-text">
+                                <svg class="duration-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
+                                </svg>
+                                ${module.duration}
+                            </div>
+                            <div class="videos-count">
+                                <svg class="video-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="5,3 19,12 5,21"/>
+                                </svg>
+                                ${module.videos} videos
+                            </div>
+                        </div>
+                        <div class="module-progress">${module.progress}% completado</div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        modulesList.innerHTML = modulesHTML;
+        console.log('📚 Módulos del sidebar populados correctamente');
     }
 
     // ===== PROGRESS DOTS =====
