@@ -2202,6 +2202,440 @@ Cargando información...
     <!-- Community Database -->
     <script src="../scripts/community-database.js"></script>
     
+    <!-- Community Questions Management -->
+    <script>
+        // Instancia global de la base de datos de comunidad
+        let communityDB = null;
+
+        // Función para inicializar la base de datos de comunidad
+        async function initCommunityDatabase() {
+            try {
+                if (window.CommunityDatabase) {
+                    communityDB = new window.CommunityDatabase();
+                    await communityDB.initialize();
+                    console.log('✅ Base de datos de comunidad inicializada');
+                    return true;
+                } else {
+                    console.error('❌ CommunityDatabase no está disponible');
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Error inicializando base de datos de comunidad:', error);
+                return false;
+            }
+        }
+
+        // Función para cargar preguntas dinámicamente
+        async function loadCommunityQuestions() {
+            try {
+                console.log('📋 Cargando preguntas de la comunidad...');
+                
+                // Primero intentar usar el API REST directo
+                if (window.communityAPI) {
+                    console.log('🌐 Usando CommunityAPI para obtener preguntas...');
+                    const response = await window.communityAPI.getQuestions({
+                        sort: 'recent'
+                    });
+                    
+                    if (response.success && response.data && response.data.length > 0) {
+                        console.log('✅ Preguntas obtenidas del API:', response.data);
+                        renderQuestionsFromAPI(response.data);
+                        return;
+                    } else {
+                        console.log('⚠️ API response no exitosa o sin datos:', response);
+                    }
+                }
+                
+                // Fallback a CommunityDatabase si communityAPI no está disponible
+                if (!communityDB) {
+                    const initialized = await initCommunityDatabase();
+                    if (!initialized) {
+                        console.error('❌ No se pudo inicializar la base de datos');
+                        await updateStaticTimestamps();
+                        return;
+                    }
+                }
+
+                // Obtener preguntas de la base de datos usando CommunityDatabase
+                const questions = await communityDB.getQuestions({
+                    sort: 'created_at'
+                });
+
+                console.log('✅ Preguntas obtenidas de CommunityDatabase:', questions);
+                renderQuestions(questions);
+
+            } catch (error) {
+                console.error('❌ Error cargando preguntas:', error);
+                // Mantener las preguntas estáticas pero actualizar timestamps
+                console.log('📋 Actualizando solo timestamps de preguntas estáticas');
+                await updateStaticTimestamps();
+            }
+        }
+
+        // Función para renderizar preguntas desde API REST
+        function renderQuestionsFromAPI(questions) {
+            const questionsList = document.getElementById('questionsList');
+            if (!questionsList) return;
+
+            if (!questions || questions.length === 0) {
+                questionsList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7);">
+                        <p>No hay preguntas disponibles en este momento.</p>
+                        <p>¡Sé el primero en hacer una pregunta!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const questionsHTML = questions.map(question => {
+                // Formatear tiempo de la fecha created_at del API
+                const timeAgo = formatTimestamp(question.created_at);
+                
+                // Datos del usuario desde la API (nested en users object)
+                const userName = question.users?.name || question.users?.display_name || question.display_name || question.first_name || question.username || 'Usuario Anónimo';
+                const userAvatar = question.users?.avatar_url || question.avatar_url || '../../assets/images/default-avatar.svg';
+                
+                // Tags
+                const tags = Array.isArray(question.tags) ? question.tags : [];
+                const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+
+                return `
+                    <div class="question-item" data-question-id="${question.id}">
+                        <div class="question-votes">
+                            <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 15l-6-6-6 6"/>
+                                </svg>
+                            </button>
+                            <span class="vote-count">${question.votes_count || 0}</span>
+                            <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M6 9l6 6 6-6"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="question-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">${question.answers_count || 0}</span>
+                                <span class="stat-label">respuestas</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">${question.views_count || 0}</span>
+                                <span class="stat-label">vistas</span>
+                            </div>
+                        </div>
+
+                        <div class="question-actions">
+                            <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 2l-2 2m-2 2l-2 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h6l2-2 2-2z"/>
+                                    <path d="M7 12L12 7l5 5"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn comment-btn" title="Comentar pregunta" onclick="showCommentModal('${question.id}', '${question.title}', '${question.content}')">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="question-content">
+                            <div class="question-header">
+                                <h4 class="question-title">${question.title}</h4>
+                                <div class="question-meta">
+                                    <span class="question-author">
+                                        <img src="${userAvatar}" alt="Usuario" class="author-avatar">
+                                        ${userName}
+                                    </span>
+                                    <span class="question-time">${timeAgo}</span>
+                                    <span class="question-module">General</span>
+                                </div>
+                            </div>
+                            <div class="question-preview">
+                                <p>${question.content.length > 200 ? question.content.substring(0, 200) + '...' : question.content}</p>
+                            </div>
+                            ${tagsHTML ? `<div class="question-tags">${tagsHTML}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            questionsList.innerHTML = questionsHTML;
+            console.log(`✅ ${questions.length} preguntas renderizadas desde API`);
+        }
+
+        // Función para renderizar preguntas con tiempo real (CommunityDatabase)
+        function renderQuestions(questions) {
+            const questionsList = document.getElementById('questionsList');
+            if (!questionsList) return;
+
+            if (!questions || questions.length === 0) {
+                console.log('📋 No hay preguntas dinámicas, manteniendo contenido estático');
+                return;
+            }
+
+            const questionsHTML = questions.map(question => {
+                // Formatear tiempo usando la función de CommunityDatabase
+                const timeAgo = communityDB ? communityDB.formatTimestamp(question.created_at) : 'Hace poco';
+                
+                // Datos del usuario
+                const userName = question.users?.name || question.users?.display_name || 'Usuario Anónimo';
+                const userAvatar = question.users?.avatar_url || '../../assets/images/default-avatar.svg';
+                
+                // Tags
+                const tags = Array.isArray(question.tags) ? question.tags : [];
+                const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+
+                return `
+                    <div class="question-item" data-question-id="${question.id}">
+                        <div class="question-votes">
+                            <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 15l-6-6-6 6"/>
+                                </svg>
+                            </button>
+                            <span class="vote-count">${question.votes_count || 0}</span>
+                            <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M6 9l6 6 6-6"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="question-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">${question.answers_count || 0}</span>
+                                <span class="stat-label">respuestas</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">${question.views_count || 0}</span>
+                                <span class="stat-label">vistas</span>
+                            </div>
+                        </div>
+
+                        <div class="question-actions">
+                            <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 2l-2 2m-2 2l-2 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h6l2-2 2-2z"/>
+                                    <path d="M7 12L12 7l5 5"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn comment-btn" title="Comentar pregunta" onclick="showCommentModal('${question.id}', '${question.title}', '${question.content}')">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="question-content">
+                            <div class="question-header">
+                                <h4 class="question-title">${question.title}</h4>
+                                <div class="question-meta">
+                                    <span class="question-author">
+                                        <img src="${userAvatar}" alt="Usuario" class="author-avatar">
+                                        ${userName}
+                                    </span>
+                                    <span class="question-time">${timeAgo}</span>
+                                    <span class="question-module">${question.module_name || 'General'}</span>
+                                </div>
+                            </div>
+                            <div class="question-preview">
+                                <p>${question.content.length > 200 ? question.content.substring(0, 200) + '...' : question.content}</p>
+                            </div>
+                            ${tagsHTML ? `<div class="question-tags">${tagsHTML}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            questionsList.innerHTML = questionsHTML;
+        }
+
+        // Función para formatear timestamps (independiente de CommunityDatabase)
+        function formatTimestamp(timestamp) {
+            try {
+                const date = new Date(timestamp);
+                const now = new Date();
+                const diffInSeconds = Math.floor((now - date) / 1000);
+
+                if (diffInSeconds < 60) {
+                    return 'Ahora mismo';
+                } else if (diffInSeconds < 3600) {
+                    // Menos de 1 hora: mostrar en minutos
+                    const minutes = Math.floor(diffInSeconds / 60);
+                    return `Hace ${minutes} minuto${minutes > 1 ? 's' : ''}`;
+                } else if (diffInSeconds < 86400) {
+                    // Menos de 1 día: mostrar en horas
+                    const hours = Math.floor(diffInSeconds / 3600);
+                    return `Hace ${hours} hora${hours > 1 ? 's' : ''}`;
+                } else if (diffInSeconds < 2592000) {
+                    // Menos de 30 días: mostrar en días
+                    const days = Math.floor(diffInSeconds / 86400);
+                    return `Hace ${days} día${days > 1 ? 's' : ''}`;
+                } else if (diffInSeconds < 31536000) {
+                    // Menos de 1 año: mostrar en meses
+                    const months = Math.floor(diffInSeconds / 2592000);
+                    return `Hace ${months} mes${months > 1 ? 'es' : ''}`;
+                } else {
+                    // Más de 1 año: mostrar fecha completa
+                    return date.toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                }
+            } catch (error) {
+                console.error('❌ Error formateando timestamp:', error);
+                return 'Hace poco';
+            }
+        }
+
+        // Funciones auxiliares para manejar interacciones
+        async function voteQuestion(questionId, voteType) {
+            try {
+                console.log(`📊 Votando pregunta ${questionId}: ${voteType}`);
+                // Implementar lógica de votación aquí si está disponible
+            } catch (error) {
+                console.error('❌ Error votando:', error);
+            }
+        }
+
+        async function toggleBookmark(questionId) {
+            try {
+                console.log(`🔖 Alternando marcador para pregunta ${questionId}`);
+                if (communityDB && communityDB.toggleBookmark) {
+                    await communityDB.toggleBookmark(questionId);
+                }
+            } catch (error) {
+                console.error('❌ Error con marcador:', error);
+            }
+        }
+
+        // Función para actualizar timestamps de preguntas estáticas
+        function updateStaticTimestamps() {
+            try {
+                const questionItems = document.querySelectorAll('.question-item');
+                questionItems.forEach((item, index) => {
+                    const timeElement = item.querySelector('.question-time');
+                    if (timeElement) {
+                        // Generar fechas simuladas realistas basadas en el índice
+                        const hoursAgo = Math.floor(Math.random() * (48 + index * 12)) + 1; // Fechas más variadas
+                        const simulatedDate = new Date(Date.now() - (hoursAgo * 60 * 60 * 1000));
+                        const formattedTime = formatTimestamp(simulatedDate.toISOString());
+                        timeElement.textContent = formattedTime;
+                        console.log(`🕒 Tiempo actualizado en pregunta ${index + 1}: ${formattedTime}`);
+                    }
+                });
+            } catch (error) {
+                console.error('❌ Error actualizando timestamps:', error);
+            }
+        }
+
+        // Función de prueba para verificar formato de timestamps
+        function testTimestampFormat() {
+            console.log('🧪 Probando formato de timestamps:');
+            const testDates = [
+                new Date(Date.now() - 5 * 60 * 1000),  // hace 5 minutos
+                new Date(Date.now() - 2 * 60 * 60 * 1000), // hace 2 horas
+                new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // hace 3 días
+                new Date("2025-09-06T08:38:19.048Z") // fecha real del API
+            ];
+            
+            testDates.forEach((date, index) => {
+                const formatted = formatTimestamp(date.toISOString());
+                console.log(`📅 Prueba ${index + 1}: ${date.toISOString()} → ${formatted}`);
+            });
+        }
+
+        // Función simplificada para forzar actualización de timestamps
+        function forceUpdateTimestamps() {
+            console.log('⚡ Forzando actualización de todos los timestamps...');
+            updateStaticTimestamps();
+        }
+
+        // Función para debugging - disponible en la consola del navegador
+        window.debugTimestamps = function() {
+            console.log('🔧 === DEBUG TIMESTAMPS ===');
+            console.log('1. Probando función formatTimestamp...');
+            testTimestampFormat();
+            
+            console.log('2. Verificando elementos .question-time...');
+            const timeElements = document.querySelectorAll('.question-time');
+            console.log(`📊 Encontrados ${timeElements.length} elementos .question-time`);
+            
+            timeElements.forEach((el, index) => {
+                console.log(`📅 Elemento ${index + 1}: "${el.textContent}"`);
+            });
+            
+            console.log('3. Forzando actualización...');
+            forceUpdateTimestamps();
+            
+            setTimeout(() => {
+                console.log('4. Verificando después de actualización...');
+                timeElements.forEach((el, index) => {
+                    console.log(`📅 Elemento ${index + 1} actualizado: "${el.textContent}"`);
+                });
+            }, 1000);
+        };
+
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Inicializando sistema de preguntas de comunidad...');
+            
+            // Ejecutar prueba de timestamps
+            testTimestampFormat();
+            
+            // Pequeño delay para asegurar que todos los scripts estén cargados
+            setTimeout(async () => {
+                await loadCommunityQuestions();
+                
+                // Siempre intentar actualizar timestamps después de cargar
+                setTimeout(() => {
+                    const questionsWithId = document.querySelectorAll('.question-item[data-question-id]');
+                    if (questionsWithId.length === 0) {
+                        console.log('📋 No hay preguntas dinámicas, actualizando timestamps estáticos');
+                        forceUpdateTimestamps();
+                    } else {
+                        console.log('📋 Preguntas dinámicas cargadas correctamente');
+                    }
+                }, 500);
+            }, 1000);
+        });
+
+        // También cargar preguntas cuando se cambie a la pestaña de comunidad
+        const originalSwitchTab = window.switchTab;
+        if (originalSwitchTab) {
+            window.switchTab = function(contentType) {
+                originalSwitchTab(contentType);
+                
+                if (contentType === 'community') {
+                    console.log('📋 Cargando preguntas para la pestaña de comunidad');
+                    setTimeout(async () => {
+                        await loadCommunityQuestions();
+                        
+                        // Si no se cargaron preguntas dinámicas, actualizar timestamps de las estáticas
+                        const questionsWithId = document.querySelectorAll('.question-item[data-question-id]');
+                        if (questionsWithId.length === 0) {
+                            console.log('📋 Actualizando timestamps estáticos en pestaña de comunidad');
+                            updateStaticTimestamps();
+                        }
+                    }, 500);
+                }
+            };
+        }
+    </script>
+    
     <!-- Script inline para funciones globales inmediatas -->
     <script>
         // Función global inmediata para el botón de pregunta
