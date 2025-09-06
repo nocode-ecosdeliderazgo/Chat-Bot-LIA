@@ -534,6 +534,54 @@
             gap: 24px;
         }
 
+        /* Header de detalles con botón de cierre */
+        .details-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.05), rgba(157, 78, 221, 0.05));
+            border: 1px solid rgba(68, 229, 255, 0.1);
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .details-main-title {
+            margin: 0;
+            color: var(--text-primary, #333);
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .close-details-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted, #666);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            width: 32px;
+            height: 32px;
+        }
+
+        .close-details-btn:hover {
+            background: rgba(68, 229, 255, 0.1);
+            color: var(--glass-primary, #44e5ff);
+            transform: scale(1.1);
+        }
+
+        .close-details-btn .icon-sm {
+            width: 16px;
+            height: 16px;
+        }
+
         .details-section {
             background: var(--background-secondary, #f8f9fa);
             border-radius: 8px;
@@ -816,6 +864,26 @@
         @media (max-width: 768px) {
             .question-details-content {
                 gap: 16px;
+            }
+
+            .details-header {
+                padding: 10px 12px;
+                margin-bottom: 12px;
+            }
+
+            .details-main-title {
+                font-size: 1rem;
+            }
+
+            .close-details-btn {
+                width: 28px;
+                height: 28px;
+                padding: 6px;
+            }
+
+            .close-details-btn .icon-sm {
+                width: 14px;
+                height: 14px;
             }
 
             .details-section {

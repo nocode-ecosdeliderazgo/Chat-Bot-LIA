@@ -1800,8 +1800,11 @@ class ChatOnline {
                 return;
             }
             
-            // Verificar si ya existe una sección de detalles
-            let detailsSection = questionElement.querySelector('.question-details');
+            // Verificar si ya existe una sección de detalles (buscar como siguiente hermano)
+            let detailsSection = questionElement.nextElementSibling;
+            if (detailsSection && !detailsSection.classList.contains('question-details')) {
+                detailsSection = null; // No es la sección de detalles
+            }
             
             if (detailsSection) {
                 // Si ya existe, toggle de visibilidad
@@ -1819,13 +1822,16 @@ class ChatOnline {
                 // Crear sección de detalles si no existe
                 detailsSection = document.createElement('div');
                 detailsSection.className = 'question-details';
+                detailsSection.style.display = 'block';
                 detailsSection.innerHTML = `
                     <div class="details-loading">
                         <div class="loading-spinner"></div>
                         Cargando respuestas y comentarios...
                     </div>
                 `;
-                questionElement.appendChild(detailsSection);
+                
+                // Insertar DESPUÉS del questionElement (como siguiente hermano)
+                questionElement.parentNode.insertBefore(detailsSection, questionElement.nextSibling);
                 
                 // Actualizar el texto del botón
                 const detailsBtn = questionElement.querySelector('.details-btn');
@@ -1866,9 +1872,10 @@ class ChatOnline {
         } catch (error) {
             console.error('❌ Error cargando detalles de pregunta:', error);
             
-            // Mostrar error en la sección de detalles si existe
-            const detailsSection = document.querySelector(`[data-question-id="${questionId}"] .question-details`);
-            if (detailsSection) {
+            // Mostrar error en la sección de detalles si existe (como hermano siguiente)
+            const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+            const detailsSection = questionElement ? questionElement.nextElementSibling : null;
+            if (detailsSection && detailsSection.classList.contains('question-details')) {
                 detailsSection.innerHTML = `
                     <div class="details-error">
                         <p>❌ Error cargando los detalles: ${error.message}</p>
@@ -1951,6 +1958,16 @@ class ChatOnline {
         
         return `
             <div class="question-details-content">
+                <div class="details-header">
+                    <h3 class="details-main-title">Detalles de la Pregunta</h3>
+                    <button class="close-details-btn" title="Cerrar detalles">
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                
                 <div class="details-section answers-section">
                     <h4 class="section-title">
                         <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1986,6 +2003,18 @@ class ChatOnline {
     }
     
     setupDetailsEventListeners(detailsSection) {
+        // Event listener para botón de cerrar detalles
+        const closeBtn = detailsSection.querySelector('.close-details-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Colapsar la sección de detalles
+                detailsSection.style.display = 'none';
+                detailsSection.classList.remove('expanded');
+            });
+        }
+        
         // Event listeners para votos en respuestas
         detailsSection.querySelectorAll('.answer-item .vote-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
