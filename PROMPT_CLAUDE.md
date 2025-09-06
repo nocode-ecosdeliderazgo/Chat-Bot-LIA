@@ -1,127 +1,165 @@
-Eres mi pair de frontend. Tengo un problema en una vista (dark theme) del curso. Revisa con lupa los siguientes screenshots (muestran el problema real en el navegador):
+# PROMPT PARA CLAUDE - REDISEÑO DEL MENÚ DE MATERIAL DE CURSO
 
-Screenshot 1 (lista de tarjetas vacías bajo el título): “Material del Curso”.
+## OBJETIVO
+Transformar el menú desplegable de "Material de Curso" para que los elementos aparezcan directamente en el fondo del sidebar (como en Coursera) en lugar de mostrar "burbujas" individuales, mejorando la legibilidad y experiencia de usuario.
 
-Screenshot 2 (panel central y DevTools abiertos, se ve chat-online.html, classes como .module, .module-item, ids como id="modulo-modulo-2" etc.).
+## CONTEXTO ACTUAL
+El menú actual en `src/Chat-Online/chat-online.html` y `src/Chat-Online/chat-online.css` tiene:
+- Una sección `.course-materials-section` con header y botón de colapso
+- Una lista `.modules-list` que contiene elementos `.module-item` con estilo de "burbujas" glassmorphism
+- Cada `.module-item` tiene padding, bordes redondeados, sombras y efectos de hover
 
-Objetivos (en este orden):
+## ESTILO OBJETIVO (Basado en Coursera)
+Los elementos del menú deben aparecer como:
+- **Lista vertical integrada** directamente en el fondo del sidebar
+- **Sin bordes redondeados** ni efectos de "burbuja"
+- **Fondo transparente** o con muy poca opacidad
+- **Separación sutil** entre elementos
+- **Hover states** más sutiles
+- **Tipografía clara** y legible
+- **Iconos pequeños** al lado del texto (play, documento, etc.)
 
-Diagnóstico técnico
+## INSTRUCCIONES ESPECÍFICAS
 
-Identifica por qué hay demasiado espacio vertical entre el título “Material del Curso” y el grid/lista de tarjetas.
-
-Encuentra por qué las tarjetas aparecen vacías (deberían mostrar lecciones/contenido): puede ser CSS (altura fija, overflow, opacity, z-index, color = fondo), HTML (estructura incorrecta, IDs duplicados, markup que tapa el texto), o JS (render condicional mal evaluado, innerText vacío, map/templating que no inserta nodos, data no ligada, errores en consola).
-
-Revisa si hay IDs duplicados (ej., id="modulo-modulo-2" en varios nodos) y si eso rompe selectores o lógica JS (p. ej. getElementById devuelve un nodo inesperado).
-
-Verifica si hay estilos que ocultan el contenido (display:none, visibility:hidden, height:0, line-height:0, text color igual al fondo, backdrop-filter, capas superpuestas con position:absolute + z-index alto).
-
-Comprueba si hay gap/margin excesivo en contenedores como .module, .module-header, .module-toggle, contenedor de tarjetas o el accordion/sección.
-
-Corrección de spacing
-
-Reduce el espacio entre el título “Material del Curso” y el grid/lista de tarjetas: elimina márgenes excesivos y usa gap coherente (ej. gap: 12–16px), garantizando responsividad.
-
-Si hay un accordion/toggle, asegúrate de que el estado expanded no agregue padding o margin-top duplicado.
-
-Arreglo de tarjetas vacías
-
-Haz que se muestre el texto (títulos de lección, subtítulos, meta, icono).
-
-Elimina causas de invisibilidad: color/fondo, overflow: hidden con altura fija, backdrop cubriendo el contenido, opacity:0, pointer-events:none innecesario, etc.
-
-Corrige la data binding (si aplica): asegura que el loop/templating inyecte el contenido (p. ej. lessons.map(...)) y que los selectores apunten a la clase/ID correctos (evitar IDs duplicados).
-
-Mejoras de diseño rápidas (dark theme)
-
-Cards limpias y legibles: radius 16–20px, sombra sutil, padding 16–20px, contraste AA (ej. texto primario #E5E7EB sobre fondo #0B1220–#0F172A).
-
-Layout: grid responsivo (ej.: grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px).
-
-Estados: hover con elevación sutil, focus visible, vacío con estado “No hay lecciones aún”.
-
-Evita overlays que tapen el contenido (o dales pointer-events:none si son decorativos).
-
-Repositorio/archivos (nombres típicos en el proyecto):
-
-Chat-Online/chat-online.html (se ve en el screenshot).
-
-CSS: styles/chat-online.css o css/chat-online.css (o el que encuentres).
-
-JS/templating: cualquier archivo que genere las tarjetas (busca “Material del Curso”, “module”, “lesson”, “lecciones”).
-
-Qué quiero como entrega:
-
-Resumen de diagnóstico (bullets, claro y breve).
-
-Parches en formato unified diff para todos los archivos que toques (HTML, CSS y JS).
-
-Explicación de cada cambio (una línea por diff hunk).
-
-Checklist de verificación manual con pasos concretos:
-
-El espacio bajo el título es compacto (≈12–16px efectivos).
-
-Las tarjetas muestran título/subtítulo de las lecciones.
-
-No hay IDs duplicados en los módulos.
-
-El grid es responsivo y legible.
-
-Dark theme con contraste AA.
-
-Sin overlays bloqueando texto/clicks.
-
-Sin errores en consola.
-
-Pistas técnicas (si te ayudan a acortar):
-
-Si encuentras algo como:
-
-margin-bottom grande en .module-header o padding-top en el contenedor de tarjetas → reduce o elimina.
-
-.module .card { height: XXXpx; overflow: hidden; } → reemplaza por min-height y deja que el contenido crezca, elimina overflow salvo para recortes necesarios.
-
-Texto invisible por color: usa color: #E5E7EB y subtítulos #94A3B8.
-
-Overlay decorativo: position:absolute; inset:0; z-index: 1; sobre el contenido → bájalo (z-index:0) o pon pointer-events:none.
-
-IDs duplicados: reemplázalos por data-module-id y cambia JS a querySelectorAll('[data-module-id="…"]').
-
-Grid recomendado:
-
-.course-material {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
+### 1. MODIFICAR CSS - Clase `.module-item`
+```css
+.module-item {
+    /* ELIMINAR: */
+    /* padding: 20px; */
+    /* border-radius: 16px; */
+    /* backdrop-filter: blur(10px); */
+    /* box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25); */
+    
+    /* AGREGAR: */
+    padding: 12px 16px;
+    border-radius: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 0;
+    transition: background-color 0.2s ease;
 }
-.course-title { margin-bottom: 12px; }
-.course-section { margin: 0; }
-.card {
-  border-radius: 16px;
-  padding: 16px;
-  background: #0F172A;
-  box-shadow: 0 4px 18px rgba(0,0,0,.25);
+```
+
+### 2. MODIFICAR CSS - Estados de hover
+```css
+.module-item:hover {
+    /* ELIMINAR: */
+    /* transform: translateY(-2px); */
+    /* box-shadow: 0 8px 32px rgba(0, 102, 204, 0.2); */
+    
+    /* AGREGAR: */
+    background: rgba(0, 102, 204, 0.08);
+    transform: none;
+    box-shadow: none;
 }
-.card h4 { color: #E5E7EB; margin: 0 0 6px; }
-.card p { color: #94A3B8; margin: 0; }
+```
 
+### 3. MODIFICAR CSS - Estados completado y actual
+```css
+.module-item.completed {
+    background: rgba(34, 197, 94, 0.05);
+    border-left: 3px solid rgba(34, 197, 94, 0.6);
+}
 
-Si la data viene de un array lessons, asegura el render:
+.module-item.current {
+    background: rgba(0, 102, 204, 0.12);
+    border-left: 3px solid #0066CC;
+    font-weight: 600;
+}
+```
 
-const container = document.querySelector('.course-material');
-container.innerHTML = lessons.map(lesson => `
-  <article class="card">
-    <h4>${lesson.title}</h4>
-    <p>${lesson.subtitle ?? ''}</p>
-  </article>
-`).join('');
+### 4. AGREGAR ICONOS A LOS ELEMENTOS
+Modificar el HTML para incluir iconos pequeños:
+```html
+<div class="module-item" data-module="1">
+    <div class="module-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+        </svg>
+    </div>
+    <div class="module-info">
+        <h4>Introducción a Fundamentos de IA</h4>
+        <p class="module-description">Vídeo • 2 min</p>
+    </div>
+</div>
+```
 
+### 5. ESTILOS PARA ICONOS
+```css
+.module-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+    flex-shrink: 0;
+}
 
-Importante:
+.module-item:hover .module-icon {
+    color: #0066CC;
+}
 
-No pidas más contexto: propón y aplica la solución completa.
+.module-item.completed .module-icon {
+    color: rgba(34, 197, 94, 0.8);
+}
 
-Si detectas más de una causa, corrige todas en el mismo PR.
+.module-item.current .module-icon {
+    color: #0066CC;
+}
+```
 
-Entrega solo: diagnóstico, diffs, explicación por hunk y checklist final.
+### 6. AJUSTAR LAYOUT DEL MÓDULO
+```css
+.module-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Cambiar de center a flex-start */
+}
+
+.module-info {
+    flex: 1;
+    text-align: left; /* Cambiar de center a left */
+}
+```
+
+### 7. MEJORAR TIPOGRAFÍA
+```css
+.module-info h4 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.module-description {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+}
+```
+
+## ESTRUCTURA FINAL ESPERADA
+- **Header**: "Material del Curso" con botón de colapso
+- **Lista**: Elementos de módulo como lista vertical integrada
+- **Elementos**: Icono + Título + Descripción (tipo de contenido y duración)
+- **Estados**: Hover sutil, completado con borde verde, actual con borde azul
+- **Scroll**: Mantener scrollbar personalizado si es necesario
+
+## CONSIDERACIONES DE UX
+1. **Legibilidad**: Texto claro sobre fondo oscuro
+2. **Jerarquía visual**: Títulos más prominentes que descripciones
+3. **Feedback visual**: Estados claros para hover, completado y actual
+4. **Consistencia**: Mantener colores del proyecto (#0066CC, #22C55E)
+5. **Responsive**: Asegurar que funcione en diferentes tamaños de pantalla
+
+## ARCHIVOS A MODIFICAR
+- `src/Chat-Online/chat-online.css` (estilos principales)
+- `src/Chat-Online/chat-online.html` (estructura HTML si es necesario)
+- `src/Chat-Online/chat-online.js` (lógica de generación de módulos si es necesario)
+
+## RESULTADO ESPERADO
+Un menú de materiales que se vea como el de Coursera: limpio, integrado, legible y con una experiencia de usuario fluida, manteniendo la identidad visual del proyecto pero con un diseño más moderno y funcional.
