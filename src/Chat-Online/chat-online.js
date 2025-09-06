@@ -62,12 +62,14 @@ class ChatOnline {
         this.quizData = this.getQuizData();
         this.currentQuestionIndex = 0;
         this.userAnswers = {};
+        this.quizResultsShown = false;
         
         // ===== CRONÓMETRO DEL QUIZ =====
         this.quizTimer = null;
         this.quizTimeLimit = 3 * 60; // 3 minutos en segundos
         this.quizTimeRemaining = this.quizTimeLimit;
         this.quizStartTime = null;
+        this.timeUpAlertShown = false; // Control para evitar bucle infinito
         
         // ===== ACCESO GLOBAL INMEDIATO =====
         window.courseManager = this;
@@ -186,6 +188,9 @@ class ChatOnline {
         // Configurar progress dots
         this.setupProgressDots();
         
+        // Poblar módulos del sidebar
+        this.populateModulesSidebar();
+        
         // Configurar módulos
         const moduleItems = document.querySelectorAll('.module-item');
         moduleItems.forEach(item => {
@@ -195,6 +200,92 @@ class ChatOnline {
                 this.selectModule(moduleId);
             });
         });
+    }
+
+    // ===== POBLAR MÓDULOS DEL SIDEBAR =====
+    populateModulesSidebar() {
+        const modulesList = document.querySelector('.modules-list');
+        if (!modulesList) return;
+        
+        const modules = [
+            {
+                id: 1,
+                title: 'Módulo 1: ¿Qué es la IA?',
+                description: 'Introducción a los conceptos fundamentales de la Inteligencia Artificial',
+                duration: '15:30',
+                videos: 2,
+                progress: 0,
+                status: 'current'
+            },
+            {
+                id: 2,
+                title: 'Módulo 2: Historia de la IA',
+                description: 'Evolución histórica y hitos importantes en el desarrollo de la IA',
+                duration: '22:00',
+                videos: 3,
+                progress: 0,
+                status: 'pending'
+            },
+            {
+                id: 3,
+                title: 'Módulo 3: Fundamentos del ML',
+                description: 'Conceptos básicos del Machine Learning y sus aplicaciones',
+                duration: '18:30',
+                videos: 2,
+                progress: 0,
+                status: 'pending'
+            },
+            {
+                id: 4,
+                title: 'Módulo 4: Redes Neuronales',
+                description: 'Arquitecturas de redes neuronales y deep learning',
+                duration: '25:00',
+                videos: 4,
+                progress: 0,
+                status: 'pending'
+            },
+            {
+                id: 5,
+                title: 'Módulo 5: IA en el Futuro',
+                description: 'Tendencias futuras y aplicaciones emergentes de la IA',
+                duration: '20:00',
+                videos: 3,
+                progress: 0,
+                status: 'pending'
+            }
+        ];
+
+        // Función getIconSvg eliminada - ya no se usan iconos
+
+        const modulesHTML = modules.map(module => `
+            <div class="module-item ${module.status}" data-module="${module.id}">
+                <div class="module-info">
+                    <h4>${module.title}</h4>
+                    <p class="module-description">${module.description}</p>
+                    <div class="module-meta">
+                        <div class="module-duration">
+                            <div class="duration-text">
+                                <svg class="duration-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
+                                </svg>
+                                ${module.duration}
+                            </div>
+                            <div class="videos-count">
+                                <svg class="video-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="5,3 19,12 5,21"/>
+                                </svg>
+                                ${module.videos} videos
+                            </div>
+                        </div>
+                        <div class="module-progress">${module.progress}% completado</div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        modulesList.innerHTML = modulesHTML;
+        console.log('📚 Módulos del sidebar populados correctamente');
     }
 
     // ===== PROGRESS DOTS =====
@@ -3199,7 +3290,7 @@ class ChatOnline {
             return;
         }
 
-        console.log('📤 Enviando pregunta...');
+            console.log('📤 Enviando pregunta...');
         this.submittingQuestion = true;
         
         let originalText = '';
@@ -3235,8 +3326,8 @@ class ChatOnline {
             // Mostrar indicador de carga
             if (submitBtn) {
                 originalText = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<div class="loading-spinner"></div> Enviando...';
-                submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="loading-spinner"></div> Enviando...';
+            submitBtn.disabled = true;
             }
             
             // Obtener datos reales de la sesión
@@ -3284,7 +3375,7 @@ class ChatOnline {
                 // Recargar preguntas una sola vez para evitar duplicaciones
                 setTimeout(async () => {
                     this.communityQuestionsLoaded = false; // Permitir recarga
-                    await this.loadCommunityQuestions();
+                await this.loadCommunityQuestions();
                     this.communityQuestionsLoaded = true; // Marcar como cargadas
                 }, 500);
                 
@@ -4666,6 +4757,16 @@ class ChatOnline {
         this.hideMaterialsContent();
         this.hideQuizContent();
         
+        // Asegurar que los resultados del quiz estén ocultos específicamente
+        const quizResults = document.querySelector('.quiz-results');
+        if (quizResults) {
+            quizResults.style.display = 'none';
+            quizResults.classList.remove('content-visible');
+        }
+        
+        // NO resetear el estado de resultados del quiz - deben persistir
+        // this.quizResultsShown = false; // Comentado para mantener persistencia
+        
         // Mostrar contenido de video
         const videoContent = document.querySelector('.main-video-player');
         const contentTabs = document.querySelector('.content-tabs');
@@ -4701,12 +4802,38 @@ class ChatOnline {
         this.hideVideoContent();
         this.hideMaterialsContent();
         
-        // Crear y mostrar contenido de quiz
+        // Verificar si ya hay resultados mostrados
+        const existingResults = document.querySelector('.quiz-results');
+        const existingQuiz = document.querySelector('.quiz-content');
+        
+        if (this.quizResultsShown && existingResults) {
+            // Si hay resultados, solo mostrarlos (no crear nuevo quiz)
+            console.log('📊 Mostrando resultados existentes del quiz');
+            existingResults.style.display = 'block';
+            existingResults.classList.add('content-visible');
+            
+            // Ocultar quiz si existe
+            if (existingQuiz) {
+                existingQuiz.style.display = 'none';
+                existingQuiz.classList.remove('content-visible');
+            }
+        } else {
+            // Si no hay resultados, crear/mostrar el quiz
         this.createQuizContent();
         
         // Agregar clase para animación
         const quizContent = document.querySelector('.quiz-content');
-        if (quizContent) quizContent.classList.add('content-visible');
+        if (quizContent) {
+            quizContent.style.display = 'block';
+            quizContent.classList.add('content-visible');
+        }
+        
+            // Asegurar que no hay resultados visibles
+            if (existingResults) {
+                existingResults.style.display = 'none';
+                existingResults.classList.remove('content-visible');
+            }
+        }
     }
     
     // ===== FUNCIONES DE OCULTAR CONTENIDO =====
@@ -4729,13 +4856,27 @@ class ChatOnline {
             materialsContent.style.display = 'none';
             materialsContent.classList.remove('content-visible');
         }
+        
+        // También ocultar resultados del quiz si están visibles
+        const quizResults = document.querySelector('.quiz-results');
+        if (quizResults) {
+            quizResults.style.display = 'none';
+            quizResults.classList.remove('content-visible');
+        }
     }
     
     hideQuizContent() {
         const quizContent = document.querySelector('.quiz-content');
+        const quizResults = document.querySelector('.quiz-results');
+        
         if (quizContent) {
             quizContent.style.display = 'none';
             quizContent.classList.remove('content-visible');
+        }
+        
+        if (quizResults) {
+            quizResults.style.display = 'none';
+            quizResults.classList.remove('content-visible');
         }
     }
     
@@ -4750,7 +4891,7 @@ class ChatOnline {
             existingMaterials.remove();
         }
         
-        // Crear nuevo contenido de materiales
+        // Crear nuevo contenido de materiales con HTML directo
         const materialsHTML = `
             <div class="materials-content">
                 <div class="materials-header">
@@ -4763,74 +4904,279 @@ class ChatOnline {
                     </h2>
                     <p>Recursos adicionales para complementar tu aprendizaje</p>
                 </div>
-                
-                <div class="materials-grid">
-                    <div class="material-card">
-                        <div class="material-icon">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14,2 14,8 20,8"/>
+                <div class="materials-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+                    
+                    <!-- Lección 1 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">01</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
-                        <div class="material-info">
-                            <h3>Introducción a la IA - PDF</h3>
-                            <p>Documento completo del módulo con ejemplos prácticos</p>
-                            <span class="material-size">2.5 MB</span>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Introducción a la IA</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Conceptos fundamentales y aplicaciones de la Inteligencia Artificial</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 15 min</span>
+                                <span class="lesson-status completed" style="background: linear-gradient(135deg, #22C55E, #16A34A); color: white; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #16A34A;">Completado</span>
+                            </div>
                         </div>
-                        <button class="download-btn" onclick="window.chatOnline.downloadMaterial('ia-intro.pdf')">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="7,10 12,15 17,10"/>
-                                <line x1="12" y1="15" x2="12" y2="3"/>
+                        <button class="play-btn" onclick="window.chatOnline.playLesson(1)" style="width: 48px; height: 48px; background: linear-gradient(135deg, #0066CC, #0052A3); border: 2px solid #0066CC; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <polygon points="5,3 19,12 5,21"/>
                             </svg>
-                            Descargar
                         </button>
                     </div>
                     
-                    <div class="material-card">
-                        <div class="material-icon">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14,2 14,8 20,8"/>
+                    <!-- Lección 2 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">02</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
-                        <div class="material-info">
-                            <h3>Ejercicios Prácticos</h3>
-                            <p>Actividades para reforzar los conceptos aprendidos</p>
-                            <span class="material-size">1.8 MB</span>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Historia de la IA</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Evolución histórica desde los primeros algoritmos hasta la actualidad</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 22 min</span>
+                                <span class="lesson-status current" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #D97706;">En Progreso</span>
+                            </div>
                         </div>
-                        <button class="download-btn" onclick="window.chatOnline.downloadMaterial('ejercicios-ia.pdf')">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="7,10 12,15 17,10"/>
-                                <line x1="12" y1="15" x2="12" y2="3"/>
+                        <button class="play-btn" onclick="window.chatOnline.playLesson(2)" style="width: 48px; height: 48px; background: linear-gradient(135deg, #0066CC, #0052A3); border: 2px solid #0066CC; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <polygon points="5,3 19,12 5,21"/>
                             </svg>
-                            Descargar
                         </button>
                     </div>
                     
-                    <div class="material-card">
-                        <div class="material-icon">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                                <polyline points="15,3 21,3 21,9"/>
-                                <line x1="10" y1="14" x2="21" y2="3"/>
+                    <!-- Lección 3 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">03</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
-                        <div class="material-info">
-                            <h3>Enlaces de Referencia</h3>
-                            <p>Recursos web adicionales para profundizar en el tema</p>
-                            <span class="material-type">Enlaces</span>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Machine Learning Básico</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Fundamentos del aprendizaje automático y sus aplicaciones</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 18 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
                         </div>
-                        <button class="link-btn" onclick="window.chatOnline.openLinks()">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                                <polyline points="15,3 21,3 21,9"/>
-                                <line x1="10" y1="14" x2="21" y2="3"/>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                             </svg>
-                            Ver Enlaces
                         </button>
                     </div>
+                    
+                    <!-- Lección 4 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">04</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Redes Neuronales</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Arquitectura y funcionamiento de las redes neuronales artificiales</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 25 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Lección 5 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">05</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Procesamiento de Lenguaje Natural</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Cómo las máquinas comprenden y procesan el lenguaje humano</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 20 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Lección 6 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">06</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Visión por Computadora</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Tecnologías para el reconocimiento y análisis de imágenes</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 28 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Lección 7 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">07</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Ética en IA</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Consideraciones éticas y responsabilidad en el desarrollo de IA</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 16 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Lección 8 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">08</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">IA Generativa</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Modelos de IA capaces de generar contenido original</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 24 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Lección 9 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">09</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Automatización con IA</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Aplicación de IA para automatizar procesos y tareas</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 30 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Lección 10 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">10</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Futuro de la IA</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Tendencias y perspectivas futuras en Inteligencia Artificial</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 19 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Lección 11 -->
+                    <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">11</div>
+                        <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                        </div>
+                        <div class="material-info" style="flex: 1; min-width: 0; padding-right: 1rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem; line-height: 1.3;">Proyecto Final</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">Proyecto integrador para aplicar todos los conocimientos adquiridos</p>
+                            <div class="lesson-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <span class="lesson-duration" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ 45 min</span>
+                                <span class="lesson-status locked" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 255, 255, 0.2);">Bloqueado</span>
+                            </div>
+                        </div>
+                        <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
                 </div>
             </div>
         `;
@@ -4847,6 +5193,12 @@ class ChatOnline {
         const existingQuiz = document.querySelector('.quiz-content');
         if (existingQuiz) {
             existingQuiz.remove();
+        }
+        
+        // Si hay resultados mostrados, no crear nuevo quiz (mantener resultados)
+        if (this.quizResultsShown) {
+            console.log('📊 Resultados ya mostrados, no creando nuevo quiz');
+            return;
         }
         
         // Crear nuevo contenido de quiz
@@ -4944,6 +5296,156 @@ class ChatOnline {
         console.log('🔗 Abriendo enlaces de referencia');
         // Aquí implementarías la lógica para mostrar enlaces
         alert('Enlaces de referencia:\n• https://example.com/ia-basics\n• https://example.com/ml-intro');
+    }
+    
+    playLesson(lessonNumber) {
+        // Definir información de cada lección
+        const lessons = {
+            1: { 
+                title: "Introducción a la IA", 
+                duration: "15 min",
+                status: "available",
+                description: "Conceptos fundamentales y aplicaciones de la Inteligencia Artificial"
+            },
+            2: { 
+                title: "Historia de la IA", 
+                duration: "22 min",
+                status: "available",
+                description: "Evolución histórica desde los primeros algoritmos hasta la actualidad"
+            },
+            3: { 
+                title: "Machine Learning Básico", 
+                duration: "18 min",
+                status: "locked",
+                description: "Fundamentos del aprendizaje automático y sus aplicaciones"
+            },
+            4: { 
+                title: "Redes Neuronales", 
+                duration: "25 min",
+                status: "locked",
+                description: "Arquitectura y funcionamiento de las redes neuronales artificiales"
+            },
+            5: { 
+                title: "Procesamiento de Lenguaje Natural", 
+                duration: "20 min",
+                status: "locked",
+                description: "Cómo las máquinas comprenden y procesan el lenguaje humano"
+            },
+            6: { 
+                title: "Visión por Computadora", 
+                duration: "28 min",
+                status: "locked",
+                description: "Tecnologías para el reconocimiento y análisis de imágenes"
+            },
+            7: { 
+                title: "Ética en IA", 
+                duration: "16 min",
+                status: "locked",
+                description: "Consideraciones éticas y responsabilidad en el desarrollo de IA"
+            },
+            8: { 
+                title: "IA Generativa", 
+                duration: "24 min",
+                status: "locked",
+                description: "Modelos de IA capaces de generar contenido original"
+            },
+            9: { 
+                title: "Automatización con IA", 
+                duration: "30 min",
+                status: "locked",
+                description: "Aplicación de IA para automatizar procesos y tareas"
+            },
+            10: { 
+                title: "Futuro de la IA", 
+                duration: "19 min",
+                status: "locked",
+                description: "Tendencias y perspectivas futuras en Inteligencia Artificial"
+            },
+            11: { 
+                title: "Proyecto Final", 
+                duration: "45 min",
+                status: "locked",
+                description: "Proyecto integrador para aplicar todos los conocimientos adquiridos"
+            }
+        };
+
+        const lesson = lessons[lessonNumber];
+        
+        if (!lesson) {
+            console.log(`❌ Lección ${lessonNumber} no encontrada`);
+            return;
+        }
+
+        if (lesson.status === 'locked') {
+            console.log(`🔒 Lección ${lessonNumber} bloqueada`);
+            alert(`La lección "${lesson.title}" está bloqueada. Complete las lecciones anteriores para desbloquearla.`);
+            return;
+        }
+
+        console.log(`▶️ Reproduciendo lección ${lessonNumber}: ${lesson.title}`);
+        
+        // Cambiar a la pestaña de video y cargar la lección específica
+        this.showVideoContent();
+        
+        // Simular carga de video con información específica
+        setTimeout(() => {
+            const videoPlayer = document.querySelector('.main-video-player');
+            if (videoPlayer) {
+                videoPlayer.innerHTML = `
+                    <div class="video-container" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 2rem; text-align: center; margin: 2rem 0;">
+                        <div class="video-header" style="margin-bottom: 2rem;">
+                            <div class="lesson-number-large" style="background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.5rem; margin: 0 auto 1rem;">
+                                ${String(lessonNumber).padStart(2, '0')}
+                            </div>
+                            <h2 style="color: #FFFFFF; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem;">${lesson.title}</h2>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 1.1rem; margin-bottom: 1rem;">${lesson.description}</p>
+                            <div class="video-meta" style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
+                                <span style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); color: #0066CC; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; border: 1px solid rgba(0, 102, 204, 0.3);">⏱️ ${lesson.duration}</span>
+                                <span style="background: linear-gradient(135deg, #22C55E, #16A34A); color: white; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; border: 1px solid #16A34A;">📚 Lección ${lessonNumber} de 11</span>
+                            </div>
+                        </div>
+                        
+                        <div class="video-placeholder" style="background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 4rem 2rem; margin-bottom: 1.5rem; border: 2px dashed rgba(0, 102, 204, 0.3);">
+                            <div class="video-icon" style="margin-bottom: 1rem;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 80px; height: 80px; color: #0066CC; margin: 0 auto; display: block;">
+                                    <polygon points="5,3 19,12 5,21"/>
+                                </svg>
+                            </div>
+                            <h3 style="color: #FFFFFF; font-size: 1.3rem; margin-bottom: 1rem;">Video en reproducción</h3>
+                            <p style="color: rgba(255, 255, 255, 0.7); font-size: 1rem;">Contenido de la lección "${lesson.title}"</p>
+                            <div class="loading-bar" style="width: 100%; height: 4px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; margin-top: 1.5rem; overflow: hidden;">
+                                <div class="loading-progress" style="width: 0%; height: 100%; background: linear-gradient(90deg, #0066CC, #00A3FF); border-radius: 2px; animation: loading 3s ease-in-out infinite;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="video-controls" style="display: flex; justify-content: center; gap: 1rem;">
+                            <button onclick="alert('⏸️ Video pausado')" style="background: linear-gradient(135deg, #0066CC, #0052A3); border: 2px solid #0066CC; border-radius: 8px; color: white; padding: 0.8rem 1.5rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                                ⏸️ Pausar
+                            </button>
+                            <button onclick="alert('📝 Tomando notas...')" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 8px; color: #0066CC; padding: 0.8rem 1.5rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                                📝 Notas
+                            </button>
+                            <button onclick="alert('⚡ Aumentando velocidad de reproducción')" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 8px; color: #0066CC; padding: 0.8rem 1.5rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                                ⚡ Velocidad
+                            </button>
+                        </div>
+                    </div>
+
+                    <style>
+                        @keyframes loading {
+                            0% { width: 0%; }
+                            50% { width: 70%; }
+                            100% { width: 100%; }
+                        }
+                        
+                        .video-controls button:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+                        }
+                    </style>
+                `;
+            }
+        }, 300);
     }
     
     previousQuestion() {
@@ -5211,6 +5713,9 @@ class ChatOnline {
 
         // Remover quiz anterior
         centerPanel.querySelectorAll('.quiz-content, .quiz-results').forEach(el => el.remove());
+        
+        // Marcar que los resultados están mostrados
+        this.quizResultsShown = true;
 
         // Calcular total de preguntas evaluables (excluyendo abiertas)
         const evaluableQuestions = this.quizData.filter(q => q.type !== 'text').length;
@@ -5373,11 +5878,18 @@ class ChatOnline {
             this.userAnswers = {};
             this.quizTimeRemaining = this.quizTimeLimit;
             
-            // Limpiar el contenido actual del panel central
-            const centerPanel = document.querySelector('.center-panel');
+            // Limpiar el contenido actual del panel central (consistente con showQuizResults)
+            const centerPanel = document.querySelector('.center-panel .course-content');
             if (centerPanel) {
-                centerPanel.innerHTML = '';
+                // Limpiar específicamente quiz y resultados existentes
+                centerPanel.querySelectorAll('.quiz-content, .quiz-results').forEach(el => el.remove());
             }
+            
+            // Resetear estado de resultados
+            this.quizResultsShown = false;
+            
+            // Resetear estado de alerta de tiempo agotado
+            this.timeUpAlertShown = false;
             
             // Mostrar el quiz desde el inicio
             this.createQuizContent();
@@ -5439,6 +5951,7 @@ class ChatOnline {
         // Resetear valores
         this.quizTimeRemaining = this.quizTimeLimit;
         this.quizStartTime = Date.now();
+        this.timeUpAlertShown = false; // Resetear estado de alerta
         
         // Actualizar display inicial
         this.updateTimerDisplay();
@@ -5529,10 +6042,83 @@ class ChatOnline {
     }
     
     /**
+     * Muestra alerta de tiempo agotado con diseño estético
+     */
+    showTimeUpAlert() {
+        // Verificar si ya existe una alerta para evitar duplicación
+        const existingOverlay = document.querySelector('.quiz-time-up-overlay');
+        if (existingOverlay) {
+            console.log('⏰ Alerta de tiempo agotado ya existe, evitando duplicación');
+            return;
+        }
+        
+        // Crear overlay de fondo
+        const overlay = document.createElement('div');
+        overlay.className = 'quiz-time-up-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+            cursor: pointer;
+        `;
+        
+        // Crear alerta principal
+        const alert = document.createElement('div');
+        alert.className = 'quiz-time-up-alert';
+        alert.innerHTML = `
+            <div class="time-up-content">
+                <div class="time-up-icon">⏰</div>
+                <p class="time-up-message">¡Tiempo agotado!<br>El quiz se ha terminado automáticamente con las respuestas que completaste.</p>
+                <button class="time-up-button">
+                    Aceptar
+                </button>
+            </div>
+        `;
+        
+        // Agregar event listener para el botón de cerrar
+        const closeButton = alert.querySelector('.time-up-button');
+        closeButton.addEventListener('click', () => {
+            overlay.remove();
+        });
+        
+        // Agregar event listener para cerrar al hacer clic en el overlay (fondo)
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+            }
+        });
+        
+        // Agregar al DOM
+        overlay.appendChild(alert);
+        document.body.appendChild(overlay);
+        
+        // Auto-remover después de 10 segundos como fallback
+        setTimeout(() => {
+            if (overlay.parentElement) {
+                overlay.remove();
+            }
+        }, 10000);
+    }
+    
+    /**
      * Termina el quiz cuando se acaba el tiempo
      */
     timeUpQuiz() {
+        // Verificar si ya se ha mostrado la alerta para evitar bucle infinito
+        if (this.timeUpAlertShown) {
+            console.log('⏰ Alerta de tiempo agotado ya mostrada, evitando duplicación');
+            return;
+        }
+        
         console.log('⏰ Tiempo agotado - Terminando quiz automáticamente');
+        
+        // Marcar que la alerta ya se ha mostrado
+        this.timeUpAlertShown = true;
         
         // Detener el cronómetro
         if (this.quizTimer) {
@@ -5540,11 +6126,13 @@ class ChatOnline {
             this.quizTimer = null;
         }
         
-        // Mostrar mensaje de tiempo agotado
-        alert('⏰ ¡Tiempo agotado! El quiz se ha terminado automáticamente con las respuestas que completaste.');
+        // Mostrar mensaje de tiempo agotado con diseño estético
+        this.showTimeUpAlert();
         
-        // Finalizar quiz con respuestas actuales
-        this.finishQuiz();
+        // Finalizar quiz con respuestas actuales después de un breve delay
+        setTimeout(() => {
+            this.finishQuiz();
+        }, 1000);
     }
     
     /**
@@ -5931,6 +6519,78 @@ class ChatOnline {
             submitBtn.textContent = 'Publicar Comentario';
         }
     }
+    
+    /**
+     * FUNCIÓN DE PRUEBA TEMPORAL - Eliminar después de probar
+     * Para probar la nueva alerta de tiempo agotado
+     */
+    testTimeUpAlert() {
+        console.log('🧪 Probando nueva alerta de tiempo agotado...');
+        this.showTimeUpAlert();
+    }
+    
+    /**
+     * FUNCIÓN DE PRUEBA TEMPORAL - Eliminar después de probar
+     * Para probar el flujo completo del quiz y verificar que no hay superposición
+     */
+    testQuizFlow() {
+        console.log('🧪 Probando flujo completo del quiz...');
+        
+        // Simular datos de quiz para prueba
+        this.quizData = [
+            {
+                id: 1,
+                question: "¿Cuál es la capital de España?",
+                type: "single",
+                options: ["Madrid", "Barcelona", "Valencia", "Sevilla"],
+                correct: "Madrid",
+                feedbackCorrect: "¡Correcto! Madrid es la capital de España.",
+                feedbackIncorrect: "Incorrecto. La capital de España es Madrid."
+            },
+            {
+                id: 2,
+                question: "¿Qué colores tiene la bandera de España?",
+                type: "multiple",
+                options: ["Rojo", "Amarillo", "Azul", "Verde"],
+                correct: ["Rojo", "Amarillo"],
+                feedbackCorrect: "¡Correcto! La bandera tiene rojo y amarillo.",
+                feedbackIncorrect: "Incorrecto. La bandera tiene rojo y amarillo."
+            }
+        ];
+        
+        this.userAnswers = {
+            0: "Madrid",
+            1: ["Rojo", "Amarillo"]
+        };
+        
+        // Simular finalización del quiz
+        console.log('📊 Mostrando resultados...');
+        this.showQuizResults(2);
+        
+        // Después de 2 segundos, cambiar a materiales
+        setTimeout(() => {
+            console.log('📚 Cambiando a materiales...');
+            this.switchTab('materials');
+        }, 2000);
+        
+        // Después de 4 segundos, cambiar a video
+        setTimeout(() => {
+            console.log('🎥 Cambiando a video...');
+            this.switchTab('video');
+        }, 4000);
+        
+        // Después de 6 segundos, volver a quiz
+        setTimeout(() => {
+            console.log('❓ Volviendo a quiz...');
+            this.switchTab('quiz');
+        }, 6000);
+        
+        // Después de 8 segundos, simular reinicio
+        setTimeout(() => {
+            console.log('🔄 Reiniciando quiz...');
+            this.restartQuiz();
+        }, 8000);
+    }
 }
 
 
@@ -5940,6 +6600,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Crear instancia de ChatOnline
     window.chatOnline = new ChatOnline();
+    
+    // Función global para probar la nueva alerta (TEMPORAL)
+    window.testTimeUpAlert = function() {
+        if (window.chatOnline) {
+            window.chatOnline.testTimeUpAlert();
+        } else {
+            console.error('❌ ChatOnline no está disponible');
+        }
+    };
+    
+    // Función global para probar el flujo del quiz (TEMPORAL)
+    window.testQuizFlow = function() {
+        if (window.chatOnline) {
+            window.chatOnline.testQuizFlow();
+        } else {
+            console.error('❌ ChatOnline no está disponible');
+        }
+    };
     
     // Configurar tema global
     if (typeof setupGlobalTheme === 'function') {
