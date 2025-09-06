@@ -4952,6 +4952,396 @@ app.post('/api/community/questions', async (req, res) => {
     }
 });
 
+// POST /api/community/answers - Crear nueva respuesta
+app.post('/api/community/answers', async (req, res) => {
+    try {
+        console.log('📝 === INICIO CREACIÓN RESPUESTA ===');
+        console.log('📋 Body recibido:', req.body);
+        
+        const { question_id, content, user_id } = req.body;
+        
+        // Validación de campos requeridos
+        if (!question_id || !content || !user_id) {
+            console.log('❌ Faltan campos obligatorios');
+            return res.status(400).json({
+                success: false,
+                error: 'Faltan campos obligatorios: question_id, content, user_id'
+            });
+        }
+        
+        // Verificar que el pool esté disponible
+        if (!pool) {
+            console.log('❌ Pool de base de datos no disponible');
+            return res.status(500).json({
+                success: false,
+                error: 'Base de datos no disponible'
+            });
+        }
+        
+        console.log('🗃️ Pool de base de datos disponible, procediendo con INSERT...');
+        
+        // Crear la respuesta
+        const result = await pool.query(`
+            INSERT INTO community_answers 
+            (question_id, user_id, content, votes_count, created_at, updated_at)
+            VALUES ($1, $2, $3, 0, NOW(), NOW())
+            RETURNING *
+        `, [question_id, user_id, content.trim()]);
+        
+        console.log('📊 Resultado de INSERT:', {
+            rowCount: result.rowCount,
+            hasRows: result.rows.length > 0,
+            answerId: result.rows[0]?.id
+        });
+        
+        if (result.rows.length === 0) {
+            throw new Error('No se pudo crear la respuesta');
+        }
+        
+        const answer = result.rows[0];
+        
+        // Obtener datos del usuario
+        const userResult = await pool.query(`
+            SELECT username, display_name, first_name, profile_picture_url 
+            FROM users WHERE id = $1
+        `, [user_id]);
+        
+        const userData = userResult.rows[0] || {};
+        
+        const responseData = {
+            id: answer.id,
+            question_id: answer.question_id,
+            content: answer.content,
+            votes_count: 0,
+            created_at: answer.created_at,
+            user: {
+                id: user_id,
+                name: userData.display_name || userData.first_name || userData.username || 'Usuario',
+                avatar_url: userData.profile_picture_url || '/assets/images/default-avatar.svg'
+            }
+        };
+        
+        console.log(`✅ Respuesta creada exitosamente: ${answer.id}`);
+        res.status(201).json({
+            success: true,
+            data: responseData,
+            message: 'Respuesta creada exitosamente'
+        });
+        
+    } catch (error) {
+        console.error('❌ Error creando respuesta:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error creando respuesta',
+            details: error.message
+        });
+    }
+});
+
+// POST /api/community/comments - Crear nuevo comentario
+app.post('/api/community/comments', async (req, res) => {
+    try {
+        console.log('💬 === INICIO CREACIÓN COMENTARIO ===');
+        console.log('📋 Body recibido:', req.body);
+        
+        const { parent_type, parent_id, content, user_id } = req.body;
+        
+        // Validación de campos requeridos
+        if (!parent_type || !parent_id || !content || !user_id) {
+            console.log('❌ Faltan campos obligatorios');
+            return res.status(400).json({
+                success: false,
+                error: 'Faltan campos obligatorios: parent_type, parent_id, content, user_id'
+            });
+        }
+        
+        // Verificar que el parent_type sea válido
+        if (!['question', 'answer'].includes(parent_type)) {
+            return res.status(400).json({
+                success: false,
+                error: 'parent_type debe ser "question" o "answer"'
+            });
+        }
+        
+        // Verificar que el pool esté disponible
+        if (!pool) {
+            console.log('❌ Pool de base de datos no disponible');
+            return res.status(500).json({
+                success: false,
+                error: 'Base de datos no disponible'
+            });
+        }
+        
+        console.log('🗃️ Pool de base de datos disponible, procediendo con INSERT...');
+        
+        // Crear el comentario
+        const result = await pool.query(`
+            INSERT INTO community_comments 
+            (parent_type, parent_id, user_id, content, votes_count, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, 0, NOW(), NOW())
+            RETURNING *
+        `, [parent_type, parent_id, user_id, content.trim()]);
+        
+        console.log('📊 Resultado de INSERT:', {
+            rowCount: result.rowCount,
+            hasRows: result.rows.length > 0,
+            commentId: result.rows[0]?.id
+        });
+        
+        if (result.rows.length === 0) {
+            throw new Error('No se pudo crear el comentario');
+        }
+        
+        const comment = result.rows[0];
+        
+        // Obtener datos del usuario
+        const userResult = await pool.query(`
+            SELECT username, display_name, first_name, profile_picture_url 
+            FROM users WHERE id = $1
+        `, [user_id]);
+        
+        const userData = userResult.rows[0] || {};
+        
+        const responseData = {
+            id: comment.id,
+            parent_type: comment.parent_type,
+            parent_id: comment.parent_id,
+            content: comment.content,
+            votes_count: 0,
+            created_at: comment.created_at,
+            user: {
+                id: user_id,
+                name: userData.display_name || userData.first_name || userData.username || 'Usuario',
+                avatar_url: userData.profile_picture_url || '/assets/images/default-avatar.svg'
+            }
+        };
+        
+        console.log(`✅ Comentario creado exitosamente: ${comment.id}`);
+        res.status(201).json({
+            success: true,
+            data: responseData,
+            message: 'Comentario creado exitosamente'
+        });
+        
+    } catch (error) {
+        console.error('❌ Error creando comentario:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error creando comentario',
+            details: error.message
+        });
+    }
+});
+
+// POST /api/community/votes - Crear o actualizar voto
+app.post('/api/community/votes', async (req, res) => {
+    try {
+        console.log('🗳️ === INICIO PROCESAMIENTO VOTO ===');
+        console.log('📋 Body recibido:', req.body);
+        
+        const { user_id, target_type, target_id, vote_type } = req.body;
+        
+        // Validación de campos requeridos
+        if (!user_id || !target_type || !target_id || !vote_type) {
+            console.log('❌ Faltan campos obligatorios');
+            return res.status(400).json({
+                success: false,
+                error: 'Faltan campos obligatorios: user_id, target_type, target_id, vote_type'
+            });
+        }
+        
+        // Validar tipos permitidos
+        if (!['question', 'answer', 'comment'].includes(target_type)) {
+            return res.status(400).json({
+                success: false,
+                error: 'target_type debe ser "question", "answer" o "comment"'
+            });
+        }
+        
+        if (!['upvote', 'downvote'].includes(vote_type)) {
+            return res.status(400).json({
+                success: false,
+                error: 'vote_type debe ser "upvote" o "downvote"'
+            });
+        }
+        
+        // Verificar que el pool esté disponible
+        if (!pool) {
+            console.log('❌ Pool de base de datos no disponible');
+            return res.status(500).json({
+                success: false,
+                error: 'Base de datos no disponible'
+            });
+        }
+        
+        console.log('🗃️ Pool de base de datos disponible, procesando voto...');
+        
+        // Verificar si el usuario ya votó en este item
+        const existingVoteResult = await pool.query(`
+            SELECT * FROM community_votes 
+            WHERE user_id = $1 AND target_type = $2 AND target_id = $3
+        `, [user_id, target_type, target_id]);
+        
+        let action = '';
+        let voteData = null;
+        
+        if (existingVoteResult.rows.length > 0) {
+            const existingVote = existingVoteResult.rows[0];
+            
+            if (existingVote.vote_type === vote_type) {
+                // El usuario está quitando su voto (toggle)
+                await pool.query(`
+                    DELETE FROM community_votes 
+                    WHERE id = $1
+                `, [existingVote.id]);
+                
+                action = 'removed';
+                console.log(`🗳️ Voto removido: ${vote_type} en ${target_type} ${target_id}`);
+            } else {
+                // El usuario está cambiando su voto
+                const updateResult = await pool.query(`
+                    UPDATE community_votes 
+                    SET vote_type = $1
+                    WHERE id = $2
+                    RETURNING *
+                `, [vote_type, existingVote.id]);
+                
+                voteData = updateResult.rows[0];
+                action = 'updated';
+                console.log(`🗳️ Voto actualizado: ${vote_type} en ${target_type} ${target_id}`);
+            }
+        } else {
+            // Crear nuevo voto
+            const insertResult = await pool.query(`
+                INSERT INTO community_votes 
+                (user_id, target_type, target_id, vote_type, created_at)
+                VALUES ($1, $2, $3, $4, NOW())
+                RETURNING *
+            `, [user_id, target_type, target_id, vote_type]);
+            
+            voteData = insertResult.rows[0];
+            action = 'created';
+            console.log(`🗳️ Nuevo voto creado: ${vote_type} en ${target_type} ${target_id}`);
+        }
+        
+        const responseData = {
+            action: action,
+            vote_type: vote_type,
+            target_type: target_type,
+            target_id: target_id
+        };
+        
+        if (voteData) {
+            responseData.vote_id = voteData.id;
+            responseData.created_at = voteData.created_at;
+        }
+        
+        console.log(`✅ Voto procesado exitosamente: ${action}`);
+        res.status(200).json({
+            success: true,
+            data: responseData,
+            message: `Voto ${action === 'removed' ? 'removido' : action === 'updated' ? 'actualizado' : 'creado'} exitosamente`
+        });
+        
+    } catch (error) {
+        console.error('❌ Error procesando voto:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error procesando voto',
+            details: error.message
+        });
+    }
+});
+
+// POST /api/community/bookmarks - Toggle bookmark
+app.post('/api/community/bookmarks', async (req, res) => {
+    try {
+        console.log('🔖 === INICIO PROCESAMIENTO BOOKMARK ===');
+        console.log('📋 Body recibido:', req.body);
+        
+        const { user_id, question_id } = req.body;
+        
+        // Validación de campos requeridos
+        if (!user_id || !question_id) {
+            console.log('❌ Faltan campos obligatorios');
+            return res.status(400).json({
+                success: false,
+                error: 'Faltan campos obligatorios: user_id, question_id'
+            });
+        }
+        
+        // Verificar que el pool esté disponible
+        if (!pool) {
+            console.log('❌ Pool de base de datos no disponible');
+            return res.status(500).json({
+                success: false,
+                error: 'Base de datos no disponible'
+            });
+        }
+        
+        console.log('🗃️ Pool de base de datos disponible, procesando bookmark...');
+        
+        // Verificar si el bookmark ya existe
+        const existingBookmarkResult = await pool.query(`
+            SELECT * FROM community_bookmarks 
+            WHERE user_id = $1 AND question_id = $2
+        `, [user_id, question_id]);
+        
+        let action = '';
+        let bookmarkData = null;
+        
+        if (existingBookmarkResult.rows.length > 0) {
+            // Remover bookmark existente
+            const existingBookmark = existingBookmarkResult.rows[0];
+            await pool.query(`
+                DELETE FROM community_bookmarks 
+                WHERE id = $1
+            `, [existingBookmark.id]);
+            
+            action = 'removed';
+            console.log(`🔖 Bookmark removido para pregunta: ${question_id}`);
+        } else {
+            // Crear nuevo bookmark
+            const insertResult = await pool.query(`
+                INSERT INTO community_bookmarks 
+                (user_id, question_id, created_at)
+                VALUES ($1, $2, NOW())
+                RETURNING *
+            `, [user_id, question_id]);
+            
+            bookmarkData = insertResult.rows[0];
+            action = 'created';
+            console.log(`🔖 Nuevo bookmark creado para pregunta: ${question_id}`);
+        }
+        
+        const responseData = {
+            action: action,
+            question_id: question_id,
+            user_id: user_id
+        };
+        
+        if (bookmarkData) {
+            responseData.bookmark_id = bookmarkData.id;
+            responseData.created_at = bookmarkData.created_at;
+        }
+        
+        console.log(`✅ Bookmark procesado exitosamente: ${action}`);
+        res.status(200).json({
+            success: true,
+            data: responseData,
+            message: `Bookmark ${action === 'removed' ? 'removido' : 'creado'} exitosamente`
+        });
+        
+    } catch (error) {
+        console.error('❌ Error procesando bookmark:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error procesando bookmark',
+            details: error.message
+        });
+    }
+});
+
 // Middleware para rutas no encontrada (DEBE IR AL FINAL)
 app.use((req, res) => {
     console.log(`❌ Ruta no encontrada: ${req.method} ${req.path}`);

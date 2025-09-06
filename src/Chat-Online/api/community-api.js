@@ -117,6 +117,32 @@ class CommunityAPI {
     }
 
     // =====================================================
+    // COMENTARIOS
+    // =====================================================
+
+    /**
+     * Crear nuevo comentario
+     */
+    async createComment(commentData) {
+        const data = {
+            ...commentData,
+            user_id: this.currentUser?.id || 'demo-user'
+        };
+
+        return await this.makeRequest('/comments', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+
+    /**
+     * Obtener comentarios de una pregunta o respuesta
+     */
+    async getComments(parentType, parentId) {
+        return await this.makeRequest(`/comments?parent_type=${parentType}&parent_id=${parentId}`);
+    }
+
+    // =====================================================
     // VOTOS
     // =====================================================
 

@@ -46,6 +46,8 @@ class ChatOnline {
         this.communityEventListenersSetup = false;
         this.communityQuestionsLoaded = false;
         this.submittingQuestion = false;
+        this.answerModalListenersSetup = false;
+        this.commentModalListenersSetup = false;
         
         // IDs para la base de datos
         this.currentCourseId = '550e8400-e29b-41d4-a716-446655440001';
@@ -1695,10 +1697,7 @@ class ChatOnline {
             answerBtn.style.transform = '';
         }, 150);
         
-        this.showNotification('Abriendo editor de respuesta...', 'info');
-        
-        // TODO: Aquí se abrirá el modal de respuesta cuando esté implementado
-        // this.showAnswerModal(questionId);
+        this.showAnswerModal(questionId);
     }
 
     handleComment(questionId, commentBtn) {
@@ -1711,41 +1710,239 @@ class ChatOnline {
             commentBtn.style.transform = '';
         }, 150);
         
-        this.showNotification('Abriendo editor de comentario...', 'info');
-        
-        // TODO: Aquí se abrirá el modal de comentario cuando esté implementado
-        // this.showCommentModal(questionId);
+        this.showCommentModal(questionId);
     }
 
-    handleBookmark(questionId, bookmarkBtn) {
+    async handleBookmark(questionId, bookmarkBtn) {
         console.log('🔖 Manejando bookmark...');
         console.log(`🔖 Guardar/quitar pregunta: ${questionId}`);
         
         const isBookmarked = bookmarkBtn.classList.contains('bookmarked');
         
-        // Toggle del estado visual
-        if (!isBookmarked) {
-            bookmarkBtn.classList.add('bookmarked');
-            bookmarkBtn.innerHTML = `
-                <svg class="icon-sm" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                </svg>
-                Guardado
-            `;
-            this.showNotification('Pregunta guardada en favoritos', 'success');
-        } else {
-            bookmarkBtn.classList.remove('bookmarked');
-            bookmarkBtn.innerHTML = `
-                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                </svg>
-                Guardar
-            `;
-            this.showNotification('Pregunta removida de favoritos', 'info');
+        try {
+            // Deshabilitar botón mientras se procesa
+            bookmarkBtn.disabled = true;
+            
+            // Llamar al backend para toggle bookmark
+            const response = await window.communityAPI.toggleBookmark(questionId);
+            
+            if (response.success) {
+                // Actualizar UI basado en la respuesta del backend
+                const newIsBookmarked = response.data.action === 'created';
+                
+                if (newIsBookmarked) {
+                    bookmarkBtn.classList.add('bookmarked');
+                    bookmarkBtn.innerHTML = `
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Guardado
+                    `;
+                    this.showNotification('Pregunta guardada en favoritos', 'success');
+                } else {
+                    bookmarkBtn.classList.remove('bookmarked');
+                    bookmarkBtn.innerHTML = `
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Guardar
+                    `;
+                    this.showNotification('Pregunta removida de favoritos', 'info');
+                }
+            } else {
+                throw new Error(response.error || 'Error al procesar bookmark');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error al manejar bookmark:', error);
+            this.showNotification('Error al procesar bookmark. Intenta de nuevo.', 'error');
+            
+        } finally {
+            // Restaurar botón
+            bookmarkBtn.disabled = false;
         }
+    }
+
+    // ===== FUNCIONES DE MODALES =====
+
+    showAnswerModal(questionId) {
+        console.log(`📝 Mostrando modal de respuesta para pregunta: ${questionId}`);
         
-        // TODO: Aquí se enviará la petición al backend cuando esté listo
-        // this.sendBookmarkToBackend(questionId, !isBookmarked);
+        // Buscar la pregunta para mostrar contexto
+        const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+        if (!questionElement) {
+            this.showNotification('Error: No se pudo encontrar la pregunta', 'error');
+            return;
+        }
+
+        // Obtener datos de la pregunta
+        const title = questionElement.querySelector('.question-title')?.textContent || 'Pregunta';
+        const content = this.getQuestionFullContent(questionId) || 'Contenido no disponible';
+        const author = questionElement.querySelector('.question-author')?.textContent || 'Usuario';
+        const time = questionElement.querySelector('.question-time')?.textContent || 'hace un momento';
+
+        // Configurar contexto en el modal
+        const contextElement = document.getElementById('answerQuestionContext');
+        contextElement.innerHTML = `
+            <h4>${this.escapeHtml(title)}</h4>
+            <p>${this.escapeHtml(content)}</p>
+            <div class="question-context-meta">
+                <span class="question-context-author">
+                    <img src="${this.getQuestionAuthorAvatar(questionId)}" alt="Usuario">
+                    ${this.escapeHtml(author)}
+                </span>
+                <span>${time}</span>
+            </div>
+        `;
+
+        // Mostrar modal
+        const modal = document.getElementById('answerModal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        // Limpiar formulario
+        document.getElementById('answerContent').value = '';
+
+        // Guardar questionId para usar al enviar
+        modal.setAttribute('data-question-id', questionId);
+
+        // Focus en el textarea
+        setTimeout(() => {
+            document.getElementById('answerContent').focus();
+        }, 100);
+
+        // Configurar event listeners si no están configurados
+        this.setupAnswerModalListeners();
+    }
+
+    showCommentModal(questionId) {
+        console.log(`💭 Mostrando modal de comentario para pregunta: ${questionId}`);
+        
+        // Buscar la pregunta para mostrar contexto
+        const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+        if (!questionElement) {
+            this.showNotification('Error: No se pudo encontrar la pregunta', 'error');
+            return;
+        }
+
+        // Obtener datos de la pregunta
+        const title = questionElement.querySelector('.question-title')?.textContent || 'Pregunta';
+        const content = this.getQuestionFullContent(questionId) || 'Contenido no disponible';
+        const author = questionElement.querySelector('.question-author')?.textContent || 'Usuario';
+        const time = questionElement.querySelector('.question-time')?.textContent || 'hace un momento';
+
+        // Configurar contexto en el modal
+        const contextElement = document.getElementById('commentQuestionContext');
+        contextElement.innerHTML = `
+            <h4>${this.escapeHtml(title)}</h4>
+            <p>${this.escapeHtml(content)}</p>
+            <div class="question-context-meta">
+                <span class="question-context-author">
+                    <img src="${this.getQuestionAuthorAvatar(questionId)}" alt="Usuario">
+                    ${this.escapeHtml(author)}
+                </span>
+                <span>${time}</span>
+            </div>
+        `;
+
+        // Mostrar modal
+        const modal = document.getElementById('commentModal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        // Limpiar formulario
+        document.getElementById('commentContent').value = '';
+
+        // Guardar questionId para usar al enviar
+        modal.setAttribute('data-question-id', questionId);
+
+        // Focus en el textarea
+        setTimeout(() => {
+            document.getElementById('commentContent').focus();
+        }, 100);
+
+        // Configurar event listeners si no están configurados
+        this.setupCommentModalListeners();
+    }
+
+    getQuestionFullContent(questionId) {
+        // Buscar en las preguntas cargadas el contenido completo
+        // Por ahora usar el contenido parcial visible
+        const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+        const preview = questionElement.querySelector('.question-preview, .question-body')?.textContent;
+        return preview || 'Contenido no disponible';
+    }
+
+    getQuestionAuthorAvatar(questionId) {
+        const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+        const avatar = questionElement.querySelector('.author-avatar, .question-author img')?.src;
+        return avatar || '../../assets/images/default-avatar.svg';
+    }
+
+    setupAnswerModalListeners() {
+        if (this.answerModalListenersSetup) return;
+
+        // Botón cerrar
+        document.getElementById('closeAnswerModal').addEventListener('click', () => {
+            this.hideAnswerModal();
+        });
+
+        // Botón cancelar
+        document.getElementById('cancelAnswerBtn').addEventListener('click', () => {
+            this.hideAnswerModal();
+        });
+
+        // Overlay
+        document.querySelector('#answerModal .modal-overlay').addEventListener('click', () => {
+            this.hideAnswerModal();
+        });
+
+        // Formulario
+        document.getElementById('answerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.submitAnswer();
+        });
+
+        this.answerModalListenersSetup = true;
+    }
+
+    setupCommentModalListeners() {
+        if (this.commentModalListenersSetup) return;
+
+        // Botón cerrar
+        document.getElementById('closeCommentModal').addEventListener('click', () => {
+            this.hideCommentModal();
+        });
+
+        // Botón cancelar
+        document.getElementById('cancelCommentBtn').addEventListener('click', () => {
+            this.hideCommentModal();
+        });
+
+        // Overlay
+        document.querySelector('#commentModal .modal-overlay').addEventListener('click', () => {
+            this.hideCommentModal();
+        });
+
+        // Formulario
+        document.getElementById('commentForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.submitComment();
+        });
+
+        this.commentModalListenersSetup = true;
+    }
+
+    hideAnswerModal() {
+        const modal = document.getElementById('answerModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    hideCommentModal() {
+        const modal = document.getElementById('commentModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
     }
 
     getTimeAgo(dateString) {
@@ -6193,77 +6390,134 @@ class ChatOnline {
         console.log('🎬 Videos de prueba disponibles:', testVideos);
         return testVideos;
     }
+
+    // ===== FUNCIONES DE MODAL DE RESPUESTAS Y COMENTARIOS =====
     
-    /**
-     * FUNCIÓN DE PRUEBA TEMPORAL - Eliminar después de probar
-     * Para probar la nueva alerta de tiempo agotado
-     */
-    testTimeUpAlert() {
-        console.log('🧪 Probando nueva alerta de tiempo agotado...');
-        this.showTimeUpAlert();
+    async submitAnswer() {
+        console.log('📝 Enviando respuesta...');
+        
+        const form = document.getElementById('answerForm');
+        const content = document.getElementById('answerContent').value.trim();
+        const modal = document.getElementById('answerModal');
+        const questionId = modal.getAttribute('data-question-id');
+        
+        if (!content) {
+            this.showNotification('Por favor, escribe tu respuesta', 'warning');
+            return;
+        }
+        
+        if (!questionId) {
+            this.showNotification('Error: No se encontró la pregunta', 'error');
+            return;
+        }
+        
+        try {
+            // Mostrar estado de carga
+            const submitBtn = document.getElementById('submitAnswerBtn');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando...';
+            
+            // Crear datos de la respuesta
+            const answerData = {
+                question_id: questionId,
+                content: content,
+                user_id: this.obtenerTokenAuth() || 'demo-user'
+            };
+            
+            // Llamar a la API de comunidad
+            const response = await window.communityAPI.createAnswer(answerData);
+            
+            if (response.success) {
+                this.showNotification('Respuesta publicada exitosamente', 'success');
+                
+                // Limpiar formulario
+                document.getElementById('answerContent').value = '';
+                
+                // Cerrar modal
+                this.hideAnswerModal();
+                
+                // Actualizar la vista de preguntas (opcional)
+                this.loadCommunityQuestions();
+                
+            } else {
+                throw new Error(response.error || 'Error al publicar respuesta');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error al enviar respuesta:', error);
+            this.showNotification('Error al publicar la respuesta. Intenta de nuevo.', 'error');
+            
+        } finally {
+            // Restaurar botón
+            const submitBtn = document.getElementById('submitAnswerBtn');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Publicar Respuesta';
+        }
     }
     
-    /**
-     * FUNCIÓN DE PRUEBA TEMPORAL - Eliminar después de probar
-     * Para probar el flujo completo del quiz y verificar que no hay superposición
-     */
-    testQuizFlow() {
-        console.log('🧪 Probando flujo completo del quiz...');
+    async submitComment() {
+        console.log('💬 Enviando comentario...');
         
-        // Simular datos de quiz para prueba
-        this.quizData = [
-            {
-                id: 1,
-                question: "¿Cuál es la capital de España?",
-                type: "single",
-                options: ["Madrid", "Barcelona", "Valencia", "Sevilla"],
-                correct: "Madrid",
-                feedbackCorrect: "¡Correcto! Madrid es la capital de España.",
-                feedbackIncorrect: "Incorrecto. La capital de España es Madrid."
-            },
-            {
-                id: 2,
-                question: "¿Qué colores tiene la bandera de España?",
-                type: "multiple",
-                options: ["Rojo", "Amarillo", "Azul", "Verde"],
-                correct: ["Rojo", "Amarillo"],
-                feedbackCorrect: "¡Correcto! La bandera tiene rojo y amarillo.",
-                feedbackIncorrect: "Incorrecto. La bandera tiene rojo y amarillo."
+        const form = document.getElementById('commentForm');
+        const content = document.getElementById('commentContent').value.trim();
+        const modal = document.getElementById('commentModal');
+        const questionId = modal.getAttribute('data-question-id');
+        
+        if (!content) {
+            this.showNotification('Por favor, escribe tu comentario', 'warning');
+            return;
+        }
+        
+        if (!questionId) {
+            this.showNotification('Error: No se encontró la pregunta', 'error');
+            return;
+        }
+        
+        try {
+            // Mostrar estado de carga
+            const submitBtn = document.getElementById('submitCommentBtn');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando...';
+            
+            // Crear datos del comentario
+            const commentData = {
+                parent_type: 'question',
+                parent_id: questionId,
+                content: content,
+                user_id: this.obtenerTokenAuth() || 'demo-user'
+            };
+            
+            // Llamar a la API de comunidad
+            const response = await window.communityAPI.createComment(commentData);
+            
+            if (response.success) {
+                this.showNotification('Comentario publicado exitosamente', 'success');
+                
+                // Limpiar formulario
+                document.getElementById('commentContent').value = '';
+                
+                // Cerrar modal
+                this.hideCommentModal();
+                
+                // Actualizar la vista de preguntas (opcional)
+                this.loadCommunityQuestions();
+                
+            } else {
+                throw new Error(response.error || 'Error al publicar comentario');
             }
-        ];
-        
-        this.userAnswers = {
-            0: "Madrid",
-            1: ["Rojo", "Amarillo"]
-        };
-        
-        // Simular finalización del quiz
-        console.log('📊 Mostrando resultados...');
-        this.showQuizResults(2);
-        
-        // Después de 2 segundos, cambiar a materiales
-        setTimeout(() => {
-            console.log('📚 Cambiando a materiales...');
-            this.switchTab('materials');
-        }, 2000);
-        
-        // Después de 4 segundos, cambiar a video
-        setTimeout(() => {
-            console.log('🎥 Cambiando a video...');
-            this.switchTab('video');
-        }, 4000);
-        
-        // Después de 6 segundos, volver a quiz
-        setTimeout(() => {
-            console.log('❓ Volviendo a quiz...');
-            this.switchTab('quiz');
-        }, 6000);
-        
-        // Después de 8 segundos, simular reinicio
-        setTimeout(() => {
-            console.log('🔄 Reiniciando quiz...');
-            this.restartQuiz();
-        }, 8000);
+            
+        } catch (error) {
+            console.error('❌ Error al enviar comentario:', error);
+            this.showNotification('Error al publicar el comentario. Intenta de nuevo.', 'error');
+            
+        } finally {
+            // Restaurar botón
+            const submitBtn = document.getElementById('submitCommentBtn');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Publicar Comentario';
+        }
     }
 }
 
