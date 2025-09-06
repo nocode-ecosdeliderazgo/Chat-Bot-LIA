@@ -1940,42 +1940,7 @@ class ChatOnline {
 
     // ===== FUNCIONES DE MANEJO DE ACCIONES =====
 
-    handleVote(voteBtn) {
-        console.log('🗳️ Manejando voto...');
-        
-        const questionItem = voteBtn.closest('.question-item');
-        const questionId = questionItem.getAttribute('data-question-id');
-        const isUpvote = voteBtn.classList.contains('upvote');
-        const voteType = isUpvote ? 'upvote' : 'downvote';
-        
-        console.log(`🗳️ Voto ${voteType} para pregunta: ${questionId}`);
-        
-        // Feedback visual inmediato
-        const wasActive = voteBtn.classList.contains(isUpvote ? 'upvoted' : 'downvoted');
-        const otherVoteBtn = questionItem.querySelector(isUpvote ? '.downvote' : '.upvote');
-        const voteCountEl = questionItem.querySelector('.vote-count');
-        let currentCount = parseInt(voteCountEl.textContent) || 0;
-
-        // Resetear estados de ambos botones
-        voteBtn.classList.remove('upvoted', 'downvoted');
-        otherVoteBtn.classList.remove('upvoted', 'downvoted');
-
-        if (!wasActive) {
-            // Aplicar nuevo voto
-            voteBtn.classList.add(isUpvote ? 'upvoted' : 'downvoted');
-            currentCount += isUpvote ? 1 : -1;
-            this.showNotification(`${isUpvote ? 'Voto positivo' : 'Voto negativo'} registrado`, 'success');
-        } else {
-            // Quitar voto existente
-            currentCount += isUpvote ? -1 : 1;
-            this.showNotification('Voto removido', 'info');
-        }
-
-        voteCountEl.textContent = currentCount;
-        
-        // TODO: Aquí se enviará la petición al backend cuando esté listo
-        // this.sendVoteToBackend(questionId, voteType, !wasActive);
-    }
+    // FUNCIÓN ELIMINADA - Usar handleVote async que está más abajo
 
     handleAnswer(questionId, answerBtn) {
         console.log('💬 Manejando respuesta...');
@@ -2303,14 +2268,30 @@ class ChatOnline {
         if (!voteBtn) return;
         
         const isUpvote = voteBtn.classList.contains('upvote');
-        const questionItem = voteBtn.closest('.question-item');
-        const voteCount = voteBtn.parentElement.querySelector('.vote-count');
-        const questionId = questionItem?.getAttribute('data-question-id');
+        const isSmallBtn = voteBtn.classList.contains('vote-btn-sm');
         
-        if (!questionId) {
-            console.error('❌ No se encontró ID de pregunta');
+        // Determinar el tipo de elemento y su ID
+        let targetType, targetId, voteCountEl;
+        
+        // Para elementos en detalles (respuestas/comentarios) que usan data attributes
+        if (voteBtn.hasAttribute('data-target-type') && voteBtn.hasAttribute('data-target-id')) {
+            targetType = voteBtn.getAttribute('data-target-type');
+            targetId = voteBtn.getAttribute('data-target-id');
+            voteCountEl = voteBtn.parentElement.querySelector(isSmallBtn ? '.vote-count-sm' : '.vote-count');
+        } else {
+            // Para preguntas principales
+            const questionItem = voteBtn.closest('.question-item');
+            targetType = 'question';
+            targetId = questionItem?.getAttribute('data-question-id');
+            voteCountEl = voteBtn.parentElement.querySelector('.vote-count');
+        }
+        
+        if (!targetId) {
+            console.error('❌ No se encontró ID del elemento');
             return;
         }
+        
+        console.log(`🗳️ Votando en ${targetType} ${targetId}`);
 
         try {
             // Mostrar estado de carga
@@ -2321,12 +2302,17 @@ class ChatOnline {
             const voteType = isUpvote ? 'upvote' : 'downvote';
             
             // Llamar a la API
-            const response = await window.communityAPI.vote('question', questionId, voteType);
+            const response = await window.communityAPI.vote(targetType, targetId, voteType);
             
             if (response.success) {
                 // Actualizar UI basado en la respuesta
-                this.updateVoteUI(voteBtn, response.data, voteCount);
+                await this.updateVoteUI(voteBtn, response.data, voteCountEl, targetType, targetId);
                 console.log(`✅ Voto ${response.data.action} exitosamente`);
+                
+                // Mostrar notificación de éxito
+                const actionText = response.data.action === 'removed' ? 'removido' : 
+                                 response.data.action === 'updated' ? 'actualizado' : 'registrado';
+                this.showNotification(`Voto ${actionText}`, 'success');
             }
             
         } catch (error) {
@@ -2339,36 +2325,66 @@ class ChatOnline {
         }
     }
 
-    updateVoteUI(voteBtn, voteData, voteCount) {
+    async updateVoteUI(voteBtn, voteData, voteCountEl, targetType, targetId) {
         const isUpvote = voteBtn.classList.contains('upvote');
-        const oppositeBtn = isUpvote ? 
-            voteBtn.parentElement.querySelector('.downvote') : 
-            voteBtn.parentElement.querySelector('.upvote');
+        const isSmallBtn = voteBtn.classList.contains('vote-btn-sm');
         
-        // Limpiar estados previos
+        // Buscar botón opuesto
+        const oppositeBtn = isUpvote ? 
+            voteBtn.parentElement.querySelector(isSmallBtn ? '.downvote' : '.downvote') : 
+            voteBtn.parentElement.querySelector(isSmallBtn ? '.upvote' : '.upvote');
+        
+        // Limpiar estados previos de ambos botones
         voteBtn.classList.remove('voted');
         if (oppositeBtn) oppositeBtn.classList.remove('voted');
         
-        // Aplicar nuevo estado
+        // Aplicar nuevo estado visual
         if (voteData.action === 'created' || voteData.action === 'updated') {
             voteBtn.classList.add('voted');
-            
-            // Actualizar contador (simplificado - en producción deberías obtener el contador real)
-            const currentCount = parseInt(voteCount.textContent) || 0;
-            if (voteData.vote_type === 'upvote') {
-                voteCount.textContent = currentCount + 1;
-            } else {
-                voteCount.textContent = currentCount - 1;
-            }
-        } else if (voteData.action === 'removed') {
-            // Restaurar contador original
-            const currentCount = parseInt(voteCount.textContent) || 0;
-            if (isUpvote) {
-                voteCount.textContent = currentCount - 1;
-            } else {
-                voteCount.textContent = currentCount + 1;
-            }
         }
+        
+        // IMPORTANTE: Obtener contador real del servidor en lugar de calcular localmente
+        try {
+            const realCount = await this.getRealVoteCount(targetType, targetId);
+            if (voteCountEl && realCount !== null) {
+                voteCountEl.textContent = realCount;
+                console.log(`📊 Contador actualizado desde servidor: ${realCount}`);
+            }
+        } catch (error) {
+            console.error('❌ Error obteniendo contador real:', error);
+            // Fallback: no actualizar el contador si falla
+        }
+    }
+    
+    // Nueva función para obtener el contador real de votos
+    async getRealVoteCount(targetType, targetId) {
+        try {
+            if (targetType === 'question') {
+                const response = await fetch(`/api/community/questions/${targetId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.data?.votes_count || 0;
+                }
+            } else if (targetType === 'answer' || targetType === 'comment') {
+                // Para respuestas y comentarios, recargar la sección de detalles
+                // Buscar la pregunta padre para recargar toda la sección
+                const detailsSection = document.querySelector('.question-details');
+                if (detailsSection) {
+                    const questionId = detailsSection.getAttribute('data-question-id');
+                    if (questionId) {
+                        console.log(`🔄 Recargando detalles de pregunta ${questionId} después de voto en ${targetType}`);
+                        // Pequeño delay para dar tiempo a que el servidor actualice
+                        setTimeout(() => {
+                            this.reloadQuestionSection(questionId, 'votes');
+                        }, 500);
+                    }
+                }
+                return null; // No actualizar localmente, se recarga la sección
+            }
+        } catch (error) {
+            console.error('❌ Error obteniendo contador de votos:', error);
+        }
+        return null;
     }
     
     

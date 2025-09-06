@@ -5133,6 +5133,60 @@ app.post('/api/community/comments', async (req, res) => {
     }
 });
 
+// Función auxiliar para actualizar contadores de votos
+async function updateVoteCount(target_type, target_id) {
+    try {
+        // Recalcular votos reales desde la tabla community_votes
+        const voteCountResult = await pool.query(`
+            SELECT 
+                COUNT(CASE WHEN vote_type = 'upvote' THEN 1 END) as upvotes,
+                COUNT(CASE WHEN vote_type = 'downvote' THEN 1 END) as downvotes,
+                COUNT(CASE WHEN vote_type = 'upvote' THEN 1 END) - 
+                COUNT(CASE WHEN vote_type = 'downvote' THEN 1 END) as total_votes
+            FROM community_votes 
+            WHERE target_type = $1 AND target_id = $2
+        `, [target_type, target_id]);
+        
+        const voteData = voteCountResult.rows[0];
+        const totalVotes = parseInt(voteData.total_votes) || 0;
+        
+        console.log(`📊 Recalculando votos para ${target_type} ${target_id}:`, {
+            upvotes: voteData.upvotes,
+            downvotes: voteData.downvotes, 
+            total: totalVotes
+        });
+        
+        // Actualizar el contador en la tabla correspondiente
+        if (target_type === 'question') {
+            await pool.query(`
+                UPDATE community_questions 
+                SET votes_count = $1, updated_at = NOW()
+                WHERE id = $2
+            `, [totalVotes, target_id]);
+            console.log(`✅ community_questions actualizada con votes_count = ${totalVotes}`);
+        } else if (target_type === 'answer') {
+            await pool.query(`
+                UPDATE community_answers 
+                SET votes_count = $1, updated_at = NOW()
+                WHERE id = $2
+            `, [totalVotes, target_id]);
+            console.log(`✅ community_answers actualizada con votes_count = ${totalVotes}`);
+        } else if (target_type === 'comment') {
+            await pool.query(`
+                UPDATE community_comments 
+                SET votes_count = $1, updated_at = NOW()
+                WHERE id = $2
+            `, [totalVotes, target_id]);
+            console.log(`✅ community_comments actualizada con votes_count = ${totalVotes}`);
+        }
+        
+        return totalVotes;
+    } catch (error) {
+        console.error('❌ Error actualizando contador de votos:', error);
+        throw error;
+    }
+}
+
 // POST /api/community/votes - Crear o actualizar voto
 app.post('/api/community/votes', async (req, res) => {
     try {
@@ -5223,6 +5277,9 @@ app.post('/api/community/votes', async (req, res) => {
             action = 'created';
             console.log(`🗳️ Nuevo voto creado: ${vote_type} en ${target_type} ${target_id}`);
         }
+        
+        // Actualizar contador de votos en la tabla correspondiente
+        await updateVoteCount(target_type, target_id);
         
         const responseData = {
             action: action,
@@ -5406,6 +5463,52 @@ app.get('/api/community/questions/:questionId/answers', async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Error obteniendo respuestas',
+            details: error.message
+        });
+    }
+});
+
+// GET /api/community/questions/:id - Obtener una pregunta específica
+app.get('/api/community/questions/:id', async (req, res) => {
+    try {
+        console.log('📝 === OBTENIENDO PREGUNTA ESPECÍFICA ===');
+        const { id } = req.params;
+        
+        if (!pool) {
+            return res.status(500).json({
+                success: false,
+                error: 'Base de datos no disponible'
+            });
+        }
+        
+        const result = await pool.query(`
+            SELECT q.*, u.username, u.display_name, u.first_name, u.profile_picture_url,
+                   COALESCE(u.display_name, u.first_name, u.username, 'Usuario') as author_name
+            FROM community_questions q
+            LEFT JOIN users u ON q.user_id = u.id
+            WHERE q.id = $1
+        `, [id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Pregunta no encontrada'
+            });
+        }
+        
+        const question = result.rows[0];
+        
+        console.log(`✅ Pregunta obtenida: ${question.title}`);
+        res.status(200).json({
+            success: true,
+            data: question
+        });
+        
+    } catch (error) {
+        console.error('❌ Error obteniendo pregunta:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error obteniendo pregunta',
             details: error.message
         });
     }
