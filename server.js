@@ -5342,6 +5342,149 @@ app.post('/api/community/bookmarks', async (req, res) => {
     }
 });
 
+// GET /api/community/questions/:questionId/answers - Obtener respuestas de una pregunta
+app.get('/api/community/questions/:questionId/answers', async (req, res) => {
+    try {
+        console.log('📝 === OBTENIENDO RESPUESTAS ===');
+        const { questionId } = req.params;
+        const { sort = 'votes' } = req.query;
+        
+        console.log(`📋 Pregunta ID: ${questionId}, Orden: ${sort}`);
+        
+        // Verificar que el pool esté disponible
+        if (!pool) {
+            return res.status(500).json({
+                success: false,
+                error: 'Base de datos no disponible'
+            });
+        }
+        
+        // Construir query de ordenamiento
+        let orderBy = 'a.created_at DESC';
+        if (sort === 'votes') {
+            orderBy = 'a.votes_count DESC, a.created_at DESC';
+        } else if (sort === 'recent') {
+            orderBy = 'a.created_at DESC';
+        } else if (sort === 'oldest') {
+            orderBy = 'a.created_at ASC';
+        }
+        
+        // Obtener respuestas con datos del usuario
+        const result = await pool.query(`
+            SELECT a.*, 
+                   u.username, u.display_name, u.first_name, u.profile_picture_url,
+                   COALESCE(u.display_name, u.first_name, u.username, 'Usuario') as author_name
+            FROM community_answers a
+            LEFT JOIN users u ON a.user_id = u.id
+            WHERE a.question_id = $1
+            ORDER BY ${orderBy}
+        `, [questionId]);
+        
+        const answers = result.rows.map(answer => ({
+            id: answer.id,
+            question_id: answer.question_id,
+            content: answer.content,
+            votes_count: answer.votes_count || 0,
+            is_accepted: answer.is_accepted || false,
+            created_at: answer.created_at,
+            author: {
+                id: answer.user_id,
+                name: answer.author_name,
+                avatar_url: answer.profile_picture_url || '/assets/images/default-avatar.svg'
+            }
+        }));
+        
+        console.log(`✅ ${answers.length} respuestas encontradas`);
+        res.json({
+            success: true,
+            data: answers,
+            total: answers.length
+        });
+        
+    } catch (error) {
+        console.error('❌ Error obteniendo respuestas:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error obteniendo respuestas',
+            details: error.message
+        });
+    }
+});
+
+// GET /api/community/comments - Obtener comentarios por parent_type y parent_id
+app.get('/api/community/comments', async (req, res) => {
+    try {
+        console.log('💬 === OBTENIENDO COMENTARIOS ===');
+        const { parent_type, parent_id, sort = 'recent' } = req.query;
+        
+        console.log(`📋 Tipo: ${parent_type}, ID: ${parent_id}, Orden: ${sort}`);
+        
+        // Validar parámetros requeridos
+        if (!parent_type || !parent_id) {
+            return res.status(400).json({
+                success: false,
+                error: 'Faltan parámetros requeridos: parent_type, parent_id'
+            });
+        }
+        
+        // Verificar que el pool esté disponible
+        if (!pool) {
+            return res.status(500).json({
+                success: false,
+                error: 'Base de datos no disponible'
+            });
+        }
+        
+        // Construir query de ordenamiento
+        let orderBy = 'c.created_at ASC'; // Comentarios generalmente van en orden cronológico
+        if (sort === 'votes') {
+            orderBy = 'c.votes_count DESC, c.created_at ASC';
+        } else if (sort === 'recent') {
+            orderBy = 'c.created_at DESC';
+        }
+        
+        // Obtener comentarios con datos del usuario
+        const result = await pool.query(`
+            SELECT c.*, 
+                   u.username, u.display_name, u.first_name, u.profile_picture_url,
+                   COALESCE(u.display_name, u.first_name, u.username, 'Usuario') as author_name
+            FROM community_comments c
+            LEFT JOIN users u ON c.user_id = u.id
+            WHERE c.parent_type = $1 AND c.parent_id = $2
+            ORDER BY ${orderBy}
+        `, [parent_type, parent_id]);
+        
+        const comments = result.rows.map(comment => ({
+            id: comment.id,
+            parent_type: comment.parent_type,
+            parent_id: comment.parent_id,
+            content: comment.content,
+            votes_count: comment.votes_count || 0,
+            created_at: comment.created_at,
+            author: {
+                id: comment.user_id,
+                name: comment.author_name,
+                avatar_url: comment.profile_picture_url || '/assets/images/default-avatar.svg'
+            }
+        }));
+        
+        console.log(`✅ ${comments.length} comentarios encontrados`);
+        res.json({
+            success: true,
+            data: comments,
+            total: comments.length
+        });
+        
+    } catch (error) {
+        console.error('❌ Error obteniendo comentarios:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error obteniendo comentarios',
+            details: error.message
+        });
+    }
+});
+
 // Middleware para rutas no encontrada (DEBE IR AL FINAL)
 app.use((req, res) => {
     console.log(`❌ Ruta no encontrada: ${req.method} ${req.path}`);

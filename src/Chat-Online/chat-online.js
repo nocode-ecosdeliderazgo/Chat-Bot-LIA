@@ -1789,10 +1789,300 @@ class ChatOnline {
         });
     }
 
-    showQuestionDetails(questionId) {
+    async showQuestionDetails(questionId) {
         console.log(`📖 Mostrando detalles de pregunta: ${questionId}`);
-        // Aquí se implementará la vista de detalles de la pregunta
-        this.showNotification('Funcionalidad de detalles próximamente', 'info');
+        
+        try {
+            // Buscar la pregunta para toggle de expansión
+            const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+            if (!questionElement) {
+                console.error('❌ Elemento de pregunta no encontrado');
+                return;
+            }
+            
+            // Verificar si ya existe una sección de detalles
+            let detailsSection = questionElement.querySelector('.question-details');
+            
+            if (detailsSection) {
+                // Si ya existe, toggle de visibilidad
+                const isVisible = detailsSection.style.display !== 'none';
+                detailsSection.style.display = isVisible ? 'none' : 'block';
+                
+                // Actualizar el texto del botón
+                const detailsBtn = questionElement.querySelector('.details-btn');
+                if (detailsBtn) {
+                    detailsBtn.textContent = isVisible ? 'Ver detalles' : 'Ocultar detalles';
+                }
+                
+                if (isVisible) return; // Si se está ocultando, no cargar datos
+            } else {
+                // Crear sección de detalles si no existe
+                detailsSection = document.createElement('div');
+                detailsSection.className = 'question-details';
+                detailsSection.innerHTML = `
+                    <div class="details-loading">
+                        <div class="loading-spinner"></div>
+                        Cargando respuestas y comentarios...
+                    </div>
+                `;
+                questionElement.appendChild(detailsSection);
+                
+                // Actualizar el texto del botón
+                const detailsBtn = questionElement.querySelector('.details-btn');
+                if (detailsBtn) {
+                    detailsBtn.textContent = 'Ocultar detalles';
+                }
+            }
+            
+            // Cargar respuestas y comentarios
+            console.log('🔄 Cargando respuestas y comentarios...');
+            
+            const [answersResponse, commentsResponse] = await Promise.all([
+                window.communityAPI.getQuestionAnswers(questionId, 'votes'),
+                window.communityAPI.getComments('question', questionId)
+            ]);
+            
+            // Verificar respuestas exitosas
+            if (!answersResponse.success) {
+                throw new Error(answersResponse.error || 'Error cargando respuestas');
+            }
+            
+            if (!commentsResponse.success) {
+                throw new Error(commentsResponse.error || 'Error cargando comentarios');
+            }
+            
+            const answers = answersResponse.data || [];
+            const comments = commentsResponse.data || [];
+            
+            console.log(`✅ Cargados: ${answers.length} respuestas, ${comments.length} comentarios`);
+            
+            // Generar HTML para respuestas y comentarios
+            const detailsHTML = this.generateQuestionDetailsHTML(answers, comments);
+            detailsSection.innerHTML = detailsHTML;
+            
+            // Configurar event listeners para votos en respuestas y comentarios
+            this.setupDetailsEventListeners(detailsSection);
+            
+        } catch (error) {
+            console.error('❌ Error cargando detalles de pregunta:', error);
+            
+            // Mostrar error en la sección de detalles si existe
+            const detailsSection = document.querySelector(`[data-question-id="${questionId}"] .question-details`);
+            if (detailsSection) {
+                detailsSection.innerHTML = `
+                    <div class="details-error">
+                        <p>❌ Error cargando los detalles: ${error.message}</p>
+                        <button class="retry-btn" onclick="window.chatOnline.showQuestionDetails('${questionId}')">
+                            Reintentar
+                        </button>
+                    </div>
+                `;
+            }
+            
+            this.showNotification('Error cargando detalles de la pregunta', 'error');
+        }
+    }
+
+    generateQuestionDetailsHTML(answers, comments) {
+        const answersHTML = answers.length > 0 ? answers.map(answer => `
+            <div class="answer-item" data-answer-id="${answer.id}">
+                <div class="answer-header">
+                    <div class="answer-author">
+                        <img src="${answer.author.avatar_url}" alt="${answer.author.name}" class="author-avatar">
+                        <span class="author-name">${this.escapeHtml(answer.author.name)}</span>
+                        <span class="answer-time">${this.getTimeAgo(answer.created_at)}</span>
+                        ${answer.is_accepted ? '<span class="accepted-badge">✓ Respuesta aceptada</span>' : ''}
+                    </div>
+                </div>
+                <div class="answer-content">
+                    <p>${this.escapeHtml(answer.content)}</p>
+                </div>
+                <div class="answer-actions">
+                    <div class="vote-controls">
+                        <button class="vote-btn upvote" data-target-type="answer" data-target-id="${answer.id}" title="Voto positivo">
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m18 15-6-6-6 6"/>
+                            </svg>
+                        </button>
+                        <span class="vote-count">${answer.votes_count || 0}</span>
+                        <button class="vote-btn downvote" data-target-type="answer" data-target-id="${answer.id}" title="Voto negativo">
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m6 9 6 6 6-6"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <button class="action-btn comment-btn" data-answer-id="${answer.id}" title="Comentar respuesta">
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Comentar
+                    </button>
+                </div>
+            </div>
+        `).join('') : '<p class="no-answers">No hay respuestas aún. ¡Sé el primero en responder!</p>';
+        
+        const commentsHTML = comments.length > 0 ? comments.map(comment => `
+            <div class="comment-item" data-comment-id="${comment.id}">
+                <div class="comment-header">
+                    <img src="${comment.author.avatar_url}" alt="${comment.author.name}" class="author-avatar-sm">
+                    <span class="author-name">${this.escapeHtml(comment.author.name)}</span>
+                    <span class="comment-time">${this.getTimeAgo(comment.created_at)}</span>
+                </div>
+                <div class="comment-content">
+                    <p>${this.escapeHtml(comment.content)}</p>
+                </div>
+                <div class="comment-actions">
+                    <div class="vote-controls-sm">
+                        <button class="vote-btn-sm upvote" data-target-type="comment" data-target-id="${comment.id}" title="Voto positivo">
+                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m18 15-6-6-6 6"/>
+                            </svg>
+                        </button>
+                        <span class="vote-count-sm">${comment.votes_count || 0}</span>
+                        <button class="vote-btn-sm downvote" data-target-type="comment" data-target-id="${comment.id}" title="Voto negativo">
+                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m6 9 6 6 6-6"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('') : '<p class="no-comments">No hay comentarios aún.</p>';
+        
+        return `
+            <div class="question-details-content">
+                <div class="details-section answers-section">
+                    <h4 class="section-title">
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Respuestas (${answers.length})
+                        <div class="sort-options">
+                            <select class="sort-select" data-section="answers">
+                                <option value="votes">Por votos</option>
+                                <option value="recent">Más recientes</option>
+                                <option value="oldest">Más antiguas</option>
+                            </select>
+                        </div>
+                    </h4>
+                    <div class="answers-list">
+                        ${answersHTML}
+                    </div>
+                </div>
+                
+                <div class="details-section comments-section">
+                    <h4 class="section-title">
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                        </svg>
+                        Comentarios (${comments.length})
+                    </h4>
+                    <div class="comments-list">
+                        ${commentsHTML}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    setupDetailsEventListeners(detailsSection) {
+        // Event listeners para votos en respuestas
+        detailsSection.querySelectorAll('.answer-item .vote-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.handleVote(btn);
+            });
+        });
+        
+        // Event listeners para votos en comentarios  
+        detailsSection.querySelectorAll('.comment-item .vote-btn-sm').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.handleVote(btn);
+            });
+        });
+        
+        // Event listeners para comentar respuestas
+        detailsSection.querySelectorAll('.comment-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const answerId = btn.getAttribute('data-answer-id');
+                if (answerId) {
+                    this.showCommentModal(answerId, 'answer');
+                }
+            });
+        });
+        
+        // Event listeners para ordenamiento
+        detailsSection.querySelectorAll('.sort-select').forEach(select => {
+            select.addEventListener('change', (e) => {
+                const section = e.target.getAttribute('data-section');
+                const sortBy = e.target.value;
+                
+                // Obtener el question ID del elemento padre
+                const questionElement = detailsSection.closest('[data-question-id]');
+                const questionId = questionElement?.getAttribute('data-question-id');
+                
+                if (questionId) {
+                    // Recargar la sección con nuevo ordenamiento
+                    this.reloadQuestionSection(questionId, section, sortBy);
+                }
+            });
+        });
+    }
+    
+    async reloadQuestionSection(questionId, section, sortBy) {
+        console.log(`🔄 Recargando sección ${section} con orden: ${sortBy}`);
+        
+        try {
+            let data = [];
+            let containerSelector = '';
+            
+            if (section === 'answers') {
+                const response = await window.communityAPI.getQuestionAnswers(questionId, sortBy);
+                if (response.success) {
+                    data = response.data || [];
+                    containerSelector = '.answers-list';
+                }
+            } else if (section === 'comments') {
+                const response = await window.communityAPI.getComments('question', questionId);
+                if (response.success) {
+                    data = response.data || [];
+                    containerSelector = '.comments-list';
+                }
+            }
+            
+            // Actualizar el HTML de la sección específica
+            const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+            const container = questionElement.querySelector(containerSelector);
+            
+            if (container && data) {
+                if (section === 'answers') {
+                    container.innerHTML = data.length > 0 ? data.map(answer => `
+                        <div class="answer-item" data-answer-id="${answer.id}">
+                            <!-- HTML de respuesta como arriba -->
+                        </div>
+                    `).join('') : '<p class="no-answers">No hay respuestas aún.</p>';
+                } else if (section === 'comments') {
+                    container.innerHTML = data.length > 0 ? data.map(comment => `
+                        <div class="comment-item" data-comment-id="${comment.id}">
+                            <!-- HTML de comentario como arriba -->
+                        </div>
+                    `).join('') : '<p class="no-comments">No hay comentarios aún.</p>';
+                }
+                
+                // Reconfigurar event listeners para los nuevos elementos
+                const detailsSection = questionElement.querySelector('.question-details');
+                this.setupDetailsEventListeners(detailsSection);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error recargando sección:', error);
+            this.showNotification('Error recargando contenido', 'error');
+        }
     }
 
     // ===== FUNCIONES DE MANEJO DE ACCIONES =====
@@ -1962,35 +2252,80 @@ class ChatOnline {
         this.setupAnswerModalListeners();
     }
 
-    showCommentModal(questionId) {
-        console.log(`💭 Mostrando modal de comentario para pregunta: ${questionId}`);
+    showCommentModal(targetId, targetType = 'question') {
+        console.log(`💭 Mostrando modal de comentario para ${targetType}: ${targetId}`);
         
-        // Buscar la pregunta para mostrar contexto
-        const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
-        if (!questionElement) {
-            this.showNotification('Error: No se pudo encontrar la pregunta', 'error');
-            return;
+        let contextHTML = '';
+        let modalTitle = '';
+        
+        if (targetType === 'question') {
+            // Buscar la pregunta para mostrar contexto
+            const questionElement = document.querySelector(`[data-question-id="${targetId}"]`);
+            if (!questionElement) {
+                this.showNotification('Error: No se pudo encontrar la pregunta', 'error');
+                return;
+            }
+
+            // Obtener datos de la pregunta
+            const title = questionElement.querySelector('.question-title')?.textContent || 'Pregunta';
+            const content = this.getQuestionFullContent(targetId) || 'Contenido no disponible';
+            const author = questionElement.querySelector('.question-author')?.textContent || 'Usuario';
+            const time = questionElement.querySelector('.question-time')?.textContent || 'hace un momento';
+
+            modalTitle = 'Comentar Pregunta';
+            contextHTML = `
+                <h4>${this.escapeHtml(title)}</h4>
+                <p>${this.escapeHtml(content)}</p>
+                <div class="question-context-meta">
+                    <span class="question-context-author">
+                        <img src="${this.getQuestionAuthorAvatar(targetId)}" alt="Usuario">
+                        ${this.escapeHtml(author)}
+                    </span>
+                    <span>${time}</span>
+                </div>
+            `;
+        } else if (targetType === 'answer') {
+            // Buscar la respuesta para mostrar contexto
+            const answerElement = document.querySelector(`[data-answer-id="${targetId}"]`);
+            if (!answerElement) {
+                this.showNotification('Error: No se pudo encontrar la respuesta', 'error');
+                return;
+            }
+
+            // Obtener datos de la respuesta
+            const content = answerElement.querySelector('.answer-content p')?.textContent || 'Contenido no disponible';
+            const author = answerElement.querySelector('.author-name')?.textContent || 'Usuario';
+            const time = answerElement.querySelector('.answer-time')?.textContent || 'hace un momento';
+            const avatar = answerElement.querySelector('.author-avatar')?.src || '/assets/images/default-avatar.svg';
+
+            modalTitle = 'Comentar Respuesta';
+            contextHTML = `
+                <h4>Respuesta de ${this.escapeHtml(author)}</h4>
+                <p>${this.escapeHtml(content)}</p>
+                <div class="question-context-meta">
+                    <span class="question-context-author">
+                        <img src="${avatar}" alt="Usuario">
+                        ${this.escapeHtml(author)}
+                    </span>
+                    <span>${time}</span>
+                </div>
+            `;
         }
 
-        // Obtener datos de la pregunta
-        const title = questionElement.querySelector('.question-title')?.textContent || 'Pregunta';
-        const content = this.getQuestionFullContent(questionId) || 'Contenido no disponible';
-        const author = questionElement.querySelector('.question-author')?.textContent || 'Usuario';
-        const time = questionElement.querySelector('.question-time')?.textContent || 'hace un momento';
+        // Actualizar el título del modal
+        const modalHeader = document.querySelector('#commentModal .modal-header h3');
+        if (modalHeader) {
+            modalHeader.innerHTML = `
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                </svg>
+                ${modalTitle}
+            `;
+        }
 
         // Configurar contexto en el modal
         const contextElement = document.getElementById('commentQuestionContext');
-        contextElement.innerHTML = `
-            <h4>${this.escapeHtml(title)}</h4>
-            <p>${this.escapeHtml(content)}</p>
-            <div class="question-context-meta">
-                <span class="question-context-author">
-                    <img src="${this.getQuestionAuthorAvatar(questionId)}" alt="Usuario">
-                    ${this.escapeHtml(author)}
-                </span>
-                <span>${time}</span>
-            </div>
-        `;
+        contextElement.innerHTML = contextHTML;
 
         // Mostrar modal
         const modal = document.getElementById('commentModal');
@@ -2000,8 +2335,9 @@ class ChatOnline {
         // Limpiar formulario
         document.getElementById('commentContent').value = '';
 
-        // Guardar questionId para usar al enviar
-        modal.setAttribute('data-question-id', questionId);
+        // Guardar datos para usar al enviar
+        modal.setAttribute('data-target-id', targetId);
+        modal.setAttribute('data-target-type', targetType);
 
         // Focus en el textarea
         setTimeout(() => {
@@ -6609,15 +6945,16 @@ class ChatOnline {
         const form = document.getElementById('commentForm');
         const content = document.getElementById('commentContent').value.trim();
         const modal = document.getElementById('commentModal');
-        const questionId = modal.getAttribute('data-question-id');
+        const targetId = modal.getAttribute('data-target-id');
+        const targetType = modal.getAttribute('data-target-type') || 'question';
         
         if (!content) {
             this.showNotification('Por favor, escribe tu comentario', 'warning');
             return;
         }
         
-        if (!questionId) {
-            this.showNotification('Error: No se encontró la pregunta', 'error');
+        if (!targetId) {
+            this.showNotification('Error: No se encontró el elemento a comentar', 'error');
             return;
         }
         
@@ -6630,8 +6967,8 @@ class ChatOnline {
             
             // Crear datos del comentario
             const commentData = {
-                parent_type: 'question',
-                parent_id: questionId,
+                parent_type: targetType,
+                parent_id: targetId,
                 content: content,
                 user_id: this.obtenerTokenAuth() || 'demo-user'
             };
