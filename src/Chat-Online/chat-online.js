@@ -188,18 +188,10 @@ class ChatOnline {
         // Configurar progress dots
         this.setupProgressDots();
         
-        // Poblar módulos del sidebar
-        this.populateModulesSidebar();
+        // Inicializar el sistema simple de módulos estilo Coursera
+        window.initializeSimpleModuleSystem();
         
-        // Configurar módulos
-        const moduleItems = document.querySelectorAll('.module-item');
-        moduleItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                const moduleId = parseInt(e.currentTarget.dataset.module);
-                console.log(`📚 Seleccionando módulo: ${moduleId}`);
-                this.selectModule(moduleId);
-            });
-        });
+        // Los eventos se manejan directamente en el HTML con onclick
     }
 
     // ===== POBLAR MÓDULOS DEL SIDEBAR =====
@@ -259,27 +251,14 @@ class ChatOnline {
 
         const modulesHTML = modules.map(module => `
             <div class="module-item ${module.status}" data-module="${module.id}">
+                <div class="module-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                </div>
                 <div class="module-info">
                     <h4>${module.title}</h4>
-                    <p class="module-description">${module.description}</p>
-                    <div class="module-meta">
-                        <div class="module-duration">
-                            <div class="duration-text">
-                                <svg class="duration-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12,6 12,12 16,14"/>
-                                </svg>
-                                ${module.duration}
-                            </div>
-                            <div class="videos-count">
-                                <svg class="video-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polygon points="5,3 19,12 5,21"/>
-                                </svg>
-                                ${module.videos} videos
-                            </div>
-                        </div>
-                        <div class="module-progress">${module.progress}% completado</div>
-                    </div>
+                    <p class="module-description">Vídeo • ${module.duration}</p>
                 </div>
             </div>
         `).join('');
@@ -7229,6 +7208,148 @@ window.switchTab = function(contentType) {
 };
 
 console.log('✅ window.switchTab definido globalmente');
+
+// Función para inicializar el sistema simple de módulos estilo Coursera
+window.initializeSimpleModuleSystem = function() {
+    console.log('📚 Inicializando sistema simple de módulos...');
+    
+    // Ocultar el spinner de carga y mostrar la lista de módulos simples
+    const loadingModules = document.querySelector('.loading-modules');
+    const modulesList = document.querySelector('.modules-list');
+    
+    if (loadingModules && modulesList) {
+        setTimeout(() => {
+            loadingModules.style.display = 'none';
+            
+            // Generar la lista simple de módulos
+            const simpleModulesHTML = `
+                <div class="module-item completed" data-module="1" onclick="selectSimpleModule(1)">
+                    <div class="module-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <polyline points="20,6 9,17 4,12" stroke="currentColor" stroke-width="2" fill="none"/>
+                        </svg>
+                    </div>
+                    <div class="module-info">
+                        <h4>Introducción a Fundamentos de IA</h4>
+                        <p class="module-description">Vídeo • 8 min</p>
+                    </div>
+                </div>
+                
+                <div class="module-item current" data-module="2" onclick="selectSimpleModule(2)">
+                    <div class="module-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </div>
+                    <div class="module-info">
+                        <h4>Historia y Evolución de la IA</h4>
+                        <p class="module-description">Vídeo • 12 min</p>
+                    </div>
+                </div>
+                
+                <div class="module-item" data-module="3" onclick="selectSimpleModule(3)">
+                    <div class="module-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" fill="none"/>
+                        </svg>
+                    </div>
+                    <div class="module-info">
+                        <h4>Tipos de Inteligencia Artificial</h4>
+                        <p class="module-description">Lectura • 15 min</p>
+                    </div>
+                </div>
+                
+                <div class="module-item" data-module="4" onclick="selectSimpleModule(4)">
+                    <div class="module-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </div>
+                    <div class="module-info">
+                        <h4>Machine Learning Fundamentals</h4>
+                        <p class="module-description">Vídeo • 22 min</p>
+                    </div>
+                </div>
+                
+                <div class="module-item" data-module="5" onclick="selectSimpleModule(5)">
+                    <div class="module-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </div>
+                    <div class="module-info">
+                        <h4>Redes Neuronales</h4>
+                        <p class="module-description">Vídeo • 25 min</p>
+                    </div>
+                </div>
+                
+                <div class="module-item" data-module="6" onclick="selectSimpleModule(6)">
+                    <div class="module-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+                            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="module-info">
+                        <h4>Evaluación Final</h4>
+                        <p class="module-description">Quiz • 20 min</p>
+                    </div>
+                </div>
+            `;
+            
+            modulesList.innerHTML = simpleModulesHTML;
+            console.log('✅ Sistema simple de módulos inicializado');
+        }, 1000); // Simular tiempo de carga
+    }
+};
+
+// Función para seleccionar un módulo simple
+window.selectSimpleModule = function(moduleId) {
+    console.log(`📚 Seleccionando módulo simple: ${moduleId}`);
+    
+    // Remover estado actual de todos los módulos
+    document.querySelectorAll('.module-item').forEach(module => {
+        module.classList.remove('current');
+    });
+    
+    // Agregar estado actual al módulo seleccionado
+    const selectedModule = document.querySelector(`[data-module="${moduleId}"]`);
+    if (selectedModule) {
+        selectedModule.classList.add('current');
+        console.log(`✅ Módulo ${moduleId} seleccionado`);
+        
+        // Actualizar contenido del video según el módulo
+        updateSimpleVideoContent(moduleId);
+    } else {
+        console.warn(`❌ No se encontró el módulo ${moduleId}`);
+    }
+};
+
+// Función para actualizar el contenido del video según el módulo simple seleccionado
+function updateSimpleVideoContent(moduleId) {
+    const moduleData = {
+        1: { title: "Introducción a Fundamentos de IA", duration: "8:00" },
+        2: { title: "Historia y Evolución de la IA", duration: "12:00" },
+        3: { title: "Tipos de Inteligencia Artificial", duration: "15:00" },
+        4: { title: "Machine Learning Fundamentals", duration: "22:00" },
+        5: { title: "Redes Neuronales", duration: "25:00" },
+        6: { title: "Evaluación Final", duration: "20:00" }
+    };
+    
+    const data = moduleData[moduleId];
+    if (data) {
+        // Actualizar información del módulo actual
+        const currentModuleInfo = document.querySelector('.current-module-info span');
+        if (currentModuleInfo) {
+            currentModuleInfo.textContent = data.title;
+        }
+        
+        console.log(`🎥 Contenido actualizado: ${data.title}`);
+    }
+}
+
+console.log('✅ Funciones del sistema simple de módulos definidas');
 
 // ===== INSTANCIACIÓN AUTOMÁTICA =====
 // ELIMINADO: Instanciación duplicada que causaba event listeners duplicados
