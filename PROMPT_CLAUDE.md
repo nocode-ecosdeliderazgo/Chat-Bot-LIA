@@ -1,165 +1,318 @@
-# PROMPT PARA CLAUDE - REDISEÑO DEL MENÚ DE MATERIAL DE CURSO
+# Prompt para Integración de Modo Claro en Chat Online
 
-## OBJETIVO
-Transformar el menú desplegable de "Material de Curso" para que los elementos aparezcan directamente en el fondo del sidebar (como en Coursera) en lugar de mostrar "burbujas" individuales, mejorando la legibilidad y experiencia de usuario.
+## Contexto del Proyecto
+Necesito integrar un modo claro en el sistema de chat online (`src/Chat-Online/chat-online.html` y `src/Chat-Online/chat-online.css`) manteniendo la misma estructura y funcionalidad del modo oscuro actual, pero adaptando los colores y estilos para una experiencia visual clara.
 
-## CONTEXTO ACTUAL
-El menú actual en `src/Chat-Online/chat-online.html` y `src/Chat-Online/chat-online.css` tiene:
-- Una sección `.course-materials-section` con header y botón de colapso
-- Una lista `.modules-list` que contiene elementos `.module-item` con estilo de "burbujas" glassmorphism
-- Cada `.module-item` tiene padding, bordes redondeados, sombras y efectos de hover
+## Referencias de Modo Claro
+He analizado los modos claros implementados en:
+- `src/Community/community.html` y `src/Community/community.css`
+- `src/cursos.html` y `src/styles/cursos.css`
 
-## ESTILO OBJETIVO (Basado en Coursera)
-Los elementos del menú deben aparecer como:
-- **Lista vertical integrada** directamente en el fondo del sidebar
-- **Sin bordes redondeados** ni efectos de "burbuja"
-- **Fondo transparente** o con muy poca opacidad
-- **Separación sutil** entre elementos
-- **Hover states** más sutiles
-- **Tipografía clara** y legible
-- **Iconos pequeños** al lado del texto (play, documento, etc.)
+## Estructura Actual del Chat Online
+El chat online tiene una estructura de 3 paneles:
+- **Left Panel**: Información del curso, progreso, materiales
+- **Center Panel**: Contenido principal (video, transcripciones, quiz)
+- **Right Panel**: Asistente LIA, notas, comunidad
 
-## INSTRUCCIONES ESPECÍFICAS
+## Elementos Principales a Adaptar
 
-### 1. MODIFICAR CSS - Clase `.module-item`
+### 1. Variables CSS Base
+El archivo actual tiene variables en `:root` que necesitan ser extendidas con modo claro:
+
 ```css
-.module-item {
-    /* ELIMINAR: */
-    /* padding: 20px; */
-    /* border-radius: 16px; */
-    /* backdrop-filter: blur(10px); */
-    /* box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25); */
+:root {
+    --glass-primary: #0066CC;
+    --glass-primary-dark: #0077A6;
+    --glass-secondary: #22C55E;
+    --glass-accent: #F59E0B;
+    --glass-bg-main: linear-gradient(135deg, #0a0f19 0%, #1a2332 50%, #0a0f19 100%);
+    --glass-surface: rgba(0, 102, 204, 0.08);
+    --glass-text-primary: #FFFFFF;
+    --glass-text-secondary: rgba(255, 255, 255, 0.8);
+    --glass-text-muted: rgba(255, 255, 255, 0.6);
+}
+```
+
+### 2. Elementos Específicos a Adaptar
+
+#### A. Paneles y Contenedores
+- `.layout-3panels`
+- `.left-panel`, `.center-panel`, `.right-panel`
+- `.neo-panel`
+- `.course-card`
+- `.course-info-section`
+
+#### B. Navegación
+- `.top-navigation`
+- `.nav-tabs`
+- `.nav-tab`
+- `.back-btn`
+
+#### C. Contenido del Curso
+- `.course-progress-section`
+- `.progress-bar`
+- `.progress-dot`
+- `.module-item`
+- `.video-container`
+- `.content-tabs`
+- `.tab-btn`
+
+#### D. Asistente LIA
+- `.lia-assistant-section`
+- `.lia-chat`
+- `.lia-messages`
+- `.lia-input`
+- `.message-content`
+
+#### E. Notas y Comunidad
+- `.notes-creator-section`
+- `.community-content`
+- `.question-item`
+- `.modal-content`
+
+#### F. Elementos de UI
+- `.btn-primary`, `.btn-secondary`
+- `.modal-overlay`
+- `.toast-container`
+- `.loading-overlay`
+
+## Especificaciones del Modo Claro
+
+### Colores Base para Modo Claro
+```css
+[data-theme="light"] {
+    /* Fondos principales */
+    --glass-bg-main: linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%);
+    --glass-bg-alt: linear-gradient(160deg, #E8F2F8 0%, #D1E7DD 100%);
     
-    /* AGREGAR: */
-    padding: 12px 16px;
-    border-radius: 0;
+    /* Superficies y contenedores */
+    --glass-surface: rgba(255, 255, 255, 0.95);
+    --glass-surface-light: rgba(255, 255, 255, 0.9);
+    --glass-surface-hover: rgba(0, 102, 204, 0.1);
+    --glass-surface-active: rgba(0, 102, 204, 0.15);
+    
+    /* Textos */
+    --glass-text-primary: #2D3748;
+    --glass-text-secondary: rgba(45, 55, 72, 0.8);
+    --glass-text-muted: rgba(45, 55, 72, 0.6);
+    --glass-text-white: #FFFFFF;
+    
+    /* Bordes */
+    --glass-border: 1px solid rgba(0, 102, 204, 0.15);
+    --glass-border-strong: 1px solid rgba(0, 102, 204, 0.25);
+    --glass-border-subtle: 1px solid rgba(0, 102, 204, 0.08);
+    
+    /* Sombras */
+    --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --glass-shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --glass-shadow-strong: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+```
+
+### Características del Modo Claro
+1. **Fondo**: Gradiente azul claro (#E6F3FF a #D4E6F1) o (#E8F2F8 a #D1E7DD)
+2. **Texto**: Gris oscuro (#2D3748) para contraste
+3. **Superficies**: Blancas semitransparentes con blur
+4. **Bordes**: Azul translúcido sutil
+5. **Sombras**: Suaves y claras
+6. **Botones**: Mantener el azul #0066CC como color principal
+
+### Colores Específicos de Referencia
+Basándome en las páginas de referencia, estos son los colores exactos que se usan:
+
+#### Textos
+- **Primario**: `#2D3748` (gris oscuro)
+- **Secundario**: `rgba(45, 55, 72, 0.8)` (gris medio)
+- **Muted**: `rgba(45, 55, 72, 0.6)` (gris claro)
+- **Nombres de usuario**: `#2D3748`
+- **Emails**: `#4A5568`
+
+#### Fondos
+- **Principal**: `linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%)`
+- **Alternativo**: `linear-gradient(160deg, #E8F2F8 0%, #D1E7DD 100%)`
+- **Tarjetas**: `rgba(255, 255, 255, 0.95)`
+- **Navbar**: `rgba(255, 255, 255, 0.9)`
+- **Menús**: `rgba(255, 255, 255, 0.95)`
+
+#### Bordes
+- **Sutiles**: `rgba(0, 102, 204, 0.15)`
+- **Normales**: `rgba(0, 102, 204, 0.2)`
+- **Fuertes**: `rgba(0, 102, 204, 0.25)`
+
+#### Sombras
+- **Suaves**: `0 4px 20px rgba(0, 0, 0, 0.08)`
+- **Hover**: `0 8px 32px rgba(0, 0, 0, 0.12)`
+- **Fuertes**: `0 8px 32px rgba(0, 0, 0, 0.15)`
+
+#### Estados Hover
+- **Fondos**: `rgba(0, 102, 204, 0.1)`
+- **Bordes**: `rgba(0, 102, 204, 0.3)`
+- **Textos**: `#0066CC`
+
+### Ejemplos de Implementación en Chat Online
+
+#### Paneles y Contenedores
+```css
+[data-theme="light"] .left-panel,
+[data-theme="light"] .center-panel,
+[data-theme="light"] .right-panel {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 102, 204, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .course-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 102, 204, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+```
+
+#### Navegación
+```css
+[data-theme="light"] .nav-tab {
+    color: #4A5568;
     background: transparent;
-    border: none;
-    box-shadow: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 0;
-    transition: background-color 0.2s ease;
+}
+
+[data-theme="light"] .nav-tab:hover {
+    background: rgba(0, 102, 204, 0.1);
+    color: #0066CC;
+}
+
+[data-theme="light"] .nav-tab.active {
+    background: #0066CC;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
 }
 ```
 
-### 2. MODIFICAR CSS - Estados de hover
+#### Asistente LIA
 ```css
-.module-item:hover {
-    /* ELIMINAR: */
-    /* transform: translateY(-2px); */
-    /* box-shadow: 0 8px 32px rgba(0, 102, 204, 0.2); */
+[data-theme="light"] .lia-assistant-section {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 102, 204, 0.15);
+}
+
+[data-theme="light"] .message-content {
+    background: rgba(255, 255, 255, 0.9);
+    color: #2D3748;
+    border: 1px solid rgba(0, 102, 204, 0.1);
+}
+
+[data-theme="light"] .lia-input input {
+    background: rgba(255, 255, 255, 0.9);
+    color: #2D3748;
+    border: 1px solid rgba(0, 102, 204, 0.15);
+}
+```
+
+#### Modales y Formularios
+```css
+[data-theme="light"] .modal-content {
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(0, 102, 204, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    color: #2D3748;
+}
+
+[data-theme="light"] .modal-overlay {
+    background: rgba(0, 0, 0, 0.3);
+}
+```
+
+## Tareas Específicas
+
+### 1. Extender Variables CSS
+- Agregar variables para modo claro usando `[data-theme="light"]`
+- Mantener compatibilidad con modo oscuro existente
+- Asegurar transiciones suaves entre temas
+
+### 2. Adaptar Elementos de Paneles
+- **Left Panel**: Tarjetas de curso con fondo blanco semitransparente
+- **Center Panel**: Contenido con fondo claro y texto oscuro
+- **Right Panel**: Asistente LIA con interfaz clara
+
+### 3. Navegación y Botones
+- Mantener el azul #0066CC como color principal
+- Adaptar estados hover y active para modo claro
+- Asegurar contraste adecuado en todos los estados
+
+### 4. Elementos Interactivos
+- Modales con fondo blanco y sombras suaves
+- Botones con efectos de hover adaptados
+- Inputs y formularios con estilos claros
+
+### 5. Asistente LIA
+- Chat con burbujas claras
+- Input con fondo blanco
+- Mensajes con texto oscuro legible
+
+### 6. Elementos de Progreso
+- Barras de progreso con colores adaptados
+- Dots de progreso con estados claros
+- Indicadores visuales consistentes
+
+## Consideraciones Técnicas
+
+### 1. Transiciones
+- Implementar transiciones suaves (0.3s ease) para todos los elementos
+- Usar `transition: all 0.3s ease` para cambios de tema
+
+### 2. Compatibilidad
+- Mantener funcionalidad existente
+- No romper JavaScript existente
+- Asegurar que el toggle de tema funcione correctamente
+
+### 3. Responsive Design
+- Adaptar estilos para móviles en modo claro
+- Mantener legibilidad en todas las resoluciones
+
+### 4. Accesibilidad
+- Contraste adecuado en modo claro
+- Estados de focus visibles
+- Texto legible en todos los elementos
+
+## Estructura de Implementación
+
+### 1. Variables CSS
+```css
+/* Modo Claro */
+[data-theme="light"] {
+    /* Variables de color */
+    /* Variables de superficie */
+    /* Variables de texto */
+    /* Variables de bordes */
+}
+```
+
+### 2. Estilos Específicos
+```css
+/* Elementos específicos para modo claro */
+[data-theme="light"] .elemento {
+    /* Estilos adaptados */
+}
+```
+
+### 3. Transiciones Globales
+```css
+/* Transiciones para cambio de tema */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+```
+
+## Resultado Esperado
+Un modo claro completamente funcional que:
+- Mantenga la misma estructura y funcionalidad del modo oscuro
+- Use colores claros y legibles
+- Tenga transiciones suaves entre temas
+- Sea consistente con el diseño del resto de la plataforma
+- Mantenga el azul #0066CC como color principal de la marca
+
+## Archivos a Modificar
+1. `src/Chat-Online/chat-online.css` - Agregar estilos de modo claro
+2. Verificar que `src/Chat-Online/chat-online.html` tenga el toggle de tema implementado
+
+¿Estás listo para implementar el modo claro siguiendo estas especificaciones?
     
-    /* AGREGAR: */
-    background: rgba(0, 102, 204, 0.08);
-    transform: none;
-    box-shadow: none;
-}
-```
-
-### 3. MODIFICAR CSS - Estados completado y actual
-```css
-.module-item.completed {
-    background: rgba(34, 197, 94, 0.05);
-    border-left: 3px solid rgba(34, 197, 94, 0.6);
-}
-
-.module-item.current {
-    background: rgba(0, 102, 204, 0.12);
-    border-left: 3px solid #0066CC;
-    font-weight: 600;
-}
-```
-
-### 4. AGREGAR ICONOS A LOS ELEMENTOS
-Modificar el HTML para incluir iconos pequeños:
-```html
-<div class="module-item" data-module="1">
-    <div class="module-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M8 5v14l11-7z"/>
-        </svg>
-    </div>
-    <div class="module-info">
-        <h4>Introducción a Fundamentos de IA</h4>
-        <p class="module-description">Vídeo • 2 min</p>
-    </div>
-</div>
-```
-
-### 5. ESTILOS PARA ICONOS
-```css
-.module-icon {
-    width: 20px;
-    height: 20px;
-    margin-right: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(255, 255, 255, 0.7);
-    flex-shrink: 0;
-}
-
-.module-item:hover .module-icon {
-    color: #0066CC;
-}
-
-.module-item.completed .module-icon {
-    color: rgba(34, 197, 94, 0.8);
-}
-
-.module-item.current .module-icon {
-    color: #0066CC;
-}
-```
-
-### 6. AJUSTAR LAYOUT DEL MÓDULO
-```css
-.module-item {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start; /* Cambiar de center a flex-start */
-}
-
-.module-info {
-    flex: 1;
-    text-align: left; /* Cambiar de center a left */
-}
-```
-
-### 7. MEJORAR TIPOGRAFÍA
-```css
-.module-info h4 {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 4px;
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.module-description {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.6);
-    margin: 0;
-}
-```
-
-## ESTRUCTURA FINAL ESPERADA
-- **Header**: "Material del Curso" con botón de colapso
-- **Lista**: Elementos de módulo como lista vertical integrada
-- **Elementos**: Icono + Título + Descripción (tipo de contenido y duración)
-- **Estados**: Hover sutil, completado con borde verde, actual con borde azul
-- **Scroll**: Mantener scrollbar personalizado si es necesario
-
-## CONSIDERACIONES DE UX
-1. **Legibilidad**: Texto claro sobre fondo oscuro
-2. **Jerarquía visual**: Títulos más prominentes que descripciones
-3. **Feedback visual**: Estados claros para hover, completado y actual
-4. **Consistencia**: Mantener colores del proyecto (#0066CC, #22C55E)
-5. **Responsive**: Asegurar que funcione en diferentes tamaños de pantalla
-
-## ARCHIVOS A MODIFICAR
-- `src/Chat-Online/chat-online.css` (estilos principales)
-- `src/Chat-Online/chat-online.html` (estructura HTML si es necesario)
-- `src/Chat-Online/chat-online.js` (lógica de generación de módulos si es necesario)
-
-## RESULTADO ESPERADO
-Un menú de materiales que se vea como el de Coursera: limpio, integrado, legible y con una experiencia de usuario fluida, manteniendo la identidad visual del proyecto pero con un diseño más moderno y funcional.
