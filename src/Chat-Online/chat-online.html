@@ -1346,8 +1346,17 @@
             </div>
                 </div>        <!-- Panel Izquierdo - Material del Curso -->
         <aside class="left-panel neo-panel" id="sidebarLeft">
+            <!-- Botón de colapso del panel izquierdo -->
+            <button class="collapse-btn collapse-btn-left" id="collapseLeft" title="Ocultar/mostrar panel">
+                <span class="collapse-icon">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                        <path d="M13 6l-6 6 6 6M19 6l-6 6 6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            </button>
+            
             <!-- Información del Curso -->
-            <div class="course-info-section">
+            <div class="course-info-section" style="margin-top: 50px;">
                 <div class="course-card">
                     <!-- Categoría del Curso -->
                     <div class="course-category">
@@ -2237,7 +2246,7 @@ Cargando información...
             <button class="collapse-btn" id="collapseRight" title="Ocultar/mostrar panel">
                 <span class="collapse-icon">
                     <svg viewBox="0 0 24 24" width="16" height="16">
-                        <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M11 18l6-6-6-6M5 18l6-6-6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </span>
             </button>
@@ -2320,9 +2329,6 @@ Cargando información...
                     </div>
                 </div>
             </div>
-            
-            <!-- Línea Divisoria -->
-            <div class="section-divider"></div>
             
             <!-- Mis Notas -->
             <div class="notes-section">
@@ -3577,28 +3583,217 @@ Cargando información...
       loadSupabaseConfig();
     </script>
 
-    <!-- Funcionalidad de colapso del panel derecho -->
+    <!-- Funcionalidad mejorada de colapso del panel derecho -->
     <script>
-        // Funcionalidad de colapso del panel derecho
+        // Funcionalidad mejorada de colapso del panel derecho
         document.addEventListener('DOMContentLoaded', function() {
             const collapseRight = document.getElementById('collapseRight');
             const sidebarRight = document.getElementById('sidebarRight');
             
             if (collapseRight && sidebarRight) {
-                collapseRight.addEventListener('click', function() {
-                    sidebarRight.classList.toggle('collapsed');
-                    console.log('📱 Panel derecho:', sidebarRight.classList.contains('collapsed') ? 'colapsado' : 'expandido');
-                    
-                    // Opcional: Guardar estado en localStorage
-                    localStorage.setItem('rightPanelCollapsed', sidebarRight.classList.contains('collapsed'));
-                });
                 
                 // Restaurar estado desde localStorage
                 const isCollapsed = localStorage.getItem('rightPanelCollapsed') === 'true';
                 if (isCollapsed) {
                     sidebarRight.classList.add('collapsed');
+                    // Actualizar tooltip
+                    collapseRight.title = 'Expandir panel';
+                } else {
+                    collapseRight.title = 'Ocultar panel';
                 }
+                
+                // Event listener mejorado con animaciones
+                collapseRight.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Aplicar animación de salida antes del colapso
+                    if (!sidebarRight.classList.contains('collapsed')) {
+                        // Pre-animación de contenido antes del colapso
+                        const contentSections = sidebarRight.querySelectorAll(
+                            '.lia-assistant-section, .notes-creator-section, .notes-section, .course-materials-section, .community-content'
+                        );
+                        
+                        contentSections.forEach((section, index) => {
+                            setTimeout(() => {
+                                section.style.opacity = '0';
+                                section.style.transform = 'translateX(20px)';
+                            }, index * 50);
+                        });
+                        
+                        // Aplicar colapso después de la animación
+                        setTimeout(() => {
+                            sidebarRight.classList.add('collapsed');
+                            collapseRight.title = 'Expandir panel';
+                        }, 200);
+                        
+                    } else {
+                        // Expandir inmediatamente
+                        sidebarRight.classList.remove('collapsed');
+                        collapseRight.title = 'Ocultar panel';
+                        
+                        // Re-animar contenido al expandir
+                        const contentSections = sidebarRight.querySelectorAll(
+                            '.lia-assistant-section, .notes-creator-section, .notes-section, .course-materials-section, .community-content'
+                        );
+                        
+                        contentSections.forEach((section) => {
+                            section.style.opacity = '';
+                            section.style.transform = '';
+                        });
+                    }
+                    
+                    const isNowCollapsed = sidebarRight.classList.contains('collapsed');
+                    
+                    // Guardar estado en localStorage
+                    localStorage.setItem('rightPanelCollapsed', isNowCollapsed);
+                    
+                    // Log para debugging
+                    console.log('📱 Panel derecho:', isNowCollapsed ? 'colapsado' : 'expandido');
+                    
+                    // Emitir evento personalizado para otros componentes
+                    window.dispatchEvent(new CustomEvent('rightPanelToggled', {
+                        detail: { 
+                            collapsed: isNowCollapsed,
+                            timestamp: Date.now(),
+                            source: 'user-action'
+                        }
+                    }));
+                    
+                    // Feedback háptico en dispositivos móviles (si está disponible)
+                    if ('vibrate' in navigator && window.innerWidth <= 768) {
+                        navigator.vibrate(50);
+                    }
+                });
+                
+                // Funcionalidad adicional: colapsar con tecla Escape cuando el panel está enfocado
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && !sidebarRight.classList.contains('collapsed')) {
+                        // Verificar si algún elemento del panel derecho tiene foco
+                        const activeElement = document.activeElement;
+                        const isInsideRightPanel = sidebarRight.contains(activeElement);
+                        
+                        if (isInsideRightPanel) {
+                            collapseRight.click();
+                            collapseRight.focus();
+                        }
+                    }
+                });
+                
+                // Accesibilidad: manejo de teclado para el botón
+                collapseRight.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        collapseRight.click();
+                    }
+                });
+                
+                // Observador de cambios de tamaño de ventana para ajuste responsive
+                if (window.ResizeObserver) {
+                    const resizeObserver = new ResizeObserver(entries => {
+                        for (let entry of entries) {
+                            const { width } = entry.contentRect;
+                            
+                            // Ajustar comportamiento según tamaño de pantalla
+                            if (width <= 768) {
+                                // En móvil/tablet, mantener comportamiento estándar
+                                sidebarRight.style.pointerEvents = 'auto';
+                            }
+                        }
+                    });
+                    
+                    resizeObserver.observe(document.body);
+                }
+                
+                // Estado inicial logging
+                console.log('🚀 Panel derecho inicializado:', isCollapsed ? 'colapsado' : 'expandido');
+            } else {
+                console.warn('⚠️ Elementos del panel derecho no encontrados');
             }
+        });
+
+        // Funcionalidad del botón de colapso del panel izquierdo
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarLeft = document.getElementById('sidebarLeft');
+            const collapseLeft = document.getElementById('collapseLeft');
+            
+            if (!sidebarLeft || !collapseLeft) return;
+            
+            // Restaurar estado desde localStorage
+            const isCollapsed = localStorage.getItem('leftPanelCollapsed') === 'true';
+            if (isCollapsed) {
+                sidebarLeft.classList.add('collapsed');
+                collapseLeft.title = 'Expandir panel';
+            } else {
+                collapseLeft.title = 'Ocultar panel';
+            }
+            
+            // Event listener para el botón de colapso
+            collapseLeft.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Aplicar animación de salida antes del colapso
+                if (!sidebarLeft.classList.contains('collapsed')) {
+                    // Pre-animación de contenido antes del colapso
+                    const contentSections = sidebarLeft.querySelectorAll(
+                        '.course-info-section, .course-progress-section, .course-materials-section'
+                    );
+                    
+                    contentSections.forEach((section, index) => {
+                        section.style.transition = 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)';
+                        section.style.opacity = '0';
+                        section.style.transform = 'translateX(-20px)';
+                    });
+                    
+                    // Aplicar colapso después de la animación
+                    setTimeout(() => {
+                        sidebarLeft.classList.add('collapsed');
+                        collapseLeft.title = 'Expandir panel';
+                    }, 200);
+                    
+                } else {
+                    // Expandir inmediatamente
+                    sidebarLeft.classList.remove('collapsed');
+                    collapseLeft.title = 'Ocultar panel';
+                    
+                    // Re-animar contenido al expandir
+                    setTimeout(() => {
+                        const contentSections = sidebarLeft.querySelectorAll(
+                            '.course-info-section, .course-progress-section, .course-materials-section'
+                        );
+                        contentSections.forEach((section, index) => {
+                            section.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+                            section.style.opacity = '1';
+                            section.style.transform = 'translateX(0)';
+                        });
+                    }, 50);
+                }
+                
+                const isNowCollapsed = sidebarLeft.classList.contains('collapsed');
+                
+                // Guardar estado en localStorage
+                localStorage.setItem('leftPanelCollapsed', isNowCollapsed);
+                
+                // Emitir evento personalizado para otros componentes
+                window.dispatchEvent(new CustomEvent('leftPanelToggled', {
+                    detail: { 
+                        collapsed: isNowCollapsed,
+                        timestamp: Date.now(),
+                        source: 'user-action'
+                    }
+                }));
+            });
+            
+            // Funcionalidad adicional: colapsar con tecla Escape cuando el panel está enfocado
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !sidebarLeft.classList.contains('collapsed')) {
+                    const activeElement = document.activeElement;
+                    const isInsideLeftPanel = sidebarLeft.contains(activeElement);
+                    
+                    if (isInsideLeftPanel) {
+                        collapseLeft.click();
+                    }
+                }
+            });
         });
     </script>
 

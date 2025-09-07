@@ -4934,14 +4934,62 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 /* ===== PANEL DERECHO COLAPSABLE ===== */
 
+/* Animaciones personalizadas */
+@keyframes slideInRight {
+    0% {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutRight {
+    0% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/* Panel derecho con transiciones mejoradas */
+.right-panel {
+    transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
 /* Header del Panel Derecho */
 .right-panel-header {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid rgba(0, 102, 204, 0.15);
+    padding: 1rem 1.5rem 1rem 4rem; /* Más padding a la izquierda para dar espacio al botón */
     margin-bottom: 1rem;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
 }
 
 .right-panel-header h3 {
@@ -4949,31 +4997,35 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     color: var(--glass-primary);
     font-size: 1rem;
     font-weight: 600;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Botón de colapso para panel derecho - Réplica exacta del panel izquierdo */
 .collapse-btn {
     position: absolute;
-    left: -20px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 0.5rem; /* Más cerca del borde izquierdo para mejor visibilidad */
+    top: 0.5rem; /* Alineado con el header pero sin solaparse */
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(0, 102, 204, 0.3);
     color: var(--glass-text-primary);
-    border-radius: 8px 0 0 8px;
-    padding: 12px 8px;
+    border-radius: 8px;
+    padding: 8px 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
     backdrop-filter: blur(10px);
     box-shadow: 
         0 2px 8px rgba(0, 0, 0, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    z-index: 10;
-    width: 20px;
-    height: 60px;
+    z-index: 15; /* Más alto para estar sobre el contenido */
+    width: auto;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 48px;
+    font-size: 0.875rem;
+    font-weight: 500;
 }
 
 .collapse-btn::before {
@@ -4995,22 +5047,131 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     background: rgba(0, 102, 204, 0.15);
     border-color: rgba(0, 102, 204, 0.5);
     color: #0066CC;
-    transform: translateY(-50%) translateX(-2px);
+    transform: scale(1.05);
     box-shadow: 
         0 4px 12px rgba(0, 102, 204, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.collapse-btn:active {
+    transform: scale(1.02);
 }
 
 .collapse-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s ease;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .collapse-icon svg {
-    transition: all 0.3s ease;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
     stroke: currentColor;
+}
+
+/* Botón de colapso para panel izquierdo - Más grande y visible */
+.collapse-btn-left {
+    position: absolute;
+    right: 1.5rem; /* Posicionado a la derecha del panel */
+    top: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 102, 204, 0.3);
+    color: var(--glass-text-primary);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    z-index: 10;
+    width: auto;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.collapse-btn-left::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 102, 204, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.collapse-btn-left:hover::before {
+    left: 100%;
+}
+
+.collapse-btn-left:hover {
+    background: rgba(0, 102, 204, 0.15);
+    border-color: rgba(0, 102, 204, 0.5);
+    color: #0066CC;
+    transform: scale(1.05);
+    box-shadow: 
+        0 4px 12px rgba(0, 102, 204, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.collapse-btn-left:active {
+    transform: scale(1.02);
+}
+
+/* Contenido del panel con transiciones */
+.lia-assistant-section,
+.notes-creator-section,
+.notes-section,
+.course-materials-section,
+.community-content {
+    transition: all 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Contenido del panel izquierdo con transiciones */
+.course-info-section,
+.course-progress-section,
+.course-materials-section {
+    transition: all 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animaciones escalonadas para el contenido cuando se expande */
+.right-panel:not(.collapsed) .lia-assistant-section {
+    animation: fadeIn 400ms cubic-bezier(0.4, 0, 0.2, 1) 100ms both;
+}
+
+.right-panel:not(.collapsed) .notes-creator-section {
+    animation: fadeIn 400ms cubic-bezier(0.4, 0, 0.2, 1) 150ms both;
+}
+
+.right-panel:not(.collapsed) .notes-section {
+    animation: fadeIn 400ms cubic-bezier(0.4, 0, 0.2, 1) 200ms both;
+}
+
+.right-panel:not(.collapsed) .course-materials-section {
+    animation: fadeIn 400ms cubic-bezier(0.4, 0, 0.2, 1) 250ms both;
+}
+
+.right-panel:not(.collapsed) .community-content {
+    animation: fadeIn 400ms cubic-bezier(0.4, 0, 0.2, 1) 300ms both;
+}
+
+/* Animaciones escalonadas para el panel izquierdo cuando se expande */
+.left-panel:not(.collapsed) .course-info-section {
+    animation: fadeIn 400ms cubic-bezier(0.4, 0, 0.2, 1) 100ms both;
+}
+.left-panel:not(.collapsed) .course-progress-section {
+    animation: fadeIn 400ms cubic-bezier(0.4, 0, 0.2, 1) 150ms both;
+}
+.left-panel:not(.collapsed) .course-materials-section {
+    animation: fadeIn 400ms cubic-bezier(0.4, 0, 0.2, 1) 200ms both;
 }
 
 /* Estado Colapsado */
@@ -5025,43 +5186,150 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     padding: 0.5rem;
     margin-bottom: 0.5rem;
     justify-content: center;
+    opacity: 0.7;
 }
 
 .right-panel.collapsed .right-panel-header h3 {
-    display: none;
+    opacity: 0;
+    transform: translateX(10px);
 }
 
 .right-panel.collapsed .collapse-btn {
-    left: -20px;
-    width: 20px;
-    height: 40px;
-    padding: 8px 4px;
+    left: 50%;
+    top: 0.5rem;
+    transform: translateX(-50%);
+    width: auto;
+    height: 32px;
+    padding: 8px 12px;
+    min-width: 48px;
 }
 
 .right-panel.collapsed .collapse-icon {
     transform: rotate(180deg);
 }
 
-/* Ocultar todo el contenido cuando está colapsado */
+/* Ocultar contenido con animación cuando está colapsado */
 .right-panel.collapsed .lia-assistant-section,
 .right-panel.collapsed .notes-creator-section,
 .right-panel.collapsed .notes-section,
 .right-panel.collapsed .course-materials-section,
 .right-panel.collapsed .community-content {
+    opacity: 0;
+    transform: translateX(20px);
     display: none !important;
 }
 
-/* Adaptación del Panel Central */
-/* Cuando el panel derecho está colapsado, expandir el panel central */
+/* Indicador visual cuando está colapsado */
+.right-panel.collapsed::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin-left: -12px;
+    margin-top: -12px;
+    background: rgba(0, 102, 204, 0.2);
+    border: 2px solid rgba(0, 102, 204, 0.4);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    opacity: 0.6;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+}
+
+/* Estado colapsado del panel izquierdo */
+.left-panel.collapsed {
+    width: 60px;
+    min-width: 60px;
+    max-width: 60px;
+    padding: 0.5rem;
+}
+
+.left-panel.collapsed .collapse-btn-left {
+    left: 50%;
+    top: 8px;
+    transform: translateX(-50%);
+    width: auto;
+    height: 32px;
+    padding: 8px 12px;
+    min-width: 48px;
+}
+
+.left-panel.collapsed .collapse-icon {
+    transform: rotate(180deg);
+}
+
+/* Ocultar contenido cuando está colapsado */
+.left-panel.collapsed .course-info-section,
+.left-panel.collapsed .course-progress-section,
+.left-panel.collapsed .course-materials-section {
+    opacity: 0;
+    transform: translateX(-20px);
+    display: none !important;
+}
+
+/* Indicador visual cuando está colapsado */
+.left-panel.collapsed::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin-left: -12px;
+    margin-top: -12px;
+    background: rgba(0, 102, 204, 0.2);
+    border: 2px solid rgba(0, 102, 204, 0.4);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    opacity: 0.6;
+}
+
+/* Adaptación del Panel Central con transiciones */
+.layout-3panels {
+    transition: grid-template-columns 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Adaptación del layout para panel derecho colapsado */
 .layout-3panels:has(.right-panel.collapsed) {
     grid-template-columns: 380px 1fr 60px;
 }
 
-/* Modo Claro y Oscuro para Panel Colapsable */
-/* Modo claro */
-[data-theme="light"] .right-panel-header {
-    border-bottom-color: rgba(0, 102, 204, 0.1);
+/* Adaptación del layout cuando el panel izquierdo está colapsado */
+.layout-3panels:has(.left-panel.collapsed) {
+    grid-template-columns: 60px 1fr 380px;
 }
+
+/* Cuando ambos paneles están colapsados */
+.layout-3panels:has(.left-panel.collapsed):has(.right-panel.collapsed) {
+    grid-template-columns: 60px 1fr 60px;
+}
+
+/* Cuando solo el panel izquierdo está colapsado */
+.layout-3panels:has(.left-panel.collapsed):not(:has(.right-panel.collapsed)) {
+    grid-template-columns: 60px 1fr 380px;
+}
+
+/* Panel central expandido */
+.center-panel {
+    transition: all 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Modo Claro y Oscuro para Panel Colapsable */
 
 [data-theme="light"] .right-panel-header h3 {
     color: var(--glass-primary);
@@ -5069,7 +5337,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 [data-theme="light"] .collapse-btn {
     background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(0, 102, 204, 0.2);
+    border: 1px solid rgba(0, 102, 204, 0.2);
     color: var(--glass-text-primary);
     box-shadow: 
         0 2px 8px rgba(0, 0, 0, 0.1),
@@ -5080,9 +5348,39 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     background: rgba(0, 102, 204, 0.1);
     border-color: rgba(0, 102, 204, 0.4);
     color: #0066CC;
+    transform: scale(1.05);
     box-shadow: 
         0 4px 12px rgba(0, 102, 204, 0.15),
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="light"] .right-panel.collapsed::after {
+    background: rgba(0, 102, 204, 0.15);
+    border-color: rgba(0, 102, 204, 0.3);
+}
+
+[data-theme="light"] .collapse-btn-left {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 102, 204, 0.2);
+    color: var(--glass-text-primary);
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="light"] .collapse-btn-left:hover {
+    background: rgba(0, 102, 204, 0.1);
+    border-color: rgba(0, 102, 204, 0.4);
+    color: #0066CC;
+    transform: scale(1.05);
+    box-shadow: 
+        0 4px 12px rgba(0, 102, 204, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="light"] .left-panel.collapsed::after {
+    background: rgba(0, 102, 204, 0.15);
+    border: 2px solid rgba(0, 102, 204, 0.3);
 }
 
 /* Responsive Design para Panel Colapsable */
@@ -5098,15 +5396,25 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     }
     
     .right-panel.collapsed .collapse-btn {
-        left: -18px;
-        width: 18px;
-        height: 35px;
-        padding: 6px 3px;
+        left: 50%;
+        top: 0.75rem;
+        transform: translateX(-50%);
+        width: auto;
+        height: 28px;
+        padding: 6px 10px;
+        min-width: 40px;
     }
     
     .right-panel.collapsed .collapse-icon svg {
         width: 14px;
         height: 14px;
+    }
+    
+    .right-panel.collapsed::after {
+        width: 20px;
+        height: 20px;
+        margin-left: -10px;
+        margin-top: -10px;
     }
     
     .layout-3panels:has(.right-panel.collapsed) {
@@ -5121,8 +5429,106 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
         max-width: 40px;
     }
     
+    .right-panel.collapsed .collapse-btn {
+        left: 50%;
+        top: 0.5rem;
+        transform: translateX(-50%);
+        width: auto;
+        height: 24px;
+        padding: 4px 8px;
+        min-width: 32px;
+    }
+    
+    .right-panel.collapsed .collapse-icon svg {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .right-panel.collapsed::after {
+        width: 16px;
+        height: 16px;
+        margin-left: -8px;
+        margin-top: -8px;
+    }
+    
     .layout-3panels:has(.right-panel.collapsed) {
         grid-template-columns: 380px 1fr 40px;
+    }
+}
+
+@media (max-width: 768px) {
+    .left-panel.collapsed {
+        width: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+    
+    .left-panel.collapsed .collapse-btn-left {
+        left: 50%;
+        top: 6px;
+        transform: translateX(-50%);
+        width: auto;
+        height: 28px;
+        padding: 6px 10px;
+        min-width: 40px;
+    }
+    
+    .left-panel.collapsed .collapse-icon svg {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .left-panel.collapsed::after {
+        width: 20px;
+        height: 20px;
+        margin-left: -10px;
+        margin-top: -10px;
+    }
+    
+    .layout-3panels:has(.left-panel.collapsed) {
+        grid-template-columns: 50px 1fr 380px;
+    }
+    
+    .layout-3panels:has(.left-panel.collapsed):has(.right-panel.collapsed) {
+        grid-template-columns: 50px 1fr 50px;
+    }
+}
+
+@media (max-width: 480px) {
+    .left-panel.collapsed {
+        width: 40px;
+        min-width: 40px;
+        max-width: 40px;
+    }
+    
+    .left-panel.collapsed .collapse-btn-left {
+        left: 50%;
+        top: 4px;
+        transform: translateX(-50%);
+        width: auto;
+        height: 24px;
+        padding: 4px 8px;
+        min-width: 32px;
+    }
+    
+    .left-panel.collapsed .collapse-icon svg {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .left-panel.collapsed::after {
+        width: 16px;
+        height: 16px;
+        margin-left: -8px;
+        margin-top: -8px;
+    }
+    
+    .layout-3panels:has(.left-panel.collapsed) {
+        grid-template-columns: 40px 1fr 380px;
+    }
+    
+    .layout-3panels:has(.left-panel.collapsed):has(.right-panel.collapsed) {
+        grid-template-columns: 40px 1fr 40px;
     }
 }
 
