@@ -1,318 +1,225 @@
-# Prompt para Integración de Modo Claro en Chat Online
+# Prompt para Claude: Implementar Panel Derecho Colapsable en Chat-Online
 
-## Contexto del Proyecto
-Necesito integrar un modo claro en el sistema de chat online (`src/Chat-Online/chat-online.html` y `src/Chat-Online/chat-online.css`) manteniendo la misma estructura y funcionalidad del modo oscuro actual, pero adaptando los colores y estilos para una experiencia visual clara.
+## Objetivo
+Modificar el panel derecho de `src/Chat-Online/chat-online.html` y `src/Chat-Online/chat-online.css` para agregar funcionalidad de colapso similar a la implementada en `src/chat.html` y `src/styles/chat.css`. El panel derecho debe poder colapsarse completamente y expandirse, adaptando el tamaño del panel central automáticamente.
 
-## Referencias de Modo Claro
-He analizado los modos claros implementados en:
-- `src/Community/community.html` y `src/Community/community.css`
-- `src/cursos.html` y `src/styles/cursos.css`
+## Contexto Actual
+El panel derecho actualmente contiene:
+- Sección LIA Assistant (chat con LIA)
+- Sección de Notas (creador de notas)
+- Sección de Comunidad (preguntas y respuestas)
 
-## Estructura Actual del Chat Online
-El chat online tiene una estructura de 3 paneles:
-- **Left Panel**: Información del curso, progreso, materiales
-- **Center Panel**: Contenido principal (video, transcripciones, quiz)
-- **Right Panel**: Asistente LIA, notas, comunidad
+## Requisitos Específicos
 
-## Elementos Principales a Adaptar
+### 1. HTML - Agregar Botón de Colapso
+En `src/Chat-Online/chat-online.html`, modificar el panel derecho (`<aside class="right-panel" id="sidebarRight">`) para incluir:
 
-### 1. Variables CSS Base
-El archivo actual tiene variables en `:root` que necesitan ser extendidas con modo claro:
-
-```css
-:root {
-    --glass-primary: #0066CC;
-    --glass-primary-dark: #0077A6;
-    --glass-secondary: #22C55E;
-    --glass-accent: #F59E0B;
-    --glass-bg-main: linear-gradient(135deg, #0a0f19 0%, #1a2332 50%, #0a0f19 100%);
-    --glass-surface: rgba(0, 102, 204, 0.08);
-    --glass-text-primary: #FFFFFF;
-    --glass-text-secondary: rgba(255, 255, 255, 0.8);
-    --glass-text-muted: rgba(255, 255, 255, 0.6);
-}
+```html
+<aside class="right-panel" id="sidebarRight">
+    <div class="right-panel-header">
+        <h3>Panel Derecho</h3>
+        <button class="collapse-btn" id="collapseRight" title="Ocultar/mostrar">⟨⟩</button>
+    </div>
+    
+    <!-- Contenido existente del panel -->
+    <!-- LIA Assistant -->
+    <div class="lia-assistant-section">
+        <!-- ... contenido existente ... -->
+    </div>
+    
+    <!-- Resto del contenido existente -->
+</aside>
 ```
 
-### 2. Elementos Específicos a Adaptar
+### 2. CSS - Estilos de Colapso
+En `src/Chat-Online/chat-online.css`, agregar los siguientes estilos:
 
-#### A. Paneles y Contenedores
-- `.layout-3panels`
-- `.left-panel`, `.center-panel`, `.right-panel`
-- `.neo-panel`
-- `.course-card`
-- `.course-info-section`
-
-#### B. Navegación
-- `.top-navigation`
-- `.nav-tabs`
-- `.nav-tab`
-- `.back-btn`
-
-#### C. Contenido del Curso
-- `.course-progress-section`
-- `.progress-bar`
-- `.progress-dot`
-- `.module-item`
-- `.video-container`
-- `.content-tabs`
-- `.tab-btn`
-
-#### D. Asistente LIA
-- `.lia-assistant-section`
-- `.lia-chat`
-- `.lia-messages`
-- `.lia-input`
-- `.message-content`
-
-#### E. Notas y Comunidad
-- `.notes-creator-section`
-- `.community-content`
-- `.question-item`
-- `.modal-content`
-
-#### F. Elementos de UI
-- `.btn-primary`, `.btn-secondary`
-- `.modal-overlay`
-- `.toast-container`
-- `.loading-overlay`
-
-## Especificaciones del Modo Claro
-
-### Colores Base para Modo Claro
+#### Header del Panel Derecho
 ```css
-[data-theme="light"] {
-    /* Fondos principales */
-    --glass-bg-main: linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%);
-    --glass-bg-alt: linear-gradient(160deg, #E8F2F8 0%, #D1E7DD 100%);
-    
-    /* Superficies y contenedores */
-    --glass-surface: rgba(255, 255, 255, 0.95);
-    --glass-surface-light: rgba(255, 255, 255, 0.9);
-    --glass-surface-hover: rgba(0, 102, 204, 0.1);
-    --glass-surface-active: rgba(0, 102, 204, 0.15);
-    
-    /* Textos */
-    --glass-text-primary: #2D3748;
-    --glass-text-secondary: rgba(45, 55, 72, 0.8);
-    --glass-text-muted: rgba(45, 55, 72, 0.6);
-    --glass-text-white: #FFFFFF;
-    
-    /* Bordes */
-    --glass-border: 1px solid rgba(0, 102, 204, 0.15);
-    --glass-border-strong: 1px solid rgba(0, 102, 204, 0.25);
-    --glass-border-subtle: 1px solid rgba(0, 102, 204, 0.08);
-    
-    /* Sombras */
-    --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    --glass-shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.12);
-    --glass-shadow-strong: 0 8px 32px rgba(0, 0, 0, 0.15);
-}
-```
-
-### Características del Modo Claro
-1. **Fondo**: Gradiente azul claro (#E6F3FF a #D4E6F1) o (#E8F2F8 a #D1E7DD)
-2. **Texto**: Gris oscuro (#2D3748) para contraste
-3. **Superficies**: Blancas semitransparentes con blur
-4. **Bordes**: Azul translúcido sutil
-5. **Sombras**: Suaves y claras
-6. **Botones**: Mantener el azul #0066CC como color principal
-
-### Colores Específicos de Referencia
-Basándome en las páginas de referencia, estos son los colores exactos que se usan:
-
-#### Textos
-- **Primario**: `#2D3748` (gris oscuro)
-- **Secundario**: `rgba(45, 55, 72, 0.8)` (gris medio)
-- **Muted**: `rgba(45, 55, 72, 0.6)` (gris claro)
-- **Nombres de usuario**: `#2D3748`
-- **Emails**: `#4A5568`
-
-#### Fondos
-- **Principal**: `linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%)`
-- **Alternativo**: `linear-gradient(160deg, #E8F2F8 0%, #D1E7DD 100%)`
-- **Tarjetas**: `rgba(255, 255, 255, 0.95)`
-- **Navbar**: `rgba(255, 255, 255, 0.9)`
-- **Menús**: `rgba(255, 255, 255, 0.95)`
-
-#### Bordes
-- **Sutiles**: `rgba(0, 102, 204, 0.15)`
-- **Normales**: `rgba(0, 102, 204, 0.2)`
-- **Fuertes**: `rgba(0, 102, 204, 0.25)`
-
-#### Sombras
-- **Suaves**: `0 4px 20px rgba(0, 0, 0, 0.08)`
-- **Hover**: `0 8px 32px rgba(0, 0, 0, 0.12)`
-- **Fuertes**: `0 8px 32px rgba(0, 0, 0, 0.15)`
-
-#### Estados Hover
-- **Fondos**: `rgba(0, 102, 204, 0.1)`
-- **Bordes**: `rgba(0, 102, 204, 0.3)`
-- **Textos**: `#0066CC`
-
-### Ejemplos de Implementación en Chat Online
-
-#### Paneles y Contenedores
-```css
-[data-theme="light"] .left-panel,
-[data-theme="light"] .center-panel,
-[data-theme="light"] .right-panel {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(0, 102, 204, 0.15);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+.right-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.15);
+    margin-bottom: 1rem;
 }
 
-[data-theme="light"] .course-card {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(0, 102, 204, 0.15);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+.right-panel-header h3 {
+    margin: 0;
+    color: var(--glass-primary);
+    font-size: 1rem;
+    font-weight: 600;
 }
-```
 
-#### Navegación
-```css
-[data-theme="light"] .nav-tab {
-    color: #4A5568;
+.collapse-btn {
     background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: var(--text-on-dark);
+    border-radius: 10px;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
 }
 
-[data-theme="light"] .nav-tab:hover {
-    background: rgba(0, 102, 204, 0.1);
+.collapse-btn:hover {
+    background: rgba(0, 102, 204, 0.2);
+    border-color: rgba(0, 102, 204, 0.4);
     color: #0066CC;
 }
-
-[data-theme="light"] .nav-tab.active {
-    background: #0066CC;
-    color: white;
-    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
-}
 ```
 
-#### Asistente LIA
+#### Estado Colapsado
 ```css
-[data-theme="light"] .lia-assistant-section {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(0, 102, 204, 0.15);
+.right-panel.collapsed {
+    width: 60px;
+    min-width: 60px;
+    max-width: 60px;
+    padding: 0.5rem;
 }
 
-[data-theme="light"] .message-content {
-    background: rgba(255, 255, 255, 0.9);
-    color: #2D3748;
-    border: 1px solid rgba(0, 102, 204, 0.1);
+.right-panel.collapsed .right-panel-header {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    justify-content: center;
 }
 
-[data-theme="light"] .lia-input input {
-    background: rgba(255, 255, 255, 0.9);
-    color: #2D3748;
-    border: 1px solid rgba(0, 102, 204, 0.15);
+.right-panel.collapsed .right-panel-header h3 {
+    display: none;
+}
+
+.right-panel.collapsed .collapse-btn {
+    font-size: 0.8rem;
+    padding: 2px 4px;
+}
+
+/* Ocultar todo el contenido cuando está colapsado */
+.right-panel.collapsed .lia-assistant-section,
+.right-panel.collapsed .notes-creator-section,
+.right-panel.collapsed .community-content {
+    display: none !important;
 }
 ```
 
-#### Modales y Formularios
+#### Adaptación del Panel Central
 ```css
-[data-theme="light"] .modal-content {
-    background: rgba(255, 255, 255, 0.98);
-    border: 1px solid rgba(0, 102, 204, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    color: #2D3748;
+/* Cuando el panel derecho está colapsado, expandir el panel central */
+.right-panel.collapsed ~ .center-panel {
+    grid-column: 2 / 4; /* Extender hasta el final */
 }
 
-[data-theme="light"] .modal-overlay {
-    background: rgba(0, 0, 0, 0.3);
+/* Ajustar el grid layout cuando está colapsado */
+.layout-3panels:has(.right-panel.collapsed) {
+    grid-template-columns: 280px 1fr 60px;
 }
 ```
 
-## Tareas Específicas
-
-### 1. Extender Variables CSS
-- Agregar variables para modo claro usando `[data-theme="light"]`
-- Mantener compatibilidad con modo oscuro existente
-- Asegurar transiciones suaves entre temas
-
-### 2. Adaptar Elementos de Paneles
-- **Left Panel**: Tarjetas de curso con fondo blanco semitransparente
-- **Center Panel**: Contenido con fondo claro y texto oscuro
-- **Right Panel**: Asistente LIA con interfaz clara
-
-### 3. Navegación y Botones
-- Mantener el azul #0066CC como color principal
-- Adaptar estados hover y active para modo claro
-- Asegurar contraste adecuado en todos los estados
-
-### 4. Elementos Interactivos
-- Modales con fondo blanco y sombras suaves
-- Botones con efectos de hover adaptados
-- Inputs y formularios con estilos claros
-
-### 5. Asistente LIA
-- Chat con burbujas claras
-- Input con fondo blanco
-- Mensajes con texto oscuro legible
-
-### 6. Elementos de Progreso
-- Barras de progreso con colores adaptados
-- Dots de progreso con estados claros
-- Indicadores visuales consistentes
-
-## Consideraciones Técnicas
-
-### 1. Transiciones
-- Implementar transiciones suaves (0.3s ease) para todos los elementos
-- Usar `transition: all 0.3s ease` para cambios de tema
-
-### 2. Compatibilidad
-- Mantener funcionalidad existente
-- No romper JavaScript existente
-- Asegurar que el toggle de tema funcione correctamente
-
-### 3. Responsive Design
-- Adaptar estilos para móviles en modo claro
-- Mantener legibilidad en todas las resoluciones
-
-### 4. Accesibilidad
-- Contraste adecuado en modo claro
-- Estados de focus visibles
-- Texto legible en todos los elementos
-
-## Estructura de Implementación
-
-### 1. Variables CSS
+#### Modo Claro y Oscuro
 ```css
-/* Modo Claro */
-[data-theme="light"] {
-    /* Variables de color */
-    /* Variables de superficie */
-    /* Variables de texto */
-    /* Variables de bordes */
+/* Modo claro */
+[data-theme="light"] .right-panel-header {
+    border-bottom-color: rgba(0, 102, 204, 0.1);
+}
+
+[data-theme="light"] .right-panel-header h3 {
+    color: var(--glass-primary);
+}
+
+[data-theme="light"] .collapse-btn {
+    border-color: rgba(0, 102, 204, 0.2);
+    color: var(--text-on-light);
+}
+
+[data-theme="light"] .collapse-btn:hover {
+    background: rgba(0, 102, 204, 0.1);
+    border-color: rgba(0, 102, 204, 0.3);
+    color: #0066CC;
 }
 ```
 
-### 2. Estilos Específicos
-```css
-/* Elementos específicos para modo claro */
-[data-theme="light"] .elemento {
-    /* Estilos adaptados */
-}
-```
+### 3. JavaScript - Funcionalidad de Colapso
+Agregar el siguiente JavaScript al final del archivo HTML (antes del cierre de `</body>`):
 
-### 3. Transiciones Globales
-```css
-/* Transiciones para cambio de tema */
-* {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
-```
-
-## Resultado Esperado
-Un modo claro completamente funcional que:
-- Mantenga la misma estructura y funcionalidad del modo oscuro
-- Use colores claros y legibles
-- Tenga transiciones suaves entre temas
-- Sea consistente con el diseño del resto de la plataforma
-- Mantenga el azul #0066CC como color principal de la marca
-
-## Archivos a Modificar
-1. `src/Chat-Online/chat-online.css` - Agregar estilos de modo claro
-2. Verificar que `src/Chat-Online/chat-online.html` tenga el toggle de tema implementado
-
-¿Estás listo para implementar el modo claro siguiendo estas especificaciones?
+```javascript
+// Funcionalidad de colapso del panel derecho
+document.addEventListener('DOMContentLoaded', function() {
+    const collapseRight = document.getElementById('collapseRight');
+    const sidebarRight = document.getElementById('sidebarRight');
     
+    if (collapseRight && sidebarRight) {
+        collapseRight.addEventListener('click', function() {
+            sidebarRight.classList.toggle('collapsed');
+            console.log('📱 Panel derecho:', sidebarRight.classList.contains('collapsed') ? 'colapsado' : 'expandido');
+            
+            // Opcional: Guardar estado en localStorage
+            localStorage.setItem('rightPanelCollapsed', sidebarRight.classList.contains('collapsed'));
+        });
+        
+        // Restaurar estado desde localStorage
+        const isCollapsed = localStorage.getItem('rightPanelCollapsed') === 'true';
+        if (isCollapsed) {
+            sidebarRight.classList.add('collapsed');
+        }
+    }
+});
+```
+
+### 4. Responsive Design
+Agregar estilos responsive para móviles:
+
+```css
+@media (max-width: 768px) {
+    .right-panel.collapsed {
+        width: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+    
+    .right-panel.collapsed .right-panel-header {
+        padding: 0.25rem;
+    }
+    
+    .right-panel.collapsed .collapse-btn {
+        font-size: 0.7rem;
+        padding: 1px 2px;
+    }
+}
+
+@media (max-width: 480px) {
+    .right-panel.collapsed {
+        width: 40px;
+        min-width: 40px;
+        max-width: 40px;
+    }
+}
+```
+
+## Consideraciones Importantes
+
+1. **Preservar Funcionalidad**: No afectar la funcionalidad existente del chat LIA, notas o comunidad
+2. **Transiciones Suaves**: Usar transiciones CSS para animaciones fluidas
+3. **Accesibilidad**: Mantener el atributo `title` en el botón para tooltips
+4. **Consistencia Visual**: Usar los mismos colores y estilos que el resto de la aplicación
+5. **Estado Persistente**: Guardar el estado de colapso en localStorage
+6. **Responsive**: Asegurar que funcione correctamente en dispositivos móviles
+
+## Estructura Final Esperada
+
+El panel derecho debe tener esta estructura:
+```
+.right-panel
+├── .right-panel-header
+│   ├── h3 (título)
+│   └── .collapse-btn (botón de colapso)
+├── .lia-assistant-section
+├── .notes-creator-section
+└── .community-content
+```
+
+Cuando esté colapsado, solo debe mostrar el botón de colapso en el header, ocultando todo el contenido del panel.
+
+## Referencias
+- Basarse en la implementación existente en `src/chat.html` y `src/styles/chat.css`
+- Usar los mismos patrones de colapso que el panel izquierdo en `chat.html`
+- Mantener consistencia con el sistema de temas (claro/oscuro) existente

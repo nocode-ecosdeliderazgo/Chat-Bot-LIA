@@ -1799,6 +1799,13 @@ Cargando información...
 
         <!-- Panel Derecho - LIA Assistant y Notas -->
         <aside class="right-panel" id="sidebarRight">
+            <button class="collapse-btn" id="collapseRight" title="Ocultar/mostrar panel">
+                <span class="collapse-icon">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                        <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            </button>
             
             <!-- LIA Assistant -->
             <div class="lia-assistant-section">
@@ -2760,6 +2767,31 @@ Cargando información...
       
       // Cargar configuración al inicio
       loadSupabaseConfig();
+    </script>
+
+    <!-- Funcionalidad de colapso del panel derecho -->
+    <script>
+        // Funcionalidad de colapso del panel derecho
+        document.addEventListener('DOMContentLoaded', function() {
+            const collapseRight = document.getElementById('collapseRight');
+            const sidebarRight = document.getElementById('sidebarRight');
+            
+            if (collapseRight && sidebarRight) {
+                collapseRight.addEventListener('click', function() {
+                    sidebarRight.classList.toggle('collapsed');
+                    console.log('📱 Panel derecho:', sidebarRight.classList.contains('collapsed') ? 'colapsado' : 'expandido');
+                    
+                    // Opcional: Guardar estado en localStorage
+                    localStorage.setItem('rightPanelCollapsed', sidebarRight.classList.contains('collapsed'));
+                });
+                
+                // Restaurar estado desde localStorage
+                const isCollapsed = localStorage.getItem('rightPanelCollapsed') === 'true';
+                if (isCollapsed) {
+                    sidebarRight.classList.add('collapsed');
+                }
+            }
+        });
     </script>
 
 </body>
