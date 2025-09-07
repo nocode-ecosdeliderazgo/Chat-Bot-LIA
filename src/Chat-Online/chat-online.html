@@ -421,23 +421,30 @@
 
         /* ===== ESTILOS PARA CONTEXTO DE PREGUNTA EN MODALES ===== */
         .question-context {
-            background: var(--background-secondary, #f8f9fa);
-            border: 1px solid var(--border-color, #e1e5e9);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(68, 229, 255, 0.2);
             border-radius: 8px;
             padding: 16px;
             margin-bottom: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .question-context:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(68, 229, 255, 0.3);
         }
 
         .question-context h4 {
             margin: 0 0 8px 0;
-            color: var(--text-primary, #212529);
+            color: var(--glass-text-primary, #e2e8f0);
             font-size: 16px;
             font-weight: 600;
         }
 
         .question-context p {
             margin: 0;
-            color: var(--text-secondary, #6c757d);
+            color: var(--glass-text-secondary, #94a3b8);
             font-size: 14px;
             line-height: 1.4;
         }
@@ -448,7 +455,7 @@
             gap: 12px;
             margin-top: 10px;
             font-size: 12px;
-            color: var(--text-secondary, #6c757d);
+            color: var(--glass-text-secondary, #94a3b8);
         }
 
         .question-context-author {
@@ -534,28 +541,147 @@
             gap: 24px;
         }
 
+        /* Header de detalles con botón de cierre - Paleta answerContent */
+        .details-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--glass-surface);
+            border: 1px solid rgba(0, 102, 204, 0.2);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .details-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(68, 229, 255, 0.4), transparent);
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        .details-main-title {
+            margin: 0;
+            color: var(--glass-text-primary);
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .details-main-title::before {
+            content: '📋';
+            font-size: 1.1rem;
+            filter: drop-shadow(0 1px 3px rgba(68, 229, 255, 0.3));
+        }
+
+        .close-details-btn {
+            background: transparent;
+            border: 2px solid #0066CC;
+            color: #0066CC;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            width: 36px;
+            height: 36px;
+        }
+
+        .close-details-btn:hover {
+            background: #0066CC;
+            border-color: #0066CC;
+            color: white;
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        .close-details-btn .icon-sm {
+            width: 16px;
+            height: 16px;
+        }
+
         .details-section {
-            background: var(--background-secondary, #f8f9fa);
-            border-radius: 8px;
-            padding: 16px;
-            border: 1px solid var(--border-color, #e1e5e9);
+            background: var(--glass-surface);
+            border: 1px solid rgba(0, 102, 204, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .details-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(68, 229, 255, 0.8), rgba(68, 229, 255, 0.4));
+            border-radius: 0 2px 2px 0;
+        }
+
+        .details-section.answers-section::before {
+            background: linear-gradient(180deg, #0066CC, #0052A3);
+        }
+
+        .details-section.comments-section::before {
+            background: linear-gradient(180deg, rgba(68, 229, 255, 0.8), #0066CC);
         }
 
         .section-title {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
-            margin: 0 0 16px 0;
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary, #333);
+            gap: 10px;
+            margin: 0 0 20px 0;
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--glass-text-primary);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(68, 229, 255, 0.6), transparent);
+            border-radius: 1px;
         }
 
         .section-title svg {
-            width: 16px;
-            height: 16px;
-            color: var(--text-muted, #666);
+            width: 18px;
+            height: 18px;
+            color: var(--glass-text-primary);
+            margin-right: 4px;
+        }
+
+        .answers-section .section-title svg {
+            color: #0066CC;
+        }
+
+        .answers-section .section-title::after {
+            background: linear-gradient(90deg, #0066CC, transparent);
         }
 
         .sort-options {
@@ -565,31 +691,67 @@
         }
 
         .sort-select {
-            padding: 4px 8px;
-            border: 1px solid var(--border-color, #e1e5e9);
-            border-radius: 4px;
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(68, 229, 255, 0.15);
+            border-radius: 8px;
             font-size: 12px;
-            background: var(--background-primary, #fff);
-            color: var(--text-primary, #333);
+            color: var(--glass-text-primary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        /* ===== ESTILOS PARA RESPUESTAS ===== */
+        .sort-select:hover,
+        .sort-select:focus {
+            outline: none;
+            border-color: var(--glass-primary);
+            background: rgba(68, 229, 255, 0.08);
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+        }
+
+        /* ===== ESTILOS PARA RESPUESTAS - Paleta answerContent ===== */
         .answers-list {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 18px;
         }
 
         .answer-item {
-            background: var(--background-primary, #fff);
-            border: 1px solid var(--border-color, #e1e5e9);
-            border-radius: 8px;
-            padding: 16px;
-            transition: box-shadow 0.2s ease;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(68, 229, 255, 0.15);
+            border-radius: 12px;
+            padding: 18px;
+            transition: all 0.3s ease;
+            position: relative;
+            color: var(--glass-text-primary);
+        }
+
+        .answer-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(68, 229, 255, 0.4), transparent);
+            border-radius: 12px 12px 0 0;
         }
 
         .answer-item:hover {
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-color: var(--glass-primary);
+            background: rgba(68, 229, 255, 0.08);
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .answer-item.accepted {
+            border-color: rgba(68, 229, 255, 0.25);
+            background: rgba(68, 229, 255, 0.03);
+        }
+
+        .answer-item.accepted::before {
+            background: linear-gradient(90deg, transparent, #0066CC, transparent);
         }
 
         .answer-header {
@@ -612,11 +774,11 @@
 
         .author-name {
             font-weight: 500;
-            color: var(--text-primary, #333);
+            color: #ffffff;
         }
 
         .answer-time {
-            color: var(--text-muted, #666);
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .accepted-badge {
@@ -635,7 +797,7 @@
         .answer-content p {
             margin: 0;
             line-height: 1.5;
-            color: var(--text-primary, #333);
+            color: #ffffff;
         }
 
         .answer-actions {
@@ -651,73 +813,98 @@
         }
 
         .vote-btn {
-            background: none;
-            border: 1px solid var(--border-color, #e1e5e9);
-            border-radius: 4px;
-            padding: 6px;
+            background: transparent;
+            border: 2px solid #0066CC;
+            border-radius: 8px;
+            padding: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: #0066CC;
         }
 
         .vote-btn:hover {
-            background: var(--background-secondary, #f8f9fa);
-            border-color: var(--primary-color, #007bff);
+            background: #0066CC;
+            border-color: #0066CC;
+            color: white;
         }
 
         .vote-btn.upvote.voted {
-            background: var(--success-color, #10b981);
+            background: linear-gradient(135deg, #0066CC, #0052A3);
             color: white;
-            border-color: var(--success-color, #10b981);
+            border-color: #0066CC;
         }
 
         .vote-btn.downvote.voted {
-            background: var(--error-color, #dc2626);
+            background: #ef4444;
             color: white;
-            border-color: var(--error-color, #dc2626);
+            border-color: #ef4444;
         }
 
         .vote-count {
             font-weight: 600;
-            color: var(--text-primary, #333);
-            min-width: 20px;
+            color: var(--glass-text-primary);
+            min-width: 24px;
             text-align: center;
         }
 
         .comment-btn {
-            background: none;
-            border: 1px solid var(--border-color, #e1e5e9);
-            border-radius: 6px;
-            padding: 6px 12px;
+            background: transparent;
+            border: 2px solid #0066CC;
+            border-radius: 8px;
+            padding: 8px 14px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             font-size: 14px;
-            color: var(--text-muted, #666);
+            color: #0066CC;
+            font-weight: 600;
         }
 
         .comment-btn:hover {
-            background: var(--background-secondary, #f8f9fa);
-            color: var(--text-primary, #333);
+            background: #0066CC;
+            border-color: #0066CC;
+            color: white;
         }
 
-        /* ===== ESTILOS PARA COMENTARIOS ===== */
+        /* ===== ESTILOS PARA COMENTARIOS - Paleta answerContent ===== */
         .comments-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
         }
 
         .comment-item {
-            background: var(--background-primary, #fff);
-            border: 1px solid var(--border-color, #e1e5e9);
-            border-radius: 6px;
-            padding: 12px;
-            border-left: 3px solid var(--primary-color, #007bff);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(68, 229, 255, 0.15);
+            border-radius: 10px;
+            padding: 14px;
+            border-left: 4px solid #0066CC;
+            transition: all 0.3s ease;
+            position: relative;
+            color: var(--glass-text-primary);
+        }
+
+        .comment-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 30px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(68, 229, 255, 0.4));
+        }
+
+        .comment-item:hover {
+            border-color: var(--glass-primary);
+            border-left-color: rgba(68, 229, 255, 0.8);
+            background: rgba(68, 229, 255, 0.08);
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+            transform: translateX(4px);
         }
 
         .comment-header {
@@ -736,14 +923,31 @@
         }
 
         .comment-time {
-            color: var(--text-muted, #666);
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .comment-content p {
             margin: 0;
             line-height: 1.4;
-            color: var(--text-primary, #333);
+            color: #ffffff;
             font-size: 14px;
+        }
+
+        /* Asegurar que todos los nombres de autor estén en blanco */
+        .comment-item .author-name,
+        .answer-item .author-name {
+            color: #ffffff !important;
+        }
+
+        /* Contenido de texto en blanco */
+        .comment-content,
+        .answer-content {
+            color: #ffffff;
+        }
+
+        .comment-content *,
+        .answer-content * {
+            color: #ffffff;
         }
 
         .comment-actions {
@@ -790,7 +994,7 @@
         .vote-count-sm {
             font-size: 12px;
             font-weight: 600;
-            color: var(--text-primary, #333);
+            color: #ffffff;
             min-width: 16px;
             text-align: center;
         }
@@ -818,8 +1022,52 @@
                 gap: 16px;
             }
 
+            .details-header {
+                padding: 12px 16px;
+                margin-bottom: 16px;
+                border-radius: 12px;
+                background: var(--glass-surface);
+                border: 1px solid rgba(0, 102, 204, 0.2);
+            }
+
+            .details-main-title {
+                font-size: 1rem;
+                color: var(--glass-text-primary);
+            }
+
+            .details-main-title::before {
+                font-size: 1rem;
+            }
+
+            .close-details-btn {
+                width: 32px;
+                height: 32px;
+                padding: 8px;
+            }
+
+            .close-details-btn .icon-sm {
+                width: 14px;
+                height: 14px;
+            }
+
             .details-section {
-                padding: 12px;
+                padding: 16px;
+                border-radius: 10px;
+            }
+
+            .section-title {
+                font-size: 16px;
+                margin-bottom: 16px;
+            }
+
+            .section-title svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            .answer-item, .comment-item {
+                padding: 14px;
+                border-radius: 10px;
             }
 
             .section-title {
@@ -850,6 +1098,177 @@
 
             .comment-btn {
                 align-self: flex-end;
+            }
+        }
+
+        /* ===== ESTILOS PARA LOS VIDEOS DEL MÓDULO 1 ===== */
+        .module-videos-section {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            box-sizing: border-box;
+            overflow: visible;
+            min-height: auto;
+        }
+
+        .module-videos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .module-videos-header h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--glass-primary);
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .module-stats {
+            display: flex;
+            gap: 0.75rem;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .module-stats span {
+            background: rgba(68, 229, 255, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            border: 1px solid rgba(68, 229, 255, 0.2);
+        }
+
+        .module-videos-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.5rem 0;
+            max-height: none;
+            overflow: visible;
+        }
+
+        .video-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .video-item:hover {
+            background: rgba(68, 229, 255, 0.1);
+            border-color: rgba(68, 229, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .video-item.active {
+            background: rgba(68, 229, 255, 0.15);
+            border-color: var(--glass-primary);
+            box-shadow: 0 0 20px rgba(68, 229, 255, 0.2);
+        }
+
+        .video-item.completed .video-icon {
+            color: #28a745;
+        }
+
+        .video-icon {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(68, 229, 255, 0.1);
+            border-radius: 50%;
+            color: var(--glass-primary);
+        }
+
+        .video-info {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .video-title {
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin: 0 0 0.25rem 0;
+            color: rgba(255, 255, 255, 0.9);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .video-duration, .video-progress {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .progress-bar-mini {
+            width: 40px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill-mini {
+            height: 100%;
+            background: var(--glass-primary);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .loading-videos {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 2rem;
+            opacity: 0.7;
+        }
+
+        /* Responsive para videos */
+        @media (max-width: 768px) {
+            .video-item {
+                padding: 0.5rem;
+            }
+            
+            .video-title {
+                font-size: 0.8rem;
+            }
+            
+            .video-meta {
+                font-size: 0.7rem;
+            }
+            
+            .module-stats {
+                font-size: 0.75rem;
             }
         }
     </style>
@@ -1135,12 +1554,28 @@
                         </button>
                     </div>
                 </div>
-                <!-- Lista de Módulos - Sistema de menús desplegables -->
-                <div class="modules-list" id="modulesList">
-                    <!-- Los módulos se cargarán dinámicamente aquí -->
-                    <div class="loading-modules">
-                        <div class="loading-spinner"></div>
-                        <span>Cargando módulos del curso...</span>
+
+                <!-- Videos del Módulo 1 - Sistema de botones para cambiar videos -->
+                <div class="module-videos-section" id="module1Section">
+                    <div class="module-videos-header">
+                        <h4>
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="23,7 16,12 23,17"/>
+                                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                            </svg>
+                            Módulo 1: Fundamentos de IA
+                        </h4>
+                        <div class="module-stats">
+                            <span class="module-video-count">2 videos</span>
+                            <span class="module-progress">0% completado</span>
+                        </div>
+                    </div>
+                    <div class="module-videos-list" id="module1VideosList">
+                        <!-- Los videos del módulo 1 se cargarán dinámicamente aquí -->
+                        <div class="loading-videos">
+                            <div class="loading-spinner"></div>
+                            <span>Cargando videos del módulo 1...</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1961,6 +2396,440 @@ Cargando información...
     <!-- Community Database -->
     <script src="../scripts/community-database.js"></script>
     
+    <!-- Community Questions Management -->
+    <script>
+        // Instancia global de la base de datos de comunidad
+        let communityDB = null;
+
+        // Función para inicializar la base de datos de comunidad
+        async function initCommunityDatabase() {
+            try {
+                if (window.CommunityDatabase) {
+                    communityDB = new window.CommunityDatabase();
+                    await communityDB.initialize();
+                    console.log('✅ Base de datos de comunidad inicializada');
+                    return true;
+                } else {
+                    console.error('❌ CommunityDatabase no está disponible');
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Error inicializando base de datos de comunidad:', error);
+                return false;
+            }
+        }
+
+        // Función para cargar preguntas dinámicamente
+        async function loadCommunityQuestions() {
+            try {
+                console.log('📋 Cargando preguntas de la comunidad...');
+                
+                // Primero intentar usar el API REST directo
+                if (window.communityAPI) {
+                    console.log('🌐 Usando CommunityAPI para obtener preguntas...');
+                    const response = await window.communityAPI.getQuestions({
+                        sort: 'recent'
+                    });
+                    
+                    if (response.success && response.data && response.data.length > 0) {
+                        console.log('✅ Preguntas obtenidas del API:', response.data);
+                        renderQuestionsFromAPI(response.data);
+                        return;
+                    } else {
+                        console.log('⚠️ API response no exitosa o sin datos:', response);
+                    }
+                }
+                
+                // Fallback a CommunityDatabase si communityAPI no está disponible
+                if (!communityDB) {
+                    const initialized = await initCommunityDatabase();
+                    if (!initialized) {
+                        console.error('❌ No se pudo inicializar la base de datos');
+                        await updateStaticTimestamps();
+                        return;
+                    }
+                }
+
+                // Obtener preguntas de la base de datos usando CommunityDatabase
+                const questions = await communityDB.getQuestions({
+                    sort: 'created_at'
+                });
+
+                console.log('✅ Preguntas obtenidas de CommunityDatabase:', questions);
+                renderQuestions(questions);
+
+            } catch (error) {
+                console.error('❌ Error cargando preguntas:', error);
+                // Mantener las preguntas estáticas pero actualizar timestamps
+                console.log('📋 Actualizando solo timestamps de preguntas estáticas');
+                await updateStaticTimestamps();
+            }
+        }
+
+        // Función para renderizar preguntas desde API REST
+        function renderQuestionsFromAPI(questions) {
+            const questionsList = document.getElementById('questionsList');
+            if (!questionsList) return;
+
+            if (!questions || questions.length === 0) {
+                questionsList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7);">
+                        <p>No hay preguntas disponibles en este momento.</p>
+                        <p>¡Sé el primero en hacer una pregunta!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const questionsHTML = questions.map(question => {
+                // Formatear tiempo de la fecha created_at del API
+                const timeAgo = formatTimestamp(question.created_at);
+                
+                // Datos del usuario desde la API (nested en users object)
+                const userName = question.users?.name || question.users?.display_name || question.display_name || question.first_name || question.username || 'Usuario Anónimo';
+                const userAvatar = question.users?.avatar_url || question.avatar_url || '../../assets/images/default-avatar.svg';
+                
+                // Tags
+                const tags = Array.isArray(question.tags) ? question.tags : [];
+                const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+
+                return `
+                    <div class="question-item" data-question-id="${question.id}">
+                        <div class="question-votes">
+                            <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 15l-6-6-6 6"/>
+                                </svg>
+                            </button>
+                            <span class="vote-count">${question.votes_count || 0}</span>
+                            <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M6 9l6 6 6-6"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="question-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">${question.answers_count || 0}</span>
+                                <span class="stat-label">respuestas</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">${question.views_count || 0}</span>
+                                <span class="stat-label">vistas</span>
+                            </div>
+                        </div>
+
+                        <div class="question-actions">
+                            <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 2l-2 2m-2 2l-2 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h6l2-2 2-2z"/>
+                                    <path d="M7 12L12 7l5 5"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn comment-btn" title="Comentar pregunta" onclick="showCommentModal('${question.id}', '${question.title}', '${question.content}')">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="question-content">
+                            <div class="question-header">
+                                <h4 class="question-title">${question.title}</h4>
+                                <div class="question-meta">
+                                    <span class="question-author">
+                                        <img src="${userAvatar}" alt="Usuario" class="author-avatar">
+                                        ${userName}
+                                    </span>
+                                    <span class="question-time">${timeAgo}</span>
+                                    <span class="question-module">General</span>
+                                </div>
+                            </div>
+                            <div class="question-preview">
+                                <p>${question.content.length > 200 ? question.content.substring(0, 200) + '...' : question.content}</p>
+                            </div>
+                            ${tagsHTML ? `<div class="question-tags">${tagsHTML}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            questionsList.innerHTML = questionsHTML;
+            console.log(`✅ ${questions.length} preguntas renderizadas desde API`);
+        }
+
+        // Función para renderizar preguntas con tiempo real (CommunityDatabase)
+        function renderQuestions(questions) {
+            const questionsList = document.getElementById('questionsList');
+            if (!questionsList) return;
+
+            if (!questions || questions.length === 0) {
+                console.log('📋 No hay preguntas dinámicas, manteniendo contenido estático');
+                return;
+            }
+
+            const questionsHTML = questions.map(question => {
+                // Formatear tiempo usando la función de CommunityDatabase
+                const timeAgo = communityDB ? communityDB.formatTimestamp(question.created_at) : 'Hace poco';
+                
+                // Datos del usuario
+                const userName = question.users?.name || question.users?.display_name || 'Usuario Anónimo';
+                const userAvatar = question.users?.avatar_url || '../../assets/images/default-avatar.svg';
+                
+                // Tags
+                const tags = Array.isArray(question.tags) ? question.tags : [];
+                const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+
+                return `
+                    <div class="question-item" data-question-id="${question.id}">
+                        <div class="question-votes">
+                            <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 15l-6-6-6 6"/>
+                                </svg>
+                            </button>
+                            <span class="vote-count">${question.votes_count || 0}</span>
+                            <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M6 9l6 6 6-6"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="question-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">${question.answers_count || 0}</span>
+                                <span class="stat-label">respuestas</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">${question.views_count || 0}</span>
+                                <span class="stat-label">vistas</span>
+                            </div>
+                        </div>
+
+                        <div class="question-actions">
+                            <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 2l-2 2m-2 2l-2 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h6l2-2 2-2z"/>
+                                    <path d="M7 12L12 7l5 5"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn comment-btn" title="Comentar pregunta" onclick="showCommentModal('${question.id}', '${question.title}', '${question.content}')">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="question-content">
+                            <div class="question-header">
+                                <h4 class="question-title">${question.title}</h4>
+                                <div class="question-meta">
+                                    <span class="question-author">
+                                        <img src="${userAvatar}" alt="Usuario" class="author-avatar">
+                                        ${userName}
+                                    </span>
+                                    <span class="question-time">${timeAgo}</span>
+                                    <span class="question-module">${question.module_name || 'General'}</span>
+                                </div>
+                            </div>
+                            <div class="question-preview">
+                                <p>${question.content.length > 200 ? question.content.substring(0, 200) + '...' : question.content}</p>
+                            </div>
+                            ${tagsHTML ? `<div class="question-tags">${tagsHTML}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            questionsList.innerHTML = questionsHTML;
+        }
+
+        // Función para formatear timestamps (independiente de CommunityDatabase)
+        function formatTimestamp(timestamp) {
+            try {
+                const date = new Date(timestamp);
+                const now = new Date();
+                const diffInSeconds = Math.floor((now - date) / 1000);
+
+                if (diffInSeconds < 60) {
+                    return 'Ahora mismo';
+                } else if (diffInSeconds < 3600) {
+                    // Menos de 1 hora: mostrar en minutos
+                    const minutes = Math.floor(diffInSeconds / 60);
+                    return `Hace ${minutes} minuto${minutes > 1 ? 's' : ''}`;
+                } else if (diffInSeconds < 86400) {
+                    // Menos de 1 día: mostrar en horas
+                    const hours = Math.floor(diffInSeconds / 3600);
+                    return `Hace ${hours} hora${hours > 1 ? 's' : ''}`;
+                } else if (diffInSeconds < 2592000) {
+                    // Menos de 30 días: mostrar en días
+                    const days = Math.floor(diffInSeconds / 86400);
+                    return `Hace ${days} día${days > 1 ? 's' : ''}`;
+                } else if (diffInSeconds < 31536000) {
+                    // Menos de 1 año: mostrar en meses
+                    const months = Math.floor(diffInSeconds / 2592000);
+                    return `Hace ${months} mes${months > 1 ? 'es' : ''}`;
+                } else {
+                    // Más de 1 año: mostrar fecha completa
+                    return date.toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                }
+            } catch (error) {
+                console.error('❌ Error formateando timestamp:', error);
+                return 'Hace poco';
+            }
+        }
+
+        // Funciones auxiliares para manejar interacciones
+        async function voteQuestion(questionId, voteType) {
+            try {
+                console.log(`📊 Votando pregunta ${questionId}: ${voteType}`);
+                // Implementar lógica de votación aquí si está disponible
+            } catch (error) {
+                console.error('❌ Error votando:', error);
+            }
+        }
+
+        async function toggleBookmark(questionId) {
+            try {
+                console.log(`🔖 Alternando marcador para pregunta ${questionId}`);
+                if (communityDB && communityDB.toggleBookmark) {
+                    await communityDB.toggleBookmark(questionId);
+                }
+            } catch (error) {
+                console.error('❌ Error con marcador:', error);
+            }
+        }
+
+        // Función para actualizar timestamps de preguntas estáticas
+        function updateStaticTimestamps() {
+            try {
+                const questionItems = document.querySelectorAll('.question-item');
+                questionItems.forEach((item, index) => {
+                    const timeElement = item.querySelector('.question-time');
+                    if (timeElement) {
+                        // Generar fechas simuladas realistas basadas en el índice
+                        const hoursAgo = Math.floor(Math.random() * (48 + index * 12)) + 1; // Fechas más variadas
+                        const simulatedDate = new Date(Date.now() - (hoursAgo * 60 * 60 * 1000));
+                        const formattedTime = formatTimestamp(simulatedDate.toISOString());
+                        timeElement.textContent = formattedTime;
+                        console.log(`🕒 Tiempo actualizado en pregunta ${index + 1}: ${formattedTime}`);
+                    }
+                });
+            } catch (error) {
+                console.error('❌ Error actualizando timestamps:', error);
+            }
+        }
+
+        // Función de prueba para verificar formato de timestamps
+        function testTimestampFormat() {
+            console.log('🧪 Probando formato de timestamps:');
+            const testDates = [
+                new Date(Date.now() - 5 * 60 * 1000),  // hace 5 minutos
+                new Date(Date.now() - 2 * 60 * 60 * 1000), // hace 2 horas
+                new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // hace 3 días
+                new Date("2025-09-06T08:38:19.048Z") // fecha real del API
+            ];
+            
+            testDates.forEach((date, index) => {
+                const formatted = formatTimestamp(date.toISOString());
+                console.log(`📅 Prueba ${index + 1}: ${date.toISOString()} → ${formatted}`);
+            });
+        }
+
+        // Función simplificada para forzar actualización de timestamps
+        function forceUpdateTimestamps() {
+            console.log('⚡ Forzando actualización de todos los timestamps...');
+            updateStaticTimestamps();
+        }
+
+        // Función para debugging - disponible en la consola del navegador
+        window.debugTimestamps = function() {
+            console.log('🔧 === DEBUG TIMESTAMPS ===');
+            console.log('1. Probando función formatTimestamp...');
+            testTimestampFormat();
+            
+            console.log('2. Verificando elementos .question-time...');
+            const timeElements = document.querySelectorAll('.question-time');
+            console.log(`📊 Encontrados ${timeElements.length} elementos .question-time`);
+            
+            timeElements.forEach((el, index) => {
+                console.log(`📅 Elemento ${index + 1}: "${el.textContent}"`);
+            });
+            
+            console.log('3. Forzando actualización...');
+            forceUpdateTimestamps();
+            
+            setTimeout(() => {
+                console.log('4. Verificando después de actualización...');
+                timeElements.forEach((el, index) => {
+                    console.log(`📅 Elemento ${index + 1} actualizado: "${el.textContent}"`);
+                });
+            }, 1000);
+        };
+
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Inicializando sistema de preguntas de comunidad...');
+            
+            // Ejecutar prueba de timestamps
+            testTimestampFormat();
+            
+            // Pequeño delay para asegurar que todos los scripts estén cargados
+            setTimeout(async () => {
+                await loadCommunityQuestions();
+                
+                // Siempre intentar actualizar timestamps después de cargar
+                setTimeout(() => {
+                    const questionsWithId = document.querySelectorAll('.question-item[data-question-id]');
+                    if (questionsWithId.length === 0) {
+                        console.log('📋 No hay preguntas dinámicas, actualizando timestamps estáticos');
+                        forceUpdateTimestamps();
+                    } else {
+                        console.log('📋 Preguntas dinámicas cargadas correctamente');
+                    }
+                }, 500);
+            }, 1000);
+        });
+
+        // También cargar preguntas cuando se cambie a la pestaña de comunidad
+        const originalSwitchTab = window.switchTab;
+        if (originalSwitchTab) {
+            window.switchTab = function(contentType) {
+                originalSwitchTab(contentType);
+                
+                if (contentType === 'community') {
+                    console.log('📋 Cargando preguntas para la pestaña de comunidad');
+                    setTimeout(async () => {
+                        await loadCommunityQuestions();
+                        
+                        // Si no se cargaron preguntas dinámicas, actualizar timestamps de las estáticas
+                        const questionsWithId = document.querySelectorAll('.question-item[data-question-id]');
+                        if (questionsWithId.length === 0) {
+                            console.log('📋 Actualizando timestamps estáticos en pestaña de comunidad');
+                            updateStaticTimestamps();
+                        }
+                    }, 500);
+                }
+            };
+        }
+    </script>
+    
     <!-- Script inline para funciones globales inmediatas -->
     <script>
         // Función global inmediata para el botón de pregunta
@@ -2167,83 +3036,23 @@ Cargando información...
                     videoContainer.appendChild(errorDiv);
                 }
 
-                        console.log('📝 Mensaje:', mensaje);
+                // Configurar event listeners para el chat
+                setTimeout(() => {
+                    const input = document.getElementById('chatInput');
+                    const sendBtn = document.getElementById('sendBtn');
+                    const messagesContainer = document.getElementById('messagesContainer');
 
-                        
+                    if (input && sendBtn && messagesContainer) {
+                        console.log('✅ Event listeners configurados correctamente');
+                    } else {
+                        console.error('❌ No se encontraron todos los elementos necesarios');
+                    }
+                }, 500);
 
-                        if (!mensaje) {
-
-                            console.log('⚠️ Mensaje vacío');
-
-                            return;
-
-                        }
-
-                        
-
-                        // Limpiar input
-
-                        input.value = '';
-
-                        
-
-                        // Crear mensaje del usuario
-
-                        const userMsg = document.createElement('div');
-
-                        userMsg.className = 'message user-message';
-
-                        userMsg.innerHTML = `
-
-                            <div class="message-avatar neo-circle">
-
-                                <span>U</span>
-
-                            </div>
-
-                            <div class="message-content neo-card">
-
-                                <div class="message-text">${mensaje}</div>
-
-                                <div class="message-time">ahora</div>
-
-                            </div>
-
-                        `;
-
-                        
-
-                        messagesContainer.appendChild(userMsg);
-
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-                        
-
-                        console.log('✅ Mensaje del usuario agregado');
-
-                        
-
-                        // Mostrar indicador de escritura
-
-                        const typingIndicator = document.getElementById('typingIndicator');
-
-                        if (typingIndicator) {
-
-                            typingIndicator.style.display = 'flex';
-
-                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-                        }
-
-                        
-
-                        try {
-
-                            console.log('[LIA] 🚀 Generando respuesta para:', mensaje);
-
-                            
-
-                            // Obtener información del usuario actual
+            } catch (error) {
+                console.error('💥 Error inicializando sistema dinámico:', error);
+            }
+        });
 
                             const currentUser = obtenerUsuarioActual();
 
@@ -2607,7 +3416,6 @@ Cargando información...
 
                     console.log('✅ Event listeners configurados correctamente');
                 } else {
-
                     console.error('❌ No se encontraron todos los elementos necesarios');
                 }
             }, 500);

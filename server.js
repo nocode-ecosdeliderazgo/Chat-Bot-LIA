@@ -38,7 +38,7 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://unpkg.com', 'https://source.zoom.us'],
             // En desarrollo permitimos inline scripts (onclick) para compatibilidad rápida
-            scriptSrc: DEV_MODE ? ["'self'", "'unsafe-inline'", 'https://source.zoom.us', 'https://esm.sh', 'https://unpkg.com', 'https://cdn.jsdelivr.net'] : ["'self'", 'https://source.zoom.us', 'https://esm.sh', 'https://unpkg.com', 'https://cdn.jsdelivr.net'],
+            scriptSrc: DEV_MODE ? ["'self'", "'unsafe-inline'", 'https://source.zoom.us', 'https://esm.sh', 'https://unpkg.com', 'https://cdn.jsdelivr.net', 'https://www.youtube.com'] : ["'self'", 'https://source.zoom.us', 'https://esm.sh', 'https://unpkg.com', 'https://cdn.jsdelivr.net', 'https://www.youtube.com'],
             // Permitir carga de módulos ESM externos solo si fuera necesario (actualmente eliminamos supabase-client)
             // scriptSrcElem: DEV_MODE ? ["'self'", 'https://esm.sh'] : ["'self'"],
             // Permitir atributos inline (onclick) explícitamente en CSP nivel 3 durante desarrollo
@@ -3691,31 +3691,45 @@ const coursesApi = require('./api/courses');
 // Rutas específicas para Module 1 Videos Loader
 app.get('/api/courses/module1-info', async (req, res) => {
     try {
-        console.log('📚 Obteniendo información del módulo 1...');
+        console.log('📚 === OBTENER INFORMACIÓN MÓDULO 1 ===');
         
-        // Buscar el módulo 1 en la base de datos
-        const { data: moduleData, error } = await supabase
-            .from('course_modules')
-            .select('id, module_number, title')
-            .eq('module_number', 1)
-            .eq('is_required', true)
-            .single();
-
-        if (error || !moduleData) {
-            console.error('❌ Error obteniendo módulo 1:', error);
-            return res.status(404).json({
+        // Verificar pool de base de datos
+        if (!pool) {
+            console.error('❌ Pool de base de datos no disponible');
+            return res.status(500).json({
                 success: false,
-                error: 'Módulo 1 no encontrado',
-                details: error?.message
+                error: 'Base de datos no disponible'
             });
         }
 
+        // Buscar el módulo 1 en la base de datos usando PostgreSQL
+        const result = await pool.query(`
+            SELECT id, module_number, title, description, duration_minutes, order_index
+            FROM course_modules 
+            WHERE module_number = 1 
+            AND is_required = true 
+            ORDER BY order_index ASC 
+            LIMIT 1
+        `);
+
+        if (result.rows.length === 0) {
+            console.warn('⚠️ Módulo 1 no encontrado en la base de datos');
+            return res.status(404).json({
+                success: false,
+                error: 'Módulo 1 no encontrado'
+            });
+        }
+
+        const moduleData = result.rows[0];
         console.log('✅ Información del módulo 1 obtenida:', moduleData);
+        
         res.json({
             success: true,
             module_id: moduleData.id,
             module_number: moduleData.module_number,
-            module_title: moduleData.module_title
+            module_title: moduleData.title,
+            description: moduleData.description,
+            duration_minutes: moduleData.duration_minutes
         });
 
     } catch (error) {
@@ -3730,46 +3744,75 @@ app.get('/api/courses/module1-info', async (req, res) => {
 
 app.get('/api/courses/module1-videos', async (req, res) => {
     try {
-        console.log('🎬 Obteniendo videos del módulo 1...');
+        console.log('🎬 === OBTENER VIDEOS MÓDULO 1 ===');
         
-        // Buscar el módulo 1
-        const { data: moduleData, error: moduleError } = await supabase
-            .from('course_modules')
-            .select('id')
-            .eq('module_number', 1)
-            .eq('is_required', true)
-            .single();
-
-        if (moduleError || !moduleData) {
-            console.error('❌ Error obteniendo módulo 1:', moduleError);
-            return res.status(404).json({
-                success: false,
-                error: 'Módulo 1 no encontrado',
-                details: moduleError?.message
-            });
-        }
-
-        // Obtener videos del módulo 1
-        const { data: videosData, error: videosError } = await supabase
-            .from('module_videos')
-            .select('*')
-            .eq('module_id', moduleData.id)
-            .order('video_order', { ascending: true });
-
-        if (videosError) {
-            console.error('❌ Error obteniendo videos del módulo 1:', videosError);
+        // Verificar pool de base de datos
+        if (!pool) {
+            console.error('❌ Pool de base de datos no disponible');
             return res.status(500).json({
                 success: false,
-                error: 'Error obteniendo videos',
-                details: videosError.message
+                error: 'Base de datos no disponible'
             });
         }
 
-        console.log(`✅ ${videosData.length} videos del módulo 1 obtenidos`);
+        // Buscar el módulo 1 primero
+        const moduleResult = await pool.query(`
+            SELECT id, title 
+            FROM course_modules 
+            WHERE module_number = 1 
+            AND is_required = true 
+            LIMIT 1
+        `);
+
+        if (moduleResult.rows.length === 0) {
+            console.warn('⚠️ Módulo 1 no encontrado');
+            return res.status(404).json({
+                success: false,
+                error: 'Módulo 1 no encontrado'
+            });
+        }
+
+        const moduleData = moduleResult.rows[0];
+        console.log('📚 Módulo encontrado:', moduleData);
+
+        // Obtener videos del módulo 1 ordenados por video_order
+        const videosResult = await pool.query(`
+            SELECT 
+                id,
+                module_id,
+                video_title,
+                youtube_video_id,
+                duration_seconds,
+                description,
+                thumbnail_url,
+                transcript_text,
+                video_order,
+                created_at,
+                updated_at
+            FROM module_videos 
+            WHERE module_id = $1 
+            ORDER BY video_order ASC
+        `, [moduleData.id]);
+
+        const videos = videosResult.rows;
+        console.log(`✅ ${videos.length} videos obtenidos del módulo 1`);
+        
+        // Agregar progreso simulado por defecto (se puede conectar con user_progress después)
+        const videosWithProgress = videos.map((video, index) => ({
+            ...video,
+            user_progress: {
+                current_time_seconds: 0,
+                completion_percentage: 0,
+                is_completed: false
+            }
+        }));
+
         res.json({
             success: true,
-            videos: videosData || [],
-            module_id: moduleData.id
+            videos: videosWithProgress,
+            module_id: moduleData.id,
+            module_title: moduleData.title,
+            total_videos: videos.length
         });
 
     } catch (error) {
@@ -3797,9 +3840,38 @@ app.get('/api/modules/:moduleId/video-data', async (req, res) => {
     await coursesApi.getModuleVideoData(req, res);
 });
 
+// Obtener estructura completa del curso (ENDPOINT FALTANTE)
+app.get('/api/courses/:courseId/full-structure', async (req, res) => {
+    await coursesApi.getCourseFullStructure(req, res);
+});
+
 // Obtener progreso del usuario en un curso
 app.get('/api/users/:userId/progress/:courseId', async (req, res) => {
-    await coursesApi.getUserProgress(req, res);
+    try {
+        const { userId, courseId } = req.params;
+        
+        // Validar si userId es un UUID válido, si no, crear uno de demo
+        let validUserId = userId;
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        
+        if (!uuidRegex.test(userId)) {
+            // Si es "demo-user" o cualquier string inválido, usar UUID de demo
+            validUserId = '00000000-0000-0000-0000-000000000001';
+            console.log(`⚠️ UUID inválido "${userId}", usando UUID de demo: ${validUserId}`);
+        }
+        
+        // Modificar req.params para pasar UUID válido
+        req.params.userId = validUserId;
+        
+        await coursesApi.getUserProgress(req, res);
+    } catch (error) {
+        console.error('💥 Error en endpoint progreso:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error procesando UUID de usuario',
+            details: error.message
+        });
+    }
 });
 
 // Actualizar progreso de video

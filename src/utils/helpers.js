@@ -2,8 +2,8 @@
  * Utilidades y helpers para el chatbot
  */
 
-// Formatear fecha
-export function formatDate(date) {
+// Formatear fecha  
+function formatDate(date) {
   return new Intl.DateTimeFormat('es-ES', {
     year: 'numeric',
     month: 'long',
@@ -14,7 +14,7 @@ export function formatDate(date) {
 }
 
 // Formatear tiempo relativo
-export function formatRelativeTime(date) {
+function formatRelativeTime(date) {
   const now = new Date();
   const diff = now - date;
   const minutes = Math.floor(diff / 60000);
@@ -28,13 +28,13 @@ export function formatRelativeTime(date) {
 }
 
 // Validar email
-export function isValidEmail(email) {
+function isValidEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
 
 // Sanitizar texto
-export function sanitizeText(text) {
+function sanitizeText(text) {
   return text
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -44,12 +44,12 @@ export function sanitizeText(text) {
 }
 
 // Generar ID único
-export function generateId() {
+function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
 // Debounce function
-export function debounce(func, wait) {
+function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {
     const later = () => {
@@ -62,7 +62,7 @@ export function debounce(func, wait) {
 }
 
 // Throttle function
-export function throttle(func, limit) {
+function throttle(func, limit) {
   let inThrottle;
   return function() {
     const args = arguments;
@@ -76,7 +76,7 @@ export function throttle(func, limit) {
 }
 
 // Local storage helpers
-export const storage = {
+const storage = {
   set: (key, value) => {
     try {
       localStorage.setItem(key, JSON.stringify(value));
@@ -105,7 +105,7 @@ export const storage = {
 };
 
 // Validar entrada de usuario
-export function validateUserInput(input) {
+function validateUserInput(input) {
   if (!input || typeof input !== 'string') {
     return { isValid: false, error: 'Entrada inválida' };
   }
@@ -123,12 +123,12 @@ export function validateUserInput(input) {
 }
 
 // Capitalizar primera letra
-export function capitalizeFirst(str) {
+function capitalizeFirst(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 // Generar respuesta aleatoria
-export function getRandomResponse(responses) {
+function getRandomResponse(responses) {
   if (!Array.isArray(responses) || responses.length === 0) {
     return 'No tengo una respuesta para eso.';
   }
@@ -136,7 +136,7 @@ export function getRandomResponse(responses) {
 }
 
 // Detectar tipo de dispositivo
-export function detectDevice() {
+function detectDevice() {
   const userAgent = navigator.userAgent;
   if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)) {
     return 'mobile';
@@ -145,6 +145,6 @@ export function detectDevice() {
 }
 
 // Verificar si está en modo oscuro
-export function isDarkMode() {
+function isDarkMode() {
   return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 } 

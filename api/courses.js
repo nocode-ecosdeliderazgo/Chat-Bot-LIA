@@ -26,12 +26,21 @@ async function getCourseFullStructure(req, res) {
         console.log(`📚 Obteniendo estructura completa del curso: ${courseId}`);
 
         // 1. Obtener datos del curso
-        const { data: courseData, error: courseError } = await supabase
+        // Detectar si courseId es UUID o slug
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(courseId);
+        const courseQuery = supabase
             .from('courses')
             .select('*')
-            .eq('slug', courseId) // Usar slug en lugar de id
-            .eq('is_active', true)
-            .single();
+            .eq('is_active', true);
+            
+        // Usar campo apropiado según el tipo de courseId
+        if (isUUID) {
+            courseQuery.eq('id', courseId);
+        } else {
+            courseQuery.eq('slug', courseId);
+        }
+        
+        const { data: courseData, error: courseError } = await courseQuery.single();
 
         if (courseError || !courseData) {
             console.error('❌ Error obteniendo curso:', courseError);

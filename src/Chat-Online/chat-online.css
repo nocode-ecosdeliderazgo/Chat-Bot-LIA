@@ -464,14 +464,14 @@ body {
     background: rgba(10, 15, 25, 0.6);
     backdrop-filter: var(--glass-blur);
     border-right: var(--glass-border-subtle);
-    padding: 1.25rem 1rem 2rem 1rem;
+    padding: 1.25rem 1rem 15rem 1rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
     overflow-y: auto;
     min-height: 0;
-    height: calc(100vh - 80px);
-    max-height: calc(100vh - 80px);
+    height: calc(100vh - 5px);
+    max-height: calc(100vh - 5px);
     padding-top: 1.5rem;
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 102, 204, 0.3) transparent;
@@ -1044,6 +1044,72 @@ body {
 .module-item *::after {
     display: none !important;
     content: none !important;
+}
+
+/* Estilos para las acciones del módulo */
+.module-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: 12px;
+}
+
+.module-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(0, 102, 204, 0.3);
+    background: rgba(0, 102, 204, 0.1);
+    backdrop-filter: blur(10px);
+    color: #0066CC;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.module-toggle-btn:hover {
+    background: rgba(0, 102, 204, 0.2);
+    border-color: rgba(0, 102, 204, 0.5);
+    transform: scale(1.05);
+}
+
+.module-toggle-btn .icon {
+    width: 16px;
+    height: 16px;
+    color: #0066CC !important;
+    transition: all 0.3s ease;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.module-toggle-btn:hover .icon {
+    color: #0066CC !important;
+    transform: scale(1.1);
+}
+
+/* Asegurar que la flecha del botón sea visible */
+.module-toggle-btn svg {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: #0066CC !important;
+    width: 16px !important;
+    height: 16px !important;
+}
+
+.module-toggle-btn .icon {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: #0066CC !important;
+    width: 16px !important;
+    height: 16px !important;
 }
 
 .module-item:hover {
@@ -6902,6 +6968,112 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 .module-item.expanded {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(68, 229, 255, 0.25);
+}
+
+/* Contenido de videos que se despliega verticalmente FUERA de la tarjeta */
+.module-videos-content {
+    display: none;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: rgba(10, 15, 25, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 102, 204, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    margin: 0.5rem 0 1rem 0;
+    opacity: 0;
+}
+
+.module-videos-content.expanded {
+    max-height: 400px;
+    display: block;
+    opacity: 1;
+}
+
+/* Lista de videos dentro del módulo expandido */
+.module-videos-content .videos-list {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.module-videos-content .video-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(0, 102, 204, 0.05);
+    border: 1px solid rgba(0, 102, 204, 0.1);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.module-videos-content .video-item:hover {
+    background: rgba(0, 102, 204, 0.1);
+    border-color: rgba(0, 102, 204, 0.2);
+    transform: translateY(-1px);
+}
+
+.module-videos-content .video-thumbnail {
+    width: 32px;
+    height: 32px;
+    background: rgba(0, 102, 204, 0.1);
+    border: 1px solid rgba(0, 102, 204, 0.2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.module-videos-content .video-thumbnail svg {
+    width: 16px;
+    height: 16px;
+    color: #0066CC;
+}
+
+.module-videos-content .video-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.module-videos-content .video-info h4 {
+    color: #E5E7EB;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.module-videos-content .video-info p {
+    color: #94A3B8;
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+.module-videos-content .video-duration {
+    color: #22C55E;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.module-videos-content .video-status {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.module-videos-content .progress-badge {
+    background: rgba(255, 165, 0, 0.2);
+    color: #FFA500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid rgba(255, 165, 0, 0.3);
 }
 
 /* Encabezado del módulo */
