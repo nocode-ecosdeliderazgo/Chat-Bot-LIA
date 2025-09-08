@@ -1,5 +1,38 @@
 /* ===== CHAT ONLINE - GLASSMORPHISM STYLES ===== */
 
+/* Ocultar completamente cualquier botón de comentar */
+.comment-btn,
+.action-btn.comment-btn,
+.action-btn[title*="comentar"],
+.action-btn[title*="Comentar"],
+.action-btn[onclick*="comment"],
+.action-btn[onclick*="Comment"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Asegurar que solo haya 2 botones: responder y guardar */
+.question-actions {
+    display: flex !important;
+    gap: 8px !important;
+}
+
+/* Mostrar solo botones de responder y guardar */
+.question-actions .answer-btn,
+.question-actions .bookmark-btn {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Ocultar cualquier botón que no sea responder o guardar */
+.question-actions .action-btn:not(.answer-btn):not(.bookmark-btn) {
+    display: none !important;
+}
+
 /* ===== ESTADOS DE CARGA Y ERROR PARA COMUNIDAD ===== */
 .loading-state,
 .error-state,
@@ -835,7 +868,7 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 0px;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     min-height: 0;
     overflow: visible;
@@ -868,6 +901,7 @@ body {
     align-items: center;
     margin-bottom: 0;
     flex-shrink: 0;
+    padding-bottom: 0.0625rem;
 }
 
 .materials-header h3 {
@@ -3120,22 +3154,24 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 .form-group input,
 .form-group textarea {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(68, 229, 255, 0.15);
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.5));
+    border: 2px solid rgba(68, 229, 255, 0.25);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
     color: var(--glass-text-primary);
     font-size: 0.95rem;
     transition: all 0.3s ease;
     resize: vertical;
+    backdrop-filter: blur(15px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: var(--glass-primary);
-    background: rgba(68, 229, 255, 0.08);
-    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+    border-color: #0066CC;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.7));
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .form-group textarea {
@@ -4821,22 +4857,24 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     width: 100%;
     min-height: 120px;
     padding: 1rem;
-    background: var(--glass-surface);
-    border: var(--glass-border);
-    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.5));
+    border: 2px solid rgba(68, 229, 255, 0.25);
+    border-radius: 12px;
     color: var(--glass-text-primary);
     font-family: inherit;
     font-size: 1rem;
     line-height: 1.5;
     resize: vertical;
-    backdrop-filter: var(--glass-blur);
+    backdrop-filter: blur(15px);
     transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .answer-textarea:focus {
     outline: none;
-    border-color: var(--glass-primary);
-    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+    border-color: #0066CC;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.7));
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .answer-textarea::placeholder {

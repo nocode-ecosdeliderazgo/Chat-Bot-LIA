@@ -109,9 +109,9 @@
             justify-content: center;
             width: 40px;
             height: 40px;
-            border: 1px solid rgba(68, 229, 255, 0.2);
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
+            border: 2px solid rgba(68, 229, 255, 0.25);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.5));
+            backdrop-filter: blur(15px);
             color: var(--glass-text-secondary, #94a3b8);
             border-radius: 8px;
             font-size: 13px;
@@ -119,6 +119,7 @@
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
             position: relative;
             overflow: hidden;
         }
@@ -164,16 +165,39 @@
             box-shadow: 0 8px 25px rgba(34, 197, 94, 0.15);
         }
 
-        .comment-btn {
-            border-color: rgba(59, 130, 246, 0.2);
-            background: rgba(59, 130, 246, 0.05);
+        /* Estilos de botón de comentar eliminados */
+        
+        /* Ocultar completamente cualquier botón de comentar */
+        .comment-btn,
+        .action-btn.comment-btn,
+        .action-btn[title*="comentar"],
+        .action-btn[title*="Comentar"],
+        .action-btn[onclick*="comment"],
+        .action-btn[onclick*="Comment"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
         }
-
-        .comment-btn:hover {
-            background: rgba(59, 130, 246, 0.15);
-            border-color: rgba(59, 130, 246, 0.4);
-            color: #3b82f6;
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+        
+        /* Asegurar que solo haya 2 botones: responder y guardar */
+        .question-actions {
+            display: flex !important;
+            gap: 8px !important;
+        }
+        
+        /* Mostrar solo botones de responder y guardar */
+        .question-actions .answer-btn,
+        .question-actions .bookmark-btn {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        
+        /* Ocultar cualquier botón que no sea responder o guardar */
+        .question-actions .action-btn:not(.answer-btn):not(.bookmark-btn) {
+            display: none !important;
         }
 
         .bookmark-btn {
@@ -201,15 +225,16 @@
             justify-content: center;
             width: 30px;
             height: 30px;
-            border: 1px solid rgba(68, 229, 255, 0.2);
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
+            border: 2px solid rgba(68, 229, 255, 0.25);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.5));
+            backdrop-filter: blur(15px);
             color: var(--glass-text-secondary, #94a3b8);
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
         .vote-btn::before {
@@ -272,9 +297,9 @@
             gap: 4px;
             margin-right: 16px;
             padding: 6px;
-            background: rgba(255, 255, 255, 0.02);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.4), rgba(30, 41, 59, 0.3));
             border-radius: 10px;
-            border: 1px solid rgba(68, 229, 255, 0.1);
+            border: 1px solid rgba(68, 229, 255, 0.2);
         }
 
         .vote-count {
@@ -320,12 +345,14 @@
             font-size: 13px;
             padding: 4px 8px;
             border-radius: 6px;
-            background: rgba(255, 255, 255, 0.02);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.4), rgba(30, 41, 59, 0.3));
+            border: 1px solid rgba(68, 229, 255, 0.15);
             transition: all 0.2s ease;
         }
 
         .stat:hover {
-            background: rgba(68, 229, 255, 0.05);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.5));
+            border-color: rgba(68, 229, 255, 0.3);
             color: var(--glass-primary, #44e5ff);
         }
 
@@ -478,18 +505,20 @@
 
         /* ===== ESTILOS PARA CONTEXTO DE PREGUNTA EN MODALES ===== */
         .question-context {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(68, 229, 255, 0.2);
-            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.5));
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(68, 229, 255, 0.25);
+            border-radius: 12px;
             padding: 16px;
             margin-bottom: 20px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
         .question-context:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(68, 229, 255, 0.3);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.7));
+            border-color: #0066CC;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .question-context h4 {
@@ -598,88 +627,19 @@
             gap: 24px;
         }
 
-        /* Header de detalles con botón de cierre - Paleta answerContent */
-        .details-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            background: var(--glass-surface);
-            border: 1px solid rgba(0, 102, 204, 0.2);
-            border-radius: 16px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
+        /* Panel de detalles eliminado */
 
-        .details-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(68, 229, 255, 0.4), transparent);
-            animation: shimmer 2s ease-in-out infinite;
-        }
+        /* Estilos del header eliminados */
 
-        @keyframes shimmer {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.8; }
-        }
-
-        .details-main-title {
-            margin: 0;
-            color: var(--glass-text-primary);
-            font-size: 1.2rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .details-main-title::before {
-            content: '📋';
-            font-size: 1.1rem;
-            filter: drop-shadow(0 1px 3px rgba(68, 229, 255, 0.3));
-        }
-
-        .close-details-btn {
-            background: transparent;
-            border: 2px solid #0066CC;
-            color: #0066CC;
-            cursor: pointer;
-            padding: 10px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            width: 36px;
-            height: 36px;
-        }
-
-        .close-details-btn:hover {
-            background: #0066CC;
-            border-color: #0066CC;
-            color: white;
-            transform: scale(1.1) rotate(90deg);
-        }
-
-        .close-details-btn .icon-sm {
-            width: 16px;
-            height: 16px;
-        }
+        /* Estilos del botón de cerrar eliminados */
 
         .details-section {
-            background: var(--glass-surface);
-            border: 1px solid rgba(0, 102, 204, 0.2);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.75));
+            border: 1px solid rgba(68, 229, 255, 0.25);
             border-radius: 16px;
             padding: 20px;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(25px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
             position: relative;
             overflow: hidden;
         }
@@ -699,9 +659,7 @@
             background: linear-gradient(180deg, #0066CC, #0052A3);
         }
 
-        .details-section.comments-section::before {
-            background: linear-gradient(180deg, rgba(68, 229, 255, 0.8), #0066CC);
-        }
+        /* Sección de comentarios eliminada */
 
         .section-title {
             display: flex;
@@ -713,6 +671,34 @@
             font-weight: 700;
             color: var(--glass-text-primary);
             position: relative;
+        }
+
+        .close-details-btn {
+            background: transparent;
+            border: 2px solid #0066CC;
+            color: #0066CC;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            width: 32px;
+            height: 32px;
+            margin-left: auto;
+        }
+
+        .close-details-btn:hover {
+            background: #0066CC;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(0, 102, 204, 0.3);
+        }
+
+        .close-details-btn .icon-sm {
+            width: 14px;
+            height: 14px;
         }
 
         .section-title::after {
@@ -748,23 +734,26 @@
         }
 
         .sort-select {
-            padding: 6px 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(68, 229, 255, 0.15);
+            padding: 8px 12px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.5));
+            border: 2px solid rgba(68, 229, 255, 0.25);
             border-radius: 8px;
-            font-size: 12px;
+            font-size: 13px;
             color: var(--glass-text-primary);
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
+            backdrop-filter: blur(15px);
+            min-width: 120px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
         .sort-select:hover,
         .sort-select:focus {
             outline: none;
-            border-color: var(--glass-primary);
-            background: rgba(68, 229, 255, 0.08);
-            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+            border-color: #0066CC;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.7));
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         /* ===== ESTILOS PARA RESPUESTAS - Paleta answerContent ===== */
@@ -775,12 +764,13 @@
         }
 
         .answer-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(68, 229, 255, 0.15);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.5));
+            border: 2px solid rgba(68, 229, 255, 0.25);
             border-radius: 12px;
             padding: 18px;
             transition: all 0.3s ease;
             position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             color: var(--glass-text-primary);
         }
 
@@ -907,26 +897,7 @@
             text-align: center;
         }
 
-        .comment-btn {
-            background: transparent;
-            border: 2px solid #0066CC;
-            border-radius: 8px;
-            padding: 8px 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-            color: #0066CC;
-            font-weight: 600;
-        }
-
-        .comment-btn:hover {
-            background: #0066CC;
-            border-color: #0066CC;
-            color: white;
-        }
+        /* Estilos de botón de comentar eliminados */
 
         /* ===== ESTILOS PARA COMENTARIOS - Paleta answerContent ===== */
         .comments-list {
@@ -935,142 +906,38 @@
             gap: 14px;
         }
 
-        .comment-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(68, 229, 255, 0.15);
-            border-radius: 10px;
-            padding: 14px;
-            border-left: 4px solid #0066CC;
-            transition: all 0.3s ease;
-            position: relative;
-            color: var(--glass-text-primary);
-        }
+        /* Estilos de comentarios eliminados */
 
-        .comment-item::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 30px;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(68, 229, 255, 0.4));
-        }
-
-        .comment-item:hover {
-            border-color: var(--glass-primary);
-            border-left-color: rgba(68, 229, 255, 0.8);
-            background: rgba(68, 229, 255, 0.08);
-            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
-            transform: translateX(4px);
-        }
-
-        .comment-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-
-        .author-avatar-sm {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .comment-time {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .comment-content p {
-            margin: 0;
-            line-height: 1.4;
-            color: #ffffff;
-            font-size: 14px;
-        }
+        /* Más estilos de comentarios eliminados */
 
         /* Asegurar que todos los nombres de autor estén en blanco */
-        .comment-item .author-name,
         .answer-item .author-name {
             color: #ffffff !important;
         }
 
         /* Contenido de texto en blanco */
-        .comment-content,
         .answer-content {
             color: #ffffff;
         }
 
-        .comment-content *,
         .answer-content * {
             color: #ffffff;
         }
 
-        .comment-actions {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            margin-top: 8px;
-        }
+        /* Estilos de acciones de comentarios eliminados */
 
-        .vote-controls-sm {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .vote-btn-sm {
-            background: none;
-            border: 1px solid var(--border-color, #e1e5e9);
-            border-radius: 3px;
-            padding: 3px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .vote-btn-sm:hover {
-            background: var(--background-secondary, #f8f9fa);
-        }
-
-        .vote-btn-sm.upvote.voted {
-            background: var(--success-color, #10b981);
-            color: white;
-            border-color: var(--success-color, #10b981);
-        }
-
-        .vote-btn-sm.downvote.voted {
-            background: var(--error-color, #dc2626);
-            color: white;
-            border-color: var(--error-color, #dc2626);
-        }
-
-        .vote-count-sm {
-            font-size: 12px;
-            font-weight: 600;
-            color: #ffffff;
-            min-width: 16px;
-            text-align: center;
-        }
-
-        .icon-xs {
-            width: 12px;
-            height: 12px;
-        }
+        /* Estilos de votos pequeños eliminados */
 
         /* ===== ESTADOS VACÍOS ===== */
-        .no-answers,
-        .no-comments {
+        .no-answers {
             text-align: center;
-            color: var(--text-muted, #666);
+            color: var(--glass-text-secondary, #94a3b8);
             font-style: italic;
             padding: 20px;
-            background: var(--background-primary, #fff);
-            border: 1px dashed var(--border-color, #e1e5e9);
-            border-radius: 6px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.5));
+            border: 2px dashed rgba(68, 229, 255, 0.25);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
         /* ===== RESPONSIVE ===== */
@@ -1079,37 +946,13 @@
                 gap: 16px;
             }
 
-            .details-header {
-                padding: 12px 16px;
-                margin-bottom: 16px;
-                border-radius: 12px;
-                background: var(--glass-surface);
-                border: 1px solid rgba(0, 102, 204, 0.2);
-            }
-
-            .details-main-title {
-                font-size: 1rem;
-                color: var(--glass-text-primary);
-            }
-
-            .details-main-title::before {
-                font-size: 1rem;
-            }
-
-            .close-details-btn {
-                width: 32px;
-                height: 32px;
-                padding: 8px;
-            }
-
-            .close-details-btn .icon-sm {
-                width: 14px;
-                height: 14px;
-            }
+            /* Estilos del header eliminados del responsive */
 
             .details-section {
                 padding: 16px;
-                border-radius: 10px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.7));
+                border: 1px solid rgba(68, 229, 255, 0.3);
             }
 
             .section-title {
@@ -1122,7 +965,7 @@
                 height: 16px;
             }
 
-            .answer-item, .comment-item {
+            .answer-item {
                 padding: 14px;
                 border-radius: 10px;
             }
@@ -1153,64 +996,363 @@
                 align-self: flex-start;
             }
 
-            .comment-btn {
-                align-self: flex-end;
-            }
+            /* Botón de comentarios eliminado */
         }
 
-        /* ===== ESTILOS PARA LOS VIDEOS DEL MÓDULO 1 ===== */
+        /* ===== ESTILOS MEJORADOS PARA LOS VIDEOS DEL MÓDULO 1 ===== */
         .module-videos-section {
-            margin-top: 1rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 0.03125rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
+            border: 2px solid rgba(0, 102, 204, 0.2);
+            border-radius: 16px;
             width: 100%;
             box-sizing: border-box;
             overflow: visible;
             min-height: auto;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Estado colapsado */
+        .module-videos-section.collapsed {
+            display: none !important;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+        }
+
+        /* Estado expandido */
+        .module-videos-section.expanded {
+            display: block !important;
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Estilos para el botón de colapsar */
+        #collapseMaterialsBtn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #collapseMaterialsBtn:hover {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1));
+            border-color: rgba(0, 102, 204, 0.4);
+            transform: scale(1.05);
+        }
+
+        #collapseMaterialsBtn svg {
+            transition: transform 0.3s ease;
+        }
+
+        #collapseMaterialsBtn:hover svg {
+            transform: scale(1.1);
+        }
+
+        /* Responsive para el botón de colapsar */
+        @media (max-width: 768px) {
+            #collapseMaterialsBtn {
+                width: 32px;
+                height: 32px;
+            }
+            
+            #collapseMaterialsBtn svg {
+                width: 14px;
+                height: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #collapseMaterialsBtn {
+                width: 28px;
+                height: 28px;
+            }
+            
+            #collapseMaterialsBtn svg {
+                width: 12px;
+                height: 12px;
+            }
+        }
+
+        /* ===== MODAL DE FOTO DE LIA ===== */
+        .lia-photo-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .lia-photo-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+        }
+
+        .lia-photo-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 90vw;
+            max-height: 90vh;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: visible;
+        }
+
+        .lia-photo-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            cursor: pointer;
+            padding: 12px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            width: 50px;
+            height: 50px;
+            z-index: 10001;
+        }
+
+        .lia-photo-close:hover {
+            background: rgba(0, 0, 0, 0.9);
+            border-color: #0066CC;
+            transform: scale(1.1);
+        }
+
+        .lia-photo-close svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .lia-photo-full {
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 6px solid rgba(0, 102, 204, 0.4);
+            box-shadow: 0 20px 60px rgba(0, 102, 204, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .lia-photo-full:hover {
+            transform: scale(1.02);
+        }
+
+        /* Animaciones */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Aplicar animación de zoom al modal */
+        .lia-photo-modal.show {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .lia-photo-container.show {
+            animation: zoomIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Responsive para el modal de LIA */
+        @media (max-width: 768px) {
+            .lia-photo-container {
+                max-width: 95vw;
+                max-height: 95vh;
+            }
+
+            .lia-photo-full {
+                width: 350px;
+                height: 350px;
+            }
+
+            .lia-photo-close {
+                top: 15px;
+                right: 15px;
+                width: 45px;
+                height: 45px;
+            }
+
+            .lia-photo-close svg {
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lia-photo-full {
+                width: 280px;
+                height: 280px;
+            }
+
+            .lia-photo-close {
+                top: 10px;
+                right: 10px;
+                width: 40px;
+                height: 40px;
+            }
+
+            .lia-photo-close svg {
+                width: 18px;
+                height: 18px;
+            }
+        }
+
+        /* Estilos para hacer clickeable la foto de LIA */
+        .lia-avatar {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .lia-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+        }
+
+        .lia-avatar-img {
+            transition: all 0.3s ease;
+        }
+
+        .lia-avatar:hover .lia-avatar-img {
+            transform: scale(1.05);
+        }
+
+        /* Efecto de pulso sutil para indicar que es clickeable */
+        .lia-avatar {
+            animation: subtlePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes subtlePulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(0, 102, 204, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(0, 102, 204, 0);
+            }
+        }
+
+        /* Pausar animación en hover */
+        .lia-avatar:hover {
+            animation-play-state: paused;
+        }
+
+        /* Tooltip para indicar que es clickeable */
+        .lia-avatar::after {
+            content: 'Click para ver foto completa';
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .lia-avatar:hover::after {
+            opacity: 1;
         }
 
         .module-videos-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 0.375rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 2px solid rgba(0, 102, 204, 0.2);
         }
 
         .module-videos-header h4 {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            color: var(--glass-primary);
+            gap: 0.75rem;
+            color: #0066CC;
             margin: 0;
-            font-size: 0.95rem;
-            font-weight: 600;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .module-stats {
             display: flex;
-            gap: 0.75rem;
-            font-size: 0.8rem;
-            opacity: 0.8;
+            gap: 1rem;
+            font-size: 0.85rem;
+            opacity: 0.9;
         }
 
         .module-stats span {
-            background: rgba(68, 229, 255, 0.1);
-            padding: 0.25rem 0.5rem;
-            border-radius: 6px;
-            border: 1px solid rgba(68, 229, 255, 0.2);
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1));
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 102, 204, 0.3);
+            color: #0066CC;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0, 102, 204, 0.1);
         }
 
         .module-videos-list {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 0.375rem;
             width: 100%;
             box-sizing: border-box;
-            padding: 0.5rem 0;
+            padding: 0.125rem 0;
             max-height: none;
             overflow: visible;
         }
@@ -1218,42 +1360,110 @@
         .video-item {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
+            gap: 1rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.4));
+            border: 2px solid rgba(0, 102, 204, 0.15);
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
         .video-item:hover {
-            background: rgba(68, 229, 255, 0.1);
-            border-color: rgba(68, 229, 255, 0.3);
-            transform: translateY(-1px);
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08));
+            border-color: rgba(0, 102, 204, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 102, 204, 0.2);
         }
 
         .video-item.active {
-            background: rgba(68, 229, 255, 0.15);
-            border-color: var(--glass-primary);
-            box-shadow: 0 0 20px rgba(68, 229, 255, 0.2);
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1));
+            border-color: #0066CC;
+            box-shadow: 0 0 24px rgba(0, 102, 204, 0.3);
         }
 
         .video-item.completed .video-icon {
-            color: #28a745;
+            color: #22c55e;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
+            border-color: rgba(34, 197, 94, 0.4);
         }
 
         .video-icon {
             flex-shrink: 0;
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(68, 229, 255, 0.1);
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1));
+            border: 2px solid rgba(0, 102, 204, 0.3);
             border-radius: 50%;
-            color: var(--glass-primary);
+            color: #0066CC;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 102, 204, 0.1);
+        }
+
+        .video-icon svg {
+            width: 18px;
+            height: 18px;
+            margin-left: 3px; /* Ajuste visual para centrar perfectamente el triángulo de play */
+            margin-top: 0;
+        }
+        
+        /* Mejorar el icono de play específicamente */
+        .video-icon .play-icon {
+            width: 16px;
+            height: 16px;
+            margin-left: 2px;
+            margin-top: 0;
+            fill: currentColor;
+        }
+        
+        /* Centrado perfecto del icono de play */
+        .video-icon {
+            position: relative;
+        }
+        
+        .video-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-45%, -50%); /* Ajuste fino para centrar el triángulo */
+            width: 0;
+            height: 0;
+            border-left: 8px solid currentColor;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            pointer-events: none;
+        }
+        
+        /* Ocultar el SVG original y usar el pseudo-elemento */
+        .video-icon svg {
+            opacity: 0;
+        }
+        
+        /* Efecto hover en el icono */
+        .video-item:hover .video-icon {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+        }
+        
+        /* Animación del icono cuando está activo */
+        .video-item.active .video-icon {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 2px 8px rgba(0, 102, 204, 0.1);
+            }
+            50% {
+                box-shadow: 0 0 16px rgba(0, 102, 204, 0.4);
+            }
         }
 
         .video-info {
@@ -1262,58 +1472,147 @@
         }
 
         .video-title {
-            font-size: 0.85rem;
-            font-weight: 500;
-            margin: 0 0 0.25rem 0;
-            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+            color: #ffffff;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            line-height: 1.4;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .video-meta {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 0.75rem;
-            opacity: 0.7;
+            gap: 0.75rem;
+            font-size: 0.8rem;
+            opacity: 0.8;
         }
 
         .video-duration, .video-progress {
             display: flex;
             align-items: center;
-            gap: 0.25rem;
+            gap: 0.5rem;
+            color: #94a3b8;
         }
 
         .progress-bar-mini {
-            width: 40px;
-            height: 3px;
+            width: 60px;
+            height: 4px;
             background: rgba(255, 255, 255, 0.2);
             border-radius: 2px;
             overflow: hidden;
+            position: relative;
         }
 
         .progress-fill-mini {
             height: 100%;
-            background: var(--glass-primary);
+            background: linear-gradient(90deg, #0066CC, #0052A3);
             border-radius: 2px;
             transition: width 0.3s ease;
+            box-shadow: 0 0 8px rgba(0, 102, 204, 0.4);
         }
 
         .loading-videos {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-            padding: 2rem;
-            opacity: 0.7;
+            gap: 0.75rem;
+            padding: 3rem;
+            opacity: 0.8;
+            color: #94a3b8;
         }
 
         /* Responsive para videos */
         @media (max-width: 768px) {
+            .module-videos-section {
+                padding: 1rem;
+                margin-top: 0.015625rem;
+            }
+            
+            .module-videos-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+                margin-bottom: 1rem;
+            }
+            
+            .module-videos-header h4 {
+                font-size: 1rem;
+            }
+            
+            .module-stats {
+                font-size: 0.8rem;
+                gap: 0.75rem;
+            }
+            
             .video-item {
-                padding: 0.5rem;
+                padding: 0.75rem;
+                gap: 0.75rem;
+            }
+            
+            .video-icon {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .video-icon svg {
+                width: 16px;
+                height: 16px;
+            }
+            
+            .video-icon::before {
+                border-left: 7px solid currentColor;
+                border-top: 5px solid transparent;
+                border-bottom: 5px solid transparent;
+                transform: translate(-45%, -50%);
+            }
+            
+            .video-title {
+                font-size: 0.85rem;
+                margin-bottom: 0.4rem;
+            }
+            
+            .video-meta {
+                font-size: 0.75rem;
+                gap: 0.5rem;
+            }
+            
+            .progress-bar-mini {
+                width: 50px;
+                height: 3px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .module-videos-section {
+                padding: 0.75rem;
+                margin-top: 0.015625rem;
+            }
+            
+            .video-item {
+                padding: 0.6rem;
+                gap: 0.6rem;
+            }
+            
+            .video-icon {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .video-icon svg {
+                width: 14px;
+                height: 14px;
+            }
+            
+            .video-icon::before {
+                border-left: 6px solid currentColor;
+                border-top: 4px solid transparent;
+                border-bottom: 4px solid transparent;
+                transform: translate(-45%, -50%);
             }
             
             .video-title {
@@ -1324,8 +1623,8 @@
                 font-size: 0.7rem;
             }
             
-            .module-stats {
-                font-size: 0.75rem;
+            .progress-bar-mini {
+                width: 40px;
             }
         }
     </style>
@@ -1872,38 +2171,34 @@ Cargando información...
                                                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                                                 </svg>
                                             </button>
-                                            <button class="action-btn comment-btn" type="button" title="Comentar en esta pregunta">
-                                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                                                </svg>
-                                            </button>
+                                            <!-- Botón de comentar eliminado -->
                                             <button class="action-btn bookmark-btn" type="button" title="Guardar esta pregunta">
                                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                                                 </svg>
                                             </button>
-                                        </div>
-                                        <div class="question-stats">
-                                            <span class="stat">
-                                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                                </svg>
-                                                3 respuestas
-                                            </span>
-                                            <span class="stat">
-                                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                                    <circle cx="12" cy="12" r="3"/>
-                                                </svg>
-                                                127 vistas
-                                            </span>
-                                            <span class="stat answered">
-                                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <polyline points="20,6 9,17 4,12"/>
-                                                </svg>
-                                                Respondida
-                                            </span>
-                                        </div>
+                                    </div>
+                                    <div class="question-stats">
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                            </svg>
+                                            3 respuestas
+                                        </span>
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                            127 vistas
+                                        </span>
+                                        <span class="stat answered">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="20,6 9,17 4,12"/>
+                                            </svg>
+                                            Respondida
+                                        </span>
+                                    </div>
                                     </div>
                                 </div>
                             </div>
@@ -1951,32 +2246,28 @@ Cargando información...
                                                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                                                 </svg>
                                             </button>
-                                            <button class="action-btn comment-btn" type="button" title="Comentar en esta pregunta">
-                                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                                                </svg>
-                                            </button>
+                                            <!-- Botón de comentar eliminado -->
                                             <button class="action-btn bookmark-btn" type="button" title="Guardar esta pregunta">
                                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                                                 </svg>
                                             </button>
-                                        </div>
-                                        <div class="question-stats">
-                                            <span class="stat">
-                                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                                </svg>
-                                                0 respuestas
-                                            </span>
-                                            <span class="stat">
-                                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                                    <circle cx="12" cy="12" r="3"/>
-                                                </svg>
-                                                45 vistas
-                                            </span>
-                                        </div>
+                                    </div>
+                                    <div class="question-stats">
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                            </svg>
+                                            0 respuestas
+                                        </span>
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                            45 vistas
+                                        </span>
+                                    </div>
                                     </div>
                                 </div>
                             </div>
@@ -2032,38 +2323,34 @@ Cargando información...
                                                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                                                 </svg>
                                             </button>
-                                            <button class="action-btn comment-btn" type="button" title="Comentar en esta pregunta">
-                                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                                                </svg>
-                                            </button>
+                                            <!-- Botón de comentar eliminado -->
                                             <button class="action-btn bookmark-btn bookmarked" type="button" title="Pregunta guardada">
                                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                                                 </svg>
                                             </button>
-                                        </div>
-                                        <div class="question-stats">
-                                            <span class="stat">
-                                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                                </svg>
-                                                8 respuestas
-                                            </span>
-                                            <span class="stat">
-                                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                                    <circle cx="12" cy="12" r="3"/>
-                                                </svg>
-                                                312 vistas
-                                            </span>
-                                            <span class="stat answered">
-                                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <polyline points="20,6 9,17 4,12"/>
-                                                </svg>
-                                                Respondida
-                                            </span>
-                                        </div>
+                                    </div>
+                                    <div class="question-stats">
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                            </svg>
+                                            8 respuestas
+                                        </span>
+                                        <span class="stat">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                            312 vistas
+                                        </span>
+                                        <span class="stat answered">
+                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="20,6 9,17 4,12"/>
+                                            </svg>
+                                            Respondida
+                                        </span>
+                                    </div>
                                     </div>
                                 </div>
                             </div>
@@ -2344,6 +2631,20 @@ Cargando información...
         </aside>
     </main>
 
+    <!-- Modal para foto de LIA en pantalla completa -->
+    <div class="lia-photo-modal" id="liaPhotoModal" style="display: none;">
+        <div class="lia-photo-overlay" id="liaPhotoOverlay"></div>
+        <div class="lia-photo-container">
+            <button class="lia-photo-close" id="liaPhotoClose">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+            <img src="../assets/images/FOTO LIA.png" alt="LIA - Tutora de IA" class="lia-photo-full">
+        </div>
+    </div>
+
     <!-- JavaScript -->
     <script src="../utils/helpers.js"></script>
     
@@ -2499,11 +2800,7 @@ Cargando información...
                                     <path d="M7 12L12 7l5 5"/>
                                 </svg>
                             </button>
-                            <button class="action-btn comment-btn" title="Comentar pregunta" onclick="showCommentModal('${question.id}', '${question.title}', '${question.content}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-                                </svg>
-                            </button>
+                            <!-- Botón de comentar eliminado -->
                             <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
@@ -2592,11 +2889,7 @@ Cargando información...
                                     <path d="M7 12L12 7l5 5"/>
                                 </svg>
                             </button>
-                            <button class="action-btn comment-btn" title="Comentar pregunta" onclick="showCommentModal('${question.id}', '${question.title}', '${question.content}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-                                </svg>
-                            </button>
+                            <!-- Botón de comentar eliminado -->
                             <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
                                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
@@ -2819,6 +3112,22 @@ Cargando información...
         
         // Verificar que la función esté disponible
         console.log('✅ Función showQuestionModal definida:', typeof window.showQuestionModal);
+        
+        // Función global para mostrar modal de foto de LIA
+        window.showLiaPhotoModal = function() {
+            console.log('📸 Función global de modal de LIA ejecutada');
+            const liaPhotoModal = document.getElementById('liaPhotoModal');
+            if (liaPhotoModal) {
+                liaPhotoModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                console.log('✅ Modal de foto de LIA abierto con función global');
+            } else {
+                console.error('❌ Modal de foto de LIA no encontrado');
+            }
+        };
+        
+        // Verificar que la función esté disponible
+        console.log('✅ Función showLiaPhotoModal definida:', typeof window.showLiaPhotoModal);
     </script>
     
     <!-- Chat Online Main Script -->
@@ -3392,130 +3701,6 @@ Cargando información...
                 }
             }, 500);
         }); 
-        // Funciones auxiliares
-        function obtenerUsuarioActual() {
-            try {
-                // Intentar obtener del localStorage
-                const userData = localStorage.getItem('userData');
-
-                if (userData) {
-
-                    return JSON.parse(userData);
-
-                }
-                // Fallback para desarrollo
-
-                return {
-
-                    id: 'chat-online-user',
-
-                    username: 'Usuario',
-
-                    email: 'usuario@ejemplo.com'
-
-                };
-            } catch (error) {
-
-                console.log('[LIA] Error obteniendo usuario:', error);
-
-                return {
-
-                    id: 'chat-online-user',
-
-                    username: 'Usuario',
-
-                    email: 'usuario@ejemplo.com'
-
-                };
-            }
-
-        }
-        function obtenerContextoCurso() {
-
-            try {
-
-                // Obtener información del módulo actual
-
-                const currentModule = document.querySelector('.module-item.current .module-info h4')?.textContent || '¿Qué es la IA?';
-
-                // Obtener tiempo del video si está disponible
-
-                const videoTime = document.getElementById('currentTime')?.textContent || '00:00';
-
-                // Obtener contenido de la transcripción visible
-
-                const transcript = document.querySelector('.transcript-content p')?.textContent?.substring(0, 200) || 'Conceptos fundamentales del Machine Learning';
-
-                
-
-                return `Módulo actual: ${currentModule}. Tiempo del video: ${videoTime}. ${transcript ? 'Transcripción: ' + transcript + '...' : ''}`;
-
-            } catch (error) {
-
-                console.log('[LIA] Error obteniendo contexto:', error);
-
-                return 'Módulo: ¿Qué es la IA?. Contexto: Curso de Inteligencia Artificial.';
-            }
-        }
-        function obtenerTokenAuth() {
-
-            // Intentar obtener token real
-
-            const token = localStorage.getItem('authToken');
-
-            if (token) {
-
-                console.log('[LIA] 🔑 Usando token real del localStorage');
-
-                return token;
-
-            }
-
-            // Token de desarrollo para testing - más compatible con el servidor
-
-            const devToken = 'dev-token-chat-online-user-' + Date.now();
-
-            console.log('[LIA] 🔧 Usando token de desarrollo:', devToken);
-
-            return devToken;
-
-        }
-
-        // ===== FUNCIÓN INMEDIATA PARA TABS - NO DEPENDE DE NADA =====
-        function switchTab(contentType) {
-            console.log('🔄 switchTab directo:', contentType);
-            
-            // Ocultar todos los contenidos
-            const allContents = document.querySelectorAll('[data-content]');
-            allContents.forEach(content => {
-                if (content.closest('.content-area')) {
-                    content.style.display = 'none';
-                }
-            });
-            
-            // Mostrar el contenido seleccionado
-            const targetContent = document.querySelector(`[data-content="${contentType}"]`);
-            if (targetContent && targetContent.closest('.content-area')) {
-                const displayType = contentType === 'community' ? 'flex' : 'block';
-                targetContent.style.display = displayType;
-                console.log('✅ Contenido mostrado:', contentType);
-            }
-            
-            // Actualizar botones activos
-            const allTabs = document.querySelectorAll('.content-tabs .tab-btn');
-            allTabs.forEach(tab => tab.classList.remove('active'));
-            
-            const activeTab = document.querySelector(`.content-tabs .tab-btn[data-content="${contentType}"]`);
-            if (activeTab) {
-                activeTab.classList.add('active');
-                console.log('✅ Tab activado:', contentType);
-            }
-        }
-        
-        // Hacer disponible globalmente INMEDIATAMENTE
-        window.switchTab = switchTab;
-        console.log('✅ switchTab definido directamente en HTML');
-
     </script>
 
     <!-- Module 1 Videos Loader -->
@@ -3552,7 +3737,3 @@ Cargando información...
 </body>
 
 </html>
-
-
-
-

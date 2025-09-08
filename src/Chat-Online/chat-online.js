@@ -118,6 +118,9 @@ class ChatOnline {
         // Materiales
         this.setupMaterials();
         
+        // Modal de foto de LIA
+        this.setupLiaPhotoModal();
+        
         // Responsive
         this.setupResponsiveListeners();
         
@@ -1819,33 +1822,25 @@ class ChatOnline {
                 }
             }
             
-            // Cargar respuestas y comentarios
-            console.log('🔄 Cargando respuestas y comentarios...');
+            // Cargar solo respuestas (comentarios eliminados)
+            console.log('🔄 Cargando respuestas...');
             
-            const [answersResponse, commentsResponse] = await Promise.all([
-                window.communityAPI.getQuestionAnswers(questionId, 'votes'),
-                window.communityAPI.getComments('question', questionId)
-            ]);
+            const answersResponse = await window.communityAPI.getQuestionAnswers(questionId, 'votes');
             
             // Verificar respuestas exitosas
             if (!answersResponse.success) {
                 throw new Error(answersResponse.error || 'Error cargando respuestas');
             }
             
-            if (!commentsResponse.success) {
-                throw new Error(commentsResponse.error || 'Error cargando comentarios');
-            }
-            
             const answers = answersResponse.data || [];
-            const comments = commentsResponse.data || [];
             
-            console.log(`✅ Cargados: ${answers.length} respuestas, ${comments.length} comentarios`);
+            console.log(`✅ Cargados: ${answers.length} respuestas`);
             
-            // Generar HTML para respuestas y comentarios
-            const detailsHTML = this.generateQuestionDetailsHTML(answers, comments);
+            // Generar HTML solo para respuestas
+            const detailsHTML = this.generateQuestionDetailsHTML(answers, []);
             detailsSection.innerHTML = detailsHTML;
             
-            // Configurar event listeners para votos en respuestas y comentarios
+            // Configurar event listeners para votos en respuestas
             this.setupDetailsEventListeners(detailsSection);
             
         } catch (error) {
@@ -1907,46 +1902,10 @@ class ChatOnline {
             </div>
         `).join('') : '<p class="no-answers">No hay respuestas aún. ¡Sé el primero en responder!</p>';
         
-        const commentsHTML = comments.length > 0 ? comments.map(comment => `
-            <div class="comment-item" data-comment-id="${comment.id}">
-                <div class="comment-header">
-                    <img src="${comment.author.avatar_url}" alt="${comment.author.name}" class="author-avatar-sm">
-                    <span class="author-name">${this.escapeHtml(comment.author.name)}</span>
-                    <span class="comment-time">${this.getTimeAgo(comment.created_at)}</span>
-                </div>
-                <div class="comment-content">
-                    <p>${this.escapeHtml(comment.content)}</p>
-                </div>
-                <div class="comment-actions">
-                    <div class="vote-controls-sm">
-                        <button class="vote-btn-sm upvote" data-target-type="comment" data-target-id="${comment.id}" title="Voto positivo">
-                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="m18 15-6-6-6 6"/>
-                            </svg>
-                        </button>
-                        <span class="vote-count-sm">${comment.votes_count || 0}</span>
-                        <button class="vote-btn-sm downvote" data-target-type="comment" data-target-id="${comment.id}" title="Voto negativo">
-                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="m6 9 6 6 6-6"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `).join('') : '<p class="no-comments">No hay comentarios aún.</p>';
+        // Comentarios eliminados - solo usamos respuestas
         
         return `
             <div class="question-details-content">
-                <div class="details-header">
-                    <h3 class="details-main-title">Detalles de la Pregunta</h3>
-                    <button class="close-details-btn" title="Cerrar detalles">
-                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"/>
-                            <line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                    </button>
-                </div>
-                
                 <div class="details-section answers-section">
                     <h4 class="section-title">
                         <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1960,21 +1919,15 @@ class ChatOnline {
                                 <option value="oldest">Más antiguas</option>
                             </select>
                         </div>
+                        <button class="close-details-btn" title="Cerrar respuestas">
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
                     </h4>
                     <div class="answers-list">
                         ${answersHTML}
-                    </div>
-                </div>
-                
-                <div class="details-section comments-section">
-                    <h4 class="section-title">
-                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                        </svg>
-                        Comentarios (${comments.length})
-                    </h4>
-                    <div class="comments-list">
-                        ${commentsHTML}
                     </div>
                 </div>
             </div>
@@ -2019,7 +1972,7 @@ class ChatOnline {
                 e.stopPropagation();
                 const answerId = btn.getAttribute('data-answer-id');
                 if (answerId) {
-                    this.showCommentModal(answerId, 'answer');
+                    // Función de comentar eliminada
                 }
             });
         });
@@ -2120,7 +2073,7 @@ class ChatOnline {
             commentBtn.style.transform = '';
         }, 150);
         
-        this.showCommentModal(questionId);
+        // Función de comentar eliminada
     }
 
     async handleBookmark(questionId, bookmarkBtn) {
@@ -2225,101 +2178,7 @@ class ChatOnline {
         this.setupAnswerModalListeners();
     }
 
-    showCommentModal(targetId, targetType = 'question') {
-        console.log(`💭 Mostrando modal de comentario para ${targetType}: ${targetId}`);
-        
-        let contextHTML = '';
-        let modalTitle = '';
-        
-        if (targetType === 'question') {
-            // Buscar la pregunta para mostrar contexto
-            const questionElement = document.querySelector(`[data-question-id="${targetId}"]`);
-            if (!questionElement) {
-                this.showNotification('Error: No se pudo encontrar la pregunta', 'error');
-                return;
-            }
-
-            // Obtener datos de la pregunta
-            const title = questionElement.querySelector('.question-title')?.textContent || 'Pregunta';
-            const content = this.getQuestionFullContent(targetId) || 'Contenido no disponible';
-            const author = questionElement.querySelector('.question-author')?.textContent || 'Usuario';
-            const time = questionElement.querySelector('.question-time')?.textContent || 'hace un momento';
-
-            modalTitle = 'Comentar Pregunta';
-            contextHTML = `
-                <h4>${this.escapeHtml(title)}</h4>
-                <p>${this.escapeHtml(content)}</p>
-                <div class="question-context-meta">
-                    <span class="question-context-author">
-                        <img src="${this.getQuestionAuthorAvatar(targetId)}" alt="Usuario">
-                        ${this.escapeHtml(author)}
-                    </span>
-                    <span>${time}</span>
-                </div>
-            `;
-        } else if (targetType === 'answer') {
-            // Buscar la respuesta para mostrar contexto
-            const answerElement = document.querySelector(`[data-answer-id="${targetId}"]`);
-            if (!answerElement) {
-                this.showNotification('Error: No se pudo encontrar la respuesta', 'error');
-                return;
-            }
-
-            // Obtener datos de la respuesta
-            const content = answerElement.querySelector('.answer-content p')?.textContent || 'Contenido no disponible';
-            const author = answerElement.querySelector('.author-name')?.textContent || 'Usuario';
-            const time = answerElement.querySelector('.answer-time')?.textContent || 'hace un momento';
-            const avatar = answerElement.querySelector('.author-avatar')?.src || '/assets/images/default-avatar.svg';
-
-            modalTitle = 'Comentar Respuesta';
-            contextHTML = `
-                <h4>Respuesta de ${this.escapeHtml(author)}</h4>
-                <p>${this.escapeHtml(content)}</p>
-                <div class="question-context-meta">
-                    <span class="question-context-author">
-                        <img src="${avatar}" alt="Usuario">
-                        ${this.escapeHtml(author)}
-                    </span>
-                    <span>${time}</span>
-                </div>
-            `;
-        }
-
-        // Actualizar el título del modal
-        const modalHeader = document.querySelector('#commentModal .modal-header h3');
-        if (modalHeader) {
-            modalHeader.innerHTML = `
-                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                </svg>
-                ${modalTitle}
-            `;
-        }
-
-        // Configurar contexto en el modal
-        const contextElement = document.getElementById('commentQuestionContext');
-        contextElement.innerHTML = contextHTML;
-
-        // Mostrar modal
-        const modal = document.getElementById('commentModal');
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-
-        // Limpiar formulario
-        document.getElementById('commentContent').value = '';
-
-        // Guardar datos para usar al enviar
-        modal.setAttribute('data-target-id', targetId);
-        modal.setAttribute('data-target-type', targetType);
-
-        // Focus en el textarea
-        setTimeout(() => {
-            document.getElementById('commentContent').focus();
-        }, 100);
-
-        // Configurar event listeners si no están configurados
-        this.setupCommentModalListeners();
-    }
+    // Función showCommentModal eliminada
 
     getQuestionFullContent(questionId) {
         // Buscar en las preguntas cargadas el contenido completo
@@ -3372,45 +3231,140 @@ class ChatOnline {
     // ===== MATERIALES =====
     setupMaterials() {
         const collapseMaterialsBtn = document.getElementById('collapseMaterialsBtn');
+        const moduleVideosSection = document.querySelector('.module-videos-section');
         
         if (collapseMaterialsBtn) {
+            // Inicializar estado del botón
+            this.initializeMaterialsState();
+            
             collapseMaterialsBtn.addEventListener('click', () => {
                 console.log('📦 Colapsando materiales del curso...');
                 this.toggleMaterialsCollapse();
             });
         }
     }
-    
-    toggleMaterialsCollapse() {
-        const materialsSection = document.querySelector('.course-materials-section');
-        const modulesList = document.querySelector('.modules-list');
+
+    initializeMaterialsState() {
+        const moduleVideosSection = document.querySelector('.module-videos-section');
         const collapseBtn = document.getElementById('collapseMaterialsBtn');
         const icon = collapseBtn.querySelector('svg');
         
-        if (materialsSection && modulesList) {
-            const isCollapsed = modulesList.style.opacity === '0' || modulesList.style.visibility === 'hidden';
+        if (moduleVideosSection && collapseBtn) {
+            // Estado inicial: expandido
+            moduleVideosSection.classList.add('expanded');
+            moduleVideosSection.classList.remove('collapsed');
+            icon.innerHTML = '<polyline points="6,9 12,15 18,9"/>';
+            collapseBtn.title = 'Colapsar Materiales';
+            console.log('📤 Estado inicial: Materiales expandidos');
+        }
+    }
+    
+    toggleMaterialsCollapse() {
+        const materialsSection = document.querySelector('.course-materials-section');
+        const moduleVideosSection = document.querySelector('.module-videos-section');
+        const collapseBtn = document.getElementById('collapseMaterialsBtn');
+        const icon = collapseBtn.querySelector('svg');
+        
+        if (materialsSection && moduleVideosSection) {
+            const isCollapsed = moduleVideosSection.classList.contains('collapsed');
             
             if (isCollapsed) {
                 // Expandir
-                modulesList.style.opacity = '1';
-                modulesList.style.visibility = 'visible';
-                modulesList.style.display = 'flex';
+                moduleVideosSection.classList.remove('collapsed');
+                moduleVideosSection.classList.add('expanded');
                 materialsSection.style.flex = '1';
                 icon.innerHTML = '<polyline points="6,9 12,15 18,9"/>';
                 collapseBtn.title = 'Colapsar Materiales';
                 console.log('📤 Materiales expandidos');
-        } else {
+            } else {
                 // Colapsar
-                modulesList.style.opacity = '0';
-                modulesList.style.visibility = 'hidden';
-                setTimeout(() => {
-                    modulesList.style.display = 'none';
-                }, 300);
-                materialsSection.style.flex = '0 0 auto';
-                icon.innerHTML = '<polyline points="6,15 12,9 18,15"/>';
+                moduleVideosSection.classList.remove('expanded');
+                moduleVideosSection.classList.add('collapsed');
+                materialsSection.style.flex = '0.1';
+                icon.innerHTML = '<polyline points="18,15 12,9 6,15"/>';
                 collapseBtn.title = 'Expandir Materiales';
-                console.log('📦 Materiales colapsados');
+                console.log('📥 Materiales colapsados');
             }
+        } else {
+            console.error('❌ No se encontraron los elementos necesarios para colapsar materiales');
+        }
+    }
+    
+    // ===== MODAL DE FOTO DE LIA =====
+    setupLiaPhotoModal() {
+        const liaAvatars = document.querySelectorAll('.lia-avatar');
+        const liaPhotoModal = document.getElementById('liaPhotoModal');
+        const liaPhotoClose = document.getElementById('liaPhotoClose');
+        const liaPhotoOverlay = document.getElementById('liaPhotoOverlay');
+        
+        // Agregar event listeners a todas las fotos de LIA
+        liaAvatars.forEach(avatar => {
+            avatar.addEventListener('click', () => {
+                console.log('📸 Abriendo modal de foto de LIA...');
+                this.showLiaPhotoModal();
+            });
+        });
+        
+        // Cerrar modal con botón X
+        if (liaPhotoClose) {
+            liaPhotoClose.addEventListener('click', () => {
+                this.hideLiaPhotoModal();
+            });
+        }
+        
+        // Cerrar modal con click en overlay
+        if (liaPhotoOverlay) {
+            liaPhotoOverlay.addEventListener('click', () => {
+                this.hideLiaPhotoModal();
+            });
+        }
+        
+        // Cerrar modal con tecla Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && liaPhotoModal && liaPhotoModal.style.display !== 'none') {
+                this.hideLiaPhotoModal();
+            }
+        });
+    }
+    
+    showLiaPhotoModal() {
+        const liaPhotoModal = document.getElementById('liaPhotoModal');
+        const liaPhotoContainer = liaPhotoModal?.querySelector('.lia-photo-container');
+        
+        if (liaPhotoModal) {
+            liaPhotoModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevenir scroll del body
+            
+            // Agregar clases de animación
+            setTimeout(() => {
+                liaPhotoModal.classList.add('show');
+                if (liaPhotoContainer) {
+                    liaPhotoContainer.classList.add('show');
+                }
+            }, 10);
+            
+            console.log('📸 Modal de foto de LIA abierto');
+        }
+    }
+    
+    hideLiaPhotoModal() {
+        const liaPhotoModal = document.getElementById('liaPhotoModal');
+        const liaPhotoContainer = liaPhotoModal?.querySelector('.lia-photo-container');
+        
+        if (liaPhotoModal) {
+            // Remover clases de animación
+            liaPhotoModal.classList.remove('show');
+            if (liaPhotoContainer) {
+                liaPhotoContainer.classList.remove('show');
+            }
+            
+            // Cerrar modal después de un pequeño delay para la animación
+            setTimeout(() => {
+                liaPhotoModal.style.display = 'none';
+                document.body.style.overflow = 'auto'; // Restaurar scroll del body
+            }, 200);
+            
+            console.log('📸 Modal de foto de LIA cerrado');
         }
     }
     
