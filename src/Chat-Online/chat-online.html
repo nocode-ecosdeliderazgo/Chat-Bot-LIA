@@ -467,6 +467,38 @@
             opacity: 0.8;
         }
 
+        /* Centrar mejor los iconos de los botones de pestañas */
+        .tab-icon {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 48px !important;
+            height: 48px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .tab-icon svg {
+            width: 18px !important;
+            height: 18px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+        }
+
+        /* Responsive para iconos de pestañas */
+        @media (max-width: 768px) {
+            .tab-icon {
+                width: 44px !important;
+                height: 44px !important;
+            }
+            
+            .tab-icon svg {
+                width: 16px !important;
+                height: 16px !important;
+            }
+        }
+
         /* Responsive para botón de regreso */
         @media (max-width: 768px) {
             .back-button {
