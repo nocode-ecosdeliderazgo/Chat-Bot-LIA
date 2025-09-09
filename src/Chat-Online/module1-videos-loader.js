@@ -600,6 +600,20 @@ class Module1VideosLoader {
                 `;
             }
 
+            // Actualizar descripción del video desde BD
+            const videoDescription = document.querySelector('.video-stats span:last-child');
+            if (videoDescription) {
+                console.log('📝 DEBUG - Video description from DB (manual):', video.description);
+                videoDescription.innerHTML = `
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    ${video.description || 'Sin descripción disponible'}
+                `;
+                console.log('✅ Descripción del video actualizada manualmente:', video.description || 'Sin descripción disponible');
+            }
+
             console.log('✅ Información del video actualizada manualmente');
         } catch (error) {
             console.error('❌ Error actualizando información manualmente:', error);
@@ -636,16 +650,18 @@ class Module1VideosLoader {
                 `;
             }
 
-            // Actualizar información del video (no transcripción)
+            // Actualizar descripción del video desde BD
             const videoDescription = document.querySelector('.video-stats span:last-child');
             if (videoDescription) {
+                console.log('📝 DEBUG - Video description from DB:', video.description);
                 videoDescription.innerHTML = `
                     <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                         <circle cx="12" cy="12" r="3"/>
                     </svg>
-                    Video ${video.video_order || 'actual'} de ${video.video_title}
+                    ${video.description || 'Sin descripción disponible'}
                 `;
+                console.log('✅ Descripción del video actualizada:', video.description || 'Sin descripción disponible');
             }
 
             console.log('✅ Información del video actualizada');
