@@ -352,6 +352,210 @@
             font-size: 18px !important;
         }
 
+        /* ===== HEADER BAJO Y CON BORDES REDONDEADOS ===== */
+        .header-course-info {
+            padding: 0.4rem 1.5rem 0.4rem 1rem;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            position: relative;
+        }
+
+        .header-content-group {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Botón de regreso con estilo de pestañas */
+        .back-button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(68, 229, 255, 0.15);
+            color: var(--glass-text-secondary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            min-height: 48px;
+            width: 48px; /* Solo mostrar el ícono por defecto */
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        /* Ícono del botón de regreso */
+        .back-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+
+        .back-icon svg {
+            width: 20px;
+            height: 20px;
+            transition: all 0.3s ease;
+        }
+
+        /* Texto del botón de regreso */
+        .back-label {
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            white-space: nowrap;
+            font-weight: 500;
+            margin-left: 0.5rem;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Hover effect - expansión hacia la derecha */
+        .back-button:hover {
+            background: rgba(68, 229, 255, 0.08);
+            border-color: rgba(0, 102, 204, 0.3);
+            color: var(--glass-text-primary);
+            width: auto;
+            min-width: 150px;
+            padding-right: 1rem;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(68, 229, 255, 0.15);
+        }
+
+        .back-button:hover .back-label {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .back-button:hover .back-icon svg {
+            transform: translateX(-2px) scale(1.02);
+            color: var(--glass-text-primary);
+        }
+
+        /* Efecto de click */
+        .back-button:active {
+            transform: translateY(0) scale(0.99);
+            transition: all 0.15s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* Efecto de fondo animado */
+        .back-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.08), transparent);
+            opacity: 0;
+            transition: opacity 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border-radius: 12px;
+            z-index: 0;
+        }
+
+        .back-button:hover::before {
+            opacity: 0.8;
+        }
+
+        /* Responsive para botón de regreso */
+        @media (max-width: 768px) {
+            .back-button {
+                width: 44px;
+                min-height: 44px;
+            }
+            
+            .back-button:hover {
+                min-width: 120px;
+            }
+            
+            .back-icon {
+                width: 44px;
+                height: 44px;
+            }
+            
+            .back-icon svg {
+                width: 18px;
+                height: 18px;
+            }
+        }
+
+        .course-title-header {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #44e5ff;
+            letter-spacing: 0.2px;
+        }
+
+        .course-progress-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .progress-text {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 400;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .progress-bar-header {
+            width: 90px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill-header {
+            height: 100%;
+            background: linear-gradient(90deg, #0066CC, #44e5ff);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        /* Responsive para header bajo */
+        @media (max-width: 768px) {
+            .header-course-info {
+                padding: 0.3rem 1rem 0.3rem 0.6rem;
+                height: 32px;
+            }
+            
+            .header-content-group {
+                gap: 1.5rem;
+            }
+            
+            .course-title-header {
+                font-size: 0.9rem;
+            }
+            
+            .course-progress-header {
+                gap: 0.5rem;
+            }
+            
+            .progress-bar-header {
+                width: 70px;
+                height: 3px;
+            }
+            
+            .progress-text {
+                font-size: 0.75rem;
+                min-width: 25px;
+            }
+        }
+
         /* Responsive mejorado */
         @media (max-width: 768px) {
             .question-actions {
@@ -1133,9 +1337,35 @@
             transform: translateY(0);
         }
 
+        /* Estilos para la sección de materiales colapsada */
+        .course-materials-section.collapsed .module-videos-section {
+            display: none;
+        }
+        
+        .course-materials-section.collapsed .materials-header {
+            border-bottom: none;
+        }
+
+        /* Reducir espacio entre header y contenido de materiales */
+        .materials-header {
+            margin-bottom: 0.5rem !important;
+        }
+        
+        .module-videos-section {
+            margin-top: 0.5rem !important;
+        }
+
         /* Estilos para el botón de colapsar */
         #collapseMaterialsBtn {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 36px !important;
+            height: 36px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
         }
 
         #collapseMaterialsBtn:hover {
@@ -1146,10 +1376,28 @@
 
         #collapseMaterialsBtn svg {
             transition: transform 0.3s ease;
+            width: 16px !important;
+            height: 16px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+            position: static !important;
+            top: auto !important;
+            left: auto !important;
+            transform: none !important;
         }
 
         #collapseMaterialsBtn:hover svg {
             transform: scale(1.1);
+        }
+
+        /* Estados del botón de colapsar - animación suave */
+        #collapseMaterialsBtn.collapsed svg {
+            transform: rotate(180deg) !important;
+        }
+
+        #collapseMaterialsBtn:not(.collapsed) svg {
+            transform: rotate(0deg) !important;
         }
 
         /* Responsive para el botón de colapsar */
@@ -1636,51 +1884,27 @@
     <main class="layout-3panels">
         <!-- Barra de Navegación Superior -->
         <div class="top-navigation">
-                <button class="neo-btn neo-btn-small back-btn" onclick="goBack()">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-                Volver
-            </button>
-            <div class="nav-tabs">
-                <button class="nav-tab active" data-tab="video">
-                    <div class="nav-icon">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                            <line x1="8" y1="21" x2="16" y2="21"/>
-                            <line x1="12" y1="17" x2="12" y2="21"/>
-                            <circle cx="8" cy="8" r="2"/>
-                            <circle cx="16" cy="8" r="2"/>
-                            <circle cx="8" cy="12" r="2"/>
-                            <circle cx="16" cy="12" r="2"/>
+            <div class="header-course-info">
+                <button class="back-button" id="backButton" title="Regresar">
+                    <div class="back-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
                         </svg>
                     </div>
-                    <span class="nav-label">Video</span>
+                    <span class="back-label">Regresar</span>
                 </button>
-                <button class="nav-tab" data-tab="materials">
-                    <div class="nav-icon">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14,2 14,8 20,8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                            <polyline points="10,9 9,9 8,9"/>
-                        </svg>
+                <div class="header-content-group">
+                    <h1 class="course-title-header">Introducción a la IA</h1>
+                    <div class="course-progress-header">
+                        <span class="progress-text">0/5</span>
+                        <div class="progress-bar-header">
+                            <div class="progress-fill-header" style="width: 0%"></div>
+                        </div>
                     </div>
-                    <span class="nav-label">Materiales</span>
-                </button>
-                <button class="nav-tab" data-tab="quiz">
-                    <div class="nav-icon">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                            <line x1="12" y1="17" x2="12.01" y2="17"/>
-                        </svg>
-                    </div>
-                    <span class="nav-label">Quiz</span>
-                </button>
+                </div>
             </div>
-                </div>        <!-- Panel Izquierdo - Material del Curso -->
+        </div>
+        <!-- Panel Izquierdo - Material del Curso -->
         <aside class="left-panel neo-panel" id="sidebarLeft">
             <!-- Botón de colapso del panel izquierdo -->
             <button class="collapse-btn collapse-btn-left" id="collapseLeft" title="Ocultar/mostrar panel">
@@ -1691,77 +1915,6 @@
                 </span>
             </button>
             
-            <!-- Información del Curso -->
-            <div class="course-info-section" style="margin-top: 50px;">
-                <div class="course-card">
-                    <!-- Categoría del Curso -->
-                    <div class="course-category">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                        </svg>
-                            <span>Inteligencia Artificial</span>
-                    </div>
-                    <!-- Título del Curso -->
-                    <h2 class="course-title">
-                        <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-                        </svg>
-                        <span>Introducción a la IA</span>
-                    </h2>
-                    <!-- Información de Progreso -->
-                    <div class="course-progress-section">
-                        <div class="progress-header">
-                            <span class="progress-label">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
-                                </svg>
-                                Progreso del Taller
-                            </span>
-                            <span class="progress-percentage">0%</span>
-                        </div>
-                        <!-- Barra de Progreso -->
-                        <div class="progress-bar-container">
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 0%"></div>
-                                </div>
-                            </div>
-                        <!-- Indicadores de Módulos -->
-                        <div class="progress-indicators">
-                            <div class="progress-dot current" title="Módulo 1 En Progreso">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polygon points="5,3 19,12 5,21"/>
-                                </svg>
-                            </div>
-                            <div class="progress-dot pending" title="Módulo 2 Pendiente">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </div>
-                            <div class="progress-dot pending" title="Módulo 3 Pendiente">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </div>
-                            <div class="progress-dot pending" title="Módulo 4 Pendiente">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </div>
-                            <div class="progress-dot pending" title="Módulo 5 Pendiente">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </div>
-                        </div>
-                </div>
-            </div>
-                    <!-- Módulo Actual -->
-                    <div class="current-module-info">
-                        <span>Módulo 1: ¿Qué es la IA?</span>
-                    </div>
-                </div>
-            </div>
             <!-- Área de Creación de Notas -->
             <div class="notes-creator-section" id="notesCreatorSection" style="display: none;">
                 <div class="notes-creator-header">
@@ -1886,7 +2039,7 @@
             </div>
 
             <!-- Material del Curso -->
-            <div class="course-materials-section">
+            <div class="course-materials-section" style="margin-top: 2rem;">
                 <div class="materials-header">
                     <h3>
                         Material del Curso
@@ -1916,11 +2069,7 @@
                         </div>
                     </div>
                     <div class="module-videos-list" id="module1VideosList">
-                        <!-- Los videos del módulo 1 se cargarán dinámicamente aquí -->
-                        <div class="loading-videos">
-                            <div class="loading-spinner"></div>
-                            <span>Cargando videos del módulo 1...</span>
-                        </div>
+                        <!-- Contenido de videos eliminado -->
                     </div>
                 </div>
             </div>
@@ -1983,33 +2132,6 @@ Duración: Cargando...
 Cargando información...
                             </span>
                                 </div>
-                        <div class="video-progress-dots">
-                            <div class="video-section-dot completed" title="Sección 1 Completada">
-                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="20,6 9,17 4,12"/>
-                                </svg>
-                            </div>
-                            <div class="video-section-dot completed" title="Sección 2 Completada">
-                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="20,6 9,17 4,12"/>
-                                </svg>
-                            </div>
-                            <div class="video-section-dot completed" title="Sección 3 Completada">
-                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="20,6 9,17 4,12"/>
-                                </svg>
-                            </div>
-                            <div class="video-section-dot current" title="Sección 4 En Progreso">
-                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polygon points="5,3 19,12 5,21"/>
-                                </svg>
-                            </div>
-                            <div class="video-section-dot pending" title="Sección 5 Pendiente">
-                                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </div>
-                        </div>
                             </div>
                         </div>
 
@@ -2053,6 +2175,15 @@ Cargando información...
                             </svg>
                         </div>
                         <span class="tab-label">Comunidad</span>
+                    </button>
+
+                    <button class="tab-btn" data-content="activity" onclick="window.switchTab('activity')">
+                        <div class="tab-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                            </svg>
+                        </div>
+                        <span class="tab-label">Actividad</span>
                     </button>
                 </div>
 
@@ -4268,6 +4399,229 @@ INSTRUCCIONES:
                     }
                 }));
             });
+            
+            // Funcionalidad del botón de colapsar materiales del curso
+            const collapseMaterialsBtn = document.getElementById('collapseMaterialsBtn');
+            const courseMaterialsSection = document.querySelector('.course-materials-section');
+            
+            if (collapseMaterialsBtn && courseMaterialsSection) {
+                // Restaurar estado desde localStorage
+                const isCollapsed = localStorage.getItem('materialsCollapsed') === 'true';
+                if (isCollapsed) {
+                    courseMaterialsSection.classList.add('collapsed');
+                    collapseMaterialsBtn.classList.add('collapsed');
+                    collapseMaterialsBtn.title = 'Expandir Materiales';
+                } else {
+                    collapseMaterialsBtn.classList.remove('collapsed');
+                    collapseMaterialsBtn.title = 'Colapsar Materiales';
+                }
+                
+                // Event listener para el botón de colapsar
+                collapseMaterialsBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const isCurrentlyCollapsed = courseMaterialsSection.classList.contains('collapsed');
+                    
+                    if (isCurrentlyCollapsed) {
+                        // Expandir
+                        courseMaterialsSection.classList.remove('collapsed');
+                        collapseMaterialsBtn.classList.remove('collapsed');
+                        collapseMaterialsBtn.title = 'Colapsar Materiales';
+                    } else {
+                        // Colapsar
+                        courseMaterialsSection.classList.add('collapsed');
+                        collapseMaterialsBtn.classList.add('collapsed');
+                        collapseMaterialsBtn.title = 'Expandir Materiales';
+                    }
+                    
+                    // Guardar estado en localStorage
+                    localStorage.setItem('materialsCollapsed', !isCurrentlyCollapsed);
+                });
+            }
+            
+            // Funcionalidad del botón de regreso
+            const backButton = document.getElementById('backButton');
+            if (backButton) {
+                backButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Regresar a la página anterior
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        // Si no hay historial, redirigir a la página principal
+                        window.location.href = '/';
+                    }
+                });
+            }
+            
+            // Funcionalidad de auto-expansión de paneles con hover inteligente (estilo Coda mejorado)
+            let leftPanelPinned = false;
+            let rightPanelPinned = false;
+            
+            // Auto-expansión del panel izquierdo con hover
+            if (sidebarLeft) {
+                sidebarLeft.addEventListener('mouseenter', function(e) {
+                    // Solo expandir si el panel está colapsado
+                    if (sidebarLeft.classList.contains('collapsed')) {
+                        sidebarLeft.classList.remove('collapsed');
+                        collapseLeft.title = 'Ocultar panel';
+                        
+                        // Re-animar contenido al expandir
+                        setTimeout(() => {
+                            const contentSections = sidebarLeft.querySelectorAll(
+                                '.course-info-section, .course-progress-section, .course-materials-section'
+                            );
+                            contentSections.forEach((section, index) => {
+                                section.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+                                section.style.opacity = '1';
+                                section.style.transform = 'translateX(0)';
+                            });
+                        }, 50);
+                        
+                        // Guardar estado en localStorage
+                        localStorage.setItem('leftPanelCollapsed', false);
+                        
+                        // Emitir evento personalizado
+                        window.dispatchEvent(new CustomEvent('leftPanelToggled', {
+                            detail: { 
+                                collapsed: false,
+                                timestamp: Date.now(),
+                                source: 'auto-expand-hover'
+                            }
+                        }));
+                        
+                        console.log('📱 Panel izquierdo expandido automáticamente con hover');
+                    }
+                });
+                
+                
+                // Fijar panel izquierdo al hacer clic
+                sidebarLeft.addEventListener('click', function(e) {
+                    if (!sidebarLeft.classList.contains('collapsed')) {
+                        leftPanelPinned = true;
+                        console.log('📌 Panel izquierdo fijado');
+                    }
+                });
+            }
+            
+            // Auto-expansión del panel derecho con hover
+            if (sidebarRight) {
+                sidebarRight.addEventListener('mouseenter', function(e) {
+                    // Solo expandir si el panel está colapsado
+                    if (sidebarRight.classList.contains('collapsed')) {
+                        sidebarRight.classList.remove('collapsed');
+                        collapseRight.title = 'Ocultar panel';
+                        
+                        // Re-animar contenido al expandir
+                        setTimeout(() => {
+                            const contentSections = sidebarRight.querySelectorAll(
+                                '.lia-assistant-section, .notes-creator-section, .notes-section, .course-materials-section, .community-content'
+                            );
+                            contentSections.forEach((section) => {
+                                section.style.opacity = '';
+                                section.style.transform = '';
+                            });
+                        }, 50);
+                        
+                        // Guardar estado en localStorage
+                        localStorage.setItem('rightPanelCollapsed', false);
+                        
+                        // Emitir evento personalizado
+                        window.dispatchEvent(new CustomEvent('rightPanelToggled', {
+                            detail: { 
+                                collapsed: false,
+                                timestamp: Date.now(),
+                                source: 'auto-expand-hover'
+                            }
+                        }));
+                        
+                        console.log('📱 Panel derecho expandido automáticamente con hover');
+                    }
+                });
+                
+                
+                // Fijar panel derecho al hacer clic
+                sidebarRight.addEventListener('click', function(e) {
+                    if (!sidebarRight.classList.contains('collapsed')) {
+                        rightPanelPinned = true;
+                        console.log('📌 Panel derecho fijado');
+                    }
+                });
+            }
+            
+            // Desfijar paneles cuando se usan los botones de colapso
+            if (collapseLeft) {
+                collapseLeft.addEventListener('click', function() {
+                    leftPanelPinned = false;
+                    console.log('📌 Panel izquierdo desfijado');
+                });
+            }
+            
+            if (collapseRight) {
+                collapseRight.addEventListener('click', function() {
+                    rightPanelPinned = false;
+                    console.log('📌 Panel derecho desfijado');
+                });
+            }
+            
+            // Desfijar paneles cuando se colapsan automáticamente
+            if (sidebarLeft) {
+                sidebarLeft.addEventListener('mouseleave', function(e) {
+                    if (!leftPanelPinned && !sidebarLeft.classList.contains('collapsed')) {
+                        // Pequeño delay para evitar cierre accidental
+                        setTimeout(() => {
+                            if (!leftPanelPinned && !sidebarLeft.classList.contains('collapsed')) {
+                                sidebarLeft.classList.add('collapsed');
+                                collapseLeft.title = 'Expandir panel';
+                                leftPanelPinned = false; // Desfijar cuando se colapsa automáticamente
+                                
+                                // Guardar estado en localStorage
+                                localStorage.setItem('leftPanelCollapsed', true);
+                                
+                                // Emitir evento personalizado
+                                window.dispatchEvent(new CustomEvent('leftPanelToggled', {
+                                    detail: { 
+                                        collapsed: true,
+                                        timestamp: Date.now(),
+                                        source: 'auto-collapse-hover'
+                                    }
+                                }));
+                                
+                                console.log('📱 Panel izquierdo colapsado automáticamente al salir del hover');
+                            }
+                        }, 300);
+                    }
+                });
+            }
+            
+            if (sidebarRight) {
+                sidebarRight.addEventListener('mouseleave', function(e) {
+                    if (!rightPanelPinned && !sidebarRight.classList.contains('collapsed')) {
+                        // Pequeño delay para evitar cierre accidental
+                        setTimeout(() => {
+                            if (!rightPanelPinned && !sidebarRight.classList.contains('collapsed')) {
+                                sidebarRight.classList.add('collapsed');
+                                collapseRight.title = 'Expandir panel';
+                                rightPanelPinned = false; // Desfijar cuando se colapsa automáticamente
+                                
+                                // Guardar estado en localStorage
+                                localStorage.setItem('rightPanelCollapsed', true);
+                                
+                                // Emitir evento personalizado
+                                window.dispatchEvent(new CustomEvent('rightPanelToggled', {
+                                    detail: { 
+                                        collapsed: true,
+                                        timestamp: Date.now(),
+                                        source: 'auto-collapse-hover'
+                                    }
+                                }));
+                                
+                                console.log('📱 Panel derecho colapsado automáticamente al salir del hover');
+                            }
+                        }, 300);
+                    }
+                });
+            }
             
             // Funcionalidad adicional: colapsar con tecla Escape cuando el panel está enfocado
             document.addEventListener('keydown', function(e) {
