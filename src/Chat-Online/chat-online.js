@@ -4582,6 +4582,14 @@ class ChatOnline {
                     return;
                 }
                 
+                // Si solo YouTube tracker está listo después de cierto tiempo, continuar
+                if (attempts > 20 && youtubeTrackerReady) {
+                    console.warn('⚠️ Timeout parcial: solo YouTubeProgressTracker disponible');
+                    console.warn('🔧 Continuando con funcionalidad limitada...');
+                    resolve();
+                    return;
+                }
+                
                 // Timeout para evitar loops infinitos
                 if (attempts >= maxAttempts) {
                     console.warn('⚠️ Timeout esperando componentes después de', maxAttempts, 'intentos');

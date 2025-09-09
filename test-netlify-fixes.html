@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Netlify Fixes</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5; 
+        }
+        .test-container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            margin-bottom: 15px;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .warning { color: #ffc107; }
+        button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        #results { 
+            white-space: pre-wrap; 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 4px; 
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test de Correcciones Netlify</h1>
+    
+    <div class="test-container">
+        <h2>Tests Disponibles</h2>
+        <button onclick="testSupabaseConfig()">🔧 Test Supabase Config</button>
+        <button onclick="testModuleVideos()">🎬 Test Module Videos</button>
+        <button onclick="testCommunityAPI()">👥 Test Community API</button>
+        <button onclick="testAllEndpoints()">🚀 Test Todos los Endpoints</button>
+        <button onclick="clearResults()">🧹 Limpiar</button>
+    </div>
+
+    <div class="test-container">
+        <h2>Resultados</h2>
+        <div id="results">Haz clic en un test para comenzar...</div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            results.innerHTML += `[${timestamp}] ${icon} ${message}\n`;
+            results.scrollTop = results.scrollHeight;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = 'Resultados limpiados...\n';
+        }
+
+        async function testSupabaseConfig() {
+            log('🔧 Probando Supabase Config API...', 'info');
+            try {
+                const response = await fetch('/api/supabase-config');
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    log(`✅ Supabase Config: OK (${response.status})`, 'success');
+                    log(`   URL configurada: ${data.config.url ? 'Sí' : 'No'}`, 'info');
+                    log(`   Anon Key configurada: ${data.config.anonKey ? 'Sí' : 'No'}`, 'info');
+                } else {
+                    log(`❌ Supabase Config falló: ${data.error || 'Error desconocido'}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error conectando a Supabase Config: ${error.message}`, 'error');
+            }
+        }
+
+        async function testModuleVideos() {
+            log('🎬 Probando Module Videos API...', 'info');
+            try {
+                const response = await fetch('/api/courses/module1-videos');
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    log(`✅ Module Videos: OK (${response.status})`, 'success');
+                    log(`   Videos encontrados: ${data.videos?.length || 0}`, 'info');
+                    if (data.videos?.length > 0) {
+                        log(`   Primer video: ${data.videos[0].video_title}`, 'info');
+                    }
+                } else {
+                    log(`❌ Module Videos falló: ${data.error || 'Error desconocido'}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error conectando a Module Videos: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCommunityAPI() {
+            log('👥 Probando Community API...', 'info');
+            try {
+                const response = await fetch('/api/community/questions?sort=recent');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(`✅ Community API: OK (${response.status})`, 'success');
+                    log(`   Respuesta: ${JSON.stringify(data).substring(0, 100)}...`, 'info');
+                } else {
+                    log(`⚠️ Community API respondió con error: ${response.status}`, 'warning');
+                    log(`   Error: ${data.error || 'Error desconocido'}`, 'warning');
+                }
+            } catch (error) {
+                log(`❌ Error conectando a Community API: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAllEndpoints() {
+            log('🚀 Probando todos los endpoints...', 'info');
+            
+            await testSupabaseConfig();
+            await new Promise(r => setTimeout(r, 500)); // Pequeña pausa
+            
+            await testModuleVideos();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testCommunityAPI();
+            await new Promise(r => setTimeout(r, 500));
+            
+            // Test adicional: current-module
+            log('🎯 Probando Current Module API...', 'info');
+            try {
+                const response = await fetch('/api/courses/introduccion-ia/current-module/9562a449-4ade-4d4b-a3e4-b66dddb7e6f0');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(`✅ Current Module: OK (${response.status})`, 'success');
+                } else {
+                    log(`⚠️ Current Module respondió con error: ${response.status}`, 'warning');
+                }
+            } catch (error) {
+                log(`❌ Error en Current Module: ${error.message}`, 'error');
+            }
+            
+            log('🏁 Tests completados!', 'success');
+        }
+
+        // Mostrar información del entorno
+        log('🌐 Entorno detectado:', 'info');
+        log(`   URL: ${window.location.origin}`, 'info');
+        log(`   Netlify: ${window.location.hostname.includes('netlify') ? 'Sí' : 'No'}`, 'info');
+        log('', 'info');
+    </script>
+</body>
+</html>
