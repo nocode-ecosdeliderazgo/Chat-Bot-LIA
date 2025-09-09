@@ -2923,11 +2923,31 @@ Cargando información...
     <!-- Dynamic Video Loader -->
     <script src="../scripts/dynamic-video-loader.js"></script>
     
-    <!-- Course Progress Manager V2 - Ruta verificada -->
-    <script src="../scripts/course-progress-manager-v2.js" onerror="console.error('❌ Error cargando course-progress-manager-v2.js')"></script>
+    <!-- Course Progress Manager V2 - Con fallback robusto -->
+    <script>
+        // Cargar course-progress-manager-v2.js con fallback
+        if (window.loadScriptWithFallback) {
+            window.loadScriptWithFallback('../scripts/course-progress-manager-v2.js', 
+                () => console.log('✅ course-progress-manager-v2.js cargado'),
+                () => console.error('❌ Error cargando course-progress-manager-v2.js'));
+        } else {
+            // Fallback si netlify-compatibility no está disponible
+            document.write('<script src="../scripts/course-progress-manager-v2.js" onerror="console.error(\'❌ Error cargando course-progress-manager-v2.js\')"><\/script>');
+        }
+    </script>
     
-    <!-- YouTube Progress Tracker - Ruta verificada -->
-    <script src="../scripts/youtube-progress-tracker.js" onerror="console.error('❌ Error cargando youtube-progress-tracker.js')"></script>
+    <!-- YouTube Progress Tracker - Con fallback robusto -->
+    <script>
+        // Cargar youtube-progress-tracker.js con fallback
+        if (window.loadScriptWithFallback) {
+            window.loadScriptWithFallback('../scripts/youtube-progress-tracker.js',
+                () => console.log('✅ youtube-progress-tracker.js cargado'),
+                () => console.error('❌ Error cargando youtube-progress-tracker.js'));
+        } else {
+            // Fallback si netlify-compatibility no está disponible
+            document.write('<script src="../scripts/youtube-progress-tracker.js" onerror="console.error(\'❌ Error cargando youtube-progress-tracker.js\')"><\/script>');
+        }
+    </script>
     
     <!-- Community API -->
     <script src="api/community-api.js"></script>
@@ -3646,18 +3666,35 @@ INSTRUCCIONES:
                     // Fallback: intentar cargar el script dinámicamente
                     try {
                         console.log('🔄 Intentando cargar CourseProgressManagerV2 dinámicamente...');
-                        const script = document.createElement('script');
-                        script.src = '../scripts/course-progress-manager-v2.js';
-                        script.onload = async () => {
-                            console.log('✅ Script cargado dinámicamente');
-                            if (window.CourseProgressManagerV2) {
-                                window.courseProgressManager = new CourseProgressManagerV2();
-                                await window.courseProgressManager.init();
-                                console.log('✅ Course Progress Manager V2 inicializado (carga dinámica)');
-                            }
-                        };
-                        script.onerror = () => console.error('❌ Error en carga dinámica del script');
-                        document.head.appendChild(script);
+                        
+                        // Usar función robusta de carga si está disponible
+                        if (window.loadScriptWithFallback) {
+                            window.loadScriptWithFallback('../scripts/course-progress-manager-v2.js', 
+                                async () => {
+                                    console.log('✅ Script cargado dinámicamente (fallback robusto)');
+                                    if (window.CourseProgressManagerV2) {
+                                        window.courseProgressManager = new CourseProgressManagerV2();
+                                        await window.courseProgressManager.init();
+                                        console.log('✅ Course Progress Manager V2 inicializado (carga dinámica)');
+                                    }
+                                },
+                                () => console.error('❌ Error en carga dinámica del script (todos los fallbacks fallaron)')
+                            );
+                        } else {
+                            // Fallback tradicional
+                            const script = document.createElement('script');
+                            script.src = '../scripts/course-progress-manager-v2.js';
+                            script.onload = async () => {
+                                console.log('✅ Script cargado dinámicamente');
+                                if (window.CourseProgressManagerV2) {
+                                    window.courseProgressManager = new CourseProgressManagerV2();
+                                    await window.courseProgressManager.init();
+                                    console.log('✅ Course Progress Manager V2 inicializado (carga dinámica)');
+                                }
+                            };
+                            script.onerror = () => console.error('❌ Error en carga dinámica del script');
+                            document.head.appendChild(script);
+                        }
                     } catch (error) {
                         console.error('❌ Error en fallback de carga:', error);
                     }

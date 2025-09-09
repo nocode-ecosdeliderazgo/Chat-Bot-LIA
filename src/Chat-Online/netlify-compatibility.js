@@ -33,8 +33,16 @@ window.loadScriptWithFallback = function(src, callback, errorCallback) {
         const alternatePaths = [
             src.replace('../', './'),  // Ruta relativa directa
             src.replace('../scripts/', './scripts/'), // Ruta con scripts
-            `/src${src.replace('../', '/')}`  // Ruta absoluta
-        ];
+            src.replace('../scripts/', '/scripts/'), // Ruta absoluta scripts
+            src.replace('../', '/'), // Ruta absoluta simple
+            `/src${src.replace('../', '/')}`,  // Ruta absoluta con src
+            src.replace('../scripts/', '/src/scripts/'), // Ruta completa scripts
+            src.replace('../', '/src/'), // Ruta completa src
+            // Rutas específicas para archivos comunes
+            src.includes('course-progress-manager-v2.js') ? '/scripts/course-progress-manager-v2.js' : null,
+            src.includes('youtube-progress-tracker.js') ? '/scripts/youtube-progress-tracker.js' : null,
+            src.includes('dynamic-video-loader.js') ? '/scripts/dynamic-video-loader.js' : null
+        ].filter(Boolean); // Filtrar valores null
         
         let attemptIndex = 0;
         
