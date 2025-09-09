@@ -1,149 +1,190 @@
-# Prompt para Claude: Centrado de Botones en Paneles Colapsados
+# PROMPT PARA CLAUDE - ANÁLISIS Y REDISEÑO DE NAVBAR
 
-## Contexto del Problema
+## CONTEXTO
+Necesito que analices las características de la navbar de `community.css` y `community.html` para luego rediseñar completamente la navbar de `apps-directory.css` y `apps-directory.html` con una estética exactamente igual, sin afectar el funcionamiento.
 
-En el archivo `chat-online.html` y `chat-online.css`, los botones de colapso de los paneles izquierdo y derecho no están correctamente centrados cuando los paneles están en estado colapsado. Los botones mantienen su posición original en lugar de centrarse en el panel colapsado.
+## ANÁLISIS DETALLADO DE LA NAVBAR DE COMMUNITY
 
-## Análisis del Código Actual
-
-### Estructura HTML de los Botones:
+### 1. ESTRUCTURA HTML
 ```html
-<!-- Panel Izquierdo -->
-<button class="collapse-btn collapse-btn-left" id="collapseLeft" title="Ocultar/mostrar panel">
-    <span class="collapse-icon">
-        <svg viewBox="0 0 24 24" width="16" height="16">
-            <path d="M13 6l-6 6 6 6M19 6l-6 6 6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    </span>
+<!-- Navigation Bar -->
+<div class="course-tabs">
+    <button class="tab-button" onclick="location.href='../cursos.html'">
+        <i class='bx bx-collection'></i>
+        Talleres
+    </button>
+    <button class="tab-button" onclick="location.href='../apps-directory.html'">
+        <i class='bx bx-grid-alt'></i>
+        Directorio IA
+    </button>
+    <button class="tab-button active">
+        <i class='bx bx-group'></i>
+        Comunidad
+    </button>
+    <button class="tab-button" onclick="location.href='../Notices/notices.html'">
+        <i class='bx bx-news'></i>
+        Noticias
+    </button>
+</div>
+<button class="header-profile">
+    <img src="../assets/images/icono.png" alt="Perfil" />
 </button>
-
-<!-- Panel Derecho -->
-<button class="collapse-btn collapse-btn-left" id="collapseRight" title="Ocultar/mostrar panel">
-    <span class="collapse-icon">
-        <svg viewBox="0 0 24 24" width="16" height="16">
-            <path d="M11 18l6-6-6-6M5 18l6-6-6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    </span>
-</button>
 ```
 
-### CSS Actual Problemático:
+### 2. CARACTERÍSTICAS DEL CONTENEDOR `.course-tabs`
 
-**Panel Derecho:**
+#### Posicionamiento y Layout:
+- `display: flex`
+- `background: rgba(255, 255, 255, 0.04)` - Fondo semi-transparente
+- `backdrop-filter: blur(10px)` y `backdrop-filter: blur(20px)` - Efecto de desenfoque
+- `border-radius: 20px` - Bordes redondeados
+- `padding: 12px` - Espaciado interno
+- `gap: 10px` - Espacio entre botones
+- `overflow-x: auto` - Scroll horizontal si es necesario
+- `border: 1px solid rgba(68, 229, 255, 0.18)` - Borde turquesa sutil
+- `box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35)` - Sombra profunda
+- `position: relative`
+- `margin: 20px auto` - Centrado con margen superior
+- `width: min(600px, 90vw)` - Ancho responsivo
+- `scrollbar-width: none` y `-ms-overflow-style: none` - Ocultar scrollbar
+
+#### Responsive:
+- En móvil: `margin: 10px auto`, `padding: 6px`, `gap: 4px`, `width: min(430px, 92vw)`
+
+### 3. CARACTERÍSTICAS DE LOS BOTONES `.tab-button`
+
+#### Estructura Base:
+- `display: flex`
+- `align-items: center`
+- `justify-content: center`
+- `gap: 10px` - Espacio entre icono y texto
+- `padding: 16px 24px` - Espaciado interno generoso
+- `background: rgba(68, 229, 255, 0.03)` - Fondo turquesa muy sutil
+- `border: 1px solid rgba(68, 229, 255, 0.08)` - Borde turquesa sutil
+- `border-radius: 16px` - Bordes redondeados
+- `color: var(--text-secondary)` - Color de texto secundario
+- `font-family: var(--font-primary)` - Fuente Montserrat
+- `font-weight: 600` - Peso de fuente semi-bold
+- `font-size: 0.95rem` - Tamaño de fuente
+- `cursor: pointer`
+- `transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)` - Transición suave
+- `position: relative`
+- `overflow: hidden`
+
+#### Efecto de Relleno Deslizante (::before):
+- `content: ''`
+- `position: absolute`
+- `top: 0`
+- `left: -100%`
+- `width: 100%`
+- `height: 100%`
+- `background: linear-gradient(90deg, transparent, rgba(68, 229, 255, 0.1), transparent)`
+- `transition: left 0.5s`
+
+#### Estados Hover:
+- `background: rgba(68, 229, 255, 0.08)`
+- `border-color: rgba(68, 229, 255, 0.15)`
+- `color: var(--text-primary)`
+- `box-shadow: 0 8px 25px rgba(68, 229, 255, 0.15), 0 0 0 1px rgba(68, 229, 255, 0.15)`
+- `transform: translateY(-2px)` - Elevación sutil
+
+#### Estado Active:
+- `background: linear-gradient(135deg, rgba(68, 229, 255, 0.2) 0%, rgba(68, 229, 255, 0.1) 100%)`
+- `border-color: rgba(68, 229, 255, 0.25)`
+- `color: var(--text-primary)`
+- `box-shadow: 0 8px 25px rgba(68, 229, 255, 0.25), 0 0 0 1px rgba(68, 229, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05)`
+- `transform: translateY(-2px)`
+
+#### Iconos:
+- `font-size: 18px`
+- `transition: transform 0.3s ease`
+- En hover: `transform: scale(1.1)`
+- En active: `transform: scale(1.1)` y `color: var(--primary-color)`
+
+#### Responsive:
+- En móvil: `padding: 10px 16px`, `font-size: 0.85rem`, `gap: 8px`
+- Iconos: `font-size: 18px`
+
+### 4. CARACTERÍSTICAS DEL BOTÓN DE PERFIL `.header-profile`
+
+#### Posicionamiento:
+- `position: fixed !important`
+- `top: 12px !important`
+- `right: 16px !important`
+- `left: auto !important`
+- `z-index: 1001`
+
+#### Dimensiones y Estilo:
+- `width: 56px`
+- `height: 56px`
+- `border-radius: 50%` - Circular
+- `overflow: hidden`
+- `border: 2px solid rgba(68,229,255,.55)` - Borde turquesa más visible
+- `padding: 0`
+- `background: rgba(7,17,36,.5)` - Fondo oscuro semi-transparente
+- `cursor: pointer`
+- `display: block`
+- `transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)`
+
+#### Efecto de Relleno Deslizante (::before):
+- `content: ''`
+- `position: absolute`
+- `top: 0`
+- `left: -100%`
+- `width: 100%`
+- `height: 100%`
+- `background: rgba(68,229,255,.15)`
+- `transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)`
+- `z-index: -1`
+- `border-radius: 50%`
+
+#### Estados:
+- **Hover**: `border-color: var(--turq)`, `transform: scale(1.05)`, `box-shadow: 0 6px 20px rgba(68,229,255,.3)`
+- **Active**: `transform: translateY(-1px) scale(0.98)`, `transition: all 0.1s ease`
+- **Focus**: `outline: none`, `box-shadow: 0 0 0 3px rgba(68, 229, 255, 0.3), 0 8px 25px rgba(68, 229, 255, 0.4)`
+
+#### Imagen:
+- `width: 100%`
+- `height: 100%`
+- `object-fit: cover`
+- `display: block`
+
+#### Mejora Específica para bg-glow-global:
+- `box-shadow: 0 0 0 3px rgba(68,229,255,.22), 0 10px 24px rgba(0,0,0,.45)`
+
+### 5. TEMA CLARO (data-theme="light")
+
+#### Contenedor course-tabs:
+- `background: rgba(255, 255, 255, 0.95) !important`
+- `border: 1px solid rgba(0, 102, 204, 0.15) !important`
+- `box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important`
+
+#### Botones tab-button:
+- **Base**: `color: #4A5568 !important`, `background: transparent !important`
+- **Hover**: `background: rgba(0, 102, 204, 0.1) !important`, `color: #0066CC !important`
+- **Active**: `background: #0066CC !important`, `color: white !important`, `box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important`
+
+### 6. VARIABLES CSS UTILIZADAS
+
 ```css
-.collapse-btn {
-    position: absolute !important;
-    left: 1rem !important; /* Posición fija que no se centra */
-    top: 8px !important;
-}
-
-.right-panel.collapsed .collapse-btn {
-    left: 50%;
-    top: 8px;
-    transform: translateX(-50%);
-    /* ✅ Este está bien centrado */
+:root {
+    --turq: #44e5ff;
+    --turq-2: #3dd4eb;
+    --text-primary: #FFFFFF;
+    --text-secondary: #CCCCCC;
+    --font-primary: 'Montserrat', sans-serif;
+    --font-body: Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial;
 }
 ```
 
-**Panel Izquierdo:**
-```css
-.collapse-btn-left {
-    position: absolute;
-    right: 1.5rem; /* Posición fija que no se centra */
-    top: 8px;
-}
+## INSTRUCCIONES PARA EL REDISEÑO
 
-.left-panel.collapsed .collapse-btn-left {
-    left: 50%;
-    top: 8px;
-    transform: translateX(-50%);
-    /* ✅ Este también está bien centrado */
-}
-```
+1. **Copiar exactamente** todos los estilos de `.course-tabs`, `.tab-button`, y `.header-profile` de community.css
+2. **Mantener** la funcionalidad existente de apps-directory.html
+3. **Aplicar** todos los efectos de hover, active, y transiciones
+4. **Incluir** soporte completo para tema claro y oscuro
+5. **Asegurar** que el responsive funcione correctamente
+6. **Preservar** la estructura HTML existente pero aplicar los nuevos estilos
 
-## Tarea Específica
-
-**OBJETIVO:** Asegurar que los botones de colapso estén perfectamente centrados en los paneles cuando están colapsados, sin afectar su comportamiento cuando están expandidos.
-
-## Pasos a Seguir
-
-### Paso 1: Verificar el Estado Actual
-1. Revisar las reglas CSS existentes para `.right-panel.collapsed .collapse-btn` y `.left-panel.collapsed .collapse-btn-left`
-2. Confirmar que las propiedades de centrado están aplicadas correctamente
-3. Verificar que no hay conflictos con otras reglas CSS
-
-### Paso 2: Identificar Problemas de Centrado
-1. Buscar reglas CSS que puedan estar sobrescribiendo el centrado
-2. Verificar si hay problemas con `!important` que impidan el centrado
-3. Revisar si hay conflictos entre las reglas del panel expandido y colapsado
-
-### Paso 3: Aplicar Correcciones CSS
-1. **Para el Panel Derecho:**
-   ```css
-   .right-panel.collapsed .collapse-btn {
-       left: 50% !important;
-       right: auto !important;
-       transform: translateX(-50%) !important;
-       /* Mantener otras propiedades existentes */
-   }
-   ```
-
-2. **Para el Panel Izquierdo:**
-   ```css
-   .left-panel.collapsed .collapse-btn-left {
-       left: 50% !important;
-       right: auto !important;
-       transform: translateX(-50%) !important;
-       /* Mantener otras propiedades existentes */
-   }
-   ```
-
-### Paso 4: Verificar Responsive Design
-1. Asegurar que el centrado funcione en todas las resoluciones
-2. Verificar las reglas de media queries para paneles colapsados
-3. Mantener la funcionalidad en dispositivos móviles
-
-### Paso 5: Validar Estados
-1. **Panel Expandido:** Los botones deben mantener su posición original
-2. **Panel Colapsado:** Los botones deben estar perfectamente centrados
-3. **Transiciones:** Las animaciones deben ser suaves entre estados
-
-## Criterios de Éxito
-
-✅ **Panel Derecho Colapsado:** El botón `#collapseRight` debe estar centrado horizontalmente
-✅ **Panel Izquierdo Colapsado:** El botón `#collapseLeft` debe estar centrado horizontalmente  
-✅ **Panel Expandido:** Los botones mantienen su posición original sin cambios
-✅ **Responsive:** El centrado funciona en todas las resoluciones
-✅ **Animaciones:** Las transiciones entre estados son suaves
-✅ **Temas:** Funciona tanto en tema claro como oscuro
-
-## Archivos a Modificar
-
-- `src/Chat-Online/chat-online.css` - Solo las reglas CSS relacionadas con el centrado de botones colapsados
-- **NO modificar:** `src/Chat-Online/chat-online.html` (estructura HTML está correcta)
-
-## Notas Importantes
-
-1. **No afectar funcionalidad:** Solo centrar visualmente, mantener toda la funcionalidad existente
-2. **Preservar animaciones:** Mantener las transiciones y efectos hover existentes
-3. **Compatibilidad:** Asegurar que funcione con el sistema de temas (light/dark)
-4. **Especificidad CSS:** Usar la especificidad correcta para evitar conflictos
-
-## Comando de Verificación
-
-Después de implementar los cambios, verificar que:
-```css
-/* Panel derecho colapsado - botón centrado */
-.right-panel.collapsed .collapse-btn {
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-/* Panel izquierdo colapsado - botón centrado */
-.left-panel.collapsed .collapse-btn-left {
-    left: 50%;
-    transform: translateX(-50%);
-}
-```
-
-**Resultado esperado:** Botones perfectamente centrados en paneles colapsados, sin afectar su posición en paneles expandidos.
+## RESULTADO ESPERADO
+La navbar de apps-directory debe verse y comportarse exactamente igual que la de community, con los mismos efectos visuales, animaciones, colores, y responsividad.

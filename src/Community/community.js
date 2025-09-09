@@ -149,11 +149,8 @@ class CommunityPage {
                 window.location.href = '../Notices/notices.html';
                 break;
             case 'comunidad':
-                // Already on community page, just update active state
-                document.querySelectorAll('.tab-button').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                clickedBtn.classList.add('active');
+                // Reload the current page to restart the community page
+                window.location.reload();
                 break;
             default:
                 this.showToast('Sección no disponible', 'warning');

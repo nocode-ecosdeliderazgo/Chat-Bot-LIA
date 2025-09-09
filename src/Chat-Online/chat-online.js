@@ -147,12 +147,8 @@ class ChatOnline {
     }
     
     goBack() {
-        // Simular navegación hacia atrás
-        if (window.history.length > 1) {
-            window.history.back();
-        } else {
-            window.location.href = '../index.html';
-        }
+        // Redirigir a la página de cursos
+        window.location.href = '../cursos.html';
     }
     
     switchTab(tabName) {
