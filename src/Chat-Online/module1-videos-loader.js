@@ -636,7 +636,7 @@ class Module1VideosLoader {
                 `;
             }
 
-            // Actualizar descripción
+            // Actualizar información del video (no transcripción)
             const videoDescription = document.querySelector('.video-stats span:last-child');
             if (videoDescription) {
                 videoDescription.innerHTML = `
@@ -644,14 +644,49 @@ class Module1VideosLoader {
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                         <circle cx="12" cy="12" r="3"/>
                     </svg>
-                    ${video.description || 'Sin descripción disponible'}
+                    Video ${video.video_order || 'actual'} de ${video.video_title}
                 `;
             }
 
             console.log('✅ Información del video actualizada');
 
+            // Actualizar transcripción en el área correcta
+            this.updateTranscriptContent(video);
+
         } catch (error) {
             console.error('❌ Error actualizando información del video:', error);
+        }
+    }
+
+    // =====================================================
+    // ACTUALIZAR TRANSCRIPCIÓN EN ÁREA CORRECTA
+    // =====================================================
+
+    updateTranscriptContent(video) {
+        try {
+            const transcriptContent = document.querySelector('.transcript-content');
+            if (transcriptContent && video.transcript_text) {
+                console.log('📝 Actualizando transcripción para:', video.video_title);
+                
+                transcriptContent.innerHTML = `
+                    <h4>Transcripción del Video - ${video.video_title}</h4>
+                    <div class="transcript-text">
+                        ${video.transcript_text.split('\n').map(paragraph => 
+                            paragraph.trim() ? `<p>${paragraph.trim()}</p>` : ''
+                        ).join('')}
+                    </div>
+                `;
+                
+                console.log('✅ Transcripción actualizada correctamente');
+            } else if (transcriptContent) {
+                console.log('⚠️ No hay transcripción disponible para:', video.video_title);
+                transcriptContent.innerHTML = `
+                    <h4>Transcripción del Video - ${video.video_title}</h4>
+                    <p class="no-transcript">No hay transcripción disponible para este video.</p>
+                `;
+            }
+        } catch (error) {
+            console.error('❌ Error actualizando transcripción:', error);
         }
     }
 
