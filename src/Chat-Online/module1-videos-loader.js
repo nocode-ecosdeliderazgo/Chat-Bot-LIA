@@ -711,7 +711,14 @@ class Module1VideosLoader {
 
     updateActivityContent(video) {
         try {
+            console.log('🔍 [DEBUG] updateActivityContent llamado para:', video.video_title);
+            console.log('🔍 [DEBUG] Video object keys:', Object.keys(video));
+            console.log('🔍 [DEBUG] descripcion_actividad:', video.descripcion_actividad ? 'EXISTE' : 'NO EXISTE');
+            console.log('🔍 [DEBUG] prompts_actividad:', video.prompts_actividad ? 'EXISTE' : 'NO EXISTE');
+            
             const activityContent = document.querySelector('.activity-content');
+            console.log('🔍 [DEBUG] activity-content encontrado:', !!activityContent);
+            
             if (activityContent) {
                 console.log('📋 Actualizando actividades para:', video.video_title);
                 
@@ -723,29 +730,43 @@ class Module1VideosLoader {
                 
                 // Actualizar descripción de la actividad
                 const activityDescription = activityContent.querySelector('.activity-description');
+                console.log('🔍 [DEBUG] activityDescription encontrado:', !!activityDescription);
+                
                 if (activityDescription) {
                     if (video.descripcion_actividad && video.descripcion_actividad.trim()) {
                         console.log('📝 Actualizando descripción de actividad');
-                        activityDescription.innerHTML = `
+                        console.log('📝 [DEBUG] Contenido descripción (primeros 100 chars):', video.descripcion_actividad.substring(0, 100));
+                        
+                        const htmlContent = `
                             <div class="activity-description-content">
                                 ${video.descripcion_actividad.split('\n').map(paragraph => 
                                     paragraph.trim() ? `<p>${paragraph.trim()}</p>` : ''
                                 ).join('')}
                             </div>
                         `;
+                        
+                        activityDescription.innerHTML = htmlContent;
+                        console.log('✅ [DEBUG] Descripción HTML actualizado');
                     } else {
+                        console.log('⚠️ [DEBUG] No hay descripción, mostrando mensaje de no disponible');
                         activityDescription.innerHTML = `
                             <p class="no-activity">No hay descripción de actividad disponible para este video.</p>
                         `;
                     }
+                } else {
+                    console.log('❌ [DEBUG] No se encontró .activity-description en el DOM');
                 }
                 
                 // Actualizar prompts de actividad
                 const activityPrompts = activityContent.querySelector('.activity-prompts');
+                console.log('🔍 [DEBUG] activityPrompts encontrado:', !!activityPrompts);
+                
                 if (activityPrompts) {
                     if (video.prompts_actividad && video.prompts_actividad.trim()) {
                         console.log('💡 Actualizando prompts de actividad');
-                        activityPrompts.innerHTML = `
+                        console.log('💡 [DEBUG] Contenido prompts (primeros 100 chars):', video.prompts_actividad.substring(0, 100));
+                        
+                        const promptsHtml = `
                             <div class="activity-prompts-content">
                                 ${video.prompts_actividad.split('\n').map(prompt => {
                                     const trimmedPrompt = prompt.trim();
@@ -761,11 +782,17 @@ class Module1VideosLoader {
                                 }).join('')}
                             </div>
                         `;
+                        
+                        activityPrompts.innerHTML = promptsHtml;
+                        console.log('✅ [DEBUG] Prompts HTML actualizado');
                     } else {
+                        console.log('⚠️ [DEBUG] No hay prompts, mostrando mensaje de no disponible');
                         activityPrompts.innerHTML = `
                             <p class="no-activity">No hay prompts de actividad disponibles para este video.</p>
                         `;
                     }
+                } else {
+                    console.log('❌ [DEBUG] No se encontró .activity-prompts en el DOM');
                 }
                 
                 console.log('✅ Actividades actualizadas correctamente');
