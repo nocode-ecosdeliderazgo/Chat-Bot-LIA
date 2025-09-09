@@ -1210,7 +1210,7 @@ class ChatOnline {
                     
                     // Solo cargar preguntas si no se han cargado antes
                     if (!this.communityQuestionsLoaded) {
-                        await this.loadCommunityQuestions();
+                        await this.loadCommunityQuestions('tab-switch-initial');
                         this.communityQuestionsLoaded = true;
                         console.log('✅ Comunidad configurada y preguntas cargadas');
                     } else {
@@ -3821,11 +3821,38 @@ class ChatOnline {
             
             console.log('📝 Datos de la pregunta:', questionData);
             
-            // Usar siempre la API directa para mayor control
-            const result = await this.createQuestionViaAPI(questionData);
+            // Intentar con communityDB primero, con fallback a API
+            let result = null;
+            
+            if (this.communityDB && this.communityDB.createQuestion) {
+                try {
+                    console.log('💾 Intentando usar communityDB para crear pregunta...');
+                    
+                    // Asegurar que communityDB tenga el usuario actual
+                    if (!this.communityDB.currentUser) {
+                        console.log('👤 Sincronizando usuario con communityDB...');
+                        this.communityDB.currentUser = currentUser;
+                        console.log('✅ Usuario sincronizado:', this.communityDB.currentUser);
+                    }
+                    
+                    result = await this.communityDB.createQuestion(questionData);
+                    console.log('✅ Pregunta creada con communityDB');
+                    
+                } catch (dbError) {
+                    console.warn('⚠️ Error con communityDB, usando fallback a API:', dbError.message);
+                    result = null;
+                }
+            }
+            
+            // Fallback a API si communityDB falló o no está disponible
+            if (!result) {
+                console.log('🌐 Usando API para crear pregunta...');
+                result = await this.createQuestionViaAPI(questionData);
+            }
             
             if (result) {
                 console.log('✅ Pregunta creada exitosamente:', result);
+                console.log('🔄 Iniciando proceso de recarga de preguntas...');
                 
                 // Limpiar formulario
                 this.clearQuestionForm();
@@ -3833,12 +3860,16 @@ class ChatOnline {
                 // Cerrar modal
                 this.hideQuestionModal();
                 
-                // Recargar preguntas una sola vez para evitar duplicaciones
-                setTimeout(async () => {
-                    this.communityQuestionsLoaded = false; // Permitir recarga
-                await this.loadCommunityQuestions();
-                    this.communityQuestionsLoaded = true; // Marcar como cargadas
-                }, 500);
+                // Esperar un momento para que la base de datos se sincronice
+                console.log('⏳ Esperando sincronización de base de datos...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Recargar preguntas inmediatamente sin borrar el contenido existente
+                console.log('🔄 Forzando recarga de preguntas...');
+                this.communityQuestionsLoaded = false; // Permitir recarga
+                await this.loadCommunityQuestions('after-submit-question');
+                this.communityQuestionsLoaded = true; // Marcar como cargadas
+                console.log('✅ Proceso de recarga completado');
                 
                 // Mostrar mensaje de éxito
                 this.showNotification('Pregunta publicada exitosamente', 'success');
@@ -3912,7 +3943,9 @@ class ChatOnline {
         }
     }
 
-    async loadCommunityQuestions() {
+    async loadCommunityQuestions(source = 'unknown') {
+        console.log(`🔍 [${source}] Iniciando loadCommunityQuestions`);
+        
         // Evitar múltiples cargas simultáneas
         if (this.loadingQuestions) {
             console.log('⏳ Ya se están cargando preguntas, saltando...');
@@ -3923,26 +3956,79 @@ class ChatOnline {
             this.loadingQuestions = true;
             console.log('📋 Cargando preguntas de la comunidad...');
             
-            // Mostrar indicador de carga
+            // Mostrar indicador de carga sin borrar el contenido existente
             const questionsList = document.getElementById('questionsList');
             if (questionsList) {
                 // Limpiar primero las preguntas hardcodeadas si existen
                 this.clearHardcodedQuestions();
-                questionsList.innerHTML = '<div class="loading-questions"><div class="loading-spinner"></div><span>Cargando preguntas...</span></div>';
+                
+                // Solo mostrar loading si no hay preguntas existentes
+                if (questionsList.children.length === 0) {
+                    questionsList.innerHTML = '<div class="loading-questions"><div class="loading-spinner"></div><span>Cargando preguntas...</span></div>';
+                } else {
+                    // Agregar un indicador sutil si ya hay preguntas
+                    const loadingIndicator = document.createElement('div');
+                    loadingIndicator.className = 'refreshing-indicator';
+                    loadingIndicator.innerHTML = '<div class="loading-spinner small"></div><span>Actualizando...</span>';
+                    loadingIndicator.style.cssText = 'position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 8px; z-index: 1000; font-size: 12px; display: flex; align-items: center; gap: 8px;';
+                    document.body.appendChild(loadingIndicator);
+                    
+                    // Remover el indicador después de un tiempo
+                    setTimeout(() => {
+                        if (loadingIndicator.parentNode) {
+                            document.body.removeChild(loadingIndicator);
+                        }
+                    }, 2000);
+                }
             }
             
             // Obtener preguntas
             let questions = [];
+            console.log('🔍 Parametros de consulta:', {
+                course_id: this.currentCourseId,
+                module_id: `module-${this.currentModule}`
+            });
+            
+            // Intentar con communityDB primero, con fallback a API
             if (this.communityDB) {
-                questions = await this.communityDB.getQuestions({
-                    course_id: this.currentCourseId,
-                    module_id: `module-${this.currentModule}`
-                });
+                try {
+                    console.log('💾 Intentando usar communityDB para obtener preguntas...');
+                    questions = await this.communityDB.getQuestions({
+                        course_id: this.currentCourseId,
+                        module_id: `module-${this.currentModule}`
+                    });
+                    console.log('💾 Preguntas obtenidas de communityDB:', questions.length);
+                } catch (dbError) {
+                    console.warn('⚠️ Error con communityDB para obtener preguntas, usando API:', dbError.message);
+                    console.log('🌐 Fallback: Usando API para obtener preguntas...');
+                    questions = await this.getQuestionsViaAPI();
+                    console.log('🌐 Preguntas obtenidas de API:', questions.length);
+                }
             } else {
+                console.log('🌐 CommunityDB no disponible, usando API para obtener preguntas...');
                 questions = await this.getQuestionsViaAPI();
+                console.log('🌐 Preguntas obtenidas de API:', questions.length);
             }
             
-            console.log(`✅ ${questions.length} preguntas cargadas desde ${this.communityDB ? 'base de datos' : 'API'}`);
+            console.log(`✅ [${source}] TOTAL: ${questions.length} preguntas cargadas desde ${this.communityDB ? 'base de datos' : 'API'}`);
+            
+            // Log detallado de las preguntas con información de contexto
+            if (questions.length > 0) {
+                console.log(`📋 [${source}] Primeras 3 preguntas:`, questions.slice(0, 3).map(q => ({
+                    id: q.id,
+                    title: q.title,
+                    created_at: q.created_at
+                })));
+                
+                console.log(`📋 [${source}] IDs de todas las preguntas:`, questions.map(q => q.id));
+            } else {
+                console.warn(`⚠️ [${source}] No se obtuvieron preguntas - Parámetros:`, {
+                    course_id: this.currentCourseId,
+                    module_id: `module-${this.currentModule}`,
+                    communityDB_available: !!this.communityDB,
+                    currentUser: this.obtenerUsuarioActual()?.id
+                });
+            }
             
             // Renderizar preguntas
             this.renderQuestions(questions);
@@ -3962,7 +4048,7 @@ class ChatOnline {
                         </div>
                         <h3>Error al cargar las preguntas</h3>
                         <p>No se pudieron cargar las preguntas desde la base de datos.</p>
-                        <button class="btn-secondary" onclick="window.chatOnline.loadCommunityQuestions()">
+                        <button class="btn-secondary" onclick="window.chatOnline.loadCommunityQuestions('retry-button')">
                             Reintentar
                         </button>
                     </div>
@@ -4026,7 +4112,7 @@ class ChatOnline {
                         </div>
                         <h3>Error al filtrar las preguntas</h3>
                         <p>No se pudieron cargar las preguntas con los filtros aplicados.</p>
-                        <button class="btn-secondary" onclick="window.chatOnline.loadCommunityQuestions()">
+                        <button class="btn-secondary" onclick="window.chatOnline.loadCommunityQuestions('retry-button')">
                             Mostrar Todas
                         </button>
                     </div>
@@ -6737,8 +6823,16 @@ class ChatOnline {
                 // Cerrar modal
                 this.hideAnswerModal();
                 
-                // Actualizar la vista de preguntas (opcional)
-                this.loadCommunityQuestions();
+                // Esperar un momento para que la base de datos se sincronice
+                console.log('⏳ Esperando sincronización para nueva respuesta...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Recargar preguntas para mostrar la nueva respuesta
+                console.log('🔄 Recargando preguntas después de nueva respuesta...');
+                this.communityQuestionsLoaded = false; // Permitir recarga
+                await this.loadCommunityQuestions('after-submit-answer');
+                this.communityQuestionsLoaded = true; // Marcar como cargadas
+                console.log('✅ Recarga completada después de respuesta');
                 
             } else {
                 throw new Error(response.error || 'Error al publicar respuesta');
@@ -6813,7 +6907,7 @@ class ChatOnline {
                 this.hideCommentModal();
                 
                 // Actualizar la vista de preguntas (opcional)
-                this.loadCommunityQuestions();
+                this.loadCommunityQuestions('edit-question');
                 
             } else {
                 throw new Error(response.error || 'Error al publicar comentario');
