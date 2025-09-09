@@ -878,7 +878,8 @@ class Module1VideosLoader {
         } else if (isLocalhost && currentPort === '8888') {
             return '/.netlify/functions';
         } else {
-            return '/api';
+            // Para testing, usar el servidor en puerto 3001
+            return 'http://localhost:3001/api';
         }
     }
 

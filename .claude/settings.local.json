@@ -49,7 +49,8 @@
       "Read(/C:\\Users\\Lordg\\OneDrive\\Desktop\\Laburo\\Chat-Bot-LIA\\src\\Notices/**)",
       "Read(/C:\\Users\\Lordg\\OneDrive\\Desktop\\Laburo\\Chat-Bot-LIA\\src\\Notices/**)",
       "Read(/C:\\Users\\Lordg\\OneDrive\\Desktop\\Laburo\\Chat-Bot-LIA\\src\\Notices/**)",
-      "Read(/C:\\Users\\Lordg\\OneDrive\\Desktop\\Laburo\\Chat-Bot-LIA\\src\\Notices/**)"
+      "Read(/C:\\Users\\Lordg\\OneDrive\\Desktop\\Laburo\\Chat-Bot-LIA\\src\\Notices/**)",
+      "Bash(cmd /C:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
