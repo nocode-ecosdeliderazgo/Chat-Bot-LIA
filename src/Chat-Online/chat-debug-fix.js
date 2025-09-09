@@ -141,7 +141,7 @@ async function enviarMensajeALia(mensaje) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer dev-token-' + Date.now(),
+                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5NTYyYTQ0OS00YWRlLTRkNGItYTNlNC1iNjZkZGRiN2U2ZjAiLCJ1c2VybmFtZSI6ImRldi11c2VyIiwiaWF0IjoxNzM2NDY4NDQzfQ.fake-signature-for-dev-testing-only',
                 'X-User-Id': '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0'
             },
             body: JSON.stringify({

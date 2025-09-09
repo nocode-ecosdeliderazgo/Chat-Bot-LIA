@@ -64,6 +64,8 @@ exports.handler = async (event, context) => {
         const body = event.body ? JSON.parse(event.body) : {};
 
         console.log(`📡 ${method} ${path}`);
+        console.log(`🔍 Path parts: ${JSON.stringify(path.split('/'))}`);
+        console.log(`🔍 Query params: ${JSON.stringify(queryParams)}`);
 
         // Routing basado en path - compatible con nuevos redirects
         if (path.includes('/full-structure')) {
@@ -299,30 +301,77 @@ async function getCurrentModule(courseId, userId, headers) {
             .eq('course_id', resolvedCourseId)
             .single();
 
-        // Si no existe progreso, crear uno inicial con el primer módulo
+        // Si no existe progreso, buscar el primer módulo del curso y crear progreso inicial
         if (!courseProgress) {
-            const { data: firstModule } = await supabase
+            console.log('⚠️ No se encontró progreso del usuario, buscando primer módulo...');
+            
+            // Buscar el primer módulo del curso actual usando las tablas correctas
+            const { data: firstModule, error: moduleError } = await supabase
                 .from('course_modules')
-                .select('id')
+                .select('id, title, module_number, description')
                 .eq('course_id', resolvedCourseId)
                 .order('order_index', { ascending: true })
                 .limit(1)
                 .single();
 
-            if (firstModule) {
-                const { data: newProgress } = await supabase
-                    .from('user_course_progress')
-                    .insert({
-                        user_id: userId,
-                        course_id: resolvedCourseId,
-                        current_module_id: firstModule.id,
-                        total_modules: 0,
-                        total_videos: 0
+            if (moduleError) {
+                console.error('❌ Error buscando primer módulo:', moduleError);
+                return {
+                    statusCode: 404,
+                    headers,
+                    body: JSON.stringify({ 
+                        error: 'No se encontraron módulos para este curso',
+                        details: moduleError.message 
                     })
-                    .select()
-                    .single();
+                };
+            }
 
-                courseProgress = newProgress;
+            if (firstModule) {
+                console.log('✅ Primer módulo encontrado:', firstModule.title);
+                
+                // Intentar crear progreso inicial en user_course_progress
+                try {
+                    const { data: newProgress } = await supabase
+                        .from('user_course_progress')
+                        .insert({
+                            user_id: userId,
+                            course_id: resolvedCourseId,
+                            current_module_id: firstModule.id,
+                            total_modules: 0,
+                            total_videos: 0
+                        })
+                        .select()
+                        .single();
+
+                    courseProgress = newProgress;
+                    console.log('✅ Progreso inicial creado');
+                } catch (insertError) {
+                    console.warn('⚠️ No se pudo crear progreso inicial, usando fallback:', insertError.message);
+                    
+                    // Fallback: devolver datos del primer módulo sin crear progreso
+                    return {
+                        statusCode: 200,
+                        headers,
+                        body: JSON.stringify({
+                            success: true,
+                            current_module: {
+                                id: firstModule.id,
+                                title: firstModule.title,
+                                module_number: firstModule.module_number,
+                                description: firstModule.description,
+                                progress_percentage: 0,
+                                is_completed: false
+                            },
+                            message: 'Usando primer módulo como fallback (sin progreso persistente)'
+                        })
+                    };
+                }
+            } else {
+                return {
+                    statusCode: 404,
+                    headers,
+                    body: JSON.stringify({ error: 'No se encontraron módulos para este curso' })
+                };
             }
         }
 

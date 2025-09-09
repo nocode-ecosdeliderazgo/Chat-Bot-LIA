@@ -3511,7 +3511,7 @@ class ChatOnline {
     waitForProgressManager() {
         return new Promise((resolve) => {
             let attempts = 0;
-            const maxAttempts = 50; // 5 segundos con intervalos de 100ms
+            const maxAttempts = 10; // 1 segundo con intervalos de 100ms - reducido para fallback más rápido
             
             const checkInterval = setInterval(() => {
                 attempts++;

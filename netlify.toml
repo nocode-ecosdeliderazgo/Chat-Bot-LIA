@@ -131,6 +131,12 @@
   to   = "/.netlify/functions/courses"
   status = 200
 
+# Community API redirects (NEW)
+[[redirects]]
+  from = "/api/community/*"
+  to   = "/.netlify/functions/community"
+  status = 200
+
 # Wildcard redirect (must be last)
 [[redirects]]
   from = "/api/*"
