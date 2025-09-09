@@ -4562,13 +4562,22 @@ class ChatOnline {
             const checkComponents = () => {
                 attempts++;
                 
-                // Verificar si courseProgressManager está disponible (instancia, no clase)
+                // Verificar si courseProgressManager está completamente inicializado con sus métodos
                 const progressManagerReady = window.courseProgressManager && 
-                                           typeof window.courseProgressManager === 'object';
+                                           typeof window.courseProgressManager === 'object' &&
+                                           typeof window.courseProgressManager.getCourseProgress === 'function';
                 const youtubeTrackerReady = typeof window.YouTubeProgressTracker !== 'undefined';
                 
                 if (youtubeTrackerReady && progressManagerReady) {
-                    console.log('✅ Todos los componentes están disponibles');
+                    console.log('✅ Todos los componentes están disponibles y completamente inicializados');
+                    resolve();
+                    return;
+                }
+                
+                // Si courseProgressManager existe pero no está completamente inicializado, intentar continuidad
+                if (youtubeTrackerReady && window.courseProgressManager && typeof window.courseProgressManager === 'object') {
+                    console.warn('⚠️ courseProgressManager existe pero no está completamente inicializado');
+                    console.warn('🔧 Continuando con funcionalidad básica...');
                     resolve();
                     return;
                 }
@@ -4576,7 +4585,7 @@ class ChatOnline {
                 // Timeout para evitar loops infinitos
                 if (attempts >= maxAttempts) {
                     console.warn('⚠️ Timeout esperando componentes después de', maxAttempts, 'intentos');
-                    console.warn('🔧 Continuando con funcionalidad limitada...');
+                    console.warn('🔧 Forzando continuidad de la aplicación...');
                     resolve(); // Resolver en lugar de rechazar para permitir que la aplicación continúe
                     return;
                 }
@@ -4584,6 +4593,7 @@ class ChatOnline {
                 console.log('⏳ Esperando componentes...', {
                     YouTubeProgressTracker: typeof window.YouTubeProgressTracker,
                     courseProgressManager: typeof window.courseProgressManager,
+                    progressManagerMethods: window.courseProgressManager ? Object.getOwnPropertyNames(window.courseProgressManager) : 'no disponible',
                     progressManagerReady: progressManagerReady,
                     attempt: attempts
                 });
