@@ -120,6 +120,17 @@
   to   = "/.netlify/functions/user-progress"
   status = 200
 
+# Module 1 Videos API redirects (NEW)
+[[redirects]]
+  from = "/api/courses/module1-videos"
+  to   = "/.netlify/functions/courses"
+  status = 200
+
+[[redirects]]
+  from = "/api/courses/module1-info"
+  to   = "/.netlify/functions/courses"
+  status = 200
+
 # Wildcard redirect (must be last)
 [[redirects]]
   from = "/api/*"

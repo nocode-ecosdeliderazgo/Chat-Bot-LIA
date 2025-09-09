@@ -9,6 +9,7 @@ class Module1VideosLoader {
         this.videos = [];
         this.currentVideoId = null;
         this.apiBaseUrl = this.getApiBaseUrl();
+        this.retryInProgress = false; // Flag para prevenir bucles infinitos
         
         console.log('🎬 Module 1 Videos Loader inicializado');
         console.log('🌐 API Base URL:', this.apiBaseUrl);
@@ -342,8 +343,8 @@ class Module1VideosLoader {
                 console.warn('🔍 Esto puede indicar un problema con la conexión a la base de datos');
                 console.warn('📊 Videos disponibles:', this.videos.length);
                 
-                // Intentar recargar videos desde la base de datos
-                this.retryLoadFromDatabase();
+                // NO reintentar aquí para evitar bucle infinito
+                console.warn('💡 Para usar videos reales, configure correctamente la base de datos y el servidor API');
             } else {
                 console.log('✅ Usando videos reales de la base de datos');
                 console.log('📊 Videos disponibles:', this.videos.length);
@@ -362,6 +363,14 @@ class Module1VideosLoader {
     async retryLoadFromDatabase() {
         console.log('🔄 Reintentando cargar videos desde la base de datos...');
         
+        // Prevenir múltiples reintentos concurrentes
+        if (this.retryInProgress) {
+            console.log('⚠️ Reintento ya en progreso, ignorando solicitud duplicada');
+            return;
+        }
+
+        this.retryInProgress = true;
+        
         try {
             // Limpiar videos actuales
             this.videos = [];
@@ -369,13 +378,55 @@ class Module1VideosLoader {
             // Intentar cargar nuevamente
             await this.loadModule1Videos();
             
-            // Si se cargaron videos reales, re-renderizar
-            if (this.videos.length > 0 && !this.videos[0].id.startsWith('sample-video-')) {
+            // Si se cargaron videos reales, re-renderizar (pero sin volver a verificar)
+            if (this.videos.length > 0 && !this.videos[0].id.startsWith('sample-video-') && !this.videos[0].id.startsWith('module1-video-')) {
                 console.log('✅ Videos reales cargados exitosamente, re-renderizando...');
-                this.renderVideosList();
+                // Renderizar directamente sin volver a llamar checkIfUsingSampleVideos
+                this.renderVideosListDirect();
+            } else {
+                console.log('⚠️ Aún usando videos de ejemplo tras reintento');
             }
         } catch (error) {
             console.error('❌ Error en reintento de carga:', error);
+        } finally {
+            this.retryInProgress = false;
+        }
+    }
+
+    // Renderizar lista directamente sin verificaciones adicionales
+    renderVideosListDirect() {
+        try {
+            const videosList = document.getElementById('module1VideosList');
+            if (!videosList) {
+                console.error('❌ Elemento module1VideosList no encontrado');
+                return;
+            }
+
+            // Limpiar lista existente
+            videosList.innerHTML = '';
+
+            // Actualizar contador de videos y estadísticas
+            const videoCount = document.querySelector('.module-video-count');
+            if (videoCount) {
+                videoCount.textContent = `${this.videos.length} videos`;
+            }
+
+            // Renderizar cada video
+            this.videos.forEach((video, index) => {
+                const videoElement = this.createVideoElement(video, index);
+                videosList.appendChild(videoElement);
+            });
+
+            console.log('✅ Lista de videos renderizada directamente:', this.videos.length);
+
+            // Cargar automáticamente el primer video si hay videos disponibles
+            if (this.videos.length > 0 && !this.currentVideoId) {
+                console.log('🎬 Cargando automáticamente el primer video...');
+                this.selectVideo(this.videos[0]);
+            }
+
+        } catch (error) {
+            console.error('❌ Error renderizando lista de videos directamente:', error);
         }
     }
 
@@ -872,12 +923,19 @@ class Module1VideosLoader {
     getApiBaseUrl() {
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const currentPort = window.location.port;
+        const isNetlify = window.location.hostname.includes('netlify') || window.location.hostname.includes('app');
         
-        if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
+        if (isLocalhost && currentPort === '8888') {
+            // Desarrollo local con Netlify Dev
+            return '/.netlify/functions';
+        } else if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
+            // Desarrollo local con servidor Node.js
             return '/api';
-        } else if (isLocalhost && currentPort === '8888') {
+        } else if (isNetlify) {
+            // Producción en Netlify
             return '/.netlify/functions';
         } else {
+            // Servidor personalizado en producción
             return '/api';
         }
     }
