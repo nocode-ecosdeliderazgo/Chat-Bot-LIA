@@ -7335,6 +7335,60 @@ document.addEventListener('DOMContentLoaded', function() {
     // Crear instancia de ChatOnline
     window.chatOnline = new ChatOnline();
     
+    // Agregar método para manejar videos completados
+    window.chatOnline.handleVideoCompleted = function(videoData) {
+        console.log('🎬 Manejando video completado:', videoData);
+        
+        // Actualizar el progreso del módulo después de un pequeño delay
+        setTimeout(() => {
+            this.updateModuleProgressDisplay();
+        }, 1000);
+    };
+    
+    // Agregar método para actualizar el display del progreso del módulo
+    window.chatOnline.updateModuleProgressDisplay = function() {
+        try {
+            console.log('📊 Actualizando display del progreso del módulo...');
+            
+            // Buscar el elemento que muestra el porcentaje en el panel izquierdo
+            const progressElement = document.querySelector('.module-progress');
+            if (!progressElement) {
+                console.warn('⚠️ No se encontró elemento .module-progress');
+                return;
+            }
+            
+            // Calcular el progreso usando datos del Module1VideosLoader si está disponible
+            if (window.module1VideosLoader && window.module1VideosLoader.videos) {
+                const videos = window.module1VideosLoader.videos;
+                const completedVideos = videos.filter(video => 
+                    video.user_progress && video.user_progress.is_completed
+                ).length;
+                
+                const moduleProgressPercentage = Math.round((completedVideos / videos.length) * 100);
+                
+                console.log(`📊 Progreso calculado: ${completedVideos}/${videos.length} videos completados (${moduleProgressPercentage}%)`);
+                
+                // Actualizar el texto del elemento
+                progressElement.textContent = `${moduleProgressPercentage}% completado`;
+                
+                // Agregar animación visual
+                progressElement.style.animation = 'progressPulse 0.6s ease-in-out';
+                
+                // Remover la animación después de que termine
+                setTimeout(() => {
+                    progressElement.style.animation = '';
+                }, 600);
+                
+                console.log('✅ Elemento del progreso actualizado correctamente');
+            } else {
+                console.warn('⚠️ No hay datos de videos disponibles para calcular progreso');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error actualizando display del progreso:', error);
+        }
+    };
+    
     // Función global para probar la nueva alerta (TEMPORAL)
     window.testTimeUpAlert = function() {
         if (window.chatOnline) {

@@ -152,6 +152,18 @@ class ChatOnlineV2 {
         window.addEventListener('courseStructureLoaded', (event) => {
             this.handleCourseStructureLoaded(event.detail);
         });
+        
+        // Escuchar cuando se completa un video
+        window.addEventListener('videoCompleted', (event) => {
+            console.log('🎬 Video completado detectado:', event.detail);
+            this.handleVideoCompleted(event.detail);
+        });
+        
+        // Escuchar evento de progreso de YouTube tracker 
+        window.addEventListener('moduleCompleted', (event) => {
+            console.log('🎯 Módulo completado detectado:', event.detail);
+            this.handleModuleCompleted(event.detail);
+        });
     }
 
     handleProgressUpdate(progressData) {
@@ -162,6 +174,9 @@ class ChatOnlineV2 {
         
         // Actualizar dots de progreso del video
         this.updateVideoProgressDots(progressData);
+        
+        // Actualizar progreso del módulo
+        this.updateModuleProgress();
     }
 
     handleModuleChange(moduleData) {
@@ -184,6 +199,66 @@ class ChatOnlineV2 {
         
         // Actualizar información del curso en la UI
         this.updateCourseInfo(courseData.course);
+    }
+
+    handleVideoCompleted(videoData) {
+        console.log('🎬 Manejando video completado:', videoData);
+        
+        // Actualizar el progreso del módulo inmediatamente
+        setTimeout(() => {
+            this.updateModuleProgress();
+        }, 1000); // Delay pequeño para asegurar que los datos se hayan actualizado
+    }
+
+    handleModuleCompleted(moduleData) {
+        console.log('🎯 Manejando módulo completado:', moduleData);
+        
+        // Actualizar el progreso del módulo
+        this.updateModuleProgress();
+        
+        // Mostrar notificación de felicitación
+        this.showModuleCompletionMessage(moduleData.moduleNumber);
+    }
+
+    showModuleCompletionMessage(moduleNumber) {
+        // Crear una notificación discreta de módulo completado
+        const notification = document.createElement('div');
+        notification.className = 'module-completion-toast';
+        notification.innerHTML = `
+            <div class="toast-content">
+                <span class="toast-icon">🎉</span>
+                <span class="toast-text">¡Módulo ${moduleNumber} completado!</span>
+            </div>
+        `;
+        
+        // Estilos para la notificación
+        notification.style.cssText = `
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+            z-index: 9999;
+            font-size: 14px;
+            font-weight: 500;
+            animation: slideInRight 0.3s ease-out;
+            max-width: 280px;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remover después de 4 segundos
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 4000);
     }
 
     // =====================================================
@@ -244,6 +319,128 @@ class ChatOnlineV2 {
         customProgressBars.forEach(bar => {
             bar.style.width = `${percentage}%`;
         });
+    }
+
+    // =====================================================
+    // ACTUALIZACIÓN DE PROGRESO DEL MÓDULO
+    // =====================================================
+
+    async updateModuleProgress() {
+        try {
+            console.log('🔄 Actualizando progreso del módulo...');
+            
+            // Obtener todos los videos del módulo actual desde el dynamic video loader
+            if (!window.dynamicVideoLoader || !window.dynamicVideoLoader.currentModule) {
+                console.warn('⚠️ No hay datos del módulo actual disponibles, intentando con Module1VideosLoader...');
+                
+                // Método alternativo: usar datos del Module1VideosLoader si está disponible
+                if (window.module1VideosLoader && window.module1VideosLoader.videos) {
+                    const videos = window.module1VideosLoader.videos;
+                    const completedVideos = videos.filter(video => 
+                        video.user_progress && video.user_progress.is_completed
+                    ).length;
+                    
+                    const moduleProgressPercentage = Math.round((completedVideos / videos.length) * 100);
+                    console.log(`📊 Progreso del módulo (desde Module1VideosLoader): ${completedVideos}/${videos.length} videos completados (${moduleProgressPercentage}%)`);
+                    
+                    this.updateModuleProgressDisplay(moduleProgressPercentage);
+                    return;
+                }
+                
+                console.warn('⚠️ Tampoco hay datos en Module1VideosLoader');
+                return;
+            }
+
+            const currentModule = window.dynamicVideoLoader.currentModule;
+            const moduleVideos = currentModule.videos || [];
+            
+            if (moduleVideos.length === 0) {
+                console.warn('⚠️ No hay videos en el módulo actual');
+                return;
+            }
+
+            // Calcular el progreso del módulo
+            const completedVideos = moduleVideos.filter(video => 
+                video.user_progress && video.user_progress.is_completed
+            ).length;
+            
+            const moduleProgressPercentage = Math.round((completedVideos / moduleVideos.length) * 100);
+            
+            console.log(`📊 Progreso del módulo: ${completedVideos}/${moduleVideos.length} videos completados (${moduleProgressPercentage}%)`);
+
+            // Actualizar el elemento en el panel izquierdo
+            this.updateModuleProgressDisplay(moduleProgressPercentage);
+            
+            // También actualizar el progreso general del curso
+            await this.updateOverallCourseProgress();
+            
+        } catch (error) {
+            console.error('❌ Error actualizando progreso del módulo:', error);
+        }
+    }
+
+    updateModuleProgressDisplay(percentage) {
+        // Actualizar el elemento específico del progreso del módulo
+        const moduleProgressElement = document.querySelector('.module-progress');
+        if (moduleProgressElement) {
+            // Agregar clase de animación temporalmente
+            moduleProgressElement.classList.add('updated');
+            
+            // Actualizar el contenido
+            moduleProgressElement.textContent = `${percentage}% completado`;
+            
+            console.log(`✅ Progreso del módulo actualizado en UI: ${percentage}%`);
+            
+            // Remover la clase después de la animación
+            setTimeout(() => {
+                moduleProgressElement.classList.remove('updated');
+            }, 600);
+        } else {
+            console.warn('⚠️ Elemento .module-progress no encontrado');
+        }
+
+        // También actualizar si hay elementos similares
+        const moduleProgressElements = document.querySelectorAll('[class*="module-progress"]');
+        moduleProgressElements.forEach(element => {
+            if (element.textContent.includes('completado')) {
+                element.classList.add('updated');
+                element.textContent = `${percentage}% completado`;
+                
+                // Remover la clase después de la animación
+                setTimeout(() => {
+                    element.classList.remove('updated');
+                }, 600);
+            }
+        });
+    }
+
+    async updateOverallCourseProgress() {
+        try {
+            // Si hay un gestor de progreso disponible, usar sus datos
+            if (window.courseProgressManager) {
+                const progressSummary = await window.courseProgressManager.getProgressSummary();
+                
+                if (progressSummary && progressSummary.course_progress) {
+                    const overallPercentage = progressSummary.course_progress.overall_percentage || 0;
+                    
+                    // Actualizar barra de progreso general
+                    const progressFill = document.querySelector('.progress-fill');
+                    const progressPercentage = document.querySelector('.progress-percentage');
+                    
+                    if (progressFill) {
+                        progressFill.style.width = `${overallPercentage}%`;
+                    }
+                    
+                    if (progressPercentage) {
+                        progressPercentage.textContent = `${overallPercentage}%`;
+                    }
+                    
+                    console.log(`📈 Progreso general del curso actualizado: ${overallPercentage}%`);
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error actualizando progreso general:', error);
+        }
     }
 
     // =====================================================
@@ -708,6 +905,12 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('💬 Inicializando Chat Online V2...');
     
     window.chatOnline = new ChatOnlineV2();
+    window.chatOnlineV2 = window.chatOnline; // También disponible como chatOnlineV2
+    
+    console.log('🔗 Instancias registradas en window:', {
+        chatOnline: !!window.chatOnline,
+        chatOnlineV2: !!window.chatOnlineV2
+    });
     
     // Inicializar después de que otros componentes estén listos
     setTimeout(() => {

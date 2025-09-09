@@ -100,6 +100,9 @@ class YouTubeProgressTracker {
         this.currentVideoId = videoId;
         this.currentModuleNumber = moduleNumber;
         
+        // Buscar y establecer el currentVideo en dynamicVideoLoader
+        this.setCurrentVideoInGlobalScope(videoId, moduleNumber);
+        
         // Verificar si la API de YouTube está disponible
         if (!window.YT || !window.YT.Player) {
             console.warn('⚠️ YouTube API no disponible, creando player básico');
@@ -193,6 +196,14 @@ class YouTubeProgressTracker {
         const videoUrl = this.player.getVideoUrl();
         
         console.log(`📊 Video info: ${duration}s, ${videoUrl}`);
+        
+        // Actualizar la duración del video en currentVideo si es un objeto básico
+        if (window.dynamicVideoLoader && window.dynamicVideoLoader.currentVideo) {
+            if (window.dynamicVideoLoader.currentVideo.duration_seconds === 0) {
+                window.dynamicVideoLoader.currentVideo.duration_seconds = duration;
+                console.log(`📊 Duración actualizada en currentVideo: ${duration}s`);
+            }
+        }
         
         // Iniciar seguimiento de progreso
         this.startProgressTracking();
@@ -345,6 +356,9 @@ class YouTubeProgressTracker {
             if (videoContainer && !videoContainer.classList.contains('completed')) {
                 videoContainer.classList.add('completed');
                 this.showCompletionNotification();
+                
+                // Emitir evento de video completado por progreso
+                this.emitVideoCompletedEvent();
             }
         }
     }
@@ -416,6 +430,109 @@ class YouTubeProgressTracker {
         // Marcar como completado
         if (this.courseProgressManager && this.currentModuleNumber) {
             this.updateVideoProgress(100, this.player.getDuration(), true);
+        }
+        
+        // Emitir evento de video completado
+        this.emitVideoCompletedEvent();
+    }
+
+    emitVideoCompletedEvent() {
+        console.log('📡 Emitiendo evento de video completado');
+        
+        const eventDetail = {
+            videoId: this.currentVideoId,
+            moduleNumber: this.currentModuleNumber,
+            timestamp: Date.now(),
+            duration: this.player && this.player.getDuration ? this.player.getDuration() : 0
+        };
+        
+        console.log('📡 Detalle del evento:', eventDetail);
+        
+        const event = new CustomEvent('videoCompleted', {
+            detail: eventDetail
+        });
+        
+        window.dispatchEvent(event);
+        
+        // También verificar si chat-online-v2 está inicializado
+        if (window.chatOnlineV2) {
+            console.log('✅ chat-online-v2 encontrado, llamando directamente a handleVideoCompleted');
+            window.chatOnlineV2.handleVideoCompleted(eventDetail);
+        } else if (window.chatOnline) {
+            console.log('✅ chatOnline encontrado, llamando directamente a handleVideoCompleted');
+            if (typeof window.chatOnline.handleVideoCompleted === 'function') {
+                window.chatOnline.handleVideoCompleted(eventDetail);
+            }
+        } else {
+            console.warn('⚠️ No se encontró instancia de chat-online para llamar directamente');
+        }
+    }
+    
+    // Establecer el currentVideo en el scope global para que otros sistemas puedan accederlo
+    setCurrentVideoInGlobalScope(videoId, moduleNumber) {
+        try {
+            // Inicializar dynamicVideoLoader si no existe
+            if (!window.dynamicVideoLoader) {
+                window.dynamicVideoLoader = {};
+            }
+            
+            // Buscar el video en los datos del curso
+            let currentVideo = null;
+            
+            // Primero intentar buscar en chatOnlineV2 si existe
+            if (window.chatOnlineV2 && window.chatOnlineV2.courseData) {
+                const module = window.chatOnlineV2.courseData.modules?.find(m => m.module_number === moduleNumber);
+                if (module) {
+                    currentVideo = module.videos?.find(v => v.id === videoId);
+                }
+            }
+            
+            // Si no se encontró, intentar buscar en otros lugares
+            if (!currentVideo && window.dynamicVideoLoader.courseData) {
+                const module = window.dynamicVideoLoader.courseData.modules?.find(m => m.module_number === moduleNumber);
+                if (module) {
+                    currentVideo = module.videos?.find(v => v.id === videoId);
+                }
+            }
+            
+            // Si encontramos el video, establecerlo como currentVideo
+            if (currentVideo) {
+                window.dynamicVideoLoader.currentVideo = currentVideo;
+                console.log(`✅ CurrentVideo establecido:`, currentVideo.video_title || videoId);
+            } else {
+                // Si no podemos encontrar el video completo, buscar al menos el módulo para obtener su ID real
+                console.warn(`⚠️ Video completo no encontrado, buscando información del módulo ${moduleNumber}`);
+                
+                let realModuleId = null;
+                
+                // Buscar el módulo en cualquier estructura de datos disponible
+                if (window.chatOnlineV2 && window.chatOnlineV2.courseData) {
+                    const module = window.chatOnlineV2.courseData.modules?.find(m => m.module_number === moduleNumber);
+                    realModuleId = module?.id;
+                } else if (window.dynamicVideoLoader.courseData) {
+                    const module = window.dynamicVideoLoader.courseData.modules?.find(m => m.module_number === moduleNumber);
+                    realModuleId = module?.id;
+                }
+                
+                // Si no encontramos el ID real del módulo, no crear el objeto falso
+                if (!realModuleId) {
+                    console.error(`❌ No se pudo encontrar el ID real del módulo ${moduleNumber}. No se puede crear currentVideo.`);
+                    return;
+                }
+                
+                // Crear objeto básico con el ID real del módulo
+                window.dynamicVideoLoader.currentVideo = {
+                    id: videoId,
+                    module_id: realModuleId,
+                    video_title: `Video ${videoId}`,
+                    duration_seconds: this.player && this.player.getDuration ? this.player.getDuration() : 0
+                };
+                
+                console.log(`✅ CurrentVideo básico creado con module_id real:`, realModuleId);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error estableciendo currentVideo:', error);
         }
     }
     

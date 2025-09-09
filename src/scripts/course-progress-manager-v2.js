@@ -130,6 +130,9 @@ class CourseProgressManagerV2 {
         if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
             console.log('🏠 Entorno: Node.js local puerto 3000');
             return '/api';
+        } else if (isLocalhost && (currentPort === '3001' || window.location.href.includes(':3001'))) {
+            console.log('🏠 Entorno: Node.js local puerto 3001');
+            return '/api';
         } else if (isLocalhost && currentPort === '8888') {
             console.log('🏠 Entorno: Netlify Dev local');
             return '/.netlify/functions';
@@ -371,6 +374,11 @@ class CourseProgressManagerV2 {
                 // Actualizar UI si es necesario
                 this.updateProgressUI(response);
                 
+                // Si el video se completó, emitir evento
+                if (isCompleted) {
+                    this.emitVideoCompletedEvent(currentVideo);
+                }
+                
                 console.log('✅ Progreso actualizado exitosamente');
             }
 
@@ -395,6 +403,21 @@ class CourseProgressManagerV2 {
         window.dispatchEvent(new CustomEvent('progressUpdated', {
             detail: progressData
         }));
+    }
+
+    emitVideoCompletedEvent(videoData) {
+        console.log('📡 Emitiendo evento de video completado desde CourseProgressManager');
+        
+        const event = new CustomEvent('videoCompleted', {
+            detail: {
+                videoId: videoData.id,
+                moduleId: videoData.module_id,
+                videoTitle: videoData.video_title,
+                timestamp: Date.now()
+            }
+        });
+        
+        window.dispatchEvent(event);
     }
 
     // =====================================================
