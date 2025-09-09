@@ -1695,22 +1695,32 @@ body {
     padding-bottom: 2rem;
 }
 
+.activity-content {
+    color: var(--glass-text-secondary);
+    line-height: 1.6;
+    padding-bottom: 4rem;
+    min-height: 400px;
+}
+
 .transcript-content p,
 .summary-content p,
-.quiz-content p {
+.quiz-content p,
+.activity-content p {
     margin: 0 0 1rem 0;
 }
 
 .transcript-content h4,
 .summary-content h4,
-.quiz-content h4 {
+.quiz-content h4,
+.activity-content h4 {
     color: var(--glass-primary);
     margin: 0 0 1.5rem 0;
     font-size: 1.3rem;
     font-weight: 700;
 }
 
-.summary-content h5 {
+.summary-content h5,
+.activity-content h5 {
     color: var(--glass-text-primary);
     margin: 1.5rem 0 1rem 0;
     font-size: 1.1rem;
@@ -1718,6 +1728,74 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+/* Estilos específicos para actividades */
+.activity-section {
+    margin-bottom: 2rem;
+}
+
+.activity-description-content,
+.activity-prompts-content {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1.2rem;
+    margin-top: 0.8rem;
+}
+
+.activity-item {
+    background: rgba(68, 229, 255, 0.1);
+    border: 1px solid rgba(68, 229, 255, 0.2);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    margin: 0.5rem 0;
+    color: var(--glass-text-primary);
+    font-weight: 500;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.activity-item::before {
+    content: "💡";
+    font-size: 0.9rem;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+}
+
+.no-activity {
+    color: var(--glass-text-muted) !important;
+    font-style: italic;
+    padding: 1rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+}
+
+.activity-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.activity-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.activity-btn .icon-sm {
+    width: 18px;
+    height: 18px;
 }
 
 .summary-content ul {
@@ -4556,7 +4634,8 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 [data-theme="light"] .transcript-content,
 [data-theme="light"] .summary-content,
-[data-theme="light"] .quiz-content {
+[data-theme="light"] .quiz-content,
+[data-theme="light"] .activity-content {
     background: transparent !important;
     border: none !important;
     color: #2D3748 !important;

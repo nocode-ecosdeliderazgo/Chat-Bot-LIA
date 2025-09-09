@@ -2286,6 +2286,43 @@ Cargando información...
                         </div>
                     </div>
 
+                    <!-- Contenido de Actividad -->
+                    <div class="activity-content" data-content="activity" style="display: none;">
+                        <h4>Actividades del Video - Módulo 1: ¿Qué es la IA?</h4>
+                        
+                        <div class="activity-section">
+                            <h5>📝 Descripción de la Actividad</h5>
+                            <div class="activity-description">
+                                <p>Cargando descripción de la actividad...</p>
+                            </div>
+                        </div>
+
+                        <div class="activity-section">
+                            <h5>💡 Prompts y Ejercicios</h5>
+                            <div class="activity-prompts">
+                                <p>Cargando prompts de actividad...</p>
+                            </div>
+                        </div>
+
+                        <div class="activity-actions">
+                            <button class="btn-primary activity-btn" onclick="copyActivityToClipboard()">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                                Copiar Actividad
+                            </button>
+                            <button class="btn-secondary activity-btn" onclick="downloadActivityPDF()">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7,10 12,15 17,10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Descargar PDF
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Contenido de Comunidad -->
                     <div class="community-content" data-content="community" style="display: none;">
                         <!-- Header de Comunidad -->
@@ -4667,6 +4704,192 @@ INSTRUCCIONES:
                 }
             });
         });
+
+        // =====================================================
+        // FUNCIONES PARA ACTIVIDADES
+        // =====================================================
+
+        function copyActivityToClipboard() {
+            try {
+                const activityContent = document.querySelector('.activity-content');
+                if (!activityContent) {
+                    console.log('⚠️ No se encontró contenido de actividad');
+                    showNotification('No hay contenido de actividad para copiar', 'warning');
+                    return;
+                }
+
+                // Extraer texto de descripción
+                const descriptionElement = activityContent.querySelector('.activity-description-content');
+                const description = descriptionElement ? descriptionElement.innerText : 'Sin descripción disponible';
+
+                // Extraer texto de prompts
+                const promptsElement = activityContent.querySelector('.activity-prompts-content');
+                const prompts = promptsElement ? promptsElement.innerText : 'Sin prompts disponibles';
+
+                // Obtener título del video actual
+                const titleElement = activityContent.querySelector('h4');
+                const title = titleElement ? titleElement.textContent : 'Actividades del Video';
+
+                // Crear texto completo para copiar
+                const fullText = `${title}
+
+📝 DESCRIPCIÓN DE LA ACTIVIDAD:
+${description}
+
+💡 PROMPTS Y EJERCICIOS:
+${prompts}
+
+---
+Generado desde Coach LIA IA
+`;
+
+                // Copiar al portapapeles
+                navigator.clipboard.writeText(fullText).then(() => {
+                    console.log('✅ Actividad copiada al portapapeles');
+                    showNotification('¡Actividad copiada al portapapeles!', 'success');
+                }).catch(err => {
+                    console.error('❌ Error copiando actividad:', err);
+                    showNotification('Error al copiar la actividad', 'error');
+                });
+
+            } catch (error) {
+                console.error('❌ Error en copyActivityToClipboard:', error);
+                showNotification('Error al copiar la actividad', 'error');
+            }
+        }
+
+        function downloadActivityPDF() {
+            try {
+                const activityContent = document.querySelector('.activity-content');
+                if (!activityContent) {
+                    console.log('⚠️ No se encontró contenido de actividad');
+                    showNotification('No hay contenido de actividad para descargar', 'warning');
+                    return;
+                }
+
+                // Obtener datos de la actividad
+                const titleElement = activityContent.querySelector('h4');
+                const title = titleElement ? titleElement.textContent : 'Actividades del Video';
+
+                const descriptionElement = activityContent.querySelector('.activity-description-content');
+                const description = descriptionElement ? descriptionElement.innerHTML : '<p>Sin descripción disponible</p>';
+
+                const promptsElement = activityContent.querySelector('.activity-prompts-content');
+                const prompts = promptsElement ? promptsElement.innerHTML : '<p>Sin prompts disponibles</p>';
+
+                // Crear contenido HTML para el PDF
+                const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; color: #333; }
+        h1 { color: #44e5ff; border-bottom: 2px solid #44e5ff; padding-bottom: 10px; }
+        h2 { color: #0066CC; margin-top: 30px; }
+        .section { margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 8px; }
+        .activity-item { background: #e3f2fd; padding: 10px; margin: 10px 0; border-radius: 6px; }
+        .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>${title}</h1>
+    
+    <div class="section">
+        <h2>📝 Descripción de la Actividad</h2>
+        ${description}
+    </div>
+    
+    <div class="section">
+        <h2>💡 Prompts y Ejercicios</h2>
+        ${prompts}
+    </div>
+    
+    <div class="footer">
+        <p>Generado desde Coach LIA IA - ${new Date().toLocaleDateString()}</p>
+    </div>
+</body>
+</html>
+`;
+
+                // Crear blob y descargar
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `actividad-${Date.now()}.html`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                console.log('✅ PDF de actividad descargado');
+                showNotification('¡Actividad descargada como HTML!', 'success');
+
+            } catch (error) {
+                console.error('❌ Error en downloadActivityPDF:', error);
+                showNotification('Error al descargar la actividad', 'error');
+            }
+        }
+
+        // Función para mostrar notificaciones
+        function showNotification(message, type = 'info') {
+            // Crear elemento de notificación
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            
+            // Estilos básicos
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                opacity: 0;
+                transform: translateX(100%);
+                transition: all 0.3s ease;
+            `;
+            
+            // Colores según el tipo
+            switch(type) {
+                case 'success':
+                    notification.style.background = '#10b981';
+                    break;
+                case 'error':
+                    notification.style.background = '#ef4444';
+                    break;
+                case 'warning':
+                    notification.style.background = '#f59e0b';
+                    break;
+                default:
+                    notification.style.background = '#3b82f6';
+            }
+            
+            document.body.appendChild(notification);
+            
+            // Mostrar notificación
+            setTimeout(() => {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Ocultar después de 3 segundos
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
     </script>
 
 </body>

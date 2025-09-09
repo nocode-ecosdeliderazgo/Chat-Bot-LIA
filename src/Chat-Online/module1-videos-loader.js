@@ -669,6 +669,9 @@ class Module1VideosLoader {
             // Actualizar transcripción en el área correcta
             this.updateTranscriptContent(video);
 
+            // Actualizar actividades en el área correcta
+            this.updateActivityContent(video);
+
         } catch (error) {
             console.error('❌ Error actualizando información del video:', error);
         }
@@ -703,6 +706,72 @@ class Module1VideosLoader {
             }
         } catch (error) {
             console.error('❌ Error actualizando transcripción:', error);
+        }
+    }
+
+    updateActivityContent(video) {
+        try {
+            const activityContent = document.querySelector('.activity-content');
+            if (activityContent) {
+                console.log('📋 Actualizando actividades para:', video.video_title);
+                
+                // Actualizar el título de la actividad
+                const activityTitle = activityContent.querySelector('h4');
+                if (activityTitle) {
+                    activityTitle.textContent = `Actividades del Video - ${video.video_title}`;
+                }
+                
+                // Actualizar descripción de la actividad
+                const activityDescription = activityContent.querySelector('.activity-description');
+                if (activityDescription) {
+                    if (video.descripcion_actividad && video.descripcion_actividad.trim()) {
+                        console.log('📝 Actualizando descripción de actividad');
+                        activityDescription.innerHTML = `
+                            <div class="activity-description-content">
+                                ${video.descripcion_actividad.split('\n').map(paragraph => 
+                                    paragraph.trim() ? `<p>${paragraph.trim()}</p>` : ''
+                                ).join('')}
+                            </div>
+                        `;
+                    } else {
+                        activityDescription.innerHTML = `
+                            <p class="no-activity">No hay descripción de actividad disponible para este video.</p>
+                        `;
+                    }
+                }
+                
+                // Actualizar prompts de actividad
+                const activityPrompts = activityContent.querySelector('.activity-prompts');
+                if (activityPrompts) {
+                    if (video.prompts_actividad && video.prompts_actividad.trim()) {
+                        console.log('💡 Actualizando prompts de actividad');
+                        activityPrompts.innerHTML = `
+                            <div class="activity-prompts-content">
+                                ${video.prompts_actividad.split('\n').map(prompt => {
+                                    const trimmedPrompt = prompt.trim();
+                                    if (trimmedPrompt) {
+                                        // Si el prompt parece ser una pregunta o ejercicio, agregamos numeración
+                                        if (trimmedPrompt.startsWith('-') || trimmedPrompt.startsWith('•') || trimmedPrompt.match(/^\d+\./)) {
+                                            return `<div class="activity-item">${trimmedPrompt}</div>`;
+                                        } else {
+                                            return `<p>${trimmedPrompt}</p>`;
+                                        }
+                                    }
+                                    return '';
+                                }).join('')}
+                            </div>
+                        `;
+                    } else {
+                        activityPrompts.innerHTML = `
+                            <p class="no-activity">No hay prompts de actividad disponibles para este video.</p>
+                        `;
+                    }
+                }
+                
+                console.log('✅ Actividades actualizadas correctamente');
+            }
+        } catch (error) {
+            console.error('❌ Error actualizando actividades:', error);
         }
     }
 
