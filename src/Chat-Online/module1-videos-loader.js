@@ -527,7 +527,14 @@ class Module1VideosLoader {
 
             // Método 1: Usar la función global changeVideo (preferido)
             if (typeof changeVideo === 'function') {
-                changeVideo(video.youtube_video_id, video.video_title, this.formatDuration(video.duration_seconds));
+                const formattedDuration = this.formatDuration(video.duration_seconds);
+                console.log('🎥 DEBUG - Video data:', {
+                    id: video.youtube_video_id,
+                    title: video.video_title,
+                    duration_seconds: video.duration_seconds,
+                    formatted_duration: formattedDuration
+                });
+                changeVideo(video.youtube_video_id, video.video_title, formattedDuration);
                 console.log('✅ Video cargado usando función global changeVideo');
                 return;
             }

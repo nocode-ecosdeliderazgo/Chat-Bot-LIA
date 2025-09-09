@@ -6566,10 +6566,21 @@ class ChatOnline {
      */
     changeYouTubeVideo(videoId, title, duration = '00:00') {
         console.log(`🎥 Cambiando video: ${title} (${videoId})`);
+        console.log(`🕒 DEBUG - Duración recibida: "${duration}" (tipo: ${typeof duration})`);
         
         const iframe = document.getElementById('youtubePlayer');
         const videoTitle = document.querySelector('.video-info h3');
         const videoDuration = document.querySelector('.video-stats span:first-child');
+        
+        // DEBUG: Verificar elementos disponibles
+        const videoStatsElement = document.querySelector('.video-stats');
+        console.log('🔍 DEBUG - iframe:', !!iframe);
+        console.log('🔍 DEBUG - videoTitle:', !!videoTitle);
+        console.log('🔍 DEBUG - .video-stats exists:', !!videoStatsElement);
+        console.log('🔍 DEBUG - .video-stats innerHTML:', videoStatsElement ? videoStatsElement.innerHTML : 'null');
+        console.log('🔍 DEBUG - .video-stats spans count:', document.querySelectorAll('.video-stats span').length);
+        console.log('🔍 DEBUG - All .video-stats spans:', document.querySelectorAll('.video-stats span'));
+        console.log('🔍 DEBUG - videoDuration (first-child):', videoDuration);
         
         if (iframe) {
             // Construir URL con parámetros optimizados
@@ -6580,21 +6591,66 @@ class ChatOnline {
         
         if (videoTitle) {
             // Mantener el ícono SVG y actualizar solo el texto
-            const icon = videoTitle.querySelector('svg');
-            videoTitle.innerHTML = '';
-            if (icon) {
-                videoTitle.appendChild(icon);
-            }
-            videoTitle.innerHTML += title;
+            videoTitle.innerHTML = `
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="23,7 16,12 23,17"/>
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                </svg>
+                ${title}
+            `;
         }
         
-        if (videoDuration && duration !== '00:00') {
+        console.log('🔍 DEBUG - videoDuration element:', videoDuration);
+        console.log('🔍 DEBUG - duration value:', duration);
+        console.log('🔍 DEBUG - condition (videoDuration && duration !== "00:00"):', videoDuration && duration !== '00:00');
+        
+        // Si no existe videoDuration, crear la estructura completa
+        if (!videoDuration && videoStatsElement && duration !== '00:00') {
+            console.log('🔧 FIXING - Creando estructura video-stats completa');
+            videoStatsElement.innerHTML = `
+                <span>
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12,6 12,12 16,14"/>
+                    </svg>
+                    Duración: ${duration}
+                </span>
+                <span>
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    Cargando información...
+                </span>
+            `;
+            console.log('✅ FIXED - Estructura video-stats creada');
+        } else if (videoDuration && duration !== '00:00') {
             const timeIcon = videoDuration.querySelector('svg');
-            videoDuration.innerHTML = '';
+            console.log('🔍 DEBUG - timeIcon found:', !!timeIcon);
+            
             if (timeIcon) {
-                videoDuration.appendChild(timeIcon);
+                // Mantener el icono y actualizar solo el texto
+                videoDuration.innerHTML = `
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12,6 12,12 16,14"/>
+                    </svg>
+                    Duración: ${duration}
+                `;
+                console.log('✅ DEBUG - videoDuration updated with icon:', videoDuration.innerHTML);
+            } else {
+                // Si no hay icono, crear uno nuevo
+                videoDuration.innerHTML = `
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12,6 12,12 16,14"/>
+                    </svg>
+                    Duración: ${duration}
+                `;
+                console.log('✅ DEBUG - videoDuration updated without icon:', videoDuration.innerHTML);
             }
-            videoDuration.innerHTML += `Duración: ${duration}`;
+        } else {
+            console.log('❌ DEBUG - videoDuration update skipped:', { videoDuration: !!videoDuration, duration, condition: duration !== '00:00' });
         }
         
         console.log(`✅ Video actualizado: ${title}`);
