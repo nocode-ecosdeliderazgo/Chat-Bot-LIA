@@ -3167,6 +3167,140 @@ Cargando información...
         
         // Verificar que la función esté disponible
         console.log('✅ Función showLiaPhotoModal definida:', typeof window.showLiaPhotoModal);
+        
+        // ===== FUNCIÓN PARA OBTENER CONTEXTO DEL CURSO =====
+        window.obtenerContextoCurso = function() {
+            console.log('📚 [CONTEXT] Obteniendo contexto del curso...');
+            
+            try {
+                // Obtener el contenido de transcripción actualmente visible
+                const transcriptContent = document.querySelector('[data-content="transcript"]');
+                if (!transcriptContent) {
+                    console.log('⚠️ [CONTEXT] No se encontró contenido de transcripción');
+                    return getFallbackContext();
+                }
+                
+                // Verificar si el contenido de transcripción está visible
+                const isTranscriptVisible = transcriptContent.style.display !== 'none';
+                console.log('👀 [CONTEXT] Transcripción visible:', isTranscriptVisible);
+                
+                // Extraer título del video/módulo
+                const titleElement = transcriptContent.querySelector('h4');
+                const videoTitle = titleElement ? titleElement.textContent.trim() : 'Video actual';
+                console.log('🎬 [CONTEXT] Título del video:', videoTitle);
+                
+                // Extraer todo el texto de la transcripción
+                const paragraphs = transcriptContent.querySelectorAll('p');
+                let transcripcion = '';
+                
+                paragraphs.forEach((p, index) => {
+                    const texto = p.textContent.trim();
+                    if (texto) {
+                        transcripcion += texto + '\n\n';
+                    }
+                });
+                
+                // Obtener información del módulo actual
+                const currentModuleInfo = getCurrentModuleInfo();
+                
+                // Obtener tab activa
+                const activeTab = document.querySelector('.tab-btn.active');
+                const currentTab = activeTab ? activeTab.getAttribute('data-content') : 'transcript';
+                
+                // Construir contexto completo
+                const contexto = {
+                    videoTitle: videoTitle,
+                    transcripcion: transcripcion.trim(),
+                    moduloActual: currentModuleInfo,
+                    tabActiva: currentTab,
+                    timestamp: new Date().toISOString(),
+                    caracteresTranscripcion: transcripcion.length
+                };
+                
+                console.log('✅ [CONTEXT] Contexto generado exitosamente');
+                console.log('📊 [CONTEXT] Caracteres de transcripción:', contexto.caracteresTranscripcion);
+                
+                // Retornar contexto formateado para el chat
+                return formatContextForChat(contexto);
+                
+            } catch (error) {
+                console.error('❌ [CONTEXT] Error obteniendo contexto:', error);
+                return getFallbackContext();
+            }
+        };
+        
+        // Función auxiliar para obtener información del módulo actual
+        function getCurrentModuleInfo() {
+            try {
+                // Buscar módulo activo o expandido
+                const activeModule = document.querySelector('.module-item.active, .module-item.expanded');
+                if (activeModule) {
+                    const titleElement = activeModule.querySelector('.module-title');
+                    return titleElement ? titleElement.textContent.trim() : 'Módulo actual';
+                }
+                
+                // Fallback: buscar el primer módulo
+                const firstModule = document.querySelector('.module-item .module-title');
+                return firstModule ? firstModule.textContent.trim() : 'Introducción a la IA';
+                
+            } catch (error) {
+                console.error('Error obteniendo info del módulo:', error);
+                return 'Módulo actual';
+            }
+        }
+        
+        // Función para formatear el contexto para el chat
+        function formatContextForChat(contexto) {
+            const contextString = `
+INFORMACIÓN DEL VIDEO ACTUAL:
+- Título: ${contexto.videoTitle}
+- Módulo: ${contexto.moduloActual}
+- Tab activa: ${contexto.tabActiva}
+
+TRANSCRIPCIÓN COMPLETA DEL VIDEO:
+${contexto.transcripcion}
+
+INSTRUCCIONES:
+- Responde ÚNICAMENTE basándote en el contenido de la transcripción anterior
+- Si la pregunta no se puede responder con la transcripción, indica que no tienes esa información específica en el video actual
+- Mantén el contexto del curso "Experto en IA para Profesionales"
+- Sé específico y detallado usando ejemplos del video cuando sea posible
+            `;
+            
+            return contextString.trim();
+        }
+        
+        // Función de contexto de fallback
+        function getFallbackContext() {
+            console.log('🔄 [CONTEXT] Usando contexto de fallback');
+            return `
+INFORMACIÓN DEL VIDEO ACTUAL:
+- Título: Introducción a la IA
+- Módulo: Fundamentos de IA
+- Estado: Contenido no disponible temporalmente
+
+INSTRUCCIONES:
+- El contenido específico del video no está disponible en este momento
+- Proporciona información general sobre Inteligencia Artificial
+- Mantén el contexto del curso "Experto en IA para Profesionales"
+- Sugiere al usuario revisar la transcripción en el panel central
+            `;
+        }
+        
+        // Verificar que la función esté disponible
+        console.log('✅ Función obtenerContextoCurso definida:', typeof window.obtenerContextoCurso);
+        
+        // Función para actualizar contexto cuando cambie de video/módulo
+        window.actualizarContextoVideo = function() {
+            console.log('🔄 [CONTEXT] Actualizando contexto por cambio de video');
+            // Esta función se puede llamar cuando cambie el video
+            // Forzar regeneración del contexto en la próxima consulta
+            if (window.chatOnlineInstance && typeof window.chatOnlineInstance.clearContextCache === 'function') {
+                window.chatOnlineInstance.clearContextCache();
+            }
+        };
+        
+        console.log('✅ Función actualizarContextoVideo definida:', typeof window.actualizarContextoVideo);
     </script>
     
     <!-- Chat Online Main Script -->

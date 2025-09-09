@@ -483,6 +483,9 @@ class ChatOnline {
         this.changeVideoByModule(moduleId);
         this.updateModuleInfo(moduleId);
         this.loadModuleContent(moduleId);
+        
+        // ===== ACTUALIZAR CONTEXTO PARA LIA =====
+        this.actualizarContextoLIA();
     }
     
     updateModuleInfo(moduleId) {
@@ -964,6 +967,27 @@ class ChatOnline {
         }
     }
     
+    // Función para actualizar contexto de LIA cuando cambia el video/módulo
+    actualizarContextoLIA() {
+        try {
+            console.log('🔄 [LIA CONTEXT] Actualizando contexto por cambio de video/módulo...');
+            
+            // Llamar a la función global que actualiza el contexto
+            if (typeof window.actualizarContextoVideo === 'function') {
+                window.actualizarContextoVideo();
+                console.log('✅ [LIA CONTEXT] Contexto actualizado exitosamente');
+            } else {
+                console.warn('⚠️ [LIA CONTEXT] Función actualizarContextoVideo no disponible');
+            }
+            
+            // También podemos limpiar cualquier caché de contexto local si existe
+            this.contextCache = null;
+            
+        } catch (error) {
+            console.error('❌ [LIA CONTEXT] Error actualizando contexto:', error);
+        }
+    }
+    
     // Función auxiliar para obtener el ID del curso actual
     getCurrentCourseId() {
         try {
@@ -1161,6 +1185,11 @@ class ChatOnline {
         
         // Cambiar contenido
         this.updateContentArea(contentType);
+        
+        // ===== ACTUALIZAR CONTEXTO PARA LIA AL CAMBIAR DE TAB =====
+        setTimeout(() => {
+            this.actualizarContextoLIA();
+        }, 500); // Pequeño delay para asegurar que el contenido se haya cambiado
     }
     
     updateContentArea(contentType) {
@@ -6669,6 +6698,11 @@ class ChatOnline {
             this.changeYouTubeVideo(videoData.id, videoData.title, videoData.duration);
             
             // Información del módulo actual se actualiza ahora desde Supabase en renderModules()
+            
+            // ===== ACTUALIZAR CONTEXTO PARA LIA DESPUÉS DEL CAMBIO DE VIDEO =====
+            setTimeout(() => {
+                this.actualizarContextoLIA();
+            }, 1000); // Pequeño delay para asegurar que el contenido se haya actualizado
         } else {
             console.error(`❌ No hay video configurado para el módulo ${moduleNumber}`);
         }
