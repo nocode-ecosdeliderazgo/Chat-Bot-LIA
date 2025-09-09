@@ -214,6 +214,7 @@
   border-color: transparent !important;
 }
 
+
 /* Estilos para texto del hero en modo claro */
 [data-theme="light"] .hero-copy h1 {
   color: var(--text-primary) !important;

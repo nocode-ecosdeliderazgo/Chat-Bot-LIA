@@ -759,6 +759,11 @@ class NoticesPage {
         // Get the tab from data attribute
         const tab = clickedBtn.dataset.tab;
         
+        // Only handle tabs that have data-tab attribute
+        if (!tab) {
+            return; // Let the onclick handler take care of it
+        }
+        
         // Handle different tabs
         switch(tab) {
             case 'mis-cursos':
@@ -766,15 +771,16 @@ class NoticesPage {
                 window.location.href = '../cursos.html';
                 break;
             case 'noticias':
-                // Already on news page, just update active state
-                document.querySelectorAll('.tab-button').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                clickedBtn.classList.add('active');
+                // Reload the current page to restart the news page
+                window.location.reload();
                 break;
             case 'comunidad':
                 // Navigate directly to community page without showing toast
                 window.location.href = '../Community/community.html';
+                break;
+            case 'directorio':
+                // Navigate directly to apps directory page without showing toast
+                window.location.href = '../apps-directory.html';
                 break;
             default:
                 this.showToast('Sección no disponible', 'warning');
