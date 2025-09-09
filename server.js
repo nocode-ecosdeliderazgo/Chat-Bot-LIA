@@ -3788,7 +3788,9 @@ app.get('/api/courses/module1-videos', async (req, res) => {
                 transcript_text,
                 video_order,
                 created_at,
-                updated_at
+                updated_at,
+                descripcion_actividad,
+                prompts_actividad
             FROM module_videos 
             WHERE module_id = $1 
             ORDER BY video_order ASC

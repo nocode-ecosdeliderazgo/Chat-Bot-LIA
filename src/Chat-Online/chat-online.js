@@ -1239,6 +1239,13 @@ class ChatOnline {
                         console.log('✅ Comunidad ya cargada previamente, saltando carga...');
                     }
                 }, 10);
+            } else if (contentType === 'activity') {
+                console.log('📋 Configurando contenido de actividades');
+                
+                // Cargar actividades del video actual cuando se accede a la pestaña
+                setTimeout(() => {
+                    this.loadActivityContent();
+                }, 10);
             }
         } else {
             console.error(`❌ No se encontró contenido para: ${contentType}`);
@@ -7342,6 +7349,66 @@ class ChatOnline {
             console.log('🔄 Reiniciando quiz...');
             this.restartQuiz();
         }, 8000);
+    }
+    
+    // ===== FUNCIÓN PARA CARGAR CONTENIDO DE ACTIVIDADES =====
+    
+    loadActivityContent() {
+        try {
+            console.log('📋 Cargando contenido de actividades...');
+            
+            // Verificar si el Module1VideosLoader está disponible
+            if (window.module1VideosLoader && window.module1VideosLoader.videos) {
+                console.log('✅ Module1VideosLoader encontrado');
+                
+                // Obtener el video actual
+                const currentVideo = window.module1VideosLoader.videos.find(video => 
+                    video.id === window.module1VideosLoader.currentVideoId
+                );
+                
+                if (currentVideo) {
+                    console.log('🎬 Video actual encontrado:', currentVideo.video_title);
+                    console.log('📝 Descripción de actividad:', currentVideo.descripcion_actividad ? 'EXISTE' : 'NO EXISTE');
+                    console.log('💡 Prompts de actividad:', currentVideo.prompts_actividad ? 'EXISTE' : 'NO EXISTE');
+                    
+                    // Llamar a la función updateActivityContent del Module1VideosLoader
+                    window.module1VideosLoader.updateActivityContent(currentVideo);
+                    console.log('✅ Contenido de actividades cargado correctamente');
+                } else {
+                    console.warn('⚠️ No se encontró video actual, usando el primer video disponible');
+                    if (window.module1VideosLoader.videos.length > 0) {
+                        const firstVideo = window.module1VideosLoader.videos[0];
+                        window.module1VideosLoader.updateActivityContent(firstVideo);
+                        console.log('✅ Contenido de actividades cargado con el primer video');
+                    }
+                }
+            } else {
+                console.warn('⚠️ Module1VideosLoader no está disponible');
+                
+                // Fallback: mostrar mensaje de que no hay actividades disponibles
+                const activityContent = document.querySelector('.activity-content');
+                if (activityContent) {
+                    const activityDescription = activityContent.querySelector('.activity-description');
+                    const activityPrompts = activityContent.querySelector('.activity-prompts');
+                    
+                    if (activityDescription) {
+                        activityDescription.innerHTML = `
+                            <p class="no-activity">No hay descripción de actividad disponible para este video.</p>
+                        `;
+                    }
+                    
+                    if (activityPrompts) {
+                        activityPrompts.innerHTML = `
+                            <p class="no-activity">No hay prompts de actividad disponibles para este video.</p>
+                        `;
+                    }
+                    
+                    console.log('✅ Mensajes de fallback mostrados');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error cargando contenido de actividades:', error);
+        }
     }
 }
 

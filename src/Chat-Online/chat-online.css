@@ -1735,6 +1735,25 @@ body {
     margin-bottom: 2rem;
 }
 
+.activity-section h5 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.activity-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--glass-primary);
+    flex-shrink: 0;
+}
+
+.inline-icon {
+    color: var(--glass-primary);
+    vertical-align: middle;
+}
+
 .activity-description-content,
 .activity-prompts-content {
     background: rgba(255, 255, 255, 0.03);
@@ -4639,6 +4658,14 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     background: transparent !important;
     border: none !important;
     color: #2D3748 !important;
+}
+
+[data-theme="light"] .activity-icon {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .inline-icon {
+    color: #0066CC !important;
 }
 
 /* LIA Assistant - Asistente de IA */
