@@ -72,38 +72,147 @@ exports.handler = async (event, context) => {
 async function handleModule1Videos(event) {
   try {
     console.log('📚 Buscando videos del módulo 1...');
+    console.log('🔍 URL de Supabase configurada:', supabaseUrl ? 'SÍ' : 'NO');
+    console.log('🔍 Service key configurada:', supabaseServiceKey ? 'SÍ (longitud: ' + supabaseServiceKey.length + ')' : 'NO');
 
-    // Consulta para obtener videos del módulo 1
+    // Verificar configuración de Supabase
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('❌ Configuración de Supabase faltante');
+      return {
+        statusCode: 500,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          success: false,
+          error: 'Configuración de Supabase no disponible',
+          debug: {
+            supabaseUrl: !!supabaseUrl,
+            supabaseKey: !!supabaseServiceKey
+          }
+        })
+      };
+    }
+
+    // Consulta para obtener videos del módulo 1 usando las tablas correctas
+    console.log('🔄 Ejecutando consulta SQL para obtener videos del módulo 1...');
+    
+    // Primero obtener los cursos activos
+    const { data: courses, error: coursesError } = await supabase
+      .from('courses')
+      .select('id, title')
+      .eq('is_active', true)
+      .limit(1);
+
+    if (coursesError) {
+      console.error('❌ Error consultando cursos:', coursesError);
+      return {
+        statusCode: 500,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          success: false,
+          error: 'Error consultando cursos',
+          details: coursesError.message
+        })
+      };
+    }
+
+    if (!courses || courses.length === 0) {
+      console.log('⚠️ No se encontraron cursos activos');
+      return {
+        statusCode: 404,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          success: false,
+          error: 'No hay cursos activos disponibles'
+        })
+      };
+    }
+
+    const courseId = courses[0].id;
+    console.log('📚 Curso encontrado:', courses[0].title, 'ID:', courseId);
+
+    // Ahora obtener los módulos del curso
+    const { data: modules, error: modulesError } = await supabase
+      .from('course_modules')
+      .select('id, title, module_number')
+      .eq('course_id', courseId)
+      .eq('module_number', 1)
+      .limit(1);
+
+    if (modulesError) {
+      console.error('❌ Error consultando módulos:', modulesError);
+      return {
+        statusCode: 500,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          success: false,
+          error: 'Error consultando módulos',
+          details: modulesError.message
+        })
+      };
+    }
+
+    if (!modules || modules.length === 0) {
+      console.log('⚠️ No se encontró el módulo 1');
+      return {
+        statusCode: 404,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          success: false,
+          error: 'Módulo 1 no encontrado'
+        })
+      };
+    }
+
+    const moduleId = modules[0].id;
+    console.log('📖 Módulo 1 encontrado:', modules[0].title, 'ID:', moduleId);
+
+    // Finalmente obtener los videos del módulo
     const { data: videos, error } = await supabase
-      .from('ai_course_sessions')
+      .from('module_videos')
       .select(`
         id,
-        session_title as video_title,
+        video_title,
         duration_seconds,
         youtube_video_id,
         description,
-        session_order as video_order,
-        descripcion_actividad,
-        prompts_actividad,
-        transcript_text
+        video_order,
+        transcript_text,
+        thumbnail_url
       `)
-      .eq('module_number', 1)
-      .order('session_order', { ascending: true });
+      .eq('module_id', moduleId)
+      .order('video_order', { ascending: true });
+
+    console.log('📊 Resultado de consulta:', {
+      error: error ? 'ERROR' : 'OK',
+      videosLength: videos ? videos.length : 0,
+      firstVideo: videos && videos[0] ? videos[0].session_title || videos[0].video_title : 'N/A'
+    });
 
     if (error) {
       console.error('❌ Error consultando base de datos:', error);
+      console.error('🔍 Detalles del error:', JSON.stringify(error, null, 2));
       return {
         statusCode: 500,
         headers: corsHeaders,
         body: JSON.stringify({
           success: false,
           error: 'Error consultando base de datos',
-          details: error.message
+          details: error.message,
+          code: error.code,
+          hint: error.hint
         })
       };
     }
 
     console.log(`✅ ${videos ? videos.length : 0} videos encontrados`);
+    
+    // Log detallado de los primeros videos encontrados
+    if (videos && videos.length > 0) {
+      console.log('🎬 Primeros 3 videos:');
+      videos.slice(0, 3).forEach((video, index) => {
+        console.log(`   ${index + 1}. ${video.video_title} (${video.youtube_video_id})`);
+      });
+    }
 
     // Agregar progreso del usuario (simulado por ahora)
     const videosWithProgress = videos?.map(video => ({
@@ -122,19 +231,25 @@ async function handleModule1Videos(event) {
         success: true,
         videos: videosWithProgress,
         count: videosWithProgress.length,
-        module: 1
+        module: 1,
+        debug: {
+          timestamp: new Date().toISOString(),
+          supabaseConfigured: true
+        }
       })
     };
 
   } catch (error) {
     console.error('❌ Error obteniendo videos del módulo 1:', error);
+    console.error('🔍 Stack trace:', error.stack);
     return {
       statusCode: 500,
       headers: corsHeaders,
       body: JSON.stringify({
         success: false,
         error: 'Error obteniendo videos del módulo 1',
-        message: error.message
+        message: error.message,
+        stack: error.stack
       })
     };
   }
@@ -145,21 +260,57 @@ async function handleModule1Info(event) {
   try {
     console.log('📋 Buscando información del módulo 1...');
 
-    // Consulta para obtener información del módulo 1
-    const { data: modules, error } = await supabase
-      .from('ai_courses')
-      .select('id, module_title, module_number')
-      .eq('module_number', 1)
+    // Primero obtener los cursos activos
+    const { data: courses, error: coursesError } = await supabase
+      .from('courses')
+      .select('id, title')
+      .eq('is_active', true)
       .limit(1);
 
-    if (error) {
-      console.error('❌ Error consultando base de datos:', error);
+    if (coursesError) {
+      console.error('❌ Error consultando cursos:', coursesError);
       return {
         statusCode: 500,
         headers: corsHeaders,
         body: JSON.stringify({
           success: false,
-          error: 'Error consultando base de datos',
+          error: 'Error consultando cursos',
+          details: coursesError.message
+        })
+      };
+    }
+
+    if (!courses || courses.length === 0) {
+      console.log('⚠️ No se encontraron cursos activos');
+      return {
+        statusCode: 404,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          success: false,
+          error: 'No hay cursos activos disponibles'
+        })
+      };
+    }
+
+    const courseId = courses[0].id;
+    console.log('📚 Curso encontrado para módulo info:', courses[0].title);
+
+    // Consulta para obtener información del módulo 1
+    const { data: modules, error } = await supabase
+      .from('course_modules')
+      .select('id, title, module_number, description, duration_minutes')
+      .eq('course_id', courseId)
+      .eq('module_number', 1)
+      .limit(1);
+
+    if (error) {
+      console.error('❌ Error consultando módulos:', error);
+      return {
+        statusCode: 500,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          success: false,
+          error: 'Error consultando módulos',
           details: error.message
         })
       };
@@ -185,8 +336,12 @@ async function handleModule1Info(event) {
       body: JSON.stringify({
         success: true,
         module_id: modules[0].id,
-        module_title: modules[0].module_title,
-        module_number: modules[0].module_number
+        module_title: modules[0].title,
+        module_number: modules[0].module_number,
+        description: modules[0].description,
+        duration_minutes: modules[0].duration_minutes,
+        course_id: courseId,
+        course_title: courses[0].title
       })
     };
 

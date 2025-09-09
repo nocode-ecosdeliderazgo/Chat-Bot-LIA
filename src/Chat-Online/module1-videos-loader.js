@@ -109,6 +109,7 @@ class Module1VideosLoader {
 
             // Si no está disponible, hacer consulta directa a la API
             console.log('🔄 Haciendo consulta directa a la API...');
+            console.log('🌐 URL completa:', `${this.apiBaseUrl}/courses/module1-videos`);
             
             const response = await fetch(`${this.apiBaseUrl}/courses/module1-videos`, {
                 method: 'GET',
@@ -117,11 +118,24 @@ class Module1VideosLoader {
                 }
             });
 
+            console.log('📡 Respuesta HTTP recibida:');
+            console.log('   - Status:', response.status);
+            console.log('   - Status Text:', response.statusText);
+            console.log('   - OK:', response.ok);
+            console.log('   - Headers:', Object.fromEntries(response.headers.entries()));
+
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const errorText = await response.text();
+                console.error('❌ Respuesta de error del servidor:', errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
             }
 
             const data = await response.json();
+            console.log('📋 Datos JSON recibidos del servidor:');
+            console.log('   - Respuesta completa:', JSON.stringify(data, null, 2));
+            console.log('   - Success:', data.success);
+            console.log('   - Videos length:', data.videos ? data.videos.length : 'undefined');
+            console.log('   - Error field:', data.error || 'none');
             
             if (data.success && data.videos && data.videos.length > 0) {
                 this.videos = data.videos;
@@ -133,10 +147,25 @@ class Module1VideosLoader {
 
         } catch (error) {
             console.error('❌ Error cargando videos del módulo 1:', error);
+            console.error('🔍 Detalles del error:');
+            console.error('   - Tipo de error:', error.constructor.name);
+            console.error('   - Mensaje:', error.message);
+            console.error('   - Stack trace:', error.stack);
+            console.error('   - API Base URL utilizada:', this.apiBaseUrl);
+            console.error('   - Videos actuales length:', this.videos.length);
+            
+            // Información adicional del entorno
+            console.error('🌍 Información del entorno:');
+            console.error('   - Location:', window.location.href);
+            console.error('   - Protocol:', window.location.protocol);
+            console.error('   - Hostname:', window.location.hostname);
+            console.error('   - Port:', window.location.port || 'default');
+            console.error('   - User Agent:', navigator.userAgent);
             
             // Solo crear videos de ejemplo si realmente no hay datos
             if (this.videos.length === 0) {
                 console.warn('⚠️ No se pudieron cargar videos de la base de datos, usando datos de ejemplo');
+                console.warn('🎯 Razón del fallback: Error en la consulta a la API');
                 this.createSampleVideos();
             }
         }
