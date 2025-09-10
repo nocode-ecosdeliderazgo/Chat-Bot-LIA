@@ -3575,7 +3575,7 @@ class ChatOnline {
                             module_name: '¿Qué es la IA?',
                             status: 'in_progress',
                             progress_percentage: 0,
-                            video_id: 'Yy_eZ65jzmo'
+                            video_id: null  // Se cargará dinámicamente desde la API
                         },
                         {
                             module_number: 2,
@@ -4858,16 +4858,9 @@ class ChatOnline {
             }
         }
         
-        // Si no tenemos el video ID desde progreso, usar datos estáticos
+        // Si no tenemos el video ID desde progreso, cargar desde la base de datos
         if (!moduleVideoId) {
-            const moduleVideos = {
-                1: 'Yy_eZ65jzmo',  // ¿Qué es la IA?
-                2: 'dhsy6epaJGs',  // Historia de la IA
-                3: 'DvyOm9HeT-k',  // Fundamentos del ML
-                4: 'oiKj0Z_Xnjc',  // Redes Neuronales
-                5: 'HMoaRIbOaN0'   // Aplicaciones Prácticas
-            };
-            moduleVideoId = moduleVideos[moduleId];
+            moduleVideoId = await this.getFirstVideoIdFromDatabase(moduleId);
         }
         
         // Cambiar video usando YouTube Tracker si está disponible
@@ -6819,9 +6812,10 @@ class ChatOnline {
     
     /**
      * Videos asignados a cada módulo (DEPRECATED - usar Supabase)
-     * Mantenido solo para funciones de testing
+     * USAR showModuleVideos() en su lugar para datos de la base de datos
      */
     getModuleVideos() {
+        console.warn('⚠️ getModuleVideos() está deprecated. Usar showModuleVideos() para datos de la base de datos');
         return {
             1: {
                 id: 'Yy_eZ65jzmo',
@@ -6953,22 +6947,26 @@ class ChatOnline {
      * Cambia el video según el módulo seleccionado
      * @param {number} moduleNumber - Número del módulo (1-5)
      */
-    changeVideoByModule(moduleNumber) {
-        const moduleVideos = this.getModuleVideos();
-        const videoData = moduleVideos[moduleNumber];
-        
-        if (videoData) {
-            console.log(`🎯 Cargando video del Módulo ${moduleNumber}`);
-            this.changeYouTubeVideo(videoData.id, videoData.title, videoData.duration);
+    async changeVideoByModule(moduleNumber) {
+        try {
+            const videoId = await this.getFirstVideoIdFromDatabase(moduleNumber);
+            
+            if (videoId) {
+                console.log(`🎯 Cargando video del Módulo ${moduleNumber} desde BD: ${videoId}`);
+                // Usar el videoId de la base de datos
+                this.changeYouTubeVideo(videoId, `Módulo ${moduleNumber}`, '0:00');
             
             // Información del módulo actual se actualiza ahora desde Supabase en renderModules()
             
-            // ===== ACTUALIZAR CONTEXTO PARA LIA DESPUÉS DEL CAMBIO DE VIDEO =====
-            setTimeout(() => {
-                this.actualizarContextoLIA();
-            }, 1000); // Pequeño delay para asegurar que el contenido se haya actualizado
-        } else {
-            console.error(`❌ No hay video configurado para el módulo ${moduleNumber}`);
+                // ===== ACTUALIZAR CONTEXTO PARA LIA DESPUÉS DEL CAMBIO DE VIDEO =====
+                setTimeout(() => {
+                    this.actualizarContextoLIA();
+                }, 1000); // Pequeño delay para asegurar que el contenido se haya actualizado
+            } else {
+                console.error(`❌ No se pudo obtener video para el módulo ${moduleNumber} desde la base de datos`);
+            }
+        } catch (error) {
+            console.error(`❌ Error cargando video del módulo ${moduleNumber}:`, error);
         }
     }
     
@@ -7540,17 +7538,42 @@ function selectModule(moduleNumber) {
     }
 }
 
-// Función para ver todos los videos de módulos
-function showModuleVideos() {
+// Función para ver todos los videos de módulos (desde base de datos)
+async function showModuleVideos() {
     if (window.chatOnline) {
-        const moduleVideos = window.chatOnline.getModuleVideos();
-        console.log('🎬 Videos por módulo:');
-        Object.keys(moduleVideos).forEach(moduleId => {
-            const video = moduleVideos[moduleId];
-            console.log(`Módulo ${moduleId}: ${video.title} (${video.duration}) - ID: ${video.id}`);
-        });
+        try {
+            console.log('🔍 Obteniendo videos desde base de datos...');
+            
+            const apiBaseUrl = window.chatOnline.getApiBaseUrl();
+            const cacheBuster = new Date().getTime();
+            
+            const response = await fetch(`${apiBaseUrl}/courses/module1-videos?t=${cacheBuster}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.videos && data.videos.length > 0) {
+                    console.log('🎬 Videos desde base de datos:');
+                    data.videos.sort((a, b) => (a.video_order || 0) - (b.video_order || 0)).forEach(video => {
+                        console.log(`Orden ${video.video_order}: ${video.video_title} (${Math.floor(video.duration_seconds / 60)}:${(video.duration_seconds % 60).toString().padStart(2, '0')}) - ID: ${video.youtube_video_id}`);
+                    });
+                } else {
+                    console.error('❌ No se encontraron videos');
+                }
+            } else {
+                console.error(`❌ Error en API: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('❌ Error obteniendo videos:', error);
+        }
         console.log('\n🎯 Para cambiar usa: selectModule(1), selectModule(2), etc.');
-        return moduleVideos;
     }
 }
 
@@ -7867,6 +7890,66 @@ function updateSimpleVideoContent(moduleId) {
         }
         
         console.log(`🎥 Contenido actualizado: ${data.title}`);
+    }
+
+    // Obtener el primer video ID desde la base de datos
+    async getFirstVideoIdFromDatabase(moduleNumber) {
+        try {
+            console.log(`🔍 Cargando primer video para módulo ${moduleNumber} desde base de datos...`);
+            
+            const apiBaseUrl = this.getApiBaseUrl();
+            const cacheBuster = new Date().getTime();
+            
+            const response = await fetch(`${apiBaseUrl}/courses/module1-videos?t=${cacheBuster}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.videos && data.videos.length > 0) {
+                    // Obtener el primer video ordenado por video_order
+                    const sortedVideos = data.videos.sort((a, b) => (a.video_order || 0) - (b.video_order || 0));
+                    const firstVideo = sortedVideos[0];
+                    console.log(`✅ Primer video cargado desde BD: ${firstVideo.youtube_video_id} - ${firstVideo.video_title}`);
+                    return firstVideo.youtube_video_id;
+                } else {
+                    console.error('❌ No se encontraron videos en la respuesta');
+                    return null;
+                }
+            } else {
+                console.error(`❌ Error en API: ${response.status}`);
+                return null;
+            }
+        } catch (error) {
+            console.error('❌ Error obteniendo primer video desde BD:', error);
+            return null;
+        }
+    }
+
+    // Obtener API base URL con detección de entorno
+    getApiBaseUrl() {
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const currentPort = window.location.port;
+        const isNetlify = window.location.hostname.includes('netlify') || 
+                          window.location.hostname.includes('app') ||
+                          window.location.hostname === 'ecosdeliderazgo.com' ||
+                          window.location.protocol === 'https:' && !isLocalhost;
+        
+        if (isLocalhost && currentPort === '8888') {
+            return '/.netlify/functions';
+        } else if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
+            return '/api';
+        } else if (isNetlify) {
+            return '/.netlify/functions';
+        } else {
+            return '/api';
+        }
     }
 }
 
