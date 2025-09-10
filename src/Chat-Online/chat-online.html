@@ -2855,50 +2855,6 @@ Cargando información...
 
                 return `
                     <div class="question-item" data-question-id="${question.id}">
-                        <div class="question-votes">
-                            <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M18 15l-6-6-6 6"/>
-                                </svg>
-                            </button>
-                            <span class="vote-count">${question.votes_count || 0}</span>
-                            <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M6 9l6 6 6-6"/>
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div class="question-stats">
-                            <div class="stat-item">
-                                <span class="stat-number">${question.answers_count || 0}</span>
-                                <span class="stat-label">respuestas</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number">${question.views_count || 0}</span>
-                                <span class="stat-label">vistas</span>
-                            </div>
-                        </div>
-
-                        <div class="question-actions">
-                            <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 2l-2 2m-2 2l-2 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h6l2-2 2-2z"/>
-                                    <path d="M7 12L12 7l5 5"/>
-                                </svg>
-                            </button>
-                            <button class="action-btn comment-btn" title="Comentar pregunta" onclick="showCommentModal('${question.id}', '${question.title}', '${question.content}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-                                </svg>
-                            </button>
-                            <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
-                                </svg>
-                            </button>
-                        </div>
-
                         <div class="question-content">
                             <div class="question-header">
                                 <h4 class="question-title">${question.title}</h4>
@@ -2915,6 +2871,51 @@ Cargando información...
                                 <p>${question.content.length > 200 ? question.content.substring(0, 200) + '...' : question.content}</p>
                             </div>
                             ${tagsHTML ? `<div class="question-tags">${tagsHTML}</div>` : ''}
+                            
+                            <div class="question-footer">
+                                <div class="question-stats">
+                                    <span class="stat-item">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        ${question.answers_count || 0} respuestas
+                                    </span>
+                                    <span class="stat-item">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                        ${question.views_count || 0} vistas
+                                    </span>
+                                </div>
+
+                                <div class="question-actions">
+                                    <div class="question-votes">
+                                        <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                            </svg>
+                                        </button>
+                                        <span class="vote-count">${question.votes_count || 0}</span>
+                                        <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -2948,50 +2949,6 @@ Cargando información...
 
                 return `
                     <div class="question-item" data-question-id="${question.id}">
-                        <div class="question-votes">
-                            <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M18 15l-6-6-6 6"/>
-                                </svg>
-                            </button>
-                            <span class="vote-count">${question.votes_count || 0}</span>
-                            <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M6 9l6 6 6-6"/>
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div class="question-stats">
-                            <div class="stat-item">
-                                <span class="stat-number">${question.answers_count || 0}</span>
-                                <span class="stat-label">respuestas</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number">${question.views_count || 0}</span>
-                                <span class="stat-label">vistas</span>
-                            </div>
-                        </div>
-
-                        <div class="question-actions">
-                            <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 2l-2 2m-2 2l-2 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h6l2-2 2-2z"/>
-                                    <path d="M7 12L12 7l5 5"/>
-                                </svg>
-                            </button>
-                            <button class="action-btn comment-btn" title="Comentar pregunta" onclick="showCommentModal('${question.id}', '${question.title}', '${question.content}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-                                </svg>
-                            </button>
-                            <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
-                                </svg>
-                            </button>
-                        </div>
-
                         <div class="question-content">
                             <div class="question-header">
                                 <h4 class="question-title">${question.title}</h4>
@@ -3008,6 +2965,51 @@ Cargando información...
                                 <p>${question.content.length > 200 ? question.content.substring(0, 200) + '...' : question.content}</p>
                             </div>
                             ${tagsHTML ? `<div class="question-tags">${tagsHTML}</div>` : ''}
+                            
+                            <div class="question-footer">
+                                <div class="question-stats">
+                                    <span class="stat-item">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        ${question.answers_count || 0} respuestas
+                                    </span>
+                                    <span class="stat-item">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                        ${question.views_count || 0} vistas
+                                    </span>
+                                </div>
+
+                                <div class="question-actions">
+                                    <div class="question-votes">
+                                        <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                            </svg>
+                                        </button>
+                                        <span class="vote-count">${question.votes_count || 0}</span>
+                                        <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;
