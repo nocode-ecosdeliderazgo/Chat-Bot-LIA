@@ -1,163 +1,279 @@
-# PROMPT PARA SOLUCIONAR CONFLICTOS DE CARGA DE VIDEOS EN NETLIFY
+# PROMPT PARA SOLUCIONAR PROBLEMAS DE LA COMUNIDAD EN CHAT-ONLINE.HTML
 
 ## CONTEXTO DEL PROBLEMA
-El proyecto funciona parcialmente en Netlify. Los videos SÍ se cargan correctamente desde la base de datos (como se ve en el log), pero hay **conflictos entre múltiples sistemas** que intentan cargar el mismo video simultáneamente, causando errores 404 y fallos en la visualización.
+La sección de comunidad en `chat-online.html` tiene dos problemas principales:
+1. **Diseño horrible** en localhost con botones que no funcionan correctamente
+2. **Contenido hardcodeado** en Netlify que impide mostrar datos reales de la base de datos
 
-## ANÁLISIS DEL LOG COMPLETO
+## ANÁLISIS DE LOS PROBLEMAS
 
-### ✅ LO QUE FUNCIONA CORRECTAMENTE:
-1. **Module1 Videos Loader** - Carga exitosamente 11 videos desde la API
-2. **Base de datos** - Responde correctamente con datos completos
-3. **Video renderizado** - El primer video se carga y muestra correctamente
-4. **YouTube embed** - El iframe se crea con la URL correcta
+### PROBLEMA 1: DISEÑO Y FUNCIONALIDAD EN LOCALHOST
+- **Diseño horrible:** La interfaz se ve mal diseñada y poco profesional
+- **Botones no funcionan:** Los botones de filtros, navegación y acciones no responden correctamente
+- **Layout desorganizado:** Elementos mal alineados y espaciados incorrectamente
 
-### ❌ PROBLEMAS IDENTIFICADOS:
+### PROBLEMA 2: CONTENIDO HARDCODEADO EN NETLIFY
+- **Preguntas hardcodeadas:** Se muestran preguntas estáticas en lugar de datos reales de la base de datos
+- **Datos falsos:** Información como "Gael Flores", "qwEGFWEGWG", etc. que no corresponde a datos reales
+- **APIs que fallan:** Las consultas a la base de datos no funcionan correctamente en producción
 
-#### 1. **CONFLICTO DE SISTEMAS MÚLTIPLES:**
-```
-- quick-video-fix.js (líneas 14, 30, 40, 46, 78, 84, 160)
-- modules-expandable-system.js (líneas 52, 64, 68, 70, 91, 97, 188, 194, 264, 270)
-- module1-videos-loader.js (funciona correctamente)
-```
+## ORDEN DE IMPLEMENTACIÓN
 
-#### 2. **APIs QUE FALLAN:**
-```
-GET /api/courses/ia-fundamentos/full-structure → 404
-GET /api/courses/introduccion-ia/current-module/{id} → 404
-GET /api/community/questions?sort=recent → 500
-```
+### FASE 1: MEJORAR DISEÑO Y FUNCIONALIDAD (LOCALHOST)
+**Objetivo:** Restaurar funcionalidad de botones y mejorar diseño visual
 
-#### 3. **ERRORES DE JAVASCRIPT:**
-```
-- SyntaxError: Unexpected identifier 'getFirstVideoIdFromDatabase' (chat-online.js:7896)
-- SyntaxError: await is only valid in async functions (chat-online:3894)
-- CSP violations para Supabase
-```
+#### 1.1 Identificar elementos de la comunidad
+- Buscar sección de comunidad en `chat-online.html`
+- Identificar botones de filtros: "Todas", "Sin Responder", "Respondidas", "Mis Preguntas"
+- Localizar dropdowns: "Todos los Módulos", "Más Recientes"
+- Encontrar botón "Hacer Pregunta"
 
-#### 4. **BLOQUEOS DE YOUTUBE:**
-```
-- net::ERR_BLOCKED_BY_CLIENT (múltiples requests a YouTube)
-- POST requests a youtubei/v1/log_event bloqueados
-```
-
-## DIAGNÓSTICO PASO A PASO
-
-### PASO 1: IDENTIFICAR CONFLICTOS DE CARGA
-**Problema principal:** Múltiples scripts intentan cargar el mismo video:
-- `quick-video-fix.js` intenta cargar desde API que falla
-- `module1-videos-loader.js` carga exitosamente desde base de datos
-- `modules-expandable-system.js` intenta cargar estructura de curso
-
-### PASO 2: SOLUCIONAR CONFLICTOS
-1. **Desactivar sistemas conflictivos** que usan APIs que fallan
-2. **Priorizar el sistema que funciona** (module1-videos-loader.js)
-3. **Corregir errores de sintaxis** en JavaScript
-4. **Configurar CSP** para permitir Supabase
-
-### PASO 3: IMPLEMENTAR SOLUCIONES
-
-#### 3.1 Desactivar quick-video-fix.js
+#### 1.2 Corregir funcionalidad de botones
 ```javascript
-// Comentar o desactivar la carga automática
-// document.addEventListener('DOMContentLoaded', loadFirstVideo);
+// Verificar event listeners en botones de filtro
+document.querySelectorAll('.filter-button').forEach(button => {
+    button.addEventListener('click', handleFilterClick);
+});
+
+// Corregir dropdowns
+document.querySelectorAll('.dropdown').forEach(dropdown => {
+    dropdown.addEventListener('change', handleDropdownChange);
+});
 ```
 
-#### 3.2 Corregir errores de sintaxis en chat-online.js
-- Línea 7896: Corregir función `getFirstVideoIdFromDatabase`
-- Línea 3894: Hacer función async o mover await
+#### 1.3 Mejorar diseño visual
+- **Colores:** Usar color primario #0066CC para elementos activos
+- **Espaciado:** Mejorar padding y margins entre elementos
+- **Tipografía:** Ajustar tamaños de fuente y pesos
+- **Layout:** Alinear elementos correctamente
+- **Responsive:** Asegurar que funcione en diferentes tamaños de pantalla
 
-#### 3.3 Configurar CSP para Supabase
-```toml
-# En netlify.toml
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Content-Security-Policy = "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://www.gstatic.com https://apis.google.com https://esm.sh https://cdn.jsdelivr.net;"
+### FASE 2: ELIMINAR CONTENIDO HARDCODEADO (NETLIFY)
+**Objetivo:** Conectar con base de datos real y eliminar datos estáticos
+
+#### 2.1 Identificar contenido hardcodeado
+- Buscar preguntas estáticas como "qwEGFWEGWG", "etjhretsjrstjy", "wegfweg"
+- Localizar usuarios hardcodeados como "Gael Flores"
+- Encontrar timestamps falsos como "Ahora mismo", "Hace 1 día"
+- Identificar respuestas y vistas hardcodeadas (0 respuestas, 0 vistas)
+
+#### 2.2 Conectar con APIs reales
+```javascript
+// Verificar conexión con API de comunidad
+async function loadRealQuestions() {
+    try {
+        const response = await fetch('/api/community/questions?sort=recent');
+        const data = await response.json();
+        renderQuestions(data.questions);
+    } catch (error) {
+        console.error('Error cargando preguntas reales:', error);
+    }
+}
 ```
 
-#### 3.4 Mejorar manejo de errores en modules-expandable-system.js
-- Implementar fallback más robusto cuando API falla
-- Evitar conflictos con module1-videos-loader.js
+#### 2.3 Eliminar datos estáticos
+- Remover arrays de preguntas hardcodeadas
+- Eliminar usuarios y timestamps falsos
+- Limpiar respuestas y vistas estáticas
+- Asegurar que solo se muestren datos de la base de datos
 
-## ARCHIVOS A MODIFICAR (EN ORDEN DE PRIORIDAD)
+## ARCHIVOS A MODIFICAR
 
-### PRIORIDAD ALTA (Crítico):
-1. **src/scripts/quick-video-fix.js** - Desactivar o corregir
-2. **src/Chat-Online/chat-online.js** - Corregir errores de sintaxis
-3. **netlify.toml** - Configurar CSP para Supabase
+### PRIORIDAD ALTA:
+1. **src/Chat-Online/chat-online.html** - Mejorar diseño y estructura
+2. **src/Chat-Online/chat-online.js** - Corregir funcionalidad de botones
+3. **src/scripts/community-api.js** - Verificar conexión con base de datos
 
 ### PRIORIDAD MEDIA:
-4. **src/scripts/modules-expandable-system.js** - Mejorar fallbacks
-5. **src/scripts/supabase-client.js** - Verificar configuración
+4. **src/styles/chat.css** - Mejorar estilos de la comunidad
+5. **netlify/functions/community.js** - Verificar función serverless
 
 ### PRIORIDAD BAJA:
-6. **Variables de entorno** - Verificar configuración en Netlify
+6. **Variables de entorno** - Verificar configuración de base de datos
 
 ## SOLUCIONES ESPECÍFICAS
 
-### 1. Desactivar quick-video-fix.js
-```javascript
-// Al inicio del archivo, agregar:
-console.log('🚫 Quick Video Fix desactivado - usando Module1 Videos Loader');
-return; // Salir temprano
-```
+### 1. Mejorar diseño de la comunidad
+```css
+/* En chat.css */
+.community-section {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
 
-### 2. Corregir chat-online.js línea 7896
-```javascript
-// Buscar y corregir la función problemática
-async function getFirstVideoIdFromDatabase() {
-    // Implementación correcta
+.filter-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.filter-button {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 102, 204, 0.3);
+    color: var(--glass-text-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-button.active {
+    background: #0066CC;
+    border-color: #0066CC;
+    color: white;
+}
+
+.question-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.question-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(0, 102, 204, 0.3);
 }
 ```
 
-### 3. Corregir chat-online.js línea 3894
+### 2. Corregir funcionalidad de botones
 ```javascript
-// Hacer la función async o mover el await
-async function functionName() {
-    await someAsyncOperation();
+// En chat-online.js
+function initializeCommunityFilters() {
+    const filterButtons = document.querySelectorAll('.filter-button');
+    const dropdowns = document.querySelectorAll('.dropdown');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            // Remover clase active de todos los botones
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            // Agregar clase active al botón clickeado
+            e.target.classList.add('active');
+            // Aplicar filtro
+            applyFilter(e.target.dataset.filter);
+        });
+    });
+    
+    dropdowns.forEach(dropdown => {
+        dropdown.addEventListener('change', (e) => {
+            handleDropdownChange(e.target.value, e.target.dataset.type);
+        });
+    });
+}
+
+function applyFilter(filterType) {
+    console.log(`Aplicando filtro: ${filterType}`);
+    // Implementar lógica de filtrado
+    loadQuestionsWithFilter(filterType);
 }
 ```
 
-### 4. Configurar CSP en netlify.toml
-```toml
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Content-Security-Policy = "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://www.gstatic.com https://apis.google.com https://esm.sh https://cdn.jsdelivr.net https://*.supabase.co; frame-src 'self' https://www.youtube.com;"
+### 3. Eliminar contenido hardcodeado
+```javascript
+// Buscar y eliminar arrays como este:
+const hardcodedQuestions = [
+    {
+        title: "qwEGFWEGWG",
+        author: "Gael Flores",
+        timestamp: "Ahora mismo",
+        // ... más datos falsos
+    }
+];
+
+// Reemplazar con:
+async function loadRealQuestions() {
+    try {
+        const response = await fetch('/api/community/questions?sort=recent');
+        const data = await response.json();
+        
+        if (data.success && data.questions) {
+            renderQuestions(data.questions);
+        } else {
+            console.error('Error en respuesta de API:', data);
+            showEmptyState();
+        }
+    } catch (error) {
+        console.error('Error cargando preguntas:', error);
+        showErrorState();
+    }
+}
+```
+
+### 4. Verificar API de comunidad
+```javascript
+// En community-api.js
+class CommunityAPI {
+    constructor() {
+        this.baseURL = '/api/community';
+    }
+    
+    async getQuestions(filters = {}) {
+        try {
+            const params = new URLSearchParams(filters);
+            const response = await fetch(`${this.baseURL}/questions?${params}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('Error en CommunityAPI.getQuestions:', error);
+            throw error;
+        }
+    }
+}
 ```
 
 ## CRITERIOS DE ÉXITO
-- ✅ Module1 Videos Loader funciona sin conflictos
-- ✅ No hay errores de sintaxis en JavaScript
-- ✅ Supabase se carga correctamente (sin CSP violations)
-- ✅ Videos se muestran sin errores 404
-- ✅ No hay conflictos entre sistemas de carga
-- ✅ YouTube embeds funcionan correctamente
+
+### FASE 1 (Diseño y Funcionalidad):
+- ✅ Botones de filtro funcionan correctamente
+- ✅ Dropdowns responden a cambios
+- ✅ Diseño visual mejorado y profesional
+- ✅ Layout responsive y bien alineado
+- ✅ Colores consistentes con el tema (#0066CC)
+
+### FASE 2 (Datos Reales):
+- ✅ No hay contenido hardcodeado visible
+- ✅ Preguntas se cargan desde base de datos
+- ✅ Usuarios y timestamps son reales
+- ✅ Respuestas y vistas se actualizan correctamente
+- ✅ APIs de comunidad funcionan en Netlify
 
 ## INSTRUCCIONES ESPECÍFICAS
-1. **NO modifiques module1-videos-loader.js** - está funcionando correctamente
-2. **Desactiva quick-video-fix.js** - está causando conflictos
-3. **Corrige errores de sintaxis** antes de hacer otros cambios
-4. **Configura CSP** para permitir Supabase
-5. **Prueba cada cambio** individualmente
+
+1. **Trabajar en fases:** Completar Fase 1 antes de comenzar Fase 2
+2. **Probar en localhost:** Verificar que botones funcionen antes de deployar
+3. **Eliminar gradualmente:** Quitar contenido hardcodeado paso a paso
+4. **Mantener fallbacks:** Asegurar que la página funcione aunque las APIs fallen
+5. **Usar color primario:** #0066CC para elementos activos y destacados
 
 ## COMANDOS DE PRUEBA
+
 ```bash
 # Probar localmente
 npm start
 
-# Verificar en Netlify
+# Verificar funcionalidad de botones
+# Abrir DevTools y probar clicks en filtros
+
+# Deployar a Netlify
 netlify deploy --prod
 
-# Verificar logs en Netlify
+# Verificar logs de API
 netlify functions:log
 ```
 
 ## REFERENCIAS TÉCNICAS
-- Netlify CSP Configuration: https://docs.netlify.com/routing/headers/
-- YouTube Embed API: https://developers.google.com/youtube/iframe_api_reference
-- Supabase CSP Requirements: https://supabase.com/docs/guides/getting-started/tutorials/with-nextjs
+- Netlify Functions: https://docs.netlify.com/functions/overview/
+- CSS Grid y Flexbox: https://css-tricks.com/snippets/css/complete-guide-grid/
+- JavaScript Event Handling: https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
 
 ---
 
-**IMPORTANTE:** El problema NO es que los videos no se carguen - SÍ se cargan correctamente. El problema es que hay **múltiples sistemas compitiendo** por cargar el mismo video. La solución es **desactivar los sistemas conflictivos** y **mantener solo el que funciona** (module1-videos-loader.js).
+**IMPORTANTE:** Trabajar paso a paso, primero mejorar el diseño y funcionalidad en localhost, luego eliminar contenido hardcodeado para conectar con datos reales. Mantener la funcionalidad existente mientras se hacen las mejoras.
