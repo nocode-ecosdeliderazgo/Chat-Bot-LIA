@@ -65,10 +65,14 @@ class Module1VideosLoader {
             console.log('⚠️ Módulo 1 no encontrado en dynamicVideoLoader, usando consulta directa...');
             
             // Hacer consulta directa a la API
-            const response = await fetch(`${this.apiBaseUrl}/courses/module1-info`, {
+            const cacheBuster = new Date().getTime();
+            const response = await fetch(`${this.apiBaseUrl}/courses/module1-info?t=${cacheBuster}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
                 }
             });
 
@@ -111,10 +115,15 @@ class Module1VideosLoader {
             console.log('🔄 Haciendo consulta directa a la API...');
             console.log('🌐 URL completa:', `${this.apiBaseUrl}/courses/module1-videos`);
             
-            const response = await fetch(`${this.apiBaseUrl}/courses/module1-videos`, {
+            // Agregar cache busting para evitar problemas de cache
+            const cacheBuster = new Date().getTime();
+            const response = await fetch(`${this.apiBaseUrl}/courses/module1-videos?t=${cacheBuster}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
                 }
             });
 
