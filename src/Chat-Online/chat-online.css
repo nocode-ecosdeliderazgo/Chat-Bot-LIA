@@ -3,15 +3,46 @@
 /* ===== ESTADOS DE CARGA Y ERROR PARA COMUNIDAD ===== */
 
 /* Estados específicos de comunidad según PROMPT_CLAUDE.md */
-.community-error,
-.community-loading,
-.community-empty {
+.community-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     padding: 2rem;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     margin: 1rem 0;
+    color: var(--glass-text-secondary);
+}
+
+.community-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    margin: 1rem 0;
+    color: var(--error-color, #ef4444);
+}
+
+.community-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 1rem 0;
+    color: var(--glass-text-secondary);
 }
 
 .error-icon,
@@ -38,8 +69,8 @@
 
 .retry-btn,
 .ask-question-btn {
-    background: var(--glass-primary);
-    color: var(--glass-text-dark);
+    background: var(--glass-primary, #44e5ff);
+    color: var(--glass-text-dark, #1a1a1a);
     border: none;
     padding: 0.75rem 1.5rem;
     border-radius: 8px;
@@ -47,12 +78,80 @@
     font-weight: 500;
     transition: all 0.3s ease;
     margin-top: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: 0.875rem;
+}
+
+.community-error .retry-btn {
+    background: var(--error-color, #ef4444);
+    color: white;
 }
 
 .retry-btn:hover,
 .ask-question-btn:hover {
-    background: var(--glass-primary-dark);
+    background: var(--glass-primary-dark, #2dd4ea);
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(68, 229, 255, 0.3);
+}
+
+.community-error .retry-btn:hover {
+    background: #dc2626;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Animación de pulso para estados de carga */
+.community-loading .loading-spinner,
+.community-loading h3 {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Estilos para mensajes de estado */
+.community-loading h3,
+.community-error h3,
+.community-empty h3 {
+    margin: 0.5rem 0 1rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.community-loading p,
+.community-error p,
+.community-empty p {
+    margin: 0.5rem 0;
+    opacity: 0.8;
+    line-height: 1.5;
+}
+
+/* Estilo para preguntas que se están cargando */
+.question-card.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    position: relative;
+}
+
+.question-card.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 
 /* Estilos mejorados para las cards de preguntas */

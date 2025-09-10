@@ -4677,23 +4677,72 @@ class ChatOnline {
             // Mostrar estado de carga
             this.showCommunityLoading();
             
-            let questions = [];
+            // Timeout de 10 segundos según PROMPT_CLAUDE.md
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Timeout: La carga tardó demasiado')), 10000);
+            });
             
-            // PASO 1: Intentar con Supabase directamente (MEJORADO PARA NETLIFY)
-            if (window.supabase) {
-                console.log('🔍 Verificando conexión a Supabase...');
+            // Intentar cargar preguntas con múltiples métodos
+            const loadPromise = this.loadQuestionsFromDatabase();
+            
+            const questions = await Promise.race([loadPromise, timeoutPromise]);
+            
+            if (questions && questions.length > 0) {
+                console.log(`✅ ${questions.length} preguntas cargadas`);
+                this.renderCommunityQuestions(questions);
+            } else {
+                console.log('📭 No hay preguntas disponibles');
+                this.showCommunityEmpty();
+            }
+            
+        } catch (error) {
+            console.error('❌ Error cargando preguntas:', error);
+            this.showCommunityError(error.message);
+            
+            // Intentar recargar después de 5 segundos
+            setTimeout(() => {
+                console.log('🔄 Reintentando carga...');
+                this.loadingQuestions = false;
+                this.loadCommunityQuestions(source + '-retry');
+            }, 5000);
+        } finally {
+            this.loadingQuestions = false;
+        }
+    }
+
+    // Función principal para cargar desde la base de datos
+    async loadQuestionsFromDatabase() {
+        console.log('🗄️ Intentando cargar preguntas desde base de datos...');
+        
+        let questions = [];
+        
+        // PASO 1: Intentar con Supabase directamente (MEJORADO PARA NETLIFY)
+        if (window.supabase) {
+            console.log('🔍 Verificando conexión a Supabase...');
+            
+            try {
+                // Usar CommunityDatabase para mejor manejo
+                if (!window.communityDB) {
+                    window.communityDB = new CommunityDatabase();
+                    await window.communityDB.initialize();
+                }
+                
+                // Cargar preguntas usando el método mejorado
+                questions = await window.communityDB.getQuestions({
+                    limit: 20,
+                    sort: 'recent'
+                });
+                
+                if (questions && questions.length > 0) {
+                    console.log('✅ Preguntas cargadas desde CommunityDatabase:', questions.length);
+                    return questions;
+                }
+                
+            } catch (dbError) {
+                console.warn('⚠️ Error con CommunityDatabase, intentando Supabase directo:', dbError);
                 
                 try {
-                    // Verificar autenticación
-                    const { data: { user }, error: authError } = await window.supabase.auth.getUser();
-                    if (authError) {
-                        console.warn('⚠️ Error de autenticación:', authError.message);
-                    } else {
-                        console.log('✅ Usuario autenticado:', user?.email || 'Anónimo');
-                    }
-                    
-                    // Intentar cargar preguntas desde Supabase
-                    console.log('📡 Consultando tabla community_questions...');
+                    // Fallback a consulta directa de Supabase
                     const { data: supabaseQuestions, error } = await window.supabase
                         .from('community_questions')
                         .select(`
@@ -4709,117 +4758,92 @@ class ChatOnline {
                         .limit(20);
                         
                     if (error) {
-                        console.error('❌ Error cargando preguntas desde Supabase:', error);
-                        console.error('   - Código:', error.code);
-                        console.error('   - Mensaje:', error.message);
-                        console.error('   - Detalles:', error.details);
+                        console.error('❌ Error cargando preguntas desde Supabase directo:', error);
                     } else {
                         questions = supabaseQuestions || [];
-                        console.log('✅ Preguntas cargadas desde Supabase:', questions.length);
-                        if (questions.length > 0) {
-                            console.log('📄 Primera pregunta:', {
-                                id: questions[0].id,
-                                title: questions[0].title?.substring(0, 50) + '...',
-                                created_at: questions[0].created_at
-                            });
-                        }
+                        console.log('✅ Preguntas cargadas desde Supabase directo:', questions.length);
+                        return questions;
                     }
-                } catch (error) {
-                    console.error('❌ Error general con Supabase:', error);
-                    console.error('   - Stack:', error.stack);
+                } catch (supabaseError) {
+                    console.error('❌ Error general con Supabase:', supabaseError);
                 }
-            } else {
-                console.warn('⚠️ Supabase no está disponible - esperando inicialización...');
+            }
+        } else {
+            console.warn('⚠️ Supabase no está disponible - esperando inicialización...');
+            
+            // En Netlify, esperar un poco por si Supabase se está inicializando
+            if (this.isNetlify()) {
+                console.log('🔄 Esperando inicialización de Supabase en Netlify...');
+                await this.waitForSupabase(3000); // Esperar max 3 segundos
                 
-                // En Netlify, esperar un poco por si Supabase se está inicializando
-                if (this.isNetlify()) {
-                    console.log('🔄 Esperando inicialización de Supabase en Netlify...');
-                    await this.waitForSupabase(3000); // Esperar max 3 segundos
-                    
-                    if (window.supabase) {
-                        console.log('✅ Supabase inicializado después de espera');
-                        return this.loadCommunityQuestions(source + '-retry');
-                    } else {
-                        console.warn('⚠️ Supabase no se inicializó, continuando con fallbacks...');
-                    }
+                if (window.supabase) {
+                    console.log('✅ Supabase inicializado después de espera');
+                    return this.loadQuestionsFromDatabase();
+                } else {
+                    console.warn('⚠️ Supabase no se inicializó, continuando con fallbacks...');
                 }
             }
-            
-            // PASO 2: Fallback a Community API si Supabase falló
-            if (questions.length === 0) {
-                try {
-                    if (window.communityAPI) {
-                        console.log('🌐 Fallback a Community API...');
-                        const response = await window.communityAPI.getQuestions({
-                            course_id: this.currentCourseId,
-                            module_id: `module-${this.currentModule}`,
-                            sort: 'recent'
-                        });
-                        
-                        if (response.success && response.data) {
-                            questions = response.data;
-                            console.log('✅ Preguntas obtenidas de Community API:', questions.length);
-                        }
-                    }
-                } catch (error) {
-                    console.warn('⚠️ Community API falló:', error.message);
-                }
-            }
-            
-            // PASO 3: Fallback a CommunityDatabase si todo falló
-            if (questions.length === 0) {
-                try {
-                    if (this.communityDB) {
-                        console.log('🗄️ Fallback a CommunityDatabase...');
-                        questions = await this.communityDB.getQuestions({
-                            course_id: this.currentCourseId,
-                            module_id: `module-${this.currentModule}`
-                        });
-                        console.log('✅ Preguntas obtenidas de CommunityDatabase:', questions.length);
-                    } else {
-                        // Initialize community database if not available
-                        console.log('🔧 Inicializando CommunityDatabase...');
-                        if (window.CommunityDatabase) {
-                            this.communityDB = new window.CommunityDatabase();
-                            await this.communityDB.initialize();
-                            
-                            questions = await this.communityDB.getQuestions({
-                                course_id: this.currentCourseId,
-                                module_id: `module-${this.currentModule}`
-                            });
-                            console.log('✅ Preguntas obtenidas de CommunityDatabase inicializada:', questions.length);
-                        }
-                    }
-                } catch (error) {
-                    console.warn('⚠️ CommunityDatabase fallback failed:', error.message);
-                }
-            }
-            
-            // PASO 4: Renderizar las preguntas (¡ESTO FALTABA!)
-            if (questions.length > 0) {
-                console.log(`✅ [${source}] ${questions.length} preguntas cargadas exitosamente`);
-                console.log(`📋 [${source}] Primeras preguntas:`, questions.slice(0, 3).map(q => ({
-                    id: q.id,
-                    title: q.title,
-                    created_at: q.created_at
-                })));
-                this.renderCommunityQuestions(questions);
-            } else {
-                console.warn(`⚠️ [${source}] No se encontraron preguntas - Parámetros:`, {
-                    course_id: this.currentCourseId,
-                    module_id: `module-${this.currentModule}`,
-                    communityDB_available: !!this.communityDB,
-                    supabase_available: !!window.supabase
-                });
-                this.showCommunityEmpty();
-            }
-            
-        } catch (error) {
-            console.error('❌ Error cargando preguntas:', error);
-            this.showCommunityError('Error inesperado al cargar preguntas');
-        } finally {
-            this.loadingQuestions = false;
         }
+        
+        // PASO 2: Fallback a API de comunidad si Supabase falló
+        if (questions.length === 0) {
+            try {
+                console.log('🌐 Fallback a API de comunidad...');
+                questions = await this.loadQuestionsFromAPI();
+                
+                if (questions && questions.length > 0) {
+                    console.log('✅ Preguntas obtenidas de API:', questions.length);
+                    return questions;
+                }
+            } catch (error) {
+                console.warn('⚠️ API fallback falló:', error.message);
+            }
+        }
+        
+        // Si no hay preguntas, devolver array vacío
+        if (questions.length === 0) {
+            console.log('📭 No se encontraron preguntas en ningún método');
+        }
+        
+        return questions;
+    }
+
+    // Función de fallback para cargar desde API según PROMPT_CLAUDE.md
+    async loadQuestionsFromAPI() {
+        console.log('📡 Cargando preguntas desde API...');
+        
+        const endpoints = [
+            '/api/community-public?sort=recent&limit=20',
+            '/api/community/questions?public=true&sort=recent&limit=20'
+        ];
+        
+        for (const endpoint of endpoints) {
+            try {
+                console.log(`🔗 Probando endpoint: ${endpoint}`);
+                const response = await fetch(endpoint);
+                
+                if (!response.ok) {
+                    console.warn(`⚠️ Endpoint falló: ${endpoint} - ${response.status}`);
+                    continue;
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    console.log(`✅ Preguntas cargadas desde ${endpoint}:`, data.data.length);
+                    return data.data;
+                } else {
+                    console.warn(`⚠️ Respuesta inválida de ${endpoint}:`, data);
+                    continue;
+                }
+                
+            } catch (error) {
+                console.warn(`⚠️ Error en ${endpoint}:`, error.message);
+                continue;
+            }
+        }
+        
+        throw new Error('Todos los endpoints de API fallaron');
     }
 
     // Función de fallback mejorada según PROMPT_CLAUDE.md

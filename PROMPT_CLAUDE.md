@@ -1,356 +1,387 @@
-# PROMPT PARA CLAUDE - SOLUCIONAR CARGA DE PREGUNTAS DE COMUNIDAD
+# PROMPT PARA CLAUDE - SOLUCIÓN DE ERRORES DE COMUNIDAD EN NETLIFY
 
-## 🎯 OBJETIVO PRINCIPAL
-Solucionar el problema de carga de preguntas de la comunidad en `chat-online.html`. Las preguntas existen en la base de datos de Supabase pero no se están cargando correctamente en la interfaz.
+## 🎯 OBJETIVO
+Solucionar los errores que impiden que se muestren las preguntas de la comunidad en la versión desplegada en Netlify de `chat-online.html`.
 
-## 🔍 DIAGNÓSTICO REALIZADO
-Se ha identificado que:
-- ✅ Las preguntas existen en Supabase
-- ✅ Los archivos de API están configurados (`community-api.js`, `community-database.js`)
-- ❌ Las preguntas no se cargan en la interfaz
-- ❌ Posibles problemas de conexión o configuración
+## 🔍 PROBLEMAS IDENTIFICADOS (Basado en logs y análisis)
 
-## 📋 TAREAS A REALIZAR
+### **PROBLEMA 1: Error de Autenticación**
+```
+⚠️ No autenticado: Auth session missing!
+```
+- **Causa**: El usuario no está autenticado en Supabase
+- **Impacto**: No puede acceder a las preguntas de la comunidad
 
-### PASO 1: DIAGNOSTICAR EL PROBLEMA
-1. **Verificar conexión a Supabase**
-   - Revisar si `window.supabase` está disponible
-   - Verificar configuración de URL y API key
-   - Comprobar autenticación de usuario
+### **PROBLEMA 2: Error de Inicialización de Supabase**
+```
+❌ Error inicializando Supabase: supabase.createClient is not a function
+```
+- **Causa**: El cliente de Supabase no se está cargando correctamente
+- **Impacto**: No se puede conectar a la base de datos
 
-2. **Verificar tablas de base de datos**
-   - Confirmar que existe la tabla `community_questions`
-   - Verificar permisos RLS (Row Level Security)
-   - Comprobar estructura de datos
+### **PROBLEMA 3: Carga Infinita en la Interfaz**
+- **Síntoma**: Spinner de "Cargando preguntas de la comunidad..." que nunca termina
+- **Causa**: Los errores anteriores impiden que se carguen las preguntas
 
-3. **Revisar errores en consola**
-   - Abrir DevTools en `chat-online.html`
-   - Buscar errores relacionados con comunidad
-   - Verificar logs de carga de datos
+## 📋 TAREAS A REALIZAR (Paso a Paso)
 
-### PASO 2: IMPLEMENTAR SOLUCIÓN PASO A PASO
+### **PASO 1: DIAGNOSTICAR CONFIGURACIÓN DE SUPABASE**
+1. Verificar que el archivo `supabase-client.js` esté correctamente configurado
+2. Comprobar que las credenciales de Supabase estén disponibles en Netlify
+3. Verificar que la URL y KEY de Supabase estén correctamente configuradas
 
-#### 2.1 Verificar y corregir conexión a Supabase
+### **PASO 2: SOLUCIONAR CARGA DEL CLIENTE DE SUPABASE**
+1. Asegurar que la librería de Supabase se cargue correctamente
+2. Implementar fallback para cuando `supabase.createClient` no esté disponible
+3. Agregar verificación de disponibilidad de la librería
+
+### **PASO 3: IMPLEMENTAR AUTENTICACIÓN OPCIONAL**
+1. Modificar la lógica para que funcione sin autenticación obligatoria
+2. Implementar modo "invitado" para ver preguntas públicas
+3. Configurar RLS (Row Level Security) para permitir lectura pública
+
+### **PASO 4: MEJORAR MANEJO DE ERRORES**
+1. Implementar timeout para la carga de preguntas
+2. Mostrar mensaje de error claro cuando falle la carga
+3. Implementar retry automático con backoff
+
+### **PASO 5: OPTIMIZAR CARGA DE DATOS**
+1. Implementar carga directa desde la API sin depender de autenticación
+2. Usar endpoint público para obtener preguntas
+3. Implementar cache local para mejorar rendimiento
+
+## 🛠️ IMPLEMENTACIÓN DETALLADA
+
+### **1. MODIFICAR `src/scripts/supabase-client.js`**
+
 ```javascript
-// En chat-online.js, función loadCommunityQuestions()
-async loadCommunityQuestions() {
-    console.log('🔍 Iniciando carga de preguntas de comunidad...');
+// Agregar verificación robusta de la librería
+function initializeSupabaseClient() {
+    console.log('🔧 Inicializando cliente de Supabase...');
     
-    // Verificar si Supabase está disponible
-    if (!window.supabase) {
-        console.error('❌ Supabase no está disponible');
-        this.showCommunityError('Supabase no configurado');
-        return;
+    // Verificar si la librería está disponible
+    if (typeof supabase === 'undefined') {
+        console.error('❌ Librería de Supabase no está disponible');
+        return null;
     }
     
-    // Verificar autenticación
-    const { data: { user }, error: authError } = await window.supabase.auth.getUser();
-    if (authError) {
-        console.error('❌ Error de autenticación:', authError);
-        this.showCommunityError('Error de autenticación');
-        return;
+    // Verificar si createClient existe
+    if (typeof supabase.createClient !== 'function') {
+        console.error('❌ supabase.createClient no es una función');
+        return null;
     }
     
-    console.log('✅ Usuario autenticado:', user?.email || 'Anónimo');
-    
-    // Intentar cargar preguntas
     try {
-        const { data: questions, error } = await window.supabase
+        const client = supabase.createClient(url, key);
+        console.log('✅ Cliente de Supabase inicializado correctamente');
+        return client;
+    } catch (error) {
+        console.error('❌ Error creando cliente:', error);
+        return null;
+    }
+}
+```
+
+### **2. MODIFICAR `src/Chat-Online/scripts/community-database.js`**
+
+```javascript
+// Implementar carga sin autenticación obligatoria
+async getQuestions(limit = 10, offset = 0) {
+    console.log('📡 Cargando preguntas de la comunidad...');
+    
+    try {
+        // Intentar con autenticación primero
+        const user = await this.getCurrentUser();
+        
+        if (user) {
+            console.log('👤 Usuario autenticado, cargando preguntas...');
+            return await this.getQuestionsAuthenticated(limit, offset);
+        } else {
+            console.log('👤 Usuario no autenticado, cargando preguntas públicas...');
+            return await this.getQuestionsPublic(limit, offset);
+        }
+    } catch (error) {
+        console.error('❌ Error cargando preguntas:', error);
+        throw error;
+    }
+}
+
+// Nuevo método para preguntas públicas
+async getQuestionsPublic(limit = 10, offset = 0) {
+    const { data, error } = await this.supabase
+        .from('community_questions')
+        .select(`
+            id,
+            title,
+            content,
+            created_at,
+            user_id,
+            module_id,
+            is_answered,
+            users:user_id (
+                username,
+                email
+            )
+        `)
+        .eq('is_public', true) // Solo preguntas públicas
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+    
+    if (error) {
+        console.error('❌ Error en consulta pública:', error);
+        throw error;
+    }
+    
+    return data || [];
+}
+```
+
+### **3. MODIFICAR `src/Chat-Online/chat-online.js`**
+
+```javascript
+// Mejorar la función de carga de comunidad
+async loadCommunityQuestions() {
+    console.log('🔄 Cargando preguntas de la comunidad...');
+    
+    try {
+        // Mostrar estado de carga
+        this.showCommunityLoading();
+        
+        // Timeout de 10 segundos
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout: La carga tardó demasiado')), 10000);
+        });
+        
+        // Intentar cargar preguntas
+        const loadPromise = this.loadQuestionsFromDatabase();
+        
+        const questions = await Promise.race([loadPromise, timeoutPromise]);
+        
+        if (questions && questions.length > 0) {
+            console.log(`✅ ${questions.length} preguntas cargadas`);
+            this.renderCommunityQuestions(questions);
+        } else {
+            console.log('📭 No hay preguntas disponibles');
+            this.showCommunityEmpty();
+        }
+        
+    } catch (error) {
+        console.error('❌ Error cargando preguntas:', error);
+        this.showCommunityError(error.message);
+        
+        // Intentar recargar después de 5 segundos
+        setTimeout(() => {
+            console.log('🔄 Reintentando carga...');
+            this.loadCommunityQuestions();
+        }, 5000);
+    }
+}
+
+// Función de fallback para cargar desde API
+async loadQuestionsFromAPI() {
+    console.log('📡 Cargando preguntas desde API...');
+    
+    try {
+        const response = await fetch('/api/community/questions?public=true');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return data.questions || [];
+        
+    } catch (error) {
+        console.error('❌ Error en API:', error);
+        throw error;
+    }
+}
+```
+
+### **4. CREAR ENDPOINT PÚBLICO EN `netlify/functions/community-public.js`**
+
+```javascript
+const { createClient } = require('@supabase/supabase-js');
+
+exports.handler = async (event, context) => {
+    try {
+        // Configuración de Supabase
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_ANON_KEY;
+        
+        if (!supabaseUrl || !supabaseKey) {
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ error: 'Configuración de Supabase faltante' })
+            };
+        }
+        
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        // Obtener preguntas públicas
+        const { data, error } = await supabase
             .from('community_questions')
             .select(`
-                *,
+                id,
+                title,
+                content,
+                created_at,
+                user_id,
+                module_id,
+                is_answered,
                 users:user_id (
-                    id,
-                    display_name,
                     username,
-                    profile_picture_url
+                    email
                 )
             `)
+            .eq('is_public', true)
             .order('created_at', { ascending: false })
             .limit(20);
-            
+        
         if (error) {
-            console.error('❌ Error cargando preguntas:', error);
-            this.showCommunityError(`Error: ${error.message}`);
-            return;
+            throw error;
         }
         
-        console.log('✅ Preguntas cargadas:', questions.length);
-        this.renderCommunityQuestions(questions);
+        return {
+            statusCode: 200,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: JSON.stringify({
+                success: true,
+                questions: data || []
+            })
+        };
         
     } catch (error) {
-        console.error('❌ Error general:', error);
-        this.showCommunityError('Error inesperado');
-    }
-}
-```
-
-#### 2.2 Implementar fallback con CommunityDatabase
-```javascript
-// Si Supabase falla, usar CommunityDatabase como fallback
-async loadCommunityQuestionsWithFallback() {
-    console.log('🔄 Intentando cargar con fallback...');
-    
-    try {
-        // Intentar con Supabase primero
-        await this.loadCommunityQuestions();
-    } catch (error) {
-        console.warn('⚠️ Supabase falló, usando CommunityDatabase...');
+        console.error('Error:', error);
         
-        try {
-            // Inicializar CommunityDatabase si no existe
-            if (!this.communityDB) {
-                this.communityDB = new window.CommunityDatabase();
-                await this.communityDB.initialize();
-            }
-            
-            // Cargar preguntas con CommunityDatabase
-            const questions = await this.communityDB.getQuestions({
-                course_id: this.currentCourseId,
-                module_id: `module-${this.currentModule}`
-            });
-            
-            console.log('✅ Preguntas cargadas con CommunityDatabase:', questions.length);
-            this.renderCommunityQuestions(questions);
-            
-        } catch (dbError) {
-            console.error('❌ CommunityDatabase también falló:', dbError);
-            this.showCommunityError('No se pudieron cargar las preguntas');
-        }
+        return {
+            statusCode: 500,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: JSON.stringify({
+                success: false,
+                error: error.message
+            })
+        };
     }
-}
+};
 ```
 
-#### 2.3 Mejorar manejo de errores y estados
-```javascript
-// Función para mostrar errores de manera amigable
-showCommunityError(message) {
-    const questionsList = document.getElementById('questionsList');
-    if (questionsList) {
-        questionsList.innerHTML = `
-            <div class="community-error">
-                <div class="error-icon">⚠️</div>
-                <h3>Error al cargar preguntas</h3>
-                <p>${message}</p>
-                <button onclick="window.chatOnline.loadCommunityQuestionsWithFallback()" class="retry-btn">
-                    Reintentar
-                </button>
-            </div>
-        `;
-    }
-}
+### **5. MEJORAR CSS PARA ESTADOS DE ERROR**
 
-// Función para mostrar estado de carga
-showCommunityLoading() {
-    const questionsList = document.getElementById('questionsList');
-    if (questionsList) {
-        questionsList.innerHTML = `
-            <div class="community-loading">
-                <div class="loading-spinner"></div>
-                <p>Cargando preguntas de la comunidad...</p>
-</div>
-        `;
-    }
-}
-
-// Función para mostrar estado vacío
-showCommunityEmpty() {
-    const questionsList = document.getElementById('questionsList');
-    if (questionsList) {
-        questionsList.innerHTML = `
-            <div class="community-empty">
-                <div class="empty-icon">💬</div>
-                <h3>No hay preguntas aún</h3>
-                <p>Sé el primero en hacer una pregunta sobre este módulo</p>
-                <button onclick="window.chatOnline.showAskQuestionForm()" class="ask-question-btn">
-                    Hacer Pregunta
-                </button>
-  </div>
-        `;
-    }
-}
-```
-
-#### 2.4 Corregir renderizado de preguntas
-```javascript
-// Función mejorada para renderizar preguntas
-renderCommunityQuestions(questions) {
-    const questionsList = document.getElementById('questionsList');
-    if (!questionsList) {
-        console.error('❌ Elemento questionsList no encontrado');
-        return;
-    }
-    
-    if (!questions || questions.length === 0) {
-        this.showCommunityEmpty();
-        return;
-    }
-    
-    console.log('🎨 Renderizando preguntas:', questions.length);
-    
-    const questionsHTML = questions.map(question => {
-        const author = question.users || { display_name: 'Usuario', username: 'usuario' };
-        const timeAgo = this.formatTimeAgo(question.created_at);
-        
-        return `
-            <div class="question-card" data-question-id="${question.id}">
-                <div class="question-header">
-                    <div class="question-meta">
-                        <span class="question-author">${author.display_name || author.username}</span>
-                        <span class="question-time">${timeAgo}</span>
-                    </div>
-                    <div class="question-stats">
-                        <span class="question-answers">${question.answers_count || 0} respuestas</span>
-                        <span class="question-views">${question.views_count || 0} vistas</span>
-  </div>
-</div>
-                <h3 class="question-title">${question.title}</h3>
-                <p class="question-content">${question.content}</p>
-                <div class="question-tags">
-                    ${(question.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
-  </div>
-                <div class="question-actions">
-                    <button class="action-btn" onclick="window.chatOnline.viewQuestion('${question.id}')">
-                        Ver Pregunta
-                    </button>
-                    <button class="action-btn" onclick="window.chatOnline.bookmarkQuestion('${question.id}')">
-                        Guardar
-                    </button>
-  </div>
-</div>
-        `;
-    }).join('');
-    
-    questionsList.innerHTML = questionsHTML;
-    console.log('✅ Preguntas renderizadas correctamente');
-}
-```
-
-### PASO 3: AGREGAR ESTILOS CSS PARA ESTADOS
 ```css
-/* En chat-online.css */
-.community-error,
-.community-loading,
-.community-empty {
-    text-align: center;
+/* Estados de la comunidad */
+.community-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     padding: 2rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    margin: 1rem 0;
+    color: var(--text-secondary);
 }
 
-.error-icon,
-.empty-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+.community-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: var(--error-color);
+    text-align: center;
 }
 
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(68, 229, 255, 0.3);
-    border-top: 3px solid var(--glass-primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.retry-btn,
-.ask-question-btn {
-    background: var(--glass-primary);
-    color: var(--glass-text-dark);
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.3s ease;
+.community-error .retry-btn {
     margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
-.retry-btn:hover,
-.ask-question-btn:hover {
-    background: var(--glass-primary-dark);
-    transform: translateY(-2px);
+.community-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    text-align: center;
 }
 ```
 
-### PASO 4: VERIFICAR Y CORREGIR CONFIGURACIÓN
+## 🔧 CONFIGURACIÓN DE NETLIFY
 
-#### 4.1 Verificar meta tags en HTML
-```html
-<!-- En chat-online.html, dentro de <head> -->
-<meta name="supabase-url" content="TU_URL_DE_SUPABASE">
-<meta name="supabase-key" content="TU_CLAVE_ANON_DE_SUPABASE">
+### **Variables de Entorno Requeridas:**
+```
+SUPABASE_URL=tu_url_de_supabase
+SUPABASE_ANON_KEY=tu_clave_anonima
+SUPABASE_SERVICE_ROLE_KEY=tu_clave_de_servicio
 ```
 
-#### 4.2 Verificar carga de scripts
-```html
-<!-- Al final de chat-online.html, antes de </body> -->
-<script src="../scripts/supabase-client.js"></script>
-<script src="../scripts/community-database.js"></script>
-<script src="api/community-api.js"></script>
-<script src="chat-online.js"></script>
+### **Configuración de RLS en Supabase:**
+```sql
+-- Permitir lectura pública de preguntas marcadas como públicas
+CREATE POLICY "Allow public read access to public questions" ON community_questions
+FOR SELECT USING (is_public = true);
+
+-- Permitir lectura de usuarios para mostrar nombres
+CREATE POLICY "Allow public read access to usernames" ON users
+FOR SELECT USING (true);
 ```
 
-## 🔧 COMANDOS DE VERIFICACIÓN
+## 📝 VERIFICACIÓN POST-IMPLEMENTACIÓN
 
-### 1. Verificar en consola del navegador:
+### **Checklist de Verificación:**
+- [ ] Cliente de Supabase se inicializa correctamente
+- [ ] Preguntas se cargan sin autenticación
+- [ ] Se muestran mensajes de error claros
+- [ ] Funciona el retry automático
+- [ ] No hay spinner infinito
+- [ ] Las preguntas se renderizan correctamente
+- [ ] El endpoint público funciona
+- [ ] RLS permite lectura pública
+
+### **Comandos de Prueba:**
 ```javascript
-// Ejecutar en DevTools de chat-online.html
-console.log('Supabase:', window.supabase);
-console.log('CommunityDatabase:', window.CommunityDatabase);
-console.log('CommunityAPI:', window.communityAPI);
-
-// Verificar usuario autenticado
-window.supabase.auth.getUser().then(({data: {user}}) => {
-    console.log('Usuario:', user);
-});
-
-// Verificar tablas
-window.supabase.from('community_questions').select('*').limit(1).then(({data, error}) => {
-    console.log('Preguntas:', data, 'Error:', error);
-});
+// En la consola del navegador
+window.debugCommunityLoading();
+window.testSupabaseConnection();
+window.loadCommunityQuestions();
 ```
 
-### 2. Verificar configuración de Supabase:
-- URL debe ser: `https://tu-proyecto.supabase.co`
-- Key debe ser una clave anónima válida
-- Tabla `community_questions` debe existir
-- RLS debe estar configurado correctamente
+## 🎯 RESULTADO ESPERADO
 
-## ✅ CRITERIOS DE ÉXITO
+Después de implementar estas soluciones:
 
-1. **✅ Conexión establecida:** Supabase se conecta correctamente
-2. **✅ Preguntas cargadas:** Se muestran preguntas reales de la base de datos
-3. **✅ Manejo de errores:** Errores se muestran de manera amigable
-4. **✅ Estados visuales:** Loading, error y empty states funcionan
-5. **✅ Fallback funcional:** CommunityDatabase funciona como respaldo
-6. **✅ Sin contenido hardcodeado:** Solo datos reales de la base de datos
+1. **✅ Las preguntas de la comunidad se cargarán correctamente**
+2. **✅ No habrá spinner infinito**
+3. **✅ Se mostrarán mensajes de error claros si algo falla**
+4. **✅ Funcionará sin autenticación obligatoria**
+5. **✅ Habrá retry automático en caso de errores**
+6. **✅ Mejor experiencia de usuario**
 
-## 🚨 PUNTOS CRÍTICOS
+## 🚨 INSTRUCCIONES ESPECÍFICAS PARA CLAUDE
 
-1. **NO eliminar funcionalidad existente** - Solo corregir la carga de datos
-2. **Mantener compatibilidad** - Asegurar que funcione en localhost y Netlify
-3. **Manejar errores gracefully** - Mostrar mensajes útiles al usuario
-4. **Verificar configuración** - Asegurar que Supabase esté bien configurado
-5. **Probar paso a paso** - Verificar cada cambio antes de continuar
-
-## 📝 ORDEN DE IMPLEMENTACIÓN
-
-1. **PRIMERO:** Diagnosticar el problema específico
-2. **SEGUNDO:** Corregir conexión a Supabase
-3. **TERCERO:** Implementar fallback con CommunityDatabase
-4. **CUARTO:** Mejorar manejo de errores y estados
-5. **QUINTO:** Agregar estilos CSS para estados
-6. **SEXTO:** Verificar y probar todo el flujo
+1. **Implementa las modificaciones paso a paso** según el orden indicado
+2. **Verifica cada cambio** antes de continuar al siguiente
+3. **Mantén el logging detallado** para debugging
+4. **Prueba la funcionalidad** después de cada modificación
+5. **Documenta cualquier cambio adicional** que sea necesario
+6. **Asegúrate de que funcione tanto en desarrollo como en producción**
 
 ---
 
-**IMPORTANTE:** Trabajar paso a paso, verificar cada cambio y mantener la funcionalidad existente. El objetivo es que las preguntas de la comunidad se carguen correctamente desde Supabase.
+**IMPORTANTE**: Este prompt debe ejecutarse en el orden indicado para asegurar que cada paso se complete correctamente antes de continuar con el siguiente.
+
+
+CONSOLE LOG:
+Cargar Preguntas
+📝 Logs
+[1:44:38 p.m.] 🚀 Test de conexión iniciado [1:44:38 p.m.] 🌐 Hostname: localhost [1:44:38 p.m.] 🔗 URL: http://localhost:3000/Chat-Online/test-community-connection.html [1:44:39 p.m.] 🧪 PROBANDO APIs... [1:44:39 p.m.] 📡 Probando /api/supabase-config... [1:44:39 p.m.] 📡 Response status: 200 OK [1:44:39 p.m.] ✅ API supabase-config funciona [1:44:39 p.m.] 📋 URL: Configurada [1:44:39 p.m.] 📋 KEY: Configurada [1:44:40 p.m.] 🧪 PROBANDO APIs... [1:44:40 p.m.] 📡 Probando /api/supabase-config... [1:44:40 p.m.] 📡 Response status: 200 OK [1:44:40 p.m.] ✅ API supabase-config funciona [1:44:40 p.m.] 📋 URL: Configurada [1:44:40 p.m.] 📋 KEY: Configurada [1:44:41 p.m.] 🧪 PROBANDO Supabase... [1:44:41 p.m.] 🔧 Inicializando cliente de Supabase... [1:44:41 p.m.] ✅ Cliente inicializado [1:44:41 p.m.] 🔍 Probando autenticación... [1:44:41 p.m.] ⚠️ No autenticado: Auth session missing! [1:44:43 p.m.] 🧪 PROBANDO Supabase... [1:44:43 p.m.] 🔧 Inicializando cliente de Supabase... [1:44:43 p.m.] ❌ Error inicializando Supabase: supabase.createClient is not a function [1:44:45 p.m.] 🧪 PROBANDO carga de preguntas... [1:44:45 p.m.] 📡 Consultando tabla community_questions... [1:44:46 p.m.] ✅ Preguntas encontradas: 1 [1:44:46 p.m.] 📄 Primera pregunta: ¿Que les parece el video de introducción al curso?... [1:44:47 p.m.] 🧪 PROBANDO carga de preguntas... [1:44:47 p.m.] 📡 Consultando tabla community_questions... [1:44:47 p.m.] ✅ Preguntas encontradas: 1 [1:44:47 p.m.] 📄 Primera pregunta: ¿Que les parece el video de introducción al curso?...
