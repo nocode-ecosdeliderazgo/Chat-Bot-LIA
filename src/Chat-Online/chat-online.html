@@ -4101,23 +4101,34 @@ INSTRUCCIONES:
       window.SUPABASE_URL = null;
       window.SUPABASE_ANON_KEY = null;
       
-      // Función para cargar configuración de Supabase
+      // Función para cargar configuración de Supabase (MEJORADA PARA NETLIFY)
       async function loadSupabaseConfig() {
+        console.log('🔄 Iniciando carga de configuración de Supabase...');
+        
         try {
+          console.log('📡 Haciendo fetch a /api/supabase-config...');
           const response = await fetch('/api/supabase-config');
+          console.log('📡 Response status:', response.status, response.statusText);
+          
           if (response.ok) {
             const config = await response.json();
+            console.log('📋 Respuesta de API:', config);
+            
             window.SUPABASE_URL = config.url;
             window.SUPABASE_ANON_KEY = config.anon_key;
             console.log('✅ Configuración de Supabase cargada');
+            console.log('   - URL:', window.SUPABASE_URL ? 'Configurada' : 'Faltante');
+            console.log('   - KEY:', window.SUPABASE_ANON_KEY ? 'Configurada' : 'Faltante');
             
-            // INICIALIZAR EL CLIENTE DE SUPABASE (ESTO FALTABA!)
+            // INICIALIZAR EL CLIENTE DE SUPABASE
             if (typeof supabase !== 'undefined' && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+              console.log('🔧 Inicializando cliente de Supabase...');
               window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
               console.log('✅ Cliente de Supabase inicializado correctamente');
               
               // Verificar conexión
               try {
+                console.log('🔍 Verificando autenticación...');
                 const { data: { user }, error } = await window.supabase.auth.getUser();
                 if (error) {
                   console.warn('⚠️ Usuario no autenticado:', error.message);
@@ -4127,17 +4138,56 @@ INSTRUCCIONES:
               } catch (authError) {
                 console.warn('⚠️ Error verificando autenticación:', authError);
               }
+              
+              // Disparar evento personalizado para indicar que Supabase está listo
+              window.dispatchEvent(new CustomEvent('supabaseReady', { 
+                detail: { supabase: window.supabase } 
+              }));
+              
             } else {
               console.error('❌ No se pudo inicializar Supabase - SDK no disponible o configuración faltante');
               console.error('   - supabase SDK:', typeof supabase !== 'undefined');
               console.error('   - SUPABASE_URL:', !!window.SUPABASE_URL);
               console.error('   - SUPABASE_ANON_KEY:', !!window.SUPABASE_ANON_KEY);
+              
+              // Intentar usar variables de entorno del navegador como fallback
+              console.log('🔄 Intentando fallback con variables de entorno...');
+              window.SUPABASE_URL = window.SUPABASE_URL || 'https://miwbzotcuaywpdbidpwo.supabase.co';
+              if (window.SUPABASE_URL && typeof supabase !== 'undefined') {
+                console.warn('⚠️ Usando configuración de fallback para Supabase');
+                // Nota: En producción, la clave anónima debe venir del servidor
+              }
             }
           } else {
-            console.error('❌ Error cargando configuración de Supabase');
+            const errorText = await response.text();
+            console.error('❌ Error cargando configuración de Supabase:', response.status, errorText);
+            
+            // Fallback para Netlify: usar configuración hardcodeada temporalmente
+            console.log('🔄 Usando fallback de configuración...');
+            useFallbackSupabaseConfig();
           }
         } catch (error) {
-          console.error('❌ Error de conexión al cargar Supabase config:', error);
+          console.error('❌ Error de red al cargar Supabase config:', error);
+          console.log('🔄 Usando fallback de configuración...');
+          useFallbackSupabaseConfig();
+        }
+      }
+      
+      // Función de fallback para configuración de Supabase
+      function useFallbackSupabaseConfig() {
+        console.log('⚡ Inicializando fallback de Supabase...');
+        
+        // Configuración de fallback (solo para depuración en Netlify)
+        window.SUPABASE_URL = 'https://miwbzotcuaywpdbidpwo.supabase.co';
+        
+        if (typeof supabase !== 'undefined' && window.SUPABASE_URL) {
+          console.warn('⚠️ Usando configuración de fallback - funcionalidad limitada');
+          // Nota: Sin la clave anónima real, solo funcionará en modo lectura muy limitado
+          
+          // Disparar evento para que la aplicación use otros métodos
+          window.dispatchEvent(new CustomEvent('supabaseFallback', { 
+            detail: { url: window.SUPABASE_URL } 
+          }));
         }
       }
       

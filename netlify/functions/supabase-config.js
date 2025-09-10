@@ -50,13 +50,11 @@ export async function handler(event, context) {
             };
         }
 
-        // Responder con la configuración
+        // Responder con la configuración (estructura corregida para el frontend)
         const config = {
             success: true,
-            config: {
-                url: supabaseUrl,
-                anonKey: supabaseAnonKey
-            },
+            url: supabaseUrl,
+            anon_key: supabaseAnonKey,
             timestamp: new Date().toISOString()
         };
 

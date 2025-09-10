@@ -92,7 +92,193 @@ class ChatOnline {
         await this.initializeCommunitySystem();
         this.loadInitialData();
         this.setupResponsive();
+        
+        // Asegurar que los botones de notas funcionen
+        this.ensureNotesButtonsWork();
+        
         console.log('✅ Chat Online inicializado correctamente');
+        
+        // Exponer funciones de diagnóstico globalmente
+        window.debugNotesButton = () => this.debugNotesButton();
+        window.debugLeftPanelButtons = () => this.debugLeftPanelButtons();
+    }
+    
+    // Función de diagnóstico para el botón de notas
+    debugNotesButton() {
+        console.log('🔍 DIAGNÓSTICO DEL BOTÓN DE NOTAS');
+        console.log('================================');
+        
+        const addNoteBtn = document.getElementById('addNoteBtn');
+        const notesCreator = document.getElementById('notesCreatorSection');
+        
+        console.log('1. Elementos HTML:');
+        console.log('  - addNoteBtn:', !!addNoteBtn);
+        console.log('  - notesCreatorSection:', !!notesCreator);
+        
+        if (addNoteBtn) {
+            console.log('  - Botón visible:', addNoteBtn.offsetParent !== null);
+            console.log('  - Botón habilitado:', !addNoteBtn.disabled);
+            console.log('  - Clases:', addNoteBtn.className);
+        }
+        
+        console.log('2. Funciones:');
+        console.log('  - addNewNote:', typeof this.addNewNote);
+        console.log('  - showNotesCreator:', typeof this.showNotesCreator);
+        console.log('  - setupNotes:', typeof this.setupNotes);
+        
+        console.log('3. Event Listeners:');
+        if (addNoteBtn && getEventListeners) {
+            const listeners = getEventListeners(addNoteBtn);
+            console.log('  - Click listeners:', listeners.click ? listeners.click.length : 0);
+        } else {
+            console.log('  - No se puede verificar (DevTools requerido)');
+        }
+        
+        console.log('4. Test manual:');
+        if (addNoteBtn) {
+            console.log('  - Simulando click...');
+            addNoteBtn.click();
+            setTimeout(() => {
+                const isVisible = notesCreator && notesCreator.style.display !== 'none';
+                console.log('  - Creador visible después del click:', isVisible);
+            }, 100);
+        }
+        
+        return {
+            buttonExists: !!addNoteBtn,
+            creatorExists: !!notesCreator,
+            functionsExist: {
+                addNewNote: typeof this.addNewNote,
+                showNotesCreator: typeof this.showNotesCreator
+            }
+        };
+    }
+    
+    // Función de diagnóstico para todos los botones del panel izquierdo
+    debugLeftPanelButtons() {
+        console.log('🔍 DIAGNÓSTICO DE BOTONES DEL PANEL IZQUIERDO');
+        console.log('============================================');
+        
+        // Lista de todos los botones del panel izquierdo
+        const leftPanelButtons = [
+            'collapseLeft',
+            'saveNoteBtn',
+            'exportPdfBtn', 
+            'cancelNoteBtn',
+            'boldBtn',
+            'italicBtn',
+            'underlineBtn',
+            'listBtn',
+            'linkBtn',
+            'fontSizeBtn',
+            'collapseMaterialsBtn'
+        ];
+        
+        console.log('1. VERIFICACIÓN DE ELEMENTOS HTML:');
+        const buttonStatus = {};
+        
+        leftPanelButtons.forEach(buttonId => {
+            const button = document.getElementById(buttonId);
+            buttonStatus[buttonId] = {
+                exists: !!button,
+                visible: button ? button.offsetParent !== null : false,
+                enabled: button ? !button.disabled : false
+            };
+            
+            if (button) {
+                console.log(`  ✅ ${buttonId}: existe, visible: ${button.offsetParent !== null}, habilitado: ${!button.disabled}`);
+            } else {
+                console.log(`  ❌ ${buttonId}: NO encontrado`);
+            }
+        });
+        
+        console.log('2. VERIFICACIÓN DE FUNCIONES:');
+        const functionsToCheck = [
+            'setupNotes',
+            'setupNotesEditor', 
+            'setupToolbar',
+            'setupEditorButtons',
+            'setupMaterials',
+            'addNewNote',
+            'showNotesCreator',
+            'saveNote',
+            'exportNoteToPDF'
+        ];
+        
+        functionsToCheck.forEach(funcName => {
+            const exists = typeof this[funcName] === 'function';
+            console.log(`  ${exists ? '✅' : '❌'} ${funcName}: ${exists ? 'existe' : 'NO existe'}`);
+        });
+        
+        console.log('3. VERIFICACIÓN DE EVENT LISTENERS:');
+        leftPanelButtons.forEach(buttonId => {
+            const button = document.getElementById(buttonId);
+            if (button && getEventListeners) {
+                const listeners = getEventListeners(button);
+                const clickListeners = listeners.click ? listeners.click.length : 0;
+                console.log(`  ${buttonId}: ${clickListeners} click listener(s)`);
+            } else if (button) {
+                console.log(`  ${buttonId}: No se puede verificar (DevTools requerido)`);
+            }
+        });
+        
+        console.log('4. TEST MANUAL DE BOTONES PRINCIPALES:');
+        
+        // Test del botón añadir nota
+        const addNoteBtn = document.getElementById('addNoteBtn');
+        if (addNoteBtn) {
+            console.log('  - Probando botón añadir nota...');
+            addNoteBtn.click();
+            setTimeout(() => {
+                const notesCreator = document.getElementById('notesCreatorSection');
+                const isVisible = notesCreator && notesCreator.style.display !== 'none';
+                console.log(`  - Creador de notas abierto: ${isVisible}`);
+            }, 100);
+        }
+        
+        // Test del botón colapsar materiales
+        const collapseMaterialsBtn = document.getElementById('collapseMaterialsBtn');
+        if (collapseMaterialsBtn) {
+            console.log('  - Probando botón colapsar materiales...');
+            collapseMaterialsBtn.click();
+        }
+        
+        return {
+            buttonStatus,
+            functionsExist: functionsToCheck.reduce((acc, func) => {
+                acc[func] = typeof this[func] === 'function';
+                return acc;
+            }, {})
+        };
+    }
+    
+    // Función de fallback para asegurar que los botones de notas funcionen
+    ensureNotesButtonsWork() {
+        console.log('🔧 Asegurando que los botones de notas funcionen...');
+        
+        // Reconfigurar botones después de un delay adicional
+        setTimeout(() => {
+            this.initializeNotesButtons();
+        }, 500);
+        
+        // También configurar un fallback global
+        setTimeout(() => {
+            const addNoteBtn = document.getElementById('addNoteBtn');
+            if (addNoteBtn && !addNoteBtn.hasAttribute('data-listener-added')) {
+                console.log('🔄 Configurando fallback para botón añadir nota...');
+                addNoteBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('🖱️ Fallback: Click en botón añadir nota');
+                    if (window.chatOnline && typeof window.chatOnline.addNewNote === 'function') {
+                        window.chatOnline.addNewNote();
+                    } else {
+                        console.error('❌ Función addNewNote no disponible');
+                    }
+                });
+                addNoteBtn.setAttribute('data-listener-added', 'true');
+                console.log('✅ Fallback configurado');
+            }
+        }, 1000);
     }
     
     setupEventListeners() {
@@ -2668,6 +2854,54 @@ class ChatOnline {
             console.log(`📢 [${type.toUpperCase()}] ${message}`);
         }
     }
+
+    // ============ FUNCIONES AUXILIARES PARA NETLIFY ============
+    
+    isNetlify() {
+        // Detectar si estamos en Netlify
+        return window.location.hostname.includes('netlify') || 
+               window.location.hostname.includes('.app') ||
+               process?.env?.NETLIFY === 'true';
+    }
+
+    async waitForSupabase(maxWaitTime = 5000) {
+        console.log(`⏳ Esperando Supabase por ${maxWaitTime}ms...`);
+        
+        return new Promise((resolve) => {
+            let elapsed = 0;
+            const interval = 100;
+            
+            const checkSupabase = setInterval(() => {
+                elapsed += interval;
+                
+                if (window.supabase) {
+                    console.log(`✅ Supabase disponible después de ${elapsed}ms`);
+                    clearInterval(checkSupabase);
+                    resolve(true);
+                } else if (elapsed >= maxWaitTime) {
+                    console.warn(`⚠️ Timeout esperando Supabase después de ${elapsed}ms`);
+                    clearInterval(checkSupabase);
+                    resolve(false);
+                }
+            }, interval);
+        });
+    }
+
+    setupSupabaseEventListeners() {
+        // Escuchar eventos de Supabase
+        window.addEventListener('supabaseReady', (event) => {
+            console.log('🎉 Supabase listo, recargando preguntas...');
+            if (!this.communityQuestionsLoaded) {
+                this.loadCommunityQuestions('supabase-ready');
+            }
+        });
+
+        window.addEventListener('supabaseFallback', (event) => {
+            console.log('⚠️ Modo fallback de Supabase activado');
+            // Usar otros métodos de carga
+            this.loadCommunityQuestionsWithFallback();
+        });
+    }
     
     async handleVote(voteBtn) {
         if (!voteBtn) return;
@@ -2885,26 +3119,65 @@ class ChatOnline {
 
     // ===== NOTAS =====
     setupNotes() {
+        console.log('📝 Configurando notas...');
+        
+        // Usar setTimeout para asegurar que el DOM esté listo
+        setTimeout(() => {
+            this.initializeNotesButtons();
+        }, 100);
+    }
+    
+    initializeNotesButtons() {
+        console.log('🔧 Inicializando botones de notas...');
+        
         const addNoteBtn = document.getElementById('addNoteBtn');
         const searchNotesBtn = document.getElementById('searchNotesBtn');
         const collapseNotesBtn = document.getElementById('collapseNotes');
         
+        console.log('Botones encontrados:', {
+            addNoteBtn: !!addNoteBtn,
+            searchNotesBtn: !!searchNotesBtn,
+            collapseNotesBtn: !!collapseNotesBtn
+        });
+        
         if (addNoteBtn) {
-            addNoteBtn.addEventListener('click', () => {
+            // Remover event listeners existentes para evitar duplicados
+            addNoteBtn.removeEventListener('click', this.handleAddNoteClick);
+            
+            // Crear función bound para poder removerla después
+            this.handleAddNoteClick = () => {
+                console.log('🖱️ Click en botón añadir nota detectado');
                 this.addNewNote();
-            });
+            };
+            
+            addNoteBtn.addEventListener('click', this.handleAddNoteClick);
+            console.log('✅ Event listener de addNoteBtn configurado');
+        } else {
+            console.error('❌ Botón addNoteBtn no encontrado');
         }
         
         if (searchNotesBtn) {
-            searchNotesBtn.addEventListener('click', () => {
+            searchNotesBtn.removeEventListener('click', this.handleSearchNotesClick);
+            this.handleSearchNotesClick = () => {
+                console.log('🔍 Click en botón buscar notas detectado');
                 this.searchNotes();
-            });
+            };
+            searchNotesBtn.addEventListener('click', this.handleSearchNotesClick);
+            console.log('✅ Event listener de searchNotesBtn configurado');
+        } else {
+            console.error('❌ Botón searchNotesBtn no encontrado');
         }
         
         if (collapseNotesBtn) {
-            collapseNotesBtn.addEventListener('click', () => {
+            collapseNotesBtn.removeEventListener('click', this.handleCollapseNotesClick);
+            this.handleCollapseNotesClick = () => {
+                console.log('📁 Click en botón colapsar notas detectado');
                 this.toggleNotesCollapse();
-            });
+            };
+            collapseNotesBtn.addEventListener('click', this.handleCollapseNotesClick);
+            console.log('✅ Event listener de collapseNotesBtn configurado');
+        } else {
+            console.error('❌ Botón collapseNotesBtn no encontrado');
         }
     }
     
@@ -2914,10 +3187,31 @@ class ChatOnline {
     }
     
     showNotesCreator() {
+        console.log('🎨 Mostrando creador de notas...');
+        
         const notesCreator = document.getElementById('notesCreatorSection');
         const titleInput = document.getElementById('noteTitleInput');
         const contentEditor = document.getElementById('noteContentEditor');
         const tagsInput = document.getElementById('tagsInput');
+        
+        // Verificar que todos los elementos existen
+        if (!notesCreator) {
+            console.error('❌ Sección notesCreatorSection no encontrada');
+            this.showNotification('Error: No se pudo abrir el editor de notas', 'error');
+            return;
+        }
+        
+        if (!titleInput) {
+            console.error('❌ Input de título no encontrado');
+        }
+        
+        if (!contentEditor) {
+            console.error('❌ Editor de contenido no encontrado');
+        }
+        
+        if (!tagsInput) {
+            console.error('❌ Input de etiquetas no encontrado');
+        }
         
         // Mostrar el editor y agregar clase active
         notesCreator.style.display = 'block';
@@ -2925,16 +3219,24 @@ class ChatOnline {
         
         // Limpiar campos solo si no estamos editando una nota existente
         if (!this.currentEditingNoteId) {
-            titleInput.value = '';
-            contentEditor.innerHTML = '';
-            tagsInput.value = '';
+            if (titleInput) titleInput.value = '';
+            if (contentEditor) contentEditor.innerHTML = '';
+            if (tagsInput) tagsInput.value = '';
             this.clearTags();
         }
         
-        // Enfocar el título
-        titleInput.focus();
+        // Enfocar el título después de un pequeño delay
+        setTimeout(() => {
+            if (titleInput) {
+                titleInput.focus();
+                console.log('✅ Título enfocado');
+            }
+        }, 100);
         
-        console.log('✅ Editor de notas abierto');
+        // Configurar event listeners del editor si no están configurados
+        this.setupNotesEditor();
+        
+        console.log('✅ Editor de notas abierto correctamente');
     }
     
     hideNotesCreator() {
@@ -3044,6 +3346,17 @@ class ChatOnline {
     
     // ===== CONFIGURACIÓN DEL EDITOR DE NOTAS =====
     setupNotesEditor() {
+        console.log('🔧 Configurando editor de notas...');
+        
+        // Usar setTimeout para asegurar que el DOM esté listo
+        setTimeout(() => {
+            this.initializeNotesEditor();
+        }, 100);
+    }
+    
+    initializeNotesEditor() {
+        console.log('🎨 Inicializando editor de notas...');
+        
         // Configurar barra de herramientas
         this.setupToolbar();
         
@@ -3052,53 +3365,110 @@ class ChatOnline {
         
         // Configurar botones del editor
         this.setupEditorButtons();
+        
+        console.log('✅ Editor de notas inicializado');
     }
     
     setupToolbar() {
+        console.log('🛠️ Configurando barra de herramientas...');
+        
         const boldBtn = document.getElementById('boldBtn');
         const italicBtn = document.getElementById('italicBtn');
         const underlineBtn = document.getElementById('underlineBtn');
         const listBtn = document.getElementById('listBtn');
         const linkBtn = document.getElementById('linkBtn');
         
-        // Negrita
-        boldBtn.addEventListener('click', () => {
-            document.execCommand('bold', false, null);
-            this.updateToolbarState();
+        console.log('Botones de toolbar encontrados:', {
+            boldBtn: !!boldBtn,
+            italicBtn: !!italicBtn,
+            underlineBtn: !!underlineBtn,
+            listBtn: !!listBtn,
+            linkBtn: !!linkBtn
         });
+        
+        // Negrita
+        if (boldBtn) {
+            boldBtn.removeEventListener('click', this.handleBoldClick);
+            this.handleBoldClick = () => {
+                console.log('🔤 Aplicando negrita...');
+                document.execCommand('bold', false, null);
+                this.updateToolbarState();
+            };
+            boldBtn.addEventListener('click', this.handleBoldClick);
+            console.log('✅ Botón negrita configurado');
+        } else {
+            console.error('❌ Botón negrita no encontrado');
+        }
         
         // Cursiva
-        italicBtn.addEventListener('click', () => {
-            document.execCommand('italic', false, null);
-            this.updateToolbarState();
-        });
+        if (italicBtn) {
+            italicBtn.removeEventListener('click', this.handleItalicClick);
+            this.handleItalicClick = () => {
+                console.log('🔤 Aplicando cursiva...');
+                document.execCommand('italic', false, null);
+                this.updateToolbarState();
+            };
+            italicBtn.addEventListener('click', this.handleItalicClick);
+            console.log('✅ Botón cursiva configurado');
+        } else {
+            console.error('❌ Botón cursiva no encontrado');
+        }
         
         // Subrayado
-        underlineBtn.addEventListener('click', () => {
-            document.execCommand('underline', false, null);
-            this.updateToolbarState();
-        });
+        if (underlineBtn) {
+            underlineBtn.removeEventListener('click', this.handleUnderlineClick);
+            this.handleUnderlineClick = () => {
+                console.log('🔤 Aplicando subrayado...');
+                document.execCommand('underline', false, null);
+                this.updateToolbarState();
+            };
+            underlineBtn.addEventListener('click', this.handleUnderlineClick);
+            console.log('✅ Botón subrayado configurado');
+        } else {
+            console.error('❌ Botón subrayado no encontrado');
+        }
         
         // Lista
-        listBtn.addEventListener('click', () => {
-            document.execCommand('insertUnorderedList', false, null);
-            this.updateToolbarState();
-        });
+        if (listBtn) {
+            listBtn.removeEventListener('click', this.handleListClick);
+            this.handleListClick = () => {
+                console.log('📝 Insertando lista...');
+                document.execCommand('insertUnorderedList', false, null);
+                this.updateToolbarState();
+            };
+            listBtn.addEventListener('click', this.handleListClick);
+            console.log('✅ Botón lista configurado');
+        } else {
+            console.error('❌ Botón lista no encontrado');
+        }
         
         // Enlace
-        linkBtn.addEventListener('click', () => {
-            const url = prompt('Ingresa la URL del enlace:');
-            if (url) {
-                document.execCommand('createLink', false, url);
-            }
-            this.updateToolbarState();
-        });
+        if (linkBtn) {
+            linkBtn.removeEventListener('click', this.handleLinkClick);
+            this.handleLinkClick = () => {
+                console.log('🔗 Insertando enlace...');
+                const url = prompt('Ingresa la URL del enlace:');
+                if (url) {
+                    document.execCommand('createLink', false, url);
+                    this.updateToolbarState();
+                }
+            };
+            linkBtn.addEventListener('click', this.handleLinkClick);
+            console.log('✅ Botón enlace configurado');
+        } else {
+            console.error('❌ Botón enlace no encontrado');
+        }
         
         // Actualizar estado de la barra de herramientas cuando se selecciona texto
         const contentEditor = document.getElementById('noteContentEditor');
-        contentEditor.addEventListener('keyup', () => this.updateToolbarState());
-        contentEditor.addEventListener('mouseup', () => this.updateToolbarState());
-        contentEditor.addEventListener('input', () => this.updateToolbarState());
+        if (contentEditor) {
+            contentEditor.addEventListener('keyup', () => this.updateToolbarState());
+            contentEditor.addEventListener('mouseup', () => this.updateToolbarState());
+            contentEditor.addEventListener('input', () => this.updateToolbarState());
+            console.log('✅ Event listeners del editor configurados');
+        } else {
+            console.error('❌ Editor de contenido no encontrado');
+        }
     }
     
     updateToolbarState() {
@@ -3138,25 +3508,57 @@ class ChatOnline {
     }
     
     setupEditorButtons() {
+        console.log('🔘 Configurando botones del editor...');
+        
         const saveBtn = document.getElementById('saveNoteBtn');
         const cancelBtn = document.getElementById('cancelNoteBtn');
-         const exportPdfBtn = document.getElementById('exportPdfBtn');
+        const exportPdfBtn = document.getElementById('exportPdfBtn');
+        
+        console.log('Botones del editor encontrados:', {
+            saveBtn: !!saveBtn,
+            cancelBtn: !!cancelBtn,
+            exportPdfBtn: !!exportPdfBtn
+        });
         
         // Guardar nota
-        saveBtn.addEventListener('click', () => {
-            this.saveNote();
-            this.hideNotesCreator();
-        });
+        if (saveBtn) {
+            saveBtn.removeEventListener('click', this.handleSaveNoteClick);
+            this.handleSaveNoteClick = () => {
+                console.log('💾 Guardando nota...');
+                this.saveNote();
+                this.hideNotesCreator();
+            };
+            saveBtn.addEventListener('click', this.handleSaveNoteClick);
+            console.log('✅ Botón guardar configurado');
+        } else {
+            console.error('❌ Botón guardar no encontrado');
+        }
         
         // Cancelar
-        cancelBtn.addEventListener('click', () => {
-            this.hideNotesCreator();
-        });
+        if (cancelBtn) {
+            cancelBtn.removeEventListener('click', this.handleCancelNoteClick);
+            this.handleCancelNoteClick = () => {
+                console.log('❌ Cancelando nota...');
+                this.hideNotesCreator();
+            };
+            cancelBtn.addEventListener('click', this.handleCancelNoteClick);
+            console.log('✅ Botón cancelar configurado');
+        } else {
+            console.error('❌ Botón cancelar no encontrado');
+        }
         
         // Exportar a PDF
-        exportPdfBtn.addEventListener('click', () => {
-            this.exportNoteToPDF();
-        });
+        if (exportPdfBtn) {
+            exportPdfBtn.removeEventListener('click', this.handleExportPdfClick);
+            this.handleExportPdfClick = () => {
+                console.log('📄 Exportando a PDF...');
+                this.exportNoteToPDF();
+            };
+            exportPdfBtn.addEventListener('click', this.handleExportPdfClick);
+            console.log('✅ Botón exportar PDF configurado');
+        } else {
+            console.error('❌ Botón exportar PDF no encontrado');
+        }
         
         // Configurar selector de tamaño de fuente
         this.setupFontSizeSelector();
@@ -3621,13 +4023,33 @@ class ChatOnline {
     
     // ===== MATERIALES =====
     setupMaterials() {
+        console.log('📦 Configurando materiales...');
+        
+        // Usar setTimeout para asegurar que el DOM esté listo
+        setTimeout(() => {
+            this.initializeMaterialsButtons();
+        }, 100);
+    }
+    
+    initializeMaterialsButtons() {
+        console.log('🔧 Inicializando botones de materiales...');
+        
         const collapseMaterialsBtn = document.getElementById('collapseMaterialsBtn');
         
+        console.log('Botones de materiales encontrados:', {
+            collapseMaterialsBtn: !!collapseMaterialsBtn
+        });
+        
         if (collapseMaterialsBtn) {
-            collapseMaterialsBtn.addEventListener('click', () => {
+            collapseMaterialsBtn.removeEventListener('click', this.handleCollapseMaterialsClick);
+            this.handleCollapseMaterialsClick = () => {
                 console.log('📦 Colapsando materiales del curso...');
                 this.toggleMaterialsCollapse();
-            });
+            };
+            collapseMaterialsBtn.addEventListener('click', this.handleCollapseMaterialsClick);
+            console.log('✅ Botón colapsar materiales configurado');
+        } else {
+            console.error('❌ Botón colapsar materiales no encontrado');
         }
     }
     
@@ -4234,6 +4656,7 @@ class ChatOnline {
 
     async loadCommunityQuestions(source = 'unknown') {
         console.log(`🔍 [${source}] Iniciando loadCommunityQuestions`);
+        console.log(`🌐 Entorno detectado: ${this.isNetlify() ? 'Netlify' : 'Local'}`);
         
         // Evitar múltiples cargas simultáneas
         if (this.loadingQuestions) {
@@ -4256,45 +4679,70 @@ class ChatOnline {
             
             let questions = [];
             
-            // PASO 1: Intentar con Supabase directamente (NUEVA IMPLEMENTACIÓN)
+            // PASO 1: Intentar con Supabase directamente (MEJORADO PARA NETLIFY)
             if (window.supabase) {
                 console.log('🔍 Verificando conexión a Supabase...');
                 
-                // Verificar autenticación
-                const { data: { user }, error: authError } = await window.supabase.auth.getUser();
-                if (authError) {
-                    console.error('❌ Error de autenticación:', authError);
-                } else {
-                    console.log('✅ Usuario autenticado:', user?.email || 'Anónimo');
+                try {
+                    // Verificar autenticación
+                    const { data: { user }, error: authError } = await window.supabase.auth.getUser();
+                    if (authError) {
+                        console.warn('⚠️ Error de autenticación:', authError.message);
+                    } else {
+                        console.log('✅ Usuario autenticado:', user?.email || 'Anónimo');
+                    }
                     
                     // Intentar cargar preguntas desde Supabase
-                    try {
-                        const { data: supabaseQuestions, error } = await window.supabase
-                            .from('community_questions')
-                            .select(`
-                                *,
-                                users:user_id (
-                                    id,
-                                    display_name,
-                                    username,
-                                    profile_picture_url
-                                )
-                            `)
-                            .order('created_at', { ascending: false })
-                            .limit(20);
-                            
-                        if (error) {
-                            console.error('❌ Error cargando preguntas desde Supabase:', error);
-                        } else {
-                            questions = supabaseQuestions || [];
-                            console.log('✅ Preguntas cargadas desde Supabase:', questions.length);
+                    console.log('📡 Consultando tabla community_questions...');
+                    const { data: supabaseQuestions, error } = await window.supabase
+                        .from('community_questions')
+                        .select(`
+                            *,
+                            users:user_id (
+                                id,
+                                display_name,
+                                username,
+                                profile_picture_url
+                            )
+                        `)
+                        .order('created_at', { ascending: false })
+                        .limit(20);
+                        
+                    if (error) {
+                        console.error('❌ Error cargando preguntas desde Supabase:', error);
+                        console.error('   - Código:', error.code);
+                        console.error('   - Mensaje:', error.message);
+                        console.error('   - Detalles:', error.details);
+                    } else {
+                        questions = supabaseQuestions || [];
+                        console.log('✅ Preguntas cargadas desde Supabase:', questions.length);
+                        if (questions.length > 0) {
+                            console.log('📄 Primera pregunta:', {
+                                id: questions[0].id,
+                                title: questions[0].title?.substring(0, 50) + '...',
+                                created_at: questions[0].created_at
+                            });
                         }
-                    } catch (error) {
-                        console.error('❌ Error general con Supabase:', error);
                     }
+                } catch (error) {
+                    console.error('❌ Error general con Supabase:', error);
+                    console.error('   - Stack:', error.stack);
                 }
             } else {
-                console.warn('⚠️ Supabase no está disponible');
+                console.warn('⚠️ Supabase no está disponible - esperando inicialización...');
+                
+                // En Netlify, esperar un poco por si Supabase se está inicializando
+                if (this.isNetlify()) {
+                    console.log('🔄 Esperando inicialización de Supabase en Netlify...');
+                    await this.waitForSupabase(3000); // Esperar max 3 segundos
+                    
+                    if (window.supabase) {
+                        console.log('✅ Supabase inicializado después de espera');
+                        return this.loadCommunityQuestions(source + '-retry');
+                    } else {
+                        console.warn('⚠️ Supabase no se inicializó, continuando con fallbacks...');
+                    }
+                }
             }
             
             // PASO 2: Fallback a Community API si Supabase falló
@@ -7760,6 +8208,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Crear instancia de ChatOnline
     window.chatOnline = new ChatOnline();
+    
+    // Configurar listeners de Supabase para Netlify
+    window.chatOnline.setupSupabaseEventListeners();
     
     // Agregar método para manejar videos completados
     window.chatOnline.handleVideoCompleted = function(videoData) {
