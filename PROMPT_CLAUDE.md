@@ -1,279 +1,356 @@
-# PROMPT PARA SOLUCIONAR PROBLEMAS DE LA COMUNIDAD EN CHAT-ONLINE.HTML
+# PROMPT PARA CLAUDE - SOLUCIONAR CARGA DE PREGUNTAS DE COMUNIDAD
 
-## CONTEXTO DEL PROBLEMA
-La sección de comunidad en `chat-online.html` tiene dos problemas principales:
-1. **Diseño horrible** en localhost con botones que no funcionan correctamente
-2. **Contenido hardcodeado** en Netlify que impide mostrar datos reales de la base de datos
+## 🎯 OBJETIVO PRINCIPAL
+Solucionar el problema de carga de preguntas de la comunidad en `chat-online.html`. Las preguntas existen en la base de datos de Supabase pero no se están cargando correctamente en la interfaz.
 
-## ANÁLISIS DE LOS PROBLEMAS
+## 🔍 DIAGNÓSTICO REALIZADO
+Se ha identificado que:
+- ✅ Las preguntas existen en Supabase
+- ✅ Los archivos de API están configurados (`community-api.js`, `community-database.js`)
+- ❌ Las preguntas no se cargan en la interfaz
+- ❌ Posibles problemas de conexión o configuración
 
-### PROBLEMA 1: DISEÑO Y FUNCIONALIDAD EN LOCALHOST
-- **Diseño horrible:** La interfaz se ve mal diseñada y poco profesional
-- **Botones no funcionan:** Los botones de filtros, navegación y acciones no responden correctamente
-- **Layout desorganizado:** Elementos mal alineados y espaciados incorrectamente
+## 📋 TAREAS A REALIZAR
 
-### PROBLEMA 2: CONTENIDO HARDCODEADO EN NETLIFY
-- **Preguntas hardcodeadas:** Se muestran preguntas estáticas en lugar de datos reales de la base de datos
-- **Datos falsos:** Información como "Gael Flores", "qwEGFWEGWG", etc. que no corresponde a datos reales
-- **APIs que fallan:** Las consultas a la base de datos no funcionan correctamente en producción
+### PASO 1: DIAGNOSTICAR EL PROBLEMA
+1. **Verificar conexión a Supabase**
+   - Revisar si `window.supabase` está disponible
+   - Verificar configuración de URL y API key
+   - Comprobar autenticación de usuario
 
-## ORDEN DE IMPLEMENTACIÓN
+2. **Verificar tablas de base de datos**
+   - Confirmar que existe la tabla `community_questions`
+   - Verificar permisos RLS (Row Level Security)
+   - Comprobar estructura de datos
 
-### FASE 1: MEJORAR DISEÑO Y FUNCIONALIDAD (LOCALHOST)
-**Objetivo:** Restaurar funcionalidad de botones y mejorar diseño visual
+3. **Revisar errores en consola**
+   - Abrir DevTools en `chat-online.html`
+   - Buscar errores relacionados con comunidad
+   - Verificar logs de carga de datos
 
-#### 1.1 Identificar elementos de la comunidad
-- Buscar sección de comunidad en `chat-online.html`
-- Identificar botones de filtros: "Todas", "Sin Responder", "Respondidas", "Mis Preguntas"
-- Localizar dropdowns: "Todos los Módulos", "Más Recientes"
-- Encontrar botón "Hacer Pregunta"
+### PASO 2: IMPLEMENTAR SOLUCIÓN PASO A PASO
 
-#### 1.2 Corregir funcionalidad de botones
+#### 2.1 Verificar y corregir conexión a Supabase
 ```javascript
-// Verificar event listeners en botones de filtro
-document.querySelectorAll('.filter-button').forEach(button => {
-    button.addEventListener('click', handleFilterClick);
-});
-
-// Corregir dropdowns
-document.querySelectorAll('.dropdown').forEach(dropdown => {
-    dropdown.addEventListener('change', handleDropdownChange);
-});
-```
-
-#### 1.3 Mejorar diseño visual
-- **Colores:** Usar color primario #0066CC para elementos activos
-- **Espaciado:** Mejorar padding y margins entre elementos
-- **Tipografía:** Ajustar tamaños de fuente y pesos
-- **Layout:** Alinear elementos correctamente
-- **Responsive:** Asegurar que funcione en diferentes tamaños de pantalla
-
-### FASE 2: ELIMINAR CONTENIDO HARDCODEADO (NETLIFY)
-**Objetivo:** Conectar con base de datos real y eliminar datos estáticos
-
-#### 2.1 Identificar contenido hardcodeado
-- Buscar preguntas estáticas como "qwEGFWEGWG", "etjhretsjrstjy", "wegfweg"
-- Localizar usuarios hardcodeados como "Gael Flores"
-- Encontrar timestamps falsos como "Ahora mismo", "Hace 1 día"
-- Identificar respuestas y vistas hardcodeadas (0 respuestas, 0 vistas)
-
-#### 2.2 Conectar con APIs reales
-```javascript
-// Verificar conexión con API de comunidad
-async function loadRealQuestions() {
+// En chat-online.js, función loadCommunityQuestions()
+async loadCommunityQuestions() {
+    console.log('🔍 Iniciando carga de preguntas de comunidad...');
+    
+    // Verificar si Supabase está disponible
+    if (!window.supabase) {
+        console.error('❌ Supabase no está disponible');
+        this.showCommunityError('Supabase no configurado');
+        return;
+    }
+    
+    // Verificar autenticación
+    const { data: { user }, error: authError } = await window.supabase.auth.getUser();
+    if (authError) {
+        console.error('❌ Error de autenticación:', authError);
+        this.showCommunityError('Error de autenticación');
+        return;
+    }
+    
+    console.log('✅ Usuario autenticado:', user?.email || 'Anónimo');
+    
+    // Intentar cargar preguntas
     try {
-        const response = await fetch('/api/community/questions?sort=recent');
-        const data = await response.json();
-        renderQuestions(data.questions);
+        const { data: questions, error } = await window.supabase
+            .from('community_questions')
+            .select(`
+                *,
+                users:user_id (
+                    id,
+                    display_name,
+                    username,
+                    profile_picture_url
+                )
+            `)
+            .order('created_at', { ascending: false })
+            .limit(20);
+            
+        if (error) {
+            console.error('❌ Error cargando preguntas:', error);
+            this.showCommunityError(`Error: ${error.message}`);
+            return;
+        }
+        
+        console.log('✅ Preguntas cargadas:', questions.length);
+        this.renderCommunityQuestions(questions);
+        
     } catch (error) {
-        console.error('Error cargando preguntas reales:', error);
+        console.error('❌ Error general:', error);
+        this.showCommunityError('Error inesperado');
     }
 }
 ```
 
-#### 2.3 Eliminar datos estáticos
-- Remover arrays de preguntas hardcodeadas
-- Eliminar usuarios y timestamps falsos
-- Limpiar respuestas y vistas estáticas
-- Asegurar que solo se muestren datos de la base de datos
+#### 2.2 Implementar fallback con CommunityDatabase
+```javascript
+// Si Supabase falla, usar CommunityDatabase como fallback
+async loadCommunityQuestionsWithFallback() {
+    console.log('🔄 Intentando cargar con fallback...');
+    
+    try {
+        // Intentar con Supabase primero
+        await this.loadCommunityQuestions();
+    } catch (error) {
+        console.warn('⚠️ Supabase falló, usando CommunityDatabase...');
+        
+        try {
+            // Inicializar CommunityDatabase si no existe
+            if (!this.communityDB) {
+                this.communityDB = new window.CommunityDatabase();
+                await this.communityDB.initialize();
+            }
+            
+            // Cargar preguntas con CommunityDatabase
+            const questions = await this.communityDB.getQuestions({
+                course_id: this.currentCourseId,
+                module_id: `module-${this.currentModule}`
+            });
+            
+            console.log('✅ Preguntas cargadas con CommunityDatabase:', questions.length);
+            this.renderCommunityQuestions(questions);
+            
+        } catch (dbError) {
+            console.error('❌ CommunityDatabase también falló:', dbError);
+            this.showCommunityError('No se pudieron cargar las preguntas');
+        }
+    }
+}
+```
 
-## ARCHIVOS A MODIFICAR
+#### 2.3 Mejorar manejo de errores y estados
+```javascript
+// Función para mostrar errores de manera amigable
+showCommunityError(message) {
+    const questionsList = document.getElementById('questionsList');
+    if (questionsList) {
+        questionsList.innerHTML = `
+            <div class="community-error">
+                <div class="error-icon">⚠️</div>
+                <h3>Error al cargar preguntas</h3>
+                <p>${message}</p>
+                <button onclick="window.chatOnline.loadCommunityQuestionsWithFallback()" class="retry-btn">
+                    Reintentar
+                </button>
+            </div>
+        `;
+    }
+}
 
-### PRIORIDAD ALTA:
-1. **src/Chat-Online/chat-online.html** - Mejorar diseño y estructura
-2. **src/Chat-Online/chat-online.js** - Corregir funcionalidad de botones
-3. **src/scripts/community-api.js** - Verificar conexión con base de datos
+// Función para mostrar estado de carga
+showCommunityLoading() {
+    const questionsList = document.getElementById('questionsList');
+    if (questionsList) {
+        questionsList.innerHTML = `
+            <div class="community-loading">
+                <div class="loading-spinner"></div>
+                <p>Cargando preguntas de la comunidad...</p>
+</div>
+        `;
+    }
+}
 
-### PRIORIDAD MEDIA:
-4. **src/styles/chat.css** - Mejorar estilos de la comunidad
-5. **netlify/functions/community.js** - Verificar función serverless
+// Función para mostrar estado vacío
+showCommunityEmpty() {
+    const questionsList = document.getElementById('questionsList');
+    if (questionsList) {
+        questionsList.innerHTML = `
+            <div class="community-empty">
+                <div class="empty-icon">💬</div>
+                <h3>No hay preguntas aún</h3>
+                <p>Sé el primero en hacer una pregunta sobre este módulo</p>
+                <button onclick="window.chatOnline.showAskQuestionForm()" class="ask-question-btn">
+                    Hacer Pregunta
+                </button>
+  </div>
+        `;
+    }
+}
+```
 
-### PRIORIDAD BAJA:
-6. **Variables de entorno** - Verificar configuración de base de datos
+#### 2.4 Corregir renderizado de preguntas
+```javascript
+// Función mejorada para renderizar preguntas
+renderCommunityQuestions(questions) {
+    const questionsList = document.getElementById('questionsList');
+    if (!questionsList) {
+        console.error('❌ Elemento questionsList no encontrado');
+        return;
+    }
+    
+    if (!questions || questions.length === 0) {
+        this.showCommunityEmpty();
+        return;
+    }
+    
+    console.log('🎨 Renderizando preguntas:', questions.length);
+    
+    const questionsHTML = questions.map(question => {
+        const author = question.users || { display_name: 'Usuario', username: 'usuario' };
+        const timeAgo = this.formatTimeAgo(question.created_at);
+        
+        return `
+            <div class="question-card" data-question-id="${question.id}">
+                <div class="question-header">
+                    <div class="question-meta">
+                        <span class="question-author">${author.display_name || author.username}</span>
+                        <span class="question-time">${timeAgo}</span>
+                    </div>
+                    <div class="question-stats">
+                        <span class="question-answers">${question.answers_count || 0} respuestas</span>
+                        <span class="question-views">${question.views_count || 0} vistas</span>
+  </div>
+</div>
+                <h3 class="question-title">${question.title}</h3>
+                <p class="question-content">${question.content}</p>
+                <div class="question-tags">
+                    ${(question.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
+  </div>
+                <div class="question-actions">
+                    <button class="action-btn" onclick="window.chatOnline.viewQuestion('${question.id}')">
+                        Ver Pregunta
+                    </button>
+                    <button class="action-btn" onclick="window.chatOnline.bookmarkQuestion('${question.id}')">
+                        Guardar
+                    </button>
+  </div>
+</div>
+        `;
+    }).join('');
+    
+    questionsList.innerHTML = questionsHTML;
+    console.log('✅ Preguntas renderizadas correctamente');
+}
+```
 
-## SOLUCIONES ESPECÍFICAS
-
-### 1. Mejorar diseño de la comunidad
+### PASO 3: AGREGAR ESTILOS CSS PARA ESTADOS
 ```css
-/* En chat.css */
-.community-section {
-    background: rgba(255, 255, 255, 0.02);
+/* En chat-online.css */
+.community-error,
+.community-loading,
+.community-empty {
+    text-align: center;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
-    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     margin: 1rem 0;
 }
 
-.filter-buttons {
-    display: flex;
-    gap: 0.5rem;
+.error-icon,
+.empty-icon {
+    font-size: 3rem;
     margin-bottom: 1rem;
 }
 
-.filter-button {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(0, 102, 204, 0.3);
-    color: var(--glass-text-primary);
-    padding: 0.5rem 1rem;
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(68, 229, 255, 0.3);
+    border-top: 3px solid var(--glass-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.retry-btn,
+.ask-question-btn {
+    background: var(--glass-primary);
+    color: var(--glass-text-dark);
+    border: none;
+    padding: 0.75rem 1.5rem;
     border-radius: 8px;
     cursor: pointer;
+    font-weight: 500;
     transition: all 0.3s ease;
+    margin-top: 1rem;
 }
 
-.filter-button.active {
-    background: #0066CC;
-    border-color: #0066CC;
-    color: white;
-}
-
-.question-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    transition: all 0.3s ease;
-}
-
-.question-card:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(0, 102, 204, 0.3);
+.retry-btn:hover,
+.ask-question-btn:hover {
+    background: var(--glass-primary-dark);
+    transform: translateY(-2px);
 }
 ```
 
-### 2. Corregir funcionalidad de botones
+### PASO 4: VERIFICAR Y CORREGIR CONFIGURACIÓN
+
+#### 4.1 Verificar meta tags en HTML
+```html
+<!-- En chat-online.html, dentro de <head> -->
+<meta name="supabase-url" content="TU_URL_DE_SUPABASE">
+<meta name="supabase-key" content="TU_CLAVE_ANON_DE_SUPABASE">
+```
+
+#### 4.2 Verificar carga de scripts
+```html
+<!-- Al final de chat-online.html, antes de </body> -->
+<script src="../scripts/supabase-client.js"></script>
+<script src="../scripts/community-database.js"></script>
+<script src="api/community-api.js"></script>
+<script src="chat-online.js"></script>
+```
+
+## 🔧 COMANDOS DE VERIFICACIÓN
+
+### 1. Verificar en consola del navegador:
 ```javascript
-// En chat-online.js
-function initializeCommunityFilters() {
-    const filterButtons = document.querySelectorAll('.filter-button');
-    const dropdowns = document.querySelectorAll('.dropdown');
-    
-    filterButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            // Remover clase active de todos los botones
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            // Agregar clase active al botón clickeado
-            e.target.classList.add('active');
-            // Aplicar filtro
-            applyFilter(e.target.dataset.filter);
-        });
-    });
-    
-    dropdowns.forEach(dropdown => {
-        dropdown.addEventListener('change', (e) => {
-            handleDropdownChange(e.target.value, e.target.dataset.type);
-        });
-    });
-}
+// Ejecutar en DevTools de chat-online.html
+console.log('Supabase:', window.supabase);
+console.log('CommunityDatabase:', window.CommunityDatabase);
+console.log('CommunityAPI:', window.communityAPI);
 
-function applyFilter(filterType) {
-    console.log(`Aplicando filtro: ${filterType}`);
-    // Implementar lógica de filtrado
-    loadQuestionsWithFilter(filterType);
-}
+// Verificar usuario autenticado
+window.supabase.auth.getUser().then(({data: {user}}) => {
+    console.log('Usuario:', user);
+});
+
+// Verificar tablas
+window.supabase.from('community_questions').select('*').limit(1).then(({data, error}) => {
+    console.log('Preguntas:', data, 'Error:', error);
+});
 ```
 
-### 3. Eliminar contenido hardcodeado
-```javascript
-// Buscar y eliminar arrays como este:
-const hardcodedQuestions = [
-    {
-        title: "qwEGFWEGWG",
-        author: "Gael Flores",
-        timestamp: "Ahora mismo",
-        // ... más datos falsos
-    }
-];
+### 2. Verificar configuración de Supabase:
+- URL debe ser: `https://tu-proyecto.supabase.co`
+- Key debe ser una clave anónima válida
+- Tabla `community_questions` debe existir
+- RLS debe estar configurado correctamente
 
-// Reemplazar con:
-async function loadRealQuestions() {
-    try {
-        const response = await fetch('/api/community/questions?sort=recent');
-        const data = await response.json();
-        
-        if (data.success && data.questions) {
-            renderQuestions(data.questions);
-        } else {
-            console.error('Error en respuesta de API:', data);
-            showEmptyState();
-        }
-    } catch (error) {
-        console.error('Error cargando preguntas:', error);
-        showErrorState();
-    }
-}
-```
+## ✅ CRITERIOS DE ÉXITO
 
-### 4. Verificar API de comunidad
-```javascript
-// En community-api.js
-class CommunityAPI {
-    constructor() {
-        this.baseURL = '/api/community';
-    }
-    
-    async getQuestions(filters = {}) {
-        try {
-            const params = new URLSearchParams(filters);
-            const response = await fetch(`${this.baseURL}/questions?${params}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Error en CommunityAPI.getQuestions:', error);
-            throw error;
-        }
-    }
-}
-```
+1. **✅ Conexión establecida:** Supabase se conecta correctamente
+2. **✅ Preguntas cargadas:** Se muestran preguntas reales de la base de datos
+3. **✅ Manejo de errores:** Errores se muestran de manera amigable
+4. **✅ Estados visuales:** Loading, error y empty states funcionan
+5. **✅ Fallback funcional:** CommunityDatabase funciona como respaldo
+6. **✅ Sin contenido hardcodeado:** Solo datos reales de la base de datos
 
-## CRITERIOS DE ÉXITO
+## 🚨 PUNTOS CRÍTICOS
 
-### FASE 1 (Diseño y Funcionalidad):
-- ✅ Botones de filtro funcionan correctamente
-- ✅ Dropdowns responden a cambios
-- ✅ Diseño visual mejorado y profesional
-- ✅ Layout responsive y bien alineado
-- ✅ Colores consistentes con el tema (#0066CC)
+1. **NO eliminar funcionalidad existente** - Solo corregir la carga de datos
+2. **Mantener compatibilidad** - Asegurar que funcione en localhost y Netlify
+3. **Manejar errores gracefully** - Mostrar mensajes útiles al usuario
+4. **Verificar configuración** - Asegurar que Supabase esté bien configurado
+5. **Probar paso a paso** - Verificar cada cambio antes de continuar
 
-### FASE 2 (Datos Reales):
-- ✅ No hay contenido hardcodeado visible
-- ✅ Preguntas se cargan desde base de datos
-- ✅ Usuarios y timestamps son reales
-- ✅ Respuestas y vistas se actualizan correctamente
-- ✅ APIs de comunidad funcionan en Netlify
+## 📝 ORDEN DE IMPLEMENTACIÓN
 
-## INSTRUCCIONES ESPECÍFICAS
-
-1. **Trabajar en fases:** Completar Fase 1 antes de comenzar Fase 2
-2. **Probar en localhost:** Verificar que botones funcionen antes de deployar
-3. **Eliminar gradualmente:** Quitar contenido hardcodeado paso a paso
-4. **Mantener fallbacks:** Asegurar que la página funcione aunque las APIs fallen
-5. **Usar color primario:** #0066CC para elementos activos y destacados
-
-## COMANDOS DE PRUEBA
-
-```bash
-# Probar localmente
-npm start
-
-# Verificar funcionalidad de botones
-# Abrir DevTools y probar clicks en filtros
-
-# Deployar a Netlify
-netlify deploy --prod
-
-# Verificar logs de API
-netlify functions:log
-```
-
-## REFERENCIAS TÉCNICAS
-- Netlify Functions: https://docs.netlify.com/functions/overview/
-- CSS Grid y Flexbox: https://css-tricks.com/snippets/css/complete-guide-grid/
-- JavaScript Event Handling: https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
+1. **PRIMERO:** Diagnosticar el problema específico
+2. **SEGUNDO:** Corregir conexión a Supabase
+3. **TERCERO:** Implementar fallback con CommunityDatabase
+4. **CUARTO:** Mejorar manejo de errores y estados
+5. **QUINTO:** Agregar estilos CSS para estados
+6. **SEXTO:** Verificar y probar todo el flujo
 
 ---
 
-**IMPORTANTE:** Trabajar paso a paso, primero mejorar el diseño y funcionalidad en localhost, luego eliminar contenido hardcodeado para conectar con datos reales. Mantener la funcionalidad existente mientras se hacen las mejoras.
+**IMPORTANTE:** Trabajar paso a paso, verificar cada cambio y mantener la funcionalidad existente. El objetivo es que las preguntas de la comunidad se carguen correctamente desde Supabase.

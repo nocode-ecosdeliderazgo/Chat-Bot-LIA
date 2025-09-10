@@ -2490,6 +2490,184 @@ class ChatOnline {
         div.textContent = text;
         return div.innerHTML;
     }
+
+    // ============ FUNCIONES DE MANEJO DE ESTADOS DE COMUNIDAD ============
+    
+    showCommunityLoading() {
+        const questionsList = document.getElementById('questionsList');
+        if (questionsList) {
+            questionsList.innerHTML = `
+                <div class="community-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Cargando preguntas de la comunidad...</p>
+                </div>
+            `;
+        }
+    }
+
+    showCommunityError(message) {
+        const questionsList = document.getElementById('questionsList');
+        if (questionsList) {
+            questionsList.innerHTML = `
+                <div class="community-error">
+                    <div class="error-icon">⚠️</div>
+                    <h3>Error al cargar preguntas</h3>
+                    <p>${message}</p>
+                    <button onclick="window.chatOnline.loadCommunityQuestions('retry-button')" class="retry-btn">
+                        Reintentar
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    showCommunityEmpty() {
+        const questionsList = document.getElementById('questionsList');
+        if (questionsList) {
+            questionsList.innerHTML = `
+                <div class="community-empty">
+                    <div class="empty-icon">💬</div>
+                    <h3>No hay preguntas aún</h3>
+                    <p>Sé el primero en hacer una pregunta sobre este módulo</p>
+                    <button onclick="window.chatOnline.showAskQuestionForm()" class="ask-question-btn">
+                        Hacer Pregunta
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    renderCommunityQuestions(questions) {
+        const questionsList = document.getElementById('questionsList');
+        if (!questionsList) {
+            console.error('❌ Elemento questionsList no encontrado');
+            return;
+        }
+        
+        if (!questions || questions.length === 0) {
+            this.showCommunityEmpty();
+            return;
+        }
+        
+        console.log('🎨 Renderizando preguntas:', questions.length);
+        
+        const questionsHTML = questions.map(question => {
+            const author = question.users || { display_name: 'Usuario', username: 'usuario' };
+            const timeAgo = this.formatTimeAgo(question.created_at);
+            
+            return `
+                <div class="question-card" data-question-id="${question.id}">
+                    <div class="question-header">
+                        <div class="question-meta">
+                            <span class="question-author">${author.display_name || author.username}</span>
+                            <span class="question-time">${timeAgo}</span>
+                        </div>
+                        <div class="question-stats">
+                            <span class="question-answers">${question.answers_count || 0} respuestas</span>
+                            <span class="question-views">${question.views_count || 0} vistas</span>
+                        </div>
+                    </div>
+                    <h3 class="question-title">${question.title}</h3>
+                    <p class="question-content">${question.content}</p>
+                    <div class="question-tags">
+                        ${(question.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                    <div class="question-actions">
+                        <button class="action-btn" onclick="window.chatOnline.viewQuestion('${question.id}')">
+                            Ver Pregunta
+                        </button>
+                        <button class="action-btn" onclick="window.chatOnline.bookmarkQuestion('${question.id}')">
+                            Guardar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        questionsList.innerHTML = questionsHTML;
+        console.log('✅ Preguntas renderizadas correctamente');
+    }
+
+    // ============ FUNCIONES DE INTERACCIÓN DE COMUNIDAD ============
+    
+    showAskQuestionForm() {
+        // Mostrar el modal para hacer una pregunta
+        if (typeof this.showQuestionModal === 'function') {
+            this.showQuestionModal();
+        } else {
+            // Fallback: buscar el botón en el DOM
+            const askBtn = document.querySelector('[onclick*="showQuestionModal"]');
+            if (askBtn) {
+                askBtn.click();
+            } else {
+                console.warn('⚠️ Modal de pregunta no encontrado');
+                this.showNotification('Formulario de preguntas no disponible', 'warning');
+            }
+        }
+    }
+
+    viewQuestion(questionId) {
+        console.log('👁️ Viendo pregunta:', questionId);
+        
+        // Buscar la pregunta en los datos cargados
+        const questionCard = document.querySelector(`[data-question-id="${questionId}"]`);
+        if (questionCard) {
+            // Expandir la pregunta o mostrar modal detallado
+            questionCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            questionCard.style.background = 'rgba(68, 229, 255, 0.1)';
+            questionCard.style.borderColor = 'var(--glass-primary)';
+            
+            // Quitar resaltado después de 2 segundos
+            setTimeout(() => {
+                questionCard.style.background = '';
+                questionCard.style.borderColor = '';
+            }, 2000);
+            
+            // TODO: Implementar modal de vista detallada si es necesario
+            this.showNotification('Pregunta resaltada', 'info');
+        } else {
+            console.warn('⚠️ Pregunta no encontrada:', questionId);
+            this.showNotification('Pregunta no encontrada', 'warning');
+        }
+    }
+
+    bookmarkQuestion(questionId) {
+        console.log('🔖 Guardando pregunta:', questionId);
+        
+        // Obtener bookmarks del localStorage
+        let bookmarks = JSON.parse(localStorage.getItem('communityBookmarks') || '[]');
+        
+        if (bookmarks.includes(questionId)) {
+            // Ya está guardada, remover
+            bookmarks = bookmarks.filter(id => id !== questionId);
+            this.showNotification('Pregunta removida de guardados', 'info');
+        } else {
+            // Agregar a bookmarks
+            bookmarks.push(questionId);
+            this.showNotification('Pregunta guardada', 'success');
+        }
+        
+        // Guardar en localStorage
+        localStorage.setItem('communityBookmarks', JSON.stringify(bookmarks));
+        
+        // Actualizar UI del botón si existe
+        const questionCard = document.querySelector(`[data-question-id="${questionId}"]`);
+        if (questionCard) {
+            const bookmarkBtn = questionCard.querySelector('[onclick*="bookmarkQuestion"]');
+            if (bookmarkBtn) {
+                bookmarkBtn.textContent = bookmarks.includes(questionId) ? '⭐ Guardado' : 'Guardar';
+            }
+        }
+    }
+
+    // Función para mostrar notificaciones (wrapper para la función global)
+    showNotification(message, type = 'info') {
+        if (typeof window.showNotification === 'function') {
+            window.showNotification(message, type);
+        } else {
+            console.log(`📢 [${type.toUpperCase()}] ${message}`);
+        }
+    }
     
     async handleVote(voteBtn) {
         if (!voteBtn) return;
@@ -4074,30 +4252,73 @@ class ChatOnline {
             }
             
             // Mostrar estado de carga
-            questionsList.innerHTML = '<div class="loading-questions"><div class="loading-spinner"></div><span>Cargando preguntas...</span></div>';
+            this.showCommunityLoading();
             
             let questions = [];
             
-            // Try community API first (most reliable)
-            try {
-                if (window.communityAPI) {
-                    console.log('🌐 Usando Community API...');
-                    const response = await window.communityAPI.getQuestions({
-                        course_id: this.currentCourseId,
-                        module_id: `module-${this.currentModule}`,
-                        sort: 'recent'
-                    });
+            // PASO 1: Intentar con Supabase directamente (NUEVA IMPLEMENTACIÓN)
+            if (window.supabase) {
+                console.log('🔍 Verificando conexión a Supabase...');
+                
+                // Verificar autenticación
+                const { data: { user }, error: authError } = await window.supabase.auth.getUser();
+                if (authError) {
+                    console.error('❌ Error de autenticación:', authError);
+                } else {
+                    console.log('✅ Usuario autenticado:', user?.email || 'Anónimo');
                     
-                    if (response.success && response.data) {
-                        questions = response.data;
-                        console.log('✅ Preguntas obtenidas de Community API:', questions.length);
+                    // Intentar cargar preguntas desde Supabase
+                    try {
+                        const { data: supabaseQuestions, error } = await window.supabase
+                            .from('community_questions')
+                            .select(`
+                                *,
+                                users:user_id (
+                                    id,
+                                    display_name,
+                                    username,
+                                    profile_picture_url
+                                )
+                            `)
+                            .order('created_at', { ascending: false })
+                            .limit(20);
+                            
+                        if (error) {
+                            console.error('❌ Error cargando preguntas desde Supabase:', error);
+                        } else {
+                            questions = supabaseQuestions || [];
+                            console.log('✅ Preguntas cargadas desde Supabase:', questions.length);
+                        }
+                    } catch (error) {
+                        console.error('❌ Error general con Supabase:', error);
                     }
                 }
-            } catch (error) {
-                console.warn('⚠️ Community API no disponible:', error.message);
+            } else {
+                console.warn('⚠️ Supabase no está disponible');
             }
             
-            // Fallback to community database if API fails
+            // PASO 2: Fallback a Community API si Supabase falló
+            if (questions.length === 0) {
+                try {
+                    if (window.communityAPI) {
+                        console.log('🌐 Fallback a Community API...');
+                        const response = await window.communityAPI.getQuestions({
+                            course_id: this.currentCourseId,
+                            module_id: `module-${this.currentModule}`,
+                            sort: 'recent'
+                        });
+                        
+                        if (response.success && response.data) {
+                            questions = response.data;
+                            console.log('✅ Preguntas obtenidas de Community API:', questions.length);
+                        }
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Community API falló:', error.message);
+                }
+            }
+            
+            // PASO 3: Fallback a CommunityDatabase si todo falló
             if (questions.length === 0) {
                 try {
                     if (this.communityDB) {
@@ -4118,6 +4339,7 @@ class ChatOnline {
                                 course_id: this.currentCourseId,
                                 module_id: `module-${this.currentModule}`
                             });
+                            console.log('✅ Preguntas obtenidas de CommunityDatabase inicializada:', questions.length);
                         }
                     }
                 } catch (error) {
@@ -4125,8 +4347,7 @@ class ChatOnline {
                 }
             }
             
-            
-            // Log de resultados
+            // PASO 4: Renderizar las preguntas (¡ESTO FALTABA!)
             if (questions.length > 0) {
                 console.log(`✅ [${source}] ${questions.length} preguntas cargadas exitosamente`);
                 console.log(`📋 [${source}] Primeras preguntas:`, questions.slice(0, 3).map(q => ({
@@ -4134,37 +4355,55 @@ class ChatOnline {
                     title: q.title,
                     created_at: q.created_at
                 })));
+                this.renderCommunityQuestions(questions);
             } else {
                 console.warn(`⚠️ [${source}] No se encontraron preguntas - Parámetros:`, {
                     course_id: this.currentCourseId,
                     module_id: `module-${this.currentModule}`,
-                    communityDB_available: !!this.communityDB
+                    communityDB_available: !!this.communityDB,
+                    supabase_available: !!window.supabase
                 });
+                this.showCommunityEmpty();
             }
             
         } catch (error) {
             console.error('❌ Error cargando preguntas:', error);
-            const questionsList = document.getElementById('questionsList');
-            if (questionsList) {
-                questionsList.innerHTML = `
-                    <div class="error-message">
-                        <div class="error-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <line x1="12" y1="8" x2="12" y2="12"/>
-                                <line x1="12" y1="16" x2="12.01" y2="16"/>
-                            </svg>
-                        </div>
-                        <h3>Error al cargar las preguntas</h3>
-                        <p>No se pudieron cargar las preguntas desde la base de datos.</p>
-                        <button class="btn-secondary" onclick="window.chatOnline.loadCommunityQuestions('retry-button')">
-                            Reintentar
-                        </button>
-                    </div>
-                `;
-            }
+            this.showCommunityError('Error inesperado al cargar preguntas');
         } finally {
             this.loadingQuestions = false;
+        }
+    }
+
+    // Función de fallback mejorada según PROMPT_CLAUDE.md
+    async loadCommunityQuestionsWithFallback() {
+        console.log('🔄 Intentando cargar con fallback...');
+        
+        try {
+            // Intentar con Supabase primero
+            await this.loadCommunityQuestions('fallback-attempt');
+        } catch (error) {
+            console.warn('⚠️ Supabase falló, usando CommunityDatabase...', error);
+            
+            try {
+                // Inicializar CommunityDatabase si no existe
+                if (!this.communityDB) {
+                    this.communityDB = new window.CommunityDatabase();
+                    await this.communityDB.initialize();
+                }
+                
+                // Cargar preguntas con CommunityDatabase
+                const questions = await this.communityDB.getQuestions({
+                    course_id: this.currentCourseId,
+                    module_id: `module-${this.currentModule}`
+                });
+                
+                console.log('✅ Preguntas cargadas con CommunityDatabase:', questions.length);
+                this.renderCommunityQuestions(questions);
+                
+            } catch (dbError) {
+                console.error('❌ CommunityDatabase también falló:', dbError);
+                this.showCommunityError('No se pudieron cargar las preguntas');
+            }
         }
     }
 

@@ -4110,6 +4110,29 @@ INSTRUCCIONES:
             window.SUPABASE_URL = config.url;
             window.SUPABASE_ANON_KEY = config.anon_key;
             console.log('✅ Configuración de Supabase cargada');
+            
+            // INICIALIZAR EL CLIENTE DE SUPABASE (ESTO FALTABA!)
+            if (typeof supabase !== 'undefined' && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+              window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+              console.log('✅ Cliente de Supabase inicializado correctamente');
+              
+              // Verificar conexión
+              try {
+                const { data: { user }, error } = await window.supabase.auth.getUser();
+                if (error) {
+                  console.warn('⚠️ Usuario no autenticado:', error.message);
+                } else {
+                  console.log('✅ Usuario Supabase:', user?.email || 'Anónimo');
+                }
+              } catch (authError) {
+                console.warn('⚠️ Error verificando autenticación:', authError);
+              }
+            } else {
+              console.error('❌ No se pudo inicializar Supabase - SDK no disponible o configuración faltante');
+              console.error('   - supabase SDK:', typeof supabase !== 'undefined');
+              console.error('   - SUPABASE_URL:', !!window.SUPABASE_URL);
+              console.error('   - SUPABASE_ANON_KEY:', !!window.SUPABASE_ANON_KEY);
+            }
           } else {
             console.error('❌ Error cargando configuración de Supabase');
           }
