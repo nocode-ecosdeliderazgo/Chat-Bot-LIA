@@ -48,26 +48,102 @@ class ModulesExpandableSystem {
         try {
             console.log('📚 Cargando módulos desde la base de datos...');
             
-            // Intentar obtener datos del curso desde la API
-            const response = await fetch('/api/courses/ia-fundamentos/full-structure');
-            
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success && data.data) {
-                    this.modulesData = data.data.modules || [];
-                    console.log('✅ Módulos cargados desde la base de datos:', this.modulesData);
-                    return;
-                }
-            }
-            
-            // Si falla la API, intentar con datos locales
-            console.log('⚠️ API no disponible, usando datos locales...');
-            this.loadLocalData();
+            // Intentar obtener datos del curso desde la API con retry
+            await this.tryLoadFromAPI();
             
         } catch (error) {
             console.error('❌ Error cargando desde base de datos:', error);
             this.loadLocalData();
         }
+    }
+
+    async tryLoadFromAPI(retryCount = 0) {
+        const maxRetries = 3;
+        const retryDelay = 1000 * Math.pow(2, retryCount); // 1s, 2s, 4s
+        
+        try {
+            console.log(`🔄 Intento ${retryCount + 1}/${maxRetries + 1} cargando desde API...`);
+            
+            // Intentar obtener datos del curso desde la API
+            const response = await fetch('/api/courses/ia-fundamentos/full-structure');
+            
+            console.log(`📡 Respuesta API: ${response.status} ${response.statusText}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('📦 Datos recibidos de API:', data);
+                
+                if (data.success && data.data) {
+                    this.modulesData = data.data.modules || [];
+                    console.log('✅ Módulos cargados desde la base de datos:', this.modulesData.length);
+                    
+                    // Si es fallback, mostrar notificación
+                    if (data._fallback) {
+                        console.log('⚠️ Usando datos de fallback temporal');
+                        this.showTemporaryNotification('Usando datos temporales - algunos datos pueden no estar actualizados');
+                    }
+                    return;
+                }
+            }
+            
+            // Si falla la respuesta, intentar retry
+            if (retryCount < maxRetries) {
+                console.log(`⏰ API falló, reintentando en ${retryDelay}ms...`);
+                await this.delay(retryDelay);
+                return await this.tryLoadFromAPI(retryCount + 1);
+            }
+            
+            // Si todos los reintentos fallaron, usar datos locales
+            console.log('⚠️ API no disponible después de todos los reintentos, usando datos locales...');
+            this.loadLocalData();
+            
+        } catch (error) {
+            console.error(`❌ Error en intento ${retryCount + 1}:`, error);
+            
+            if (retryCount < maxRetries) {
+                console.log(`🔄 Reintentando en ${retryDelay}ms debido a error...`);
+                await this.delay(retryDelay);
+                return await this.tryLoadFromAPI(retryCount + 1);
+            }
+            
+            // Si todos los reintentos fallaron, usar datos locales
+            console.log('❌ Todos los reintentos fallaron, usando datos locales...');
+            this.loadLocalData();
+        }
+    }
+
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    showTemporaryNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'api-fallback-notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #FFA500;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(255,165,0,0.3);
+            max-width: 400px;
+            text-align: center;
+        `;
+        notification.innerHTML = `⚠️ ${message}`;
+
+        document.body.appendChild(notification);
+
+        // Auto-remover después de 5 segundos
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 5000);
     }
 
     loadLocalData() {

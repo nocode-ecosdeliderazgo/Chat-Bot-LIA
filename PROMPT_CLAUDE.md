@@ -1,99 +1,119 @@
-# PROMPT PARA SOLUCIONAR VIDEOS DE YOUTUBE NO VISIBLES EN NETLIFY
+# PROMPT PARA SOLUCIONAR ERRORES 404 DE APIs EN NETLIFY
 
 ## CONTEXTO DEL PROBLEMA
-Tengo un proyecto web que funciona correctamente en localhost:3000, pero al desplegarlo en Netlify, los videos embebidos de YouTube no se muestran y aparece un error 404.
+Tengo un proyecto web que funciona correctamente en localhost:3000, pero al desplegarlo en Netlify, las APIs no responden correctamente y aparecen errores 404. Los videos no se cargan porque las APIs que proporcionan los datos de los cursos fallan.
+
+## ERRORES ESPECÍFICOS IDENTIFICADOS
+```
+GET https://ecosdeliderazgo.com/api/courses/ia-fundamentos/full-structure 404 (Not Found)
+GET https://ecosdeliderazgo.com/api/courses/introduccion-ia/current-module/9562a449-4ade-4d4b-a3e4-b66dddb7e6f0 404 (Not Found)
+modules-expandable-system.js:52 
+ GET https://ecosdeliderazgo.com/api/courses/ia-fundamentos/full-structure 404 (Not Found)
+modules-expandable-system.js:64 ⚠️ API no disponible, usando datos locales...
+modules-expandable-system.js:188 📚 Módulos cargados desde datos locales: 
+(5) [{…}, {…}, {…}, {…}, {…}]
+modules-expandable-system.js:194 ❌ Contenedor de módulos no encontrado
+modules-expandable-system.js:431 ✅ Event listeners configurados
+modules-expandable-system.js:37 ✅ Sistema de módulos expandibles inicializado correctamente
+quick-video-fix.js:16 
+ GET https://ecosdeliderazgo.com/api/courses/introduccion-ia/current-module/9562a449-4ade-4d4b-a3e4-b66dddb7e6f0 404 (Not Found)
+quick-video-fix.js:46 ❌ Error cargando video: Error: HTTP 404: 
+    at HTMLDocument.loadFirstVideo (quick-video-fix.js:19:19)
+loadFirstVideo	@	quick-video-fix.js:46
+```
 
 ## ANÁLISIS INICIAL REQUERIDO
 Antes de realizar cambios, necesito que identifiques:
 
-1. **Archivos principales que manejan videos de YouTube:**
-   - `src/scripts/dynamic-video-loader.js` - Carga dinámica de videos
-   - `src/scripts/youtube-progress-tracker.js` - Seguimiento de progreso
-   - `src/Chat-Online/chat-online.js` - Funciones de carga de video
-   - `src/scripts/main.js` - Funciones de iframe embebido
+1. **Archivos principales que manejan las APIs:**
+   - `src/scripts/modules-expandable-system.js` - Sistema de módulos (línea 52, 64, 188, 194)
+   - `src/scripts/quick-video-fix.js` - Carga rápida de videos (línea 16, 46)
+   - `netlify/functions/course-data.js` - Función de Netlify para datos de cursos
+   - `netlify.toml` - Configuración de redirects de APIs
 
 2. **Configuración actual de Netlify:**
-   - `netlify.toml` - Configuración de redirects y build
-   - `_redirects` - Reglas de redirección
-   - Headers de seguridad y CSP
+   - `netlify.toml` - Redirects de APIs de cursos
+   - `netlify/functions/` - Funciones serverless
+   - Variables de entorno y configuración de build
 
-3. **Patrones de URLs de YouTube encontrados:**
-   - `https://www.youtube.com/embed/${videoId}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0`
-   - `https://www.youtube.com/iframe_api`
-   - URLs de videos con parámetros específicos
+3. **Rutas de API que fallan:**
+   - `/api/courses/ia-fundamentos/full-structure`
+   - `/api/courses/introduccion-ia/current-module/{id}`
+   - Posiblemente otras rutas de `/api/courses/*`
 
 ## DIAGNÓSTICO PASO A PASO
 
 ### PASO 1: IDENTIFICAR LA CAUSA RAÍZ
 Analiza estos posibles problemas:
 
-1. **Headers de Seguridad (CSP):**
-   - Verificar si Content Security Policy bloquea iframes de YouTube
-   - Revisar headers X-Frame-Options
-   - Comprobar referrer policy
+1. **Redirects de Netlify:**
+   - Verificar si los redirects en `netlify.toml` coinciden con las rutas de API
+   - Comprobar si las funciones serverless están correctamente configuradas
+   - Revisar si hay conflictos entre redirects específicos y wildcards
 
-2. **Configuración de Netlify:**
-   - Verificar si hay redirects que interfieren con iframes
-   - Revisar configuración de build y publish directory
-   - Comprobar variables de entorno
+2. **Funciones Serverless:**
+   - Verificar que `netlify/functions/course-data.js` existe y funciona
+   - Comprobar que las funciones manejan correctamente los parámetros de ruta
+   - Revisar logs de Netlify para errores en las funciones
 
-3. **Código JavaScript:**
-   - Verificar si las URLs se construyen correctamente en producción
-   - Revisar si hay diferencias entre localhost y Netlify
-   - Comprobar manejo de errores en iframes
+3. **Configuración de Build:**
+   - Verificar que las funciones se compilan correctamente
+   - Comprobar variables de entorno en Netlify
+   - Revisar configuración de Node.js y dependencias
 
 ### PASO 2: IMPLEMENTAR SOLUCIONES
 
-#### 2.1 Configurar Headers de Seguridad
+#### 2.1 Verificar y Corregir Redirects de API
 ```toml
-# En netlify.toml, agregar:
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Content-Security-Policy = "frame-src 'self' https://www.youtube.com https://youtube.com; script-src 'self' 'unsafe-inline' https://www.youtube.com;"
-    X-Frame-Options = "SAMEORIGIN"
-```
-
-#### 2.2 Verificar URLs de YouTube
-- Asegurar que las URLs usen HTTPS
-- Verificar que los parámetros de embedding sean correctos
-- Implementar fallbacks para videos no disponibles
-
-#### 2.3 Configurar Redirects Específicos
-```toml
-# En netlify.toml, agregar redirects para iframes:
+# En netlify.toml, verificar que estos redirects existan y sean correctos:
 [[redirects]]
-  from = "/youtube-embed/*"
-  to = "https://www.youtube.com/embed/:splat"
+  from = "/api/courses/*/full-structure"
+  to = "/.netlify/functions/course-data"
   status = 200
-  force = true
+
+[[redirects]]
+  from = "/api/courses/*/current-module/*"
+  to = "/.netlify/functions/course-data"
+  status = 200
 ```
+
+#### 2.2 Verificar Función course-data.js
+- Asegurar que la función maneja correctamente los parámetros de ruta
+- Verificar que responde a las rutas específicas que fallan
+- Comprobar que retorna datos en el formato esperado
+
+#### 2.3 Implementar Fallbacks en JavaScript
+- Mejorar el manejo de errores en `modules-expandable-system.js`
+- Implementar retry logic para APIs que fallan
+- Asegurar que los datos locales se usen correctamente cuando las APIs fallan
 
 ### PASO 3: IMPLEMENTAR DETECCIÓN DE ERRORES
 Agregar logging y manejo de errores para:
-- Detectar cuando un iframe falla al cargar
-- Mostrar mensajes de error informativos
-- Implementar retry logic para videos problemáticos
+- Detectar cuando las APIs fallan (404, 500, etc.)
+- Mostrar mensajes de error informativos al usuario
+- Implementar retry logic para APIs problemáticas
+- Asegurar que los fallbacks a datos locales funcionen correctamente
 
 ### PASO 4: OPTIMIZACIONES ADICIONALES
-1. **Lazy Loading:** Implementar carga diferida de videos
-2. **Preconnect:** Agregar preconnect a YouTube para mejorar rendimiento
-3. **Error Boundaries:** Implementar manejo de errores en componentes de video
+1. **Caching:** Implementar cache para respuestas de API
+2. **Error Boundaries:** Implementar manejo de errores en componentes de curso
+3. **Loading States:** Mejorar estados de carga mientras se obtienen datos
 
 ## ARCHIVOS A MODIFICAR (EN ORDEN DE PRIORIDAD)
 
-1. **netlify.toml** - Configuración de headers y redirects
-2. **src/scripts/dynamic-video-loader.js** - Mejorar manejo de errores
-3. **src/scripts/youtube-progress-tracker.js** - Verificar configuración de API
-4. **src/Chat-Online/chat-online.js** - Actualizar funciones de carga
-5. **src/scripts/main.js** - Mejorar funciones de iframe
+1. **netlify.toml** - Verificar y corregir redirects de API
+2. **netlify/functions/course-data.js** - Verificar función serverless
+3. **src/scripts/modules-expandable-system.js** - Mejorar manejo de errores de API
+4. **src/scripts/quick-video-fix.js** - Mejorar manejo de errores de carga
+5. **Variables de entorno** - Verificar configuración en Netlify
 
 ## CRITERIOS DE ÉXITO
+- APIs de cursos responden correctamente (no más errores 404)
 - Videos de YouTube se cargan correctamente en Netlify
-- No aparecen errores 404 en consola
+- No aparecen errores 404 en consola del navegador
 - Funcionalidad de progreso de videos funciona
-- API de YouTube se carga correctamente
-- No hay errores de CSP o headers de seguridad
+- Fallbacks a datos locales funcionan cuando las APIs fallan
+- Sistema de módulos expandibles funciona correctamente
 
 ## INSTRUCCIONES ESPECÍFICAS
 1. **NO modifiques múltiples archivos simultáneamente**
@@ -113,9 +133,10 @@ netlify deploy --prod
 ```
 
 ## REFERENCIAS TÉCNICAS
-- YouTube Embed API: https://developers.google.com/youtube/iframe_api_reference
-- Netlify Headers: https://docs.netlify.com/routing/headers/
-- CSP para YouTube: https://developers.google.com/youtube/player_parameters
+- Netlify Functions: https://docs.netlify.com/functions/overview/
+- Netlify Redirects: https://docs.netlify.com/routing/redirects/
+- Netlify Environment Variables: https://docs.netlify.com/environment-variables/overview/
+- Serverless Functions Debugging: https://docs.netlify.com/functions/troubleshooting/
 
 ---
 

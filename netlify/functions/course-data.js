@@ -162,11 +162,30 @@ async function getCourseFullStructure(courseId, queryParams, headers) {
 
         if (courseError || !courseData) {
             console.error('❌ Error obteniendo curso:', courseError);
+            console.error('🔍 Course ID buscado:', courseId);
+            console.error('🔍 Es UUID?:', courseId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) ? 'Sí' : 'No');
+            
+            // Listar cursos disponibles para debugging
+            const { data: availableCourses } = await supabase
+                .from('courses')
+                .select('id, title, slug')
+                .eq('is_active', true);
+                
+            console.log('📋 Cursos disponibles:', availableCourses);
+            
+            // FALLBACK TEMPORAL: Si el courseId coincide con slugs conocidos, usar datos mockeados
+            if (courseId === 'ia-fundamentos' || courseId === 'introduccion-ia') {
+                console.log('🔧 Usando fallback para courseId conocido:', courseId);
+                return await getFallbackCourseData(courseId, queryParams, headers);
+            }
+            
             return {
                 statusCode: 404,
                 headers,
                 body: JSON.stringify({ 
                     error: 'Curso no encontrado',
+                    requestedCourseId: courseId,
+                    availableCourses: availableCourses?.map(c => ({ id: c.id, slug: c.slug, title: c.title })),
                     details: courseError?.message 
                 })
             };
@@ -288,10 +307,21 @@ async function getCurrentModule(courseId, userId, headers) {
         // Resolver courseId a UUID si es necesario
         const resolvedCourseId = await resolveCourseId(courseId);
         if (!resolvedCourseId) {
+            console.error('❌ getCurrentModule - Curso no encontrado:', courseId);
+            
+            // FALLBACK TEMPORAL: Si el courseId coincide con slugs conocidos, usar datos mockeados
+            if (courseId === 'ia-fundamentos' || courseId === 'introduccion-ia') {
+                console.log('🔧 getCurrentModule - Usando fallback para courseId conocido:', courseId);
+                return await getFallbackCurrentModule(courseId, userId, headers);
+            }
+            
             return {
                 statusCode: 404,
                 headers,
-                body: JSON.stringify({ error: 'Curso no encontrado' })
+                body: JSON.stringify({ 
+                    error: 'Curso no encontrado',
+                    requestedCourseId: courseId
+                })
             };
         }
 
@@ -658,4 +688,130 @@ async function getModuleVideos(moduleId, queryParams, headers) {
             })
         };
     }
+}
+
+// =====================================================
+// FUNCIÓN DE FALLBACK TEMPORAL
+// =====================================================
+
+async function getFallbackCourseData(courseId, queryParams, headers) {
+    console.log(`🔧 Generando datos de fallback para courseId: ${courseId}`);
+    
+    const { userId } = queryParams;
+    
+    // Datos mockeados basados en los datos locales del modules-expandable-system.js
+    const fallbackData = {
+        success: true,
+        data: {
+            course: {
+                id: courseId === 'ia-fundamentos' ? '550e8400-e29b-41d4-a716-446655440001' : '550e8400-e29b-41d4-a716-446655440002',
+                title: courseId === 'ia-fundamentos' ? 'Fundamentos de IA' : 'Introducción a la IA',
+                slug: courseId,
+                category: 'Inteligencia Artificial',
+                description: 'Curso completo de Inteligencia Artificial'
+            },
+            modules: [
+                {
+                    id: 'modulo-1',
+                    module_number: 1,
+                    title: '¿Qué es la IA?',
+                    description: 'Introducción fundamental a la Inteligencia Artificial',
+                    duration_minutes: 25,
+                    order_index: 1,
+                    videos: [
+                        {
+                            id: 'video-1-1',
+                            video_title: 'Bienvenida al curso de Inteligencia Artificial',
+                            duration_seconds: 330,
+                            youtube_video_id: 'MRIv2IwFTPg',
+                            youtube_embed_url: 'https://www.youtube.com/embed/MRIv2IwFTPg?enablejsapi=1&modestbranding=1&rel=0&showinfo=0',
+                            video_order: 1,
+                            checkpoints: [],
+                            user_progress: userId ? {
+                                current_time_seconds: 0,
+                                is_completed: false,
+                                progress_percentage: 0
+                            } : null
+                        }
+                    ]
+                },
+                {
+                    id: 'modulo-2',
+                    module_number: 2,
+                    title: 'Tipos de IA',
+                    description: 'Diferentes categorías y aplicaciones de la IA',
+                    duration_minutes: 30,
+                    order_index: 2,
+                    videos: [
+                        {
+                            id: 'video-2-1',
+                            video_title: 'IA Débil vs IA Fuerte',
+                            duration_seconds: 420,
+                            youtube_video_id: 'NCTDfjtDN1c',
+                            youtube_embed_url: 'https://www.youtube.com/embed/NCTDfjtDN1c?enablejsapi=1&modestbranding=1&rel=0&showinfo=0',
+                            video_order: 1,
+                            checkpoints: [],
+                            user_progress: userId ? {
+                                current_time_seconds: 0,
+                                is_completed: false,
+                                progress_percentage: 0
+                            } : null
+                        }
+                    ]
+                }
+            ],
+            summary: {
+                total_modules: 2,
+                total_videos: 2,
+                total_duration_minutes: 55
+            }
+        },
+        _fallback: true,
+        message: 'Datos de fallback temporal - curso no encontrado en BD'
+    };
+
+    console.log('✅ Datos de fallback generados exitosamente');
+    
+    return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(fallbackData)
+    };
+}
+
+async function getFallbackCurrentModule(courseId, userId, headers) {
+    console.log(`🔧 Generando módulo actual de fallback para courseId: ${courseId}, userId: ${userId}`);
+    
+    const fallbackData = {
+        success: true,
+        current_module: {
+            id: 'modulo-1',
+            module_number: 1,
+            title: '¿Qué es la IA?',
+            description: 'Introducción fundamental a la Inteligencia Artificial'
+        },
+        current_video: {
+            id: 'video-1-1',
+            video_title: 'Bienvenida al curso de Inteligencia Artificial',
+            duration_seconds: 330,
+            youtube_video_id: 'MRIv2IwFTPg',
+            youtube_embed_url: 'https://www.youtube.com/embed/MRIv2IwFTPg?enablejsapi=1&modestbranding=1&rel=0&showinfo=0',
+            checkpoints: [],
+            user_progress: {
+                current_time_seconds: 0,
+                is_completed: false,
+                progress_percentage: 0
+            }
+        },
+        _fallback: true,
+        message: 'Módulo actual de fallback temporal - curso no encontrado en BD'
+    };
+
+    console.log('✅ Módulo actual de fallback generado exitosamente');
+    
+    return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(fallbackData)
+    };
 }
