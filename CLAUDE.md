@@ -49,11 +49,19 @@ npm run setup
 
 ### Database Operations
 ```bash
+# Initialize progress database tables
+npm run init:database
+# or
+npm run init:progress
+
 # Extract Supabase configuration
 node scripts/extract-supabase-config.js
 
 # Initial project setup
 node scripts/setup.js
+
+# Import GenAI questions (if using Supabase)
+SUPABASE_URL="your_url" SUPABASE_SERVICE_KEY="your_key" node scripts/import-genai-questions.js --clear --verbose
 ```
 
 ## Architecture Overview
@@ -128,11 +136,27 @@ The frontend follows a multi-page application (MPA) pattern with shared componen
 ### Environment Configuration
 Create `.env` file with required variables:
 ```
+# Supabase Configuration
 SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_ROLE_KEY=your_service_key
+
+# OpenAI Configuration
 OPENAI_API_KEY=your_openai_key
+
+# Database Configuration
 DATABASE_URL=your_postgresql_url
-SMTP_CONFIG=your_email_configuration
+
+# Server Configuration
+PORT=3000
+NODE_ENV=development
+API_SECRET_KEY=your_api_secret
+USER_JWT_SECRET=your_jwt_secret
+
+# Email Configuration (for OTP verification)
+SMTP_HOST=your_smtp_host
+SMTP_PORT=587
+SMTP_USER=your_email
+SMTP_PASS=your_email_password
 ```
 
 ### Frontend Development
@@ -148,16 +172,18 @@ SMTP_CONFIG=your_email_configuration
 - Security-first approach with CSP and rate limiting
 
 ### Deployment Architecture
-**Netlify Deployment**:
-- Functions in `netlify/functions/` for serverless API
-- Static site deployment from `src/`
-- Environment variables through Netlify UI
-- Redirects configured in `netlify.toml`
+**Netlify Deployment** (Primary):
+- Functions in `netlify/functions/` for serverless API endpoints
+- Static site deployment from `src/` directory
+- Comprehensive redirect rules in `netlify.toml` for API routing
+- Environment variables managed through Netlify UI
+- Node.js 18+ runtime environment
 
-**Alternative Heroku Deployment**:
-- `Procfile` configured for Heroku deployment
-- PostgreSQL add-on support
-- Environment variable configuration
+**Heroku Deployment** (Alternative):
+- `Procfile` configured for Express server deployment
+- PostgreSQL add-on support with connection pooling
+- Environment variable configuration through Heroku Config Vars
+- Suitable for applications requiring persistent server instances
 
 ## Testing Strategy
 
@@ -173,6 +199,18 @@ tests/
   ├── setup.js           # Test environment setup
   ├── __tests__/         # Unit tests
   └── integration/       # Integration tests
+```
+
+### Running Specific Tests
+```bash
+# Run a specific test file
+npm test -- tests/__tests__/specific-test.js
+
+# Run tests in watch mode
+npm test -- --watch
+
+# Run tests with coverage report
+npm test -- --coverage
 ```
 
 ## Security Considerations
@@ -262,10 +300,10 @@ const observeElements = () => {
 
 ### Critical Configuration Files
 - `package.json` - Dependencies and npm scripts
-- `netlify.toml` - Deployment and redirect configuration  
-- `jest.config.js` - Testing framework configuration
-- `webpack.config.js` - Build configuration (if needed)
-- `Procfile` - Heroku deployment configuration
+- `netlify.toml` - Deployment and redirect configuration with API routing
+- `jest.config.js` - Testing framework configuration with jsdom environment
+- `server.js` - Express server with security middleware and database connections
+- `Procfile` - Heroku deployment configuration (if using Heroku)
 
 ### Entry Points
 - `server.js` - Backend server entry point
@@ -277,3 +315,51 @@ const observeElements = () => {
 - Chat System: `src/chat.html`, AI integration in Netlify Functions
 - Course System: `src/courses.html`, `src/data/course-data.js`
 - UI Components: `src/scripts/` (animations, themes, particles)
+
+## Database Management Scripts
+
+The project includes several utility scripts for database management:
+
+```bash
+# Initialize progress tracking database
+node scripts/init-progress-database.js
+
+# Setup Zoom integration database tables
+node scripts/init-zoom-db.js
+
+# Insert sample activities for testing
+node scripts/insert-sample-activities.js
+
+# Run activity data migration
+node scripts/run-activity-migration.js
+
+# Test activity functionality
+node scripts/test-activities.js
+```
+
+## Troubleshooting
+
+### Port Conflicts
+If you encounter port conflicts, use the provided port killing scripts:
+```bash
+# Kill process on port 3000
+npm run port:kill
+
+# Kill process on port 3001  
+npm run port:kill:3001
+
+# Force start development server (kills port first)
+npm run dev:force
+```
+
+### Database Connection Issues
+1. Verify `.env` file has correct `DATABASE_URL`
+2. Ensure PostgreSQL service is running
+3. Check Supabase configuration if using Supabase features
+4. Run database initialization scripts if tables are missing
+
+### Netlify Functions Debugging
+- Functions are located in `netlify/functions/`
+- Check function logs in Netlify dashboard
+- Verify API redirects in `netlify.toml` match your endpoints
+- Test functions locally before deployment

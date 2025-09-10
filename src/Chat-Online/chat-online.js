@@ -1041,7 +1041,7 @@ class ChatOnline {
     obtenerTokenAuth() {
         const token = localStorage.getItem('authToken');
         if (token) {
-            console.log('[LIA] 🔑 Usando token real del localStorage');
+            // Token del localStorage encontrado
             return token;
         }
         
@@ -1230,13 +1230,16 @@ class ChatOnline {
                     targetContent.style.visibility = 'visible';
                     targetContent.style.opacity = '1';
                     
-                    // Solo cargar preguntas si no se han cargado antes
+                    // Siempre cargar preguntas cuando se accede a la pestaña de comunidad
+                    // Esto asegura que se muestren las preguntas actualizadas de la base de datos
                     if (!this.communityQuestionsLoaded) {
                         await this.loadCommunityQuestions('tab-switch-initial');
                         this.communityQuestionsLoaded = true;
                         console.log('✅ Comunidad configurada y preguntas cargadas');
                     } else {
-                        console.log('✅ Comunidad ya cargada previamente, saltando carga...');
+                        // Aunque ya se hayan cargado antes, mostrar las preguntas actuales
+                        console.log('🔄 Actualizando vista de comunidad con preguntas existentes...');
+                        await this.loadCommunityQuestions('tab-switch-refresh');
                     }
                 }, 10);
             } else if (contentType === 'activity') {
@@ -1245,6 +1248,13 @@ class ChatOnline {
                 // Cargar actividades del video actual cuando se accede a la pestaña
                 setTimeout(() => {
                     this.loadActivityContent();
+                }, 10);
+            } else if (contentType === 'summary') {
+                console.log('📄 Configurando contenido de resumen');
+                
+                // Cargar resumen del video actual cuando se accede a la pestaña
+                setTimeout(() => {
+                    this.loadSummaryContent();
                 }, 10);
             }
         } else {
@@ -4067,28 +4077,12 @@ class ChatOnline {
                 module_id: `module-${this.currentModule}`
             });
             
-            // Intentar con communityDB primero, con fallback a API
-            if (this.communityDB) {
-                try {
-                    console.log('💾 Intentando usar communityDB para obtener preguntas...');
-                    questions = await this.communityDB.getQuestions({
-                        course_id: this.currentCourseId,
-                        module_id: `module-${this.currentModule}`
-                    });
-                    console.log('💾 Preguntas obtenidas de communityDB:', questions.length);
-                } catch (dbError) {
-                    console.warn('⚠️ Error con communityDB para obtener preguntas, usando API:', dbError.message);
-                    console.log('🌐 Fallback: Usando API para obtener preguntas...');
-                    questions = await this.getQuestionsViaAPI();
-                    console.log('🌐 Preguntas obtenidas de API:', questions.length);
-                }
-            } else {
-                console.log('🌐 CommunityDB no disponible, usando API para obtener preguntas...');
-                questions = await this.getQuestionsViaAPI();
-                console.log('🌐 Preguntas obtenidas de API:', questions.length);
-            }
+            // Usar API del servidor directamente ya que es más confiable que Supabase directo
+            console.log('🌐 Usando API del servidor para obtener preguntas (más confiable)...');
+            questions = await this.getQuestionsViaAPI();
+            console.log('🌐 Preguntas obtenidas de API:', questions.length);
             
-            console.log(`✅ [${source}] TOTAL: ${questions.length} preguntas cargadas desde ${this.communityDB ? 'base de datos' : 'API'}`);
+            console.log(`✅ [${source}] TOTAL: ${questions.length} preguntas cargadas desde API del servidor`);
             
             // Log detallado de las preguntas con información de contexto
             if (questions.length > 0) {
@@ -4203,6 +4197,8 @@ class ChatOnline {
 
     async getQuestionsViaAPI() {
         try {
+            // Preparando consulta a API del servidor
+            
             const response = await fetch(`/api/community/questions?course_id=${this.currentCourseId}&module_id=module-${this.currentModule}`, {
                 headers: {
                     'Authorization': `Bearer ${this.getAuthToken()}`
@@ -4214,6 +4210,8 @@ class ChatOnline {
             }
             
             const result = await response.json();
+            // Respuesta procesada exitosamente
+            
             return result.data || [];
             
         } catch (error) {
@@ -4479,7 +4477,7 @@ class ChatOnline {
         // Intentar obtener token real
         const token = localStorage.getItem('authToken');
         if (token && token !== 'null' && token !== 'undefined') {
-            console.log('🔑 Usando token real:', token.substring(0, 20) + '...');
+            // Token encontrado y validado
             return token;
         }
         
@@ -7406,6 +7404,53 @@ class ChatOnline {
             }
         } catch (error) {
             console.error('❌ Error cargando contenido de actividades:', error);
+        }
+    }
+
+    // ===== FUNCIÓN PARA CARGAR CONTENIDO DE RESUMEN =====
+
+    loadSummaryContent() {
+        try {
+            console.log('📄 Cargando contenido de resumen...');
+            
+            // Verificar si el Module1VideosLoader está disponible
+            if (window.module1VideosLoader && window.module1VideosLoader.videos) {
+                console.log('✅ Module1VideosLoader encontrado');
+                
+                // Obtener el video actual
+                const currentVideo = window.module1VideosLoader.videos.find(video => 
+                    video.id === window.module1VideosLoader.currentVideoId
+                );
+                
+                if (currentVideo) {
+                    console.log('🎬 Video actual encontrado:', currentVideo.video_title);
+                    console.log('📄 Resumen:', currentVideo.resumen ? 'EXISTE' : 'NO EXISTE');
+                    
+                    // Llamar a la función updateSummaryContent del Module1VideosLoader
+                    window.module1VideosLoader.updateSummaryContent(currentVideo);
+                    console.log('✅ Contenido de resumen cargado correctamente');
+                } else {
+                    console.warn('⚠️ No se encontró video actual, usando el primer video disponible');
+                    if (window.module1VideosLoader.videos.length > 0) {
+                        const firstVideo = window.module1VideosLoader.videos[0];
+                        window.module1VideosLoader.updateSummaryContent(firstVideo);
+                        console.log('✅ Contenido de resumen cargado con el primer video');
+                    }
+                }
+            } else {
+                console.warn('⚠️ Module1VideosLoader no está disponible');
+                
+                // Fallback: mostrar mensaje de que no hay resumen disponible
+                const summaryContent = document.querySelector('.summary-content');
+                if (summaryContent) {
+                    summaryContent.innerHTML = `
+                        <p class="no-summary">No hay resumen disponible para este video.</p>
+                    `;
+                    console.log('✅ Mensaje de fallback mostrado');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error cargando contenido de resumen:', error);
         }
     }
 }

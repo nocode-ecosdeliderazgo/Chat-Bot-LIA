@@ -761,6 +761,9 @@ class Module1VideosLoader {
             // Actualizar actividades en el área correcta
             this.updateActivityContent(video);
 
+            // Actualizar resumen en el área correcta
+            this.updateSummaryContent(video);
+
         } catch (error) {
             console.error('❌ Error actualizando información del video:', error);
         }
@@ -888,6 +891,73 @@ class Module1VideosLoader {
             }
         } catch (error) {
             console.error('❌ Error actualizando actividades:', error);
+        }
+    }
+
+    // =====================================================
+    // FUNCIÓN PARA ACTUALIZAR CONTENIDO DE RESUMEN
+    // =====================================================
+
+    updateSummaryContent(video) {
+        try {
+            console.log('🔍 [DEBUG] updateSummaryContent llamado para:', video.video_title);
+            console.log('🔍 [DEBUG] Video object keys:', Object.keys(video));
+            console.log('🔍 [DEBUG] resumen:', video.resumen ? 'EXISTE' : 'NO EXISTE');
+            
+            const summaryContent = document.querySelector('.summary-content');
+            console.log('🔍 [DEBUG] summary-content encontrado:', !!summaryContent);
+            
+            if (summaryContent) {
+                console.log('📄 Actualizando resumen para:', video.video_title);
+                
+                // Actualizar el título del resumen
+                const summaryTitle = summaryContent.querySelector('h4');
+                if (summaryTitle) {
+                    summaryTitle.textContent = `Resumen del Video - ${video.video_title}`;
+                }
+                
+                // Verificar si existe el contenedor para el resumen
+                let summaryBody = summaryContent.querySelector('.summary-text');
+                if (!summaryBody) {
+                    // Si no existe, crear la estructura
+                    summaryContent.innerHTML = '<div class="summary-text"></div>';
+                    summaryBody = summaryContent.querySelector('.summary-text');
+                }
+                
+                if (summaryBody) {
+                    if (video.resumen && video.resumen.trim()) {
+                        console.log('📄 Actualizando contenido de resumen');
+                        console.log('📄 [DEBUG] Contenido resumen (primeros 100 chars):', video.resumen.substring(0, 100));
+                        
+                        const htmlContent = `
+                            <div class="summary-text-content">
+                                <h3>Resumen del Video</h3>
+                                <div class="summary-body">
+                                    ${this.replaceEmojisWithIcons(video.resumen).split('\n').map(paragraph => 
+                                        paragraph.trim() ? `<p>${paragraph.trim()}</p>` : ''
+                                    ).join('')}
+                                </div>
+                            </div>
+                        `;
+                        
+                        summaryBody.innerHTML = htmlContent;
+                        console.log('✅ [DEBUG] Resumen HTML actualizado');
+                    } else {
+                        console.log('⚠️ [DEBUG] No hay resumen, mostrando mensaje de no disponible');
+                        summaryBody.innerHTML = `
+                            <div class="no-summary">
+                                <p>No hay resumen disponible para este video.</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    console.log('❌ [DEBUG] No se pudo crear o encontrar .summary-text en el DOM');
+                }
+                
+                console.log('✅ Resumen actualizado correctamente');
+            }
+        } catch (error) {
+            console.error('❌ Error actualizando resumen:', error);
         }
     }
 

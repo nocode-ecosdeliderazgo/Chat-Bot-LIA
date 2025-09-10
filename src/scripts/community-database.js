@@ -601,7 +601,8 @@ class CommunityDatabase {
             return data;
         } catch (error) {
             console.error('❌ Error en getQuestions:', error);
-            return [];
+            // Lanzar el error para que el sistema pueda usar el fallback al API
+            throw error;
         }
     }
 
