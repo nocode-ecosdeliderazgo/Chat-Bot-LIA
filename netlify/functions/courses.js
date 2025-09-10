@@ -179,7 +179,8 @@ async function handleModule1Videos(event) {
         transcript_text,
         thumbnail_url,
         descripcion_actividad,
-        prompts_actividad
+        prompts_actividad,
+        resumen
       `)
       .eq('module_id', moduleId)
       .order('video_order', { ascending: true });

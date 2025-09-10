@@ -1246,6 +1246,13 @@ class ChatOnline {
                 setTimeout(() => {
                     this.loadActivityContent();
                 }, 10);
+            } else if (contentType === 'summary') {
+                console.log('📄 Configurando contenido de resumen');
+                
+                // Cargar resumen del video actual cuando se accede a la pestaña
+                setTimeout(() => {
+                    this.loadSummaryContent();
+                }, 10);
             }
         } else {
             console.error(`❌ No se encontró contenido para: ${contentType}`);
@@ -7408,6 +7415,53 @@ class ChatOnline {
             }
         } catch (error) {
             console.error('❌ Error cargando contenido de actividades:', error);
+        }
+    }
+
+    // ===== FUNCIÓN PARA CARGAR CONTENIDO DE RESUMEN =====
+
+    loadSummaryContent() {
+        try {
+            console.log('📄 Cargando contenido de resumen...');
+            
+            // Verificar si el Module1VideosLoader está disponible
+            if (window.module1VideosLoader && window.module1VideosLoader.videos) {
+                console.log('✅ Module1VideosLoader encontrado');
+                
+                // Obtener el video actual
+                const currentVideo = window.module1VideosLoader.videos.find(video => 
+                    video.id === window.module1VideosLoader.currentVideoId
+                );
+                
+                if (currentVideo) {
+                    console.log('🎬 Video actual encontrado:', currentVideo.video_title);
+                    console.log('📄 Resumen:', currentVideo.resumen ? 'EXISTE' : 'NO EXISTE');
+                    
+                    // Llamar a la función updateSummaryContent del Module1VideosLoader
+                    window.module1VideosLoader.updateSummaryContent(currentVideo);
+                    console.log('✅ Contenido de resumen cargado correctamente');
+                } else {
+                    console.warn('⚠️ No se encontró video actual, usando el primer video disponible');
+                    if (window.module1VideosLoader.videos.length > 0) {
+                        const firstVideo = window.module1VideosLoader.videos[0];
+                        window.module1VideosLoader.updateSummaryContent(firstVideo);
+                        console.log('✅ Contenido de resumen cargado con el primer video');
+                    }
+                }
+            } else {
+                console.warn('⚠️ Module1VideosLoader no está disponible');
+                
+                // Fallback: mostrar mensaje de que no hay resumen disponible
+                const summaryContent = document.querySelector('.summary-content');
+                if (summaryContent) {
+                    summaryContent.innerHTML = `
+                        <p class="no-summary">No hay resumen disponible para este video.</p>
+                    `;
+                    console.log('✅ Mensaje de fallback mostrado');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error cargando contenido de resumen:', error);
         }
     }
 }
