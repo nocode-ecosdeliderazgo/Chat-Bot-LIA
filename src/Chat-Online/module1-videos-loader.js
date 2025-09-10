@@ -997,7 +997,10 @@ class Module1VideosLoader {
     getApiBaseUrl() {
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const currentPort = window.location.port;
-        const isNetlify = window.location.hostname.includes('netlify') || window.location.hostname.includes('app');
+        const isNetlify = window.location.hostname.includes('netlify') || 
+                          window.location.hostname.includes('app') ||
+                          window.location.hostname === 'ecosdeliderazgo.com' ||
+                          window.location.protocol === 'https:' && !isLocalhost;
         
         if (isLocalhost && currentPort === '8888') {
             // Desarrollo local con Netlify Dev
@@ -1006,7 +1009,7 @@ class Module1VideosLoader {
             // Desarrollo local con servidor Node.js
             return '/api';
         } else if (isNetlify) {
-            // Producción en Netlify
+            // Producción en Netlify (incluye dominios personalizados)
             return '/.netlify/functions';
         } else {
             // Servidor personalizado en producción
