@@ -893,19 +893,122 @@ class ChatOnlineV2 {
         };
         return panelMap[buttonId];
     }
+
+    // =====================================================
+    // FUNCIÓN DE VOTACIÓN
+    // =====================================================
+    
+    async handleVote(voteBtn) {
+        if (!voteBtn) return;
+        
+        const isUpvote = voteBtn.classList.contains('upvote');
+        const isSmallBtn = voteBtn.classList.contains('vote-btn-sm');
+        
+        // Determinar el tipo de elemento y su ID
+        let targetType, targetId, voteCountEl;
+        
+        // Para elementos en detalles (respuestas/comentarios) que usan data attributes
+        if (voteBtn.hasAttribute('data-target-type') && voteBtn.hasAttribute('data-target-id')) {
+            targetType = voteBtn.getAttribute('data-target-type');
+            targetId = voteBtn.getAttribute('data-target-id');
+            
+            // Buscar el contador de votos
+            const voteControls = voteBtn.closest('.vote-controls, .vote-controls-sm');
+            if (voteControls) {
+                voteCountEl = voteControls.querySelector('.vote-count, .vote-count-sm');
+            }
+        } else {
+            // Para preguntas principales, buscar desde el botón
+            const questionItem = voteBtn.closest('.question-item');
+            if (questionItem) {
+                targetType = 'question';
+                targetId = questionItem.getAttribute('data-question-id');
+                
+                // Buscar el contador de votos
+                const questionVotes = questionItem.querySelector('.question-votes');
+                if (questionVotes) {
+                    voteCountEl = questionVotes.querySelector('.vote-count');
+                }
+            }
+        }
+        
+        if (!targetType || !targetId) {
+            console.error('❌ No se pudo determinar el tipo o ID del elemento a votar');
+            return;
+        }
+        
+        try {
+            console.log(`📊 Votando ${targetType} ${targetId}: ${isUpvote ? 'upvote' : 'downvote'}`);
+            
+            // Usar la API de comunidad si está disponible
+            if (window.communityAPI) {
+                const voteType = isUpvote ? 'upvote' : 'downvote';
+                const response = await window.communityAPI.vote(targetType, targetId, voteType);
+                
+                if (response.success) {
+                    // Actualizar el contador de votos
+                    if (voteCountEl) {
+                        voteCountEl.textContent = response.data.new_vote_count || 0;
+                    }
+                    
+                    // Actualizar el estado visual del botón
+                    this.updateVoteButtonState(voteBtn, response.data.user_vote);
+                    
+                    console.log(`✅ Voto registrado: ${response.data.user_vote}`);
+                } else {
+                    console.error('❌ Error en la API:', response.error);
+                }
+            } else {
+                console.warn('⚠️ API de comunidad no disponible, simulando voto...');
+                
+                // Simulación de voto para testing
+                if (voteCountEl) {
+                    const currentCount = parseInt(voteCountEl.textContent) || 0;
+                    const newCount = isUpvote ? currentCount + 1 : currentCount - 1;
+                    voteCountEl.textContent = Math.max(0, newCount);
+                }
+                
+                // Actualizar estado visual
+                this.updateVoteButtonState(voteBtn, isUpvote ? 'upvote' : 'downvote');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error en handleVote:', error);
+        }
+    }
+    
+    updateVoteButtonState(voteBtn, userVote) {
+        // Remover clases de estado anterior
+        voteBtn.classList.remove('voted', 'upvoted', 'downvoted');
+        
+        // Agregar clase de estado actual
+        if (userVote === 'upvote') {
+            voteBtn.classList.add('voted', 'upvoted');
+        } else if (userVote === 'downvote') {
+            voteBtn.classList.add('voted', 'downvoted');
+        }
+        
+        // Actualizar el botón opuesto también
+        const voteControls = voteBtn.closest('.question-votes, .vote-controls, .vote-controls-sm');
+        if (voteControls) {
+            const oppositeBtn = voteControls.querySelector(voteBtn.classList.contains('upvote') ? '.downvote' : '.upvote');
+            if (oppositeBtn) {
+                oppositeBtn.classList.remove('voted', 'upvoted', 'downvoted');
+            }
+        }
+    }
 }
 
 // =====================================================
 // INICIALIZACIÓN GLOBAL
-// =====================================================
 
-window.chatOnline = null;
+// =====================================================
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('💬 Inicializando Chat Online V2...');
     
-    window.chatOnline = new ChatOnlineV2();
-    window.chatOnlineV2 = window.chatOnline; // También disponible como chatOnlineV2
+    // NO sobrescribir window.chatOnline, solo crear chatOnlineV2
+    window.chatOnlineV2 = new ChatOnlineV2();
     
     console.log('🔗 Instancias registradas en window:', {
         chatOnline: !!window.chatOnline,
@@ -914,7 +1017,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Inicializar después de que otros componentes estén listos
     setTimeout(() => {
-        window.chatOnline.init();
+        window.chatOnlineV2.init();
     }, 2000); // Esperar a que dynamic video loader se inicialice
 });
 

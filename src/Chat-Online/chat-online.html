@@ -2873,22 +2873,6 @@ Cargando información...
                             ${tagsHTML ? `<div class="question-tags">${tagsHTML}</div>` : ''}
                             
                             <div class="question-footer">
-                                <div class="question-stats">
-                                    <span class="stat-item">
-                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                        </svg>
-                                        ${question.answers_count || 0} respuestas
-                                    </span>
-                                    <span class="stat-item">
-                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                            <circle cx="12" cy="12" r="3"/>
-                                        </svg>
-                                        ${question.views_count || 0} vistas
-                                    </span>
-                                </div>
-
                                 <div class="question-actions">
                                     <div class="question-votes">
                                         <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
@@ -2914,6 +2898,22 @@ Cargando información...
                                             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                                         </svg>
                                     </button>
+                                </div>
+
+                                <div class="question-stats">
+                                    <span class="stat-item">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        ${question.answers_count || 0} respuestas
+                                    </span>
+                                    <span class="stat-item">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                        ${question.views_count || 0} vistas
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -2967,22 +2967,6 @@ Cargando información...
                             ${tagsHTML ? `<div class="question-tags">${tagsHTML}</div>` : ''}
                             
                             <div class="question-footer">
-                                <div class="question-stats">
-                                    <span class="stat-item">
-                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                        </svg>
-                                        ${question.answers_count || 0} respuestas
-                                    </span>
-                                    <span class="stat-item">
-                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                            <circle cx="12" cy="12" r="3"/>
-                                        </svg>
-                                        ${question.views_count || 0} vistas
-                                    </span>
-                                </div>
-
                                 <div class="question-actions">
                                     <div class="question-votes">
                                         <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
@@ -3008,6 +2992,22 @@ Cargando información...
                                             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                                         </svg>
                                     </button>
+                                </div>
+
+                                <div class="question-stats">
+                                    <span class="stat-item">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        ${question.answers_count || 0} respuestas
+                                    </span>
+                                    <span class="stat-item">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                        ${question.views_count || 0} vistas
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -3061,7 +3061,14 @@ Cargando información...
         async function voteQuestion(questionId, voteType) {
             try {
                 console.log(`📊 Votando pregunta ${questionId}: ${voteType}`);
-                // Implementar lógica de votación aquí si está disponible
+                
+                // Usar la función voteQuestion que ya existe en chat-online.js
+                if (window.chatOnline && window.chatOnline.voteQuestion) {
+                    await window.chatOnline.voteQuestion(questionId, voteType);
+                } else {
+                    console.error('❌ No se encontró la función voteQuestion en chatOnline');
+                }
+                
             } catch (error) {
                 console.error('❌ Error votando:', error);
             }

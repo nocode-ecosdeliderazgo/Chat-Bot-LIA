@@ -5159,8 +5159,14 @@ class ChatOnline {
         try {
             console.log(`🗳️ Votando ${voteType} en pregunta ${questionId}`);
             
+            // Buscar el elemento de la pregunta para actualizar la UI
+            const questionItem = document.querySelector(`[data-question-id="${questionId}"]`);
+            const voteCountEl = questionItem?.querySelector('.vote-count');
+            const upvoteBtn = questionItem?.querySelector('.vote-btn.upvote');
+            const downvoteBtn = questionItem?.querySelector('.vote-btn.downvote');
+            
             const voteData = {
-                user_id: this.currentUser.id,
+                user_id: this.currentUser?.id || 'demo-user',
                 target_type: 'question',
                 target_id: questionId,
                 vote_type: voteType
@@ -5182,9 +5188,24 @@ class ChatOnline {
             const result = await response.json();
             console.log('✅ Voto procesado:', result);
             
-            // TODO: Actualizar solo el contador del elemento específico sin recargar todas las preguntas
-            // Por ahora comentamos la recarga para evitar duplicaciones
-            // await this.loadCommunityQuestions();
+            // Actualizar la UI inmediatamente
+            if (voteCountEl && result.new_vote_count !== undefined) {
+                voteCountEl.textContent = result.new_vote_count;
+            }
+            
+            // Actualizar estado visual de los botones
+            if (upvoteBtn && downvoteBtn) {
+                // Remover estados anteriores
+                upvoteBtn.classList.remove('voted', 'upvoted', 'downvoted');
+                downvoteBtn.classList.remove('voted', 'upvoted', 'downvoted');
+                
+                // Aplicar nuevo estado
+                if (result.user_vote === 'upvote') {
+                    upvoteBtn.classList.add('voted', 'upvoted');
+                } else if (result.user_vote === 'downvote') {
+                    downvoteBtn.classList.add('voted', 'downvoted');
+                }
+            }
             
         } catch (error) {
             console.error('❌ Error votando:', error);
