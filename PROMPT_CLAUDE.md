@@ -1,134 +1,122 @@
-# PROMPT PARA CLAUDE - SOLUCIÓN DE PROBLEMA DE ACTIVIDADES
+# PROMPT PARA SOLUCIONAR VIDEOS DE YOUTUBE NO VISIBLES EN NETLIFY
 
 ## CONTEXTO DEL PROBLEMA
-Como Ingenieros Senior en Desarrollo, necesitamos solucionar un problema crítico en la página `CHAT-ONLINE.html`. El problema específico es que **las actividades y prompts no se muestran en el botón de actividades**, aunque los datos SÍ existen en la base de datos.
+Tengo un proyecto web que funciona correctamente en localhost:3000, pero al desplegarlo en Netlify, los videos embebidos de YouTube no se muestran y aparece un error 404.
 
-## EVIDENCIA DEL PROBLEMA
-- ✅ **Base de datos**: Los datos están presentes en la tabla `module_videos` con campos `descripcion_actividad` y `prompts_actividad`
-- ✅ **Videos funcionan**: Los links de videos de la misma tabla SÍ aparecen correctamente en la página
-- ❌ **Actividades no aparecen**: El contenido de actividades y prompts no se renderiza en la interfaz
-- ❌ **Prompts no aparecen**: Los ejercicios y prompts no se muestran al usuario
+## ANÁLISIS INICIAL REQUERIDO
+Antes de realizar cambios, necesito que identifiques:
 
-## DIAGNÓSTICO COMPLETADO
-**PROBLEMA IDENTIFICADO**: La función `updateContentArea` en `chat-online.js` **NO maneja el caso específico de `activity`**. Solo maneja el caso de `community`, pero cuando se hace clic en el botón de "Actividad", simplemente muestra/oculta el contenido sin cargar los datos de actividades.
+1. **Archivos principales que manejan videos de YouTube:**
+   - `src/scripts/dynamic-video-loader.js` - Carga dinámica de videos
+   - `src/scripts/youtube-progress-tracker.js` - Seguimiento de progreso
+   - `src/Chat-Online/chat-online.js` - Funciones de carga de video
+   - `src/scripts/main.js` - Funciones de iframe embebido
 
-**FUNCIONALIDAD EXISTENTE**: En el archivo `module1-videos-loader.js` ya existe la función `updateActivityContent` (líneas 712-803) que **SÍ carga correctamente las actividades y prompts desde la base de datos**.
+2. **Configuración actual de Netlify:**
+   - `netlify.toml` - Configuración de redirects y build
+   - `_redirects` - Reglas de redirección
+   - Headers de seguridad y CSP
 
-## SOLUCIÓN A IMPLEMENTAR
+3. **Patrones de URLs de YouTube encontrados:**
+   - `https://www.youtube.com/embed/${videoId}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0`
+   - `https://www.youtube.com/iframe_api`
+   - URLs de videos con parámetros específicos
 
-### PASO 1: MODIFICAR LA FUNCIÓN `updateContentArea`
-**Archivo**: `src/Chat-Online/chat-online.js`
-**Ubicación**: Líneas 1222-1242 (aproximadamente)
+## DIAGNÓSTICO PASO A PASO
 
-**Código a agregar** después del bloque `if (contentType === 'community')`:
+### PASO 1: IDENTIFICAR LA CAUSA RAÍZ
+Analiza estos posibles problemas:
 
-```javascript
-} else if (contentType === 'activity') {
-    console.log('📋 Configurando contenido de actividades');
-    
-    // Cargar actividades del video actual cuando se accede a la pestaña
-    setTimeout(() => {
-        this.loadActivityContent();
-    }, 10);
-}
+1. **Headers de Seguridad (CSP):**
+   - Verificar si Content Security Policy bloquea iframes de YouTube
+   - Revisar headers X-Frame-Options
+   - Comprobar referrer policy
+
+2. **Configuración de Netlify:**
+   - Verificar si hay redirects que interfieren con iframes
+   - Revisar configuración de build y publish directory
+   - Comprobar variables de entorno
+
+3. **Código JavaScript:**
+   - Verificar si las URLs se construyen correctamente en producción
+   - Revisar si hay diferencias entre localhost y Netlify
+   - Comprobar manejo de errores en iframes
+
+### PASO 2: IMPLEMENTAR SOLUCIONES
+
+#### 2.1 Configurar Headers de Seguridad
+```toml
+# En netlify.toml, agregar:
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "frame-src 'self' https://www.youtube.com https://youtube.com; script-src 'self' 'unsafe-inline' https://www.youtube.com;"
+    X-Frame-Options = "SAMEORIGIN"
 ```
 
-### PASO 2: CREAR LA FUNCIÓN `loadActivityContent`
-**Archivo**: `src/Chat-Online/chat-online.js`
-**Ubicación**: Al final de la clase ChatOnline, antes del cierre `}`
+#### 2.2 Verificar URLs de YouTube
+- Asegurar que las URLs usen HTTPS
+- Verificar que los parámetros de embedding sean correctos
+- Implementar fallbacks para videos no disponibles
 
-**Código completo a agregar**:
-
-```javascript
-// ===== FUNCIÓN PARA CARGAR CONTENIDO DE ACTIVIDADES =====
-
-loadActivityContent() {
-    try {
-        console.log('📋 Cargando contenido de actividades...');
-        
-        // Verificar si el Module1VideosLoader está disponible
-        if (window.module1VideosLoader && window.module1VideosLoader.videos) {
-            console.log('✅ Module1VideosLoader encontrado');
-            
-            // Obtener el video actual
-            const currentVideo = window.module1VideosLoader.videos.find(video => 
-                video.id === window.module1VideosLoader.currentVideoId
-            );
-            
-            if (currentVideo) {
-                console.log('🎬 Video actual encontrado:', currentVideo.video_title);
-                console.log('📝 Descripción de actividad:', currentVideo.descripcion_actividad ? 'EXISTE' : 'NO EXISTE');
-                console.log('💡 Prompts de actividad:', currentVideo.prompts_actividad ? 'EXISTE' : 'NO EXISTE');
-                
-                // Llamar a la función updateActivityContent del Module1VideosLoader
-                window.module1VideosLoader.updateActivityContent(currentVideo);
-                console.log('✅ Contenido de actividades cargado correctamente');
-            } else {
-                console.warn('⚠️ No se encontró video actual, usando el primer video disponible');
-                if (window.module1VideosLoader.videos.length > 0) {
-                    const firstVideo = window.module1VideosLoader.videos[0];
-                    window.module1VideosLoader.updateActivityContent(firstVideo);
-                    console.log('✅ Contenido de actividades cargado con el primer video');
-                }
-            }
-        } else {
-            console.warn('⚠️ Module1VideosLoader no está disponible');
-            
-            // Fallback: mostrar mensaje de que no hay actividades disponibles
-            const activityContent = document.querySelector('.activity-content');
-            if (activityContent) {
-                const activityDescription = activityContent.querySelector('.activity-description');
-                const activityPrompts = activityContent.querySelector('.activity-prompts');
-                
-                if (activityDescription) {
-                    activityDescription.innerHTML = `
-                        <p class="no-activity">No hay descripción de actividad disponible para este video.</p>
-                    `;
-                }
-                
-                if (activityPrompts) {
-                    activityPrompts.innerHTML = `
-                        <p class="no-activity">No hay prompts de actividad disponibles para este video.</p>
-                    `;
-                }
-                
-                console.log('✅ Mensajes de fallback mostrados');
-            }
-        }
-    } catch (error) {
-        console.error('❌ Error cargando contenido de actividades:', error);
-    }
-}
+#### 2.3 Configurar Redirects Específicos
+```toml
+# En netlify.toml, agregar redirects para iframes:
+[[redirects]]
+  from = "/youtube-embed/*"
+  to = "https://www.youtube.com/embed/:splat"
+  status = 200
+  force = true
 ```
 
-## ARCHIVOS A MODIFICAR
-- `src/Chat-Online/chat-online.js` - Agregar lógica para manejar el tab de actividades
+### PASO 3: IMPLEMENTAR DETECCIÓN DE ERRORES
+Agregar logging y manejo de errores para:
+- Detectar cuando un iframe falla al cargar
+- Mostrar mensajes de error informativos
+- Implementar retry logic para videos problemáticos
 
-## ARCHIVOS QUE YA FUNCIONAN CORRECTAMENTE
-- `src/Chat-Online/module1-videos-loader.js` - Función `updateActivityContent` ya implementada
-- `src/Chat-Online/chat-online.html` - Estructura HTML correcta
-- `src/Chat-Online/chat-online.css` - Estilos CSS correctos
+### PASO 4: OPTIMIZACIONES ADICIONALES
+1. **Lazy Loading:** Implementar carga diferida de videos
+2. **Preconnect:** Agregar preconnect a YouTube para mejorar rendimiento
+3. **Error Boundaries:** Implementar manejo de errores en componentes de video
 
-## RESULTADO ESPERADO
-Después de implementar estos cambios:
-- ✅ Las actividades se mostrarán correctamente en el botón de actividades
-- ✅ Los prompts y ejercicios aparecerán en la interfaz
-- ✅ El contenido se cargará dinámicamente desde la base de datos
-- ✅ La funcionalidad será consistente con el resto de la aplicación
-- ✅ No se romperá ninguna funcionalidad existente
+## ARCHIVOS A MODIFICAR (EN ORDEN DE PRIORIDAD)
+
+1. **netlify.toml** - Configuración de headers y redirects
+2. **src/scripts/dynamic-video-loader.js** - Mejorar manejo de errores
+3. **src/scripts/youtube-progress-tracker.js** - Verificar configuración de API
+4. **src/Chat-Online/chat-online.js** - Actualizar funciones de carga
+5. **src/scripts/main.js** - Mejorar funciones de iframe
+
+## CRITERIOS DE ÉXITO
+- Videos de YouTube se cargan correctamente en Netlify
+- No aparecen errores 404 en consola
+- Funcionalidad de progreso de videos funciona
+- API de YouTube se carga correctamente
+- No hay errores de CSP o headers de seguridad
 
 ## INSTRUCCIONES ESPECÍFICAS
-1. **Localizar** la función `updateContentArea` en `chat-online.js`
-2. **Agregar** el bloque `else if (contentType === 'activity')` después del bloque de `community`
-3. **Crear** la función `loadActivityContent` al final de la clase ChatOnline
-4. **Verificar** que no haya errores de sintaxis
-5. **Probar** que el botón de actividades funcione correctamente
+1. **NO modifiques múltiples archivos simultáneamente**
+2. **Implementa cambios paso a paso y prueba cada uno**
+3. **Mantén compatibilidad con localhost:3000**
+4. **Documenta cada cambio realizado**
+5. **Usa el color primario #0066CC para elementos de UI**
 
-## PRIORIDAD
-**ALTA** - Este es un problema crítico que afecta la funcionalidad principal de la plataforma de aprendizaje.
+## COMANDOS DE PRUEBA
+Después de cada cambio:
+```bash
+# Probar localmente
+npm start
 
-## NOTAS TÉCNICAS
-- La solución reutiliza código existente que ya funciona correctamente
-- Se implementa manejo de errores y fallbacks apropiados
-- Se mantiene la consistencia con el patrón de código existente
-- La solución es escalable y mantenible
+# Verificar en Netlify
+netlify deploy --prod
+```
+
+## REFERENCIAS TÉCNICAS
+- YouTube Embed API: https://developers.google.com/youtube/iframe_api_reference
+- Netlify Headers: https://docs.netlify.com/routing/headers/
+- CSP para YouTube: https://developers.google.com/youtube/player_parameters
+
+---
+
+**IMPORTANTE:** Trabaja paso a paso, identifica primero la causa exacta del problema antes de implementar soluciones. Prioriza la eficiencia y mantén la funcionalidad existente.
