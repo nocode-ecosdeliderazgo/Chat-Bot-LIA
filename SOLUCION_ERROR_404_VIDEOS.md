@@ -9,7 +9,7 @@ Los videos de YouTube muestran error 404 en producción (Netlify) pero funcionan
 He creado un conjunto completo de herramientas para diagnosticar y solucionar este problema:
 
 ### 1. **test-video-debug.html** - Página de Diagnóstico Principal
-**Ubicación**: `/test-video-debug.html`
+**Ubicación**: `/src/test-video-debug.html` (en Netlify: `/test-video-debug.html`)
 
 **Funcionalidades**:
 - ✅ **Environment Detection**: Detecta automáticamente si está en localhost o Netlify
