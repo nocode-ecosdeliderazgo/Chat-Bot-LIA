@@ -1,143 +1,163 @@
-# PROMPT PARA SOLUCIONAR ERRORES 404 DE APIs EN NETLIFY
+# PROMPT PARA SOLUCIONAR CONFLICTOS DE CARGA DE VIDEOS EN NETLIFY
 
 ## CONTEXTO DEL PROBLEMA
-Tengo un proyecto web que funciona correctamente en localhost:3000, pero al desplegarlo en Netlify, las APIs no responden correctamente y aparecen errores 404. Los videos no se cargan porque las APIs que proporcionan los datos de los cursos fallan.
+El proyecto funciona parcialmente en Netlify. Los videos SÍ se cargan correctamente desde la base de datos (como se ve en el log), pero hay **conflictos entre múltiples sistemas** que intentan cargar el mismo video simultáneamente, causando errores 404 y fallos en la visualización.
 
-## ERRORES ESPECÍFICOS IDENTIFICADOS
+## ANÁLISIS DEL LOG COMPLETO
+
+### ✅ LO QUE FUNCIONA CORRECTAMENTE:
+1. **Module1 Videos Loader** - Carga exitosamente 11 videos desde la API
+2. **Base de datos** - Responde correctamente con datos completos
+3. **Video renderizado** - El primer video se carga y muestra correctamente
+4. **YouTube embed** - El iframe se crea con la URL correcta
+
+### ❌ PROBLEMAS IDENTIFICADOS:
+
+#### 1. **CONFLICTO DE SISTEMAS MÚLTIPLES:**
 ```
-GET https://ecosdeliderazgo.com/api/courses/ia-fundamentos/full-structure 404 (Not Found)
-GET https://ecosdeliderazgo.com/api/courses/introduccion-ia/current-module/9562a449-4ade-4d4b-a3e4-b66dddb7e6f0 404 (Not Found)
-modules-expandable-system.js:52 
- GET https://ecosdeliderazgo.com/api/courses/ia-fundamentos/full-structure 404 (Not Found)
-modules-expandable-system.js:64 ⚠️ API no disponible, usando datos locales...
-modules-expandable-system.js:188 📚 Módulos cargados desde datos locales: 
-(5) [{…}, {…}, {…}, {…}, {…}]
-modules-expandable-system.js:194 ❌ Contenedor de módulos no encontrado
-modules-expandable-system.js:431 ✅ Event listeners configurados
-modules-expandable-system.js:37 ✅ Sistema de módulos expandibles inicializado correctamente
-quick-video-fix.js:16 
- GET https://ecosdeliderazgo.com/api/courses/introduccion-ia/current-module/9562a449-4ade-4d4b-a3e4-b66dddb7e6f0 404 (Not Found)
-quick-video-fix.js:46 ❌ Error cargando video: Error: HTTP 404: 
-    at HTMLDocument.loadFirstVideo (quick-video-fix.js:19:19)
-loadFirstVideo	@	quick-video-fix.js:46
+- quick-video-fix.js (líneas 14, 30, 40, 46, 78, 84, 160)
+- modules-expandable-system.js (líneas 52, 64, 68, 70, 91, 97, 188, 194, 264, 270)
+- module1-videos-loader.js (funciona correctamente)
 ```
 
-## ANÁLISIS INICIAL REQUERIDO
-Antes de realizar cambios, necesito que identifiques:
+#### 2. **APIs QUE FALLAN:**
+```
+GET /api/courses/ia-fundamentos/full-structure → 404
+GET /api/courses/introduccion-ia/current-module/{id} → 404
+GET /api/community/questions?sort=recent → 500
+```
 
-1. **Archivos principales que manejan las APIs:**
-   - `src/scripts/modules-expandable-system.js` - Sistema de módulos (línea 52, 64, 188, 194)
-   - `src/scripts/quick-video-fix.js` - Carga rápida de videos (línea 16, 46)
-   - `netlify/functions/course-data.js` - Función de Netlify para datos de cursos
-   - `netlify.toml` - Configuración de redirects de APIs
+#### 3. **ERRORES DE JAVASCRIPT:**
+```
+- SyntaxError: Unexpected identifier 'getFirstVideoIdFromDatabase' (chat-online.js:7896)
+- SyntaxError: await is only valid in async functions (chat-online:3894)
+- CSP violations para Supabase
+```
 
-2. **Configuración actual de Netlify:**
-   - `netlify.toml` - Redirects de APIs de cursos
-   - `netlify/functions/` - Funciones serverless
-   - Variables de entorno y configuración de build
-
-3. **Rutas de API que fallan:**
-   - `/api/courses/ia-fundamentos/full-structure`
-   - `/api/courses/introduccion-ia/current-module/{id}`
-   - Posiblemente otras rutas de `/api/courses/*`
+#### 4. **BLOQUEOS DE YOUTUBE:**
+```
+- net::ERR_BLOCKED_BY_CLIENT (múltiples requests a YouTube)
+- POST requests a youtubei/v1/log_event bloqueados
+```
 
 ## DIAGNÓSTICO PASO A PASO
 
-### PASO 1: IDENTIFICAR LA CAUSA RAÍZ
-Analiza estos posibles problemas:
+### PASO 1: IDENTIFICAR CONFLICTOS DE CARGA
+**Problema principal:** Múltiples scripts intentan cargar el mismo video:
+- `quick-video-fix.js` intenta cargar desde API que falla
+- `module1-videos-loader.js` carga exitosamente desde base de datos
+- `modules-expandable-system.js` intenta cargar estructura de curso
 
-1. **Redirects de Netlify:**
-   - Verificar si los redirects en `netlify.toml` coinciden con las rutas de API
-   - Comprobar si las funciones serverless están correctamente configuradas
-   - Revisar si hay conflictos entre redirects específicos y wildcards
+### PASO 2: SOLUCIONAR CONFLICTOS
+1. **Desactivar sistemas conflictivos** que usan APIs que fallan
+2. **Priorizar el sistema que funciona** (module1-videos-loader.js)
+3. **Corregir errores de sintaxis** en JavaScript
+4. **Configurar CSP** para permitir Supabase
 
-2. **Funciones Serverless:**
-   - Verificar que `netlify/functions/course-data.js` existe y funciona
-   - Comprobar que las funciones manejan correctamente los parámetros de ruta
-   - Revisar logs de Netlify para errores en las funciones
+### PASO 3: IMPLEMENTAR SOLUCIONES
 
-3. **Configuración de Build:**
-   - Verificar que las funciones se compilan correctamente
-   - Comprobar variables de entorno en Netlify
-   - Revisar configuración de Node.js y dependencias
-
-### PASO 2: IMPLEMENTAR SOLUCIONES
-
-#### 2.1 Verificar y Corregir Redirects de API
-```toml
-# En netlify.toml, verificar que estos redirects existan y sean correctos:
-[[redirects]]
-  from = "/api/courses/*/full-structure"
-  to = "/.netlify/functions/course-data"
-  status = 200
-
-[[redirects]]
-  from = "/api/courses/*/current-module/*"
-  to = "/.netlify/functions/course-data"
-  status = 200
+#### 3.1 Desactivar quick-video-fix.js
+```javascript
+// Comentar o desactivar la carga automática
+// document.addEventListener('DOMContentLoaded', loadFirstVideo);
 ```
 
-#### 2.2 Verificar Función course-data.js
-- Asegurar que la función maneja correctamente los parámetros de ruta
-- Verificar que responde a las rutas específicas que fallan
-- Comprobar que retorna datos en el formato esperado
+#### 3.2 Corregir errores de sintaxis en chat-online.js
+- Línea 7896: Corregir función `getFirstVideoIdFromDatabase`
+- Línea 3894: Hacer función async o mover await
 
-#### 2.3 Implementar Fallbacks en JavaScript
-- Mejorar el manejo de errores en `modules-expandable-system.js`
-- Implementar retry logic para APIs que fallan
-- Asegurar que los datos locales se usen correctamente cuando las APIs fallan
+#### 3.3 Configurar CSP para Supabase
+```toml
+# En netlify.toml
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://www.gstatic.com https://apis.google.com https://esm.sh https://cdn.jsdelivr.net;"
+```
 
-### PASO 3: IMPLEMENTAR DETECCIÓN DE ERRORES
-Agregar logging y manejo de errores para:
-- Detectar cuando las APIs fallan (404, 500, etc.)
-- Mostrar mensajes de error informativos al usuario
-- Implementar retry logic para APIs problemáticas
-- Asegurar que los fallbacks a datos locales funcionen correctamente
-
-### PASO 4: OPTIMIZACIONES ADICIONALES
-1. **Caching:** Implementar cache para respuestas de API
-2. **Error Boundaries:** Implementar manejo de errores en componentes de curso
-3. **Loading States:** Mejorar estados de carga mientras se obtienen datos
+#### 3.4 Mejorar manejo de errores en modules-expandable-system.js
+- Implementar fallback más robusto cuando API falla
+- Evitar conflictos con module1-videos-loader.js
 
 ## ARCHIVOS A MODIFICAR (EN ORDEN DE PRIORIDAD)
 
-1. **netlify.toml** - Verificar y corregir redirects de API
-2. **netlify/functions/course-data.js** - Verificar función serverless
-3. **src/scripts/modules-expandable-system.js** - Mejorar manejo de errores de API
-4. **src/scripts/quick-video-fix.js** - Mejorar manejo de errores de carga
-5. **Variables de entorno** - Verificar configuración en Netlify
+### PRIORIDAD ALTA (Crítico):
+1. **src/scripts/quick-video-fix.js** - Desactivar o corregir
+2. **src/Chat-Online/chat-online.js** - Corregir errores de sintaxis
+3. **netlify.toml** - Configurar CSP para Supabase
+
+### PRIORIDAD MEDIA:
+4. **src/scripts/modules-expandable-system.js** - Mejorar fallbacks
+5. **src/scripts/supabase-client.js** - Verificar configuración
+
+### PRIORIDAD BAJA:
+6. **Variables de entorno** - Verificar configuración en Netlify
+
+## SOLUCIONES ESPECÍFICAS
+
+### 1. Desactivar quick-video-fix.js
+```javascript
+// Al inicio del archivo, agregar:
+console.log('🚫 Quick Video Fix desactivado - usando Module1 Videos Loader');
+return; // Salir temprano
+```
+
+### 2. Corregir chat-online.js línea 7896
+```javascript
+// Buscar y corregir la función problemática
+async function getFirstVideoIdFromDatabase() {
+    // Implementación correcta
+}
+```
+
+### 3. Corregir chat-online.js línea 3894
+```javascript
+// Hacer la función async o mover el await
+async function functionName() {
+    await someAsyncOperation();
+}
+```
+
+### 4. Configurar CSP en netlify.toml
+```toml
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://www.gstatic.com https://apis.google.com https://esm.sh https://cdn.jsdelivr.net https://*.supabase.co; frame-src 'self' https://www.youtube.com;"
+```
 
 ## CRITERIOS DE ÉXITO
-- APIs de cursos responden correctamente (no más errores 404)
-- Videos de YouTube se cargan correctamente en Netlify
-- No aparecen errores 404 en consola del navegador
-- Funcionalidad de progreso de videos funciona
-- Fallbacks a datos locales funcionan cuando las APIs fallan
-- Sistema de módulos expandibles funciona correctamente
+- ✅ Module1 Videos Loader funciona sin conflictos
+- ✅ No hay errores de sintaxis en JavaScript
+- ✅ Supabase se carga correctamente (sin CSP violations)
+- ✅ Videos se muestran sin errores 404
+- ✅ No hay conflictos entre sistemas de carga
+- ✅ YouTube embeds funcionan correctamente
 
 ## INSTRUCCIONES ESPECÍFICAS
-1. **NO modifiques múltiples archivos simultáneamente**
-2. **Implementa cambios paso a paso y prueba cada uno**
-3. **Mantén compatibilidad con localhost:3000**
-4. **Documenta cada cambio realizado**
-5. **Usa el color primario #0066CC para elementos de UI**
+1. **NO modifiques module1-videos-loader.js** - está funcionando correctamente
+2. **Desactiva quick-video-fix.js** - está causando conflictos
+3. **Corrige errores de sintaxis** antes de hacer otros cambios
+4. **Configura CSP** para permitir Supabase
+5. **Prueba cada cambio** individualmente
 
 ## COMANDOS DE PRUEBA
-Después de cada cambio:
 ```bash
 # Probar localmente
 npm start
 
 # Verificar en Netlify
 netlify deploy --prod
+
+# Verificar logs en Netlify
+netlify functions:log
 ```
 
 ## REFERENCIAS TÉCNICAS
-- Netlify Functions: https://docs.netlify.com/functions/overview/
-- Netlify Redirects: https://docs.netlify.com/routing/redirects/
-- Netlify Environment Variables: https://docs.netlify.com/environment-variables/overview/
-- Serverless Functions Debugging: https://docs.netlify.com/functions/troubleshooting/
+- Netlify CSP Configuration: https://docs.netlify.com/routing/headers/
+- YouTube Embed API: https://developers.google.com/youtube/iframe_api_reference
+- Supabase CSP Requirements: https://supabase.com/docs/guides/getting-started/tutorials/with-nextjs
 
 ---
 
-**IMPORTANTE:** Trabaja paso a paso, identifica primero la causa exacta del problema antes de implementar soluciones. Prioriza la eficiencia y mantén la funcionalidad existente.
+**IMPORTANTE:** El problema NO es que los videos no se carguen - SÍ se cargan correctamente. El problema es que hay **múltiples sistemas compitiendo** por cargar el mismo video. La solución es **desactivar los sistemas conflictivos** y **mantener solo el que funciona** (module1-videos-loader.js).

@@ -7891,13 +7891,14 @@ function updateSimpleVideoContent(moduleId) {
         
         console.log(`🎥 Contenido actualizado: ${data.title}`);
     }
+}
 
-    // Obtener el primer video ID desde la base de datos
-    async getFirstVideoIdFromDatabase(moduleNumber) {
+// Obtener el primer video ID desde la base de datos
+async function getFirstVideoIdFromDatabase(moduleNumber) {
         try {
             console.log(`🔍 Cargando primer video para módulo ${moduleNumber} desde base de datos...`);
             
-            const apiBaseUrl = this.getApiBaseUrl();
+            const apiBaseUrl = window.chatOnline ? window.chatOnline.getApiBaseUrl() : '';
             const cacheBuster = new Date().getTime();
             
             const response = await fetch(`${apiBaseUrl}/courses/module1-videos?t=${cacheBuster}`, {

@@ -1,5 +1,7 @@
 // Quick fix para cargar videos en chat-online.html
-console.log('🚀 Quick Video Fix iniciando...');
+console.log('🚫 Quick Video Fix DESACTIVADO - usando Module1 Videos Loader');
+console.log('⚠️ Sistema desactivado para evitar conflictos con module1-videos-loader.js');
+return; // Salir temprano para evitar conflictos
 
 // Función para cargar el primer video del curso con retry logic
 async function loadFirstVideo() {

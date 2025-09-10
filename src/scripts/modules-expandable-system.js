@@ -528,8 +528,15 @@ class ModulesExpandableSystem {
 // Exportar para uso global
 window.ModulesExpandableSystem = ModulesExpandableSystem;
 
-// Auto-inicialización cuando el DOM esté listo
+// Auto-inicialización cuando el DOM esté listo (solo si no hay module1-videos-loader)
 document.addEventListener('DOMContentLoaded', function() {
+    // Verificar si module1-videos-loader ya está cargado para evitar conflictos
+    if (window.Module1VideosLoader) {
+        console.log('🚫 Modules Expandable System desactivado - detectado Module1 Videos Loader');
+        console.log('⚠️ Evitando conflicto entre sistemas de carga de videos');
+        return;
+    }
+    
     console.log('🌟 DOM listo - Inicializando sistema de módulos expandibles');
     
     if (!window.modulesExpandableSystem) {
