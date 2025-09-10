@@ -3361,6 +3361,28 @@ Cargando información...
             }, 1000);
         };
 
+        // Función específica para precargar comunidad al inicio
+        async function preloadCommunityData() {
+            try {
+                console.log('🚀 PRECARGA: Inicializando datos de comunidad...');
+                
+                // Asegurar que todas las dependencias estén disponibles
+                if (!window.communityAPI) {
+                    console.log('⚠️ PRECARGA: CommunityAPI no disponible, esperando...');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+                // Forzar la carga de preguntas
+                await loadCommunityQuestions();
+                console.log('✅ PRECARGA: Datos de comunidad cargados');
+                
+                return true;
+            } catch (error) {
+                console.error('❌ PRECARGA: Error cargando datos de comunidad:', error);
+                return false;
+            }
+        }
+
         // Inicializar cuando el DOM esté listo
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Inicializando sistema de preguntas de comunidad...');
@@ -3370,7 +3392,8 @@ Cargando información...
             
             // Pequeño delay para asegurar que todos los scripts estén cargados
             setTimeout(async () => {
-                await loadCommunityQuestions();
+                // NUEVA: Precarga específica de datos de comunidad
+                await preloadCommunityData();
                 
                 // Siempre intentar actualizar timestamps después de cargar
                 setTimeout(() => {
