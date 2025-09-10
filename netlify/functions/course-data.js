@@ -179,7 +179,9 @@ async function getCourseFullStructure(courseId, queryParams, headers) {
                 *,
                 module_videos (
                     *,
-                    video_checkpoints (*)
+                    video_checkpoints (*),
+                    descripcion_actividad,
+                    prompts_actividad
                 ),
                 module_materials (*)
             `)
@@ -382,7 +384,9 @@ async function getCurrentModule(courseId, userId, headers) {
                 *,
                 module_videos (
                     *,
-                    video_checkpoints (*)
+                    video_checkpoints (*),
+                    descripcion_actividad,
+                    prompts_actividad
                 ),
                 module_materials (*),
                 courses (*)
@@ -468,6 +472,8 @@ async function getModuleVideoData(moduleId, queryParams, headers) {
             .select(`
                 *,
                 video_checkpoints (*),
+                descripcion_actividad,
+                prompts_actividad,
                 course_modules (
                     *,
                     courses (*)
@@ -556,6 +562,8 @@ async function getModuleVideos(moduleId, queryParams, headers) {
             .select(`
                 *,
                 video_checkpoints (*),
+                descripcion_actividad,
+                prompts_actividad,
                 course_modules!inner (
                     id, title, slug, order_index,
                     courses!inner (

@@ -143,6 +143,12 @@
   to   = "/.netlify/functions/supabase-config"
   status = 200
 
+# Setup Activity Columns API redirects (NEW)
+[[redirects]]
+  from = "/api/setup-activity-columns"
+  to   = "/.netlify/functions/setup-activity-columns"
+  status = 200
+
 # Wildcard redirect (must be last)
 [[redirects]]
   from = "/api/*"
