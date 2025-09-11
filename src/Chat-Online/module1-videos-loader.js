@@ -109,15 +109,37 @@ class Module1VideosLoader {
             // Si no está disponible, hacer consulta directa a la API
             console.log('🔄 Haciendo consulta directa a la API...');
             
-            const response = await fetch(`${this.apiBaseUrl}/courses/module1-videos`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
+            // Intentar diferentes IDs de módulo posibles
+            const moduleIds = ['module_1', '1', 'modulo-1', 'introduccion-ia'];
+            let response = null;
+            let lastError = null;
+            
+            for (const moduleId of moduleIds) {
+                try {
+                    console.log(`🔍 Intentando con moduleId: ${moduleId}`);
+                    response = await fetch(`${this.apiBaseUrl}/modules/${moduleId}/videos`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        console.log(`✅ Éxito con moduleId: ${moduleId}`);
+                        break;
+                    } else {
+                        console.log(`❌ Falló con moduleId: ${moduleId} - Status: ${response.status}`);
+                        lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                } catch (error) {
+                    console.log(`❌ Error con moduleId: ${moduleId} - ${error.message}`);
+                    lastError = error;
+                    response = null;
                 }
-            });
+            }
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            if (!response || !response.ok) {
+                throw lastError || new Error('No se pudo encontrar el módulo con ninguno de los IDs probados');
             }
 
             const data = await response.json();
@@ -132,6 +154,45 @@ class Module1VideosLoader {
 
         } catch (error) {
             console.error('❌ Error cargando videos del módulo 1:', error);
+            
+            // Intentar fallback con estructura completa del curso
+            try {
+                console.log('🔄 Intentando fallback con estructura completa del curso...');
+                const courseIds = ['sif-icap', 'aprende-y-aplica-ia', 'introduccion-ia'];
+                
+                for (const courseId of courseIds) {
+                    try {
+                        const fallbackResponse = await fetch(`${this.apiBaseUrl}/courses/${courseId}/full-structure`, {
+                            method: 'GET',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                        
+                        if (fallbackResponse.ok) {
+                            const courseData = await fallbackResponse.json();
+                            console.log('📚 Estructura del curso obtenida:', courseData);
+                            
+                            if (courseData.success && courseData.data && courseData.data.modules) {
+                                const module1 = courseData.data.modules.find(m => 
+                                    m.module_number === 1 || 
+                                    m.order_index === 1 || 
+                                    m.title.toLowerCase().includes('introducción') ||
+                                    m.title.toLowerCase().includes('fundamentos')
+                                );
+                                
+                                if (module1 && module1.module_videos && module1.module_videos.length > 0) {
+                                    this.videos = module1.module_videos;
+                                    console.log('✅ Videos cargados desde estructura del curso:', this.videos.length);
+                                    return; // Éxito, salir de la función
+                                }
+                            }
+                        }
+                    } catch (fallbackError) {
+                        console.warn(`❌ Fallback falló para courseId ${courseId}:`, fallbackError.message);
+                    }
+                }
+            } catch (fallbackError) {
+                console.error('❌ Error en fallback:', fallbackError);
+            }
             
             // Solo crear videos de ejemplo si realmente no hay datos
             if (this.videos.length === 0) {
@@ -155,7 +216,7 @@ class Module1VideosLoader {
                 id: 'module1-video-1',
                 video_title: '1. Introducción a la Inteligencia Artificial',
                 duration_seconds: 180,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Conceptos básicos y definición de IA',
                 video_order: 1,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -164,7 +225,7 @@ class Module1VideosLoader {
                 id: 'module1-video-2',
                 video_title: '2. Historia y Evolución de la IA',
                 duration_seconds: 240,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Desde los primeros algoritmos hasta la actualidad',
                 video_order: 2,
                 user_progress: { current_time_seconds: 45, completion_percentage: 18, is_completed: false }
@@ -173,7 +234,7 @@ class Module1VideosLoader {
                 id: 'module1-video-3',
                 video_title: '3. Tipos de Inteligencia Artificial',
                 duration_seconds: 200,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'IA débil vs IA fuerte, Machine Learning, Deep Learning',
                 video_order: 3,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -182,7 +243,7 @@ class Module1VideosLoader {
                 id: 'module1-video-4',
                 video_title: '4. Machine Learning: Conceptos Fundamentales',
                 duration_seconds: 300,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Aprendizaje supervisado, no supervisado y por refuerzo',
                 video_order: 4,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -191,7 +252,7 @@ class Module1VideosLoader {
                 id: 'module1-video-5',
                 video_title: '5. Aplicaciones Prácticas de la IA',
                 duration_seconds: 220,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Casos de uso en diferentes industrias',
                 video_order: 5,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -200,7 +261,7 @@ class Module1VideosLoader {
                 id: 'module1-video-6',
                 video_title: '6. Redes Neuronales Básicas',
                 duration_seconds: 280,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Introducción a perceptrones y redes simples',
                 video_order: 6,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -209,7 +270,7 @@ class Module1VideosLoader {
                 id: 'module1-video-7',
                 video_title: '7. Ética en la Inteligencia Artificial',
                 duration_seconds: 260,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Sesgos, privacidad y responsabilidad',
                 video_order: 7,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -218,7 +279,7 @@ class Module1VideosLoader {
                 id: 'module1-video-8',
                 video_title: '8. Herramientas y Frameworks de IA',
                 duration_seconds: 320,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'TensorFlow, PyTorch, scikit-learn',
                 video_order: 8,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -227,7 +288,7 @@ class Module1VideosLoader {
                 id: 'module1-video-9',
                 video_title: '9. Procesamiento del Lenguaje Natural',
                 duration_seconds: 240,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Chatbots, análisis de sentimientos, traducción',
                 video_order: 9,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -236,7 +297,7 @@ class Module1VideosLoader {
                 id: 'module1-video-10',
                 video_title: '10. Visión por Computadora',
                 duration_seconds: 200,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Reconocimiento de imágenes y objetos',
                 video_order: 10,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -245,7 +306,7 @@ class Module1VideosLoader {
                 id: 'module1-video-11',
                 video_title: '11. Proyecto Final: Implementación de IA',
                 duration_seconds: 300,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Proyecto práctico integrando todos los conceptos',
                 video_order: 11,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -253,6 +314,34 @@ class Module1VideosLoader {
         ];
 
         console.log('✅ Videos de ejemplo creados:', this.videos.length);
+        
+        // Cargar inmediatamente el primer video en el reproductor
+        this.loadFirstVideoAutomatically();
+    }
+
+    // =====================================================
+    // CARGAR PRIMER VIDEO AUTOMÁTICAMENTE
+    // =====================================================
+
+    loadFirstVideoAutomatically() {
+        if (this.videos.length > 0) {
+            console.log('🎬 Cargando primer video automáticamente...');
+            this.currentVideoIndex = 0;
+            this.currentVideo = this.videos[0];
+            
+            // Cargar el video en el reproductor si hay instancia disponible
+            if (window.chatOnline && typeof window.chatOnline.changeYouTubeVideo === 'function') {
+                const video = this.videos[0];
+                window.chatOnline.changeYouTubeVideo(
+                    video.youtube_video_id, 
+                    video.video_title, 
+                    this.formatDuration(video.duration_seconds)
+                );
+                console.log('✅ Primer video cargado automáticamente');
+            } else {
+                console.log('⚠️ chatOnline no disponible para cargar video automáticamente');
+            }
+        }
     }
 
     // =====================================================
@@ -316,9 +405,88 @@ class Module1VideosLoader {
                 console.log('🎬 Cargando automáticamente el primer video...');
                 this.selectVideo(this.videos[0]);
             }
+            
+            // Asegurar que el video se muestre en el reproductor central
+            this.ensureVideoPlayerLoaded();
 
         } catch (error) {
             console.error('❌ Error renderizando lista de videos:', error);
+        }
+    }
+
+    // =====================================================
+    // ASEGURAR QUE EL REPRODUCTOR DE VIDEO ESTÉ CARGADO
+    // =====================================================
+
+    ensureVideoPlayerLoaded() {
+        if (this.videos.length === 0) return;
+
+        // Intentar múltiples formas de cargar el video en el reproductor
+        const video = this.currentVideo || this.videos[0];
+        
+        console.log('🎯 Asegurando que el video esté cargado en el reproductor:', video.video_title);
+
+        // Método 1: Usar window.chatOnline si está disponible
+        if (window.chatOnline && typeof window.chatOnline.changeYouTubeVideo === 'function') {
+            console.log('📺 Método 1: Usando window.chatOnline.changeYouTubeVideo');
+            window.chatOnline.changeYouTubeVideo(
+                video.youtube_video_id, 
+                video.video_title, 
+                this.formatDuration(video.duration_seconds)
+            );
+            return;
+        }
+
+        // Método 2: Usar window.chatOnlineV2 si está disponible
+        if (window.chatOnlineV2 && typeof window.chatOnlineV2.loadVideo === 'function') {
+            console.log('📺 Método 2: Usando window.chatOnlineV2.loadVideo');
+            window.chatOnlineV2.loadVideo(video);
+            return;
+        }
+
+        // Método 3: Manipulación directa del iframe de YouTube si existe
+        const youtubeIframe = document.querySelector('#youtube-player-iframe, iframe[src*="youtube.com"]');
+        if (youtubeIframe && video.youtube_video_id) {
+            console.log('📺 Método 3: Manipulación directa del iframe de YouTube');
+            const newSrc = `https://www.youtube.com/embed/${video.youtube_video_id}?autoplay=0&controls=1&rel=0`;
+            youtubeIframe.src = newSrc;
+            
+            // Actualizar título si existe elemento de título
+            const titleElement = document.querySelector('.video-title, .current-video-title');
+            if (titleElement) {
+                titleElement.textContent = video.video_title;
+            }
+            return;
+        }
+
+        // Método 4: Crear reproductor si no existe
+        this.createFallbackVideoPlayer(video);
+    }
+
+    createFallbackVideoPlayer(video) {
+        console.log('📺 Método 4: Creando reproductor de fallback');
+        
+        const videoContainer = document.querySelector('.video-container, .youtube-player-container, .main-video-area');
+        if (videoContainer) {
+            videoContainer.innerHTML = `
+                <div class="fallback-video-player">
+                    <iframe 
+                        src="https://www.youtube.com/embed/${video.youtube_video_id}?autoplay=0&controls=1&rel=0"
+                        frameborder="0" 
+                        allowfullscreen
+                        style="width: 100%; height: 400px; border-radius: 8px;">
+                    </iframe>
+                    <div class="video-info" style="margin-top: 10px;">
+                        <h3 style="margin: 0; color: var(--text-primary);">${video.video_title}</h3>
+                        <p style="margin: 5px 0 0 0; color: var(--text-secondary);">
+                            Duración: ${this.formatDuration(video.duration_seconds)}
+                        </p>
+                    </div>
+                </div>
+            `;
+            console.log('✅ Reproductor de fallback creado exitosamente');
+        } else {
+            console.warn('⚠️ No se encontró contenedor para el reproductor de video');
         }
     }
 
