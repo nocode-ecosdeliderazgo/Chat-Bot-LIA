@@ -4827,6 +4827,338 @@ Generado desde Coach LIA IA
 
     </script>
 
+    <!-- Script para funcionalidad de filtros de comunidad -->
+    <script>
+        // =====================================================
+        // SISTEMA DE FILTROS DE COMUNIDAD
+        // =====================================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar sistema de filtros de comunidad
+            initializeCommunityFilters();
+        });
+
+        function initializeCommunityFilters() {
+            console.log('🔄 Inicializando sistema de filtros de comunidad...');
+
+            // Configurar event listeners para los botones de filtro
+            const filterTabs = document.querySelectorAll('.filter-tab');
+            const moduleFilter = document.getElementById('moduleFilter');
+            const sortSelect = document.getElementById('sortSelect');
+
+            // Event listeners para botones de filtro
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const filterType = this.getAttribute('data-filter');
+                    handleFilterChange(filterType, this);
+                });
+            });
+
+            // Event listener para filtro de módulo
+            if (moduleFilter) {
+                moduleFilter.addEventListener('change', function() {
+                    const selectedModule = this.value;
+                    applyModuleFilter(selectedModule);
+                });
+            }
+
+            // Event listener para ordenamiento
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function() {
+                    const sortType = this.value;
+                    applySorting(sortType);
+                });
+            }
+
+            console.log('✅ Sistema de filtros de comunidad inicializado');
+        }
+
+        function handleFilterChange(filterType, clickedTab) {
+            console.log('🔄 Aplicando filtro:', filterType);
+
+            // Actualizar botones activos
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            clickedTab.classList.add('active');
+
+            // Aplicar el filtro
+            applyQuestionFilter(filterType);
+        }
+
+        function applyQuestionFilter(filterType) {
+            const questionItems = document.querySelectorAll('.question-item, .community-question');
+            let visibleCount = 0;
+
+            questionItems.forEach(question => {
+                let shouldShow = false;
+
+                switch (filterType) {
+                    case 'all':
+                        shouldShow = true;
+                        break;
+
+                    case 'unanswered':
+                        // Buscar si la pregunta tiene respuestas
+                        const hasAnswers = question.querySelector('.stat.answered') !== null ||
+                                         question.querySelector('[data-answers]') !== null ||
+                                         question.textContent.includes('respuesta') ||
+                                         question.classList.contains('answered');
+                        shouldShow = !hasAnswers;
+                        break;
+
+                    case 'answered':
+                        // Buscar si la pregunta tiene respuestas
+                        const isAnswered = question.querySelector('.stat.answered') !== null ||
+                                         question.querySelector('[data-answers]') !== null ||
+                                         question.textContent.includes('respuesta') ||
+                                         question.classList.contains('answered');
+                        shouldShow = isAnswered;
+                        break;
+
+                    case 'mine':
+                        // Verificar si es una pregunta del usuario actual
+                        // Esto podría basarse en datos del usuario almacenados localmente
+                        const currentUser = localStorage.getItem('userName') || 'Usuario Actual';
+                        const questionAuthor = question.querySelector('.question-author, .author-name');
+                        shouldShow = questionAuthor && 
+                                   (questionAuthor.textContent.includes(currentUser) ||
+                                    questionAuthor.textContent.includes('Tú') ||
+                                    question.classList.contains('own-question'));
+                        break;
+                }
+
+                // Mostrar/ocultar pregunta con animación suave
+                if (shouldShow) {
+                    question.style.display = '';
+                    question.style.opacity = '0';
+                    question.style.transform = 'translateY(20px)';
+                    
+                    setTimeout(() => {
+                        question.style.transition = 'all 0.3s ease';
+                        question.style.opacity = '1';
+                        question.style.transform = 'translateY(0)';
+                    }, visibleCount * 50); // Efecto escalonado
+                    
+                    visibleCount++;
+                } else {
+                    question.style.transition = 'all 0.3s ease';
+                    question.style.opacity = '0';
+                    question.style.transform = 'translateY(-20px)';
+                    
+                    setTimeout(() => {
+                        question.style.display = 'none';
+                    }, 300);
+                }
+            });
+
+            // Actualizar contador si existe
+            updateQuestionCounter(visibleCount, filterType);
+            
+            console.log(`✅ Filtro aplicado - ${visibleCount} preguntas visibles`);
+        }
+
+        function applyModuleFilter(selectedModule) {
+            console.log('🔄 Aplicando filtro de módulo:', selectedModule);
+
+            const questionItems = document.querySelectorAll('.question-item, .community-question');
+            let visibleCount = 0;
+
+            questionItems.forEach(question => {
+                let shouldShow = selectedModule === 'all';
+
+                if (!shouldShow) {
+                    // Buscar indicadores del módulo en la pregunta
+                    const moduleIndicators = [
+                        `data-module="${selectedModule}"`,
+                        `module-${selectedModule.split('-')[1]}`,
+                        `Módulo ${selectedModule.split('-')[1]}`
+                    ];
+
+                    shouldShow = moduleIndicators.some(indicator => 
+                        question.outerHTML.includes(indicator) ||
+                        question.textContent.includes(indicator)
+                    );
+                }
+
+                // Aplicar filtro con animación
+                if (shouldShow && question.style.display !== 'none') {
+                    visibleCount++;
+                } else if (!shouldShow) {
+                    question.style.transition = 'all 0.3s ease';
+                    question.style.opacity = '0';
+                    setTimeout(() => {
+                        question.style.display = 'none';
+                    }, 300);
+                }
+            });
+
+            console.log(`✅ Filtro de módulo aplicado - ${visibleCount} preguntas visibles`);
+        }
+
+        function applySorting(sortType) {
+            console.log('🔄 Aplicando ordenamiento:', sortType);
+
+            const questionContainer = document.querySelector('.questions-list, .community-questions');
+            if (!questionContainer) return;
+
+            const questions = Array.from(questionContainer.querySelectorAll('.question-item, .community-question'));
+            
+            questions.sort((a, b) => {
+                switch (sortType) {
+                    case 'recent':
+                        // Ordenar por fecha (más reciente primero)
+                        const dateA = getQuestionDate(a);
+                        const dateB = getQuestionDate(b);
+                        return dateB - dateA;
+
+                    case 'votes':
+                        // Ordenar por votos (más votado primero)
+                        const votesA = getQuestionVotes(a);
+                        const votesB = getQuestionVotes(b);
+                        return votesB - votesA;
+
+                    case 'answered':
+                        // Ordenar por estado de respuesta
+                        const answeredA = isQuestionAnswered(a);
+                        const answeredB = isQuestionAnswered(b);
+                        return answeredB - answeredA;
+
+                    default:
+                        return 0;
+                }
+            });
+
+            // Reordenar elementos en el DOM
+            questions.forEach(question => {
+                questionContainer.appendChild(question);
+            });
+
+            console.log(`✅ Ordenamiento aplicado: ${sortType}`);
+        }
+
+        function getQuestionDate(questionElement) {
+            // Buscar timestamp en el elemento
+            const timeElement = questionElement.querySelector('[data-timestamp], .question-time, .time');
+            if (timeElement) {
+                const timestamp = timeElement.getAttribute('data-timestamp') || 
+                                timeElement.textContent;
+                return new Date(timestamp).getTime() || 0;
+            }
+            return 0;
+        }
+
+        function getQuestionVotes(questionElement) {
+            // Buscar contador de votos
+            const voteElement = questionElement.querySelector('.vote-count, [data-votes]');
+            if (voteElement) {
+                const votes = voteElement.getAttribute('data-votes') || 
+                            voteElement.textContent;
+                return parseInt(votes) || 0;
+            }
+            return 0;
+        }
+
+        function isQuestionAnswered(questionElement) {
+            // Verificar si la pregunta está respondida
+            return questionElement.querySelector('.stat.answered') !== null ||
+                   questionElement.classList.contains('answered') ||
+                   questionElement.querySelector('[data-answers]') !== null;
+        }
+
+        function updateQuestionCounter(count, filterType) {
+            // Buscar elemento contador
+            const counterElement = document.querySelector('.questions-counter, .filter-counter');
+            if (counterElement) {
+                const filterNames = {
+                    'all': 'todas las preguntas',
+                    'unanswered': 'preguntas sin responder',
+                    'answered': 'preguntas respondidas',
+                    'mine': 'mis preguntas'
+                };
+                
+                counterElement.textContent = `${count} ${filterNames[filterType] || 'preguntas'}`;
+            }
+
+            // Mostrar mensaje si no hay resultados
+            if (count === 0) {
+                showEmptyState(filterType);
+            } else {
+                hideEmptyState();
+            }
+        }
+
+        function showEmptyState(filterType) {
+            let existingEmptyState = document.querySelector('.empty-state-filters');
+            
+            if (!existingEmptyState) {
+                const emptyState = document.createElement('div');
+                emptyState.className = 'empty-state-filters';
+                emptyState.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: var(--glass-text-secondary);">
+                        <svg style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <h3 style="margin: 0 0 8px 0;">No se encontraron preguntas</h3>
+                        <p style="margin: 0; opacity: 0.7;">Intenta cambiar el filtro o crear una nueva pregunta.</p>
+                    </div>
+                `;
+                
+                const questionContainer = document.querySelector('.questions-list, .community-questions');
+                if (questionContainer) {
+                    questionContainer.appendChild(emptyState);
+                }
+            }
+        }
+
+        function hideEmptyState() {
+            const emptyState = document.querySelector('.empty-state-filters');
+            if (emptyState) {
+                emptyState.remove();
+            }
+        }
+
+        // Función para resetear todos los filtros
+        window.resetCommunityFilters = function() {
+            // Resetear botón activo
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.getAttribute('data-filter') === 'all') {
+                    tab.classList.add('active');
+                }
+            });
+
+            // Resetear selects
+            const moduleFilter = document.getElementById('moduleFilter');
+            const sortSelect = document.getElementById('sortSelect');
+            
+            if (moduleFilter) moduleFilter.value = 'all';
+            if (sortSelect) sortSelect.value = 'recent';
+
+            // Mostrar todas las preguntas
+            applyQuestionFilter('all');
+            hideEmptyState();
+
+            console.log('✅ Filtros de comunidad reseteados');
+        };
+
+        // Función para obtener estado actual de filtros
+        window.getCommunityFiltersState = function() {
+            const activeTab = document.querySelector('.filter-tab.active');
+            const moduleFilter = document.getElementById('moduleFilter');
+            const sortSelect = document.getElementById('sortSelect');
+
+            return {
+                filter: activeTab ? activeTab.getAttribute('data-filter') : 'all',
+                module: moduleFilter ? moduleFilter.value : 'all',
+                sort: sortSelect ? sortSelect.value : 'recent'
+            };
+        };
+
+    </script>
+
     <!-- Fix Buttons Script - Corrección para botones del panel derecho -->
     <script src="fix-buttons.js"></script>
 
