@@ -88,6 +88,44 @@ class Module1VideosLoader {
     }
 
     // =====================================================
+    // PROBAR NETLIFY FUNCTIONS
+    // =====================================================
+
+    async testNetlifyFunctions() {
+        try {
+            console.log('🧪 Probando si Netlify Functions funcionan...');
+            
+            // Timeout rápido para no hacer esperar al usuario
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 segundos
+            
+            const testResponse = await fetch(`${this.apiBaseUrl}/test`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (testResponse.ok) {
+                const data = await testResponse.json();
+                console.log('✅ Netlify Functions funcionan correctamente:', data.message);
+                return true;
+            } else {
+                console.warn('⚠️ Netlify Functions responden con error:', testResponse.status);
+                return false;
+            }
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                console.warn('⚠️ Timeout: Netlify Functions tardan demasiado en responder');
+            } else {
+                console.warn('⚠️ Netlify Functions no disponibles:', error.message);
+            }
+            return false;
+        }
+    }
+
+    // =====================================================
     // CARGAR VIDEOS DEL MÓDULO 1
     // =====================================================
 
@@ -106,7 +144,16 @@ class Module1VideosLoader {
                 }
             }
 
-            // Si no está disponible, hacer consulta directa a la API
+            // Primero verificar si las Netlify Functions están funcionando
+            const functionsWorking = await this.testNetlifyFunctions();
+            
+            if (!functionsWorking) {
+                console.log('📚 Netlify Functions no disponibles, mostrando contenido de demostración');
+                this.createSampleVideos();
+                return;
+            }
+
+            // Si funcionan, hacer consulta directa a la API
             console.log('🔄 Haciendo consulta directa a la API...');
             
             // Intentar diferentes IDs de módulo posibles
@@ -196,7 +243,7 @@ class Module1VideosLoader {
             
             // Solo crear videos de ejemplo si realmente no hay datos
             if (this.videos.length === 0) {
-                console.warn('⚠️ No se pudieron cargar videos de la base de datos, usando datos de ejemplo');
+                console.log('📚 Cargando contenido de demostración del curso');
                 this.createSampleVideos();
             }
         }
@@ -207,9 +254,9 @@ class Module1VideosLoader {
     // =====================================================
 
     createSampleVideos() {
-        console.log('🔧 Creando videos de ejemplo para desarrollo...');
-        console.log('⚠️ ATENCIÓN: Estos son videos de ejemplo con IDs de YouTube de prueba');
-        console.log('🎯 Preparado para 11 videos del módulo 1 (actualizable cuando agregues videos reales a la base de datos)');
+        console.log('🔧 Creando videos de ejemplo...');
+        console.log('📚 Mostrando contenido de demostración del curso de IA');
+        console.log('🎯 11 videos de demostración del Módulo 1: Fundamentos de IA');
         
         this.videos = [
             {
@@ -315,8 +362,50 @@ class Module1VideosLoader {
 
         console.log('✅ Videos de ejemplo creados:', this.videos.length);
         
+        // Mostrar notificación al usuario
+        this.showDemoModeNotification();
+        
         // Cargar inmediatamente el primer video en el reproductor
         this.loadFirstVideoAutomatically();
+    }
+
+    // =====================================================
+    // MOSTRAR NOTIFICACIÓN DE MODO DEMO
+    // =====================================================
+
+    showDemoModeNotification() {
+        // Agregar banner informativo discreto
+        const videoContainer = document.querySelector('.module-videos-header, .videos-list-container');
+        if (videoContainer) {
+            const banner = document.createElement('div');
+            banner.className = 'demo-mode-banner';
+            banner.style.cssText = `
+                background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+                border: 1px solid #2196f3;
+                border-radius: 8px;
+                padding: 12px 16px;
+                margin-bottom: 16px;
+                color: #1565c0;
+                font-size: 14px;
+                text-align: center;
+                box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+            `;
+            banner.innerHTML = `
+                <strong>📚 Modo Demostración</strong><br>
+                <small>Contenido de ejemplo del curso "Fundamentos de IA"</small>
+            `;
+            
+            videoContainer.parentNode.insertBefore(banner, videoContainer);
+            
+            // Auto-hide después de 10 segundos
+            setTimeout(() => {
+                if (banner.parentNode) {
+                    banner.style.transition = 'opacity 0.5s ease';
+                    banner.style.opacity = '0';
+                    setTimeout(() => banner.remove(), 500);
+                }
+            }, 10000);
+        }
     }
 
     // =====================================================

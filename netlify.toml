@@ -120,6 +120,12 @@
   to   = "/.netlify/functions/user-progress"
   status = 200
 
+# Test endpoint
+[[redirects]]
+  from = "/api/test"
+  to   = "/.netlify/functions/test"
+  status = 200
+
 # Wildcard redirect (must be last)
 [[redirects]]
   from = "/api/*"
