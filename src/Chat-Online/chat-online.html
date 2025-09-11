@@ -565,6 +565,101 @@
             background: linear-gradient(90deg, #0066CC, #44e5ff);
             border-radius: 2px;
             transition: width 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Diseño limpio y minimalista para la barra de progreso */
+        .course-progress-header.clean {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            width: 100%;
+        }
+        
+        .progress-bar-clean {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            max-width: 200px;
+        }
+        
+        .progress-track-clean {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .progress-fill-clean {
+            height: 100%;
+            background: linear-gradient(90deg, #0066CC, #44e5ff);
+            border-radius: 4px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 6px rgba(68, 229, 255, 0.2);
+        }
+        
+        .progress-fill-clean::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 3s infinite;
+        }
+        
+        .progress-percentage-clean {
+            font-size: 0.8rem;
+            color: #44e5ff;
+            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+            min-width: 35px;
+            text-align: right;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        /* Animación para el contador */
+        .progress-counter-animation {
+            animation: counterPulse 0.5s ease-in-out;
+        }
+        
+        @keyframes counterPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsive para el diseño limpio */
+        @media (max-width: 768px) {
+            .course-progress-header.clean {
+                justify-content: center;
+            }
+            
+            .progress-bar-clean {
+                max-width: 150px;
+                gap: 8px;
+            }
+            
+            .progress-track-clean {
+                height: 5px;
+            }
+            
+            .progress-percentage-clean {
+                font-size: 0.75rem;
+                min-width: 30px;
+            }
         }
 
         /* Responsive para header bajo */
@@ -1936,10 +2031,12 @@
                 </button>
                 <div class="header-content-group">
                     <h1 class="course-title-header">Introducción a la IA</h1>
-                    <div class="course-progress-header">
-                        <span class="progress-text">0/5</span>
-                        <div class="progress-bar-header">
-                            <div class="progress-fill-header" style="width: 0%"></div>
+                    <div class="course-progress-header clean">
+                        <div class="progress-bar-clean">
+                            <div class="progress-track-clean">
+                                <div class="progress-fill-clean" id="progressFillHeader" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-percentage-clean" id="progressPercentage">0%</span>
                         </div>
                     </div>
                 </div>
@@ -4223,7 +4320,7 @@ INSTRUCCIONES:
                     collapseRight.title = 'Ocultar panel';
                 }
                 
-                // Event listener mejorado con animaciones
+                // Event listener para el botón de colapso
                 collapseRight.addEventListener('click', function(e) {
                     e.preventDefault();
                     
@@ -4235,16 +4332,18 @@ INSTRUCCIONES:
                         );
                         
                         contentSections.forEach((section, index) => {
-                            setTimeout(() => {
-                                section.style.opacity = '0';
-                                section.style.transform = 'translateX(20px)';
-                            }, index * 50);
+                            section.style.transition = 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)';
+                            section.style.opacity = '0';
+                            section.style.transform = 'translateX(20px)';
                         });
                         
                         // Aplicar colapso después de la animación
                         setTimeout(() => {
                             sidebarRight.classList.add('collapsed');
                             collapseRight.title = 'Expandir panel';
+                            // Desfijar panel cuando se colapsa manualmente
+                            rightPanelPinned = false;
+                            console.log('📌 Panel derecho desfijado');
                         }, 200);
                         
                     } else {
@@ -4253,23 +4352,22 @@ INSTRUCCIONES:
                         collapseRight.title = 'Ocultar panel';
                         
                         // Re-animar contenido al expandir
-                        const contentSections = sidebarRight.querySelectorAll(
-                            '.lia-assistant-section, .notes-creator-section, .notes-section, .course-materials-section, .community-content'
-                        );
-                        
-                        contentSections.forEach((section) => {
-                            section.style.opacity = '';
-                            section.style.transform = '';
-                        });
+                        setTimeout(() => {
+                            const contentSections = sidebarRight.querySelectorAll(
+                                '.lia-assistant-section, .notes-creator-section, .notes-section, .course-materials-section, .community-content'
+                            );
+                            contentSections.forEach((section, index) => {
+                                section.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+                                section.style.opacity = '1';
+                                section.style.transform = 'translateX(0)';
+                            });
+                        }, 50);
                     }
                     
                     const isNowCollapsed = sidebarRight.classList.contains('collapsed');
                     
                     // Guardar estado en localStorage
                     localStorage.setItem('rightPanelCollapsed', isNowCollapsed);
-                    
-                    // Log para debugging
-                    console.log('📱 Panel derecho:', isNowCollapsed ? 'colapsado' : 'expandido');
                     
                     // Emitir evento personalizado para otros componentes
                     window.dispatchEvent(new CustomEvent('rightPanelToggled', {
@@ -4279,11 +4377,6 @@ INSTRUCCIONES:
                             source: 'user-action'
                         }
                     }));
-                    
-                    // Feedback háptico en dispositivos móviles (si está disponible)
-                    if ('vibrate' in navigator && window.innerWidth <= 768) {
-                        navigator.vibrate(50);
-                    }
                 });
                 
                 // Funcionalidad adicional: colapsar con tecla Escape cuando el panel está enfocado
@@ -4369,6 +4462,9 @@ INSTRUCCIONES:
                     setTimeout(() => {
                         sidebarLeft.classList.add('collapsed');
                         collapseLeft.title = 'Expandir panel';
+                        // Desfijar panel cuando se colapsa manualmente
+                        leftPanelPinned = false;
+                        console.log('📌 Panel izquierdo desfijado');
                     }, 200);
                     
                 } else {
@@ -4501,9 +4597,10 @@ INSTRUCCIONES:
                 
                 // Fijar panel izquierdo al hacer clic
                 sidebarLeft.addEventListener('click', function(e) {
+                    console.log('🖱️ Panel izquierdo click - leftPanelPinned:', leftPanelPinned, 'collapsed:', sidebarLeft.classList.contains('collapsed'));
                     if (!sidebarLeft.classList.contains('collapsed')) {
                         leftPanelPinned = true;
-                        console.log('📌 Panel izquierdo fijado');
+                        console.log('📌 Panel izquierdo fijado - leftPanelPinned ahora:', leftPanelPinned);
                     }
                 });
             }
@@ -4521,9 +4618,10 @@ INSTRUCCIONES:
                             const contentSections = sidebarRight.querySelectorAll(
                                 '.lia-assistant-section, .notes-creator-section, .notes-section, .course-materials-section, .community-content'
                             );
-                            contentSections.forEach((section) => {
-                                section.style.opacity = '';
-                                section.style.transform = '';
+                            contentSections.forEach((section, index) => {
+                                section.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+                                section.style.opacity = '1';
+                                section.style.transform = 'translateX(0)';
                             });
                         }, 50);
                         
@@ -4546,34 +4644,25 @@ INSTRUCCIONES:
                 
                 // Fijar panel derecho al hacer clic
                 sidebarRight.addEventListener('click', function(e) {
+                    console.log('🖱️ Panel derecho click - rightPanelPinned:', rightPanelPinned, 'collapsed:', sidebarRight.classList.contains('collapsed'));
                     if (!sidebarRight.classList.contains('collapsed')) {
                         rightPanelPinned = true;
-                        console.log('📌 Panel derecho fijado');
+                        console.log('📌 Panel derecho fijado - rightPanelPinned ahora:', rightPanelPinned);
                     }
                 });
             }
             
-            // Desfijar paneles cuando se usan los botones de colapso
-            if (collapseLeft) {
-                collapseLeft.addEventListener('click', function() {
-                    leftPanelPinned = false;
-                    console.log('📌 Panel izquierdo desfijado');
-                });
-            }
-            
-            if (collapseRight) {
-                collapseRight.addEventListener('click', function() {
-                    rightPanelPinned = false;
-                    console.log('📌 Panel derecho desfijado');
-                });
-            }
+            // Los event listeners de desfijación están integrados en los event listeners principales de colapso
             
             // Desfijar paneles cuando se colapsan automáticamente
             if (sidebarLeft) {
                 sidebarLeft.addEventListener('mouseleave', function(e) {
+                    console.log('🖱️ Panel izquierdo mouseleave - leftPanelPinned:', leftPanelPinned, 'collapsed:', sidebarLeft.classList.contains('collapsed'));
                     if (!leftPanelPinned && !sidebarLeft.classList.contains('collapsed')) {
+                        console.log('✅ Panel izquierdo - condiciones cumplidas, iniciando colapso automático');
                         // Pequeño delay para evitar cierre accidental
                         setTimeout(() => {
+                            console.log('⏰ Panel izquierdo - timeout ejecutado - leftPanelPinned:', leftPanelPinned, 'collapsed:', sidebarLeft.classList.contains('collapsed'));
                             if (!leftPanelPinned && !sidebarLeft.classList.contains('collapsed')) {
                                 sidebarLeft.classList.add('collapsed');
                                 collapseLeft.title = 'Expandir panel';
@@ -4592,17 +4681,24 @@ INSTRUCCIONES:
                                 }));
                                 
                                 console.log('📱 Panel izquierdo colapsado automáticamente al salir del hover');
+                            } else {
+                                console.log('❌ Panel izquierdo - condiciones no cumplidas en timeout');
                             }
                         }, 300);
+                    } else {
+                        console.log('❌ Panel izquierdo - condiciones no cumplidas:', 'leftPanelPinned:', leftPanelPinned, 'collapsed:', sidebarLeft.classList.contains('collapsed'));
                     }
                 });
             }
             
             if (sidebarRight) {
                 sidebarRight.addEventListener('mouseleave', function(e) {
+                    console.log('🖱️ Panel derecho mouseleave - rightPanelPinned:', rightPanelPinned, 'collapsed:', sidebarRight.classList.contains('collapsed'));
                     if (!rightPanelPinned && !sidebarRight.classList.contains('collapsed')) {
+                        console.log('✅ Panel derecho - condiciones cumplidas, iniciando colapso automático');
                         // Pequeño delay para evitar cierre accidental
                         setTimeout(() => {
+                            console.log('⏰ Panel derecho - timeout ejecutado - rightPanelPinned:', rightPanelPinned, 'collapsed:', sidebarRight.classList.contains('collapsed'));
                             if (!rightPanelPinned && !sidebarRight.classList.contains('collapsed')) {
                                 sidebarRight.classList.add('collapsed');
                                 collapseRight.title = 'Expandir panel';
@@ -4621,8 +4717,12 @@ INSTRUCCIONES:
                                 }));
                                 
                                 console.log('📱 Panel derecho colapsado automáticamente al salir del hover');
+                            } else {
+                                console.log('❌ Panel derecho - condiciones no cumplidas en timeout');
                             }
                         }, 300);
+                    } else {
+                        console.log('❌ Panel derecho - condiciones no cumplidas:', 'rightPanelPinned:', rightPanelPinned, 'collapsed:', sidebarRight.classList.contains('collapsed'));
                     }
                 });
             }
@@ -4824,6 +4924,98 @@ Generado desde Coach LIA IA
                 }, 300);
             }, 3000);
         }
+
+        // ===== FUNCIÓN PARA ACTUALIZAR BARRA DE PROGRESO DEL HEADER =====
+        function updateHeaderProgressBar(completedVideos = 0, totalVideos = 19) {
+            const progressFillHeader = document.getElementById('progressFillHeader');
+            const progressPercentage = document.getElementById('progressPercentage');
+            
+            if (progressFillHeader) {
+                const percentage = totalVideos > 0 ? (completedVideos / totalVideos) * 100 : 0;
+                progressFillHeader.style.width = `${percentage}%`;
+            }
+            
+            if (progressPercentage) {
+                const percentage = totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0;
+                progressPercentage.textContent = `${percentage}%`;
+                // Agregar animación al porcentaje
+                progressPercentage.classList.add('progress-counter-animation');
+                setTimeout(() => {
+                    progressPercentage.classList.remove('progress-counter-animation');
+                }, 500);
+            }
+            
+            console.log(`📊 Progreso actualizado: ${completedVideos}/${totalVideos} videos (${percentage}%)`);
+        }
+
+        // ===== FUNCIÓN PARA CONTAR VIDEOS COMPLETADOS =====
+        function countCompletedVideos() {
+            try {
+                // Buscar todos los elementos de video completados
+                const completedVideos = document.querySelectorAll('.video-item.completed, .module-video.completed, .lesson-item.completed');
+                const totalVideos = document.querySelectorAll('.video-item, .module-video, .lesson-item');
+                
+                const completedCount = completedVideos.length;
+                const totalCount = totalVideos.length;
+                
+                // Si no encontramos videos en esos selectores, buscar en otros lugares
+                if (totalCount === 0) {
+                    // Buscar en la estructura de módulos
+                    const moduleVideos = document.querySelectorAll('.module-content .video, .lesson, .activity-item');
+                    const completedModuleVideos = document.querySelectorAll('.module-content .video.completed, .lesson.completed, .activity-item.completed');
+                    
+                    return {
+                        completed: completedModuleVideos.length,
+                        total: moduleVideos.length || 19 // Fallback a 19 si no encontramos nada
+                    };
+                }
+                
+                return {
+                    completed: completedCount,
+                    total: totalCount
+                };
+                
+            } catch (error) {
+                console.warn('⚠️ Error contando videos completados:', error);
+                return { completed: 0, total: 19 };
+            }
+        }
+
+        // ===== ACTUALIZAR PROGRESO AL CARGAR LA PÁGINA =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Actualizar progreso inicial
+            setTimeout(() => {
+                const videoCounts = countCompletedVideos();
+                updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
+            }, 1000);
+            
+            // Actualizar progreso cada 5 segundos
+            setInterval(() => {
+                const videoCounts = countCompletedVideos();
+                updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
+            }, 5000);
+        });
+
+        // ===== ESCUCHAR EVENTOS DE PROGRESO =====
+        window.addEventListener('videoCompleted', function(event) {
+            console.log('🎬 Video completado detectado, actualizando progreso...');
+            setTimeout(() => {
+                const videoCounts = countCompletedVideos();
+                updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
+            }, 500);
+        });
+
+        window.addEventListener('moduleProgressUpdated', function(event) {
+            console.log('📈 Progreso de módulo actualizado, actualizando header...');
+            setTimeout(() => {
+                const videoCounts = countCompletedVideos();
+                updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
+            }, 500);
+        });
+
+        // ===== EXPONER FUNCIONES GLOBALMENTE =====
+        window.updateHeaderProgressBar = updateHeaderProgressBar;
+        window.countCompletedVideos = countCompletedVideos;
 
     </script>
 
