@@ -25,6 +25,9 @@ function fixRightPanelButtons() {
     // ===== OTROS BOTONES =====
     fixOtherButtons();
 
+    // ===== BOTONES DE COMUNIDAD =====
+    fixCommunityButtons();
+
     console.log('✅ [FIX-BUTTONS] Corrección completada');
 }
 
@@ -237,6 +240,447 @@ function fixOtherButtons() {
 // =====================================================
 // FUNCIONES DE FUNCIONALIDAD
 // =====================================================
+
+// ===== ARREGLO DE BOTONES DE COMUNIDAD =====
+function fixCommunityButtons() {
+    console.log('🔧 Arreglando botones de comunidad...');
+    
+    // Arreglar botón "Hacer Pregunta"
+    const askQuestionBtn = document.getElementById('askQuestionBtn');
+    if (askQuestionBtn) {
+        // Crear nuevo botón con evento limpio
+        const newAskBtn = askQuestionBtn.cloneNode(true);
+        newAskBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔘 Botón "Hacer Pregunta" clickeado - nuevo event listener');
+            showQuestionModal();
+        });
+        askQuestionBtn.parentNode.replaceChild(newAskBtn, askQuestionBtn);
+        console.log('✅ Botón "Hacer Pregunta" arreglado');
+    }
+
+    // Arreglar botón "Enviar Pregunta"
+    const submitQuestionBtn = document.getElementById('submitQuestionBtn');
+    if (submitQuestionBtn) {
+        const newSubmitBtn = submitQuestionBtn.cloneNode(true);
+        newSubmitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🔘 Botón "Enviar Pregunta" clickeado - nuevo event listener');
+            submitQuestion();
+        });
+        submitQuestionBtn.parentNode.replaceChild(newSubmitBtn, submitQuestionBtn);
+        console.log('✅ Botón "Enviar Pregunta" arreglado');
+    }
+
+    // Arreglar botón "Cerrar Modal"
+    const closeQuestionModal = document.getElementById('closeQuestionModal');
+    if (closeQuestionModal) {
+        const newCloseBtn = closeQuestionModal.cloneNode(true);
+        newCloseBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔘 Botón "Cerrar Modal" clickeado - nuevo event listener');
+            closeQuestionModalFunc();
+        });
+        closeQuestionModal.parentNode.replaceChild(newCloseBtn, closeQuestionModal);
+        console.log('✅ Botón "Cerrar Modal" arreglado');
+    }
+
+    // Arreglar botón "Cancelar" en modal
+    const cancelQuestionBtn = document.getElementById('cancelQuestionBtn');
+    if (cancelQuestionBtn) {
+        const newCancelBtn = cancelQuestionBtn.cloneNode(true);
+        newCancelBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔘 Botón "Cancelar" clickeado - nuevo event listener');
+            closeQuestionModalFunc();
+        });
+        cancelQuestionBtn.parentNode.replaceChild(newCancelBtn, cancelQuestionBtn);
+        console.log('✅ Botón "Cancelar" arreglado');
+    }
+}
+
+// Función para mostrar modal de pregunta preservando la funcionalidad de BD
+function showQuestionModal() {
+    console.log('📝 Mostrando modal de pregunta...');
+    const modal = document.getElementById('questionModal');
+    const overlay = document.querySelector('.modal-overlay');
+    
+    if (modal) {
+        modal.style.display = 'block';
+        if (overlay) {
+            overlay.style.display = 'block';
+        }
+        
+        // Limpiar formulario
+        const titleInput = document.getElementById('questionTitle');
+        const contentInput = document.getElementById('questionContent');
+        if (titleInput) titleInput.value = '';
+        if (contentInput) contentInput.value = '';
+        
+        // Focus en el primer campo
+        setTimeout(() => {
+            if (titleInput) titleInput.focus();
+        }, 100);
+        
+        console.log('✅ Modal de pregunta mostrado');
+    } else {
+        console.error('❌ No se encontró el modal de pregunta');
+    }
+}
+
+// Función para cerrar modal preservando la funcionalidad
+function closeQuestionModalFunc() {
+    console.log('❌ Cerrando modal de pregunta...');
+    const modal = document.getElementById('questionModal');
+    const overlay = document.querySelector('.modal-overlay');
+    
+    if (modal) {
+        modal.style.display = 'none';
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+        console.log('✅ Modal cerrado');
+    }
+}
+
+// Función para obtener usuario actual
+function obtenerUsuarioActual() {
+    try {
+        // Intentar obtener desde userData (primary)
+        const userData = localStorage.getItem('userData');
+        if (userData) {
+            const parsed = JSON.parse(userData);
+            console.log('👤 Usuario desde userData:', parsed);
+            return parsed;
+        }
+        
+        // Intentar obtener desde currentUser (compatibility)
+        const currentUser = localStorage.getItem('currentUser');
+        if (currentUser) {
+            const parsed = JSON.parse(currentUser);
+            console.log('👤 Usuario desde currentUser:', parsed);
+            return parsed;
+        }
+        
+        // Intentar obtener desde Supabase Auth
+        if (window.supabase && window.supabase.auth) {
+            const session = window.supabase.auth.getSession();
+            if (session?.data?.session?.user) {
+                console.log('👤 Usuario desde Supabase:', session.data.session.user);
+                return session.data.session.user;
+            }
+        }
+        
+        // Si no hay usuario autenticado, generar ID temporal
+        console.warn('⚠️ No hay usuario autenticado, usando ID temporal');
+        return {
+            id: `temp_user_${Date.now()}`,
+            email: 'usuario@temporal.com',
+            name: 'Usuario Temporal'
+        };
+        
+    } catch (error) {
+        console.error('❌ Error obteniendo usuario actual:', error);
+        return {
+            id: `error_user_${Date.now()}`,
+            email: 'error@usuario.com',
+            name: 'Usuario Error'
+        };
+    }
+}
+
+// Función para obtener curso actual
+function getCurrentCourseId() {
+    // Intentar obtener desde variables globales
+    if (window.chatOnline && window.chatOnline.getCurrentCourseId) {
+        return window.chatOnline.getCurrentCourseId();
+    }
+    
+    // Fallback a valores por defecto o detectar desde URL/contexto
+    return '550e8400-e29b-41d4-a716-446655440001';
+}
+
+// Función para obtener módulo actual
+function getCurrentModuleId() {
+    // Intentar obtener desde variables globales
+    if (window.chatOnline && window.chatOnline.getCurrentModuleId) {
+        return window.chatOnline.getCurrentModuleId();
+    }
+    
+    // Fallback a módulo por defecto
+    return 'module-1';
+}
+
+// Función para recargar preguntas directamente (patrón de transcripciones/resúmenes)
+async function refreshQuestionsDirectly() {
+    try {
+        console.log('📋 Obteniendo preguntas directamente de la API...');
+        
+        // Usar la misma API que usa loadCommunityQuestions
+        if (!window.communityAPI) {
+            console.error('❌ communityAPI no está disponible');
+            return;
+        }
+        
+        // Obtener preguntas con el mismo patrón de la función original
+        const response = await window.communityAPI.getQuestions({
+            filter: 'all',
+            sort: 'recent'
+        });
+        
+        console.log('📋 Respuesta de la API:', response);
+        
+        if (response && response.data && Array.isArray(response.data)) {
+            const questions = response.data;
+            console.log(`✅ ${questions.length} preguntas obtenidas directamente`);
+            
+            // Renderizar directamente en el DOM (patrón de transcripciones/resúmenes)
+            renderQuestionsDirectly(questions);
+        } else if (response && Array.isArray(response)) {
+            // Algunas APIs devuelven directamente el array
+            const questions = response;
+            console.log(`✅ ${questions.length} preguntas obtenidas directamente (array directo)`);
+            renderQuestionsDirectly(questions);
+        } else {
+            console.warn('⚠️ Respuesta de API inesperada:', response);
+            
+            // Fallback: intentar usar las funciones existentes
+            if (window.chatOnline && typeof window.chatOnline.loadCommunityQuestions === 'function') {
+                window.chatOnline.communityQuestionsLoaded = false;
+                window.chatOnline.loadingQuestions = false;
+                await window.chatOnline.loadCommunityQuestions('direct-refresh-fallback');
+            }
+        }
+        
+    } catch (error) {
+        console.error('❌ Error recargando preguntas directamente:', error);
+        
+        // Fallback final
+        if (window.chatOnline && typeof window.chatOnline.loadCommunityQuestions === 'function') {
+            try {
+                window.chatOnline.communityQuestionsLoaded = false;
+                window.chatOnline.loadingQuestions = false;
+                await window.chatOnline.loadCommunityQuestions('direct-refresh-error-fallback');
+                console.log('✅ Fallback exitoso');
+            } catch (fallbackError) {
+                console.error('❌ Fallback también falló:', fallbackError);
+            }
+        }
+    }
+}
+
+// Función para renderizar preguntas directamente en el DOM
+function renderQuestionsDirectly(questions) {
+    console.log('🎨 Renderizando preguntas directamente en DOM...');
+    
+    const questionsList = document.getElementById('questionsList');
+    if (!questionsList) {
+        console.error('❌ Lista de preguntas no encontrada');
+        return;
+    }
+    
+    // Limpiar completamente el contenedor (patrón de transcripciones)
+    questionsList.innerHTML = '';
+    
+    if (!questions || questions.length === 0) {
+        questionsList.innerHTML = `
+            <div class="empty-questions">
+                <div class="empty-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </div>
+                <h3>No hay preguntas aún</h3>
+                <p>Sé el primero en hacer una pregunta sobre este módulo</p>
+                <button class="btn-primary" onclick="showQuestionModal()">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Hacer Primera Pregunta
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    // Generar HTML para cada pregunta (usar función existente si está disponible)
+    let questionsHTML = '';
+    
+    if (window.chatOnline && typeof window.chatOnline.createQuestionHTML === 'function') {
+        // Usar la función existente del sistema
+        questionsHTML = questions.map(question => window.chatOnline.createQuestionHTML(question)).join('');
+    } else {
+        // Fallback: generar HTML básico
+        questionsHTML = questions.map(question => createBasicQuestionHTML(question)).join('');
+    }
+    
+    // Actualizar DOM directamente (patrón de transcripciones/resúmenes)
+    questionsList.innerHTML = questionsHTML;
+    
+    // Reconfigurar event listeners si la función existe
+    if (window.chatOnline && typeof window.chatOnline.setupQuestionEventListeners === 'function') {
+        window.chatOnline.setupQuestionEventListeners();
+    }
+    
+    console.log('✅ Preguntas renderizadas directamente en DOM');
+}
+
+// Función básica para generar HTML de pregunta (fallback)
+function createBasicQuestionHTML(question) {
+    const timeAgo = getTimeAgo(question.created_at);
+    const userName = question.users?.name || question.users?.email || 'Usuario';
+    
+    return `
+        <div class="question-card" data-question-id="${question.id}">
+            <div class="question-header">
+                <div class="question-user">
+                    <div class="user-avatar">
+                        <span>${userName.charAt(0).toUpperCase()}</span>
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name">${userName}</span>
+                        <span class="question-time">${timeAgo}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="question-content">
+                <h3 class="question-title">${question.title}</h3>
+                <p class="question-text">${question.content}</p>
+            </div>
+            
+            <div class="question-actions">
+                <button class="action-btn vote-btn" data-question-id="${question.id}">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="7,10 12,5 17,10"/>
+                    </svg>
+                    <span>${question.vote_count || 0}</span>
+                </button>
+                <button class="action-btn answer-btn" data-question-id="${question.id}">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 3h18v18l-3-3H3V3z"/>
+                    </svg>
+                    Responder
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Función auxiliar para tiempo transcurrido
+function getTimeAgo(dateString) {
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        
+        if (diffMins < 1) return 'ahora';
+        if (diffMins < 60) return `hace ${diffMins}m`;
+        
+        const diffHours = Math.floor(diffMins / 60);
+        if (diffHours < 24) return `hace ${diffHours}h`;
+        
+        const diffDays = Math.floor(diffHours / 24);
+        return `hace ${diffDays}d`;
+    } catch (error) {
+        return 'hace poco';
+    }
+}
+
+// Función para enviar pregunta preservando la conexión a BD
+async function submitQuestion() {
+    console.log('📤 Enviando pregunta...');
+    
+    const titleInput = document.getElementById('questionTitle');
+    const contentInput = document.getElementById('questionContent');
+    
+    if (!titleInput || !contentInput) {
+        console.error('❌ No se encontraron los campos del formulario');
+        return;
+    }
+    
+    const title = titleInput.value.trim();
+    const content = contentInput.value.trim();
+    
+    if (!title || !content) {
+        alert('Por favor, completa todos los campos');
+        return;
+    }
+    
+    // Obtener usuario actual
+    const currentUser = obtenerUsuarioActual();
+    if (!currentUser || !currentUser.id) {
+        alert('Error: No se pudo identificar el usuario. Por favor, inicia sesión nuevamente.');
+        return;
+    }
+    
+    // Obtener datos del curso y módulo
+    const currentCourseId = getCurrentCourseId();
+    const currentModuleId = getCurrentModuleId();
+    
+    console.log('👤 Usuario actual:', currentUser);
+    console.log('📚 Curso actual:', currentCourseId);
+    console.log('📖 Módulo actual:', currentModuleId);
+    
+    try {
+        // Usar la API de comunidad existente si está disponible
+        if (window.communityAPI) {
+            console.log('🔗 Usando communityAPI para enviar pregunta...');
+            
+            // Asegurar que communityAPI tenga configurado el usuario
+            window.communityAPI.setUserId(currentUser.id);
+            
+            const questionData = {
+                title: title,
+                content: content,
+                user_id: currentUser.id,
+                course_id: currentCourseId,
+                module_id: currentModuleId,
+                tags: [] // Tags vacíos por defecto
+            };
+            
+            console.log('📝 Datos de la pregunta:', questionData);
+            
+            const response = await window.communityAPI.createQuestion(questionData);
+            
+            if (response && response.success !== false) {
+                console.log('✅ Pregunta enviada exitosamente');
+                closeQuestionModalFunc();
+                
+                // Mostrar mensaje de éxito
+                alert('¡Pregunta enviada exitosamente!');
+                
+                // Recargar preguntas inmediatamente
+                console.log('🔄 Recargando preguntas después de envío exitoso...');
+                
+                // Esperar un momento para sincronización de BD
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Recargar preguntas usando el patrón directo de actualización DOM
+                console.log('🔄 Recargando preguntas con patrón directo...');
+                await refreshQuestionsDirectly();
+            } else {
+                throw new Error(response?.error || 'Error al enviar pregunta');
+            }
+        } else if (window.chatOnline && typeof window.chatOnline.submitQuestion === 'function') {
+            // Fallback a la función original
+            console.log('🔗 Usando función original submitQuestion...');
+            await window.chatOnline.submitQuestion();
+        } else {
+            throw new Error('No se encontró método para enviar pregunta');
+        }
+    } catch (error) {
+        console.error('❌ Error al enviar pregunta:', error);
+        alert('Error al enviar pregunta: ' + error.message);
+    }
+}
 
 // Función para generar respuestas inteligentes de LIA
 function generarRespuestaInteligente(mensaje) {
@@ -792,6 +1236,9 @@ window.showNotesCreator = showNotesCreator;
 window.hideNotesCreator = hideNotesCreator;
 window.saveCurrentNote = saveCurrentNote;
 window.exportNoteToPDF = exportNoteToPDF;
+window.showQuestionModal = showQuestionModal;
+window.closeQuestionModalFunc = closeQuestionModalFunc;
+window.submitQuestion = submitQuestion;
 
 // Función para inicializar cuando el DOM esté listo
 function initializeFixButtons() {
