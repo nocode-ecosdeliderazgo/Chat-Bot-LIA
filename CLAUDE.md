@@ -52,6 +52,10 @@ npm run setup
 # Extract Supabase configuration
 node scripts/extract-supabase-config.js
 
+# Initialize database progress tables
+npm run init:database
+npm run init:progress
+
 # Initial project setup
 node scripts/setup.js
 ```
@@ -70,8 +74,12 @@ The frontend follows a multi-page application (MPA) pattern with shared componen
 - `src/index.html` - Landing page with animated hero section and theme switching
 - `src/login/new-auth.html` - Authentication system with OTP verification
 - `src/chat.html` - Main chat interface with OpenAI integration
+- `src/Chat-Online/chat-online.html` - Interactive course chat with video player and LIA assistant
 - `src/courses.html` / `src/cursos.html` - Course catalog and management
 - `src/profile.html` - User profile and progress tracking
+- `src/Community/community.html` - Community features and discussions
+- `src/Notices/notices.html` - Announcements and notifications
+- `src/admin/admin.html` - Administrative dashboard
 
 **Modular Components**:
 - `src/scripts/` - JavaScript modules for animations, theme management, API integration
@@ -126,13 +134,31 @@ The frontend follows a multi-page application (MPA) pattern with shared componen
 ## Development Guidelines
 
 ### Environment Configuration
-Create `.env` file with required variables:
+Create `.env` file with required variables (see `.env.example` for complete reference):
 ```
-SUPABASE_URL=your_supabase_url
-SUPABASE_SERVICE_ROLE_KEY=your_service_key
-OPENAI_API_KEY=your_openai_key
-DATABASE_URL=your_postgresql_url
-SMTP_CONFIG=your_email_configuration
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Database Configuration  
+DATABASE_URL=your_database_url_here
+
+# Supabase Configuration
+SUPABASE_URL=your_supabase_url_here
+SUPABASE_SERVICE_KEY=your_supabase_service_key_here
+
+# Security Configuration
+NODE_ENV=production
+SESSION_SECRET=your-session-secret-here
+API_SECRET_KEY=your-api-secret-key-here
+USER_JWT_SECRET=your_jwt_secret_here
+
+# Google OAuth (optional)
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+
+# Server Configuration
+PORT=3000
+ALLOWED_ORIGINS=http://localhost:3000,https://yourdomain.com
 ```
 
 ### Frontend Development
@@ -274,6 +300,31 @@ const observeElements = () => {
 
 ### Modular Components
 - Authentication: `src/login/`, `src/utils/auth-guard.js`
-- Chat System: `src/chat.html`, AI integration in Netlify Functions
-- Course System: `src/courses.html`, `src/data/course-data.js`
-- UI Components: `src/scripts/` (animations, themes, particles)
+- Chat System: `src/chat.html`, `src/Chat-Online/`, AI integration in Netlify Functions
+- Course System: `src/courses.html`, `src/data/course-data.js`, `src/data/course-content-sif-icap.js`
+- Community: `src/Community/`, database schema in `database/community_schema.md`
+- Video Integration: `src/scripts/zoom-video-integration.js`, YouTube progress tracking
+- UI Components: `src/scripts/` (animations, themes, particles, progress managers)
+
+## Important Development Notes
+
+### Database Scripts & Operations
+The project includes several utility scripts for database management:
+- `scripts/init-progress-database.js` - Initialize progress tracking tables
+- `scripts/insert-sample-activities.js` - Add sample video activities
+- `scripts/run-activity-migration.js` - Migrate activity data
+- `scripts/test-activities.js` - Test activity functionality
+- `scripts/update-specific-activities.js` - Update specific activity records
+
+### Chat System Architecture
+The chat system has dual deployment modes:
+1. **Local Development**: Uses `server.js` with `/api/openai` endpoint
+2. **Netlify Production**: Uses `netlify/functions/openai.js` serverless function
+
+The LIA (Learning Intelligence Assistant) is integrated into `chat-online.html` and provides context-aware responses based on course content defined in prompts under `prompts/` directory.
+
+### Video & Progress Tracking
+- YouTube integration with progress tracking via `scripts/youtube-progress-tracker.js`
+- Zoom video integration for live sessions
+- Module and video progress stored in Supabase with real-time updates
+- Course progress management through specialized components
