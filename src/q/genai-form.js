@@ -20,12 +20,36 @@ class GenAIQuestionnaire {
         this.totalQuestions = 0;
         this.answeredQuestions = 0;
         
-        this.init();
+        // No llamar init() automáticamente - usar GenAIQuestionnaire.create() en su lugar
+    }
+    
+    // Método estático para crear instancia de forma segura
+    static async create() {
+        const instance = new GenAIQuestionnaire();
+        await instance.init();
+        return instance;
+    }
+    
+    async waitForSupabase(maxAttempts = 10, delay = 100) {
+        for (let i = 0; i < maxAttempts; i++) {
+            if (typeof window.supabase !== 'undefined' && 
+                window.supabase && 
+                typeof window.supabase.from === 'function') {
+                console.log('✅ Supabase disponible después de', i + 1, 'intentos');
+                return;
+            }
+            console.log(`⏳ Esperando Supabase... intento ${i + 1}/${maxAttempts}`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+        throw new Error('Supabase no disponible después de múltiples intentos');
     }
     
     async init() {
         try {
             console.log('🎯 Inicializando cuestionario GenAI...');
+            
+            // Esperar a que Supabase esté disponible
+            await this.waitForSupabase();
             
             // Inicializar Supabase
             await this.initializeSupabase();
@@ -51,14 +75,15 @@ class GenAIQuestionnaire {
     }
     
     async initializeSupabase() {
-        // Supabase ya debería estar disponible en este punto
-        if (typeof window.supabase !== 'undefined' && window.supabase) {
+        if (typeof window.supabase !== 'undefined' && 
+            window.supabase && 
+            typeof window.supabase.from === 'function') {
             this.supabase = window.supabase;
-            console.log('✅ Cliente Supabase inicializado');
+            console.log('✅ Cliente Supabase asignado correctamente');
             return;
         }
         
-        throw new Error('Cliente de Supabase no disponible');
+        throw new Error('Cliente de Supabase no válido');
     }
     
     async loadUserInfo() {
@@ -277,6 +302,12 @@ class GenAIQuestionnaire {
     }
     
     async updateAreaBadge() {
+        // Validación robusta
+        if (!this.supabase || typeof this.supabase.from !== 'function') {
+            console.error('❌ this.supabase no es válido en updateAreaBadge');
+            return;
+        }
+        
         const areaBadge = document.getElementById('areaBadge');
         if (areaBadge) {
             try {
@@ -301,6 +332,12 @@ class GenAIQuestionnaire {
     }
     
     async loadQuestions() {
+        // Validación robusta
+        if (!this.supabase || typeof this.supabase.from !== 'function') {
+            console.error('❌ this.supabase no es válido en loadQuestions');
+            throw new Error('Cliente de Supabase no válido');
+        }
+        
         try {
             console.log(`🔍 Cargando preguntas para área ID: ${this.genaiArea}, rol ID: ${this.genaiRol}`);
             
@@ -881,32 +918,35 @@ async function waitForSupabase() {
     return false;
 }
 
-// Inicialización principal
+// Función de inicialización global actualizada
 async function initializeQuestionnaire() {
-    console.log('🎯 Inicializando aplicación GenAI Questionnaire...');
-    
-    // Esperar a que Supabase esté disponible
-    const supabaseReady = await waitForSupabase();
-    
-    if (!supabaseReady) {
-        console.error('❌ No se pudo inicializar Supabase');
-        document.getElementById('errorMessage').textContent = 'Error: No se pudo conectar a la base de datos. Por favor recarga la página.';
-        document.getElementById('errorMessage').style.display = 'block';
-        return;
-    }
-    
-    // Inicializar cuestionario
     try {
-        window.genaiQuestionnaire = new GenAIQuestionnaire();
+        console.log('🚀 Iniciando cuestionario GenAI...');
+        const questionnaire = await GenAIQuestionnaire.create();
+        // Asignar globalmente si es necesario
+        window.genaiQuestionnaire = questionnaire;
     } catch (error) {
         console.error('❌ Error inicializando cuestionario:', error);
-        document.getElementById('errorMessage').textContent = 'Error inicializando el cuestionario. Por favor recarga la página.';
-        document.getElementById('errorMessage').style.display = 'block';
+        // Mostrar error al usuario
+        const errorContainer = document.getElementById('errorMessage') || document.body;
+        if (errorContainer.tagName === 'BODY') {
+            errorContainer.innerHTML = `
+                <div style="color: red; padding: 20px; text-align: center;">
+                    <h3>Error cargando el cuestionario</h3>
+                    <p>Por favor recarga la página e intenta nuevamente.</p>
+                    <button onclick="location.reload()" style="background: #0066CC; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                        Recargar Página
+                    </button>
+                </div>
+            `;
+        } else {
+            errorContainer.textContent = 'Error cargando el cuestionario. Por favor recarga la página.';
+            errorContainer.style.display = 'block';
+        }
     }
 }
 
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', initializeQuestionnaire);
+// La inicialización se maneja en genai-form.html
 
 // Funciones globales de utilidad
 window.goToStats = function() {
