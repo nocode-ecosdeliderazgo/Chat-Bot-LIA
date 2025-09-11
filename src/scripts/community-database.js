@@ -557,14 +557,44 @@ class CommunityDatabase {
         try {
             console.log('📋 Obteniendo preguntas de comunidad...');
             
+            // Verificar estado de Supabase
+            if (!this.supabase) {
+                console.warn('⚠️ Cliente de Supabase no disponible');
+                throw new Error('Cliente de Supabase no disponible');
+            }
+            
+            // Intentar con autenticación primero
+            const user = await this.getCurrentUser();
+            
+            if (user) {
+                console.log('👤 Usuario autenticado, cargando preguntas completas...');
+                return await this.getQuestionsAuthenticated(params);
+            } else {
+                console.log('👤 Usuario no autenticado, cargando preguntas públicas...');
+                return await this.getQuestionsPublic(params);
+            }
+        } catch (error) {
+            console.error('❌ Error en getQuestions:', error);
+            // Lanzar el error para que el sistema pueda usar el fallback al API
+            throw error;
+        }
+    }
+
+    // Método para preguntas con usuario autenticado
+    async getQuestionsAuthenticated(params = {}) {
+        try {
+            console.log('🔐 Cargando preguntas para usuario autenticado...');
+            
             let query = this.supabase
                 .from('community_questions')
                 .select(`
                     *,
                     users:user_id (
                         id,
-                        name,
-                        avatar_url
+                        username,
+                        email,
+                        display_name,
+                        profile_picture_url
                     )
                 `);
 
@@ -590,18 +620,96 @@ class CommunityDatabase {
                 query = query.order('created_at', { ascending: false });
             }
 
+            // Aplicar paginación si se especifica
+            const limit = params.limit || 20;
+            const offset = params.offset || 0;
+            query = query.range(offset, offset + limit - 1);
+
             const { data, error } = await query;
 
             if (error) {
-                console.error('❌ Error obteniendo preguntas:', error);
-                return [];
+                console.error('❌ Error obteniendo preguntas autenticadas:', error);
+                throw error;
             }
 
-            console.log('✅ Preguntas obtenidas:', data);
-            return data;
+            console.log(`✅ ${data.length} preguntas autenticadas obtenidas`);
+            return data || [];
         } catch (error) {
-            console.error('❌ Error en getQuestions:', error);
-            // Lanzar el error para que el sistema pueda usar el fallback al API
+            console.error('❌ Error en getQuestionsAuthenticated:', error);
+            throw error;
+        }
+    }
+
+    // Nuevo método para preguntas públicas (sin autenticación)
+    async getQuestionsPublic(params = {}) {
+        try {
+            console.log('🌐 Cargando preguntas públicas...');
+            
+            let query = this.supabase
+                .from('community_questions')
+                .select(`
+                    id,
+                    title,
+                    content,
+                    created_at,
+                    updated_at,
+                    user_id,
+                    course_id,
+                    module_id,
+                    tags,
+                    votes_count,
+                    answers_count,
+                    views_count,
+                    is_answered,
+                    is_featured,
+                    users:user_id (
+                        id,
+                        username,
+                        display_name
+                    )
+                `);
+
+            // Solo preguntas públicas o sin restricción de privacidad
+            // query = query.eq('is_public', true); // Comentado hasta que se agregue la columna
+
+            // Aplicar filtros
+            if (params.course_id) {
+                query = query.eq('course_id', params.course_id);
+            }
+            if (params.module_id) {
+                query = query.eq('module_id', params.module_id);
+            }
+            if (params.filter === 'unanswered') {
+                query = query.eq('is_answered', false);
+            } else if (params.filter === 'answered') {
+                query = query.eq('is_answered', true);
+            }
+
+            // Aplicar ordenamiento
+            if (params.sort === 'votes') {
+                query = query.order('votes_count', { ascending: false });
+            } else if (params.sort === 'answers') {
+                query = query.order('answers_count', { ascending: false });
+            } else {
+                query = query.order('created_at', { ascending: false });
+            }
+
+            // Aplicar paginación
+            const limit = params.limit || 20;
+            const offset = params.offset || 0;
+            query = query.range(offset, offset + limit - 1);
+
+            const { data, error } = await query;
+
+            if (error) {
+                console.error('❌ Error en consulta pública:', error);
+                throw error;
+            }
+
+            console.log(`✅ ${data.length} preguntas públicas obtenidas`);
+            return data || [];
+        } catch (error) {
+            console.error('❌ Error en getQuestionsPublic:', error);
             throw error;
         }
     }

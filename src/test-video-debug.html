@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Debug Test - YouTube 404 Error</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        
+        .container {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .button {
+            background: #0066CC;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .button:hover {
+            background: #0052A3;
+        }
+        
+        .button.secondary {
+            background: #44e5ff;
+            color: #000;
+        }
+        
+        .button.secondary:hover {
+            background: #00b8cc;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #b8daff;
+        }
+        
+        .json-output {
+            background: #1e1e1e;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .loading {
+            color: #44e5ff;
+        }
+        
+        .video-test {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #555;
+            border-radius: 4px;
+        }
+        
+        h1 {
+            color: #44e5ff;
+            text-align: center;
+        }
+        
+        h2 {
+            color: #44e5ff;
+            border-bottom: 2px solid #44e5ff;
+            padding-bottom: 5px;
+        }
+        
+        iframe {
+            border: 1px solid #555;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Video Debug Test - YouTube 404 Error</h1>
+    
+    <div class="container">
+        <h2>🔍 Environment Detection</h2>
+        <div id="environmentInfo">
+            <p><strong>Hostname:</strong> <span id="hostname"></span></p>
+            <p><strong>Port:</strong> <span id="port"></span></p>
+            <p><strong>Is Localhost:</strong> <span id="isLocalhost"></span></p>
+            <p><strong>Is Netlify:</strong> <span id="isNetlify"></span></p>
+            <p><strong>API Base URL:</strong> <span id="apiBaseUrl"></span></p>
+            <p><strong>Full URL:</strong> <span id="fullUrl"></span></p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Test API Response</h2>
+        <p>Vamos a probar si la API de videos está funcionando correctamente en este entorno.</p>
+        <button id="testApiBtn" class="button secondary">🧪 Test API Response</button>
+        <div id="apiResult"></div>
+    </div>
+    
+    <div class="container">
+        <h2>🎬 Video Embed Test</h2>
+        <p>Test manual de embedding de video de YouTube</p>
+        <div class="video-test">
+            <h3>Test con Video ID de ejemplo:</h3>
+            <input type="text" id="videoIdInput" placeholder="Ingresa YouTube Video ID" style="padding: 8px; width: 200px; margin-right: 10px;">
+            <button id="testVideoBtn" class="button">🎥 Test Video</button>
+            <div style="margin-top: 10px;">
+                <iframe id="testIframe" width="560" height="315" src="" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <div id="videoTestResult"></div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>🎯 Videos from API Test</h2>
+        <p>Test automático de los videos que devuelve la API</p>
+        <button id="testApiVideosBtn" class="button">🎬 Test API Videos</button>
+        <div id="apiVideosResult"></div>
+    </div>
+    
+    <div class="container">
+        <h2>🔧 Deep Debug Analysis</h2>
+        <p>Análisis profundo de la configuración de base de datos y videos</p>
+        <button id="deepDebugBtn" class="button secondary">🔍 Deep Debug</button>
+        <div id="deepDebugResult"></div>
+    </div>
+    
+    <div class="container">
+        <h2>🛠️ Video Fix Tool</h2>
+        <p>Herramienta para detectar y corregir automáticamente videos con problemas</p>
+        <div style="margin: 10px 0;">
+            <button id="analyzeProblemsBtn" class="button secondary">🔍 Analyze Problems</button>
+            <button id="fixProblemsBtn" class="button" style="background: #ff6b35;">🛠️ Fix Problems</button>
+        </div>
+        <div id="videoFixResult"></div>
+    </div>
+
+    <script>
+        // Detectar entorno y configuración de API
+        const hostname = window.location.hostname;
+        const port = window.location.port;
+        const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+        const isNetlify = hostname.includes('netlify') || 
+                          hostname.includes('app') ||
+                          hostname === 'ecosdeliderazgo.com' ||
+                          window.location.protocol === 'https:' && !isLocalhost;
+        
+        // Determinar API base URL (misma lógica que module1-videos-loader.js)
+        function getApiBaseUrl() {
+            const currentPort = window.location.port;
+            
+            if (isLocalhost && currentPort === '8888') {
+                return '/.netlify/functions';
+            } else if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
+                return '/api';
+            } else if (isNetlify) {
+                return '/.netlify/functions';
+            } else {
+                return '/api';
+            }
+        }
+        
+        const apiBaseUrl = getApiBaseUrl();
+        
+        // Mostrar información del entorno
+        document.getElementById('hostname').textContent = hostname;
+        document.getElementById('port').textContent = port || 'default';
+        document.getElementById('isLocalhost').textContent = isLocalhost ? 'SÍ' : 'NO';
+        document.getElementById('isNetlify').textContent = isNetlify ? 'SÍ' : 'NO';
+        document.getElementById('apiBaseUrl').textContent = apiBaseUrl;
+        document.getElementById('fullUrl').textContent = window.location.href;
+        
+        // Test API Response
+        document.getElementById('testApiBtn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = '<div class="loading">🔄 Testing API...</div>';
+            
+            try {
+                console.log('🌐 Testing API URL:', `${apiBaseUrl}/courses/module1-videos`);
+                
+                const response = await fetch(`${apiBaseUrl}/courses/module1-videos`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📊 Response status:', response.status);
+                console.log('📊 Response ok:', response.ok);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ API Response data:', data);
+                    
+                    resultDiv.innerHTML = `
+                        <div class="status success">
+                            ✅ API Response OK (${response.status})
+                        </div>
+                        <h3>📊 API Response:</h3>
+                        <div class="json-output">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    console.error('❌ API Error:', errorText);
+                    
+                    resultDiv.innerHTML = `
+                        <div class="status error">
+                            ❌ API Error (${response.status}): ${response.statusText}
+                        </div>
+                        <div class="json-output">${errorText}</div>
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ Network Error:', error);
+                resultDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ Network Error: ${error.message}
+                    </div>
+                `;
+            }
+        });
+        
+        // Test Video Embedding
+        document.getElementById('testVideoBtn').addEventListener('click', () => {
+            const videoId = document.getElementById('videoIdInput').value.trim();
+            const resultDiv = document.getElementById('videoTestResult');
+            
+            if (!videoId) {
+                resultDiv.innerHTML = '<div class="status error">❌ Please enter a video ID</div>';
+                return;
+            }
+            
+            const iframe = document.getElementById('testIframe');
+            const embedUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0`;
+            
+            console.log('🎥 Testing video URL:', embedUrl);
+            
+            iframe.src = embedUrl;
+            
+            resultDiv.innerHTML = `
+                <div class="status info">
+                    🎥 Testing Video ID: <strong>${videoId}</strong>
+                </div>
+                <p><strong>Embed URL:</strong> <code>${embedUrl}</code></p>
+            `;
+            
+            // Test si el iframe carga correctamente
+            iframe.onload = () => {
+                console.log('✅ Iframe loaded successfully');
+                const successDiv = document.createElement('div');
+                successDiv.className = 'status success';
+                successDiv.innerHTML = '✅ Video iframe loaded successfully';
+                resultDiv.appendChild(successDiv);
+            };
+            
+            iframe.onerror = (error) => {
+                console.error('❌ Iframe error:', error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'status error';
+                errorDiv.innerHTML = '❌ Video iframe failed to load';
+                resultDiv.appendChild(errorDiv);
+            };
+        });
+        
+        // Test API Videos Automatic
+        document.getElementById('testApiVideosBtn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('apiVideosResult');
+            resultDiv.innerHTML = '<div class="loading">🔄 Testing API Videos...</div>';
+            
+            try {
+                const response = await fetch(`${apiBaseUrl}/courses/module1-videos`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success && data.videos && data.videos.length > 0) {
+                        let html = '<div class="status success">✅ API Videos OK</div>';
+                        html += `<h3>🎬 Videos Found: ${data.videos.length}</h3>`;
+                        
+                        // Test each video URL
+                        data.videos.slice(0, 3).forEach((video, index) => {
+                            const embedUrl = `https://www.youtube.com/embed/${video.youtube_video_id}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0`;
+                            
+                            html += `
+                                <div class="video-test">
+                                    <h4>${index + 1}. ${video.video_title}</h4>
+                                    <p><strong>Video ID:</strong> ${video.youtube_video_id}</p>
+                                    <p><strong>Embed URL:</strong> <code>${embedUrl}</code></p>
+                                    <iframe width="300" height="200" src="${embedUrl}" frameborder="0" allowfullscreen></iframe>
+                                </div>
+                            `;
+                        });
+                        
+                        resultDiv.innerHTML = html;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="status error">
+                                ❌ API returned no videos
+                            </div>
+                            <div class="json-output">${JSON.stringify(data, null, 2)}</div>
+                        `;
+                    }
+                } else {
+                    const errorText = await response.text();
+                    resultDiv.innerHTML = `
+                        <div class="status error">
+                            ❌ API Error (${response.status}): ${response.statusText}
+                        </div>
+                        <div class="json-output">${errorText}</div>
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                resultDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        });
+        
+        // Deep Debug Analysis
+        document.getElementById('deepDebugBtn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('deepDebugResult');
+            resultDiv.innerHTML = '<div class="loading">🔄 Running Deep Debug Analysis...</div>';
+            
+            try {
+                const response = await fetch(`${apiBaseUrl}/video-debug`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('🔍 Deep Debug Data:', data);
+                    
+                    let html = '<div class="status success">✅ Deep Debug Analysis Complete</div>';
+                    
+                    // Environment Info
+                    html += '<h3>🌐 Environment</h3>';
+                    html += `<div class="json-output">${JSON.stringify(data.debug.environment, null, 2)}</div>`;
+                    
+                    // Database Tests
+                    html += '<h3>🔍 Database Tests</h3>';
+                    html += `<div class="json-output">${JSON.stringify(data.debug.database_tests, null, 2)}</div>`;
+                    
+                    // YouTube Validation
+                    if (data.debug.youtube_validation) {
+                        html += '<h3>🎬 YouTube Validation</h3>';
+                        html += `<div class="json-output">${JSON.stringify(data.debug.youtube_validation, null, 2)}</div>`;
+                    }
+                    
+                    // Recommendations
+                    html += '<h3>💡 Recommendations</h3>';
+                    data.recommendations.forEach(rec => {
+                        const statusClass = rec.includes('CRÍTICO') || rec.includes('ERROR') ? 'error' : 
+                                          rec.includes('ADVERTENCIA') ? 'info' : 'success';
+                        html += `<div class="status ${statusClass}">${rec}</div>`;
+                    });
+                    
+                    // Simulated API Response
+                    if (data.debug.simulated_api_response) {
+                        html += '<h3>🔄 Simulated API Response</h3>';
+                        html += '<div class="status info">Este es el formato de datos que debería devolver la API:</div>';
+                        html += `<div class="json-output">${JSON.stringify(data.debug.simulated_api_response, null, 2)}</div>`;
+                    }
+                    
+                    resultDiv.innerHTML = html;
+                } else {
+                    const errorText = await response.text();
+                    resultDiv.innerHTML = `
+                        <div class="status error">
+                            ❌ Deep Debug Error (${response.status}): ${response.statusText}
+                        </div>
+                        <div class="json-output">${errorText}</div>
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ Deep Debug Error:', error);
+                resultDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ Deep Debug Network Error: ${error.message}
+                    </div>
+                `;
+            }
+        });
+        
+        // Analyze Video Problems
+        document.getElementById('analyzeProblemsBtn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('videoFixResult');
+            resultDiv.innerHTML = '<div class="loading">🔄 Analyzing video problems...</div>';
+            
+            try {
+                const response = await fetch(`${apiBaseUrl}/video-fix`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('🔍 Analysis Data:', data);
+                    
+                    let html = '<div class="status success">✅ Analysis Complete</div>';
+                    
+                    // Summary
+                    html += '<h3>📊 Summary</h3>';
+                    html += `<p><strong>Total Videos:</strong> ${data.analysis.total_videos}</p>`;
+                    html += `<p><strong>Valid Videos:</strong> ${data.analysis.valid_videos.length}</p>`;
+                    html += `<p><strong>Invalid Videos:</strong> ${data.analysis.invalid_videos.length}</p>`;
+                    
+                    // Problems
+                    if (data.analysis.problems.length > 0) {
+                        html += '<h3>❌ Problems Found</h3>';
+                        data.analysis.problems.forEach(problem => {
+                            html += `<div class="status error">${problem}</div>`;
+                        });
+                    }
+                    
+                    // Invalid Videos Details
+                    if (data.analysis.invalid_videos.length > 0) {
+                        html += '<h3>🔍 Invalid Videos Details</h3>';
+                        html += `<div class="json-output">${JSON.stringify(data.analysis.invalid_videos, null, 2)}</div>`;
+                    }
+                    
+                    // Suggestions
+                    if (data.analysis.suggestions.length > 0) {
+                        html += '<h3>💡 Suggestions</h3>';
+                        data.analysis.suggestions.forEach(suggestion => {
+                            const statusClass = suggestion.includes('✅') ? 'success' : 'info';
+                            html += `<div class="status ${statusClass}">${suggestion}</div>`;
+                        });
+                    }
+                    
+                    // Fix Button
+                    if (data.can_fix_automatically) {
+                        html += '<div class="status info">💡 Se pueden corregir automáticamente los problemas encontrados</div>';
+                    }
+                    
+                    resultDiv.innerHTML = html;
+                } else {
+                    const errorText = await response.text();
+                    resultDiv.innerHTML = `
+                        <div class="status error">
+                            ❌ Analysis Error (${response.status}): ${response.statusText}
+                        </div>
+                        <div class="json-output">${errorText}</div>
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ Analysis Error:', error);
+                resultDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ Analysis Network Error: ${error.message}
+                    </div>
+                `;
+            }
+        });
+        
+        // Fix Video Problems
+        document.getElementById('fixProblemsBtn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('videoFixResult');
+            
+            // Confirmation
+            if (!confirm('⚠️ ADVERTENCIA: Esta acción modificará la base de datos reemplazando videos problemáticos con videos de ejemplo válidos. ¿Continuar?')) {
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="loading">🛠️ Fixing video problems...</div>';
+            
+            try {
+                const response = await fetch(`${apiBaseUrl}/video-fix`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('🛠️ Fix Data:', data);
+                    
+                    let html = `<div class="status success">✅ ${data.message}</div>`;
+                    
+                    // Summary
+                    if (data.summary) {
+                        html += '<h3>📊 Fix Summary</h3>';
+                        html += `<p><strong>Videos Processed:</strong> ${data.summary.total_videos_processed}</p>`;
+                        html += `<p><strong>Successful Fixes:</strong> ${data.summary.successful_fixes}</p>`;
+                        html += `<p><strong>Failed Fixes:</strong> ${data.summary.failed_fixes}</p>`;
+                    }
+                    
+                    // Fixes Details
+                    if (data.fixes && data.fixes.length > 0) {
+                        html += '<h3>🔧 Fix Details</h3>';
+                        data.fixes.forEach(fix => {
+                            const statusClass = fix.status === 'fixed' ? 'success' : 'error';
+                            const statusIcon = fix.status === 'fixed' ? '✅' : '❌';
+                            html += `
+                                <div class="status ${statusClass}">
+                                    ${statusIcon} ${fix.title}<br>
+                                    ${fix.status === 'fixed' ? 
+                                        `Old ID: ${fix.old_youtube_id} → New ID: ${fix.new_youtube_id}` :
+                                        `Error: ${fix.error}`
+                                    }
+                                </div>
+                            `;
+                        });
+                        
+                        // Show embed examples
+                        const successfulFixes = data.fixes.filter(fix => fix.status === 'fixed');
+                        if (successfulFixes.length > 0) {
+                            html += '<h3>🎬 Fixed Videos Preview</h3>';
+                            successfulFixes.slice(0, 3).forEach(fix => {
+                                html += `
+                                    <div class="video-test">
+                                        <h4>${fix.title}</h4>
+                                        <p><strong>New ID:</strong> ${fix.new_youtube_id}</p>
+                                        <iframe width="300" height="200" src="${fix.embed_url}" frameborder="0" allowfullscreen></iframe>
+                                    </div>
+                                `;
+                            });
+                        }
+                    }
+                    
+                    resultDiv.innerHTML = html;
+                } else {
+                    const errorText = await response.text();
+                    resultDiv.innerHTML = `
+                        <div class="status error">
+                            ❌ Fix Error (${response.status}): ${response.statusText}
+                        </div>
+                        <div class="json-output">${errorText}</div>
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ Fix Error:', error);
+                resultDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ Fix Network Error: ${error.message}
+                    </div>
+                `;
+            }
+        });
+        
+        // Auto-run environment detection on load
+        console.log('🔧 Video Debug Test loaded');
+        console.log('🌐 Environment:', { hostname, port, isLocalhost, isNetlify, apiBaseUrl });
+    </script>
+</body>
+</html>

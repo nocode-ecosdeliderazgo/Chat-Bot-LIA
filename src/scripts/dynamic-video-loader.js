@@ -307,11 +307,140 @@ class DynamicVideoLoader {
         
         // Solo actualizar si la URL es diferente
         if (iframe.src !== embedUrl) {
+            console.log('🔄 Actualizando video player:', embedUrl);
+            
+            // Configurar manejo de errores del iframe
+            this.setupIframeErrorHandling(iframe);
+            
+            // Actualizar iframe
             iframe.src = embedUrl;
             iframe.title = this.currentVideo.video_title;
             
-            console.log('🔄 Video player actualizado:', embedUrl);
+            // Agregar parámetros adicionales para evitar bloqueos
+            iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+            iframe.referrerPolicy = "strict-origin-when-cross-origin";
+            
+            console.log('✅ Video player actualizado exitosamente');
         }
+    }
+
+    setupIframeErrorHandling(iframe) {
+        // Manejar errores de carga del iframe
+        iframe.onerror = (event) => {
+            console.error('❌ Error cargando iframe de YouTube:', event);
+            this.handleVideoLoadError(iframe);
+        };
+
+        // Timeout para detectar si el iframe no carga
+        const loadTimeout = setTimeout(() => {
+            this.checkIframeLoad(iframe);
+        }, 10000); // 10 segundos timeout
+
+        // Limpiar timeout si el iframe carga correctamente
+        iframe.onload = () => {
+            clearTimeout(loadTimeout);
+            console.log('✅ Iframe de YouTube cargado correctamente');
+        };
+    }
+
+    checkIframeLoad(iframe) {
+        try {
+            // Verificar si el iframe está visible y cargado
+            const rect = iframe.getBoundingClientRect();
+            const isVisible = rect.width > 0 && rect.height > 0;
+            
+            if (!isVisible || !iframe.src) {
+                console.warn('⚠️ Posible problema de carga del iframe');
+                this.handleVideoLoadError(iframe);
+            }
+        } catch (error) {
+            console.error('❌ Error verificando carga del iframe:', error);
+            this.handleVideoLoadError(iframe);
+        }
+    }
+
+    handleVideoLoadError(iframe) {
+        const videoId = this.extractVideoId(iframe.src);
+        if (!videoId) return;
+
+        console.log('🔧 Implementando fallback para video:', videoId);
+        
+        // Crear mensaje de error amigable
+        const errorContainer = document.createElement('div');
+        errorContainer.className = 'video-error-fallback';
+        errorContainer.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: var(--glass-bg, rgba(255,255,255,0.1));
+            border-radius: 12px;
+            color: var(--glass-text-primary, #333);
+            padding: 2rem;
+            text-align: center;
+        `;
+        
+        errorContainer.innerHTML = `
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🎥</div>
+            <h3 style="margin-bottom: 1rem; color: #0066CC;">Video temporalmente no disponible</h3>
+            <p style="margin-bottom: 1.5rem; opacity: 0.8;">
+                Estamos trabajando para resolver este problema.
+            </p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+                <button onclick="window.dynamicVideoLoader.retryVideoLoad('${videoId}')" 
+                        style="padding: 0.5rem 1rem; background: #0066CC; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                    🔄 Reintentar
+                </button>
+                <a href="https://www.youtube.com/watch?v=${videoId}" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   style="padding: 0.5rem 1rem; background: #FF0000; color: white; text-decoration: none; border-radius: 6px;">
+                    📺 Ver en YouTube
+                </a>
+            </div>
+        `;
+        
+        // Reemplazar iframe con mensaje de error
+        iframe.parentNode.replaceChild(errorContainer, iframe);
+    }
+
+    extractVideoId(url) {
+        if (!url) return null;
+        const match = url.match(/(?:embed\/|v=|vi=|v\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        return match ? match[1] : null;
+    }
+
+    retryVideoLoad(videoId) {
+        console.log('🔄 Reintentando carga de video:', videoId);
+        
+        // Buscar el contenedor de error y reemplazarlo con iframe
+        const errorContainer = document.querySelector('.video-error-fallback');
+        if (!errorContainer) return;
+
+        const iframe = document.createElement('iframe');
+        iframe.id = 'youtubePlayer';
+        iframe.width = '100%';
+        iframe.height = '100%';
+        iframe.frameBorder = '0';
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        iframe.allowFullScreen = true;
+        iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+        
+        // Agregar timestamp para evitar cache
+        const timestamp = Date.now();
+        const embedUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0&t=${timestamp}`;
+        
+        iframe.src = embedUrl;
+        iframe.title = this.currentVideo?.video_title || 'Video de YouTube';
+        
+        // Configurar manejo de errores
+        this.setupIframeErrorHandling(iframe);
+        
+        // Reemplazar contenedor de error con iframe
+        errorContainer.parentNode.replaceChild(iframe, errorContainer);
+        
+        console.log('✅ Iframe recreado para retry');
     }
 
     updateVideoInfo() {
@@ -489,16 +618,36 @@ class DynamicVideoLoader {
     }
 
     getApiBaseUrl() {
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const currentPort = window.location.port;
-
-        if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
+        const hostname = window.location.hostname;
+        const port = window.location.port;
+        const protocol = window.location.protocol;
+        
+        // Detección mejorada de entorno
+        const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+        const isNetlifyLocal = port === '8888' || hostname.includes('netlify.app') || hostname.includes('netlify.com');
+        const isCustomDomain = !isLocalhost && !isNetlifyLocal && protocol === 'https:';
+        
+        console.log('🌐 Environment detection:', {
+            hostname,
+            port,
+            protocol,
+            isLocalhost,
+            isNetlifyLocal,
+            isCustomDomain
+        });
+        
+        // Lógica de URL base mejorada
+        if (isLocalhost && (port === '3000' || window.location.href.includes(':3000'))) {
+            console.log('📍 Using localhost:3000 API');
             return '/api';
-        } else if (isLocalhost && currentPort === '8888') {
+        } else if (isLocalhost && port === '8888') {
+            console.log('📍 Using Netlify local dev');
             return '/.netlify/functions';
         } else if (isLocalhost) {
+            console.log('📍 Using localhost fallback API');
             return '/api';
         } else {
+            console.log('📍 Using Netlify production functions');
             return '/.netlify/functions';
         }
     }

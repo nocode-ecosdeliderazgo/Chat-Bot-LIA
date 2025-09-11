@@ -65,10 +65,14 @@ class Module1VideosLoader {
             console.log('⚠️ Módulo 1 no encontrado en dynamicVideoLoader, usando consulta directa...');
             
             // Hacer consulta directa a la API
-            const response = await fetch(`${this.apiBaseUrl}/courses/module1-info`, {
+            const cacheBuster = new Date().getTime();
+            const response = await fetch(`${this.apiBaseUrl}/courses/module1-info?t=${cacheBuster}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
                 }
             });
 
@@ -85,6 +89,44 @@ class Module1VideosLoader {
             // Usar ID por defecto para desarrollo
             this.moduleId = 'default-module-1-id';
             console.log('🔧 Usando ID por defecto para desarrollo:', this.moduleId);
+        }
+    }
+
+    // =====================================================
+    // PROBAR NETLIFY FUNCTIONS
+    // =====================================================
+
+    async testNetlifyFunctions() {
+        try {
+            console.log('🧪 Probando si Netlify Functions funcionan...');
+            
+            // Timeout rápido para no hacer esperar al usuario
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 segundos
+            
+            const testResponse = await fetch(`${this.apiBaseUrl}/test`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (testResponse.ok) {
+                const data = await testResponse.json();
+                console.log('✅ Netlify Functions funcionan correctamente:', data.message);
+                return true;
+            } else {
+                console.warn('⚠️ Netlify Functions responden con error:', testResponse.status);
+                return false;
+            }
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                console.warn('⚠️ Timeout: Netlify Functions tardan demasiado en responder');
+            } else {
+                console.warn('⚠️ Netlify Functions no disponibles:', error.message);
+            }
+            return false;
         }
     }
 
@@ -107,14 +149,28 @@ class Module1VideosLoader {
                 }
             }
 
-            // Si no está disponible, hacer consulta directa a la API
+            // Primero verificar si las Netlify Functions están funcionando
+            const functionsWorking = await this.testNetlifyFunctions();
+            
+            if (!functionsWorking) {
+                console.log('📚 Netlify Functions no disponibles, mostrando contenido de demostración');
+                this.createSampleVideos();
+                return;
+            }
+
+            // Si funcionan, hacer consulta directa a la API
             console.log('🔄 Haciendo consulta directa a la API...');
             console.log('🌐 URL completa:', `${this.apiBaseUrl}/courses/module1-videos`);
             
-            const response = await fetch(`${this.apiBaseUrl}/courses/module1-videos`, {
+            // Agregar cache busting para evitar problemas de cache
+            const cacheBuster = new Date().getTime();
+            const response = await fetch(`${this.apiBaseUrl}/courses/module1-videos?t=${cacheBuster}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
                 }
             });
 
@@ -176,16 +232,16 @@ class Module1VideosLoader {
     // =====================================================
 
     createSampleVideos() {
-        console.log('🔧 Creando videos de ejemplo para desarrollo...');
-        console.log('⚠️ ATENCIÓN: Estos son videos de ejemplo con IDs de YouTube de prueba');
-        console.log('🎯 Preparado para 11 videos del módulo 1 (actualizable cuando agregues videos reales a la base de datos)');
+        console.log('🔧 Creando videos de ejemplo...');
+        console.log('📚 Mostrando contenido de demostración del curso de IA');
+        console.log('🎯 11 videos de demostración del Módulo 1: Fundamentos de IA');
         
         this.videos = [
             {
                 id: 'module1-video-1',
                 video_title: '1. Introducción a la Inteligencia Artificial',
                 duration_seconds: 180,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Conceptos básicos y definición de IA',
                 video_order: 1,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -194,7 +250,7 @@ class Module1VideosLoader {
                 id: 'module1-video-2',
                 video_title: '2. Historia y Evolución de la IA',
                 duration_seconds: 240,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Desde los primeros algoritmos hasta la actualidad',
                 video_order: 2,
                 user_progress: { current_time_seconds: 45, completion_percentage: 18, is_completed: false }
@@ -203,7 +259,7 @@ class Module1VideosLoader {
                 id: 'module1-video-3',
                 video_title: '3. Tipos de Inteligencia Artificial',
                 duration_seconds: 200,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'IA débil vs IA fuerte, Machine Learning, Deep Learning',
                 video_order: 3,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -212,7 +268,7 @@ class Module1VideosLoader {
                 id: 'module1-video-4',
                 video_title: '4. Machine Learning: Conceptos Fundamentales',
                 duration_seconds: 300,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Aprendizaje supervisado, no supervisado y por refuerzo',
                 video_order: 4,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -221,7 +277,7 @@ class Module1VideosLoader {
                 id: 'module1-video-5',
                 video_title: '5. Aplicaciones Prácticas de la IA',
                 duration_seconds: 220,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Casos de uso en diferentes industrias',
                 video_order: 5,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -230,7 +286,7 @@ class Module1VideosLoader {
                 id: 'module1-video-6',
                 video_title: '6. Redes Neuronales Básicas',
                 duration_seconds: 280,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Introducción a perceptrones y redes simples',
                 video_order: 6,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -239,7 +295,7 @@ class Module1VideosLoader {
                 id: 'module1-video-7',
                 video_title: '7. Ética en la Inteligencia Artificial',
                 duration_seconds: 260,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Sesgos, privacidad y responsabilidad',
                 video_order: 7,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -248,7 +304,7 @@ class Module1VideosLoader {
                 id: 'module1-video-8',
                 video_title: '8. Herramientas y Frameworks de IA',
                 duration_seconds: 320,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'TensorFlow, PyTorch, scikit-learn',
                 video_order: 8,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -257,7 +313,7 @@ class Module1VideosLoader {
                 id: 'module1-video-9',
                 video_title: '9. Procesamiento del Lenguaje Natural',
                 duration_seconds: 240,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Chatbots, análisis de sentimientos, traducción',
                 video_order: 9,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -266,7 +322,7 @@ class Module1VideosLoader {
                 id: 'module1-video-10',
                 video_title: '10. Visión por Computadora',
                 duration_seconds: 200,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Reconocimiento de imágenes y objetos',
                 video_order: 10,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -275,7 +331,7 @@ class Module1VideosLoader {
                 id: 'module1-video-11',
                 video_title: '11. Proyecto Final: Implementación de IA',
                 duration_seconds: 300,
-                youtube_video_id: 'dQw4w9WgXcQ',
+                youtube_video_id: 'ScMzIvxBSi4',
                 description: 'Proyecto práctico integrando todos los conceptos',
                 video_order: 11,
                 user_progress: { current_time_seconds: 0, completion_percentage: 0, is_completed: false }
@@ -283,6 +339,76 @@ class Module1VideosLoader {
         ];
 
         console.log('✅ Videos de ejemplo creados:', this.videos.length);
+        
+        // Mostrar notificación al usuario
+        this.showDemoModeNotification();
+        
+        // Cargar inmediatamente el primer video en el reproductor
+        this.loadFirstVideoAutomatically();
+    }
+
+    // =====================================================
+    // MOSTRAR NOTIFICACIÓN DE MODO DEMO
+    // =====================================================
+
+    showDemoModeNotification() {
+        // Agregar banner informativo discreto
+        const videoContainer = document.querySelector('.module-videos-header, .videos-list-container');
+        if (videoContainer) {
+            const banner = document.createElement('div');
+            banner.className = 'demo-mode-banner';
+            banner.style.cssText = `
+                background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+                border: 1px solid #2196f3;
+                border-radius: 8px;
+                padding: 12px 16px;
+                margin-bottom: 16px;
+                color: #1565c0;
+                font-size: 14px;
+                text-align: center;
+                box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+            `;
+            banner.innerHTML = `
+                <strong>📚 Modo Demostración</strong><br>
+                <small>Contenido de ejemplo del curso "Fundamentos de IA"</small>
+            `;
+            
+            videoContainer.parentNode.insertBefore(banner, videoContainer);
+            
+            // Auto-hide después de 10 segundos
+            setTimeout(() => {
+                if (banner.parentNode) {
+                    banner.style.transition = 'opacity 0.5s ease';
+                    banner.style.opacity = '0';
+                    setTimeout(() => banner.remove(), 500);
+                }
+            }, 10000);
+        }
+    }
+
+    // =====================================================
+    // CARGAR PRIMER VIDEO AUTOMÁTICAMENTE
+    // =====================================================
+
+    loadFirstVideoAutomatically() {
+        if (this.videos.length > 0) {
+            console.log('🎬 Cargando primer video automáticamente...');
+            this.currentVideoIndex = 0;
+            this.currentVideo = this.videos[0];
+            
+            // Cargar el video en el reproductor si hay instancia disponible
+            if (window.chatOnline && typeof window.chatOnline.changeYouTubeVideo === 'function') {
+                const video = this.videos[0];
+                window.chatOnline.changeYouTubeVideo(
+                    video.youtube_video_id, 
+                    video.video_title, 
+                    this.formatDuration(video.duration_seconds)
+                );
+                console.log('✅ Primer video cargado automáticamente');
+            } else {
+                console.log('⚠️ chatOnline no disponible para cargar video automáticamente');
+            }
+        }
     }
 
     // =====================================================
@@ -346,9 +472,88 @@ class Module1VideosLoader {
                 console.log('🎬 Cargando automáticamente el primer video...');
                 this.selectVideo(this.videos[0]);
             }
+            
+            // Asegurar que el video se muestre en el reproductor central
+            this.ensureVideoPlayerLoaded();
 
         } catch (error) {
             console.error('❌ Error renderizando lista de videos:', error);
+        }
+    }
+
+    // =====================================================
+    // ASEGURAR QUE EL REPRODUCTOR DE VIDEO ESTÉ CARGADO
+    // =====================================================
+
+    ensureVideoPlayerLoaded() {
+        if (this.videos.length === 0) return;
+
+        // Intentar múltiples formas de cargar el video en el reproductor
+        const video = this.currentVideo || this.videos[0];
+        
+        console.log('🎯 Asegurando que el video esté cargado en el reproductor:', video.video_title);
+
+        // Método 1: Usar window.chatOnline si está disponible
+        if (window.chatOnline && typeof window.chatOnline.changeYouTubeVideo === 'function') {
+            console.log('📺 Método 1: Usando window.chatOnline.changeYouTubeVideo');
+            window.chatOnline.changeYouTubeVideo(
+                video.youtube_video_id, 
+                video.video_title, 
+                this.formatDuration(video.duration_seconds)
+            );
+            return;
+        }
+
+        // Método 2: Usar window.chatOnlineV2 si está disponible
+        if (window.chatOnlineV2 && typeof window.chatOnlineV2.loadVideo === 'function') {
+            console.log('📺 Método 2: Usando window.chatOnlineV2.loadVideo');
+            window.chatOnlineV2.loadVideo(video);
+            return;
+        }
+
+        // Método 3: Manipulación directa del iframe de YouTube si existe
+        const youtubeIframe = document.querySelector('#youtube-player-iframe, iframe[src*="youtube.com"]');
+        if (youtubeIframe && video.youtube_video_id) {
+            console.log('📺 Método 3: Manipulación directa del iframe de YouTube');
+            const newSrc = `https://www.youtube.com/embed/${video.youtube_video_id}?autoplay=0&controls=1&rel=0`;
+            youtubeIframe.src = newSrc;
+            
+            // Actualizar título si existe elemento de título
+            const titleElement = document.querySelector('.video-title, .current-video-title');
+            if (titleElement) {
+                titleElement.textContent = video.video_title;
+            }
+            return;
+        }
+
+        // Método 4: Crear reproductor si no existe
+        this.createFallbackVideoPlayer(video);
+    }
+
+    createFallbackVideoPlayer(video) {
+        console.log('📺 Método 4: Creando reproductor de fallback');
+        
+        const videoContainer = document.querySelector('.video-container, .youtube-player-container, .main-video-area');
+        if (videoContainer) {
+            videoContainer.innerHTML = `
+                <div class="fallback-video-player">
+                    <iframe 
+                        src="https://www.youtube.com/embed/${video.youtube_video_id}?autoplay=0&controls=1&rel=0"
+                        frameborder="0" 
+                        allowfullscreen
+                        style="width: 100%; height: 400px; border-radius: 8px;">
+                    </iframe>
+                    <div class="video-info" style="margin-top: 10px;">
+                        <h3 style="margin: 0; color: var(--text-primary);">${video.video_title}</h3>
+                        <p style="margin: 5px 0 0 0; color: var(--text-secondary);">
+                            Duración: ${this.formatDuration(video.duration_seconds)}
+                        </p>
+                    </div>
+                </div>
+            `;
+            console.log('✅ Reproductor de fallback creado exitosamente');
+        } else {
+            console.warn('⚠️ No se encontró contenedor para el reproductor de video');
         }
     }
 
@@ -1067,7 +1272,10 @@ class Module1VideosLoader {
     getApiBaseUrl() {
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const currentPort = window.location.port;
-        const isNetlify = window.location.hostname.includes('netlify') || window.location.hostname.includes('app');
+        const isNetlify = window.location.hostname.includes('netlify') || 
+                          window.location.hostname.includes('app') ||
+                          window.location.hostname === 'ecosdeliderazgo.com' ||
+                          window.location.protocol === 'https:' && !isLocalhost;
         
         if (isLocalhost && currentPort === '8888') {
             // Desarrollo local con Netlify Dev
@@ -1076,7 +1284,7 @@ class Module1VideosLoader {
             // Desarrollo local con servidor Node.js
             return '/api';
         } else if (isNetlify) {
-            // Producción en Netlify
+            // Producción en Netlify (incluye dominios personalizados)
             return '/.netlify/functions';
         } else {
             // Servidor personalizado en producción

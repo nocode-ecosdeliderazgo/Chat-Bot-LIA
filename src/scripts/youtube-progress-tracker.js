@@ -53,32 +53,92 @@ class YouTubeProgressTracker {
                 return;
             }
             
-            // Cargar API
-            try {
-                const tag = document.createElement('script');
-                tag.src = 'https://www.youtube.com/iframe_api';
-                const firstScriptTag = document.getElementsByTagName('script')[0];
-                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-                
-                // Callback cuando la API esté lista
-                window.onYouTubeIframeAPIReady = () => {
-                    console.log('✅ YouTube IFrame API cargada');
-                    resolve();
-                };
-                
-                // Timeout de seguridad
-                setTimeout(() => {
-                    if (!window.YT || !window.YT.Player) {
-                        console.warn('⚠️ Timeout cargando YouTube API, continuando sin ella');
-                        resolve();
-                    }
-                }, 10000);
-                
-            } catch (error) {
-                console.error('❌ Error cargando YouTube API:', error);
-                reject(error);
-            }
+            // Cargar API con retry logic
+            this.attemptYouTubeAPILoad(resolve, reject, 0);
         });
+    }
+
+    attemptYouTubeAPILoad(resolve, reject, attemptCount = 0) {
+        const maxAttempts = 3;
+        const retryDelay = 2000 * (attemptCount + 1); // 2s, 4s, 6s
+        
+        try {
+            console.log(`🔄 Intento ${attemptCount + 1}/${maxAttempts} cargando YouTube API...`);
+            
+            // Remover script anterior si existe
+            const existingScript = document.querySelector('script[src*="youtube.com/iframe_api"]');
+            if (existingScript && attemptCount > 0) {
+                existingScript.remove();
+                console.log('🧹 Script anterior removido para retry');
+            }
+            
+            const tag = document.createElement('script');
+            tag.src = `https://www.youtube.com/iframe_api?v=${Date.now()}`;
+            tag.async = true;
+            tag.defer = true;
+            
+            // Configurar callback de éxito
+            window.onYouTubeIframeAPIReady = () => {
+                console.log('✅ YouTube IFrame API cargada exitosamente');
+                resolve();
+            };
+            
+            // Configurar callback de error
+            tag.onerror = (error) => {
+                console.error(`❌ Error cargando YouTube API (intento ${attemptCount + 1}):`, error);
+                
+                if (attemptCount < maxAttempts - 1) {
+                    console.log(`🔄 Reintentando en ${retryDelay}ms...`);
+                    setTimeout(() => {
+                        this.attemptYouTubeAPILoad(resolve, reject, attemptCount + 1);
+                    }, retryDelay);
+                } else {
+                    console.warn('⚠️ Máximo de intentos alcanzado, continuando sin YouTube API');
+                    resolve(); // Continuar sin API
+                }
+            };
+            
+            // Timeout de seguridad por intento
+            const timeoutDuration = 8000 + (attemptCount * 2000); // 8s, 10s, 12s
+            const loadTimeout = setTimeout(() => {
+                if (!window.YT || !window.YT.Player) {
+                    console.warn(`⏰ Timeout en intento ${attemptCount + 1} (${timeoutDuration}ms)`);
+                    
+                    if (attemptCount < maxAttempts - 1) {
+                        console.log(`🔄 Reintentando por timeout en ${retryDelay}ms...`);
+                        setTimeout(() => {
+                            this.attemptYouTubeAPILoad(resolve, reject, attemptCount + 1);
+                        }, retryDelay);
+                    } else {
+                        console.warn('⚠️ Todos los intentos fallaron, continuando sin YouTube API');
+                        resolve(); // Continuar sin API
+                    }
+                }
+            }, timeoutDuration);
+            
+            // Limpiar timeout si carga exitosamente
+            const originalReady = window.onYouTubeIframeAPIReady;
+            window.onYouTubeIframeAPIReady = () => {
+                clearTimeout(loadTimeout);
+                if (originalReady) originalReady();
+            };
+            
+            // Inyectar script
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            
+        } catch (error) {
+            console.error(`❌ Excepción en intento ${attemptCount + 1}:`, error);
+            
+            if (attemptCount < maxAttempts - 1) {
+                setTimeout(() => {
+                    this.attemptYouTubeAPILoad(resolve, reject, attemptCount + 1);
+                }, retryDelay);
+            } else {
+                console.warn('⚠️ Todos los intentos fallaron por excepción, continuando sin YouTube API');
+                resolve(); // Continuar sin API
+            }
+        }
     }
     
     setupEventListeners() {
@@ -618,13 +678,121 @@ class YouTubeProgressTracker {
     handlePlayerError(error) {
         console.error('❌ Error del player:', error);
         
-        // Intentar recuperación básica
+        const errorCodes = {
+            2: 'El ID del video no es válido',
+            5: 'Error de HTML5 player',
+            100: 'El video no existe o es privado',
+            101: 'El propietario no permite embedding',
+            150: 'El propietario no permite embedding'
+        };
+        
+        const errorMessage = errorCodes[error.data] || `Error desconocido (código: ${error.data})`;
+        console.error('🚨 Detalle del error:', errorMessage);
+        
+        // Determinar si es recuperable
+        const isRecoverable = ![100, 101, 150].includes(error.data);
+        
+        if (isRecoverable) {
+            // Intentar recuperación con retry progresivo
+            this.retryPlayerLoad(0);
+        } else {
+            // Error no recuperable, mostrar fallback
+            console.warn('⚠️ Error no recuperable, mostrando fallback');
+            this.showPlayerErrorFallback(errorMessage);
+        }
+    }
+
+    retryPlayerLoad(retryCount = 0) {
+        const maxRetries = 3;
+        const retryDelay = 2000 * Math.pow(2, retryCount); // 2s, 4s, 8s
+        
+        if (retryCount >= maxRetries) {
+            console.error('❌ Máximo de reintentos alcanzado');
+            this.showPlayerErrorFallback('Error persistente al cargar el video');
+            return;
+        }
+        
+        console.log(`🔄 Reintento ${retryCount + 1}/${maxRetries} en ${retryDelay}ms...`);
+        
         setTimeout(() => {
-            console.log('🔄 Intentando recuperar player...');
             if (this.currentVideoId && this.currentModuleNumber) {
-                this.initializePlayer('youtubePlayer', this.currentVideoId, this.currentModuleNumber);
+                console.log(`🔧 Recreando player (intento ${retryCount + 1})`);
+                
+                // Destruir player existente
+                if (this.player && typeof this.player.destroy === 'function') {
+                    try {
+                        this.player.destroy();
+                    } catch (e) {
+                        console.warn('⚠️ Error destruyendo player:', e);
+                    }
+                }
+                
+                // Reinicializar con cache-busting
+                const timestamp = Date.now();
+                this.initializePlayer('youtubePlayer', this.currentVideoId, this.currentModuleNumber, {
+                    playerVars: {
+                        ...this.getDefaultPlayerVars(),
+                        t: timestamp
+                    }
+                });
             }
-        }, 5000);
+        }, retryDelay);
+    }
+
+    getDefaultPlayerVars() {
+        return {
+            autoplay: 0,
+            modestbranding: 1,
+            rel: 0,
+            showinfo: 0,
+            fs: 1,
+            cc_load_policy: 0,
+            iv_load_policy: 3,
+            disablekb: 0,
+            enablejsapi: 1,
+            origin: window.location.origin
+        };
+    }
+
+    showPlayerErrorFallback(errorMessage) {
+        const container = document.getElementById('youtubePlayer');
+        if (!container) return;
+
+        const fallbackHtml = `
+            <div style="
+                display: flex; 
+                flex-direction: column; 
+                align-items: center; 
+                justify-content: center; 
+                height: 100%; 
+                background: var(--glass-bg, rgba(255,255,255,0.1)); 
+                border-radius: 12px; 
+                color: var(--glass-text-primary, #333); 
+                padding: 2rem; 
+                text-align: center;
+            ">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+                <h3 style="margin-bottom: 1rem; color: #FF6B6B;">Error de reproducción</h3>
+                <p style="margin-bottom: 1rem; opacity: 0.8;">${errorMessage}</p>
+                <p style="margin-bottom: 1.5rem; opacity: 0.6; font-size: 0.9rem;">
+                    El video puede tener restricciones de embedding o problemas temporales.
+                </p>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+                    <button onclick="window.youtubeProgressTracker?.retryPlayerLoad(0)" 
+                            style="padding: 0.5rem 1rem; background: #0066CC; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                        🔄 Reintentar
+                    </button>
+                    <a href="https://www.youtube.com/watch?v=${this.currentVideoId}" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       style="padding: 0.5rem 1rem; background: #FF0000; color: white; text-decoration: none; border-radius: 6px;">
+                        📺 Ver en YouTube
+                    </a>
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = fallbackHtml;
     }
     
     handleProgressUpdate(progressData) {

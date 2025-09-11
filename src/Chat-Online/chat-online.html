@@ -21,6 +21,15 @@
     <meta name="twitter:image" content="../assets/images/icono.png">
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="../assets/images/icono.png" />
+    
+    <!-- Preconnect para YouTube (Performance) -->
+    <link rel="preconnect" href="https://www.youtube.com" crossorigin>
+    <link rel="preconnect" href="https://i.ytimg.com" crossorigin>
+    <link rel="preconnect" href="https://s.ytimg.com" crossorigin>
+    <link rel="preconnect" href="https://youtubei.googleapis.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.youtube.com">
+    <link rel="dns-prefetch" href="https://youtube.com">
+    
     <!-- CSS Principal y Neumorphism -->
     <link rel="stylesheet" href="../styles/main.css">
     <link rel="stylesheet" href="chat-online.css">
@@ -2506,237 +2515,10 @@ Cargando información...
 
                         <!-- Lista de Preguntas -->
                         <div class="questions-list" id="questionsList">
-                            <!-- Pregunta de ejemplo - Módulo 1: Conceptos Básicos -->
-                            <div class="question-item">
-                                <div class="question-votes">
-                                    <button class="vote-btn upvote" type="button" title="Votar positivamente">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M18 15l-6-6-6 6"/>
-                                        </svg>
-                                    </button>
-                                    <span class="vote-count">15</span>
-                                    <button class="vote-btn downvote" type="button" title="Votar negativamente">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M6 9l6 6 6-6"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="question-content">
-                                    <div class="question-header">
-                                        <h4 class="question-title">¿Cuál es la diferencia entre Machine Learning y Deep Learning?</h4>
-                                        <div class="question-meta">
-                                            <span class="question-author">
-                                                <img src="../../assets/images/default-avatar.svg" alt="Usuario" class="author-avatar">
-                                                Carlos Mendez
-                                            </span>
-                                            <span class="question-time">hace 2 horas</span>
-                                            <span class="question-module">Módulo 1</span>
-                                        </div>
-                                    </div>
-                                    <div class="question-preview">
-                                        <p>Estoy viendo el video sobre conceptos básicos de IA pero no me queda claro cuál es la diferencia específica entre estos dos conceptos. ¿Podrían explicármelo con ejemplos prácticos?</p>
-                                    </div>
-                                    <div class="question-tags">
-                                        <span class="tag">machine-learning</span>
-                                        <span class="tag">deep-learning</span>
-                                        <span class="tag">conceptos-básicos</span>
-                                        <span class="tag module-tag">módulo-1</span>
-                                    </div>
-                                    <div class="question-stats">
-                                        <span class="stat">
-                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                            </svg>
-                                            3 respuestas
-                                        </span>
-                                        <span class="stat">
-                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                                <circle cx="12" cy="12" r="3"/>
-                                            </svg>
-                                            127 vistas
-                                        </span>
-                                        <span class="stat answered">
-                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <polyline points="20,6 9,17 4,12"/>
-                                            </svg>
-                                            Respondida
-                                        </span>
-                                    </div>
-                                    <div class="question-actions">
-                                        <button class="action-btn answer-btn" type="button" title="Responder a esta pregunta">
-                                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                            </svg>
-                                        </button>
-                                        <button class="action-btn comment-btn" type="button" title="Comentar en esta pregunta">
-                                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                                            </svg>
-                                        </button>
-                                        <button class="action-btn bookmark-btn" type="button" title="Guardar esta pregunta">
-                                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Pregunta sin responder - Módulo 3: Herramientas Prácticas -->
-                            <div class="question-item">
-                                <div class="question-votes">
-                                    <button class="vote-btn upvote" type="button" title="Votar positivamente">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M18 15l-6-6-6 6"/>
-                                        </svg>
-                                    </button>
-                                    <span class="vote-count">7</span>
-                                    <button class="vote-btn downvote" type="button" title="Votar negativamente">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M6 9l6 6 6-6"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="question-content">
-                                    <div class="question-header">
-                                        <h4 class="question-title">¿Qué herramientas recomiendan para empezar con TensorFlow?</h4>
-                                        <div class="question-meta">
-                                            <span class="question-author">
-                                                <img src="../../assets/images/default-avatar.svg" alt="Usuario" class="author-avatar">
-                                                Ana García
-                                            </span>
-                                            <span class="question-time">hace 4 horas</span>
-                                            <span class="question-module">Módulo 3</span>
-                                        </div>
-                                    </div>
-                                    <div class="question-preview">
-                                        <p>Estoy en el módulo de herramientas prácticas y me gustaría saber qué IDE y configuración recomiendan para trabajar con TensorFlow y Keras...</p>
-                                    </div>
-                                    <div class="question-tags">
-                                        <span class="tag">tensorflow</span>
-                                        <span class="tag">herramientas</span>
-                                        <span class="tag">configuración</span>
-                                        <span class="tag module-tag">módulo-3</span>
-                                    </div>
-                                    <div class="question-stats">
-                                        <span class="stat">
-                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                            </svg>
-                                            0 respuestas
-                                        </span>
-                                        <span class="stat">
-                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                                <circle cx="12" cy="12" r="3"/>
-                                            </svg>
-                                            45 vistas
-                                        </span>
-                                    </div>
-                                    <div class="question-actions">
-                                        <button class="action-btn answer-btn" type="button" title="Responder a esta pregunta">
-                                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                            </svg>
-                                        </button>
-                                        <button class="action-btn comment-btn" type="button" title="Comentar en esta pregunta">
-                                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                                            </svg>
-                                        </button>
-                                        <button class="action-btn bookmark-btn" type="button" title="Guardar esta pregunta">
-                                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Pregunta destacada -->
-                            <div class="question-item featured">
-                                <div class="featured-badge">
-                                    <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-                                    </svg>
-                                    Destacada
-                                </div>
-                                <div class="question-votes">
-                                    <button class="vote-btn upvote voted" type="button" title="Voto positivo activo">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M18 15l-6-6-6 6"/>
-                                        </svg>
-                                    </button>
-                                    <span class="vote-count">42</span>
-                                    <button class="vote-btn downvote" type="button" title="Votar negativamente">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M6 9l6 6 6-6"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="question-content">
-                                    <div class="question-header">
-                                        <h4 class="question-title">¿Cómo optimizar el rendimiento de modelos CNN en producción?</h4>
-                                        <div class="question-meta">
-                                            <span class="question-author instructor">
-                                                <img src="../../assets/images/instructor-avatar.svg" alt="Instructor" class="author-avatar">
-                                                Dr. María González
-                                                <span class="instructor-badge">Instructor</span>
-                                            </span>
-                                            <span class="question-time">hace 1 día</span>
-                                            <span class="question-module">Módulo 5</span>
-                                        </div>
-                                    </div>
-                                    <div class="question-preview">
-                                        <p>Esta es una pregunta frecuente sobre optimización de modelos en entornos de producción. Les explico las mejores prácticas para deployment de CNNs...</p>
-                                    </div>
-                                    <div class="question-tags">
-                                        <span class="tag">cnn</span>
-                                        <span class="tag">optimización</span>
-                                        <span class="tag">producción</span>
-                                        <span class="tag">deployment</span>
-                                        <span class="tag module-tag">módulo-5</span>
-                                    </div>
-                                    <div class="question-stats">
-                                        <span class="stat">
-                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                            </svg>
-                                            8 respuestas
-                                        </span>
-                                        <span class="stat">
-                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                                <circle cx="12" cy="12" r="3"/>
-                                            </svg>
-                                            312 vistas
-                                        </span>
-                                        <span class="stat answered">
-                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <polyline points="20,6 9,17 4,12"/>
-                                            </svg>
-                                            Respondida
-                                        </span>
-                                    </div>
-                                    <div class="question-actions">
-                                        <button class="action-btn answer-btn" type="button" title="Responder a esta pregunta">
-                                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                            </svg>
-                                        </button>
-                                        <button class="action-btn comment-btn" type="button" title="Comentar en esta pregunta">
-                                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                                            </svg>
-                                        </button>
-                                        <button class="action-btn bookmark-btn bookmarked" type="button" title="Pregunta guardada">
-                                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
+                            <!-- Questions will be loaded dynamically from database -->
+                            <div class="loading-questions">
+                                <div class="loading-spinner"></div>
+                                <span>Cargando preguntas de la comunidad...</span>
                             </div>
                         </div>
 
@@ -3055,7 +2837,7 @@ Cargando información...
     </script>
     
     <!-- Community API -->
-    <script src="api/community-api.js"></script>
+    <script src="../scripts/community-api.js"></script>
     
     <!-- Supabase Client -->
     <script src="../scripts/supabase-client.js"></script>
@@ -3162,50 +2944,6 @@ Cargando información...
 
                 return `
                     <div class="question-item" data-question-id="${question.id}">
-                        <div class="question-votes">
-                            <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M18 15l-6-6-6 6"/>
-                                </svg>
-                            </button>
-                            <span class="vote-count">${question.votes_count || 0}</span>
-                            <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M6 9l6 6 6-6"/>
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div class="question-stats">
-                            <div class="stat-item">
-                                <span class="stat-number">${question.answers_count || 0}</span>
-                                <span class="stat-label">respuestas</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number">${question.views_count || 0}</span>
-                                <span class="stat-label">vistas</span>
-                            </div>
-                        </div>
-
-                        <div class="question-actions">
-                            <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 2l-2 2m-2 2l-2 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h6l2-2 2-2z"/>
-                                    <path d="M7 12L12 7l5 5"/>
-                                </svg>
-                            </button>
-                            <button class="action-btn comment-btn" title="Comentar pregunta" onclick="showCommentModal('${question.id}', '${question.title}', '${question.content}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-                                </svg>
-                            </button>
-                            <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
-                                </svg>
-                            </button>
-                        </div>
-
                         <div class="question-content">
                             <div class="question-header">
                                 <h4 class="question-title">${question.title}</h4>
@@ -3222,6 +2960,51 @@ Cargando información...
                                 <p>${question.content.length > 200 ? question.content.substring(0, 200) + '...' : question.content}</p>
                             </div>
                             ${tagsHTML ? `<div class="question-tags">${tagsHTML}</div>` : ''}
+                            
+                            <div class="question-footer">
+                                <div class="question-actions">
+                                    <div class="question-votes">
+                                        <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                            </svg>
+                                        </button>
+                                        <span class="vote-count">${question.votes_count || 0}</span>
+                                        <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div class="question-stats">
+                                    <span class="stat-item">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        ${question.answers_count || 0} respuestas
+                                    </span>
+                                    <span class="stat-item">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                        ${question.views_count || 0} vistas
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -3255,50 +3038,6 @@ Cargando información...
 
                 return `
                     <div class="question-item" data-question-id="${question.id}">
-                        <div class="question-votes">
-                            <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M18 15l-6-6-6 6"/>
-                                </svg>
-                            </button>
-                            <span class="vote-count">${question.votes_count || 0}</span>
-                            <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M6 9l6 6 6-6"/>
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div class="question-stats">
-                            <div class="stat-item">
-                                <span class="stat-number">${question.answers_count || 0}</span>
-                                <span class="stat-label">respuestas</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number">${question.views_count || 0}</span>
-                                <span class="stat-label">vistas</span>
-                            </div>
-                        </div>
-
-                        <div class="question-actions">
-                            <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 2l-2 2m-2 2l-2 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h6l2-2 2-2z"/>
-                                    <path d="M7 12L12 7l5 5"/>
-                                </svg>
-                            </button>
-                            <button class="action-btn comment-btn" title="Comentar pregunta" onclick="showCommentModal('${question.id}', '${question.title}', '${question.content}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-                                </svg>
-                            </button>
-                            <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
-                                </svg>
-                            </button>
-                        </div>
-
                         <div class="question-content">
                             <div class="question-header">
                                 <h4 class="question-title">${question.title}</h4>
@@ -3315,6 +3054,51 @@ Cargando información...
                                 <p>${question.content.length > 200 ? question.content.substring(0, 200) + '...' : question.content}</p>
                             </div>
                             ${tagsHTML ? `<div class="question-tags">${tagsHTML}</div>` : ''}
+                            
+                            <div class="question-footer">
+                                <div class="question-actions">
+                                    <div class="question-votes">
+                                        <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                            </svg>
+                                        </button>
+                                        <span class="vote-count">${question.votes_count || 0}</span>
+                                        <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div class="question-stats">
+                                    <span class="stat-item">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        ${question.answers_count || 0} respuestas
+                                    </span>
+                                    <span class="stat-item">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                        ${question.views_count || 0} vistas
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -3366,7 +3150,14 @@ Cargando información...
         async function voteQuestion(questionId, voteType) {
             try {
                 console.log(`📊 Votando pregunta ${questionId}: ${voteType}`);
-                // Implementar lógica de votación aquí si está disponible
+                
+                // Usar la función voteQuestion que ya existe en chat-online.js
+                if (window.chatOnline && window.chatOnline.voteQuestion) {
+                    await window.chatOnline.voteQuestion(questionId, voteType);
+                } else {
+                    console.error('❌ No se encontró la función voteQuestion en chatOnline');
+                }
+                
             } catch (error) {
                 console.error('❌ Error votando:', error);
             }
@@ -4426,20 +4217,93 @@ INSTRUCCIONES:
       window.SUPABASE_URL = null;
       window.SUPABASE_ANON_KEY = null;
       
-      // Función para cargar configuración de Supabase
+      // Función para cargar configuración de Supabase (MEJORADA PARA NETLIFY)
       async function loadSupabaseConfig() {
+        console.log('🔄 Iniciando carga de configuración de Supabase...');
+        
         try {
+          console.log('📡 Haciendo fetch a /api/supabase-config...');
           const response = await fetch('/api/supabase-config');
+          console.log('📡 Response status:', response.status, response.statusText);
+          
           if (response.ok) {
             const config = await response.json();
+            console.log('📋 Respuesta de API:', config);
+            
             window.SUPABASE_URL = config.url;
             window.SUPABASE_ANON_KEY = config.anon_key;
             console.log('✅ Configuración de Supabase cargada');
+            console.log('   - URL:', window.SUPABASE_URL ? 'Configurada' : 'Faltante');
+            console.log('   - KEY:', window.SUPABASE_ANON_KEY ? 'Configurada' : 'Faltante');
+            
+            // INICIALIZAR EL CLIENTE DE SUPABASE
+            if (typeof supabase !== 'undefined' && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+              console.log('🔧 Inicializando cliente de Supabase...');
+              window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+              console.log('✅ Cliente de Supabase inicializado correctamente');
+              
+              // Verificar conexión
+              try {
+                console.log('🔍 Verificando autenticación...');
+                const { data: { user }, error } = await window.supabase.auth.getUser();
+                if (error) {
+                  console.warn('⚠️ Usuario no autenticado:', error.message);
+                } else {
+                  console.log('✅ Usuario Supabase:', user?.email || 'Anónimo');
+                }
+              } catch (authError) {
+                console.warn('⚠️ Error verificando autenticación:', authError);
+              }
+              
+              // Disparar evento personalizado para indicar que Supabase está listo
+              window.dispatchEvent(new CustomEvent('supabaseReady', { 
+                detail: { supabase: window.supabase } 
+              }));
+              
+            } else {
+              console.error('❌ No se pudo inicializar Supabase - SDK no disponible o configuración faltante');
+              console.error('   - supabase SDK:', typeof supabase !== 'undefined');
+              console.error('   - SUPABASE_URL:', !!window.SUPABASE_URL);
+              console.error('   - SUPABASE_ANON_KEY:', !!window.SUPABASE_ANON_KEY);
+              
+              // Intentar usar variables de entorno del navegador como fallback
+              console.log('🔄 Intentando fallback con variables de entorno...');
+              window.SUPABASE_URL = window.SUPABASE_URL || 'https://miwbzotcuaywpdbidpwo.supabase.co';
+              if (window.SUPABASE_URL && typeof supabase !== 'undefined') {
+                console.warn('⚠️ Usando configuración de fallback para Supabase');
+                // Nota: En producción, la clave anónima debe venir del servidor
+              }
+            }
           } else {
-            console.error('❌ Error cargando configuración de Supabase');
+            const errorText = await response.text();
+            console.error('❌ Error cargando configuración de Supabase:', response.status, errorText);
+            
+            // Fallback para Netlify: usar configuración hardcodeada temporalmente
+            console.log('🔄 Usando fallback de configuración...');
+            useFallbackSupabaseConfig();
           }
         } catch (error) {
-          console.error('❌ Error de conexión al cargar Supabase config:', error);
+          console.error('❌ Error de red al cargar Supabase config:', error);
+          console.log('🔄 Usando fallback de configuración...');
+          useFallbackSupabaseConfig();
+        }
+      }
+      
+      // Función de fallback para configuración de Supabase
+      function useFallbackSupabaseConfig() {
+        console.log('⚡ Inicializando fallback de Supabase...');
+        
+        // Configuración de fallback (solo para depuración en Netlify)
+        window.SUPABASE_URL = 'https://miwbzotcuaywpdbidpwo.supabase.co';
+        
+        if (typeof supabase !== 'undefined' && window.SUPABASE_URL) {
+          console.warn('⚠️ Usando configuración de fallback - funcionalidad limitada');
+          // Nota: Sin la clave anónima real, solo funcionará en modo lectura muy limitado
+          
+          // Disparar evento para que la aplicación use otros métodos
+          window.dispatchEvent(new CustomEvent('supabaseFallback', { 
+            detail: { url: window.SUPABASE_URL } 
+          }));
         }
       }
       

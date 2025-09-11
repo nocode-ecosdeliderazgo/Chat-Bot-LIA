@@ -149,10 +149,45 @@
   to   = "/.netlify/functions/setup-activity-columns"
   status = 200
 
+# Video Debug API redirects (NEW)
+[[redirects]]
+  from = "/api/video-debug"
+  to   = "/.netlify/functions/video-debug"
+  status = 200
+
+# Video Fix API redirects (NEW)
+[[redirects]]
+  from = "/api/video-fix"
+  to   = "/.netlify/functions/video-fix"
+  status = 200
+
 # Wildcard redirect (must be last)
 [[redirects]]
   from = "/api/*"
   to   = "/.netlify/functions/:splat"
   status = 200
+
+# =====================================================
+# HEADERS DE SEGURIDAD PARA YOUTUBE VIDEOS
+# =====================================================
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Content Security Policy optimizado para YouTube
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://www.gstatic.com https://apis.google.com https://esm.sh https://cdn.jsdelivr.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; frame-src 'self' https://www.youtube.com https://youtube.com; connect-src 'self' https://www.youtube.com https://youtubei.googleapis.com https://www.google.com https://accounts.google.com https://apis.google.com https://*.supabase.co wss: ws:; object-src 'none'; base-uri 'self'"
+    
+    # X-Frame-Options para permitir YouTube embeds
+    X-Frame-Options = "SAMEORIGIN"
+    
+    # Referrer Policy para YouTube
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # Otras medidas de seguridad
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    
+    # Preconnect hints para YouTube (performance)
+    Link = "<https://www.youtube.com>; rel=preconnect, <https://i.ytimg.com>; rel=preconnect, <https://s.ytimg.com>; rel=preconnect"
 
 
