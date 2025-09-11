@@ -2170,7 +2170,7 @@ body {
     flex: 1;
     min-height: 350px;
     margin-top: 1.5rem; /* Espacio más proporcionado para evitar superposición con el botón de colapsar */
-    transition: flex 0.3s ease, min-height 0.3s ease;
+    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .lia-header {
@@ -2276,7 +2276,7 @@ body {
     gap: 1rem;
     flex: 1;
     min-height: 250px;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 1;
     visibility: visible;
 }
@@ -2476,7 +2476,7 @@ body {
     background: var(--glass-bg-primary);
     border: var(--glass-border-subtle);
     border-radius: 16px;
-    margin-top: 1rem;
+    margin-top: 3rem; /* Aumentado para evitar choque con botón de colapso */
     max-height: 60vh;
     overflow-y: auto;
     backdrop-filter: var(--glass-blur);
@@ -4095,7 +4095,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     gap: 1rem;
     flex: 1;
     min-height: 200px;
-    transition: flex 0.3s ease, min-height 0.3s ease;
+    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .notes-header {
@@ -5565,6 +5565,23 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     display: none !important;
 }
 
+/* Ocultar módulo de notas cuando el panel izquierdo está colapsado */
+.left-panel.collapsed .notes-creator-section {
+    opacity: 0;
+    transform: translateX(-20px);
+    margin-top: 0;
+    display: none !important;
+}
+
+/* Transiciones mejoradas para el colapso de LIA */
+.lia-assistant-section[style*="flex: 0 0 auto"] {
+    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.notes-section[style*="min-height: 400px"] {
+    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
 /* Indicador visual cuando está colapsado */
 .right-panel.collapsed::after {
     content: '';
@@ -5862,6 +5879,11 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
         height: 24px;
         padding: 4px 8px;
         min-width: 32px;
+    }
+    
+    /* Ajustar margen del módulo de notas en pantallas pequeñas */
+    .notes-creator-section {
+        margin-top: 2.5rem;
     }
     
     .left-panel.collapsed .collapse-icon svg {
