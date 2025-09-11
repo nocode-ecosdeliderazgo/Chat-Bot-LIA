@@ -36,6 +36,9 @@ class ChatOnlineV2 {
             // Configurar notas y UI
             this.setupNotesAndUI();
 
+            // Inicializar sistema de notas
+            this.initializeNotes();
+
             this.isInitialized = true;
             console.log('✅ Chat Online V2 inicializado correctamente');
 
@@ -842,6 +845,115 @@ class ChatOnlineV2 {
         notesList.insertBefore(noteElement, notesList.firstChild);
     }
 
+    deleteNote(noteId) {
+        let notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+        
+        // Filtrar la nota a eliminar
+        notes = notes.filter(note => note.id !== noteId);
+        
+        // Guardar la lista actualizada
+        localStorage.setItem('lia_notes', JSON.stringify(notes));
+        
+        // Actualizar la lista en la interfaz
+        this.loadNotesList();
+        
+        console.log('🗑️ Nota eliminada:', noteId);
+    }
+
+    loadNotesList() {
+        // Recargar la lista de notas desde localStorage
+        const notesList = document.getElementById('notesList');
+        if (!notesList) return;
+
+        const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+        
+        if (notes.length === 0) {
+            notesList.innerHTML = '<div class="empty-state">No hay notas guardadas</div>';
+            return;
+        }
+
+        notesList.innerHTML = notes.map(note => this.renderNoteItem(note)).join('');
+    }
+
+    renderNoteItem(note) {
+        const timeAgo = this.getTimeAgo(note.timestamp);
+        const contentPreview = note.content.substring(0, 100);
+        
+        return `
+            <div class="note-item" data-note-id="${note.id}">
+                <div class="note-header">
+                    <span class="note-title">${this.escapeHtml(note.title)}</span>
+                    <span class="note-time">${timeAgo}</span>
+                </div>
+                <div class="note-content">
+                    <p>${this.escapeHtml(contentPreview)}${contentPreview.length >= 100 ? '...' : ''}</p>
+                </div>
+                <div class="note-actions">
+                    <button class="note-delete-btn" onclick="(window.chatOnline?.deleteNote || window.deleteNote)?.(${note.id})" title="Eliminar nota">
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    getTimeAgo(timestamp) {
+        const now = Date.now();
+        const time = new Date(timestamp).getTime();
+        const diff = now - time;
+        
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+        
+        if (days > 0) return `hace ${days} día${days > 1 ? 's' : ''}`;
+        if (hours > 0) return `hace ${hours} hora${hours > 1 ? 's' : ''}`;
+        if (minutes > 0) return `hace ${minutes} minuto${minutes > 1 ? 's' : ''}`;
+        return 'ahora mismo';
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    initializeNotes() {
+        console.log('📝 Inicializando sistema de notas...');
+        
+        // Cargar notas existentes al inicializar
+        this.loadNotesList();
+        
+        // Configurar event listeners para notas
+        this.setupNotesEventListeners();
+        
+        console.log('✅ Sistema de notas inicializado');
+    }
+
+    setupNotesEventListeners() {
+        // Event listener para el botón de crear nota
+        const createNoteBtn = document.getElementById('createNoteBtn');
+        if (createNoteBtn) {
+            createNoteBtn.addEventListener('click', () => this.showNoteCreator());
+        }
+
+        // Event listener para el botón de guardar nota
+        const saveNoteBtn = document.getElementById('saveNoteBtn');
+        if (saveNoteBtn) {
+            saveNoteBtn.addEventListener('click', () => this.saveNote());
+        }
+
+        // Event listener para el botón de cancelar nota
+        const cancelNoteBtn = document.getElementById('cancelNoteBtn');
+        if (cancelNoteBtn) {
+            cancelNoteBtn.addEventListener('click', () => this.hideNoteCreator());
+        }
+    }
+
     toggleMaterials() {
         const materialsSection = document.querySelector('.course-materials-section');
         if (materialsSection) {
@@ -1007,17 +1119,65 @@ class ChatOnlineV2 {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('💬 Inicializando Chat Online V2...');
     
-    // NO sobrescribir window.chatOnline, solo crear chatOnlineV2
-    window.chatOnlineV2 = new ChatOnlineV2();
+    // Verificar si ya hay una instancia de ChatOnline v1 y preservar compatibilidad
+    const existingChatOnline = window.chatOnline;
+    
+    window.chatOnline = new ChatOnlineV2();
+    window.chatOnlineV2 = window.chatOnline; // También disponible como chatOnlineV2
+    
+    // Si había una instancia v1, transferir algunos métodos importantes para compatibilidad
+    if (existingChatOnline && existingChatOnline.constructor.name === 'ChatOnline') {
+        console.log('🔄 Detectada instancia ChatOnline v1, configurando compatibilidad...');
+        
+        // Preservar métodos específicos si existen
+        if (existingChatOnline.showQuestionModal) {
+            window.chatOnline.showQuestionModal = existingChatOnline.showQuestionModal.bind(existingChatOnline);
+        }
+        if (existingChatOnline.loadCommunityQuestions) {
+            window.chatOnline.loadCommunityQuestions = existingChatOnline.loadCommunityQuestions.bind(existingChatOnline);
+        }
+    }
     
     console.log('🔗 Instancias registradas en window:', {
         chatOnline: !!window.chatOnline,
         chatOnlineV2: !!window.chatOnlineV2
     });
     
+    // Asegurar compatibilidad global para funciones críticas como deleteNote
+    window.ensureNoteFunctionality = function() {
+        if (!window.chatOnline || typeof window.chatOnline.deleteNote !== 'function') {
+            console.log('⚠️ Implementando función de respaldo para deleteNote');
+            window.deleteNote = function(noteId) {
+                console.log('🗑️ Ejecutando deleteNote de respaldo:', noteId);
+                let notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+                notes = notes.filter(note => note.id !== noteId);
+                localStorage.setItem('lia_notes', JSON.stringify(notes));
+                
+                // Recargar la lista si existe el elemento
+                const notesList = document.getElementById('notesList');
+                if (notesList && window.chatOnline && typeof window.chatOnline.loadNotesList === 'function') {
+                    window.chatOnline.loadNotesList();
+                } else {
+                    // Recargar la página como último recurso
+                    location.reload();
+                }
+            };
+        }
+    };
+    
+    // Llamar inmediatamente
+    window.ensureNoteFunctionality();
+    
     // Inicializar después de que otros componentes estén listos
     setTimeout(() => {
-        window.chatOnlineV2.init();
+        window.chatOnline.init();
+        
+        // Verificar una vez más después de la inicialización
+        setTimeout(() => {
+            window.ensureNoteFunctionality();
+            console.log('🔧 Verificación final - deleteNote disponible:', 
+                       typeof (window.chatOnline?.deleteNote || window.deleteNote) === 'function');
+        }, 1000);
     }, 2000); // Esperar a que dynamic video loader se inicialice
 });
 

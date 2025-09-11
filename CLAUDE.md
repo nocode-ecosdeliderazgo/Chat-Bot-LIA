@@ -57,6 +57,10 @@ npm run init:progress
 # Extract Supabase configuration
 node scripts/extract-supabase-config.js
 
+# Initialize database progress tables
+npm run init:database
+npm run init:progress
+
 # Initial project setup
 node scripts/setup.js
 
@@ -78,8 +82,12 @@ The frontend follows a multi-page application (MPA) pattern with shared componen
 - `src/index.html` - Landing page with animated hero section and theme switching
 - `src/login/new-auth.html` - Authentication system with OTP verification
 - `src/chat.html` - Main chat interface with OpenAI integration
+- `src/Chat-Online/chat-online.html` - Interactive course chat with video player and LIA assistant
 - `src/courses.html` / `src/cursos.html` - Course catalog and management
 - `src/profile.html` - User profile and progress tracking
+- `src/Community/community.html` - Community features and discussions
+- `src/Notices/notices.html` - Announcements and notifications
+- `src/admin/admin.html` - Administrative dashboard
 
 **Modular Components**:
 - `src/scripts/` - JavaScript modules for animations, theme management, API integration
@@ -134,29 +142,31 @@ The frontend follows a multi-page application (MPA) pattern with shared componen
 ## Development Guidelines
 
 ### Environment Configuration
-Create `.env` file with required variables:
+Create `.env` file with required variables (see `.env.example` for complete reference):
 ```
-# Supabase Configuration
-SUPABASE_URL=your_supabase_url
-SUPABASE_SERVICE_ROLE_KEY=your_service_key
-
 # OpenAI Configuration
-OPENAI_API_KEY=your_openai_key
+OPENAI_API_KEY=your_openai_api_key_here
 
-# Database Configuration
-DATABASE_URL=your_postgresql_url
+# Database Configuration  
+DATABASE_URL=your_database_url_here
+
+# Supabase Configuration
+SUPABASE_URL=your_supabase_url_here
+SUPABASE_SERVICE_KEY=your_supabase_service_key_here
+
+# Security Configuration
+NODE_ENV=production
+SESSION_SECRET=your-session-secret-here
+API_SECRET_KEY=your-api-secret-key-here
+USER_JWT_SECRET=your_jwt_secret_here
+
+# Google OAuth (optional)
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 
 # Server Configuration
 PORT=3000
-NODE_ENV=development
-API_SECRET_KEY=your_api_secret
-USER_JWT_SECRET=your_jwt_secret
-
-# Email Configuration (for OTP verification)
-SMTP_HOST=your_smtp_host
-SMTP_PORT=587
-SMTP_USER=your_email
-SMTP_PASS=your_email_password
+ALLOWED_ORIGINS=http://localhost:3000,https://yourdomain.com
 ```
 
 ### Frontend Development
@@ -312,54 +322,31 @@ const observeElements = () => {
 
 ### Modular Components
 - Authentication: `src/login/`, `src/utils/auth-guard.js`
-- Chat System: `src/chat.html`, AI integration in Netlify Functions
-- Course System: `src/courses.html`, `src/data/course-data.js`
-- UI Components: `src/scripts/` (animations, themes, particles)
+- Chat System: `src/chat.html`, `src/Chat-Online/`, AI integration in Netlify Functions
+- Course System: `src/courses.html`, `src/data/course-data.js`, `src/data/course-content-sif-icap.js`
+- Community: `src/Community/`, database schema in `database/community_schema.md`
+- Video Integration: `src/scripts/zoom-video-integration.js`, YouTube progress tracking
+- UI Components: `src/scripts/` (animations, themes, particles, progress managers)
 
-## Database Management Scripts
+## Important Development Notes
 
+### Database Scripts & Operations
 The project includes several utility scripts for database management:
+- `scripts/init-progress-database.js` - Initialize progress tracking tables
+- `scripts/insert-sample-activities.js` - Add sample video activities
+- `scripts/run-activity-migration.js` - Migrate activity data
+- `scripts/test-activities.js` - Test activity functionality
+- `scripts/update-specific-activities.js` - Update specific activity records
 
-```bash
-# Initialize progress tracking database
-node scripts/init-progress-database.js
+### Chat System Architecture
+The chat system has dual deployment modes:
+1. **Local Development**: Uses `server.js` with `/api/openai` endpoint
+2. **Netlify Production**: Uses `netlify/functions/openai.js` serverless function
 
-# Setup Zoom integration database tables
-node scripts/init-zoom-db.js
+The LIA (Learning Intelligence Assistant) is integrated into `chat-online.html` and provides context-aware responses based on course content defined in prompts under `prompts/` directory.
 
-# Insert sample activities for testing
-node scripts/insert-sample-activities.js
-
-# Run activity data migration
-node scripts/run-activity-migration.js
-
-# Test activity functionality
-node scripts/test-activities.js
-```
-
-## Troubleshooting
-
-### Port Conflicts
-If you encounter port conflicts, use the provided port killing scripts:
-```bash
-# Kill process on port 3000
-npm run port:kill
-
-# Kill process on port 3001  
-npm run port:kill:3001
-
-# Force start development server (kills port first)
-npm run dev:force
-```
-
-### Database Connection Issues
-1. Verify `.env` file has correct `DATABASE_URL`
-2. Ensure PostgreSQL service is running
-3. Check Supabase configuration if using Supabase features
-4. Run database initialization scripts if tables are missing
-
-### Netlify Functions Debugging
-- Functions are located in `netlify/functions/`
-- Check function logs in Netlify dashboard
-- Verify API redirects in `netlify.toml` match your endpoints
-- Test functions locally before deployment
+### Video & Progress Tracking
+- YouTube integration with progress tracking via `scripts/youtube-progress-tracker.js`
+- Zoom video integration for live sessions
+- Module and video progress stored in Supabase with real-time updates
+- Course progress management through specialized components
