@@ -831,55 +831,98 @@ class ChatOnline {
     }
     
     toggleLiaCollapse() {
+        console.log('🔍 [DEBUG] toggleLiaCollapse() iniciada');
+        
         const liaChat = document.querySelector('.lia-chat');
         const liaSection = document.querySelector('.lia-assistant-section');
         const notesSection = document.querySelector('.notes-section');
         const collapseBtn = document.getElementById('collapseLiaBtn');
-        const icon = collapseBtn.querySelector('svg');
         
-        if (liaChat && liaSection && notesSection) {
-            const isCollapsed = liaChat.style.opacity === '0' || liaChat.style.visibility === 'hidden';
-            
-            if (isCollapsed) {
-                // Expandir - Transición suave
-                liaChat.style.opacity = '1';
-                liaChat.style.visibility = 'visible';
-                liaChat.style.display = 'flex';
-                
-                // Aplicar cambios de flex con transición
-                setTimeout(() => {
-                    liaSection.style.flex = '1';
-                    liaSection.style.minHeight = '350px';
-                    notesSection.style.flex = '1';
-                    notesSection.style.minHeight = '200px';
-                }, 50);
-                
-                icon.innerHTML = '<polyline points="6,9 12,15 18,9"/>';
-                collapseBtn.title = 'Colapsar Chat';
-                console.log('📤 Chat de LIA expandido');
-            } else {
-                // Colapsar - Transición suave
-                // Primero cambiar los tamaños de flex
-                liaSection.style.flex = '0 0 auto';
-                liaSection.style.minHeight = 'auto';
-                notesSection.style.flex = '1';
-                notesSection.style.minHeight = '400px';
-                
-                // Luego ocultar el chat con transición
-                setTimeout(() => {
-                    liaChat.style.opacity = '0';
-                    liaChat.style.visibility = 'hidden';
-                }, 100);
-                
-                setTimeout(() => {
-                    liaChat.style.display = 'none';
-                }, 400);
-                
-                icon.innerHTML = '<polyline points="6,15 12,9 18,15"/>';
-                collapseBtn.title = 'Expandir Chat';
-                console.log('📦 Chat de LIA colapsado - Notas expandidas');
-            }
+        console.log('🔍 [DEBUG] Elementos encontrados:', {
+            liaChat: !!liaChat,
+            liaSection: !!liaSection,
+            notesSection: !!notesSection,
+            collapseBtn: !!collapseBtn
+        });
+        
+        if (!liaChat || !liaSection || !notesSection || !collapseBtn) {
+            console.error('❌ [ERROR] Elementos no encontrados:', {
+                liaChat: liaChat,
+                liaSection: liaSection,
+                notesSection: notesSection,
+                collapseBtn: collapseBtn
+            });
+            return;
         }
+        
+        const icon = collapseBtn.querySelector('svg');
+        console.log('🔍 [DEBUG] Icono encontrado:', !!icon);
+        
+        // Verificar estado actual usando clases CSS
+        const isCollapsed = liaSection.classList.contains('lia-collapsed');
+        console.log('🔍 [DEBUG] Estado actual:', {
+            isCollapsed: isCollapsed,
+            liaSectionClasses: liaSection.className,
+            notesSectionClasses: notesSection.className,
+            liaChatOpacity: liaChat.style.opacity,
+            liaChatVisibility: liaChat.style.visibility
+        });
+        
+        if (isCollapsed) {
+            console.log('📤 [DEBUG] Expandir LIA...');
+            
+            // Expandir - Transición suave
+            liaChat.style.opacity = '1';
+            liaChat.style.visibility = 'visible';
+            liaChat.style.display = 'flex';
+            
+            console.log('🔍 [DEBUG] Removiendo clases de colapso...');
+            
+            // Remover clases de colapso
+            liaSection.classList.remove('lia-collapsed');
+            notesSection.classList.remove('notes-expanded');
+            
+            console.log('🔍 [DEBUG] Clases después de remover:', {
+                liaSectionClasses: liaSection.className,
+                notesSectionClasses: notesSection.className
+            });
+            
+            icon.innerHTML = '<polyline points="6,9 12,15 18,9"/>';
+            collapseBtn.title = 'Colapsar Chat';
+            console.log('✅ [SUCCESS] Chat de LIA expandido');
+        } else {
+            console.log('📦 [DEBUG] Colapsar LIA...');
+            
+            // Colapsar - Transición suave
+            console.log('🔍 [DEBUG] Aplicando clases de colapso...');
+            
+            // Aplicar clases de colapso
+            liaSection.classList.add('lia-collapsed');
+            notesSection.classList.add('notes-expanded');
+            
+            console.log('🔍 [DEBUG] Clases después de agregar:', {
+                liaSectionClasses: liaSection.className,
+                notesSectionClasses: notesSection.className
+            });
+            
+            // Luego ocultar el chat con transición
+            setTimeout(() => {
+                console.log('🔍 [DEBUG] Ocultando chat...');
+                liaChat.style.opacity = '0';
+                liaChat.style.visibility = 'hidden';
+            }, 100);
+            
+            setTimeout(() => {
+                console.log('🔍 [DEBUG] Estableciendo display: none...');
+                liaChat.style.display = 'none';
+            }, 400);
+            
+            icon.innerHTML = '<polyline points="6,15 12,9 18,15"/>';
+            collapseBtn.title = 'Expandir Chat';
+            console.log('✅ [SUCCESS] Chat de LIA colapsado - Notas expandidas hacia arriba');
+        }
+        
+        console.log('🔍 [DEBUG] toggleLiaCollapse() completada');
     }
     
     async sendLiaMessage() {

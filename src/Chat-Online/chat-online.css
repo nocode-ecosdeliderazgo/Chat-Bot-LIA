@@ -2276,7 +2276,7 @@ body {
     overflow-y: auto;
     height: calc(100vh - 80px);
     max-height: calc(100vh - 80px);
-    padding-top: 2rem;
+    padding-top: 0.5rem;
 }
 
 /* Scrollbar mejorado para panel derecho */
@@ -2348,14 +2348,30 @@ body {
 .lia-assistant-section {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    flex: 0 0 65vh; /* Tamaño fijo - 65% de la altura de la ventana */
-    min-height: 350px;
-    max-height: 65vh; /* Altura máxima fija */
-    margin-top: 1.5rem; /* Restaurado - espacio apropiado con el botón de colapsar */
-    margin-bottom: 0 !important; /* Sin margen inferior - pegado a las notas */
+    gap: 0.5rem; /* Reducido para menos espacio */
+    flex: 0 0 50vh; /* Reducido de 65vh a 50vh */
+    min-height: 300px; /* Reducido de 350px */
+    max-height: 50vh; /* Reducido de 65vh */
+    margin-top: 3rem; /* Aumentado para mayor separación del botón de colapsar */
+    margin-bottom: 0 !important; /* Sin margen negativo */
     padding-bottom: 0 !important; /* Sin padding inferior */
-    transition: none; /* Sin transiciones para mantener tamaño constante */
+    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estado colapsado de LIA - las notas ocupan todo el espacio */
+.lia-assistant-section.lia-collapsed {
+    flex: 0 0 auto !important;
+    min-height: auto !important;
+    max-height: auto !important;
+    margin-bottom: 0.5rem !important; /* Separación adicional entre LIA colapsado y notas */
+}
+
+/* Estado expandido de las notas cuando LIA está colapsado */
+.notes-section.notes-expanded {
+    flex: 1 !important;
+    min-height: auto !important;
+    max-height: none !important;
+    margin-top: 2.5rem !important; /* Mantiene la misma separación del botón de colapsar */
 }
 
 .lia-header {
@@ -2661,7 +2677,7 @@ body {
     background: var(--glass-bg-primary);
     border: var(--glass-border-subtle);
     border-radius: 16px;
-    margin-top: 0; /* Eliminado completamente para pegar directamente a LIA */
+    margin-top: 2.5rem !important; /* Separación del botón de colapsar del panel izquierdo */
     max-height: 35vh;
     overflow-y: auto;
     backdrop-filter: var(--glass-blur);
@@ -4201,7 +4217,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     gap: 0.5rem;
     align-items: center;
     position: relative;
-    padding: 0.5rem 0;
+    padding: 0.1rem 0; /* Reducido para menos espacio */
 }
 
 .input-actions {
@@ -4278,12 +4294,12 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 .notes-section {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    flex: 0 0 auto; /* Cambiado de flex: 1 para que no ocupe todo el espacio */
-    min-height: auto; /* Reducido de 200px */
-    max-height: 35vh; /* Altura máxima controlada */
-    margin-top: 0 !important; /* Forzar sin margen superior */
-    padding-top: 0 !important; /* Forzar sin padding superior */
+    gap: 0.5rem; /* Reducido para menos espacio */
+    flex: 1; /* Ocupar espacio restante */
+    min-height: auto;
+    max-height: 45vh; /* Aumentado para aprovechar el espacio */
+    margin-top: 0.5rem !important; /* Margen positivo pequeño */
+    padding-top: 0 !important; /* Sin padding superior */
     transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

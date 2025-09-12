@@ -843,29 +843,75 @@ function startNewLiaChat() {
 }
 
 function toggleLiaSection() {
+    console.log('🔍 [FIX-BUTTONS] toggleLiaSection() iniciada');
+    
     const liaChat = document.querySelector('.lia-chat');
     const liaSection = document.querySelector('.lia-assistant-section');
+    const notesSection = document.querySelector('.notes-section');
     const collapseBtn = document.getElementById('collapseLiaBtn');
     
-    if (liaChat && liaSection && collapseBtn) {
-        const isCollapsed = liaChat.style.display === 'none' || liaChat.style.visibility === 'hidden';
-        
-        if (isCollapsed) {
-            // Expandir
-            liaChat.style.display = 'flex';
-            liaChat.style.visibility = 'visible';
-            liaChat.style.opacity = '1';
-            collapseBtn.title = 'Colapsar Chat';
-            console.log('📖 LIA expandido');
-        } else {
-            // Colapsar
-            liaChat.style.display = 'none';
-            liaChat.style.visibility = 'hidden';
-            liaChat.style.opacity = '0';
-            collapseBtn.title = 'Expandir Chat';
-            console.log('📦 LIA colapsado');
-        }
+    console.log('🔍 [FIX-BUTTONS] Elementos encontrados:', {
+        liaChat: !!liaChat,
+        liaSection: !!liaSection,
+        notesSection: !!notesSection,
+        collapseBtn: !!collapseBtn
+    });
+    
+    if (!liaChat || !liaSection || !notesSection || !collapseBtn) {
+        console.error('❌ [FIX-BUTTONS] Elementos no encontrados');
+        return;
     }
+    
+    const icon = collapseBtn.querySelector('svg');
+    console.log('🔍 [FIX-BUTTONS] Icono encontrado:', !!icon);
+    
+    // Verificar estado actual usando clases CSS
+    const isCollapsed = liaSection.classList.contains('lia-collapsed');
+    console.log('🔍 [FIX-BUTTONS] Estado actual:', {
+        isCollapsed: isCollapsed,
+        liaSectionClasses: liaSection.className,
+        notesSectionClasses: notesSection.className
+    });
+    
+    if (isCollapsed) {
+        console.log('📤 [FIX-BUTTONS] Expandir LIA...');
+        
+        // Expandir - Transición suave
+        liaChat.style.opacity = '1';
+        liaChat.style.visibility = 'visible';
+        liaChat.style.display = 'flex';
+        
+        // Remover clases de colapso
+        liaSection.classList.remove('lia-collapsed');
+        notesSection.classList.remove('notes-expanded');
+        
+        icon.innerHTML = '<polyline points="6,9 12,15 18,9"/>';
+        collapseBtn.title = 'Colapsar Chat';
+        console.log('✅ [FIX-BUTTONS] Chat de LIA expandido');
+    } else {
+        console.log('📦 [FIX-BUTTONS] Colapsar LIA...');
+        
+        // Colapsar - Transición suave
+        // Aplicar clases de colapso
+        liaSection.classList.add('lia-collapsed');
+        notesSection.classList.add('notes-expanded');
+        
+        // Luego ocultar el chat con transición
+        setTimeout(() => {
+            liaChat.style.opacity = '0';
+            liaChat.style.visibility = 'hidden';
+        }, 100);
+        
+        setTimeout(() => {
+            liaChat.style.display = 'none';
+        }, 400);
+        
+        icon.innerHTML = '<polyline points="6,15 12,9 18,15"/>';
+        collapseBtn.title = 'Expandir Chat';
+        console.log('✅ [FIX-BUTTONS] Chat de LIA colapsado - Notas expandidas hacia arriba');
+    }
+    
+    console.log('🔍 [FIX-BUTTONS] toggleLiaSection() completada');
 }
 
 function sendMessageToLia() {
