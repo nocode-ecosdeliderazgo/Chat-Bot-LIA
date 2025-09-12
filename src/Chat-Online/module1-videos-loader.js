@@ -1166,13 +1166,26 @@ class Module1VideosLoader {
                             
                             const promptsHtml = `
                                 <div class="activity-prompts-content">
-                                    ${this.replaceEmojisWithIcons(formattedPrompts).split('\n').map(prompt => {
+                                    ${this.replaceEmojisWithIcons(formattedPrompts).split('\n').map((prompt, index) => {
                                         const trimmedPrompt = prompt.trim();
                                         if (trimmedPrompt) {
-                                            // Detectar bullets y numerados
-                                            if (trimmedPrompt.match(/^[\-\•]\s/) || trimmedPrompt.match(/^\d+\.\s/)) {
-                                                return `<div class="activity-prompt-item">${trimmedPrompt}</div>`;
+                                            // Detectar bullets, numerados y preguntas (estos son prompts que necesitan botón copiar)
+                                            if (trimmedPrompt.match(/^[\-\•\*]\s/) || 
+                                                trimmedPrompt.match(/^\d+[\.\)]\s/) || 
+                                                trimmedPrompt.includes('?') || 
+                                                trimmedPrompt.toLowerCase().includes('prompt') ||
+                                                trimmedPrompt.toLowerCase().includes('ejercicio')) {
+                                                // Remover el bullet/número para el botón de copiar
+                                                const cleanPrompt = trimmedPrompt
+                                                    .replace(/^[\-\•\*]\s*/, '')
+                                                    .replace(/^\d+[\.\)]\s*/, '')
+                                                    .trim();
+                                                return `<div class="activity-prompt-item" data-prompt-index="${index}">
+                                                    <span class="prompt-text">${trimmedPrompt}</span>
+                                                    <button class="btn-copy" data-copy="${this.escapeHtml(cleanPrompt)}">Copiar</button>
+                                                </div>`;
                                             } else {
+                                                // Títulos y párrafos normales sin botón copiar
                                                 return `<p>${trimmedPrompt}</p>`;
                                             }
                                         }
