@@ -695,12 +695,10 @@ function toggleNotesSection() {
             notesSection.classList.remove('collapsed');
             collapseBtn.title = 'Colapsar Notas';
             console.log('📖 Sección de notas expandida');
-            showNotification('📖 Notas expandidas', 'success');
         } else {
             notesSection.classList.add('collapsed');
             collapseBtn.title = 'Expandir Notas';
             console.log('📦 Sección de notas colapsada');
-            showNotification('📦 Notas colapsadas', 'success');
         }
         
         // El CSS se encarga de la animación del icono automáticamente
