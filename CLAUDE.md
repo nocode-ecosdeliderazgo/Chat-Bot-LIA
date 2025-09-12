@@ -57,12 +57,13 @@ npm run init:progress
 # Extract Supabase configuration
 node scripts/extract-supabase-config.js
 
-# Initialize database progress tables
-npm run init:database
-npm run init:progress
-
 # Initial project setup
 node scripts/setup.js
+
+# Test and manage activities
+node scripts/test-activities.js
+node scripts/insert-sample-activities.js
+node scripts/run-activity-migration.js
 
 # Import GenAI questions (if using Supabase)
 SUPABASE_URL="your_url" SUPABASE_SERVICE_KEY="your_key" node scripts/import-genai-questions.js --clear --verbose
