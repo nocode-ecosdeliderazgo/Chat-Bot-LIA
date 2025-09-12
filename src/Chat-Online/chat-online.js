@@ -4325,12 +4325,15 @@ class ChatOnline {
                 return;
             }
             
-            // Verificar que tenemos un progress manager
-            if (!this.progressManager) {
-                console.warn('⚠️ Progress Manager no disponible, usando tracker básico');
+            // Usar siempre el CourseProgressManagerV2 global corregido
+            const progressManager = window.courseProgressManager || this.progressManager;
+            
+            if (!progressManager) {
+                console.warn('⚠️ No hay progress manager disponible, usando tracker básico');
                 this.youtubeTracker = new window.YouTubeProgressTracker(null);
             } else {
-                this.youtubeTracker = new window.YouTubeProgressTracker(this.progressManager);
+                console.log('✅ Usando CourseProgressManagerV2 para YouTube tracker');
+                this.youtubeTracker = new window.YouTubeProgressTracker(progressManager);
             }
             
             // Configurar eventos del tracker

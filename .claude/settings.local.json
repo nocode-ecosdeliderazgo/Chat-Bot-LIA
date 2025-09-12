@@ -51,9 +51,8 @@
       "Read(/C:\\Users\\Lordg\\OneDrive\\Desktop\\Laburo\\Chat-Bot-LIA\\src\\Notices/**)",
       "Read(/C:\\Users\\Lordg\\OneDrive\\Desktop\\Laburo\\Chat-Bot-LIA\\src\\Notices/**)",
       "Bash(cmd /C:*)",
-      "Bash(netstat:*)",
-      "Bash(PORT=3001 npm start)",
-      "Bash(del \"C:\\Users\\fysg5\\OneDrive\\Escritorio\\Trabajo\\Chat-Bot-LIA\\test-api-fix.html\")"
+      "Read(//d/**)",
+      "Bash(del fix-progress-function.sql)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

@@ -6,7 +6,7 @@
 
 class ModulesVideosManager {
     constructor() {
-        this.currentCourse = 'introduccion-ia';
+        this.currentCourse = this.getCurrentCourseId(); // Obtener dinámicamente
         this.currentUser = this.getUserId();
         this.modules = [];
         this.currentVideoData = null;
@@ -538,8 +538,47 @@ class ModulesVideosManager {
             console.warn('[ModulesVideosManager] No se pudo obtener userData de localStorage');
         }
 
-        // Fallback para desarrollo
-        return '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0';
+        // Fallback: obtener desde URL o contexto global
+        const urlParams = new URLSearchParams(window.location.search);
+        const userIdFromUrl = urlParams.get('userId');
+        if (userIdFromUrl) return userIdFromUrl;
+
+        // Último recurso: obtener desde contexto global si existe
+        if (window.currentUser && window.currentUser.id) {
+            return window.currentUser.id;
+        }
+
+        console.error('[ModulesVideosManager] ❌ No se pudo obtener ID de usuario válido');
+        return null;
+    }
+
+    /**
+     * Obtener ID del curso actual dinámicamente
+     */
+    getCurrentCourseId() {
+        // Intentar obtener desde contexto global
+        if (window.currentCourse && window.currentCourse.id) {
+            return window.currentCourse.id;
+        }
+
+        // Obtener desde localStorage
+        try {
+            const courseData = localStorage.getItem('currentCourse');
+            if (courseData) {
+                const course = JSON.parse(courseData);
+                return course.id || course.identifier;
+            }
+        } catch (e) {
+            console.warn('[ModulesVideosManager] No se pudo obtener curso de localStorage');
+        }
+
+        // Obtener desde URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseIdFromUrl = urlParams.get('courseId');
+        if (courseIdFromUrl) return courseIdFromUrl;
+
+        // Por defecto, usar el identificador estándar del curso de IA
+        return 'intro-to-ai';
     }
 
     /**

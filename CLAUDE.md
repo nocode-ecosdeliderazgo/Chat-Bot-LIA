@@ -69,6 +69,15 @@ node scripts/run-activity-migration.js
 SUPABASE_URL="your_url" SUPABASE_SERVICE_KEY="your_key" node scripts/import-genai-questions.js --clear --verbose
 ```
 
+### Testing Activity Migration
+```bash
+# Test the activity migration functionality
+start test-activity-migration.html
+
+# Test specific Chat-Online components  
+start src/Chat-Online/chat-online.html
+```
+
 ## Architecture Overview
 
 ### Core Application Structure
@@ -112,7 +121,11 @@ The frontend follows a multi-page application (MPA) pattern with shared componen
 ### Database Integration
 - **Primary**: PostgreSQL with connection pooling
 - **Secondary**: Supabase for real-time features and extended functionality
-- **Tables**: Users, courses, chat history, progress tracking, OTP verification
+- **Key Tables**: 
+  - `courses`, `course_modules`, `module_videos` - Course structure
+  - `actividad_detalle` - Normalized activity content (new)
+  - `users`, `user_progress` - User management and progress tracking
+  - Chat history, OTP verification tables
 
 ## Key Features & Integrations
 
@@ -351,3 +364,28 @@ The LIA (Learning Intelligence Assistant) is integrated into `chat-online.html` 
 - Zoom video integration for live sessions
 - Module and video progress stored in Supabase with real-time updates
 - Course progress management through specialized components
+
+### Activity System Architecture
+The application features a dual-mode activity system for video activities:
+
+**Normalized Data Structure** (`actividad_detalle` table):
+- `id` (uuid), `actividad_id` (FK to module_videos), `seccion` ('descripcion'|'prompts')
+- `orden` (integer), `tipo` ('titulo'|'parrafo'|'lista'|'prompt'|'nota'), `contenido` (text)
+- Allows structured content with individual copy buttons for prompts
+
+**Legacy Compatibility**:
+- Falls back to `descripcion_actividad` and `prompts_actividad` text fields when structured data unavailable
+- Automatic header detection and formatting (Contexto, Pautas de la actividad, Objetivo, etc.)
+- Smart prompt detection via patterns (bullets, numbers, questions, keywords)
+
+**Key Components**:
+- `module1-videos-loader.js`: Handles dual-mode rendering and individual prompt copying
+- `chat-online.html`: Contains `copyActivityToClipboard()` function with format switching
+- Both modes support individual prompt copy buttons with visual feedback
+
+### Module Loading System
+The Chat-Online module uses a specialized loader architecture:
+- `src/Chat-Online/module1-videos-loader.js` - Handles video list rendering and activity updates
+- Supports both Netlify Functions (production) and Express server (development)
+- Auto-fallback to demo content when database unavailable
+- Real-time DOM updates with glass morphism styling
