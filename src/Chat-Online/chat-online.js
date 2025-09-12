@@ -4023,14 +4023,31 @@ class ChatOnline {
     }
     
     toggleNotesCollapse() {
-        const notesList = document.getElementById('notesList');
-        const collapseBtn = document.getElementById('collapseNotes');
-        const icon = collapseBtn.querySelector('i');
+        console.log('📁 Toggling notes collapse...');
         
-        if (notesList) {
-            notesList.style.display = notesList.style.display === 'none' ? 'block' : 'none';
-            icon.className = notesList.style.display === 'none' ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+        const notesSection = document.querySelector('.notes-section');
+        const collapseBtn = document.getElementById('collapseNotes');
+        
+        if (!notesSection || !collapseBtn) {
+            console.error('❌ Elements not found for notes collapse');
+            return;
         }
+        
+        const isCollapsed = notesSection.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            // Expandir
+            notesSection.classList.remove('collapsed');
+            collapseBtn.title = 'Colapsar Notas';
+            console.log('📖 Notas expandidas');
+        } else {
+            // Colapsar
+            notesSection.classList.add('collapsed');
+            collapseBtn.title = 'Expandir Notas';
+            console.log('📦 Notas colapsadas');
+        }
+        
+        // El CSS se encarga de la animación del icono automáticamente
     }
     
     // ===== MATERIALES =====

@@ -4095,7 +4095,39 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     gap: 1rem;
     flex: 1;
     min-height: 200px;
-    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estado colapsado individual de la sección de notas */
+.notes-section.collapsed {
+    min-height: auto;
+    max-height: 60px;
+    overflow: hidden;
+}
+
+.notes-section.collapsed .notes-list {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.notes-section:not(.collapsed) .notes-list {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s;
+}
+
+/* Icono rotado cuando está colapsado - manteniendo centrado */
+.notes-section.collapsed #collapseNotes svg {
+    transform: translate(-50%, -50%) rotate(180deg);
+    transition: transform 0.3s ease;
+}
+
+.notes-section:not(.collapsed) #collapseNotes svg {
+    transform: translate(-50%, -50%) rotate(0deg);
+    transition: transform 0.3s ease;
 }
 
 .notes-header {

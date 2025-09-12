@@ -2434,14 +2434,6 @@ Cargando información...
                                 </svg>
                                 Copiar Actividad
                             </button>
-                            <button class="btn-secondary activity-btn" onclick="downloadActivityPDF()">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                    <polyline points="7,10 12,15 17,10"/>
-                                    <line x1="12" y1="15" x2="12" y2="3"/>
-                                </svg>
-                                Descargar PDF
-                            </button>
                         </div>
                     </div>
 
@@ -4793,80 +4785,6 @@ Generado desde Coach LIA IA
             }
         }
 
-        function downloadActivityPDF() {
-            try {
-                const activityContent = document.querySelector('.activity-content');
-                if (!activityContent) {
-                    console.log('⚠️ No se encontró contenido de actividad');
-                    showNotification('No hay contenido de actividad para descargar', 'warning');
-                    return;
-                }
-
-                // Obtener datos de la actividad
-                const titleElement = activityContent.querySelector('h4');
-                const title = titleElement ? titleElement.textContent : 'Actividades del Video';
-
-                const descriptionElement = activityContent.querySelector('.activity-description-content');
-                const description = descriptionElement ? descriptionElement.innerHTML : '<p>Sin descripción disponible</p>';
-
-                const promptsElement = activityContent.querySelector('.activity-prompts-content');
-                const prompts = promptsElement ? promptsElement.innerHTML : '<p>Sin prompts disponibles</p>';
-
-                // Crear contenido HTML para el PDF
-                const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>${title}</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; color: #333; }
-        h1 { color: #44e5ff; border-bottom: 2px solid #44e5ff; padding-bottom: 10px; }
-        h2 { color: #0066CC; margin-top: 30px; }
-        .section { margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 8px; }
-        .activity-item { background: #e3f2fd; padding: 10px; margin: 10px 0; border-radius: 6px; }
-        .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
-    </style>
-</head>
-<body>
-    <h1>${title}</h1>
-    
-    <div class="section">
-        <h2>📋 Descripción de la Actividad</h2>
-        ${description}
-    </div>
-    
-    <div class="section">
-        <h2>💭 Prompts y Ejercicios</h2>
-        ${prompts}
-    </div>
-    
-    <div class="footer">
-        <p>Generado desde Coach LIA IA - ${new Date().toLocaleDateString()}</p>
-    </div>
-</body>
-</html>
-`;
-
-                // Crear blob y descargar
-                const blob = new Blob([htmlContent], { type: 'text/html' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `actividad-${Date.now()}.html`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-
-                console.log('✅ PDF de actividad descargado');
-                showNotification('¡Actividad descargada como HTML!', 'success');
-
-            } catch (error) {
-                console.error('❌ Error en downloadActivityPDF:', error);
-                showNotification('Error al descargar la actividad', 'error');
-            }
-        }
 
         // Función para mostrar notificaciones
         function showNotification(message, type = 'info') {
