@@ -4047,12 +4047,7 @@ class ChatOnline {
             console.log('📦 Notas colapsadas');
         }
         
-        // Animar el icono SVG
-        const svgIcon = collapseBtn.querySelector('svg');
-        if (svgIcon) {
-            svgIcon.style.transform = isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)';
-            svgIcon.style.transition = 'transform 0.3s ease';
-        }
+        // El CSS se encarga de la animación del icono automáticamente
     }
     
     // ===== MATERIALES =====

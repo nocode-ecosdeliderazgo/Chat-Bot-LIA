@@ -703,11 +703,7 @@ function toggleNotesSection() {
             showNotification('📦 Notas colapsadas', 'success');
         }
         
-        // Animar el icono
-        const icon = collapseBtn.querySelector('svg');
-        if (icon) {
-            icon.style.transform = isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)';
-        }
+        // El CSS se encarga de la animación del icono automáticamente
     } else {
         console.error('❌ No se encontraron elementos para colapsar notas');
         showNotification('❌ Error al colapsar notas', 'error');

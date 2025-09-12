@@ -4119,14 +4119,14 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s;
 }
 
-/* Icono rotado cuando está colapsado */
+/* Icono rotado cuando está colapsado - manteniendo centrado */
 .notes-section.collapsed #collapseNotes svg {
-    transform: rotate(180deg);
+    transform: translate(-50%, -50%) rotate(180deg);
     transition: transform 0.3s ease;
 }
 
 .notes-section:not(.collapsed) #collapseNotes svg {
-    transform: rotate(0deg);
+    transform: translate(-50%, -50%) rotate(0deg);
     transition: transform 0.3s ease;
 }
 
