@@ -675,6 +675,16 @@ function toggleNotesSearch() {
 }
 
 function toggleNotesSection() {
+    console.log('🔧 Toggling notes section...');
+    
+    // Verificar si existe chatOnline con la función de colapsar
+    if (window.chatOnline && typeof window.chatOnline.toggleNotesCollapse === 'function') {
+        console.log('✅ Usando función de colapsar de chatOnline');
+        window.chatOnline.toggleNotesCollapse();
+        return;
+    }
+    
+    // Fallback: implementación propia
     const notesSection = document.querySelector('.notes-section');
     const collapseBtn = document.getElementById('collapseNotes');
     
@@ -685,11 +695,22 @@ function toggleNotesSection() {
             notesSection.classList.remove('collapsed');
             collapseBtn.title = 'Colapsar Notas';
             console.log('📖 Sección de notas expandida');
+            showNotification('📖 Notas expandidas', 'success');
         } else {
             notesSection.classList.add('collapsed');
             collapseBtn.title = 'Expandir Notas';
             console.log('📦 Sección de notas colapsada');
+            showNotification('📦 Notas colapsadas', 'success');
         }
+        
+        // Animar el icono
+        const icon = collapseBtn.querySelector('svg');
+        if (icon) {
+            icon.style.transform = isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+    } else {
+        console.error('❌ No se encontraron elementos para colapsar notas');
+        showNotification('❌ Error al colapsar notas', 'error');
     }
 }
 
