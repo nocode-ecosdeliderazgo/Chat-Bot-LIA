@@ -1004,6 +1004,72 @@ body.bg-glow-global .tab-button.active i {
     background: rgba(68, 229, 255, 0.05) !important;
 }
 
+/* ===== ESTILOS DE FONDO PARA CONSISTENCIA CON CURSOS.HTML ===== */
+
+/* Body con fondo consistente - MÁXIMA ESPECIFICIDAD */
+.bg-glow-global,
+body.bg-glow-global {
+    background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%) !important;
+}
+
+/* Estilos base de fondo (sin data-theme) - MÁXIMA ESPECIFICIDAD */
+.bg-glow-global .auth-container,
+body.bg-glow-global .auth-container,
+html .auth-container {
+    background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%) !important;
+}
+
+.bg-glow-global .auth-bg,
+body.bg-glow-global .auth-bg,
+html .auth-bg {
+    background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%) !important;
+}
+
+.bg-glow-global .bg-glow,
+body.bg-glow-global .bg-glow,
+html .bg-glow {
+    background: radial-gradient(circle, rgba(68, 229, 255, 0.1) 0%, transparent 70%) !important;
+}
+
+.bg-glow-global #bgParticles,
+body.bg-glow-global #bgParticles,
+html #bgParticles {
+    mix-blend-mode: normal !important;
+}
+
+/* Contenedor principal con fondo igual que cursos.html */
+[data-theme="light"] .auth-container {
+    background: linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%);
+}
+
+[data-theme="light"] .auth-bg {
+    background: linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%);
+}
+
+[data-theme="light"] .bg-glow {
+    background: radial-gradient(circle, rgba(68, 229, 255, 0.15) 0%, transparent 70%);
+}
+
+[data-theme="light"] #bgParticles {
+    mix-blend-mode: multiply;
+}
+
+[data-theme="dark"] .auth-container {
+    background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
+}
+
+[data-theme="dark"] .auth-bg {
+    background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
+}
+
+[data-theme="dark"] .bg-glow {
+    background: radial-gradient(circle, rgba(68, 229, 255, 0.1) 0%, transparent 70%);
+}
+
+[data-theme="dark"] #bgParticles {
+    mix-blend-mode: normal;
+}
+
 /* ===== ESTILOS DE ALTA ESPECIFICIDAD PARA COLORES AZULES ===== */
 
 /* Botones outline con azul sólido */

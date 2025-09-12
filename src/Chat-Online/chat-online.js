@@ -841,28 +841,40 @@ class ChatOnline {
             const isCollapsed = liaChat.style.opacity === '0' || liaChat.style.visibility === 'hidden';
             
             if (isCollapsed) {
-                // Expandir
+                // Expandir - Transición suave
                 liaChat.style.opacity = '1';
                 liaChat.style.visibility = 'visible';
                 liaChat.style.display = 'flex';
-                liaSection.style.flex = '1';
-                liaSection.style.minHeight = '350px';
-                notesSection.style.flex = '1';
-                notesSection.style.minHeight = '200px';
+                
+                // Aplicar cambios de flex con transición
+                setTimeout(() => {
+                    liaSection.style.flex = '1';
+                    liaSection.style.minHeight = '350px';
+                    notesSection.style.flex = '1';
+                    notesSection.style.minHeight = '200px';
+                }, 50);
+                
                 icon.innerHTML = '<polyline points="6,9 12,15 18,9"/>';
                 collapseBtn.title = 'Colapsar Chat';
                 console.log('📤 Chat de LIA expandido');
             } else {
-                // Colapsar
-                liaChat.style.opacity = '0';
-                liaChat.style.visibility = 'hidden';
-                setTimeout(() => {
-                    liaChat.style.display = 'none';
-                }, 300);
+                // Colapsar - Transición suave
+                // Primero cambiar los tamaños de flex
                 liaSection.style.flex = '0 0 auto';
                 liaSection.style.minHeight = 'auto';
                 notesSection.style.flex = '1';
                 notesSection.style.minHeight = '400px';
+                
+                // Luego ocultar el chat con transición
+                setTimeout(() => {
+                    liaChat.style.opacity = '0';
+                    liaChat.style.visibility = 'hidden';
+                }, 100);
+                
+                setTimeout(() => {
+                    liaChat.style.display = 'none';
+                }, 400);
+                
                 icon.innerHTML = '<polyline points="6,15 12,9 18,15"/>';
                 collapseBtn.title = 'Expandir Chat';
                 console.log('📦 Chat de LIA colapsado - Notas expandidas');
@@ -4011,14 +4023,31 @@ class ChatOnline {
     }
     
     toggleNotesCollapse() {
-        const notesList = document.getElementById('notesList');
-        const collapseBtn = document.getElementById('collapseNotes');
-        const icon = collapseBtn.querySelector('i');
+        console.log('📁 Toggling notes collapse...');
         
-        if (notesList) {
-            notesList.style.display = notesList.style.display === 'none' ? 'block' : 'none';
-            icon.className = notesList.style.display === 'none' ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+        const notesSection = document.querySelector('.notes-section');
+        const collapseBtn = document.getElementById('collapseNotes');
+        
+        if (!notesSection || !collapseBtn) {
+            console.error('❌ Elements not found for notes collapse');
+            return;
         }
+        
+        const isCollapsed = notesSection.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            // Expandir
+            notesSection.classList.remove('collapsed');
+            collapseBtn.title = 'Colapsar Notas';
+            console.log('📖 Notas expandidas');
+        } else {
+            // Colapsar
+            notesSection.classList.add('collapsed');
+            collapseBtn.title = 'Expandir Notas';
+            console.log('📦 Notas colapsadas');
+        }
+        
+        // El CSS se encarga de la animación del icono automáticamente
     }
     
     // ===== MATERIALES =====

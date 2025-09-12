@@ -24,53 +24,62 @@
     <style>
         /* Estilos específicos para el cuestionario GenAI */
         .genai-header {
-            background: linear-gradient(135deg, #0077a6, #44e5ff);
-            padding: 2rem 0;
-            border-radius: 0 0 20px 20px;
+            background: linear-gradient(135deg, #0066CC, #0052A3);
+            padding: 1rem 0;
+            border-radius: 0 0 16px 16px;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
             width: 100%;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 12px rgba(0, 102, 204, 0.2);
+            backdrop-filter: blur(10px);
         }
         
         /* Asegurar que el header esté en la parte superior */
         body {
             margin: 0;
             padding: 0;
-            padding-top: 120px; /* Espacio para el header fijo */
+            padding-top: 80px; /* Espacio reducido para el header fijo */
         }
         
         .genai-header .container {
             position: relative;
             z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
         }
         
         .genai-header h1 {
             color: white;
             font-family: 'Montserrat', sans-serif;
-            font-weight: 800;
+            font-weight: 700;
+            font-size: 1.5rem;
             text-align: center;
-            margin-bottom: 0.5rem;
+            margin: 0 0 0.25rem 0;
+            line-height: 1.2;
         }
         
         .genai-header p {
-            color: rgba(255, 255, 255, 0.9);
+            color: rgba(255, 255, 255, 0.85);
             text-align: center;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
+            margin: 0;
+            font-weight: 500;
         }
         
         .area-badge {
             display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 0.4rem 0.8rem;
+            border-radius: 16px;
             color: white;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 500;
-            margin: 1rem 0;
+            margin: 0.5rem 0 0 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .question-block {
@@ -290,19 +299,24 @@
         /* Responsive */
         @media (max-width: 768px) {
             .genai-header {
-                padding: 1rem 0;
+                padding: 0.75rem 0;
             }
             
             .genai-header h1 {
-                font-size: 1.3rem;
+                font-size: 1.2rem;
             }
             
             .genai-header p {
-                font-size: 0.9rem;
+                font-size: 0.8rem;
+            }
+            
+            .area-badge {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.6rem;
             }
             
             body {
-                padding-top: 100px; /* Menos espacio en móviles */
+                padding-top: 70px; /* Menos espacio en móviles */
             }
             
             .question-block {

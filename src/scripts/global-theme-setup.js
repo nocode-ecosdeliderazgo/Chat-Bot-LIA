@@ -23,7 +23,7 @@
         }
         
         // Debug
-        console.log('🎨 Global theme setup:', themeToApply);
+        // console.log('🎨 Global theme setup:', themeToApply);
     }
     
     // Función para cambiar tema globalmente
@@ -36,7 +36,7 @@
         // Disparar evento para que otras páginas sepan del cambio
         window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
         
-        console.log('🎨 Global theme changed to:', newTheme);
+        // console.log('🎨 Global theme changed to:', newTheme);
     };
     
     // Función para obtener tema actual

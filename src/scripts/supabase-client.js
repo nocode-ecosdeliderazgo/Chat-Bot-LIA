@@ -9,16 +9,16 @@ const MAX_RETRIES = 3;
 
 // Función de inicialización robusta
 async function initializeSupabaseClient() {
-    console.log('🔧 Inicializando cliente de Supabase...');
+    // console.log('🔧 Inicializando cliente de Supabase...');
     
     // Evitar múltiples inicializaciones simultáneas
     if (window.supabaseLoading) {
-        console.log('⏳ Supabase ya se está inicializando...');
+        // console.log('⏳ Supabase ya se está inicializando...');
         return window.supabase;
     }
     
     if (window.supabaseInitialized && window.supabase) {
-        console.log('✅ Supabase ya está inicializado');
+        // console.log('✅ Supabase ya está inicializado');
         return window.supabase;
     }
     
@@ -29,7 +29,7 @@ async function initializeSupabaseClient() {
         const credentials = await getSupabaseCredentials();
         
         if (!credentials.url || !credentials.key) {
-            console.warn('⚠️ Credenciales de Supabase no disponibles, obteniendo desde API...');
+            // console.warn('⚠️ Credenciales de Supabase no disponibles, obteniendo desde API...');
             const apiCredentials = await fetchCredentialsFromAPI();
             if (apiCredentials.url && apiCredentials.key) {
                 credentials.url = apiCredentials.url;
@@ -41,7 +41,7 @@ async function initializeSupabaseClient() {
         
         // Verificar si la librería está disponible
         if (typeof supabase === 'undefined') {
-            console.log('📚 Cargando librería de Supabase...');
+            // console.log('📚 Cargando librería de Supabase...');
             
             // Intentar cargar desde CDN
             await loadSupabaseLibrary();
@@ -54,7 +54,7 @@ async function initializeSupabaseClient() {
         
         // Verificar si createClient existe
         if (typeof supabase.createClient !== 'function') {
-            console.error('❌ supabase.createClient no es una función');
+            // console.error('❌ supabase.createClient no es una función');
             throw new Error('supabase.createClient no está disponible');
         }
         
@@ -82,7 +82,7 @@ async function initializeSupabaseClient() {
         window.supabaseInitialized = true;
         window.supabaseRetries = 0;
         
-        console.log('✅ Cliente de Supabase inicializado correctamente');
+        // console.log('✅ Cliente de Supabase inicializado correctamente');
         
         // Disparar evento para notificar a otros componentes
         window.dispatchEvent(new CustomEvent('supabaseReady', { detail: client }));
@@ -90,21 +90,21 @@ async function initializeSupabaseClient() {
         return client;
         
     } catch (error) {
-        console.error('❌ Error inicializando cliente de Supabase:', error);
+        // console.error('❌ Error inicializando cliente de Supabase:', error);
         
         // Implementar retry con backoff
         if (window.supabaseRetries < MAX_RETRIES) {
             window.supabaseRetries++;
             const delay = Math.pow(2, window.supabaseRetries) * 1000; // Exponential backoff
             
-            console.log(`🔄 Reintentando inicialización en ${delay/1000}s (intento ${window.supabaseRetries}/${MAX_RETRIES})`);
+            // console.log(`🔄 Reintentando inicialización en ${delay/1000}s (intento ${window.supabaseRetries}/${MAX_RETRIES})`);
             
             setTimeout(() => {
                 window.supabaseLoading = false;
                 initializeSupabaseClient();
             }, delay);
         } else {
-            console.error('❌ Se agotaron los reintentos de inicialización de Supabase');
+            // console.error('❌ Se agotaron los reintentos de inicialización de Supabase');
             window.supabase = null;
             window.dispatchEvent(new CustomEvent('supabaseFallback', { detail: error }));
         }
@@ -148,7 +148,7 @@ async function getSupabaseCredentials() {
 // Función para obtener credenciales desde la API
 async function fetchCredentialsFromAPI() {
     try {
-        console.log('📡 Obteniendo credenciales desde /api/supabase-config...');
+        // console.log('📡 Obteniendo credenciales desde /api/supabase-config...');
         
         const response = await fetch('/api/supabase-config');
         if (!response.ok) {
@@ -158,7 +158,7 @@ async function fetchCredentialsFromAPI() {
         const config = await response.json();
         
         if (config.success && config.url && config.anon_key) {
-            console.log('✅ Credenciales obtenidas desde API');
+            // console.log('✅ Credenciales obtenidas desde API');
             
             // Guardar en variables globales para uso futuro
             window.SUPABASE_URL = config.url;
@@ -169,7 +169,7 @@ async function fetchCredentialsFromAPI() {
             throw new Error('Respuesta de API inválida');
         }
     } catch (error) {
-        console.error('❌ Error obteniendo credenciales desde API:', error);
+        // console.error('❌ Error obteniendo credenciales desde API:', error);
         return { url: null, key: null };
     }
 }
@@ -186,10 +186,10 @@ async function loadSupabaseLibrary() {
         try {
             const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
             window.supabase = { createClient };
-            console.log('✅ Librería cargada vía ES modules');
+            // console.log('✅ Librería cargada vía ES modules');
             return;
         } catch (esError) {
-            console.warn('⚠️ Error cargando vía ES modules:', esError);
+            // console.warn('⚠️ Error cargando vía ES modules:', esError);
         }
         
         // Fallback: cargar desde CDN usando script tag
@@ -197,18 +197,18 @@ async function loadSupabaseLibrary() {
             const script = document.createElement('script');
             script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
             script.onload = () => {
-                console.log('✅ Librería cargada vía CDN script tag');
+                // console.log('✅ Librería cargada vía CDN script tag');
                 resolve();
             };
             script.onerror = (error) => {
-                console.error('❌ Error cargando desde CDN:', error);
+                // console.error('❌ Error cargando desde CDN:', error);
                 reject(error);
             };
             document.head.appendChild(script);
         });
         
     } catch (error) {
-        console.error('❌ Error cargando librería de Supabase:', error);
+        // console.error('❌ Error cargando librería de Supabase:', error);
         throw error;
     }
 }
@@ -216,7 +216,7 @@ async function loadSupabaseLibrary() {
 // Función para probar la conexión de Supabase
 async function testSupabaseConnection(client) {
     try {
-        console.log('🔍 Probando conexión de Supabase...');
+        // console.log('🔍 Probando conexión de Supabase...');
         
         // Test básico de conexión
         const { data, error } = await client
@@ -227,16 +227,16 @@ async function testSupabaseConnection(client) {
             throw error;
         }
         
-        console.log('✅ Conexión de Supabase verificada');
+        // console.log('✅ Conexión de Supabase verificada');
     } catch (error) {
-        console.warn('⚠️ Advertencia en test de conexión:', error);
+        // console.warn('⚠️ Advertencia en test de conexión:', error);
         // No fallar completamente por problemas de conexión
     }
 }
 
 // Función pública para forzar reinicialización
 window.reinitializeSupabase = async function() {
-    console.log('🔄 Forzando reinicialización de Supabase...');
+    // console.log('🔄 Forzando reinicialización de Supabase...');
     window.supabaseInitialized = false;
     window.supabaseLoading = false;
     window.supabaseRetries = 0;
@@ -246,7 +246,7 @@ window.reinitializeSupabase = async function() {
 
 // IIFE para inicialización automática
 (async function() {
-    console.log('🚀 Iniciando configuración de Supabase...');
+    // console.log('🚀 Iniciando configuración de Supabase...');
     
     // Esperar a que el DOM esté listo
     if (document.readyState === 'loading') {

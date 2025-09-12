@@ -565,6 +565,101 @@
             background: linear-gradient(90deg, #0066CC, #44e5ff);
             border-radius: 2px;
             transition: width 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Diseño limpio y minimalista para la barra de progreso */
+        .course-progress-header.clean {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            width: 100%;
+        }
+        
+        .progress-bar-clean {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            max-width: 200px;
+        }
+        
+        .progress-track-clean {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .progress-fill-clean {
+            height: 100%;
+            background: linear-gradient(90deg, #0066CC, #44e5ff);
+            border-radius: 4px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 6px rgba(68, 229, 255, 0.2);
+        }
+        
+        .progress-fill-clean::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 3s infinite;
+        }
+        
+        .progress-percentage-clean {
+            font-size: 0.8rem;
+            color: #44e5ff;
+            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+            min-width: 35px;
+            text-align: right;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        /* Animación para el contador */
+        .progress-counter-animation {
+            animation: counterPulse 0.5s ease-in-out;
+        }
+        
+        @keyframes counterPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsive para el diseño limpio */
+        @media (max-width: 768px) {
+            .course-progress-header.clean {
+                justify-content: center;
+            }
+            
+            .progress-bar-clean {
+                max-width: 150px;
+                gap: 8px;
+            }
+            
+            .progress-track-clean {
+                height: 5px;
+            }
+            
+            .progress-percentage-clean {
+                font-size: 0.75rem;
+                min-width: 30px;
+            }
         }
 
         /* Responsive para header bajo */
@@ -2025,10 +2120,12 @@
                 </button>
                 <div class="header-content-group">
                     <h1 class="course-title-header">Introducción a la IA</h1>
-                    <div class="course-progress-header">
-                        <span class="progress-text">0/5</span>
-                        <div class="progress-bar-header">
-                            <div class="progress-fill-header" style="width: 0%"></div>
+                    <div class="course-progress-header clean">
+                        <div class="progress-bar-clean">
+                            <div class="progress-track-clean">
+                                <div class="progress-fill-clean" id="progressFillHeader" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-percentage-clean" id="progressPercentage">0%</span>
                         </div>
                     </div>
                 </div>
@@ -2425,14 +2522,6 @@ Cargando información...
                                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
                                 </svg>
                                 Copiar Actividad
-                            </button>
-                            <button class="btn-secondary activity-btn" onclick="downloadActivityPDF()">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                    <polyline points="7,10 12,15 17,10"/>
-                                    <line x1="12" y1="15" x2="12" y2="3"/>
-                                </svg>
-                                Descargar PDF
                             </button>
                         </div>
                     </div>
@@ -4330,7 +4419,7 @@ INSTRUCCIONES:
                     collapseRight.title = 'Ocultar panel';
                 }
                 
-                // Event listener mejorado con animaciones
+                // Event listener para el botón de colapso
                 collapseRight.addEventListener('click', function(e) {
                     e.preventDefault();
                     
@@ -4342,16 +4431,18 @@ INSTRUCCIONES:
                         );
                         
                         contentSections.forEach((section, index) => {
-                            setTimeout(() => {
-                                section.style.opacity = '0';
-                                section.style.transform = 'translateX(20px)';
-                            }, index * 50);
+                            section.style.transition = 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)';
+                            section.style.opacity = '0';
+                            section.style.transform = 'translateX(20px)';
                         });
                         
                         // Aplicar colapso después de la animación
                         setTimeout(() => {
                             sidebarRight.classList.add('collapsed');
                             collapseRight.title = 'Expandir panel';
+                            // Desfijar panel cuando se colapsa manualmente
+                            rightPanelPinned = false;
+                            console.log('📌 Panel derecho desfijado');
                         }, 200);
                         
                     } else {
@@ -4360,23 +4451,22 @@ INSTRUCCIONES:
                         collapseRight.title = 'Ocultar panel';
                         
                         // Re-animar contenido al expandir
-                        const contentSections = sidebarRight.querySelectorAll(
-                            '.lia-assistant-section, .notes-creator-section, .notes-section, .course-materials-section, .community-content'
-                        );
-                        
-                        contentSections.forEach((section) => {
-                            section.style.opacity = '';
-                            section.style.transform = '';
-                        });
+                        setTimeout(() => {
+                            const contentSections = sidebarRight.querySelectorAll(
+                                '.lia-assistant-section, .notes-creator-section, .notes-section, .course-materials-section, .community-content'
+                            );
+                            contentSections.forEach((section, index) => {
+                                section.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+                                section.style.opacity = '1';
+                                section.style.transform = 'translateX(0)';
+                            });
+                        }, 50);
                     }
                     
                     const isNowCollapsed = sidebarRight.classList.contains('collapsed');
                     
                     // Guardar estado en localStorage
                     localStorage.setItem('rightPanelCollapsed', isNowCollapsed);
-                    
-                    // Log para debugging
-                    console.log('📱 Panel derecho:', isNowCollapsed ? 'colapsado' : 'expandido');
                     
                     // Emitir evento personalizado para otros componentes
                     window.dispatchEvent(new CustomEvent('rightPanelToggled', {
@@ -4386,11 +4476,6 @@ INSTRUCCIONES:
                             source: 'user-action'
                         }
                     }));
-                    
-                    // Feedback háptico en dispositivos móviles (si está disponible)
-                    if ('vibrate' in navigator && window.innerWidth <= 768) {
-                        navigator.vibrate(50);
-                    }
                 });
                 
                 // Funcionalidad adicional: colapsar con tecla Escape cuando el panel está enfocado
@@ -4476,6 +4561,9 @@ INSTRUCCIONES:
                     setTimeout(() => {
                         sidebarLeft.classList.add('collapsed');
                         collapseLeft.title = 'Expandir panel';
+                        // Desfijar panel cuando se colapsa manualmente
+                        leftPanelPinned = false;
+                        console.log('📌 Panel izquierdo desfijado');
                     }, 200);
                     
                 } else {
@@ -4608,9 +4696,10 @@ INSTRUCCIONES:
                 
                 // Fijar panel izquierdo al hacer clic
                 sidebarLeft.addEventListener('click', function(e) {
+                    console.log('🖱️ Panel izquierdo click - leftPanelPinned:', leftPanelPinned, 'collapsed:', sidebarLeft.classList.contains('collapsed'));
                     if (!sidebarLeft.classList.contains('collapsed')) {
                         leftPanelPinned = true;
-                        console.log('📌 Panel izquierdo fijado');
+                        console.log('📌 Panel izquierdo fijado - leftPanelPinned ahora:', leftPanelPinned);
                     }
                 });
             }
@@ -4628,9 +4717,10 @@ INSTRUCCIONES:
                             const contentSections = sidebarRight.querySelectorAll(
                                 '.lia-assistant-section, .notes-creator-section, .notes-section, .course-materials-section, .community-content'
                             );
-                            contentSections.forEach((section) => {
-                                section.style.opacity = '';
-                                section.style.transform = '';
+                            contentSections.forEach((section, index) => {
+                                section.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+                                section.style.opacity = '1';
+                                section.style.transform = 'translateX(0)';
                             });
                         }, 50);
                         
@@ -4653,34 +4743,25 @@ INSTRUCCIONES:
                 
                 // Fijar panel derecho al hacer clic
                 sidebarRight.addEventListener('click', function(e) {
+                    console.log('🖱️ Panel derecho click - rightPanelPinned:', rightPanelPinned, 'collapsed:', sidebarRight.classList.contains('collapsed'));
                     if (!sidebarRight.classList.contains('collapsed')) {
                         rightPanelPinned = true;
-                        console.log('📌 Panel derecho fijado');
+                        console.log('📌 Panel derecho fijado - rightPanelPinned ahora:', rightPanelPinned);
                     }
                 });
             }
             
-            // Desfijar paneles cuando se usan los botones de colapso
-            if (collapseLeft) {
-                collapseLeft.addEventListener('click', function() {
-                    leftPanelPinned = false;
-                    console.log('📌 Panel izquierdo desfijado');
-                });
-            }
-            
-            if (collapseRight) {
-                collapseRight.addEventListener('click', function() {
-                    rightPanelPinned = false;
-                    console.log('📌 Panel derecho desfijado');
-                });
-            }
+            // Los event listeners de desfijación están integrados en los event listeners principales de colapso
             
             // Desfijar paneles cuando se colapsan automáticamente
             if (sidebarLeft) {
                 sidebarLeft.addEventListener('mouseleave', function(e) {
+                    console.log('🖱️ Panel izquierdo mouseleave - leftPanelPinned:', leftPanelPinned, 'collapsed:', sidebarLeft.classList.contains('collapsed'));
                     if (!leftPanelPinned && !sidebarLeft.classList.contains('collapsed')) {
+                        console.log('✅ Panel izquierdo - condiciones cumplidas, iniciando colapso automático');
                         // Pequeño delay para evitar cierre accidental
                         setTimeout(() => {
+                            console.log('⏰ Panel izquierdo - timeout ejecutado - leftPanelPinned:', leftPanelPinned, 'collapsed:', sidebarLeft.classList.contains('collapsed'));
                             if (!leftPanelPinned && !sidebarLeft.classList.contains('collapsed')) {
                                 sidebarLeft.classList.add('collapsed');
                                 collapseLeft.title = 'Expandir panel';
@@ -4699,17 +4780,24 @@ INSTRUCCIONES:
                                 }));
                                 
                                 console.log('📱 Panel izquierdo colapsado automáticamente al salir del hover');
+                            } else {
+                                console.log('❌ Panel izquierdo - condiciones no cumplidas en timeout');
                             }
                         }, 300);
+                    } else {
+                        console.log('❌ Panel izquierdo - condiciones no cumplidas:', 'leftPanelPinned:', leftPanelPinned, 'collapsed:', sidebarLeft.classList.contains('collapsed'));
                     }
                 });
             }
             
             if (sidebarRight) {
                 sidebarRight.addEventListener('mouseleave', function(e) {
+                    console.log('🖱️ Panel derecho mouseleave - rightPanelPinned:', rightPanelPinned, 'collapsed:', sidebarRight.classList.contains('collapsed'));
                     if (!rightPanelPinned && !sidebarRight.classList.contains('collapsed')) {
+                        console.log('✅ Panel derecho - condiciones cumplidas, iniciando colapso automático');
                         // Pequeño delay para evitar cierre accidental
                         setTimeout(() => {
+                            console.log('⏰ Panel derecho - timeout ejecutado - rightPanelPinned:', rightPanelPinned, 'collapsed:', sidebarRight.classList.contains('collapsed'));
                             if (!rightPanelPinned && !sidebarRight.classList.contains('collapsed')) {
                                 sidebarRight.classList.add('collapsed');
                                 collapseRight.title = 'Expandir panel';
@@ -4728,8 +4816,12 @@ INSTRUCCIONES:
                                 }));
                                 
                                 console.log('📱 Panel derecho colapsado automáticamente al salir del hover');
+                            } else {
+                                console.log('❌ Panel derecho - condiciones no cumplidas en timeout');
                             }
                         }, 300);
+                    } else {
+                        console.log('❌ Panel derecho - condiciones no cumplidas:', 'rightPanelPinned:', rightPanelPinned, 'collapsed:', sidebarRight.classList.contains('collapsed'));
                     }
                 });
             }
@@ -4800,80 +4892,6 @@ Generado desde Coach LIA IA
             }
         }
 
-        function downloadActivityPDF() {
-            try {
-                const activityContent = document.querySelector('.activity-content');
-                if (!activityContent) {
-                    console.log('⚠️ No se encontró contenido de actividad');
-                    showNotification('No hay contenido de actividad para descargar', 'warning');
-                    return;
-                }
-
-                // Obtener datos de la actividad
-                const titleElement = activityContent.querySelector('h4');
-                const title = titleElement ? titleElement.textContent : 'Actividades del Video';
-
-                const descriptionElement = activityContent.querySelector('.activity-description-content');
-                const description = descriptionElement ? descriptionElement.innerHTML : '<p>Sin descripción disponible</p>';
-
-                const promptsElement = activityContent.querySelector('.activity-prompts-content');
-                const prompts = promptsElement ? promptsElement.innerHTML : '<p>Sin prompts disponibles</p>';
-
-                // Crear contenido HTML para el PDF
-                const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>${title}</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; color: #333; }
-        h1 { color: #44e5ff; border-bottom: 2px solid #44e5ff; padding-bottom: 10px; }
-        h2 { color: #0066CC; margin-top: 30px; }
-        .section { margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 8px; }
-        .activity-item { background: #e3f2fd; padding: 10px; margin: 10px 0; border-radius: 6px; }
-        .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
-    </style>
-</head>
-<body>
-    <h1>${title}</h1>
-    
-    <div class="section">
-        <h2>📋 Descripción de la Actividad</h2>
-        ${description}
-    </div>
-    
-    <div class="section">
-        <h2>💭 Prompts y Ejercicios</h2>
-        ${prompts}
-    </div>
-    
-    <div class="footer">
-        <p>Generado desde Coach LIA IA - ${new Date().toLocaleDateString()}</p>
-    </div>
-</body>
-</html>
-`;
-
-                // Crear blob y descargar
-                const blob = new Blob([htmlContent], { type: 'text/html' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `actividad-${Date.now()}.html`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-
-                console.log('✅ PDF de actividad descargado');
-                showNotification('¡Actividad descargada como HTML!', 'success');
-
-            } catch (error) {
-                console.error('❌ Error en downloadActivityPDF:', error);
-                showNotification('Error al descargar la actividad', 'error');
-            }
-        }
 
         // Función para mostrar notificaciones
         function showNotification(message, type = 'info') {
@@ -4932,7 +4950,434 @@ Generado desde Coach LIA IA
             }, 3000);
         }
 
+        // ===== FUNCIÓN PARA ACTUALIZAR BARRA DE PROGRESO DEL HEADER =====
+        function updateHeaderProgressBar(completedVideos = 0, totalVideos = 19) {
+            const progressFillHeader = document.getElementById('progressFillHeader');
+            const progressPercentage = document.getElementById('progressPercentage');
+            
+            if (progressFillHeader) {
+                const percentage = totalVideos > 0 ? (completedVideos / totalVideos) * 100 : 0;
+                progressFillHeader.style.width = `${percentage}%`;
+            }
+            
+            if (progressPercentage) {
+                const percentage = totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0;
+                progressPercentage.textContent = `${percentage}%`;
+                // Agregar animación al porcentaje
+                progressPercentage.classList.add('progress-counter-animation');
+                setTimeout(() => {
+                    progressPercentage.classList.remove('progress-counter-animation');
+                }, 500);
+            }
+            
+            console.log(`📊 Progreso actualizado: ${completedVideos}/${totalVideos} videos (${percentage}%)`);
+        }
+
+        // ===== FUNCIÓN PARA CONTAR VIDEOS COMPLETADOS =====
+        function countCompletedVideos() {
+            try {
+                // Buscar todos los elementos de video completados
+                const completedVideos = document.querySelectorAll('.video-item.completed, .module-video.completed, .lesson-item.completed');
+                const totalVideos = document.querySelectorAll('.video-item, .module-video, .lesson-item');
+                
+                const completedCount = completedVideos.length;
+                const totalCount = totalVideos.length;
+                
+                // Si no encontramos videos en esos selectores, buscar en otros lugares
+                if (totalCount === 0) {
+                    // Buscar en la estructura de módulos
+                    const moduleVideos = document.querySelectorAll('.module-content .video, .lesson, .activity-item');
+                    const completedModuleVideos = document.querySelectorAll('.module-content .video.completed, .lesson.completed, .activity-item.completed');
+                    
+                    return {
+                        completed: completedModuleVideos.length,
+                        total: moduleVideos.length || 19 // Fallback a 19 si no encontramos nada
+                    };
+                }
+                
+                return {
+                    completed: completedCount,
+                    total: totalCount
+                };
+                
+            } catch (error) {
+                console.warn('⚠️ Error contando videos completados:', error);
+                return { completed: 0, total: 19 };
+            }
+        }
+
+        // ===== ACTUALIZAR PROGRESO AL CARGAR LA PÁGINA =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Actualizar progreso inicial
+            setTimeout(() => {
+                const videoCounts = countCompletedVideos();
+                updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
+            }, 1000);
+            
+            // Actualizar progreso cada 5 segundos
+            setInterval(() => {
+                const videoCounts = countCompletedVideos();
+                updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
+            }, 5000);
+        });
+
+        // ===== ESCUCHAR EVENTOS DE PROGRESO =====
+        window.addEventListener('videoCompleted', function(event) {
+            console.log('🎬 Video completado detectado, actualizando progreso...');
+            setTimeout(() => {
+                const videoCounts = countCompletedVideos();
+                updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
+            }, 500);
+        });
+
+        window.addEventListener('moduleProgressUpdated', function(event) {
+            console.log('📈 Progreso de módulo actualizado, actualizando header...');
+            setTimeout(() => {
+                const videoCounts = countCompletedVideos();
+                updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
+            }, 500);
+        });
+
+        // ===== EXPONER FUNCIONES GLOBALMENTE =====
+        window.updateHeaderProgressBar = updateHeaderProgressBar;
+        window.countCompletedVideos = countCompletedVideos;
+
     </script>
+
+    <!-- Script para funcionalidad de filtros de comunidad -->
+    <script>
+        // =====================================================
+        // SISTEMA DE FILTROS DE COMUNIDAD
+        // =====================================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar sistema de filtros de comunidad
+            initializeCommunityFilters();
+        });
+
+        function initializeCommunityFilters() {
+            console.log('🔄 Inicializando sistema de filtros de comunidad...');
+
+            // Configurar event listeners para los botones de filtro
+            const filterTabs = document.querySelectorAll('.filter-tab');
+            const moduleFilter = document.getElementById('moduleFilter');
+            const sortSelect = document.getElementById('sortSelect');
+
+            // Event listeners para botones de filtro
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const filterType = this.getAttribute('data-filter');
+                    handleFilterChange(filterType, this);
+                });
+            });
+
+            // Event listener para filtro de módulo
+            if (moduleFilter) {
+                moduleFilter.addEventListener('change', function() {
+                    const selectedModule = this.value;
+                    applyModuleFilter(selectedModule);
+                });
+            }
+
+            // Event listener para ordenamiento
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function() {
+                    const sortType = this.value;
+                    applySorting(sortType);
+                });
+            }
+
+            console.log('✅ Sistema de filtros de comunidad inicializado');
+        }
+
+        function handleFilterChange(filterType, clickedTab) {
+            console.log('🔄 Aplicando filtro:', filterType);
+
+            // Actualizar botones activos
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            clickedTab.classList.add('active');
+
+            // Aplicar el filtro
+            applyQuestionFilter(filterType);
+        }
+
+        function applyQuestionFilter(filterType) {
+            const questionItems = document.querySelectorAll('.question-item, .community-question');
+            let visibleCount = 0;
+
+            questionItems.forEach(question => {
+                let shouldShow = false;
+
+                switch (filterType) {
+                    case 'all':
+                        shouldShow = true;
+                        break;
+
+                    case 'unanswered':
+                        // Buscar si la pregunta tiene respuestas
+                        const hasAnswers = question.querySelector('.stat.answered') !== null ||
+                                         question.querySelector('[data-answers]') !== null ||
+                                         question.textContent.includes('respuesta') ||
+                                         question.classList.contains('answered');
+                        shouldShow = !hasAnswers;
+                        break;
+
+                    case 'answered':
+                        // Buscar si la pregunta tiene respuestas
+                        const isAnswered = question.querySelector('.stat.answered') !== null ||
+                                         question.querySelector('[data-answers]') !== null ||
+                                         question.textContent.includes('respuesta') ||
+                                         question.classList.contains('answered');
+                        shouldShow = isAnswered;
+                        break;
+
+                    case 'mine':
+                        // Verificar si es una pregunta del usuario actual
+                        // Esto podría basarse en datos del usuario almacenados localmente
+                        const currentUser = localStorage.getItem('userName') || 'Usuario Actual';
+                        const questionAuthor = question.querySelector('.question-author, .author-name');
+                        shouldShow = questionAuthor && 
+                                   (questionAuthor.textContent.includes(currentUser) ||
+                                    questionAuthor.textContent.includes('Tú') ||
+                                    question.classList.contains('own-question'));
+                        break;
+                }
+
+                // Mostrar/ocultar pregunta con animación suave
+                if (shouldShow) {
+                    question.style.display = '';
+                    question.style.opacity = '0';
+                    question.style.transform = 'translateY(20px)';
+                    
+                    setTimeout(() => {
+                        question.style.transition = 'all 0.3s ease';
+                        question.style.opacity = '1';
+                        question.style.transform = 'translateY(0)';
+                    }, visibleCount * 50); // Efecto escalonado
+                    
+                    visibleCount++;
+                } else {
+                    question.style.transition = 'all 0.3s ease';
+                    question.style.opacity = '0';
+                    question.style.transform = 'translateY(-20px)';
+                    
+                    setTimeout(() => {
+                        question.style.display = 'none';
+                    }, 300);
+                }
+            });
+
+            // Actualizar contador si existe
+            updateQuestionCounter(visibleCount, filterType);
+            
+            console.log(`✅ Filtro aplicado - ${visibleCount} preguntas visibles`);
+        }
+
+        function applyModuleFilter(selectedModule) {
+            console.log('🔄 Aplicando filtro de módulo:', selectedModule);
+
+            const questionItems = document.querySelectorAll('.question-item, .community-question');
+            let visibleCount = 0;
+
+            questionItems.forEach(question => {
+                let shouldShow = selectedModule === 'all';
+
+                if (!shouldShow) {
+                    // Buscar indicadores del módulo en la pregunta
+                    const moduleIndicators = [
+                        `data-module="${selectedModule}"`,
+                        `module-${selectedModule.split('-')[1]}`,
+                        `Módulo ${selectedModule.split('-')[1]}`
+                    ];
+
+                    shouldShow = moduleIndicators.some(indicator => 
+                        question.outerHTML.includes(indicator) ||
+                        question.textContent.includes(indicator)
+                    );
+                }
+
+                // Aplicar filtro con animación
+                if (shouldShow && question.style.display !== 'none') {
+                    visibleCount++;
+                } else if (!shouldShow) {
+                    question.style.transition = 'all 0.3s ease';
+                    question.style.opacity = '0';
+                    setTimeout(() => {
+                        question.style.display = 'none';
+                    }, 300);
+                }
+            });
+
+            console.log(`✅ Filtro de módulo aplicado - ${visibleCount} preguntas visibles`);
+        }
+
+        function applySorting(sortType) {
+            console.log('🔄 Aplicando ordenamiento:', sortType);
+
+            const questionContainer = document.querySelector('.questions-list, .community-questions');
+            if (!questionContainer) return;
+
+            const questions = Array.from(questionContainer.querySelectorAll('.question-item, .community-question'));
+            
+            questions.sort((a, b) => {
+                switch (sortType) {
+                    case 'recent':
+                        // Ordenar por fecha (más reciente primero)
+                        const dateA = getQuestionDate(a);
+                        const dateB = getQuestionDate(b);
+                        return dateB - dateA;
+
+                    case 'votes':
+                        // Ordenar por votos (más votado primero)
+                        const votesA = getQuestionVotes(a);
+                        const votesB = getQuestionVotes(b);
+                        return votesB - votesA;
+
+                    case 'answered':
+                        // Ordenar por estado de respuesta
+                        const answeredA = isQuestionAnswered(a);
+                        const answeredB = isQuestionAnswered(b);
+                        return answeredB - answeredA;
+
+                    default:
+                        return 0;
+                }
+            });
+
+            // Reordenar elementos en el DOM
+            questions.forEach(question => {
+                questionContainer.appendChild(question);
+            });
+
+            console.log(`✅ Ordenamiento aplicado: ${sortType}`);
+        }
+
+        function getQuestionDate(questionElement) {
+            // Buscar timestamp en el elemento
+            const timeElement = questionElement.querySelector('[data-timestamp], .question-time, .time');
+            if (timeElement) {
+                const timestamp = timeElement.getAttribute('data-timestamp') || 
+                                timeElement.textContent;
+                return new Date(timestamp).getTime() || 0;
+            }
+            return 0;
+        }
+
+        function getQuestionVotes(questionElement) {
+            // Buscar contador de votos
+            const voteElement = questionElement.querySelector('.vote-count, [data-votes]');
+            if (voteElement) {
+                const votes = voteElement.getAttribute('data-votes') || 
+                            voteElement.textContent;
+                return parseInt(votes) || 0;
+            }
+            return 0;
+        }
+
+        function isQuestionAnswered(questionElement) {
+            // Verificar si la pregunta está respondida
+            return questionElement.querySelector('.stat.answered') !== null ||
+                   questionElement.classList.contains('answered') ||
+                   questionElement.querySelector('[data-answers]') !== null;
+        }
+
+        function updateQuestionCounter(count, filterType) {
+            // Buscar elemento contador
+            const counterElement = document.querySelector('.questions-counter, .filter-counter');
+            if (counterElement) {
+                const filterNames = {
+                    'all': 'todas las preguntas',
+                    'unanswered': 'preguntas sin responder',
+                    'answered': 'preguntas respondidas',
+                    'mine': 'mis preguntas'
+                };
+                
+                counterElement.textContent = `${count} ${filterNames[filterType] || 'preguntas'}`;
+            }
+
+            // Mostrar mensaje si no hay resultados
+            if (count === 0) {
+                showEmptyState(filterType);
+            } else {
+                hideEmptyState();
+            }
+        }
+
+        function showEmptyState(filterType) {
+            let existingEmptyState = document.querySelector('.empty-state-filters');
+            
+            if (!existingEmptyState) {
+                const emptyState = document.createElement('div');
+                emptyState.className = 'empty-state-filters';
+                emptyState.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: var(--glass-text-secondary);">
+                        <svg style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <h3 style="margin: 0 0 8px 0;">No se encontraron preguntas</h3>
+                        <p style="margin: 0; opacity: 0.7;">Intenta cambiar el filtro o crear una nueva pregunta.</p>
+                    </div>
+                `;
+                
+                const questionContainer = document.querySelector('.questions-list, .community-questions');
+                if (questionContainer) {
+                    questionContainer.appendChild(emptyState);
+                }
+            }
+        }
+
+        function hideEmptyState() {
+            const emptyState = document.querySelector('.empty-state-filters');
+            if (emptyState) {
+                emptyState.remove();
+            }
+        }
+
+        // Función para resetear todos los filtros
+        window.resetCommunityFilters = function() {
+            // Resetear botón activo
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.getAttribute('data-filter') === 'all') {
+                    tab.classList.add('active');
+                }
+            });
+
+            // Resetear selects
+            const moduleFilter = document.getElementById('moduleFilter');
+            const sortSelect = document.getElementById('sortSelect');
+            
+            if (moduleFilter) moduleFilter.value = 'all';
+            if (sortSelect) sortSelect.value = 'recent';
+
+            // Mostrar todas las preguntas
+            applyQuestionFilter('all');
+            hideEmptyState();
+
+            console.log('✅ Filtros de comunidad reseteados');
+        };
+
+        // Función para obtener estado actual de filtros
+        window.getCommunityFiltersState = function() {
+            const activeTab = document.querySelector('.filter-tab.active');
+            const moduleFilter = document.getElementById('moduleFilter');
+            const sortSelect = document.getElementById('sortSelect');
+
+            return {
+                filter: activeTab ? activeTab.getAttribute('data-filter') : 'all',
+                module: moduleFilter ? moduleFilter.value : 'all',
+                sort: sortSelect ? sortSelect.value : 'recent'
+            };
+        };
+
+    </script>
+
+    <!-- Fix Buttons Script - Corrección para botones del panel derecho -->
+    <script src="fix-buttons.js"></script>
 
 </body>
 

@@ -13,7 +13,7 @@ function toggleTheme() {
             }, 200);
         }
         
-        console.log('🎨 Tema cambiado a:', newTheme);
+        // console.log('🎨 Tema cambiado a:', newTheme);
         return;
     }
     
@@ -34,7 +34,7 @@ function toggleTheme() {
         }, 200);
     }
     
-    console.log('🎨 Tema cambiado a:', newTheme);
+    // console.log('🎨 Tema cambiado a:', newTheme);
 }
 
 // Hacer la función disponible globalmente

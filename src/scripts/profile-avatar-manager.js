@@ -9,7 +9,7 @@ class ProfileAvatarManager {
         
         // Función específica para profile.html con retraso para asegurar DOM
         if (window.location.pathname.includes('profile.html')) {
-            console.log('🎯 Página de perfil detectada - actualizando avatar específicamente');
+            // console.log('🎯 Página de perfil detectada - actualizando avatar específicamente');
             // Retraso para asegurar que el DOM esté completamente cargado
             setTimeout(() => {
                 this.updateProfileAvatarImmediately();
@@ -35,13 +35,13 @@ class ProfileAvatarManager {
         try {
             const avatarImage = document.getElementById('avatarImage');
             if (!avatarImage) {
-                console.error('❌ Elemento #avatarImage no encontrado en profile.html');
+                // console.error('❌ Elemento #avatarImage no encontrado en profile.html');
                 return;
             }
             
             const currentUser = localStorage.getItem('currentUser');
             if (!currentUser) {
-                console.log('ℹ️ No hay datos de usuario en localStorage');
+                // console.log('ℹ️ No hay datos de usuario en localStorage');
                 return;
             }
             
@@ -61,7 +61,7 @@ class ProfileAvatarManager {
                 !profilePictureUrl.includes('createAvatar') &&
                 profilePictureUrl.length > 100) { // Fotos reales son URLs largas
                 
-                console.log('✅ FOTO REAL DETECTADA, aplicando con PRIORIDAD ALTA');
+                // console.log('✅ FOTO REAL DETECTADA, aplicando con PRIORIDAD ALTA');
                 avatarImage.src = profilePictureUrl;
                 avatarImage.style.display = 'block';
                 avatarImage.style.visibility = 'visible';
@@ -72,7 +72,7 @@ class ProfileAvatarManager {
                 
                 // Verificar que la imagen se cargue correctamente
                 avatarImage.onload = () => {
-                    console.log('✅ FOTO REAL cargada correctamente en profile.html');
+                    // console.log('✅ FOTO REAL cargada correctamente en profile.html');
                     // Reconfirmar protección
                     avatarImage.setAttribute('data-real-photo', 'true');
                 };
@@ -84,7 +84,7 @@ class ProfileAvatarManager {
                     avatarImage.removeAttribute('data-real-photo');
                 };
             } else {
-                console.log('ℹ️ No hay foto real válida, usando imagen por defecto');
+                // console.log('ℹ️ No hay foto real válida, usando imagen por defecto');
                 avatarImage.src = 'assets/images/icono.png';
                 avatarImage.style.display = 'block';
                 avatarImage.style.visibility = 'visible';
@@ -92,7 +92,7 @@ class ProfileAvatarManager {
                 avatarImage.removeAttribute('data-protected');
             }
         } catch (error) {
-            console.error('❌ Error en updateProfileAvatarImmediately:', error);
+            // console.error('❌ Error en updateProfileAvatarImmediately:', error);
         }
     }
 
@@ -101,7 +101,7 @@ class ProfileAvatarManager {
             // Obtener datos del usuario desde localStorage
             const raw = localStorage.getItem('currentUser');
             if (!raw) {
-                console.log('No hay datos de usuario en localStorage');
+                // console.log('No hay datos de usuario en localStorage');
                 return;
             }
 
@@ -118,13 +118,13 @@ class ProfileAvatarManager {
                 defaultAvatarUrl = 'assets/images/icono.png';
             }
 
-            console.log('Datos del usuario:', {
-                username: currentUser.username,
-                profilePictureUrl: profilePictureUrl,
-                hasProfilePicture: !!profilePictureUrl,
-                currentPath: window.location.pathname,
-                defaultAvatarUrl: defaultAvatarUrl
-            });
+            // console.log('Datos del usuario:', {
+            //     username: currentUser.username,
+            //     profilePictureUrl: profilePictureUrl,
+            //     hasProfilePicture: !!profilePictureUrl,
+            //     currentPath: window.location.pathname,
+            //     defaultAvatarUrl: defaultAvatarUrl
+            // });
 
             // Buscar todos los elementos de avatar en la página
             const avatarSelectors = [
@@ -161,7 +161,7 @@ class ProfileAvatarManager {
                         const normalizedTarget = normalizeUrl(targetUrl);
                         
                         if (normalizedCurrent !== normalizedTarget) {
-                            console.log(`Actualizando avatar: ${currentSrc} -> ${targetUrl}`);
+                            // console.log(`Actualizando avatar: ${currentSrc} -> ${targetUrl}`);
                             img.src = targetUrl;
                             img.style.display = 'block';
                             totalImagesUpdated++;
@@ -170,28 +170,28 @@ class ProfileAvatarManager {
                 });
             });
 
-            console.log(`Avatares encontrados: ${totalImagesFound}, actualizados: ${totalImagesUpdated}`);
+            // console.log(`Avatares encontrados: ${totalImagesFound}, actualizados: ${totalImagesUpdated}`);
             
             if (profilePictureUrl) {
-                console.log('✅ Avatares de perfil actualizados con foto personalizada:', profilePictureUrl);
+                // console.log('✅ Avatares de perfil actualizados con foto personalizada:', profilePictureUrl);
             } else {
-                console.log('ℹ️ Avatares de perfil actualizados con imagen por defecto');
+                // console.log('ℹ️ Avatares de perfil actualizados con imagen por defecto');
             }
         } catch (error) {
-            console.error('❌ Error actualizando avatares de perfil:', error);
+            // console.error('❌ Error actualizando avatares de perfil:', error);
         }
     }
 
     // Método para actualizar manualmente (útil después de cambiar la foto)
     refreshAvatars() {
-        console.log('🔄 Actualizando avatares manualmente...');
+        // console.log('🔄 Actualizando avatares manualmente...');
         this.updateProfileAvatars();
     }
 }
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Inicializando ProfileAvatarManager...');
+    // console.log('🚀 Inicializando ProfileAvatarManager...');
     window.profileAvatarManager = new ProfileAvatarManager();
 });
 
@@ -200,6 +200,6 @@ window.updateProfileAvatars = function() {
     if (window.profileAvatarManager) {
         window.profileAvatarManager.refreshAvatars();
     } else {
-        console.log('⚠️ ProfileAvatarManager no está disponible');
+        // console.log('⚠️ ProfileAvatarManager no está disponible');
     }
 };
