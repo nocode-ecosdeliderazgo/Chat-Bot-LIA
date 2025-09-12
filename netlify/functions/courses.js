@@ -217,15 +217,45 @@ async function handleModule1Videos(event) {
       });
     }
 
-    // Agregar progreso del usuario (simulado por ahora)
-    const videosWithProgress = videos?.map(video => ({
-      ...video,
-      user_progress: {
-        current_time_seconds: 0,
-        completion_percentage: 0,
-        is_completed: false
+    // Obtener actividad_detalle para todos los videos
+    console.log('📋 Consultando actividad_detalle para los videos...');
+    let actividadDetalleData = null;
+    
+    if (videos && videos.length > 0) {
+      const videoIds = videos.map(video => video.id);
+      
+      const { data: actividadDetalle, error: actividadError } = await supabase
+        .from('actividad_detalle')
+        .select('id, actividad_id, seccion, orden, tipo, contenido')
+        .in('actividad_id', videoIds)
+        .order('actividad_id')
+        .order('seccion')
+        .order('orden');
+
+      if (actividadError) {
+        console.warn('⚠️ Error consultando actividad_detalle (continuando con legacy):', actividadError.message);
+      } else {
+        actividadDetalleData = actividadDetalle || [];
+        console.log(`📊 ${actividadDetalleData.length} registros de actividad_detalle encontrados`);
       }
-    })) || [];
+    }
+
+    // Agregar progreso del usuario y actividad_detalle
+    const videosWithProgress = videos?.map(video => {
+      // Encontrar actividad_detalle para este video
+      const videoActividades = actividadDetalleData ? 
+        actividadDetalleData.filter(detalle => detalle.actividad_id === video.id) : [];
+
+      return {
+        ...video,
+        user_progress: {
+          current_time_seconds: 0,
+          completion_percentage: 0,
+          is_completed: false
+        },
+        actividad_detalle: videoActividades
+      };
+    }) || [];
 
     return {
       statusCode: 200,
