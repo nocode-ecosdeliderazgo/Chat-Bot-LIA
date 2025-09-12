@@ -771,7 +771,7 @@ body.bg-glow-global .tab-button.active {
     background: #0066CC !important;
     color: white !important;
     box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
-    transform: translateY(-1px) !important;
+    transform: translateY(-2px) !important;
 }
 
 .tab-button i {

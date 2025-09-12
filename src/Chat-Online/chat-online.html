@@ -363,8 +363,8 @@
 
         /* ===== HEADER BAJO Y CON BORDES REDONDEADOS ===== */
         .header-course-info {
-            padding: 0.4rem 1.5rem 0.4rem 1rem;
-            height: 35px;
+            padding: 0.3rem 1.2rem 0.3rem 0.8rem;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -386,24 +386,24 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(68, 229, 255, 0.15);
             color: var(--glass-text-secondary);
-            border-radius: 12px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             display: flex;
             align-items: center;
             position: relative;
             overflow: hidden;
-            min-height: 48px;
-            width: 48px; /* Solo mostrar el ícono por defecto */
+            min-height: 36px;
+            width: 36px; /* Solo mostrar el ícono por defecto */
             padding: 0;
             flex-shrink: 0;
         }
 
         /* Ícono del botón de regreso */
         .back-icon {
-            width: 48px;
-            height: 48px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -412,8 +412,8 @@
         }
 
         .back-icon svg {
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             transition: all 0.3s ease;
         }
 
@@ -511,8 +511,8 @@
         /* Responsive para botón de regreso */
         @media (max-width: 768px) {
             .back-button {
-                width: 44px;
-                min-height: 44px;
+                width: 32px;
+                min-height: 32px;
             }
             
             .back-button:hover {
@@ -520,13 +520,13 @@
             }
             
             .back-icon {
-                width: 44px;
-                height: 44px;
+                width: 32px;
+                height: 32px;
             }
             
             .back-icon svg {
-                width: 18px;
-                height: 18px;
+                width: 14px;
+                height: 14px;
             }
         }
 
@@ -534,6 +534,7 @@
             margin: 0;
             font-size: 1rem;
             font-weight: 500;
+            white-space: nowrap;
             color: #44e5ff;
             letter-spacing: 0.2px;
         }
@@ -574,19 +575,20 @@
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            width: 100%;
+            width: auto;
+            flex-shrink: 0;
         }
         
         .progress-bar-clean {
             display: flex;
             align-items: center;
             gap: 12px;
-            width: 100%;
+            width: auto;
             max-width: 200px;
         }
         
         .progress-track-clean {
-            flex: 1;
+            width: 80px;
             height: 6px;
             background: rgba(255, 255, 255, 0.08);
             border-radius: 4px;
@@ -665,8 +667,8 @@
         /* Responsive para header bajo */
         @media (max-width: 768px) {
             .header-course-info {
-                padding: 0.3rem 1rem 0.3rem 0.6rem;
-                height: 32px;
+                padding: 0.25rem 0.8rem 0.25rem 0.5rem;
+                height: 28px;
             }
             
             .header-content-group {
@@ -2700,24 +2702,24 @@ Cargando información...
 
                 <!-- Chat de LIA -->
                 <div class="lia-chat">
-                <div class="lia-messages" id="liaMessages">
+                    <div class="lia-messages" id="liaMessages">
                         <div class="lia-message">
                             <div class="lia-avatar">
                                 <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
-                        </div>
-                            <div class="message-content">
-                            <div class="message-text">
-                                ¡Hola! Soy LIA, tu tutora personalizada en el Taller de fundamentos de Inteligencia Artificial. Estoy aquí para acompañarte en tu aprendizaje con:
-                                • Conceptos fundamentales de IA explicados de forma clara
-                                • Introducción a Machine Learning y sus tipos  
-                                • Aplicaciones prácticas de IA en diferentes sectores
-                                • Historia y evolución de la Inteligencia Artificial
-                                • Ejercicios prácticos y ejemplos de la vida real
-                                • Resolución de dudas paso a paso
-                                • Consultas sobre el documento de apoyo del taller
-                                ¿Qué tema de IA te gustaría explorar primero? ¡Vamos a aprender juntos! 🤖✨
                             </div>
-                            <div class="message-time">ahora</div>
+                            <div class="message-content">
+                                <div class="message-text">
+                                    ¡Hola! Soy LIA, tu tutora personalizada en el Taller de fundamentos de Inteligencia Artificial. Estoy aquí para acompañarte en tu aprendizaje con:
+                                    • Conceptos fundamentales de IA explicados de forma clara
+                                    • Introducción a Machine Learning y sus tipos  
+                                    • Aplicaciones prácticas de IA en diferentes sectores
+                                    • Historia y evolución de la Inteligencia Artificial
+                                    • Ejercicios prácticos y ejemplos de la vida real
+                                    • Resolución de dudas paso a paso
+                                    • Consultas sobre el documento de apoyo del taller
+                                    ¿Qué tema de IA te gustaría explorar primero? ¡Vamos a aprender juntos! 🤖✨
+                                </div>
+                                <div class="message-time">ahora</div>
                             </div>
                         </div>
                     </div>
@@ -2728,17 +2730,17 @@ Cargando información...
                             <div class="reply-info">
                                 <span class="reply-label">Respondiendo a:</span>
                                 <span class="reply-text" id="replyText"></span>
-                        </div>
+                            </div>
                             <button class="reply-close" onclick="window.chatOnline.cancelReply()" title="Cancelar respuesta">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                     <line x1="6" y1="6" x2="18" y2="18"></line>
                                 </svg>
                             </button>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Input de LIA -->
+                    
+                    <!-- Input de LIA -->
                     <div class="lia-input">
                         <input type="text" id="liaMessageInput" placeholder="Pregunta a LIA...">
                         <div class="input-actions">
@@ -2794,8 +2796,6 @@ Cargando información...
                         <p>No hay notas aún. ¡Agrega tu primera nota!</p>
                     </div>
                 </div>
-            </div>
-            
             </div>
 
         </aside>
