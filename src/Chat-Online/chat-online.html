@@ -4852,29 +4852,89 @@ INSTRUCCIONES:
                     return;
                 }
 
-                // Extraer texto de descripción
-                const descriptionElement = activityContent.querySelector('.activity-description-content');
-                const description = descriptionElement ? descriptionElement.innerText : 'Sin descripción disponible';
-
-                // Extraer texto de prompts
-                const promptsElement = activityContent.querySelector('.activity-prompts-content');
-                const prompts = promptsElement ? promptsElement.innerText : 'Sin prompts disponibles';
-
                 // Obtener título del video actual
                 const titleElement = activityContent.querySelector('h4');
                 const title = titleElement ? titleElement.textContent : 'Actividades del Video';
 
-                // Crear texto completo para copiar
-                const fullText = `${title}
+                let description = 'Sin descripción disponible';
+                let prompts = 'Sin prompts disponibles';
 
-📋 DESCRIPCIÓN DE LA ACTIVIDAD:
+                // Intentar obtener datos del video actual desde el loader
+                let currentVideo = null;
+                if (window.module1VideosLoader && window.module1VideosLoader.currentVideoId) {
+                    currentVideo = window.module1VideosLoader.videos.find(v => 
+                        v.id === window.module1VideosLoader.currentVideoId
+                    );
+                }
+
+                if (currentVideo && currentVideo.actividad_detalle && currentVideo.actividad_detalle.length > 0) {
+                    console.log('📋 Construyendo texto desde actividad_detalle');
+                    
+                    // Construir descripción desde actividad_detalle
+                    const descripcionItems = currentVideo.actividad_detalle.filter(item => item.seccion === 'descripcion');
+                    if (descripcionItems.length > 0) {
+                        description = descripcionItems
+                            .sort((a, b) => a.orden - b.orden)
+                            .map(item => {
+                                switch (item.tipo) {
+                                    case 'titulo':
+                                        return item.contenido.toUpperCase();
+                                    case 'parrafo':
+                                    case 'lista':
+                                    case 'nota':
+                                        return item.contenido;
+                                    default:
+                                        return item.contenido;
+                                }
+                            })
+                            .join('\n');
+                    }
+                    
+                    // Construir prompts desde actividad_detalle
+                    const promptsItems = currentVideo.actividad_detalle.filter(item => item.seccion === 'prompts');
+                    if (promptsItems.length > 0) {
+                        prompts = promptsItems
+                            .sort((a, b) => a.orden - b.orden)
+                            .map(item => {
+                                switch (item.tipo) {
+                                    case 'titulo':
+                                        return item.contenido.toUpperCase();
+                                    case 'prompt':
+                                        return `• ${item.contenido}`;
+                                    case 'parrafo':
+                                    case 'lista':
+                                    case 'nota':
+                                        return item.contenido;
+                                    default:
+                                        return item.contenido;
+                                }
+                            })
+                            .join('\n');
+                    }
+                } else {
+                    console.log('📋 Construyendo texto desde DOM (modo legacy)');
+                    
+                    // Extraer texto de descripción desde DOM (fallback legacy)
+                    const descriptionElement = activityContent.querySelector('.activity-description-content, .activity-description');
+                    description = descriptionElement ? descriptionElement.innerText : 'Sin descripción disponible';
+
+                    // Extraer texto de prompts desde DOM (fallback legacy)
+                    const promptsElement = activityContent.querySelector('.activity-prompts-content, .activity-prompts');
+                    prompts = promptsElement ? promptsElement.innerText : 'Sin prompts disponibles';
+                }
+
+                // Crear texto completo para copiar
+                const currentDate = new Date().toLocaleDateString('es-ES');
+                const fullText = `=== ACTIVIDAD: ${title.replace('Actividades del Video - ', '')} ===
+
+📋 DESCRIPCIÓN:
 ${description}
 
 💭 PROMPTS Y EJERCICIOS:
 ${prompts}
 
 ---
-Generado desde Coach LIA IA
+Generado desde Coach LIA IA - ${currentDate}
 `;
 
                 // Copiar al portapapeles
