@@ -1,316 +1,238 @@
-# PROMPT PARA CLAUDE CODE - ARREGLAR ERROR DE SUPABASE EN GENAI-FORM.JS
+Quiero que hagas una migración no disruptiva del componente de “Actividades del Video” en el módulo Chat Online para dejar de depender de las columnas de texto plano descripcion_actividad y prompts_actividad de module_videos, y pasar a consumir la nueva tabla normalizada public.actividad_detalle. Debes mantener retrocompatibilidad: si una actividad aún no tiene filas en actividad_detalle, sigue usando las columnas antiguas.
 
-## PROBLEMA ACTUAL
-Estoy recibiendo un `TypeError: this.supabase.from is not a function` en `src/q/genai-form.js`. Este error ocurre específicamente en las funciones `updateAreaBadge` y `loadQuestions`, lo que indica que la instancia de Supabase (`this.supabase`) no está siendo inicializada o referenciada correctamente dentro de la clase `GenAIQuestionnaire`.
+Contexto del repo y comportamiento actual (IMPORTANTE)
 
-El log de errores es el siguiente:
-```
-❌ Error actualizando badge de área: TypeError: this.supabase.from is not a function
-    at GenAIQuestionnaire.updateAreaBadge (genai-form.js:285:22)
-    at GenAIQuestionnaire.loadUserInfo (genai-form.js:133:20)
-    at GenAIQuestionnaire.init (genai-form.js:34:24)
-updateAreaBadge @ genai-form.js:297
-genai-form.js:135 ✅ Usuario cargado: Object
-genai-form.js:305 🔍 Cargando preguntas para área ID: 4, rol ID: 2
-genai-form.js:381 ❌ Error cargando preguntas: TypeError: this.supabase.from is not a function
-    at GenAIQuestionnaire.loadQuestions (genai-form.js:309:18)
-    at GenAIQuestionnaire.init (genai-form.js:37:24)
-loadQuestions @ genai-form.js:381
-genai-form.js:48 ❌ Error inicializando cuestionario GenAI: Error: Error cargando preguntas: this.supabase.from is not a function
-    at GenAIQuestionnaire.loadQuestions (genai-form.js:382:19)
-    at GenAIQuestionnaire.init (genai-form.js:37:24)
-init @ genai-form.js:48
-genai-form.js:847 ❌ Error mostrado al usuario: Error cargando el cuestionario. Por favor recarga la página.
-showError @ genai-form.js:847
-supabase-client.js:230 ✅ Conexión de Supabase verificada
-supabase-client.js:85 ✅ Cliente de Supabase inicializado correctamente
-```
+El elemento se renderiza en src/Chat-Online/chat-online.html con dos contenedores:
 
-**ANÁLISIS DEL PROBLEMA:**
-- El error ocurre en la línea 285 (updateAreaBadge) y 309 (loadQuestions)
-- A pesar de que los logs muestran "✅ Cliente de Supabase inicializado correctamente", `this.supabase` no tiene el método `.from()`
-- Esto sugiere un problema de timing: el cliente de Supabase se inicializa DESPUÉS de que la clase GenAIQuestionnaire ya intentó usarlo
-- La URL del cuestionario es: `genai-form.html?area=Tecnología%2FDesarrollo+de+Software`
-- También hay errores de Content Security Policy relacionados con boxicons y conexiones
+.activity-description (Descripción)
 
-La imagen adjunta muestra la interfaz del cuestionario GenAI con el error visible, confirmando que el contexto es la carga de este formulario.
+.activity-prompts (Prompts)
 
-## ARCHIVOS INVOLUCRADOS
-- `src/q/genai-form.js`: Contiene la clase `GenAIQuestionnaire` donde ocurre el error.
-- `src/scripts/supabase-client.js`: Responsable de inicializar el cliente de Supabase y exponerlo globalmente (probablemente como `window.supabase`).
-- `src/q/genai-form.html`: Donde se carga `genai-form.js` y se inicializa la clase `GenAIQuestionnaire`.
+La clase que carga y pinta el contenido está en src/Chat-Online/module1-videos-loader.js.
+Su método clave es updateActivityContent(video), que hoy:
 
-## CÓDIGO ACTUAL PROBLEMÁTICO
+toma video.video_title para el título,
 
-**En `src/q/genai-form.js`:**
-```javascript
-class GenAIQuestionnaire {
-    constructor() {
-        this.supabase = null;  // ← Se inicializa como null
-        // ...
-        this.init();  // ← Se llama inmediatamente
-    }
-    
-    async init() {
-        try {
-            // Inicializar Supabase
-            await this.initializeSupabase();  // ← Aquí se asigna this.supabase
-            
-            // Obtener información del usuario
-            await this.loadUserInfo();  // ← Aquí falla updateAreaBadge
-            
-            // Cargar preguntas del área
-            await this.loadQuestions();  // ← Aquí también falla
-            
-        } catch (error) {
-            console.error('❌ Error inicializando cuestionario GenAI:', error);
-        }
-    }
-    
-    async initializeSupabase() {
-        // Supabase ya debería estar disponible en este punto
-        if (typeof window.supabase !== 'undefined' && window.supabase) {
-            this.supabase = window.supabase;
-            console.log('✅ Cliente Supabase inicializado');
-            return;
-        }
-        
-        throw new Error('Cliente de Supabase no disponible');
-    }
+“trocea” video.descripcion_actividad por saltos de línea y lo envuelve en <p>…</p>,
+
+“trocea” video.prompts_actividad y, si detecta ^\d+\. o bullets, envuelve cada ítem en .activity-prompt-item.
+
+Existe copyActivityToClipboard() en chat-online.html que arma un texto consolidado con descripción y prompts (hoy lee del DOM).
+Referencia exacta de esta arquitectura y flujos: “Estructura del Elemento de Actividad - Chat Online”【
+
+Actividad_chat_online
+
+】.
+
+Nuevo origen de datos
+
+Ya existe la tabla public.actividad_detalle con este contrato (léelo, no lo crees de nuevo):
+
+id uuid PK,
+actividad_id uuid (FK -> module_videos.id),
+seccion text check in ('descripcion','prompts'),
+orden integer,
+tipo enum('titulo','parrafo','lista','prompt','nota'),
+contenido text
+
+
+Habrá múltiples filas por actividad. La sección “descripcion” tendrá títulos y párrafos/listas; la sección “prompts” tendrá títulos, párrafos/listas y elementos tipo='prompt'.
+
+Cambios que debes implementar
+1) Backend / Loader de datos
+
+Revisa el endpoint que hoy alimenta el front: /api/courses/module1-videos.
+Objetivo: no romperlo. Mantén el objeto video como hoy, pero añade un campo opcional actividad_detalle con esta forma:
+
+interface ActividadDetalleItem {
+  id: string
+  seccion: 'descripcion' | 'prompts'
+  orden: number
+  tipo: 'titulo' | 'parrafo' | 'lista' | 'prompt' | 'nota'
+  contenido: string
 }
-```
-
-## TAREAS ESPECÍFICAS
-
-### 1. DIAGNOSTICAR EL PROBLEMA
-- **Verificar timing de inicialización:** El problema es que `window.supabase` se inicializa DESPUÉS de que `GenAIQuestionnaire` ya intentó usarlo
-- **Revisar orden de carga de scripts:** Asegurarse de que `supabase-client.js` se cargue ANTES de `genai-form.js`
-- **Identificar conflictos de timing:** Buscar cualquier escenario donde `genai-form.js` pueda estar intentando acceder a `this.supabase` antes de que el cliente de Supabase esté completamente listo
-
-### 2. SOLUCIONAR EL ERROR
-- **Modificar el constructor de `GenAIQuestionnaire`:**
-    - Eliminar la llamada automática a `this.init()` en el constructor
-    - Crear un método estático o una función de inicialización que se ejecute DESPUÉS de que `window.supabase` esté disponible
-- **Actualizar la inicialización en `genai-form.html`:**
-    - Asegurar que la inicialización de `GenAIQuestionnaire` se retrase hasta que `window.supabase` esté garantizado como disponible
-    - Usar `DOMContentLoaded` o un mecanismo de espera para la disponibilidad de Supabase
-- **Agregar validaciones robustas:**
-    - Verificar que `this.supabase` tenga el método `.from()` antes de usarlo
-    - Implementar un sistema de reintentos si Supabase no está disponible inmediatamente
-
-## CÓDIGO ESPERADO (Solución)
-
-**En `src/q/genai-form.js`:**
-```javascript
-class GenAIQuestionnaire {
-    constructor() {
-        this.supabase = null;
-        this.currentUser = null;
-        this.genaiArea = null;
-        this.questions = [];
-        this.responses = {};
-        this.sessionId = null;
-        this.totalQuestions = 0;
-        this.answeredQuestions = 0;
-        // ← NO llamar this.init() aquí
-    }
-    
-    // Método estático para crear instancia de forma segura
-    static async create() {
-        const instance = new GenAIQuestionnaire();
-        await instance.init();
-        return instance;
-    }
-    
-    async init() {
-        try {
-            console.log('🎯 Inicializando cuestionario GenAI...');
-            
-            // Esperar a que Supabase esté disponible
-            await this.waitForSupabase();
-            
-            // Inicializar Supabase
-            await this.initializeSupabase();
-            
-            // Obtener información del usuario
-            await this.loadUserInfo();
-            
-            // Cargar preguntas del área
-            await this.loadQuestions();
-            
-            // Renderizar interfaz
-            this.renderQuestionnaire();
-            
-            // Configurar eventos
-            this.setupEventListeners();
-            
-            console.log('✅ Cuestionario GenAI inicializado correctamente');
-            
-        } catch (error) {
-            console.error('❌ Error inicializando cuestionario GenAI:', error);
-            this.showError('Error cargando el cuestionario. Por favor recarga la página.');
-        }
-    }
-    
-    async waitForSupabase(maxAttempts = 10, delay = 100) {
-        for (let i = 0; i < maxAttempts; i++) {
-            if (typeof window.supabase !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') {
-                console.log('✅ Supabase disponible después de', i + 1, 'intentos');
-                return;
-            }
-            console.log(`⏳ Esperando Supabase... intento ${i + 1}/${maxAttempts}`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
-        throw new Error('Supabase no disponible después de múltiples intentos');
-    }
-    
-    async initializeSupabase() {
-        if (typeof window.supabase !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') {
-            this.supabase = window.supabase;
-            console.log('✅ Cliente Supabase asignado correctamente');
-            return;
-        }
-        
-        throw new Error('Cliente de Supabase no válido');
-    }
-    
-    async updateAreaBadge() {
-        // Validación robusta
-        if (!this.supabase || typeof this.supabase.from !== 'function') {
-            console.error('❌ this.supabase no es válido en updateAreaBadge');
-            return;
-        }
-        
-        const areaBadge = document.getElementById('areaBadge');
-        if (areaBadge) {
-            try {
-                const { data: areaData, error: areaError } = await this.supabase
-                    .from('areas')
-                    .select('nombre')
-                    .eq('id', this.genaiArea)
-                    .single();
-                
-                if (areaError) {
-                    console.warn('⚠️ No se pudo obtener el nombre del área:', areaError);
-                    areaBadge.innerHTML = `<i class='bx bx-user-circle'></i> Área ID ${this.genaiArea}`;
-                } else {
-                    areaBadge.innerHTML = `<i class='bx bx-user-circle'></i> ${areaData.nombre}`;
-                }
-            } catch (error) {
-                console.error('❌ Error actualizando badge de área:', error);
-                areaBadge.innerHTML = `<i class='bx bx-user-circle'></i> Área ID ${this.genaiArea}`;
-            }
-        }
-    }
-    
-    async loadQuestions() {
-        // Validación robusta
-        if (!this.supabase || typeof this.supabase.from !== 'function') {
-            console.error('❌ this.supabase no es válido en loadQuestions');
-            throw new Error('Cliente de Supabase no válido');
-        }
-        
-        try {
-            console.log(`🔍 Cargando preguntas para área ID: ${this.genaiArea}, rol ID: ${this.genaiRol}`);
-            
-            const { data: areaData, error: areaError } = await this.supabase
-                .from('areas')
-                .select('nombre')
-                .eq('id', this.genaiArea)
-                .single();
-                
-            if (areaError) {
-                console.warn('⚠️ No se pudo obtener nombre del área:', areaError);
-            }
-            
-            const { data: questions, error: questionsError } = await this.supabase
-                .from('genai_questions')
-                .select('*')
-                .eq('area_id', this.genaiArea)
-                .eq('rol_id', this.genaiRol)
-                .order('order', { ascending: true });
-                
-            if (questionsError) {
-                throw new Error(`Error cargando preguntas: ${questionsError.message}`);
-            }
-            
-            this.questions = questions || [];
-            this.totalQuestions = this.questions.length;
-            
-            console.log(`✅ ${this.questions.length} preguntas cargadas para ${areaData?.nombre || 'área desconocida'}`);
-            
-        } catch (error) {
-            console.error('❌ Error cargando preguntas:', error);
-            throw error;
-        }
-    }
+interface Video {
+  id: string
+  video_title: string
+  // legacy:
+  descripcion_actividad?: string | null
+  prompts_actividad?: string | null
+  // nuevo:
+  actividad_detalle?: ActividadDetalleItem[] // agrupados por actividad_id
 }
 
-// Función de inicialización global actualizada
-async function initializeQuestionnaire() {
-    try {
-        console.log('🚀 Iniciando cuestionario GenAI...');
-        const questionnaire = await GenAIQuestionnaire.create();
-        // Asignar globalmente si es necesario
-        window.genaiQuestionnaire = questionnaire;
-    } catch (error) {
-        console.error('❌ Error inicializando cuestionario:', error);
-        // Mostrar error al usuario
-        const errorContainer = document.getElementById('errorContainer') || document.body;
-        errorContainer.innerHTML = `
-            <div style="color: red; padding: 20px; text-align: center;">
-                <h3>Error cargando el cuestionario</h3>
-                <p>Por favor recarga la página e intenta nuevamente.</p>
-                <button onclick="location.reload()" style="background: #0066CC; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
-                    Recargar Página
-                </button>
-            </div>
-        `;
-    }
-}
-```
 
-**En `src/q/genai-form.html`:**
-```html
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <!-- ... otros head elements ... -->
-    <!-- Asegurar que supabase-client.js se cargue PRIMERO -->
-    <script src="../scripts/supabase-client.js"></script>
-</head>
-<body>
-    <!-- ... contenido HTML ... -->
-    
-    <!-- Cargar genai-form.js DESPUÉS de supabase-client.js -->
-    <script src="genai-form.js"></script>
-    
-    <script>
-        // Inicializar DESPUÉS de que todo esté cargado
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Esperar un poco más para asegurar que Supabase esté listo
-            await new Promise(resolve => setTimeout(resolve, 100));
-            await initializeQuestionnaire();
-        });
-    </script>
-</body>
-</html>
-```
+Si usas Supabase JS, agrega una consulta adicional (por lote o al seleccionar un video) para traer:
 
-## VERIFICACIÓN
-- Recargar la página del cuestionario
-- Verificar que no aparezcan errores en la consola relacionados con `this.supabase.from is not a function`
-- Confirmar que el badge del área se actualice correctamente
-- Confirmar que las preguntas del cuestionario se carguen y muestren en la interfaz
-- Verificar que los logs muestren el proceso de espera de Supabase
+select id, seccion, orden, tipo, contenido
+from public.actividad_detalle
+where actividad_id = :videoId
+order by seccion, orden;
 
-## INSTRUCCIONES ESPECÍFICAS
-- NO modificar otros archivos que no sean los mencionados
-- Mantener la funcionalidad existente del cuestionario
-- Asegurar que la interfaz del cuestionario GenAI funcione correctamente
-- Agregar logs de debugging detallados para verificar la inicialización de Supabase
-- Implementar un sistema de espera robusto para la disponibilidad de Supabase
-- Probar cada cambio paso a paso
 
-## PRIORIDAD
-ALTA - El cuestionario GenAI es funcionalidad crítica y debe funcionar correctamente sin errores de Supabase. El problema principal es de timing en la inicialización de dependencias.
+Estrategia de compatibilidad:
+
+Si actividad_detalle trae ≥1 fila, ignoramos las cadenas legacy en el render.
+
+Si viene vacío, usamos descripcion_actividad y prompts_actividad como hoy.
+
+2) Render en updateActivityContent(video) (frontend)
+
+Crea dos helpers nuevos en module1-videos-loader.js:
+
+buildDescriptionHTMLFromDetalle(items /* actividad_detalle filtrado a seccion='descripcion' */)
+buildPromptsHTMLFromDetalle(items /* actividad_detalle filtrado a seccion='prompts' */)
+
+
+Reglas de render:
+
+tipo='titulo' → <p><strong>${contenido}</strong></p>
+
+tipo='parrafo' → <p>${contenido}</p>
+
+tipo='lista' → <div class="activity-list-item">• ${contenido}</div>
+
+tipo='nota' → <p class="activity-note">${contenido}</p>
+
+tipo='prompt' → bloque con botón copiar por ítem:
+
+<div class="activity-prompt-item" data-prompt-id="{id}">
+  <span class="prompt-text">{contenido}</span>
+  <button class="btn-copy" data-copy="{contenido}">Copiar</button>
+</div>
+
+
+Mantén replaceEmojisWithIcons(text) para los textos que vengan del modelo legacy (solo cuando no haya actividad_detalle).
+Cuando uses actividad_detalle, no apliques esa sustitución a contenido (se asume limpio).
+
+Actualiza updateActivityContent(video) así:
+
+Si video.actividad_detalle?.length:
+
+const desc = items.filter(i => i.seccion==='descripcion')
+
+const prom = items.filter(i => i.seccion==='prompts')
+
+activityDescription.innerHTML = buildDescriptionHTMLFromDetalle(desc)
+
+activityPrompts.innerHTML = buildPromptsHTMLFromDetalle(prom)
+
+Else (legacy): conserva el flujo actual (split por \n), pero pon en negritas los encabezados reconocibles (Contexto, Pautas de la actividad, Objetivo(s), Paso X) antes de envolver en <p>…</p>.
+
+3) Comportamiento del botón “Copiar”
+
+Implementa delegación de eventos en chat-online.html o en el loader para que cualquier botón con [data-copy] copie su payload:
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-copy]');
+  if (!btn) return;
+  const text = btn.getAttribute('data-copy') || '';
+  navigator.clipboard.writeText(text);
+  // opcional: notificación “Copiado”
+});
+
+
+Conserva copyActivityToClipboard() para el botón general “Copiar Actividad”.
+Cuando actividad_detalle esté presente, construye el texto recorriendo los arrays (no dependas del innerText del DOM) para preservar separadores:
+
+=== ACTIVIDAD: {video_title} ===
+📋 DESCRIPCIÓN:
+[Titulos en mayúsculas/strong + párrafos/listas, en orden]
+💭 PROMPTS Y EJERCICIOS:
+[cada prompt en su línea]
+---
+Generado desde Coach LIA IA - {fecha}
+
+
+Si no hay actividad_detalle, usa el comportamiento legacy que ya existe.
+
+4) Estilos mínimos
+
+Añade estilos básicos si no existen:
+
+.btn-copy { margin-left: .5rem; }
+.activity-list-item { margin-left: .75rem; }
+.activity-note { opacity: .85; font-style: italic; }
+
+
+Mantén el tema dual y el “glass effect” del módulo (no cambies clases globales).
+Referencia de clases existentes: .activity-content, .activity-section, .activity-prompts-content, .activity-prompt-item, etc.【
+
+Actividad_chat_online
+
+】
+
+Qué archivos tocar
+
+src/Chat-Online/module1-videos-loader.js
+
+Añadir fetch/inyectar actividad_detalle (si el endpoint ya lo entrega, solo úsalo).
+
+Implementar buildDescriptionHTMLFromDetalle y buildPromptsHTMLFromDetalle.
+
+Actualizar updateActivityContent(video) con la lógica dual (detalle vs legacy).
+
+src/Chat-Online/chat-online.html
+
+Añadir el listener de delegación para [data-copy] (o colócalo en el loader si ya centralizas ahí).
+
+Mantener copyActivityToClipboard() pero adaptarlo para usar arrays cuando actividad_detalle exista.
+
+Si el endpoint /api/courses/module1-videos está en el repo, actualízalo para incluir actividad_detalle (LEFT JOIN o segunda consulta por actividad_id).
+
+Criterios de aceptación
+
+ Para un video que sí tiene filas en actividad_detalle, la UI:
+
+Muestra títulos en negritas (por venir como tipo='titulo').
+
+Renderiza bullets de tipo='lista'.
+
+Renderiza cada tipo='prompt' con un botón Copiar independiente.
+
+El botón Copiar Actividad compone correctamente descripción + prompts con saltos adecuados.
+
+ Para un video sin filas en actividad_detalle, se usa el modo legacy exactamente como hoy, con negritas aplicadas por regex a Contexto, Pautas de la actividad, Objetivo(s) y Paso X.
+
+ No se rompe el endpoint ni la forma del objeto video consumido por otras vistas.
+
+ Modo oscuro/Claro sin regresiones.
+
+Pruebas manuales
+
+Caso detalle: usa un video.id que ya tenga entradas en actividad_detalle.
+
+Verifica títulos en bold y botones “Copiar” por prompt.
+
+Haz clic en cada botón y pega en un editor para confirmar el contenido.
+
+Usa “Copiar Actividad” y confirma el bloque completo.
+
+Caso legacy: un video.id sin detalle.
+
+Verifica que los encabezados “Contexto” y “Pautas de la actividad” salen en bold.
+
+Verifica que los prompts se renderizan como hasta ahora.
+
+Resiliencia: texto con líneas vacías, bullets *, -, • y numerados 1..
+
+Notas de implementación
+
+Evita XSS: al interpolar contenido, usa textContent cuando insertes nodos, o sanear si construyes HTML. Para tipo='titulo' en <strong>, crea elementos vía DOM:
+
+const p = document.createElement('p');
+const b = document.createElement('strong');
+b.textContent = item.contenido;
+p.appendChild(b);
+
+
+Mantén funciones existentes como replaceEmojisWithIcons() solo para el flujo legacy, según la doc base【
+
+Actividad_chat_online
+
+】.
+
+Entrega cambios con mensajes de commit claros:
+feat(activity): render from actividad_detalle with per-prompt copy and legacy fallback
+
+Si necesitas datos de ejemplo, dímelo y te paso un SELECT de muestra para un actividad_id con ambas secciones.

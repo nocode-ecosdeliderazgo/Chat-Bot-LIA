@@ -906,6 +906,89 @@ class Module1VideosLoader {
     }
 
     // =====================================================
+    // HELPERS PARA RENDERIZADO DESDE ACTIVIDAD_DETALLE
+    // =====================================================
+
+    buildDescriptionHTMLFromDetalle(items) {
+        if (!items || items.length === 0) {
+            return '<p class="no-activity">No hay descripción de actividad disponible.</p>';
+        }
+
+        const filteredItems = items.filter(item => item.seccion === 'descripcion');
+        if (filteredItems.length === 0) {
+            return '<p class="no-activity">No hay descripción de actividad disponible.</p>';
+        }
+
+        let html = '';
+        filteredItems.forEach(item => {
+            switch (item.tipo) {
+                case 'titulo':
+                    html += `<p><strong>${this.escapeHtml(item.contenido)}</strong></p>`;
+                    break;
+                case 'parrafo':
+                    html += `<p>${this.escapeHtml(item.contenido)}</p>`;
+                    break;
+                case 'lista':
+                    html += `<div class="activity-list-item">• ${this.escapeHtml(item.contenido)}</div>`;
+                    break;
+                case 'nota':
+                    html += `<p class="activity-note">${this.escapeHtml(item.contenido)}</p>`;
+                    break;
+                default:
+                    html += `<p>${this.escapeHtml(item.contenido)}</p>`;
+            }
+        });
+
+        return html;
+    }
+
+    buildPromptsHTMLFromDetalle(items) {
+        if (!items || items.length === 0) {
+            return '<p class="no-activity">No hay prompts de actividad disponibles.</p>';
+        }
+
+        const filteredItems = items.filter(item => item.seccion === 'prompts');
+        if (filteredItems.length === 0) {
+            return '<p class="no-activity">No hay prompts de actividad disponibles.</p>';
+        }
+
+        let html = '';
+        filteredItems.forEach(item => {
+            switch (item.tipo) {
+                case 'titulo':
+                    html += `<p><strong>${this.escapeHtml(item.contenido)}</strong></p>`;
+                    break;
+                case 'parrafo':
+                    html += `<p>${this.escapeHtml(item.contenido)}</p>`;
+                    break;
+                case 'lista':
+                    html += `<div class="activity-list-item">• ${this.escapeHtml(item.contenido)}</div>`;
+                    break;
+                case 'nota':
+                    html += `<p class="activity-note">${this.escapeHtml(item.contenido)}</p>`;
+                    break;
+                case 'prompt':
+                    html += `<div class="activity-prompt-item" data-prompt-id="${item.id}">
+                        <span class="prompt-text">${this.escapeHtml(item.contenido)}</span>
+                        <button class="btn-copy" data-copy="${this.escapeHtml(item.contenido)}">Copiar</button>
+                    </div>`;
+                    break;
+                default:
+                    html += `<p>${this.escapeHtml(item.contenido)}</p>`;
+            }
+        });
+
+        return html;
+    }
+
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // =====================================================
     // ACTUALIZAR INFORMACIÓN DEL VIDEO
     // =====================================================
 
@@ -1001,6 +1084,7 @@ class Module1VideosLoader {
         try {
             console.log('🔍 [DEBUG] updateActivityContent llamado para:', video.video_title);
             console.log('🔍 [DEBUG] Video object keys:', Object.keys(video));
+            console.log('🔍 [DEBUG] actividad_detalle length:', video.actividad_detalle?.length || 0);
             console.log('🔍 [DEBUG] descripcion_actividad:', video.descripcion_actividad ? 'EXISTE' : 'NO EXISTE');
             console.log('🔍 [DEBUG] prompts_actividad:', video.prompts_actividad ? 'EXISTE' : 'NO EXISTE');
             
@@ -1016,71 +1100,108 @@ class Module1VideosLoader {
                     activityTitle.textContent = `Actividades del Video - ${video.video_title}`;
                 }
                 
-                // Actualizar descripción de la actividad
                 const activityDescription = activityContent.querySelector('.activity-description');
-                console.log('🔍 [DEBUG] activityDescription encontrado:', !!activityDescription);
-                
-                if (activityDescription) {
-                    if (video.descripcion_actividad && video.descripcion_actividad.trim()) {
-                        console.log('📝 Actualizando descripción de actividad');
-                        console.log('📝 [DEBUG] Contenido descripción (primeros 100 chars):', video.descripcion_actividad.substring(0, 100));
-                        
-                        const htmlContent = `
-                            <div class="activity-description-content">
-                                ${this.replaceEmojisWithIcons(video.descripcion_actividad).split('\n').map(paragraph => 
-                                    paragraph.trim() ? `<p>${paragraph.trim()}</p>` : ''
-                                ).join('')}
-                            </div>
-                        `;
-                        
-                        activityDescription.innerHTML = htmlContent;
-                        console.log('✅ [DEBUG] Descripción HTML actualizado');
-                    } else {
-                        console.log('⚠️ [DEBUG] No hay descripción, mostrando mensaje de no disponible');
-                        activityDescription.innerHTML = `
-                            <p class="no-activity">No hay descripción de actividad disponible para este video.</p>
-                        `;
-                    }
-                } else {
-                    console.log('❌ [DEBUG] No se encontró .activity-description en el DOM');
-                }
-                
-                // Actualizar prompts de actividad
                 const activityPrompts = activityContent.querySelector('.activity-prompts');
-                console.log('🔍 [DEBUG] activityPrompts encontrado:', !!activityPrompts);
                 
-                if (activityPrompts) {
-                    if (video.prompts_actividad && video.prompts_actividad.trim()) {
-                        console.log('💡 Actualizando prompts de actividad');
-                        console.log('💡 [DEBUG] Contenido prompts (primeros 100 chars):', video.prompts_actividad.substring(0, 100));
-                        
-                        const promptsHtml = `
-                            <div class="activity-prompts-content">
-                                ${this.replaceEmojisWithIcons(video.prompts_actividad).split('\n').map(prompt => {
-                                    const trimmedPrompt = prompt.trim();
-                                    if (trimmedPrompt) {
-                                        // Si el prompt parece ser una pregunta o ejercicio, agregamos numeración
-                                        if (trimmedPrompt.startsWith('-') || trimmedPrompt.startsWith('•') || trimmedPrompt.match(/^\d+\./)) {
-                                            return `<div class="activity-item">${trimmedPrompt}</div>`;
-                                        } else {
-                                            return `<p>${trimmedPrompt}</p>`;
-                                        }
-                                    }
-                                    return '';
-                                }).join('')}
-                            </div>
-                        `;
-                        
-                        activityPrompts.innerHTML = promptsHtml;
-                        console.log('✅ [DEBUG] Prompts HTML actualizado');
-                    } else {
-                        console.log('⚠️ [DEBUG] No hay prompts, mostrando mensaje de no disponible');
-                        activityPrompts.innerHTML = `
-                            <p class="no-activity">No hay prompts de actividad disponibles para este video.</p>
-                        `;
+                // NUEVA LÓGICA DUAL: usar actividad_detalle si está disponible
+                if (video.actividad_detalle && video.actividad_detalle.length > 0) {
+                    console.log('✨ Usando actividad_detalle (nuevo formato)');
+                    console.log('📊 Actividades encontradas:', video.actividad_detalle.length);
+                    
+                    // Filtrar por secciones
+                    const descripcionItems = video.actividad_detalle.filter(item => item.seccion === 'descripcion');
+                    const promptsItems = video.actividad_detalle.filter(item => item.seccion === 'prompts');
+                    
+                    console.log('📝 Items descripción:', descripcionItems.length);
+                    console.log('💡 Items prompts:', promptsItems.length);
+                    
+                    // Actualizar descripción usando helper
+                    if (activityDescription) {
+                        const descriptionHTML = this.buildDescriptionHTMLFromDetalle(descripcionItems);
+                        activityDescription.innerHTML = descriptionHTML;
+                        console.log('✅ Descripción actualizada con actividad_detalle');
                     }
+                    
+                    // Actualizar prompts usando helper
+                    if (activityPrompts) {
+                        const promptsHTML = this.buildPromptsHTMLFromDetalle(promptsItems);
+                        activityPrompts.innerHTML = promptsHTML;
+                        console.log('✅ Prompts actualizados con actividad_detalle');
+                    }
+                    
                 } else {
-                    console.log('❌ [DEBUG] No se encontró .activity-prompts en el DOM');
+                    console.log('📜 Usando modo legacy (descripcion_actividad + prompts_actividad)');
+                    
+                    // MODO LEGACY: usar campos de texto plano
+                    if (activityDescription) {
+                        if (video.descripcion_actividad && video.descripcion_actividad.trim()) {
+                            console.log('📝 Actualizando descripción legacy');
+                            
+                            // Aplicar formato especial para encabezados reconocibles
+                            const formattedDescription = this.formatLegacyContent(video.descripcion_actividad);
+                            
+                            const htmlContent = `
+                                <div class="activity-description-content">
+                                    ${this.replaceEmojisWithIcons(formattedDescription).split('\n').map(paragraph => 
+                                        paragraph.trim() ? `<p>${paragraph.trim()}</p>` : ''
+                                    ).join('')}
+                                </div>
+                            `;
+                            
+                            activityDescription.innerHTML = htmlContent;
+                            console.log('✅ Descripción legacy actualizada');
+                        } else {
+                            activityDescription.innerHTML = `
+                                <p class="no-activity">No hay descripción de actividad disponible para este video.</p>
+                            `;
+                        }
+                    }
+                    
+                    if (activityPrompts) {
+                        if (video.prompts_actividad && video.prompts_actividad.trim()) {
+                            console.log('💡 Actualizando prompts legacy');
+                            
+                            // Aplicar formato especial para encabezados reconocibles
+                            const formattedPrompts = this.formatLegacyContent(video.prompts_actividad);
+                            
+                            const promptsHtml = `
+                                <div class="activity-prompts-content">
+                                    ${this.replaceEmojisWithIcons(formattedPrompts).split('\n').map((prompt, index) => {
+                                        const trimmedPrompt = prompt.trim();
+                                        if (trimmedPrompt) {
+                                            // Detectar bullets, numerados y preguntas (estos son prompts que necesitan botón copiar)
+                                            if (trimmedPrompt.match(/^[\-\•\*]\s/) || 
+                                                trimmedPrompt.match(/^\d+[\.\)]\s/) || 
+                                                trimmedPrompt.includes('?') || 
+                                                trimmedPrompt.toLowerCase().includes('prompt') ||
+                                                trimmedPrompt.toLowerCase().includes('ejercicio')) {
+                                                // Remover el bullet/número para el botón de copiar
+                                                const cleanPrompt = trimmedPrompt
+                                                    .replace(/^[\-\•\*]\s*/, '')
+                                                    .replace(/^\d+[\.\)]\s*/, '')
+                                                    .trim();
+                                                return `<div class="activity-prompt-item" data-prompt-index="${index}">
+                                                    <span class="prompt-text">${trimmedPrompt}</span>
+                                                    <button class="btn-copy" data-copy="${this.escapeHtml(cleanPrompt)}">Copiar</button>
+                                                </div>`;
+                                            } else {
+                                                // Títulos y párrafos normales sin botón copiar
+                                                return `<p>${trimmedPrompt}</p>`;
+                                            }
+                                        }
+                                        return '';
+                                    }).join('')}
+                                </div>
+                            `;
+                            
+                            activityPrompts.innerHTML = promptsHtml;
+                            console.log('✅ Prompts legacy actualizados');
+                        } else {
+                            activityPrompts.innerHTML = `
+                                <p class="no-activity">No hay prompts de actividad disponibles para este video.</p>
+                            `;
+                        }
+                    }
                 }
                 
                 console.log('✅ Actividades actualizadas correctamente');
@@ -1088,6 +1209,20 @@ class Module1VideosLoader {
         } catch (error) {
             console.error('❌ Error actualizando actividades:', error);
         }
+    }
+
+    // Helper para formatear contenido legacy con encabezados en negrita
+    formatLegacyContent(content) {
+        if (!content) return content;
+        
+        return content
+            // Poner en negritas los encabezados reconocibles
+            .replace(/^(Contexto[:.]?)\s*/gm, '<strong>$1</strong> ')
+            .replace(/^(Pautas de la actividad[:.]?)\s*/gm, '<strong>$1</strong> ')
+            .replace(/^(Objetivo\(?s?\)?[:.]?)\s*/gm, '<strong>$1</strong> ')
+            .replace(/^(Paso \d+[:.]?)\s*/gm, '<strong>$1</strong> ')
+            .replace(/^(Instrucciones[:.]?)\s*/gm, '<strong>$1</strong> ')
+            .replace(/^(Requerimientos[:.]?)\s*/gm, '<strong>$1</strong> ');
     }
 
     // =====================================================
@@ -1210,6 +1345,50 @@ class Module1VideosLoader {
                 console.log('🎨 Tema cambiado, actualizando estilos de videos...');
             });
         }
+
+        // Event delegation para botones de copiar
+        document.addEventListener('click', (event) => {
+            const btn = event.target.closest('button[data-copy]');
+            if (!btn) return;
+            
+            const text = btn.getAttribute('data-copy') || '';
+            if (text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    console.log('📋 Texto copiado al portapapeles:', text.substring(0, 50) + '...');
+                    
+                    // Mostrar feedback visual
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copiado!';
+                    btn.style.backgroundColor = '#4CAF50';
+                    
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.backgroundColor = '';
+                    }, 2000);
+                    
+                }).catch(err => {
+                    console.error('❌ Error copiando al portapapeles:', err);
+                    
+                    // Fallback - crear un textarea temporal
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    
+                    // Feedback visual
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copiado!';
+                    btn.style.backgroundColor = '#4CAF50';
+                    
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.backgroundColor = '';
+                    }, 2000);
+                });
+            }
+        });
 
         console.log('✅ Event listeners configurados');
     }

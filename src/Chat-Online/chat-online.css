@@ -2042,6 +2042,75 @@ body {
     border-radius: 6px;
 }
 
+/* Nuevos estilos para actividad_detalle */
+.btn-copy {
+    margin-left: 0.5rem;
+    padding: 0.3rem 0.6rem;
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid rgba(76, 175, 80, 0.4);
+    border-radius: 4px;
+    color: var(--glass-text-primary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-copy:hover {
+    background: rgba(76, 175, 80, 0.3);
+    border-color: rgba(76, 175, 80, 0.6);
+    transform: translateY(-1px);
+}
+
+.activity-list-item {
+    margin-left: 0.75rem;
+    padding: 0.4rem 0;
+    color: var(--glass-text-primary);
+    position: relative;
+}
+
+.activity-list-item::before {
+    content: "•";
+    color: var(--glass-primary);
+    margin-right: 0.5rem;
+    font-weight: bold;
+}
+
+.activity-note {
+    opacity: 0.85;
+    font-style: italic;
+    color: var(--glass-text-muted);
+    background: rgba(255, 193, 7, 0.1);
+    border-left: 3px solid rgba(255, 193, 7, 0.4);
+    padding: 0.5rem 0.8rem;
+    margin: 0.5rem 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.activity-prompt-item {
+    background: rgba(68, 229, 255, 0.08);
+    border: 1px solid rgba(68, 229, 255, 0.2);
+    border-radius: 6px;
+    padding: 0.8rem;
+    margin: 0.6rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.activity-prompt-item:hover {
+    background: rgba(68, 229, 255, 0.12);
+    border-color: rgba(68, 229, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.prompt-text {
+    flex: 1;
+    color: var(--glass-text-primary);
+    line-height: 1.5;
+}
+
 .activity-actions {
     display: flex;
     gap: 1rem;
