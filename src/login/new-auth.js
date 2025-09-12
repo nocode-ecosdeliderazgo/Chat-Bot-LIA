@@ -45,11 +45,11 @@ async function ensureAuthDataSync() {
                     localStorage.setItem('authToken', token);
                 } else {
                     const errorText = await tokenResponse.text();
-                    console.error('Error en auth-issue:', tokenResponse.status, errorText);
+                    // console.error('Error en auth-issue:', tokenResponse.status, errorText);
                     throw new Error(`Error generando token válido: ${tokenResponse.status}`);
                 }
             } catch (error) {
-                console.error('Excepción en auth-issue:', error);
+                // console.error('Excepción en auth-issue:', error);
                 // Fallback a token mock solo para desarrollo local
                 const mockToken = btoa(JSON.stringify({
                     exp: Math.floor(Date.now() / 1000) + 3600,
@@ -77,7 +77,7 @@ async function ensureAuthDataSync() {
         devLog('Sincronización de datos de autenticación completada');
         
     } catch (error) {
-        console.error('Error sincronizando datos de autenticación:', error);
+        // console.error('Error sincronizando datos de autenticación:', error);
     }
 }
 const API_BASE = (() => {
@@ -93,7 +93,7 @@ const API_BASE = (() => {
 const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const devLog = (...args) => {
     if (isDev) {
-        console.log('[AUTH DEV]', ...args);
+        // console.log('[AUTH DEV]', ...args);
     }
 };
 
@@ -433,7 +433,7 @@ function togglePasswordVisibility(button) {
     const hideIcon = button.querySelector('.eye-icon.hide');
     
     if (!input || !showIcon || !hideIcon) {
-        console.warn('Elementos de toggle de contraseña no encontrados:', { targetId, input: !!input, showIcon: !!showIcon, hideIcon: !!hideIcon });
+        // console.warn('Elementos de toggle de contraseña no encontrados:', { targetId, input: !!input, showIcon: !!showIcon, hideIcon: !!hideIcon });
         return;
     }
     
@@ -645,7 +645,6 @@ async function handleLogin(e) {
     }
     
     setLoadingState(true, 'loginSubmit');
-    showNotification('Validando credenciales con la base de datos...', 'info');
     
     devLog('Iniciando proceso de login');
     devLog('ENABLE_SUPABASE_AUTH:', ENABLE_SUPABASE_AUTH);
@@ -821,7 +820,7 @@ async function handleLogin(e) {
             await handleFailedLogin();
         }
     } catch (error) {
-        console.error('Error en login:', error);
+        // console.error('Error en login:', error);
         
         // Si falla la conexión con el backend, usar modo desarrollo
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -954,7 +953,7 @@ async function handleRegister(e) {
         }
         
     } catch (error) {
-        console.error('Error en registro:', error);
+        // console.error('Error en registro:', error);
         
         // Si falla la conexión con el backend, usar modo desarrollo
         devLog('Error in registration:', error);
@@ -1131,7 +1130,7 @@ async function validateCredentialsLocal(emailOrUsername, password) {
             localStorage.setItem('userSession', JSON.stringify(sessionData));
             
         } catch (error) {
-            console.error('Error generando token JWT:', error);
+            // console.error('Error generando token JWT:', error);
             // Último fallback: token base64 simple
             const mockToken = btoa(JSON.stringify({
                 exp: Math.floor(Date.now() / 1000) + 3600,
@@ -1186,7 +1185,7 @@ async function registerUserLocal(userData) {
     existingUsers.push(newUser);
     localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
     
-    console.log('Usuario registrado exitosamente:', newUser);
+    // console.log('Usuario registrado exitosamente:', newUser);
     return newUser;
 }
 
@@ -1308,7 +1307,7 @@ function showNotification(message, type = 'success') {
     
     // Colores para diferentes tipos
     const colors = {
-        success: '#44E5FF',
+        success: '#0066CC', // Color azul principal del proyecto
         error: '#EF4444',
         warning: '#F59E0B',
         info: '#3B82F6'
@@ -1321,15 +1320,16 @@ function showNotification(message, type = 'success') {
         right: '20px',
         background: colors[type] || colors.success,
         color: '#FFFFFF',
-        padding: '16px 20px',
+        padding: '18px 24px',
         borderRadius: '12px',
-        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)',
+        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4)',
         zIndex: '10000',
         animation: 'slideInRight 0.3s ease',
         maxWidth: '400px',
-        fontSize: '0.9rem',
+        fontSize: '1rem',
         fontFamily: 'Inter, sans-serif',
-        fontWeight: '500'
+        fontWeight: '600',
+        border: '2px solid rgba(255, 255, 255, 0.2)'
     });
     
     document.body.appendChild(notification);
@@ -2144,7 +2144,7 @@ function clearPreviousAccountData() {
         }
     }
     
-    console.log('✅ Datos de cuenta anterior limpiados');
+    // console.log('✅ Datos de cuenta anterior limpiados');
 }
 
 // Función mejorada para login que limpia datos previos
@@ -2169,7 +2169,7 @@ async function loginWithCleanup(emailOrUsername, password, remember = false) {
             return { success: false, error: result.error };
         }
     } catch (error) {
-        console.error('Error en loginWithCleanup:', error);
+        // console.error('Error en loginWithCleanup:', error);
         return { success: false, error: 'Error interno de login' };
     }
 }

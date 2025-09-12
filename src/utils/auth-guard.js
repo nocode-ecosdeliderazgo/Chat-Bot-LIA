@@ -40,13 +40,13 @@ function isAuthenticated() {
         // Verificar si hay datos de usuario en formato legacy que necesiten sincronización
         const currentUser = localStorage.getItem('currentUser');
         if (currentUser && (!token || !userData || !session)) {
-            console.log('🔄 Detectados datos desincronizados, intentando corrección automática...');
+            // console.log('🔄 Detectados datos desincronizados, intentando corrección automática...');
             try {
                 const user = JSON.parse(currentUser);
                 
                 if (!userData) {
                     localStorage.setItem('userData', currentUser);
-                    console.log('✅ userData sincronizado');
+                    // console.log('✅ userData sincronizado');
                 }
                 
                 if (!token) {
@@ -57,7 +57,7 @@ function isAuthenticated() {
                         id: user.id
                     }));
                     localStorage.setItem('userToken', mockToken);
-                    console.log('✅ userToken creado');
+                    // console.log('✅ userToken creado');
                 }
                 
                 if (!session) {
@@ -67,42 +67,42 @@ function isAuthenticated() {
                         userId: user.id || user.username || user.email
                     };
                     localStorage.setItem('userSession', JSON.stringify(sessionData));
-                    console.log('✅ userSession creado');
+                    // console.log('✅ userSession creado');
                 }
                 
                 // Re-verificar después de la sincronización
                 return isAuthenticated();
                 
             } catch (e) {
-                console.warn('Error en sincronización automática:', e);
+                // console.warn('Error en sincronización automática:', e);
             }
         }
         
-        console.log('🔍 Verificando autenticación:', {
-            hasToken: !!localStorage.getItem(AUTH_GUARD_CONFIG.tokenKey),
-            hasUserData: !!localStorage.getItem(AUTH_GUARD_CONFIG.userDataKey),
-            hasSession: !!localStorage.getItem(AUTH_GUARD_CONFIG.sessionKey),
-            tokenKey: AUTH_GUARD_CONFIG.tokenKey,
-            userDataKey: AUTH_GUARD_CONFIG.userDataKey,
-            sessionKey: AUTH_GUARD_CONFIG.sessionKey
-        });
+        // console.log('🔍 Verificando autenticación:', {
+        //     hasToken: !!localStorage.getItem(AUTH_GUARD_CONFIG.tokenKey),
+        //     hasUserData: !!localStorage.getItem(AUTH_GUARD_CONFIG.userDataKey),
+        //     hasSession: !!localStorage.getItem(AUTH_GUARD_CONFIG.sessionKey),
+        //     tokenKey: AUTH_GUARD_CONFIG.tokenKey,
+        //     userDataKey: AUTH_GUARD_CONFIG.userDataKey,
+        //     sessionKey: AUTH_GUARD_CONFIG.sessionKey
+        // });
         
         const finalToken = localStorage.getItem(AUTH_GUARD_CONFIG.tokenKey);
         const finalUserData = localStorage.getItem(AUTH_GUARD_CONFIG.userDataKey);
         const finalSession = localStorage.getItem(AUTH_GUARD_CONFIG.sessionKey);
         
         if (!finalToken) {
-            console.log('❌ No hay token');
+            // console.log('❌ No hay token');
             return false;
         }
 
         if (!finalUserData) {
-            console.log('❌ No hay datos de usuario');
+            // console.log('❌ No hay datos de usuario');
             return false;
         }
 
         if (!finalSession) {
-            console.log('❌ No hay sesión activa');
+            // console.log('❌ No hay sesión activa');
             return false;
         }
 
@@ -113,7 +113,7 @@ function isAuthenticated() {
                 const parsedToken = JSON.parse(atob(token.split('.')[1]));
                 const currentTime = Math.floor(Date.now() / 1000);
                 if (parsedToken.exp && parsedToken.exp < currentTime) {
-                    console.log('🔒 Token expirado, limpiando datos...');
+                    // console.log('🔒 Token expirado, limpiando datos...');
                     clearAuthData();
                     return false;
                 }
@@ -122,21 +122,21 @@ function isAuthenticated() {
                 const parsedToken = JSON.parse(atob(token));
                 const currentTime = Math.floor(Date.now() / 1000);
                 if (parsedToken.exp && parsedToken.exp < currentTime) {
-                    console.log('🔒 Token de desarrollo expirado, limpiando datos...');
+                    // console.log('🔒 Token de desarrollo expirado, limpiando datos...');
                     clearAuthData();
                     return false;
                 }
             }
         } catch (e) {
             // Si no se puede parsear el token, considerarlo inválido
-            console.warn('🔒 Token inválido:', e.message);
+            // console.warn('🔒 Token inválido:', e.message);
             clearAuthData();
             return false;
         }
 
         return true;
     } catch (error) {
-        console.warn('Error checking authentication:', error);
+        // console.warn('Error checking authentication:', error);
         clearAuthData();
         return false;
     }
@@ -152,7 +152,7 @@ function clearAuthData() {
         localStorage.removeItem(AUTH_GUARD_CONFIG.sessionKey);
         sessionStorage.clear();
     } catch (error) {
-        console.warn('Error clearing auth data:', error);
+        // console.warn('Error clearing auth data:', error);
     }
 }
 
@@ -164,7 +164,7 @@ function isPublicRoute() {
     const currentPath = window.location.pathname;
     const currentFile = window.location.pathname.split('/').pop();
     
-    console.log('🔍 Verificando ruta:', { currentPath, currentFile });
+    // console.log('🔍 Verificando ruta:', { currentPath, currentFile });
     
     // Verificar rutas exactas
     if (AUTH_GUARD_CONFIG.publicPaths.includes(currentPath)) {
@@ -219,12 +219,12 @@ function redirectToLogin() {
                 loginUrl = `${baseUrl}/login/new-auth.html`;
             }
             
-            console.log('🔄 Redirigiendo a:', loginUrl);
+            // console.log('🔄 Redirigiendo a:', loginUrl);
             window.location.href = loginUrl;
         }, AUTH_GUARD_CONFIG.redirectDelay);
         
     } catch (error) {
-        console.error('Error redirecting to login:', error);
+        // console.error('Error redirecting to login:', error);
         // Fallback directo - intentar primero producción, luego desarrollo
         try {
             window.location.href = '/index.html';
@@ -326,29 +326,29 @@ function showAuthWarning() {
  */
 function initAuthGuard() {
     const currentPath = window.location.pathname;
-    console.log('🔒 AuthGuard iniciado para:', currentPath);
+    // console.log('🔒 AuthGuard iniciado para:', currentPath);
     
     // Verificar si estamos en una ruta pública
     if (isPublicRoute()) {
-        console.log('✅ Ruta pública detectada - Acceso permitido');
+        // console.log('✅ Ruta pública detectada - Acceso permitido');
         return; // Permitir acceso a rutas públicas
     }
     
-    console.log('🔐 Ruta protegida detectada - Verificando autenticación...');
+    // console.log('🔐 Ruta protegida detectada - Verificando autenticación...');
     
     // Verificar autenticación para rutas protegidas
     if (!isAuthenticated()) {
-        console.log('❌ Usuario NO autenticado - Redirigiendo al login');
+        // console.log('❌ Usuario NO autenticado - Redirigiendo al login');
         redirectToLogin();
         return;
     }
     
     // Si llegamos aquí, el usuario está autenticado
     const user = getCurrentUser();
-    console.log('✅ Usuario autenticado - Acceso permitido', {
-        user: user?.username || user?.email,
-        role: user?.cargo_rol || user?.role
-    });
+    // console.log('✅ Usuario autenticado - Acceso permitido', {
+    //     user: user?.username || user?.email,
+    //     role: user?.cargo_rol || user?.role
+    // });
 }
 
 /**
@@ -368,7 +368,7 @@ async function validateTokenWithServer(token) {
         
         return response.ok;
     } catch (error) {
-        console.warn('Error validating token with server:', error);
+        // console.warn('Error validating token with server:', error);
         return false; // En caso de error de red, asumir token inválido
     }
 }
@@ -384,7 +384,7 @@ function getCurrentUser() {
         const userData = localStorage.getItem(AUTH_GUARD_CONFIG.userDataKey);
         return userData ? JSON.parse(userData) : null;
     } catch (error) {
-        console.warn('Error getting current user:', error);
+        // console.warn('Error getting current user:', error);
         return null;
     }
 }

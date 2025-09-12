@@ -1,22 +1,22 @@
 // Sistema de partículas directo para cursos.html
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Inicializando sistema de partículas para cursos.html');
+    // console.log('🚀 Inicializando sistema de partículas para cursos.html');
     
     const canvas = document.getElementById('bgParticles');
     const particleContainer = document.querySelector('.particles-container');
     
     if (canvas) {
-        console.log('✅ Canvas encontrado, inicializando partículas de canvas');
+        // console.log('✅ Canvas encontrado, inicializando partículas de canvas');
         initCanvasParticles(canvas);
     } else {
-        console.error('❌ Canvas no encontrado');
+        // console.error('❌ Canvas no encontrado');
     }
     
     if (particleContainer) {
-        console.log('✅ Contenedor de partículas encontrado, inicializando partículas DOM');
+        // console.log('✅ Contenedor de partículas encontrado, inicializando partículas DOM');
         initDOMParticles(particleContainer);
     } else {
-        console.error('❌ Contenedor de partículas no encontrado');
+        // console.error('❌ Contenedor de partículas no encontrado');
     }
 });
 
@@ -197,7 +197,7 @@ function initCanvasParticles(canvas) {
     document.addEventListener('mouseleave', handleMouseLeave);
     window.addEventListener('resize', handleResize);
     
-    console.log('✅ Partículas de canvas inicializadas con interacción mejorada');
+    // console.log('✅ Partículas de canvas inicializadas con interacción mejorada');
 }
 
 // Partículas DOM
@@ -256,7 +256,7 @@ function initDOMParticles(container) {
         });
     }, 8000); // Intervalo más largo
     
-    console.log('✅ Partículas DOM inicializadas');
+    // console.log('✅ Partículas DOM inicializadas');
 }
 
 // Agregar estilos CSS dinámicamente
@@ -368,4 +368,4 @@ style.textContent = `
 `;
 
 document.head.appendChild(style);
-console.log('✅ Estilos CSS agregados dinámicamente');
+// console.log('✅ Estilos CSS agregados dinámicamente');

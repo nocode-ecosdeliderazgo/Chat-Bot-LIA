@@ -48,10 +48,10 @@ class WelcomePageManager {
             // Emitir evento de inicialización completa
             this.dispatchInitCompleteEvent();
             
-            console.log('💫 Welcome Page initialized successfully');
+            // console.log('💫 Welcome Page initialized successfully');
             
         } catch (error) {
-            console.error('❌ Error initializing Welcome Page:', error);
+            // console.error('❌ Error initializing Welcome Page:', error);
             this.handleInitializationError(error);
         }
     }
@@ -60,12 +60,12 @@ class WelcomePageManager {
         // Verificar preferencias de movimiento reducido
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             document.body.classList.add('reduced-motion');
-            console.log('🔄 Reduced motion enabled');
+            // console.log('🔄 Reduced motion enabled');
         }
 
         // Verificar soporte para animaciones web
         if (!window.requestAnimationFrame) {
-            console.warn('⚠️ RequestAnimationFrame not supported, using fallbacks');
+            // console.warn('⚠️ RequestAnimationFrame not supported, using fallbacks');
             document.body.classList.add('no-animations');
         }
     }
@@ -75,12 +75,12 @@ class WelcomePageManager {
             if (typeof initializeParticleSystem === 'function') {
                 initializeParticleSystem();
                 this.components.particles = true;
-                console.log('✨ Particle system initialized');
+                // console.log('✨ Particle system initialized');
             } else {
-                console.warn('⚠️ Particle system not available');
+                // console.warn('⚠️ Particle system not available');
             }
         } catch (error) {
-            console.error('❌ Error initializing particle system:', error);
+            // console.error('❌ Error initializing particle system:', error);
         }
     }
 
@@ -89,12 +89,12 @@ class WelcomePageManager {
             if (typeof ScrollAnimations === 'function') {
                 this.scrollAnimations = new ScrollAnimations();
                 this.components.scrollAnimations = this.scrollAnimations;
-                console.log('📜 Scroll animations initialized');
+                // console.log('📜 Scroll animations initialized');
             } else {
-                console.warn('⚠️ ScrollAnimations class not available');
+                // console.warn('⚠️ ScrollAnimations class not available');
             }
         } catch (error) {
-            console.error('❌ Error initializing scroll animations:', error);
+            // console.error('❌ Error initializing scroll animations:', error);
         }
     }
 
@@ -104,12 +104,12 @@ class WelcomePageManager {
             if (testimonialsCarousel && typeof TestimonialsCarousel === 'function') {
                 this.testimonialsCarousel = new TestimonialsCarousel(testimonialsCarousel);
                 this.components.carousel = this.testimonialsCarousel;
-                console.log('🎠 Testimonials carousel initialized');
+                // console.log('🎠 Testimonials carousel initialized');
             } else {
-                console.warn('⚠️ Testimonials carousel not found or class not available');
+                // console.warn('⚠️ Testimonials carousel not found or class not available');
             }
         } catch (error) {
-            console.error('❌ Error initializing carousel:', error);
+            // console.error('❌ Error initializing carousel:', error);
         }
     }
 
@@ -118,12 +118,12 @@ class WelcomePageManager {
             if (typeof AnimatedCounters === 'function') {
                 this.animatedCounters = new AnimatedCounters();
                 this.components.counters = this.animatedCounters;
-                console.log('🔢 Animated counters initialized');
+                // console.log('🔢 Animated counters initialized');
             } else {
-                console.warn('⚠️ AnimatedCounters class not available');
+                // console.warn('⚠️ AnimatedCounters class not available');
             }
         } catch (error) {
-            console.error('❌ Error initializing counters:', error);
+            // console.error('❌ Error initializing counters:', error);
         }
     }
 
@@ -132,12 +132,12 @@ class WelcomePageManager {
             if (typeof RevealEffects === 'function') {
                 this.revealEffects = new RevealEffects();
                 this.components.reveals = this.revealEffects;
-                console.log('🎭 Reveal effects initialized');
+                // console.log('🎭 Reveal effects initialized');
             } else {
-                console.warn('⚠️ RevealEffects class not available');
+                // console.warn('⚠️ RevealEffects class not available');
             }
         } catch (error) {
-            console.error('❌ Error initializing reveal effects:', error);
+            // console.error('❌ Error initializing reveal effects:', error);
         }
     }
 
@@ -146,19 +146,19 @@ class WelcomePageManager {
             if (typeof TextEffects === 'function') {
                 this.textEffects = new TextEffects();
                 this.components.textEffects = this.textEffects;
-                console.log('✍️ Text effects initialized');
+                // console.log('✍️ Text effects initialized');
             } else {
-                console.warn('⚠️ TextEffects class not available');
+                // console.warn('⚠️ TextEffects class not available');
             }
         } catch (error) {
-            console.error('❌ Error initializing text effects:', error);
+            // console.error('❌ Error initializing text effects:', error);
         }
     }
 
     bindGlobalEvents() {
         // Manejo de errores globales
         window.addEventListener('error', (e) => {
-            console.error('Global error:', e.error);
+            // console.error('Global error:', e.error);
         });
 
         // Manejo de cambios de visibilidad
@@ -256,21 +256,21 @@ class WelcomePageManager {
     }
 
     preloadCriticalResources() {
-        // Preload de fuentes críticas
-        const criticalFonts = [
-            'Inter-Regular.woff2',
-            'Inter-Bold.woff2'
-        ];
+        // Preload de fuentes críticas - Comentado porque las fuentes se cargan desde Google Fonts
+        // const criticalFonts = [
+        //     'Inter-Regular.woff2',
+        //     'Inter-Bold.woff2'
+        // ];
 
-        criticalFonts.forEach(font => {
-            const link = document.createElement('link');
-            link.rel = 'preload';
-            link.href = `/fonts/${font}`;
-            link.as = 'font';
-            link.type = 'font/woff2';
-            link.crossOrigin = 'anonymous';
-            document.head.appendChild(link);
-        });
+        // criticalFonts.forEach(font => {
+        //     const link = document.createElement('link');
+        //     link.rel = 'preload';
+        //     link.href = `/fonts/${font}`;
+        //     link.as = 'font';
+        //     link.type = 'font/woff2';
+        //     link.crossOrigin = 'anonymous';
+        //     document.head.appendChild(link);
+        // });
     }
 
     initializeAnalytics() {
@@ -286,21 +286,21 @@ class WelcomePageManager {
         });
 
         // Log estadísticas cada 30 segundos (solo para desarrollo)
-        if (process.env.NODE_ENV === 'development') {
+        if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
             setInterval(() => {
-                console.log('📊 User interaction stats:', eventCounts);
+                // console.log('📊 User interaction stats:', eventCounts);
             }, 30000);
         }
     }
 
     initializeServiceWorker() {
-        if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+        if ('serviceWorker' in navigator && typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'production') {
             navigator.serviceWorker.register('/sw.js')
                 .then(registration => {
-                    console.log('🔧 Service Worker registered:', registration);
+                    // console.log('🔧 Service Worker registered:', registration);
                 })
                 .catch(error => {
-                    console.log('❌ Service Worker registration failed:', error);
+                    // console.log('❌ Service Worker registration failed:', error);
                 });
         }
     }
@@ -323,7 +323,7 @@ class WelcomePageManager {
             }
         });
 
-        console.log('📐 Window resized, components updated');
+        // console.log('📐 Window resized, components updated');
     }
 
     handleEscapeKey() {
@@ -354,7 +354,7 @@ class WelcomePageManager {
         document.body.classList.add('initialization-error');
         
         // Crear mensaje de error para desarrolladores
-        if (process.env.NODE_ENV === 'development') {
+        if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
             const errorDiv = document.createElement('div');
             errorDiv.style.cssText = `
                 position: fixed;
@@ -420,7 +420,7 @@ class WelcomePageManager {
                 this.initializeTextEffects();
                 break;
             default:
-                console.warn(`Unknown component: ${name}`);
+                // console.warn(`Unknown component: ${name}`);
         }
     }
 
@@ -435,7 +435,7 @@ class WelcomePageManager {
         this.components = {};
         this.isInitialized = false;
         
-        console.log('🗑️ Welcome Page Manager destroyed');
+        // console.log('🗑️ Welcome Page Manager destroyed');
     }
 }
 
@@ -476,14 +476,14 @@ if (typeof window !== 'undefined') {
         
         status() {
             if (!this.manager) {
-                console.log('❌ Welcome Page Manager not initialized');
-                return;
+            // console.log('❌ Welcome Page Manager not initialized');
+            return;
             }
             
-            console.log('📊 Welcome Page Status:');
-            console.log('Initialized:', this.manager.isInitialized);
-            console.log('Components:', Object.keys(this.manager.components));
-            console.log('Manager:', this.manager);
+            // console.log('📊 Welcome Page Status:');
+            // console.log('Initialized:', this.manager.isInitialized);
+            // console.log('Components:', Object.keys(this.manager.components));
+            // console.log('Manager:', this.manager);
         }
     };
 }

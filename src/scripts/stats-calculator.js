@@ -12,7 +12,7 @@ class StatsCalculator {
 
     async initialize() {
         if (!this.supabase) {
-            console.warn('Supabase no está disponible, usando datos por defecto');
+            // console.warn('Supabase no está disponible, usando datos por defecto');
             return this.getDefaultStats();
         }
 
@@ -27,13 +27,13 @@ class StatsCalculator {
             // Verificar si todos los valores son 0, usar valores por defecto
             const allZero = Object.values(this.stats).every(value => value === 0);
             if (allZero) {
-                console.warn('Todos los valores calculados son 0, usando datos por defecto');
+                // console.warn('Todos los valores calculados son 0, usando datos por defecto');
                 return this.getDefaultStats();
             }
 
             return this.stats;
         } catch (error) {
-            console.error('Error al calcular estadísticas:', error);
+            // console.error('Error al calcular estadísticas:', error);
             return this.getDefaultStats();
         }
     }
@@ -47,7 +47,7 @@ class StatsCalculator {
 
             if (!countError && count) {
                 this.stats.activeStudents = count;
-                console.log('Estudiantes activos (total usuarios):', this.stats.activeStudents);
+                // console.log('Estudiantes activos (total usuarios):', this.stats.activeStudents);
                 return;
             }
 
@@ -61,7 +61,7 @@ class StatsCalculator {
             if (!sessionError && activeSessions && activeSessions.length > 0) {
                 const uniqueUsers = new Set(activeSessions.map(s => s.user_id));
                 this.stats.activeStudents = uniqueUsers.size;
-                console.log('Estudiantes activos (sesiones):', this.stats.activeStudents);
+                // console.log('Estudiantes activos (sesiones):', this.stats.activeStudents);
                 return;
             }
 
@@ -74,7 +74,7 @@ class StatsCalculator {
             if (!activityError && recentActivity && recentActivity.length > 0) {
                 const uniqueUsers = new Set(recentActivity.map(a => a.user_id));
                 this.stats.activeStudents = uniqueUsers.size;
-                console.log('Estudiantes activos (actividad):', this.stats.activeStudents);
+                // console.log('Estudiantes activos (actividad):', this.stats.activeStudents);
                 return;
             }
 
@@ -86,7 +86,7 @@ class StatsCalculator {
 
             if (!loginError && recentLogins && recentLogins.length > 0) {
                 this.stats.activeStudents = recentLogins.length;
-                console.log('Estudiantes activos (logins):', this.stats.activeStudents);
+                // console.log('Estudiantes activos (logins):', this.stats.activeStudents);
                 return;
             }
 
@@ -99,12 +99,12 @@ class StatsCalculator {
             if (!visitError && recentVisits && recentVisits.length > 0) {
                 const uniqueUsers = new Set(recentVisits.map(v => v.user_id));
                 this.stats.activeStudents = uniqueUsers.size;
-                console.log('Estudiantes activos (visitas):', this.stats.activeStudents);
+                // console.log('Estudiantes activos (visitas):', this.stats.activeStudents);
                 return;
             }
 
         } catch (error) {
-            console.error('Error calculando estudiantes activos:', error);
+            // console.error('Error calculando estudiantes activos:', error);
             this.stats.activeStudents = 0;
         }
     }
@@ -118,7 +118,7 @@ class StatsCalculator {
 
             if (!courseError && courses) {
                 this.stats.completedProjects = courses;
-                console.log('Proyectos completados (cursos disponibles):', this.stats.completedProjects);
+                // console.log('Proyectos completados (cursos disponibles):', this.stats.completedProjects);
                 return;
             }
 
@@ -129,7 +129,7 @@ class StatsCalculator {
 
             if (!certError && certificates) {
                 this.stats.completedProjects = certificates;
-                console.log('Proyectos completados (certificados):', this.stats.completedProjects);
+                // console.log('Proyectos completados (certificados):', this.stats.completedProjects);
                 return;
             }
 
@@ -141,7 +141,7 @@ class StatsCalculator {
 
             if (!moduleError && completedModules) {
                 this.stats.completedProjects = completedModules;
-                console.log('Proyectos completados (módulos):', this.stats.completedProjects);
+                // console.log('Proyectos completados (módulos):', this.stats.completedProjects);
                 return;
             }
 
@@ -153,7 +153,7 @@ class StatsCalculator {
 
             if (!sessionError && completedSessions) {
                 this.stats.completedProjects = completedSessions;
-                console.log('Proyectos completados (sesiones):', this.stats.completedProjects);
+                // console.log('Proyectos completados (sesiones):', this.stats.completedProjects);
                 return;
             }
 
@@ -165,12 +165,12 @@ class StatsCalculator {
 
             if (!quizError && highScoreQuizzes) {
                 this.stats.completedProjects = highScoreQuizzes;
-                console.log('Proyectos completados (quiz):', this.stats.completedProjects);
+                // console.log('Proyectos completados (quiz):', this.stats.completedProjects);
                 return;
             }
 
         } catch (error) {
-            console.error('Error calculando proyectos completados:', error);
+            // console.error('Error calculando proyectos completados:', error);
             this.stats.completedProjects = 0;
         }
     }
@@ -190,8 +190,8 @@ class StatsCalculator {
                 // Convertir a horas y redondear
                 const courseHours = courseMinutes / 60;
                 this.stats.contentHours = Math.round(courseHours);
-                console.log('Horas de contenido (cursos AI):', courseHours.toFixed(2), 'horas');
-                console.log('Total horas de contenido (redondeado):', this.stats.contentHours);
+                // console.log('Horas de contenido (cursos AI):', courseHours.toFixed(2), 'horas');
+                // console.log('Total horas de contenido (redondeado):', this.stats.contentHours);
                 return;
             }
 
@@ -206,16 +206,16 @@ class StatsCalculator {
                 }, 0);
                 const sessionHours = sessionMinutes / 60;
                 this.stats.contentHours = Math.round(sessionHours);
-                console.log('Horas de contenido (sesiones de estudio):', sessionHours.toFixed(2), 'horas');
+                // console.log('Horas de contenido (sesiones de estudio):', sessionHours.toFixed(2), 'horas');
                 return;
             }
 
             // Estrategia 3: Si no hay sesiones, usar valor por defecto
             this.stats.contentHours = 24; // Valor por defecto
-            console.log('Horas de contenido (valor por defecto):', this.stats.contentHours);
+            // console.log('Horas de contenido (valor por defecto):', this.stats.contentHours);
 
         } catch (error) {
-            console.error('Error calculando horas de contenido:', error);
+            // console.error('Error calculando horas de contenido:', error);
             this.stats.contentHours = 24; // Valor por defecto en caso de error
         }
     }
@@ -236,7 +236,7 @@ class StatsCalculator {
                 }).length;
 
                 this.stats.satisfactionPercentage = Math.round((satisfiedResponses / totalResponses) * 100);
-                console.log('Satisfacción (Likert):', this.stats.satisfactionPercentage + '%');
+                // console.log('Satisfacción (Likert):', this.stats.satisfactionPercentage + '%');
                 return;
             }
 
@@ -253,7 +253,7 @@ class StatsCalculator {
                 }).length;
 
                 this.stats.satisfactionPercentage = Math.round((highScores / totalQuizzes) * 100);
-                console.log('Satisfacción (quiz):', this.stats.satisfactionPercentage + '%');
+                // console.log('Satisfacción (quiz):', this.stats.satisfactionPercentage + '%');
                 return;
             }
 
@@ -270,16 +270,16 @@ class StatsCalculator {
                 }).length;
 
                 this.stats.satisfactionPercentage = Math.round((highProgress / totalModules) * 100);
-                console.log('Satisfacción (progreso):', this.stats.satisfactionPercentage + '%');
+                // console.log('Satisfacción (progreso):', this.stats.satisfactionPercentage + '%');
                 return;
             }
 
             // Fallback: Usar valor por defecto
             this.stats.satisfactionPercentage = 95;
-            console.log('Satisfacción (por defecto):', this.stats.satisfactionPercentage + '%');
+            // console.log('Satisfacción (por defecto):', this.stats.satisfactionPercentage + '%');
 
         } catch (error) {
-            console.error('Error calculando porcentaje de satisfacción:', error);
+            // console.error('Error calculando porcentaje de satisfacción:', error);
             this.stats.satisfactionPercentage = 95;
         }
     }
@@ -296,12 +296,12 @@ class StatsCalculator {
 
 // Función global para actualizar los contadores en el DOM
 async function updateStatsCounters() {
-    console.log('Iniciando actualización de estadísticas...');
+    // console.log('Iniciando actualización de estadísticas...');
     
     const calculator = new StatsCalculator();
     const stats = await calculator.initialize();
 
-    console.log('Estadísticas calculadas:', stats);
+    // console.log('Estadísticas calculadas:', stats);
 
     // Actualizar cada contador
     const statElements = {
