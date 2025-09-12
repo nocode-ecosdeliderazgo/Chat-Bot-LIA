@@ -656,8 +656,22 @@ function exportNoteToPDF() {
 }
 
 function toggleNotesSearch() {
-    console.log('🔍 Toggle búsqueda de notas - Funcionalidad pendiente');
-    showNotification('🔍 Función de búsqueda en desarrollo', 'info');
+    console.log('🔍 Toggle búsqueda de notas');
+    
+    // Verificar si existe el objeto chatOnline con la función de búsqueda
+    if (window.chatOnline && typeof window.chatOnline.searchNotes === 'function') {
+        console.log('✅ Usando función de búsqueda de chatOnline');
+        window.chatOnline.searchNotes();
+    } 
+    // Fallback: verificar si existe la función global
+    else if (typeof window.searchNotes === 'function') {
+        console.log('✅ Usando función global de búsqueda');
+        window.searchNotes();
+    }
+    else {
+        console.warn('⚠️ No se encontró la función de búsqueda');
+        showNotification('🔍 Sistema de búsqueda no disponible', 'warning');
+    }
 }
 
 function toggleNotesSection() {
