@@ -5569,6 +5569,98 @@ app.get('/api/community/questions/:questionId/answers', async (req, res) => {
     }
 });
 
+// POST /api/community/questions/:questionId/answers - Crear respuesta para una pregunta específica
+app.post('/api/community/questions/:questionId/answers', async (req, res) => {
+    try {
+        console.log('📝 === INICIO CREACIÓN RESPUESTA (NUEVA RUTA) ===');
+        const { questionId } = req.params;
+        const { content, user_id } = req.body;
+        
+        console.log('📋 Body recibido:', req.body);
+        console.log('📋 Question ID desde params:', questionId);
+        
+        // Validación de campos requeridos
+        if (!questionId || !content || !user_id) {
+            console.log('❌ Faltan campos obligatorios');
+            return res.status(400).json({
+                success: false,
+                error: 'Faltan campos obligatorios: questionId (params), content, user_id (body)'
+            });
+        }
+        
+        // Verificar que el pool esté disponible
+        if (!pool) {
+            console.log('❌ Pool de base de datos no disponible');
+            return res.status(500).json({
+                success: false,
+                error: 'Base de datos no disponible'
+            });
+        }
+        
+        console.log('🗃️ Pool de base de datos disponible, procediendo con INSERT...');
+        
+        // Crear la respuesta
+        const result = await pool.query(`
+            INSERT INTO community_answers 
+            (question_id, user_id, content, votes_count, created_at, updated_at)
+            VALUES ($1, $2, $3, 0, NOW(), NOW())
+            RETURNING *
+        `, [questionId, user_id, content.trim()]);
+        
+        console.log('📊 Resultado de INSERT:', {
+            rowCount: result.rowCount,
+            hasRows: result.rows.length > 0,
+            answerId: result.rows[0]?.id
+        });
+        
+        if (result.rowCount === 0) {
+            throw new Error('No se pudo insertar la respuesta');
+        }
+        
+        const answer = result.rows[0];
+        
+        // Obtener datos del usuario para la respuesta
+        const userResult = await pool.query(`
+            SELECT username, display_name, first_name, profile_picture_url
+            FROM users 
+            WHERE id = $1
+        `, [user_id]);
+        
+        const userData = userResult.rows[0] || {};
+        console.log('👤 Datos de usuario encontrados:', userData);
+        
+        // Preparar datos de respuesta
+        const responseData = {
+            id: answer.id,
+            question_id: answer.question_id,
+            content: answer.content,
+            votes_count: answer.votes_count || 0,
+            is_accepted: answer.is_accepted || false,
+            created_at: answer.created_at,
+            author: {
+                id: answer.user_id,
+                name: userData.display_name || userData.first_name || userData.username || 'Usuario',
+                avatar_url: userData.profile_picture_url || '/assets/images/default-avatar.svg'
+            }
+        };
+        
+        console.log(`✅ Respuesta creada exitosamente: ${answer.id}`);
+        res.status(201).json({
+            success: true,
+            data: responseData,
+            message: 'Respuesta creada exitosamente'
+        });
+        
+    } catch (error) {
+        console.error('❌ Error creando respuesta:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error creando respuesta',
+            details: error.message
+        });
+    }
+});
+
 // GET /api/community/questions/:id - Obtener una pregunta específica
 app.get('/api/community/questions/:id', async (req, res) => {
     try {

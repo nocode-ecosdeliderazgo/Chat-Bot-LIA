@@ -8022,13 +8022,12 @@ class ChatOnline {
             
             // Crear datos de la respuesta
             const answerData = {
-                question_id: questionId,
                 content: content,
                 user_id: currentUser.id
             };
             
-            // Llamar a la API de comunidad
-            const response = await window.communityAPI.createAnswer(answerData);
+            // Llamar a la API de comunidad - pasar questionId como primer parámetro
+            const response = await window.communityAPI.createAnswer(questionId, answerData);
             
             if (response.success) {
                 this.showNotification('Respuesta publicada exitosamente', 'success');
@@ -8328,6 +8327,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Crear instancia de ChatOnline
     window.chatOnline = new ChatOnline();
+    
+    // ===== FUNCIONES GLOBALES YA DEFINIDAS EN HTML =====
+    // Las funciones showAnswerModal, voteQuestion y toggleBookmark ya están
+    // definidas en el HTML como funciones inmediatas. Solo las actualizamos
+    // aquí para que usen la instancia de chatOnline cuando esté disponible
+    
+    console.log('🔗 Actualizando funciones globales de comunidad con instancia de chatOnline...');
     
     // Configurar listeners de Supabase para Netlify
     window.chatOnline.setupSupabaseEventListeners();

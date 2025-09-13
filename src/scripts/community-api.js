@@ -36,6 +36,20 @@ class CommunityAPI {
     }
 
     /**
+     * Set current user information for requests
+     * @param {Object} user - User object
+     */
+    setCurrentUser(user) {
+        if (user && user.id) {
+            this.setUserId(user.id);
+            this.currentUser = user;
+        } else {
+            this.currentUser = null;
+            delete this.headers['X-User-Id'];
+        }
+    }
+
+    /**
      * Generic API request method
      * @param {string} endpoint - API endpoint
      * @param {Object} options - Request options

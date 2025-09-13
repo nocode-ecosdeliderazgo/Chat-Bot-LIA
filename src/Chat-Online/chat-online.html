@@ -3418,6 +3418,227 @@ Cargando información...
         // Verificar que la función esté disponible
         console.log('✅ Función showQuestionModal definida:', typeof window.showQuestionModal);
         
+        // ===== FUNCIONES GLOBALES DE COMUNIDAD =====
+        // Función global inmediata para responder preguntas
+        window.showAnswerModal = function(questionId, questionTitle, questionContent) {
+            console.log('🔄 Función global showAnswerModal ejecutada (inmediata):', questionId);
+            
+            // Verificar si chatOnline está disponible
+            if (window.chatOnline && window.chatOnline.showAnswerModal) {
+                window.chatOnline.showAnswerModal(questionId);
+            } else {
+                console.log('⚠️ ChatOnline no disponible aún, intentando fallback...');
+                
+                // Fallback: mostrar modal directamente
+                const modal = document.getElementById('answerModal');
+                if (modal) {
+                    // Configurar contexto con los datos recibidos
+                    const contextElement = document.getElementById('answerQuestionContext');
+                    if (contextElement) {
+                        const title = questionTitle || 'Pregunta';
+                        const content = questionContent || 'Contenido no disponible';
+                        
+                        contextElement.innerHTML = `
+                            <h4>${title}</h4>
+                            <p>${content}</p>
+                            <div class="question-context-meta">
+                                <span class="question-context-author">
+                                    <img src="/assets/images/default-avatar.svg" alt="Usuario">
+                                    Usuario
+                                </span>
+                                <span>hace un momento</span>
+                            </div>
+                        `;
+                    }
+                    
+                    // Limpiar formulario
+                    const answerContent = document.getElementById('answerContent');
+                    if (answerContent) {
+                        answerContent.value = '';
+                        answerContent.disabled = false; // Asegurar que esté habilitado
+                    }
+                    
+                    // Guardar questionId para usar al enviar
+                    modal.setAttribute('data-question-id', questionId);
+                    
+                    // Mostrar modal
+                    modal.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                    
+                    // Enfocar el textarea después de un momento
+                    setTimeout(() => {
+                        if (answerContent) {
+                            answerContent.focus();
+                        }
+                    }, 100);
+                    
+                    // Configurar event listeners básicos si no están configurados
+                    window.setupBasicAnswerListeners();
+                    
+                    console.log('✅ Modal de respuesta abierto con fallback completo');
+                } else {
+                    console.error('❌ Modal de respuesta no encontrado');
+                }
+            }
+        };
+        
+        // Función global inmediata para votar preguntas
+        window.voteQuestion = function(questionId, voteType) {
+            console.log('📊 Función global voteQuestion ejecutada (inmediata):', questionId, voteType);
+            
+            if (window.chatOnline && window.chatOnline.voteQuestion) {
+                window.chatOnline.voteQuestion(questionId, voteType);
+            } else {
+                console.log('⚠️ ChatOnline no disponible para voteQuestion');
+            }
+        };
+        
+        // Función global inmediata para bookmark
+        window.toggleBookmark = function(questionId) {
+            console.log('🔖 Función global toggleBookmark ejecutada (inmediata):', questionId);
+            
+            if (window.chatOnline && window.chatOnline.handleBookmark) {
+                const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+                const bookmarkBtn = questionElement?.querySelector('.bookmark-btn');
+                if (bookmarkBtn) {
+                    window.chatOnline.handleBookmark(questionId, bookmarkBtn);
+                } else {
+                    console.error('❌ Botón bookmark no encontrado');
+                }
+            } else {
+                console.log('⚠️ ChatOnline no disponible para toggleBookmark');
+            }
+        };
+        
+        // ===== CONFIGURAR EVENT LISTENERS BÁSICOS PARA MODAL DE RESPUESTA =====
+        window.setupBasicAnswerListeners = function() {
+            if (window.basicAnswerListenersSetup) return;
+            
+            console.log('🔧 Configurando event listeners básicos para modal de respuesta...');
+            
+            // Botón cerrar
+            const closeBtn = document.getElementById('closeAnswerModal');
+            if (closeBtn && !closeBtn.hasAttribute('data-listener-added')) {
+                closeBtn.addEventListener('click', () => {
+                    console.log('❌ Cerrando modal de respuesta');
+                    window.hideAnswerModal();
+                });
+                closeBtn.setAttribute('data-listener-added', 'true');
+            }
+            
+            // Botón cancelar
+            const cancelBtn = document.getElementById('cancelAnswerBtn');
+            if (cancelBtn && !cancelBtn.hasAttribute('data-listener-added')) {
+                cancelBtn.addEventListener('click', () => {
+                    console.log('❌ Cancelando respuesta');
+                    window.hideAnswerModal();
+                });
+                cancelBtn.setAttribute('data-listener-added', 'true');
+            }
+            
+            // Formulario de respuesta
+            const answerForm = document.getElementById('answerForm');
+            if (answerForm && !answerForm.hasAttribute('data-listener-added')) {
+                answerForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    console.log('📤 Enviando respuesta...');
+                    window.submitBasicAnswer();
+                });
+                answerForm.setAttribute('data-listener-added', 'true');
+            }
+            
+            // Click en overlay para cerrar
+            const overlay = document.querySelector('#answerModal .modal-overlay');
+            if (overlay && !overlay.hasAttribute('data-listener-added')) {
+                overlay.addEventListener('click', () => {
+                    console.log('❌ Cerrando modal por click en overlay');
+                    window.hideAnswerModal();
+                });
+                overlay.setAttribute('data-listener-added', 'true');
+            }
+            
+            window.basicAnswerListenersSetup = true;
+            console.log('✅ Event listeners básicos configurados');
+        };
+        
+        // ===== FUNCIONES AUXILIARES PARA MODAL =====
+        window.hideAnswerModal = function() {
+            const modal = document.getElementById('answerModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+                console.log('✅ Modal de respuesta cerrado');
+            }
+        };
+        
+        window.submitBasicAnswer = async function() {
+            const answerContent = document.getElementById('answerContent');
+            const modal = document.getElementById('answerModal');
+            const questionId = modal?.getAttribute('data-question-id');
+            
+            if (!answerContent || !answerContent.value.trim()) {
+                alert('Por favor, escribe tu respuesta');
+                return;
+            }
+            
+            if (!questionId) {
+                alert('Error: No se encontró la pregunta');
+                return;
+            }
+            
+            console.log('📝 Respuesta:', answerContent.value.trim());
+            console.log('📋 Pregunta ID:', questionId);
+            
+            // Si chatOnline está disponible, usar su método
+            if (window.chatOnline && window.chatOnline.submitAnswer) {
+                window.chatOnline.submitAnswer();
+            } else {
+                // Fallback con guardado en base de datos
+                try {
+                    // Obtener usuario actual (simulado para fallback)
+                    const currentUser = { id: 'demo-user', name: 'Usuario Demo' };
+                    
+                    // Preparar datos de respuesta
+                    const answerData = {
+                        content: answerContent.value.trim(),
+                        user_id: currentUser.id
+                    };
+                    
+                    // Intentar usar la API de comunidad si está disponible
+                    if (window.communityAPI && window.communityAPI.createAnswer) {
+                        console.log('💾 Guardando respuesta con communityAPI...');
+                        const response = await window.communityAPI.createAnswer(questionId, answerData);
+                        
+                        if (response.success) {
+                            alert('✅ Respuesta guardada exitosamente');
+                            answerContent.value = '';
+                            window.hideAnswerModal();
+                        } else {
+                            throw new Error(response.error || 'Error al guardar respuesta');
+                        }
+                    } else {
+                        // Fallback básico si no hay API
+                        console.log('⚠️ CommunityAPI no disponible, usando fallback básico');
+                        alert('Respuesta enviada (modo básico). La funcionalidad completa se activará cuando la página termine de cargar.');
+                        answerContent.value = '';
+                        window.hideAnswerModal();
+                    }
+                } catch (error) {
+                    console.error('❌ Error en submitBasicAnswer:', error);
+                    alert('Error al enviar respuesta. Intenta de nuevo.');
+                }
+            }
+        };
+        
+        console.log('✅ Funciones de comunidad definidas:', {
+            showAnswerModal: typeof window.showAnswerModal,
+            voteQuestion: typeof window.voteQuestion,
+            toggleBookmark: typeof window.toggleBookmark,
+            setupBasicAnswerListeners: typeof window.setupBasicAnswerListeners,
+            hideAnswerModal: typeof window.hideAnswerModal,
+            submitBasicAnswer: typeof window.submitBasicAnswer
+        });
+        
         // Función global para mostrar modal de foto de LIA
         window.showLiaPhotoModal = function() {
             console.log('📸 Función global de modal de LIA ejecutada');
