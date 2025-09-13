@@ -3632,6 +3632,18 @@ Cargando información...
                             alert('✅ Respuesta guardada exitosamente');
                             answerContent.value = '';
                             window.hideAnswerModal();
+                            
+                            // Actualizar contador de respuestas inmediatamente
+                            window.updateAnswerCount(questionId);
+                            
+                            // Si hay instancia de chatOnline, recargar las preguntas
+                            if (window.chatOnline && window.chatOnline.loadCommunityQuestions) {
+                                console.log('🔄 Recargando preguntas para mostrar nueva respuesta...');
+                                setTimeout(() => {
+                                    window.chatOnline.communityQuestionsLoaded = false;
+                                    window.chatOnline.loadCommunityQuestions('after-basic-answer');
+                                }, 500);
+                            }
                         } else {
                             throw new Error(response.error || 'Error al guardar respuesta');
                         }
@@ -3657,6 +3669,43 @@ Cargando información...
             hideAnswerModal: typeof window.hideAnswerModal,
             submitBasicAnswer: typeof window.submitBasicAnswer
         });
+        
+        // Función global para actualizar contador de respuestas
+        window.updateAnswerCount = function(questionId) {
+            console.log('📊 Actualizando contador de respuestas para pregunta:', questionId);
+            
+            // Buscar el elemento de la pregunta
+            const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+            if (!questionElement) {
+                console.log('⚠️ Elemento de pregunta no encontrado:', questionId);
+                return;
+            }
+            
+            // Buscar el contador de respuestas (pueden haber múltiples formatos)
+            const answerCountElements = questionElement.querySelectorAll('.question-answers, [class*="answer"]');
+            
+            answerCountElements.forEach(element => {
+                const text = element.textContent;
+                if (text.includes('respuesta')) {
+                    // Extraer número actual
+                    const currentCount = parseInt(text.match(/\d+/)?.[0] || '0');
+                    const newCount = currentCount + 1;
+                    
+                    // Actualizar texto con nueva cantidad
+                    const newText = text.replace(/\d+/, newCount);
+                    element.textContent = newText;
+                    
+                    console.log(`✅ Contador actualizado de ${currentCount} a ${newCount} respuestas`);
+                    
+                    // Agregar efecto visual
+                    element.style.background = 'rgba(68, 229, 255, 0.2)';
+                    element.style.transition = 'all 0.3s ease';
+                    setTimeout(() => {
+                        element.style.background = '';
+                    }, 1000);
+                }
+            });
+        };
         
         // Función global para mostrar modal de foto de LIA
         window.showLiaPhotoModal = function() {

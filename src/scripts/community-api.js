@@ -177,6 +177,17 @@ class CommunityAPI {
     }
 
     /**
+     * Get answers for a question with sorting (alias)
+     * @param {string} questionId - Question ID
+     * @param {string} sort - Sort order ('votes', 'recent', 'oldest')
+     * @returns {Promise<Object>} - Answers response
+     */
+    async getQuestionAnswers(questionId, sort = 'votes') {
+        const params = sort ? `?sort=${sort}` : '';
+        return this.request(`/questions/${questionId}/answers${params}`);
+    }
+
+    /**
      * Create an answer for a question
      * @param {string} questionId - Question ID
      * @param {Object} answerData - Answer data
