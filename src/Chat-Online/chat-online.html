@@ -5866,25 +5866,51 @@ Generado desde Coach LIA IA - ${currentDate}
             },
 
             // Función para marcar algunas preguntas como propias para testing
-            markSampleQuestionsAsOwn() {
+            markSampleQuestionsAsOwn(forceRefresh = false) {
                 const questions = document.querySelectorAll('.question-item, .community-question');
-                console.log(`🧪 Marcando preguntas de prueba como propias`);
+                console.log(`🧪 Intentando marcar ${questions.length} preguntas encontradas`);
 
+                if (questions.length === 0) {
+                    console.warn('⚠️ No se encontraron preguntas. Reintentando en 2 segundos...');
+                    setTimeout(() => this.markSampleQuestionsAsOwn(true), 2000);
+                    return;
+                }
+
+                let marked = 0;
                 questions.forEach((question, index) => {
                     // Marcar cada tercera pregunta como propia para testing
                     if (index % 3 === 0) {
                         question.classList.add('my-question');
+                        question.dataset.isOwn = 'true';
 
                         // También intentar modificar el texto del autor si existe
-                        const authorElement = question.querySelector('.question-author, .author-name');
+                        const authorElement = question.querySelector('.question-author, .author-name, .user-name');
                         if (authorElement && !authorElement.dataset.originalText) {
                             authorElement.dataset.originalText = authorElement.textContent;
                             authorElement.textContent = localStorage.getItem('userName') || 'Usuario Prueba';
                         }
 
-                        console.log(`🧪 Pregunta ${index + 1} marcada como propia`);
+                        marked++;
+                        console.log(`🧪 Pregunta ${index + 1} marcada como propia (total: ${marked})`);
                     }
                 });
+
+                console.log(`✅ Se marcaron ${marked} preguntas como propias de ${questions.length} totales`);
+
+                // Si se ejecutó por fuerza, aplicar filtros después
+                if (forceRefresh) {
+                    setTimeout(() => this.applyAllFilters(), 500);
+                }
+            },
+
+            // Función para crear preguntas propias manualmente (para debugging)
+            createTestOwnQuestions() {
+                console.log('🧪 Creando preguntas de prueba como propias...');
+
+                // Intentar marcar preguntas existentes primero
+                this.markSampleQuestionsAsOwn(true);
+
+                console.log('✅ Preguntas de prueba creadas. Ejecuta el filtro "Mis preguntas" para verlas.');
             },
 
             // Inicializar sistema
@@ -6068,11 +6094,18 @@ Generado desde Coach LIA IA - ${currentDate}
             // Verificaciones de filtros específicos
             checkTypeFilter(question) {
                 switch (this.state.type) {
-                    case 'all': return true;
-                    case 'unanswered': return !this.isQuestionAnswered(question);
-                    case 'answered': return this.isQuestionAnswered(question);
-                    case 'mine': return this.isMyQuestion(question);
-                    default: return true;
+                    case 'all':
+                        return true;
+                    case 'unanswered':
+                        return !this.isQuestionAnswered(question);
+                    case 'answered':
+                        return this.isQuestionAnswered(question);
+                    case 'mine':
+                        const isMine = this.isMyQuestion(question);
+                        console.log(`🔍 Filtro 'mine': pregunta ${isMine ? 'ES' : 'NO ES'} mía`);
+                        return isMine;
+                    default:
+                        return true;
                 }
             },
 
@@ -6274,12 +6307,13 @@ Generado desde Coach LIA IA - ${currentDate}
                     }
                 }
 
-                // Verificar clases CSS
+                // Verificar clases CSS y atributos de datos
                 if (question.classList.contains('own-question') ||
                     question.classList.contains('my-question') ||
                     question.classList.contains('user-own') ||
-                    authorElement.classList.contains('current-user')) {
-                    console.log('👤 Pregunta propia encontrada por clase CSS');
+                    question.dataset.isOwn === 'true' ||
+                    (authorElement && authorElement.classList.contains('current-user'))) {
+                    console.log('👤 Pregunta propia encontrada por clase CSS o atributo');
                     return true;
                 }
 
@@ -6781,7 +6815,11 @@ Generado desde Coach LIA IA - ${currentDate}
         // Función global para debugging
         window.debugCommunityFilters = () => CommunityFilters.debugFilters();
 
-        console.log('🛠️ Para debuggear filtros, ejecuta en consola: debugCommunityFilters()');
+        // Función global para crear preguntas de prueba
+        window.createTestOwnQuestions = () => CommunityFilters.createTestOwnQuestions();
+
+        console.log('🛠️ Para debuggear filtros, ejecuta: debugCommunityFilters()');
+        console.log('🧪 Para crear preguntas de prueba propias, ejecuta: createTestOwnQuestions()');
 
     </script>
 
