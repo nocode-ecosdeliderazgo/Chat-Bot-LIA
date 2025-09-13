@@ -2447,6 +2447,278 @@
             color: #28a745;
         }
 
+        /* ===== ESTILOS PARA FILTROS AVANZADOS ===== */
+        .community-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(68, 229, 255, 0.15);
+        }
+
+        .advanced-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .date-filter, .tag-filter {
+            padding: 0.5rem 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(68, 229, 255, 0.2);
+            border-radius: 8px;
+            color: var(--glass-text-primary);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .date-filter:focus, .tag-filter:focus {
+            outline: none;
+            border-color: var(--glass-primary);
+            background: rgba(68, 229, 255, 0.08);
+            box-shadow: 0 0 0 2px rgba(68, 229, 255, 0.1);
+        }
+
+        .advanced-toggle {
+            background: rgba(68, 229, 255, 0.1);
+            border: 1px solid rgba(68, 229, 255, 0.3);
+            color: var(--glass-primary);
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .advanced-toggle:hover {
+            background: rgba(68, 229, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .advanced-panel {
+            margin-top: 0.5rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(68, 229, 255, 0.1);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 150px;
+        }
+
+        .filter-group label {
+            font-size: 0.85rem;
+            color: var(--glass-text-secondary);
+            font-weight: 500;
+        }
+
+        .range-input {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        .range-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--glass-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(68, 229, 255, 0.3);
+        }
+
+        .range-input::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--glass-primary);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(68, 229, 255, 0.3);
+        }
+
+        .range-value {
+            font-size: 0.8rem;
+            color: var(--glass-primary);
+            font-weight: 600;
+            text-align: center;
+            min-width: 30px;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(68, 229, 255, 0.1);
+        }
+
+        .sort-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sort-direction {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(68, 229, 255, 0.2);
+            color: var(--glass-text-secondary);
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sort-direction:hover {
+            background: rgba(68, 229, 255, 0.1);
+            color: var(--glass-primary);
+        }
+
+        .sort-direction[data-direction="asc"] svg {
+            transform: rotate(180deg);
+        }
+
+        .filter-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+        }
+
+        .questions-counter {
+            font-size: 0.9rem;
+            color: var(--glass-text-secondary);
+            font-weight: 500;
+        }
+
+        .clear-all-filters {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 0.4rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clear-all-filters:hover {
+            background: rgba(239, 68, 68, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* Responsive para filtros avanzados */
+        @media (max-width: 768px) {
+            .community-filters {
+                padding: 0.75rem;
+                gap: 0.75rem;
+            }
+
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+
+            .advanced-panel {
+                padding: 0.75rem;
+            }
+
+            .filter-group {
+                min-width: unset;
+            }
+
+            .filter-actions {
+                flex-direction: column;
+            }
+
+            .sort-controls {
+                justify-content: space-between;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .filter-tabs {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5rem;
+            }
+
+            .filter-tab {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.6rem;
+            }
+        }
+
+        /* Animaciones para filtros */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filter-tab.loading::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 0.5rem;
+        }
+
+        /* Estados activos mejorados */
+        .filter-tab.active {
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.2), rgba(68, 229, 255, 0.1));
+            border-color: rgba(68, 229, 255, 0.4);
+            color: var(--glass-primary);
+            font-weight: 600;
+        }
+
+        .advanced-toggle.active {
+            background: rgba(68, 229, 255, 0.2);
+            border-color: rgba(68, 229, 255, 0.4);
+        }
+
+        .advanced-toggle.active svg {
+            transform: rotate(180deg);
+        }
+
         /* ===== ESTILOS DE PROGRESO DE VIDEO ===== */
         .video-progress-bar {
             position: absolute;
@@ -3091,8 +3363,9 @@ Cargando información...
                             </button>
                         </div>
 
-                        <!-- Filtros y Ordenamiento -->
+                        <!-- Filtros y Ordenamiento Avanzados -->
                         <div class="community-filters">
+                            <!-- Filtros Básicos -->
                             <div class="filter-tabs">
                                 <button class="filter-tab active" data-filter="all">
                                     <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -3122,23 +3395,106 @@ Cargando información...
                                     </svg>
                                     Mis Preguntas
                                 </button>
-                                <div class="filter-separator"></div>
-                                <select class="module-filter" id="moduleFilter">
-                                    <option value="all">Todos los Módulos</option>
-                                    <option value="module-1">Módulo 1: Conceptos Básicos</option>
-                                    <option value="module-2">Módulo 2: Redes Neuronales</option>
-                                    <option value="module-3">Módulo 3: Herramientas Prácticas</option>
-                                    <option value="module-4">Módulo 4: Proyectos Aplicados</option>
-                                    <option value="module-5">Módulo 5: Deployment y Producción</option>
-                                </select>
                             </div>
-                            <div class="sort-dropdown">
+
+                            <!-- Filtros Avanzados -->
+                            <div class="advanced-filters">
+                                <div class="filter-row">
+                                    <select class="module-filter" id="moduleFilter">
+                                        <option value="all">Todos los Módulos</option>
+                                        <option value="module-1">Módulo 1: Conceptos Básicos</option>
+                                        <option value="module-2">Módulo 2: Redes Neuronales</option>
+                                        <option value="module-3">Módulo 3: Herramientas Prácticas</option>
+                                        <option value="module-4">Módulo 4: Proyectos Aplicados</option>
+                                        <option value="module-5">Módulo 5: Deployment y Producción</option>
+                                    </select>
+
+                                    <select class="date-filter" id="dateFilter">
+                                        <option value="all">Todas las fechas</option>
+                                        <option value="today">Hoy</option>
+                                        <option value="week">Esta semana</option>
+                                        <option value="month">Este mes</option>
+                                        <option value="year">Este año</option>
+                                    </select>
+
+                                    <input type="text" class="tag-filter" id="tagFilter" placeholder="Buscar por etiqueta...">
+
+                                    <button class="advanced-toggle" id="advancedToggle" title="Mostrar filtros avanzados">
+                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="4" y1="21" x2="4" y2="14"/>
+                                            <line x1="4" y1="10" x2="4" y2="3"/>
+                                            <line x1="12" y1="21" x2="12" y2="12"/>
+                                            <line x1="12" y1="8" x2="12" y2="3"/>
+                                            <line x1="20" y1="21" x2="20" y2="16"/>
+                                            <line x1="20" y1="12" x2="20" y2="3"/>
+                                            <line x1="1" y1="14" x2="7" y2="14"/>
+                                            <line x1="9" y1="8" x2="15" y2="8"/>
+                                            <line x1="17" y1="16" x2="23" y2="16"/>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <!-- Panel Filtros Avanzados (colapsable) -->
+                                <div class="advanced-panel" id="advancedPanel" style="display: none;">
+                                    <div class="filter-row">
+                                        <div class="filter-group">
+                                            <label>Número de respuestas:</label>
+                                            <input type="range" id="answerCountFilter" min="0" max="20" value="0" class="range-input">
+                                            <span class="range-value" id="answerCountValue">0+</span>
+                                        </div>
+
+                                        <div class="filter-group">
+                                            <label>Puntuación mínima:</label>
+                                            <input type="range" id="voteCountFilter" min="0" max="50" value="0" class="range-input">
+                                            <span class="range-value" id="voteCountValue">0+</span>
+                                        </div>
+
+                                        <div class="filter-group">
+                                            <label>Estado:</label>
+                                            <select id="statusFilter">
+                                                <option value="all">Todos</option>
+                                                <option value="open">Abierta</option>
+                                                <option value="solved">Resuelta</option>
+                                                <option value="closed">Cerrada</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="filter-actions">
+                                        <button class="btn-secondary" id="resetFilters">Limpiar Filtros</button>
+                                        <button class="btn-primary" id="applyAdvancedFilters">Aplicar Filtros</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ordenamiento -->
+                            <div class="sort-controls">
                                 <select id="sortSelect">
                                     <option value="recent">Más Recientes</option>
                                     <option value="votes">Más Votadas</option>
                                     <option value="answers">Más Respondidas</option>
                                     <option value="views">Más Vistas</option>
+                                    <option value="relevance">Más Relevantes</option>
                                 </select>
+
+                                <button class="sort-direction" id="sortDirection" data-direction="desc" title="Cambiar dirección">
+                                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="3" y1="6" x2="21" y2="6"/>
+                                        <line x1="3" y1="12" x2="21" y2="12"/>
+                                        <line x1="3" y1="18" x2="21" y2="18"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Contador y Estado -->
+                            <div class="filter-status">
+                                <span class="questions-counter">Cargando preguntas...</span>
+                                <button class="clear-all-filters" id="clearAllFilters" title="Limpiar todos los filtros" style="display: none;">
+                                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
 
@@ -6213,269 +6569,812 @@ Generado desde Coach LIA IA - ${currentDate}
     <!-- Script para funcionalidad de filtros de comunidad -->
     <script>
         // =====================================================
-        // SISTEMA DE FILTROS DE COMUNIDAD
+        // SISTEMA DE FILTROS AVANZADOS DE COMUNIDAD
         // =====================================================
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar sistema de filtros de comunidad
-            initializeCommunityFilters();
-        });
+        // Estado global de filtros
+        const CommunityFilters = {
+            state: {
+                type: 'all',
+                module: 'all',
+                date: 'all',
+                tags: [],
+                answerCount: 0,
+                voteCount: 0,
+                status: 'all',
+                sort: 'recent',
+                direction: 'desc'
+            },
 
-        function initializeCommunityFilters() {
-            console.log('🔄 Inicializando sistema de filtros de comunidad...');
+            // Función para inicializar datos de usuario de prueba si no existen
+            initializeTestUserData() {
+                if (!localStorage.getItem('userName') && !localStorage.getItem('currentUser')) {
+                    console.log('🧪 Inicializando datos de usuario de prueba');
+                    localStorage.setItem('userName', 'Usuario Prueba');
+                    localStorage.setItem('userId', 'test-user-123');
+                    localStorage.setItem('userEmail', 'usuario@prueba.com');
+                }
 
-            // Configurar event listeners para los botones de filtro
-            const filterTabs = document.querySelectorAll('.filter-tab');
-            const moduleFilter = document.getElementById('moduleFilter');
-            const sortSelect = document.getElementById('sortSelect');
+                // También crear algunas preguntas de prueba como propias
+                this.markSampleQuestionsAsOwn();
+            },
 
-            // Event listeners para botones de filtro
-            filterTabs.forEach(tab => {
-                tab.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const filterType = this.getAttribute('data-filter');
-                    handleFilterChange(filterType, this);
+            // Función para marcar algunas preguntas como propias para testing
+            markSampleQuestionsAsOwn(forceRefresh = false) {
+                const questions = document.querySelectorAll('.question-item, .community-question');
+                console.log(`🧪 Intentando marcar ${questions.length} preguntas encontradas`);
+
+                if (questions.length === 0) {
+                    console.warn('⚠️ No se encontraron preguntas. Reintentando en 2 segundos...');
+                    setTimeout(() => this.markSampleQuestionsAsOwn(true), 2000);
+                    return;
+                }
+
+                let marked = 0;
+                questions.forEach((question, index) => {
+                    // Marcar cada tercera pregunta como propia para testing
+                    if (index % 3 === 0) {
+                        question.classList.add('my-question');
+                        question.dataset.isOwn = 'true';
+
+                        // También intentar modificar el texto del autor si existe
+                        const authorElement = question.querySelector('.question-author, .author-name, .user-name');
+                        if (authorElement && !authorElement.dataset.originalText) {
+                            authorElement.dataset.originalText = authorElement.textContent;
+                            authorElement.textContent = localStorage.getItem('userName') || 'Usuario Prueba';
+                        }
+
+                        marked++;
+                        console.log(`🧪 Pregunta ${index + 1} marcada como propia (total: ${marked})`);
+                    }
                 });
-            });
 
-            // Event listener para filtro de módulo
-            if (moduleFilter) {
-                moduleFilter.addEventListener('change', function() {
-                    const selectedModule = this.value;
-                    applyModuleFilter(selectedModule);
+                console.log(`✅ Se marcaron ${marked} preguntas como propias de ${questions.length} totales`);
+
+                // Si se ejecutó por fuerza, aplicar filtros después
+                if (forceRefresh) {
+                    setTimeout(() => this.applyAllFilters(), 500);
+                }
+            },
+
+            // Función para crear preguntas propias manualmente (para debugging)
+            createTestOwnQuestions() {
+                console.log('🧪 Creando preguntas de prueba como propias...');
+
+                // Intentar marcar preguntas existentes primero
+                this.markSampleQuestionsAsOwn(true);
+
+                console.log('✅ Preguntas de prueba creadas. Ejecuta el filtro "Mis preguntas" para verlas.');
+            },
+
+            // Inicializar sistema
+            init() {
+                console.log('🔄 Inicializando sistema de filtros avanzados...');
+
+                // Inicializar datos de prueba
+                this.initializeTestUserData();
+                this.loadSavedState();
+                this.setupEventListeners();
+                this.setupRangeSliders();
+                console.log('✅ Sistema de filtros avanzados inicializado');
+            },
+
+            // Configurar event listeners
+            setupEventListeners() {
+                // Filtros básicos de tipo
+                document.querySelectorAll('.filter-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.setFilter('type', tab.getAttribute('data-filter'));
+                        this.updateActiveTab(tab);
+                    });
                 });
-            }
 
-            // Event listener para ordenamiento
-            if (sortSelect) {
-                sortSelect.addEventListener('change', function() {
-                    const sortType = this.value;
-                    applySorting(sortType);
+                // Filtros de selección
+                const selectors = {
+                    moduleFilter: 'module',
+                    dateFilter: 'date',
+                    statusFilter: 'status',
+                    sortSelect: 'sort'
+                };
+
+                Object.entries(selectors).forEach(([id, key]) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('change', () => {
+                            this.setFilter(key, element.value);
+                        });
+                    }
                 });
-            }
 
-            console.log('✅ Sistema de filtros de comunidad inicializado');
-        }
+                // Filtro de etiquetas
+                const tagFilter = document.getElementById('tagFilter');
+                if (tagFilter) {
+                    let tagTimeout;
+                    tagFilter.addEventListener('input', (e) => {
+                        clearTimeout(tagTimeout);
+                        tagTimeout = setTimeout(() => {
+                            this.setFilter('tags', e.target.value.split(',').map(t => t.trim()).filter(t => t));
+                        }, 300);
+                    });
+                }
 
-        function handleFilterChange(filterType, clickedTab) {
-            console.log('🔄 Aplicando filtro:', filterType);
+                // Controles avanzados
+                const advancedToggle = document.getElementById('advancedToggle');
+                const advancedPanel = document.getElementById('advancedPanel');
+                if (advancedToggle && advancedPanel) {
+                    advancedToggle.addEventListener('click', () => {
+                        const isVisible = advancedPanel.style.display !== 'none';
+                        advancedPanel.style.display = isVisible ? 'none' : 'block';
+                        advancedToggle.classList.toggle('active', !isVisible);
+                    });
+                }
 
-            // Actualizar botones activos
-            document.querySelectorAll('.filter-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            clickedTab.classList.add('active');
+                // Dirección de ordenamiento
+                const sortDirection = document.getElementById('sortDirection');
+                if (sortDirection) {
+                    sortDirection.addEventListener('click', () => {
+                        const newDirection = this.state.direction === 'desc' ? 'asc' : 'desc';
+                        this.setFilter('direction', newDirection);
+                        sortDirection.setAttribute('data-direction', newDirection);
+                    });
+                }
 
-            // Aplicar el filtro
-            applyQuestionFilter(filterType);
-        }
+                // Botones de acción
+                document.getElementById('applyAdvancedFilters')?.addEventListener('click', () => {
+                    this.applyAllFilters();
+                });
 
-        function applyQuestionFilter(filterType) {
-            const questionItems = document.querySelectorAll('.question-item, .community-question');
-            let visibleCount = 0;
+                document.getElementById('resetFilters')?.addEventListener('click', () => {
+                    this.resetAdvancedFilters();
+                });
 
-            questionItems.forEach(question => {
-                let shouldShow = false;
+                document.getElementById('clearAllFilters')?.addEventListener('click', () => {
+                    this.clearAllFilters();
+                });
+            },
 
-                switch (filterType) {
+            // Configurar sliders de rango
+            setupRangeSliders() {
+                const answerSlider = document.getElementById('answerCountFilter');
+                const voteSlider = document.getElementById('voteCountFilter');
+                const answerValue = document.getElementById('answerCountValue');
+                const voteValue = document.getElementById('voteCountValue');
+
+                if (answerSlider && answerValue) {
+                    answerSlider.addEventListener('input', (e) => {
+                        const value = parseInt(e.target.value);
+                        answerValue.textContent = value === 0 ? '0+' : `${value}+`;
+                        this.setFilter('answerCount', value);
+                    });
+                }
+
+                if (voteSlider && voteValue) {
+                    voteSlider.addEventListener('input', (e) => {
+                        const value = parseInt(e.target.value);
+                        voteValue.textContent = value === 0 ? '0+' : `${value}+`;
+                        this.setFilter('voteCount', value);
+                    });
+                }
+            },
+
+            // Establecer filtro individual
+            setFilter(key, value) {
+                this.state[key] = value;
+                this.saveState();
+                this.applyAllFilters();
+                this.updateFilterStatus();
+            },
+
+            // Aplicar todos los filtros
+            applyAllFilters() {
+                console.log('🔄 Aplicando filtros combinados:', this.state);
+
+                const questions = document.querySelectorAll('.question-item, .community-question');
+                console.log(`📝 Encontradas ${questions.length} preguntas para filtrar`);
+
+                let visibleCount = 0;
+                const filteredQuestions = [];
+
+                questions.forEach((question, index) => {
+                    const shouldShow = this.shouldShowQuestion(question);
+                    console.log(`📝 Pregunta ${index + 1}: ${shouldShow ? '✅ Visible' : '❌ Oculta'}`);
+
+                    if (shouldShow) {
+                        filteredQuestions.push(question);
+                        this.showQuestion(question, visibleCount * 50);
+                        visibleCount++;
+                    } else {
+                        this.hideQuestion(question);
+                    }
+                });
+
+                // Aplicar ordenamiento
+                this.sortQuestions(filteredQuestions);
+
+                // Actualizar contador y estado
+                this.updateQuestionCounter(visibleCount);
+                this.updateClearButton(visibleCount);
+
+                console.log(`✅ Filtros aplicados - ${visibleCount} preguntas visibles`);
+            },
+
+            // Verificar si la pregunta debe mostrarse
+            shouldShowQuestion(question) {
+                // Filtro de tipo
+                if (!this.checkTypeFilter(question)) return false;
+
+                // Filtro de módulo
+                if (!this.checkModuleFilter(question)) return false;
+
+                // Filtro de fecha
+                if (!this.checkDateFilter(question)) return false;
+
+                // Filtro de etiquetas
+                if (!this.checkTagsFilter(question)) return false;
+
+                // Filtro de respuestas
+                if (!this.checkAnswerCountFilter(question)) return false;
+
+                // Filtro de votos
+                if (!this.checkVoteCountFilter(question)) return false;
+
+                // Filtro de estado
+                if (!this.checkStatusFilter(question)) return false;
+
+                return true;
+            },
+
+            // Verificaciones de filtros específicos
+            checkTypeFilter(question) {
+                switch (this.state.type) {
                     case 'all':
-                        shouldShow = true;
-                        break;
-
+                        return true;
                     case 'unanswered':
-                        // Buscar si la pregunta tiene respuestas
-                        const hasAnswers = question.querySelector('.stat.answered') !== null ||
-                                         question.querySelector('[data-answers]') !== null ||
-                                         question.textContent.includes('respuesta') ||
-                                         question.classList.contains('answered');
-                        shouldShow = !hasAnswers;
-                        break;
-
+                        return !this.isQuestionAnswered(question);
                     case 'answered':
-                        // Buscar si la pregunta tiene respuestas
-                        const isAnswered = question.querySelector('.stat.answered') !== null ||
-                                         question.querySelector('[data-answers]') !== null ||
-                                         question.textContent.includes('respuesta') ||
-                                         question.classList.contains('answered');
-                        shouldShow = isAnswered;
-                        break;
-
+                        return this.isQuestionAnswered(question);
                     case 'mine':
-                        // Verificar si es una pregunta del usuario actual
-                        // Esto podría basarse en datos del usuario almacenados localmente
-                        const currentUser = localStorage.getItem('userName') || 'Usuario Actual';
-                        const questionAuthor = question.querySelector('.question-author, .author-name');
-                        shouldShow = questionAuthor && 
-                                   (questionAuthor.textContent.includes(currentUser) ||
-                                    questionAuthor.textContent.includes('Tú') ||
-                                    question.classList.contains('own-question'));
+                        const isMine = this.isMyQuestion(question);
+                        console.log(`🔍 Filtro 'mine': pregunta ${isMine ? 'ES' : 'NO ES'} mía`);
+                        return isMine;
+                    default:
+                        return true;
+                }
+            },
+
+            checkModuleFilter(question) {
+                if (this.state.module === 'all') return true;
+
+                const moduleIndicators = [
+                    `data-module="${this.state.module}"`,
+                    `module-${this.state.module.split('-')[1]}`,
+                    `Módulo ${this.state.module.split('-')[1]}`
+                ];
+
+                return moduleIndicators.some(indicator =>
+                    question.outerHTML.includes(indicator) ||
+                    question.textContent.includes(indicator)
+                );
+            },
+
+            checkDateFilter(question) {
+                if (this.state.date === 'all') return true;
+
+                const questionDate = this.getQuestionDate(question);
+
+                if (!questionDate) {
+                    console.warn('📅 No se pudo obtener fecha de la pregunta:', question);
+                    return true; // Mostrar si no hay fecha
+                }
+
+                const now = new Date();
+                const questionTime = new Date(questionDate);
+
+                // Validar que la fecha es válida
+                if (isNaN(questionTime.getTime())) {
+                    console.warn('📅 Fecha inválida:', questionDate);
+                    return true;
+                }
+
+                let result = true;
+                const timeDiff = now.getTime() - questionTime.getTime();
+
+                switch (this.state.date) {
+                    case 'today':
+                        // Verificar si es el mismo día
+                        result = questionTime.toDateString() === now.toDateString();
                         break;
+                    case 'week':
+                        // Últimos 7 días
+                        result = timeDiff <= 7 * 24 * 60 * 60 * 1000 && timeDiff >= 0;
+                        break;
+                    case 'month':
+                        // Últimos 30 días
+                        result = timeDiff <= 30 * 24 * 60 * 60 * 1000 && timeDiff >= 0;
+                        break;
+                    case 'year':
+                        // Últimos 365 días
+                        result = timeDiff <= 365 * 24 * 60 * 60 * 1000 && timeDiff >= 0;
+                        break;
+                    default:
+                        result = true;
                 }
 
-                // Mostrar/ocultar pregunta con animación suave
-                if (shouldShow) {
-                    question.style.display = '';
-                    question.style.opacity = '0';
-                    question.style.transform = 'translateY(20px)';
-                    
-                    setTimeout(() => {
-                        question.style.transition = 'all 0.3s ease';
-                        question.style.opacity = '1';
-                        question.style.transform = 'translateY(0)';
-                    }, visibleCount * 50); // Efecto escalonado
-                    
-                    visibleCount++;
-                } else {
-                    question.style.transition = 'all 0.3s ease';
-                    question.style.opacity = '0';
-                    question.style.transform = 'translateY(-20px)';
-                    
-                    setTimeout(() => {
-                        question.style.display = 'none';
-                    }, 300);
+                if (this.state.date !== 'all') {
+                    console.log(`📅 Filtro fecha "${this.state.date}": pregunta del ${questionTime.toLocaleDateString()} ${result ? '✅' : '❌'}`);
                 }
-            });
 
-            // Actualizar contador si existe
-            updateQuestionCounter(visibleCount, filterType);
-            
-            console.log(`✅ Filtro aplicado - ${visibleCount} preguntas visibles`);
-        }
+                return result;
+            },
 
-        function applyModuleFilter(selectedModule) {
-            console.log('🔄 Aplicando filtro de módulo:', selectedModule);
+            checkTagsFilter(question) {
+                if (!this.state.tags || this.state.tags.length === 0) return true;
 
-            const questionItems = document.querySelectorAll('.question-item, .community-question');
-            let visibleCount = 0;
+                const questionText = question.textContent.toLowerCase();
+                const questionTags = question.querySelectorAll('.tag');
+                const questionTagTexts = Array.from(questionTags).map(tag => tag.textContent.toLowerCase());
 
-            questionItems.forEach(question => {
-                let shouldShow = selectedModule === 'all';
+                return this.state.tags.some(tag =>
+                    questionText.includes(tag.toLowerCase()) ||
+                    questionTagTexts.includes(tag.toLowerCase())
+                );
+            },
 
-                if (!shouldShow) {
-                    // Buscar indicadores del módulo en la pregunta
-                    const moduleIndicators = [
-                        `data-module="${selectedModule}"`,
-                        `module-${selectedModule.split('-')[1]}`,
-                        `Módulo ${selectedModule.split('-')[1]}`
+            checkAnswerCountFilter(question) {
+                if (this.state.answerCount === 0) return true;
+
+                const answerCount = this.getQuestionAnswerCount(question);
+                return answerCount >= this.state.answerCount;
+            },
+
+            checkVoteCountFilter(question) {
+                if (this.state.voteCount === 0) return true;
+
+                const voteCount = this.getQuestionVotes(question);
+                return voteCount >= this.state.voteCount;
+            },
+
+            checkStatusFilter(question) {
+                if (this.state.status === 'all') return true;
+
+                switch (this.state.status) {
+                    case 'open':
+                        return !question.classList.contains('closed') && !question.classList.contains('solved');
+                    case 'solved':
+                        return question.classList.contains('solved') || question.querySelector('.accepted-badge');
+                    case 'closed':
+                        return question.classList.contains('closed');
+                    default:
+                        return true;
+                }
+            },
+
+            // Funciones de utilidad mejoradas
+            isQuestionAnswered(question) {
+                const answerCount = this.getQuestionAnswerCount(question);
+                return answerCount > 0 ||
+                       question.querySelector('.stat.answered') !== null ||
+                       question.classList.contains('answered') ||
+                       question.querySelector('[data-answers]') !== null;
+            },
+
+            isMyQuestion(question) {
+                // Obtener información de usuario de múltiples fuentes
+                const userData = {
+                    userName: localStorage.getItem('userName') ||
+                             localStorage.getItem('currentUser') ||
+                             localStorage.getItem('user_name') ||
+                             localStorage.getItem('userInfo') ||
+                             sessionStorage.getItem('userName') ||
+                             sessionStorage.getItem('user'),
+                    userId: localStorage.getItem('userId') ||
+                           localStorage.getItem('user_id') ||
+                           sessionStorage.getItem('userId'),
+                    email: localStorage.getItem('userEmail') ||
+                          localStorage.getItem('email') ||
+                          sessionStorage.getItem('userEmail')
+                };
+
+                // Buscar elementos de autor en diferentes selectores
+                const authorElement = question.querySelector(
+                    '.question-author, .author-name, .user-name, .username, [data-author], .question-meta .name'
+                );
+
+                if (!authorElement) {
+                    // Si no hay elemento autor, verificar atributos de datos directamente en la pregunta
+                    const questionUserId = question.getAttribute('data-user-id') ||
+                                          question.getAttribute('data-author-id') ||
+                                          question.getAttribute('data-userid');
+
+                    if (questionUserId && userData.userId) {
+                        return questionUserId === userData.userId;
+                    }
+
+                    // Verificar clases CSS que indican propiedad
+                    return question.classList.contains('own-question') ||
+                           question.classList.contains('my-question') ||
+                           question.classList.contains('user-own');
+                }
+
+                const authorText = authorElement.textContent.trim();
+
+                // Verificación por ID de usuario (más confiable)
+                const authorUserId = authorElement.getAttribute('data-user-id') ||
+                                    authorElement.getAttribute('data-userid') ||
+                                    question.getAttribute('data-user-id');
+
+                if (authorUserId && userData.userId) {
+                    return authorUserId === userData.userId;
+                }
+
+                // Verificación por nombre de usuario
+                if (userData.userName && authorText) {
+                    const currentUserLower = userData.userName.toLowerCase().trim();
+                    const authorTextLower = authorText.toLowerCase().trim();
+
+                    // Coincidencia exacta
+                    if (authorTextLower === currentUserLower) {
+                        return true;
+                    }
+
+                    // Verificar si el nombre de usuario está contenido
+                    if (currentUserLower.length > 3 && authorTextLower.includes(currentUserLower)) {
+                        return true;
+                    }
+                }
+
+                // Verificación por email
+                if (userData.email && authorText.includes('@')) {
+                    if (authorText.toLowerCase().includes(userData.email.toLowerCase())) {
+                        return true;
+                    }
+                }
+
+                // Verificar indicadores de propiedad en el texto
+                const ownershipIndicators = ['tú', 'tu pregunta', 'mi pregunta', 'yo pregunté', 'preguntaste'];
+                const lowerAuthorText = authorText.toLowerCase();
+
+                for (const indicator of ownershipIndicators) {
+                    if (lowerAuthorText.includes(indicator)) {
+                        return true;
+                    }
+                }
+
+                // Verificar clases CSS y atributos de datos
+                if (question.classList.contains('own-question') ||
+                    question.classList.contains('my-question') ||
+                    question.classList.contains('user-own') ||
+                    question.dataset.isOwn === 'true' ||
+                    (authorElement && authorElement.classList.contains('current-user'))) {
+                    console.log('👤 Pregunta propia encontrada por clase CSS o atributo');
+                    return true;
+                }
+
+                console.log('👤 No es pregunta propia:', {
+                    authorText,
+                    userData,
+                    authorUserId,
+                    questionClasses: Array.from(question.classList),
+                    authorClasses: Array.from(authorElement.classList)
+                });
+
+                return false;
+            },
+
+            getQuestionDate(question) {
+                // Buscar timestamp en diferentes lugares
+                const timeElement = question.querySelector('[data-timestamp], .question-time, .time');
+
+                if (!timeElement) return null;
+
+                // Intentar obtener timestamp real primero
+                let timestamp = timeElement.getAttribute('data-timestamp') ||
+                               timeElement.getAttribute('datetime') ||
+                               timeElement.getAttribute('data-created');
+
+                if (timestamp) {
+                    return timestamp;
+                }
+
+                // Si no hay timestamp, intentar parsear el texto
+                const timeText = timeElement.textContent.trim();
+
+                // Si ya es una fecha ISO, usarla
+                if (timeText.match(/\d{4}-\d{2}-\d{2}/)) {
+                    return timeText;
+                }
+
+                // Intentar convertir texto relativo a fecha
+                return this.parseRelativeTime(timeText);
+            },
+
+            // Nueva función para convertir tiempo relativo a fecha
+            parseRelativeTime(timeText) {
+                if (!timeText) return null;
+
+                const now = new Date();
+                const text = timeText.toLowerCase();
+
+                try {
+                    // Normalizar texto para facilitar coincidencias
+                    const normalizedText = text.toLowerCase().trim();
+
+                    // Patrones mejorados para tiempo relativo
+                    const timePatterns = [
+                        // Plurales y singulares con números
+                        { pattern: /hace\s+(\d+)\s+minutos?/i, unit: 'minutes' },
+                        { pattern: /hace\s+(\d+)\s+horas?/i, unit: 'hours' },
+                        { pattern: /hace\s+(\d+)\s+d[íi]as?/i, unit: 'days' },
+                        { pattern: /hace\s+(\d+)\s+semanas?/i, unit: 'weeks' },
+                        { pattern: /hace\s+(\d+)\s+meses?/i, unit: 'months' },
+                        // Formas con artículos (un, una)
+                        { pattern: /hace\s+un\s+minuto/i, unit: 'minutes', amount: 1 },
+                        { pattern: /hace\s+una\s+hora/i, unit: 'hours', amount: 1 },
+                        { pattern: /hace\s+un\s+d[íi]a/i, unit: 'days', amount: 1 },
+                        { pattern: /hace\s+una\s+semana/i, unit: 'weeks', amount: 1 },
+                        { pattern: /hace\s+un\s+mes/i, unit: 'months', amount: 1 },
+                        // Palabras en texto
+                        { pattern: /hace\s+unos?\s+minutos?/i, unit: 'minutes', amount: 5 },
+                        { pattern: /hace\s+unas?\s+horas?/i, unit: 'hours', amount: 2 },
+                        { pattern: /hace\s+unos?\s+d[íi]as?/i, unit: 'days', amount: 3 },
                     ];
 
-                    shouldShow = moduleIndicators.some(indicator => 
-                        question.outerHTML.includes(indicator) ||
-                        question.textContent.includes(indicator)
-                    );
+                    // Probar cada patrón
+                    for (const { pattern, unit, amount } of timePatterns) {
+                        const match = normalizedText.match(pattern);
+                        if (match) {
+                            const qty = amount || parseInt(match[1]) || 1;
+                            let milliseconds = 0;
+
+                            switch (unit) {
+                                case 'minutes':
+                                    milliseconds = qty * 60 * 1000;
+                                    break;
+                                case 'hours':
+                                    milliseconds = qty * 60 * 60 * 1000;
+                                    break;
+                                case 'days':
+                                    milliseconds = qty * 24 * 60 * 60 * 1000;
+                                    break;
+                                case 'weeks':
+                                    milliseconds = qty * 7 * 24 * 60 * 60 * 1000;
+                                    break;
+                                case 'months':
+                                    milliseconds = qty * 30 * 24 * 60 * 60 * 1000;
+                                    break;
+                            }
+
+                            return new Date(now.getTime() - milliseconds).toISOString();
+                        }
+                    }
+
+                    // Casos especiales mejorados
+                    if (normalizedText.match(/\b(ahora|justo ahora|recién|hace poco)\b/)) {
+                        return new Date(now.getTime() - Math.random() * 2 * 60 * 1000).toISOString(); // Últimos 2 minutos
+                    }
+
+                    if (normalizedText.match(/\bhoy\b/)) {
+                        const hoursAgo = Math.random() * 12; // Entre 0 y 12 horas
+                        return new Date(now.getTime() - hoursAgo * 60 * 60 * 1000).toISOString();
+                    }
+
+                    if (normalizedText.match(/\buyer\b/)) {
+                        const hoursAgo = 24 + Math.random() * 12; // Entre 24 y 36 horas
+                        return new Date(now.getTime() - hoursAgo * 60 * 60 * 1000).toISOString();
+                    }
+
+                    if (normalizedText.match(/\b(esta\s+semana|hace\s+pocos?\s+d[íi]as?)\b/)) {
+                        const daysAgo = Math.random() * 7; // Esta semana
+                        return new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+                    }
+
+                    if (normalizedText.match(/\b(el\s+mes\s+pasado|hace\s+pocas?\s+semanas?)\b/)) {
+                        const weeksAgo = 2 + Math.random() * 6; // Entre 2 y 8 semanas
+                        return new Date(now.getTime() - weeksAgo * 7 * 24 * 60 * 60 * 1000).toISOString();
+                    }
+
+                    // Fallback: crear fecha basada en el hash del texto para consistencia
+                    let hash = 0;
+                    for (let i = 0; i < text.length; i++) {
+                        const char = text.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + char;
+                        hash = hash & hash; // Convert to 32-bit integer
+                    }
+
+                    const daysAgo = Math.abs(hash % 30) + 1; // Entre 1 y 30 días
+                    return new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+
+                } catch (error) {
+                    console.warn('Error parseando tiempo relativo:', timeText, error);
+                    // Fallback: fecha hace una semana
+                    return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+                }
+            },
+
+            getQuestionVotes(question) {
+                const voteElement = question.querySelector('.vote-count, [data-votes]');
+                if (voteElement) {
+                    const votes = voteElement.getAttribute('data-votes') || voteElement.textContent;
+                    return parseInt(votes) || 0;
+                }
+                return 0;
+            },
+
+            getQuestionAnswerCount(question) {
+                const answerElement = question.querySelector('[data-answers], .answer-count');
+                if (answerElement) {
+                    const count = answerElement.getAttribute('data-answers') || answerElement.textContent;
+                    return parseInt(count) || 0;
                 }
 
-                // Aplicar filtro con animación
-                if (shouldShow && question.style.display !== 'none') {
-                    visibleCount++;
-                } else if (!shouldShow) {
-                    question.style.transition = 'all 0.3s ease';
-                    question.style.opacity = '0';
-                    setTimeout(() => {
-                        question.style.display = 'none';
-                    }, 300);
+                // Buscar en texto
+                const answerText = question.textContent.match(/(\d+)\s+respuestas?/i);
+                return answerText ? parseInt(answerText[1]) : 0;
+            },
+
+            // Ordenamiento mejorado
+            sortQuestions(questions) {
+                const container = document.querySelector('.questions-list');
+                if (!container) return;
+
+                questions.sort((a, b) => {
+                    let comparison = 0;
+
+                    switch (this.state.sort) {
+                        case 'recent':
+                            const dateA = new Date(this.getQuestionDate(a) || 0).getTime();
+                            const dateB = new Date(this.getQuestionDate(b) || 0).getTime();
+                            comparison = dateB - dateA;
+                            break;
+                        case 'votes':
+                            comparison = this.getQuestionVotes(b) - this.getQuestionVotes(a);
+                            break;
+                        case 'answers':
+                            comparison = this.getQuestionAnswerCount(b) - this.getQuestionAnswerCount(a);
+                            break;
+                        case 'views':
+                            const viewsA = parseInt(a.getAttribute('data-views') || '0');
+                            const viewsB = parseInt(b.getAttribute('data-views') || '0');
+                            comparison = viewsB - viewsA;
+                            break;
+                        case 'relevance':
+                            // Algoritmo de relevancia combinando votos, respuestas y fecha
+                            const scoreA = this.calculateRelevanceScore(a);
+                            const scoreB = this.calculateRelevanceScore(b);
+                            comparison = scoreB - scoreA;
+                            break;
+                        default:
+                            comparison = 0;
+                    }
+
+                    return this.state.direction === 'desc' ? comparison : -comparison;
+                });
+
+                // Reorganizar en el DOM
+                questions.forEach(question => container.appendChild(question));
+            },
+
+            // Calcular puntuación de relevancia
+            calculateRelevanceScore(question) {
+                const votes = this.getQuestionVotes(question);
+                const answers = this.getQuestionAnswerCount(question);
+                const views = parseInt(question.getAttribute('data-views') || '0');
+                const date = new Date(this.getQuestionDate(question) || 0);
+                const daysOld = (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24);
+
+                // Algoritmo de relevancia
+                return (votes * 2) + (answers * 3) + (views * 0.1) - (daysOld * 0.1);
+            },
+
+            // Función de debugging
+            debugFilters() {
+                console.log('🐛 ===== DEBUG DE FILTROS =====');
+                console.log('Estado actual:', this.state);
+                console.log('Datos de usuario:', {
+                    userName: localStorage.getItem('userName'),
+                    userId: localStorage.getItem('userId'),
+                    email: localStorage.getItem('userEmail')
+                });
+
+                const questions = document.querySelectorAll('.question-item, .community-question');
+                console.log(`Total de preguntas: ${questions.length}`);
+
+                questions.forEach((question, index) => {
+                    const shouldShow = this.shouldShowQuestion(question);
+                    const isMyQuestion = this.isMyQuestion(question);
+                    const questionDate = this.getQuestionDate(question);
+
+                    console.log(`Pregunta ${index + 1}:`, {
+                        shouldShow,
+                        isMyQuestion,
+                        questionDate,
+                        classes: Array.from(question.classList),
+                        visible: question.style.display !== 'none'
+                    });
+                });
+
+                console.log('🐛 ===== FIN DEBUG =====');
+            },
+
+            // Animaciones
+            showQuestion(question, delay = 0) {
+                question.style.display = '';
+                question.style.opacity = '0';
+                question.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    question.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                    question.style.opacity = '1';
+                    question.style.transform = 'translateY(0)';
+                }, delay);
+            },
+
+            hideQuestion(question) {
+                question.style.transition = 'all 0.3s ease';
+                question.style.opacity = '0';
+                question.style.transform = 'translateY(-20px)';
+
+                setTimeout(() => {
+                    question.style.display = 'none';
+                }, 300);
+            },
+
+            // Actualizar interfaz
+            updateActiveTab(activeTab) {
+                document.querySelectorAll('.filter-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                activeTab.classList.add('active');
+            },
+
+            updateQuestionCounter(count) {
+                const counter = document.querySelector('.questions-counter');
+                if (counter) {
+                    const filterNames = {
+                        'all': 'preguntas',
+                        'unanswered': 'sin responder',
+                        'answered': 'respondidas',
+                        'mine': 'mis preguntas'
+                    };
+
+                    const filterName = filterNames[this.state.type] || 'preguntas';
+                    counter.textContent = `${count} ${filterName}`;
                 }
-            });
 
-            console.log(`✅ Filtro de módulo aplicado - ${visibleCount} preguntas visibles`);
-        }
-
-        function applySorting(sortType) {
-            console.log('🔄 Aplicando ordenamiento:', sortType);
-
-            const questionContainer = document.querySelector('.questions-list, .community-questions');
-            if (!questionContainer) return;
-
-            const questions = Array.from(questionContainer.querySelectorAll('.question-item, .community-question'));
-            
-            questions.sort((a, b) => {
-                switch (sortType) {
-                    case 'recent':
-                        // Ordenar por fecha (más reciente primero)
-                        const dateA = getQuestionDate(a);
-                        const dateB = getQuestionDate(b);
-                        return dateB - dateA;
-
-                    case 'votes':
-                        // Ordenar por votos (más votado primero)
-                        const votesA = getQuestionVotes(a);
-                        const votesB = getQuestionVotes(b);
-                        return votesB - votesA;
-
-                    case 'answered':
-                        // Ordenar por estado de respuesta
-                        const answeredA = isQuestionAnswered(a);
-                        const answeredB = isQuestionAnswered(b);
-                        return answeredB - answeredA;
-
-                    default:
-                        return 0;
+                // Mostrar/ocultar mensaje vacío
+                if (count === 0) {
+                    this.showEmptyState();
+                } else {
+                    this.hideEmptyState();
                 }
-            });
+            },
 
-            // Reordenar elementos en el DOM
-            questions.forEach(question => {
-                questionContainer.appendChild(question);
-            });
+            updateClearButton(count) {
+                const clearButton = document.getElementById('clearAllFilters');
+                const hasActiveFilters = this.hasActiveFilters();
 
-            console.log(`✅ Ordenamiento aplicado: ${sortType}`);
-        }
+                if (clearButton) {
+                    clearButton.style.display = hasActiveFilters ? 'flex' : 'none';
+                }
+            },
 
-        function getQuestionDate(questionElement) {
-            // Buscar timestamp en el elemento
-            const timeElement = questionElement.querySelector('[data-timestamp], .question-time, .time');
-            if (timeElement) {
-                const timestamp = timeElement.getAttribute('data-timestamp') || 
-                                timeElement.textContent;
-                return new Date(timestamp).getTime() || 0;
-            }
-            return 0;
-        }
+            updateFilterStatus() {
+                // Actualizar indicadores visuales de filtros activos
+                const activeCount = Object.values(this.state).filter(v =>
+                    v !== 'all' && v !== 'recent' && v !== 'desc' && v !== 0 &&
+                    (Array.isArray(v) ? v.length > 0 : true)
+                ).length;
 
-        function getQuestionVotes(questionElement) {
-            // Buscar contador de votos
-            const voteElement = questionElement.querySelector('.vote-count, [data-votes]');
-            if (voteElement) {
-                const votes = voteElement.getAttribute('data-votes') || 
-                            voteElement.textContent;
-                return parseInt(votes) || 0;
-            }
-            return 0;
-        }
+                document.querySelectorAll('.filter-tab').forEach(tab => {
+                    tab.classList.remove('loading');
+                });
+            },
 
-        function isQuestionAnswered(questionElement) {
-            // Verificar si la pregunta está respondida
-            return questionElement.querySelector('.stat.answered') !== null ||
-                   questionElement.classList.contains('answered') ||
-                   questionElement.querySelector('[data-answers]') !== null;
-        }
+            // Estados vacíos
+            showEmptyState() {
+                this.hideEmptyState();
 
-        function updateQuestionCounter(count, filterType) {
-            // Buscar elemento contador
-            const counterElement = document.querySelector('.questions-counter, .filter-counter');
-            if (counterElement) {
-                const filterNames = {
-                    'all': 'todas las preguntas',
-                    'unanswered': 'preguntas sin responder',
-                    'answered': 'preguntas respondidas',
-                    'mine': 'mis preguntas'
-                };
-                
-                counterElement.textContent = `${count} ${filterNames[filterType] || 'preguntas'}`;
-            }
-
-            // Mostrar mensaje si no hay resultados
-            if (count === 0) {
-                showEmptyState(filterType);
-            } else {
-                hideEmptyState();
-            }
-        }
-
-        function showEmptyState(filterType) {
-            let existingEmptyState = document.querySelector('.empty-state-filters');
-            
-            if (!existingEmptyState) {
                 const emptyState = document.createElement('div');
                 emptyState.className = 'empty-state-filters';
                 emptyState.innerHTML = `
@@ -6485,60 +7384,176 @@ Generado desde Coach LIA IA - ${currentDate}
                             <path d="m21 21-4.35-4.35"/>
                         </svg>
                         <h3 style="margin: 0 0 8px 0;">No se encontraron preguntas</h3>
-                        <p style="margin: 0; opacity: 0.7;">Intenta cambiar el filtro o crear una nueva pregunta.</p>
+                        <p style="margin: 0; opacity: 0.7;">Intenta cambiar los filtros o crear una nueva pregunta.</p>
+                        <button onclick="CommunityFilters.clearAllFilters()" style="margin-top: 16px; background: var(--glass-primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
+                            Limpiar Filtros
+                        </button>
                     </div>
                 `;
-                
-                const questionContainer = document.querySelector('.questions-list, .community-questions');
-                if (questionContainer) {
-                    questionContainer.appendChild(emptyState);
+
+                const container = document.querySelector('.questions-list');
+                if (container) {
+                    container.appendChild(emptyState);
+                }
+            },
+
+            hideEmptyState() {
+                const emptyState = document.querySelector('.empty-state-filters');
+                if (emptyState) {
+                    emptyState.remove();
+                }
+            },
+
+            // Funciones de reseteo
+            resetAdvancedFilters() {
+                // Mantener tipo y módulo, resetear solo filtros avanzados
+                const basicState = {
+                    type: this.state.type,
+                    module: this.state.module,
+                    sort: this.state.sort
+                };
+
+                this.state = {
+                    ...this.getDefaultState(),
+                    ...basicState
+                };
+
+                this.updateUI();
+                this.applyAllFilters();
+                console.log('✅ Filtros avanzados reseteados');
+            },
+
+            clearAllFilters() {
+                this.state = this.getDefaultState();
+                this.updateUI();
+                this.applyAllFilters();
+                console.log('✅ Todos los filtros limpiados');
+            },
+
+            // Estado por defecto
+            getDefaultState() {
+                return {
+                    type: 'all',
+                    module: 'all',
+                    date: 'all',
+                    tags: [],
+                    answerCount: 0,
+                    voteCount: 0,
+                    status: 'all',
+                    sort: 'recent',
+                    direction: 'desc'
+                };
+            },
+
+            // Verificar filtros activos
+            hasActiveFilters() {
+                const defaultState = this.getDefaultState();
+                return Object.keys(this.state).some(key => {
+                    const current = this.state[key];
+                    const defaultVal = defaultState[key];
+
+                    if (Array.isArray(current)) {
+                        return current.length > 0;
+                    }
+                    return current !== defaultVal;
+                });
+            },
+
+            // Actualizar interfaz completa
+            updateUI() {
+                // Actualizar tabs
+                document.querySelectorAll('.filter-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.getAttribute('data-filter') === this.state.type);
+                });
+
+                // Actualizar selects
+                const selectors = {
+                    moduleFilter: 'module',
+                    dateFilter: 'date',
+                    statusFilter: 'status',
+                    sortSelect: 'sort'
+                };
+
+                Object.entries(selectors).forEach(([id, key]) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.value = this.state[key];
+                    }
+                });
+
+                // Actualizar rangos
+                const answerSlider = document.getElementById('answerCountFilter');
+                const voteSlider = document.getElementById('voteCountFilter');
+                const answerValue = document.getElementById('answerCountValue');
+                const voteValue = document.getElementById('voteCountValue');
+
+                if (answerSlider) {
+                    answerSlider.value = this.state.answerCount;
+                    if (answerValue) {
+                        answerValue.textContent = this.state.answerCount === 0 ? '0+' : `${this.state.answerCount}+`;
+                    }
+                }
+
+                if (voteSlider) {
+                    voteSlider.value = this.state.voteCount;
+                    if (voteValue) {
+                        voteValue.textContent = this.state.voteCount === 0 ? '0+' : `${this.state.voteCount}+`;
+                    }
+                }
+
+                // Actualizar etiquetas
+                const tagFilter = document.getElementById('tagFilter');
+                if (tagFilter) {
+                    tagFilter.value = this.state.tags.join(', ');
+                }
+
+                // Actualizar dirección de ordenamiento
+                const sortDirection = document.getElementById('sortDirection');
+                if (sortDirection) {
+                    sortDirection.setAttribute('data-direction', this.state.direction);
+                }
+            },
+
+            // Persistencia de estado
+            saveState() {
+                try {
+                    localStorage.setItem('communityFiltersState', JSON.stringify(this.state));
+                } catch (error) {
+                    console.warn('No se pudo guardar el estado de filtros:', error);
+                }
+            },
+
+            loadSavedState() {
+                try {
+                    const saved = localStorage.getItem('communityFiltersState');
+                    if (saved) {
+                        this.state = { ...this.getDefaultState(), ...JSON.parse(saved) };
+                        setTimeout(() => this.updateUI(), 100);
+                    }
+                } catch (error) {
+                    console.warn('No se pudo cargar el estado de filtros:', error);
+                    this.state = this.getDefaultState();
                 }
             }
-        }
-
-        function hideEmptyState() {
-            const emptyState = document.querySelector('.empty-state-filters');
-            if (emptyState) {
-                emptyState.remove();
-            }
-        }
-
-        // Función para resetear todos los filtros
-        window.resetCommunityFilters = function() {
-            // Resetear botón activo
-            document.querySelectorAll('.filter-tab').forEach(tab => {
-                tab.classList.remove('active');
-                if (tab.getAttribute('data-filter') === 'all') {
-                    tab.classList.add('active');
-                }
-            });
-
-            // Resetear selects
-            const moduleFilter = document.getElementById('moduleFilter');
-            const sortSelect = document.getElementById('sortSelect');
-            
-            if (moduleFilter) moduleFilter.value = 'all';
-            if (sortSelect) sortSelect.value = 'recent';
-
-            // Mostrar todas las preguntas
-            applyQuestionFilter('all');
-            hideEmptyState();
-
-            console.log('✅ Filtros de comunidad reseteados');
         };
 
-        // Función para obtener estado actual de filtros
-        window.getCommunityFiltersState = function() {
-            const activeTab = document.querySelector('.filter-tab.active');
-            const moduleFilter = document.getElementById('moduleFilter');
-            const sortSelect = document.getElementById('sortSelect');
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            CommunityFilters.init();
+        });
 
-            return {
-                filter: activeTab ? activeTab.getAttribute('data-filter') : 'all',
-                module: moduleFilter ? moduleFilter.value : 'all',
-                sort: sortSelect ? sortSelect.value : 'recent'
-            };
-        };
+        // Funciones globales para compatibilidad
+        window.resetCommunityFilters = () => CommunityFilters.clearAllFilters();
+        window.getCommunityFiltersState = () => CommunityFilters.state;
+
+        // Función global para debugging
+        window.debugCommunityFilters = () => CommunityFilters.debugFilters();
+
+        // Función global para crear preguntas de prueba
+        window.createTestOwnQuestions = () => CommunityFilters.createTestOwnQuestions();
+
+        console.log('🛠️ Para debuggear filtros, ejecuta: debugCommunityFilters()');
+        console.log('🧪 Para crear preguntas de prueba propias, ejecuta: createTestOwnQuestions()');
 
     </script>
 

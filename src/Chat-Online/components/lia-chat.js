@@ -366,13 +366,33 @@ class LiaChat {
     }
 
     /**
-     * Generar sugerencias de seguimiento
+     * Generar sugerencias de seguimiento dinámicas
      */
     generateFollowUpSuggestions(content, message) {
         const suggestions = [];
         const msg = message.toLowerCase();
+        const resp = content.toLowerCase();
 
-        if (msg.includes('machine learning') || msg.includes('ml')) {
+        // Análisis del contenido de la respuesta para generar sugerencias más relevantes
+        if (resp.includes('algoritmo') || resp.includes('modelo')) {
+            suggestions.push(
+                '¿Puedes mostrarme cómo funciona en la práctica?',
+                '¿Qué ventajas tiene este enfoque?',
+                '¿En qué situaciones es más efectivo?'
+            );
+        } else if (resp.includes('aplicación') || resp.includes('uso')) {
+            suggestions.push(
+                '¿Hay otros casos de uso interesantes?',
+                '¿Cómo implementaría esto en mi área?',
+                '¿Qué empresas lo están usando actualmente?'
+            );
+        } else if (resp.includes('historia') || resp.includes('evolución')) {
+            suggestions.push(
+                '¿Qué avances recientes han sido más importantes?',
+                '¿Hacia dónde se dirige la tecnología?',
+                '¿Cómo ha impactado en diferentes industrias?'
+            );
+        } else if (msg.includes('machine learning') || msg.includes('ml')) {
             suggestions.push(
                 '¿Qué tipos de Machine Learning existen?',
                 'Dame ejemplos de algoritmos de ML',
@@ -391,12 +411,23 @@ class LiaChat {
                 'Dame un ejemplo comparativo'
             );
         } else {
-            // Sugerencias generales
-            suggestions.push(
+            // Sugerencias adaptativas basadas en el tema del módulo actual
+            const moduleTopics = {
+                1: ['¿Qué es realmente la inteligencia artificial?', '¿Cuáles son los mitos más comunes sobre IA?', '¿Cómo afecta la IA a mi trabajo diario?'],
+                2: ['¿Quiénes fueron los pioneros de la IA?', '¿Qué eventos marcaron la historia de la IA?', '¿Cómo ha evolucionado la percepción de la IA?'],
+                3: ['¿Cuáles son las diferencias clave entre los tipos de ML?', '¿Qué tipo de problemas resuelve cada uno?', '¿Cómo elegir el enfoque correcto?'],
+                4: ['¿Cómo funcionan realmente las redes neuronales?', '¿En qué se parecen al cerebro humano?', '¿Qué limitaciones tienen?'],
+                5: ['¿Dónde puedo ver IA en acción hoy?', '¿Cómo puedo empezar a aplicar IA?', '¿Qué herramientas necesito para comenzar?']
+            };
+            
+            const currentModule = this.currentContext?.module || 1;
+            const moduleSuggestions = moduleTopics[currentModule] || [
                 '¿Puedes darme más detalles?',
                 'Explícalo con un ejemplo',
                 '¿Cómo se relaciona con lo anterior?'
-            );
+            ];
+            
+            suggestions.push(...moduleSuggestions);
         }
 
         return suggestions.slice(0, 3);

@@ -963,6 +963,9 @@ class ChatOnline {
     }
     
     addUserMessage(message, replyTo = null) {
+        // Guardar mensaje en historial antes de mostrar en UI
+        this.guardarMensajeEnHistorial('user', message);
+        
         const messagesContainer = document.getElementById('liaMessages');
         const messageElement = document.createElement('div');
         messageElement.className = 'lia-message user-message';
@@ -1009,6 +1012,9 @@ class ChatOnline {
     }
     
     addLiaMessage(message) {
+        // Guardar respuesta de LIA en historial antes de mostrar en UI
+        this.guardarMensajeEnHistorial('assistant', message);
+        
         const messagesContainer = document.getElementById('liaMessages');
         const messageElement = document.createElement('div');
         messageElement.className = 'lia-message';
@@ -1085,10 +1091,18 @@ class ChatOnline {
             // Obtener contexto del taller actual usando la función hardcodeada
             const context = typeof obtenerContextoCurso === 'function' ? obtenerContextoCurso() : this.obtenerContextoFallback();
             console.log('[LIA] 📚 Contexto del taller:', context);
+
+            // Obtener historial de conversación para contexto dinámico
+            const conversationHistory = this.obtenerHistorialConversacion();
+            console.log('[LIA] 💬 Historial de conversación:', conversationHistory);
+
+            // Generar contexto personalizado y dinámico
+            const personalizedContext = this.generarContextoPersonalizado(message, currentUser, conversationHistory);
+            console.log('[LIA] 🎯 Contexto personalizado:', personalizedContext);
             
-            // Preparar prompt con contexto específico del taller
-            const prompt = `Usuario: ${message}\n\nContexto del Taller: ${context}`;
-            console.log('[LIA] 📝 Prompt preparado:', prompt);
+            // Preparar prompt enriquecido con contexto dinámico
+            const prompt = this.construirPromptDinamico(message, context, personalizedContext, conversationHistory);
+            console.log('[LIA] 📝 Prompt dinámico preparado:', prompt.substring(0, 200) + '...');
             
             console.log('[LIA] 🔄 Enviando solicitud a API...');
             
@@ -8316,6 +8330,368 @@ class ChatOnline {
             }
         } catch (error) {
             console.error('❌ Error cargando contenido de resumen:', error);
+        }
+    }
+
+    // ===== SISTEMA DE RESPUESTAS DINÁMICAS PARA LIA =====
+    
+    /**
+     * Obtener historial de conversación desde localStorage
+     */
+    obtenerHistorialConversacion() {
+        try {
+            const historial = localStorage.getItem('lia_conversation_history');
+            if (historial) {
+                const parsed = JSON.parse(historial);
+                // Mantener solo los últimos 20 mensajes para optimizar el contexto
+                return parsed.slice(-20);
+            }
+            return [];
+        } catch (error) {
+            console.error('[LIA] ❌ Error obteniendo historial:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Guardar mensaje en historial de conversación
+     */
+    guardarMensajeEnHistorial(role, mensaje) {
+        try {
+            const historial = this.obtenerHistorialConversacion();
+            const nuevoMensaje = {
+                role: role, // 'user' o 'assistant'
+                content: mensaje,
+                timestamp: new Date().toISOString(),
+                context: {
+                    module: this.currentModule,
+                    courseId: this.getCurrentCourseId(),
+                    videoTime: this.getCurrentVideoTime()
+                }
+            };
+            
+            historial.push(nuevoMensaje);
+            
+            // Mantener solo los últimos 50 mensajes en storage
+            const historialLimitado = historial.slice(-50);
+            localStorage.setItem('lia_conversation_history', JSON.stringify(historialLimitado));
+            
+            console.log(`[LIA] 💾 Mensaje guardado en historial (${role}):`, mensaje.substring(0, 100) + '...');
+        } catch (error) {
+            console.error('[LIA] ❌ Error guardando mensaje en historial:', error);
+        }
+    }
+
+    /**
+     * Generar contexto personalizado basado en el mensaje actual y historial
+     */
+    generarContextoPersonalizado(mensaje, usuario, historial) {
+        try {
+            // Analizar patrones en el historial
+            const patronesUsuario = this.analizarPatronesUsuario(historial);
+            
+            // Detectar intención del mensaje actual
+            const intencion = this.detectarIntencion(mensaje);
+            
+            // Generar contexto personalizado
+            const contextoPersonalizado = {
+                usuario: {
+                    nombre: usuario?.name || usuario?.username || 'Estudiante',
+                    preferencias: patronesUsuario.preferencias,
+                    nivelCompresion: patronesUsuario.nivelCompresion,
+                    temasInteres: patronesUsuario.temasInteres
+                },
+                conversacion: {
+                    intencionActual: intencion,
+                    temaActual: this.extraerTemaPrincipal(mensaje),
+                    mensajesRecientes: historial.slice(-5).map(m => ({
+                        role: m.role,
+                        content: m.content.substring(0, 100),
+                        timestamp: m.timestamp
+                    }))
+                },
+                adaptacion: {
+                    evitarRepeticion: this.identificarRespuestasRepetitivas(historial),
+                    personalizarTono: this.adaptarTonoSegunUsuario(patronesUsuario),
+                    sugerirSiguientePaso: this.sugerirProximaAccion(intencion, this.currentModule)
+                }
+            };
+
+            return contextoPersonalizado;
+        } catch (error) {
+            console.error('[LIA] ❌ Error generando contexto personalizado:', error);
+            return { usuario: {}, conversacion: {}, adaptacion: {} };
+        }
+    }
+
+    /**
+     * Analizar patrones del usuario en conversaciones previas
+     */
+    analizarPatronesUsuario(historial) {
+        const patronesUsuario = {
+            preferencias: 'explicaciones_detalladas',
+            nivelCompresion: 'medio',
+            temasInteres: []
+        };
+
+        if (historial.length === 0) return patronesUsuario;
+
+        const mensajesUsuario = historial.filter(m => m.role === 'user');
+        
+        // Detectar nivel de comprensión preferido
+        const preguntasDetalladas = mensajesUsuario.filter(m => 
+            m.content.includes('explica') || 
+            m.content.includes('detalles') || 
+            m.content.includes('paso a paso')
+        ).length;
+        
+        const preguntasSimples = mensajesUsuario.filter(m => 
+            m.content.includes('resumen') || 
+            m.content.includes('rápido') || 
+            m.content.length < 20
+        ).length;
+
+        if (preguntasDetalladas > preguntasSimples) {
+            patronesUsuario.preferencias = 'explicaciones_detalladas';
+            patronesUsuario.nivelCompresion = 'alto';
+        } else if (preguntasSimples > preguntasDetalladas) {
+            patronesUsuario.preferencias = 'respuestas_concisas';
+            patronesUsuario.nivelCompresion = 'bajo';
+        }
+
+        // Extraer temas de interés recurrentes
+        const temas = ['machine learning', 'redes neuronales', 'algoritmos', 'aplicaciones', 'historia', 'etica'];
+        patronesUsuario.temasInteres = temas.filter(tema => 
+            mensajesUsuario.some(m => m.content.toLowerCase().includes(tema))
+        );
+
+        return patronesUsuario;
+    }
+
+    /**
+     * Detectar intención del mensaje del usuario
+     */
+    detectarIntencion(mensaje) {
+        const msgLower = mensaje.toLowerCase();
+        
+        if (msgLower.includes('explica') || msgLower.includes('que es') || msgLower.includes('como funciona')) {
+            return 'explicacion';
+        } else if (msgLower.includes('ejemplo') || msgLower.includes('muestra')) {
+            return 'ejemplo';
+        } else if (msgLower.includes('diferencia') || msgLower.includes('comparar')) {
+            return 'comparacion';
+        } else if (msgLower.includes('ejercicio') || msgLower.includes('practica') || msgLower.includes('actividad')) {
+            return 'practica';
+        } else if (msgLower.includes('aplicacion') || msgLower.includes('uso real') || msgLower.includes('industria')) {
+            return 'aplicacion_practica';
+        } else if (msgLower.includes('siguiente') || msgLower.includes('continuar') || msgLower.includes('avanzar')) {
+            return 'progresion';
+        } else if (msgLower.includes('repetir') || msgLower.includes('no entendi') || msgLower.includes('explicamelo')) {
+            return 'clarificacion';
+        }
+        
+        return 'general';
+    }
+
+    /**
+     * Extraer tema principal del mensaje
+     */
+    extraerTemaPrincipal(mensaje) {
+        const msgLower = mensaje.toLowerCase();
+        const temas = {
+            'machine learning': ['machine learning', 'ml', 'aprendizaje automatico', 'aprendizaje maquina'],
+            'redes neuronales': ['redes neuronales', 'neurona', 'perceptron', 'deep learning'],
+            'algoritmos': ['algoritmo', 'modelo', 'entrenamiento'],
+            'aplicaciones': ['aplicacion', 'uso', 'ejemplo real', 'industria'],
+            'historia': ['historia', 'origen', 'evolucion', 'desarrollo'],
+            'conceptos basicos': ['que es', 'concepto', 'definicion', 'fundamento']
+        };
+
+        for (const [tema, palabras] of Object.entries(temas)) {
+            if (palabras.some(palabra => msgLower.includes(palabra))) {
+                return tema;
+            }
+        }
+
+        return 'general';
+    }
+
+    /**
+     * Identificar si hay respuestas repetitivas recientes
+     */
+    identificarRespuestasRepetitivas(historial) {
+        const respuestasLIA = historial.filter(m => m.role === 'assistant').slice(-5);
+        const respuestasUnicas = new Set(respuestasLIA.map(r => r.content.substring(0, 100)));
+        
+        if (respuestasLIA.length > 2 && respuestasUnicas.size < respuestasLIA.length * 0.8) {
+            return {
+                detectado: true,
+                sugerencia: 'Varía el enfoque y proporciona perspectivas diferentes'
+            };
+        }
+        
+        return { detectado: false };
+    }
+
+    /**
+     * Adaptar tono según patrones del usuario
+     */
+    adaptarTonoSegunUsuario(patrones) {
+        if (patrones.nivelCompresion === 'alto') {
+            return {
+                estilo: 'detallado_profesional',
+                sugerencia: 'Proporciona explicaciones técnicas completas con ejemplos'
+            };
+        } else if (patrones.nivelCompresion === 'bajo') {
+            return {
+                estilo: 'conciso_amigable',
+                sugerencia: 'Mantén respuestas breves y claras, enfócate en lo esencial'
+            };
+        }
+        
+        return {
+            estilo: 'equilibrado',
+            sugerencia: 'Balancea entre detalle técnico y claridad'
+        };
+    }
+
+    /**
+     * Sugerir próxima acción basada en intención y progreso
+     */
+    sugerirProximaAccion(intencion, moduloActual) {
+        const sugerencias = {
+            'explicacion': 'Ofrece un ejercicio práctico o ejemplo para reforzar la comprensión',
+            'ejemplo': 'Sugiere aplicar el concepto en un contexto diferente',
+            'practica': 'Proporciona feedback constructivo y el siguiente ejercicio',
+            'comparacion': 'Sugiere profundizar en las ventajas/desventajas de cada opción',
+            'aplicacion_practica': 'Conecta con ejemplos del módulo actual y siguientes temas',
+            'progresion': `Indica que está listo para avanzar en el Módulo ${moduloActual}`,
+            'clarificacion': 'Usa una analogía diferente o enfoque alternativo'
+        };
+
+        return {
+            accion: sugerencias[intencion] || 'Pregunta si hay algo específico que le gustaría explorar más',
+            contexto: `Módulo ${moduloActual}`,
+            motivacion: 'Mantén el engagement y curiosidad por aprender'
+        };
+    }
+
+    /**
+     * Construir prompt dinámico y contextual
+     */
+    construirPromptDinamico(mensaje, contextoTaller, contextoPersonalizado, historial) {
+        const historialReciente = historial.slice(-6).map(m => `${m.role === 'user' ? 'Estudiante' : 'LIA'}: ${m.content}`).join('\n');
+        
+        const prompt = `Eres LIA, un tutor personalizado especializado en enseñar fundamentos de Inteligencia Artificial.
+
+CONTEXTO DEL TALLER:
+${contextoTaller}
+
+INFORMACIÓN DEL ESTUDIANTE:
+- Nombre: ${contextoPersonalizado.usuario?.nombre || 'Estudiante'}
+- Nivel de comprensión preferido: ${contextoPersonalizado.conversacion?.intencionActual || 'medio'}
+- Temas de interés: ${contextoPersonalizado.usuario?.temasInteres?.join(', ') || 'fundamentos de IA'}
+- Estilo de respuesta adaptado: ${contextoPersonalizado.adaptacion?.personalizarTono?.estilo || 'equilibrado'}
+
+CONTEXTO DE LA CONVERSACIÓN:
+Tema actual: ${contextoPersonalizado.conversacion?.temaActual || 'general'}
+Intención detectada: ${contextoPersonalizado.conversacion?.intencionActual || 'consulta general'}
+
+HISTORIAL RECIENTE (últimos mensajes):
+${historialReciente || 'No hay historial previo'}
+
+INSTRUCCIONES ESPECIALES:
+${contextoPersonalizado.adaptacion?.evitarRepeticion?.detectado ? 
+  '⚠️ IMPORTANTE: Se detectaron respuestas repetitivas. ' + contextoPersonalizado.adaptacion.evitarRepeticion.sugerencia : 
+  '✅ Conversación fluida, mantén la calidad y variedad'}
+
+${contextoPersonalizado.adaptacion?.personalizarTono?.sugerencia || ''}
+
+PRÓXIMA ACCIÓN SUGERIDA:
+${contextoPersonalizado.adaptacion?.sugerirSiguientePaso?.accion || ''}
+
+MENSAJE ACTUAL DEL ESTUDIANTE:
+${mensaje}
+
+RESPONDE COMO LIA:
+- Adapta tu respuesta al estilo preferido del estudiante
+- Construye sobre la conversación previa
+- Varía tu enfoque para evitar repetición
+- Incluye la próxima acción sugerida de manera natural
+- Mantén el tono educativo, cálido y motivador
+- Responde en español`;
+
+        return prompt;
+    }
+
+    /**
+     * Obtener tiempo actual del video (método auxiliar mejorado)
+     */
+    getCurrentVideoTime() {
+        try {
+            // Intentar obtener desde iframe de YouTube
+            const iframe = document.getElementById('youtubePlayer');
+            if (iframe && iframe.contentWindow && iframe.contentWindow.getCurrentTime) {
+                return Math.floor(iframe.contentWindow.getCurrentTime());
+            }
+            
+            // Fallback: intentar desde player directo
+            if (window.youtubePlayer && typeof window.youtubePlayer.getCurrentTime === 'function') {
+                return Math.floor(window.youtubePlayer.getCurrentTime());
+            }
+            
+            // Si no hay video player, devolver 0
+            return 0;
+        } catch (error) {
+            console.log('[LIA] ⚠️ No se pudo obtener tiempo del video:', error.message);
+            return 0;
+        }
+    }
+
+    /**
+     * Limpiar historial de conversación (utilidad para debugging)
+     */
+    limpiarHistorialConversacion() {
+        localStorage.removeItem('lia_conversation_history');
+        console.log('[LIA] 🧹 Historial de conversación limpiado');
+    }
+
+    /**
+     * Exportar conversación con contexto (para análisis y mejoras)
+     */
+    exportarConversacionCompleta() {
+        try {
+            const historial = this.obtenerHistorialConversacion();
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                curso: {
+                    id: this.getCurrentCourseId(),
+                    module: this.currentModule
+                },
+                usuario: this.obtenerUsuarioActual(),
+                conversacion: historial,
+                estadisticas: {
+                    totalMensajes: historial.length,
+                    mensajesUsuario: historial.filter(m => m.role === 'user').length,
+                    mensajesLIA: historial.filter(m => m.role === 'assistant').length,
+                    duracion: historial.length > 0 ? 
+                        new Date(historial[historial.length - 1].timestamp) - new Date(historial[0].timestamp) : 0
+                }
+            };
+
+            // Crear archivo para descargar
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `lia-conversacion-${new Date().getTime()}.json`;
+            link.click();
+            
+            console.log('[LIA] 📋 Conversación exportada exitosamente');
+        } catch (error) {
+            console.error('[LIA] ❌ Error exportando conversación:', error);
         }
     }
 }
