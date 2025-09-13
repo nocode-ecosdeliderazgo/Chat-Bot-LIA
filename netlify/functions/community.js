@@ -39,7 +39,8 @@ async function getQuestions(req, res) {
                 *,
                 users:user_id (
                     id,
-                    name,
+                    username,
+                    display_name,
                     avatar_url
                 )
             `);
@@ -164,7 +165,8 @@ async function createQuestion(req, res) {
                 *,
                 users:user_id (
                     id,
-                    name,
+                    username,
+                    display_name,
                     avatar_url
                 )
             `)
@@ -366,7 +368,8 @@ async function createAnswer(req, res) {
                 *,
                 users:user_id (
                     id,
-                    name,
+                    username,
+                    display_name,
                     avatar_url
                 )
             `)
@@ -417,7 +420,8 @@ async function getQuestionAnswers(req, res) {
                 *,
                 users:user_id (
                     id,
-                    name,
+                    username,
+                    display_name,
                     avatar_url
                 )
             `)
