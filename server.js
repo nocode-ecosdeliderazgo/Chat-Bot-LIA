@@ -5597,7 +5597,45 @@ app.post('/api/community/questions/:questionId/answers', async (req, res) => {
             });
         }
         
-        console.log('🗃️ Pool de base de datos disponible, procediendo con INSERT...');
+        console.log('🗃️ Pool de base de datos disponible, procediendo con validaciones...');
+        
+        // Verificar si el usuario existe o crearlo si es el usuario demo
+        if (user_id === '123e4567-e89b-12d3-a456-426614174000') {
+            console.log('👤 Verificando/creando usuario demo...');
+            const demoUserCheck = await pool.query('SELECT id FROM users WHERE id = $1', [user_id]);
+            
+            if (demoUserCheck.rows.length === 0) {
+                console.log('🔧 Creando usuario demo...');
+                await pool.query(`
+                    INSERT INTO users (id, username, display_name, email, created_at, updated_at)
+                    VALUES ($1, $2, $3, $4, NOW(), NOW())
+                    ON CONFLICT (id) DO NOTHING
+                `, [user_id, 'usuario_demo', 'Usuario Demo', 'demo@example.com']);
+                console.log('✅ Usuario demo creado');
+            }
+        } else {
+            // Verificar que el usuario real existe
+            const userCheck = await pool.query('SELECT id FROM users WHERE id = $1', [user_id]);
+            if (userCheck.rows.length === 0) {
+                console.log('❌ Usuario no encontrado:', user_id);
+                return res.status(400).json({
+                    success: false,
+                    error: 'Usuario no encontrado. Por favor inicia sesión nuevamente.'
+                });
+            }
+        }
+        
+        // Verificar que la pregunta existe
+        const questionCheck = await pool.query('SELECT id FROM community_questions WHERE id = $1', [questionId]);
+        if (questionCheck.rows.length === 0) {
+            console.log('❌ Pregunta no encontrada:', questionId);
+            return res.status(400).json({
+                success: false,
+                error: 'Pregunta no encontrada'
+            });
+        }
+        
+        console.log('✅ Validaciones completadas, procediendo con INSERT...');
         
         // Crear la respuesta
         const result = await pool.query(`

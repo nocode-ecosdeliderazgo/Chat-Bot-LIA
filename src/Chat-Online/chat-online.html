@@ -3595,8 +3595,27 @@ Cargando información...
             } else {
                 // Fallback con guardado en base de datos
                 try {
-                    // Obtener usuario actual (simulado para fallback)
-                    const currentUser = { id: 'demo-user', name: 'Usuario Demo' };
+                    // Intentar obtener usuario real primero
+                    let currentUser = null;
+                    
+                    // Intentar desde localStorage
+                    try {
+                        const userData = localStorage.getItem('userData') || localStorage.getItem('currentUser');
+                        if (userData) {
+                            currentUser = JSON.parse(userData);
+                        }
+                    } catch (e) {
+                        console.log('⚠️ Error obteniendo usuario desde localStorage:', e);
+                    }
+                    
+                    // Si no hay usuario real, usar UUID demo válido
+                    if (!currentUser || !currentUser.id) {
+                        currentUser = { 
+                            id: '123e4567-e89b-12d3-a456-426614174000', // UUID demo válido
+                            name: 'Usuario Demo' 
+                        };
+                        console.log('⚠️ Usando usuario demo con UUID válido:', currentUser);
+                    }
                     
                     // Preparar datos de respuesta
                     const answerData = {
