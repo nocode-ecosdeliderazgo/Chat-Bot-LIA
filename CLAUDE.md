@@ -181,6 +181,16 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 # Server Configuration
 PORT=3000
 ALLOWED_ORIGINS=http://localhost:3000,https://yourdomain.com
+
+# Chatbot Configuration (optional)
+CHATBOT_NAME=Asistente Educativo
+CHATBOT_MODEL=gpt-4
+CHATBOT_MAX_TOKENS=1000
+CHATBOT_TEMPERATURE=0.7
+
+# Audio Configuration (optional)
+AUDIO_ENABLED=true
+AUDIO_VOLUME=0.7
 ```
 
 ### Frontend Development
@@ -213,9 +223,10 @@ ALLOWED_ORIGINS=http://localhost:3000,https://yourdomain.com
 
 ### Jest Configuration
 - Test environment: jsdom for DOM testing
-- Coverage reporting with HTML output
-- Module path mapping with `@/` prefix
-- Setup files for test utilities
+- Coverage reporting with text, lcov, and HTML output
+- Module path mapping with `@/` prefix for src directory
+- Setup files for test utilities with Babel transformation
+- Tests located in `tests/__tests__/` and matching `*.test.js` or `*.spec.js`
 
 ### Test Structure
 ```
