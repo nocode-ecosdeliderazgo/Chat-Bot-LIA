@@ -24,6 +24,9 @@ class ChatOnlineV2 {
             // Esperar a que dynamic video loader esté listo
             await this.waitForDynamicVideoLoader();
 
+            // NUEVO: Cargar contexto completo del curso
+            await this.loadFullCourseContext();
+
             // Configurar event listeners básicos
             this.setupEventListeners();
 
@@ -63,6 +66,65 @@ class ChatOnlineV2 {
             };
             checkLoader();
         });
+    }
+
+    // =====================================================
+    // NUEVA FUNCIÓN: CARGAR CONTEXTO COMPLETO DEL CURSO
+    // =====================================================
+    
+    async loadFullCourseContext() {
+        try {
+            console.log('📚 Cargando contexto completo del curso para LIA...');
+            
+            // Buscar course_id del módulo actual
+            const moduleId = this.currentModule?.id;
+            if (!moduleId) {
+                console.warn('⚠️ No se encontró module_id, usando datos por defecto');
+                return this.setDefaultCourseContext();
+            }
+
+            // Intentar obtener información completa del curso
+            const response = await fetch(`/api/modules/${moduleId}/video-data`);
+            if (response.ok) {
+                const data = await response.json();
+                console.log('📊 Datos del curso obtenidos:', data);
+                
+                if (data.course_modules?.courses) {
+                    this.fullCourseInfo = {
+                        title: data.course_modules.courses.title,
+                        description: data.course_modules.courses.description,
+                        instructor: data.course_modules.courses.instructor_name,
+                        level: data.course_modules.courses.difficulty_level,
+                        duration: data.course_modules.courses.estimated_hours,
+                        learningPath: data.course_modules.courses.learning_path,
+                        category: data.course_modules.courses.category
+                    };
+                    console.log('✅ Contexto completo del curso cargado:', this.fullCourseInfo);
+                    return;
+                }
+            }
+            
+            // Fallback: usar datos por defecto
+            console.warn('⚠️ No se pudo cargar contexto completo, usando fallback');
+            this.setDefaultCourseContext();
+            
+        } catch (error) {
+            console.error('💥 Error cargando contexto del curso:', error);
+            this.setDefaultCourseContext();
+        }
+    }
+
+    setDefaultCourseContext() {
+        this.fullCourseInfo = {
+            title: 'Introducción a la Inteligencia Artificial',
+            description: 'Curso completo de introducción a la IA con aplicaciones prácticas',
+            instructor: 'Coach LIA',
+            level: 'Intermedio',
+            duration: 'Variable',
+            learningPath: 'Ruta de Aprendizaje Personalizada',
+            category: 'Tecnología'
+        };
+        console.log('📝 Contexto por defecto establecido');
     }
 
     // =====================================================
@@ -518,15 +580,41 @@ class ChatOnlineV2 {
     }
 
     generateLiaContext() {
+        // Contexto enriquecido con información completa del curso
         const context = {
-            course: this.courseData?.course?.title || 'Introducción a la IA',
+            // NUEVO: Información completa del curso
+            courseInfo: this.fullCourseInfo || {
+                title: 'Introducción a la IA',
+                description: 'Curso de inteligencia artificial',
+                instructor: 'Coach LIA',
+                level: 'Intermedio',
+                duration: 'Variable',
+                learningPath: 'Personalizada'
+            },
+            
+            // Información del módulo actual
             currentModule: this.currentModule?.title || 'Módulo actual',
+            moduleDescription: this.currentModule?.description || 'Descripción no disponible',
+            
+            // Información del video actual
             currentVideo: this.currentVideo?.video_title || 'Video actual',
+            videoDescription: this.currentVideo?.description || 'Descripción no disponible',
             videoTime: this.getCurrentVideoTime(),
-            transcript: this.currentVideo?.transcript_text || 'Sin transcripción disponible'
+            videoDuration: this.currentVideo?.duration_minutes || 0,
+            
+            // Contenido educativo
+            transcript: this.currentVideo?.transcript_text || 'Sin transcripción disponible',
+            summary: this.currentVideo?.summary || 'Sin resumen disponible',
+            keyConceptsCount: this.currentVideo?.key_concepts?.length || 0,
+            
+            // Actividades
+            hasActivities: !!(this.currentVideo?.descripcion_actividad || this.currentVideo?.prompts_actividad),
+            
+            // Progreso del usuario
+            totalModules: this.courseData?.modules?.length || 1
         };
 
-        console.log('🧠 Contexto generado para LIA:', context);
+        console.log('🧠 Contexto ENRIQUECIDO generado para LIA:', context);
         return context;
     }
 
@@ -542,7 +630,33 @@ class ChatOnlineV2 {
             },
             body: JSON.stringify({
                 prompt: message,
-                context: `Usuario está en: ${context.course} - ${context.currentModule}. Video actual: ${context.currentVideo}. Tiempo del video: ${context.videoTime}s. ${context.transcript.substring(0, 500)}`
+                context: `CONTEXTO EDUCATIVO COMPLETO:
+
+=== INFORMACIÓN DEL CURSO ===
+- Curso: ${context.courseInfo.title}
+- Descripción del Curso: ${context.courseInfo.description}
+- Instructor: ${context.courseInfo.instructor}
+- Nivel: ${context.courseInfo.level}
+- Duración Total: ${context.courseInfo.duration} horas
+- Ruta de Aprendizaje: ${context.courseInfo.learningPath}
+
+=== CONTEXTO DEL MÓDULO ACTUAL ===
+- Módulo: ${context.currentModule}
+- Descripción: ${context.moduleDescription}
+- Total Módulos en el curso: ${context.totalModules}
+
+=== VIDEO ACTUAL ===
+- Video: ${context.currentVideo}
+- Descripción: ${context.videoDescription}
+- Tiempo actual: ${context.videoTime}s de ${context.videoDuration} minutos
+- Resumen: ${context.summary}
+- Conceptos clave: ${context.keyConceptsCount} conceptos disponibles
+- Actividades: ${context.hasActivities ? 'Disponibles' : 'No disponibles'}
+
+=== TRANSCRIPCIÓN DEL VIDEO (para referencia) ===
+${context.transcript.substring(0, 1500)}${context.transcript.length > 1500 ? '...' : ''}
+
+PREGUNTA DEL USUARIO: ${message}`
             })
         });
 

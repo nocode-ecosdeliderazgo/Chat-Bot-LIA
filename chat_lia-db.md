@@ -197,6 +197,14 @@ ORDER BY checkpoint_time ASC;
 ```javascript
 prepareContext(additionalContext) {
     return {
+        // NUEVO: Datos del curso completo
+        courseTitle: this.currentContext.courseTitle,
+        courseDescription: this.currentContext.courseDescription,
+        instructor: this.currentContext.instructor,
+        courseLevel: this.currentContext.courseLevel,
+        courseDuration: this.currentContext.courseDuration,
+        learningPath: this.currentContext.learningPath,
+        
         // Datos del módulo actual
         moduleId: this.currentContext.moduleId,
         moduleTitle: this.currentContext.moduleTitle,
@@ -230,10 +238,23 @@ prepareContext(additionalContext) {
 **Información Contextual Enviada a OpenAI**:
 ```javascript
 const contextualPrompt = `
-CONTEXTO EDUCATIVO ACTUAL:
+CONTEXTO EDUCATIVO COMPLETO:
+
+=== INFORMACIÓN DEL CURSO ===
+- Curso: ${this.currentContext.courseTitle || 'Curso de IA'}
+- Descripción del Curso: ${this.currentContext.courseDescription || 'No disponible'}
+- Instructor: ${this.currentContext.instructor || 'Coach LIA'}
+- Nivel: ${this.currentContext.courseLevel || 'Intermedio'}
+- Duración Total: ${this.currentContext.courseDuration || 'Variable'} horas
+- Ruta de Aprendizaje: ${this.currentContext.learningPath || 'No especificada'}
+
+=== CONTEXTO DEL MÓDULO ACTUAL ===
 - Módulo: ${this.currentContext.moduleTitle}
 - Descripción: ${this.currentContext.moduleDescription}
 - Progreso del estudiante: ${this.currentContext.userProgress}% del taller completo
+- Total Módulos: ${this.currentContext.totalModules}
+
+=== VIDEO ACTUAL ===
 - Video actual: ${videoTitle}
 - Timestamp: ${videoTimestamp} segundos
 - Documento de apoyo: ${this.currentContext.documentoApoyo}
@@ -280,17 +301,30 @@ USUARIO: ${message}
 
 ### 1. Inicialización del Chat
 ```javascript
-// 1. Cargar datos del curso desde API
+// 1. Cargar datos del curso completo desde API
 const courseData = await fetch('/api/courses/module1-videos');
+const fullCourseData = await fetch('/api/courses/course-slug/full-structure');
 
-// 2. Extraer información contextual
+// 2. Extraer información contextual completa
 const contextualData = {
+    // Videos del módulo actual
     videos: courseData.videos,
     currentVideo: getSelectedVideo(),
-    userSession: getUserSession()
+    userSession: getUserSession(),
+    
+    // NUEVO: Información del curso completo
+    courseInfo: {
+        title: fullCourseData.course?.title,
+        description: fullCourseData.course?.description,
+        instructor: fullCourseData.course?.instructor_name,
+        level: fullCourseData.course?.difficulty_level,
+        duration: fullCourseData.course?.estimated_hours,
+        learningPath: fullCourseData.course?.learning_path,
+        totalModules: fullCourseData.modules?.length
+    }
 };
 
-// 3. Inicializar LIA con contexto
+// 3. Inicializar LIA con contexto enriquecido
 liaChat.initialize(contextualData);
 ```
 
@@ -363,3 +397,55 @@ updateUserProgress(videoId, currentTime, completionPercentage) {
 - **Consultas registradas**: Para debug y optimización
 - **Errores capturados**: Para mantenimiento proactivo
 - **Métricas de uso**: Para análisis de rendimiento
+
+## 🆕 Mejoras Recientes (2025)
+
+### Contexto del Curso Completo para LIA
+**Problema Resuelto**: LIA anteriormente solo tenía acceso a la transcripción del video actual, pero cuando se le preguntaba "dame un resumen del video actual", respondía que no tenía acceso a la información.
+
+**Solución Implementada**: Se agregó contexto completo del curso desde la tabla `courses`:
+
+#### Nuevos Campos Contextuales:
+```sql
+-- Campos de la tabla 'courses' ahora incluidos en el contexto de LIA
+SELECT 
+    title,                    -- Título del curso
+    description,              -- Descripción completa del curso  
+    instructor_name,          -- Nombre del instructor
+    difficulty_level,         -- Nivel de dificultad
+    estimated_hours,          -- Duración estimada en horas
+    learning_path,            -- Ruta de aprendizaje
+    category                  -- Categoría del curso
+FROM courses
+WHERE slug = ? AND is_active = true;
+```
+
+#### Mejoras en el Contexto Enviado a OpenAI:
+1. **Información Estructurada**: El prompt ahora incluye una sección completa "INFORMACIÓN DEL CURSO"
+2. **Mejor Comprensión**: LIA ahora entiende el contexto general del curso, no solo el video específico
+3. **Respuestas Más Precisas**: Puede dar resúmenes contextualizados dentro del marco general del curso
+4. **Coherencia Educativa**: Las respuestas mantienen coherencia con los objetivos del curso completo
+
+#### Implementación Técnica:
+```javascript
+// Llamada adicional para obtener información del curso
+const fullCourseData = await fetch('/api/courses/course-slug/full-structure');
+
+// Contexto enriquecido enviado a OpenAI
+const enrichedContext = {
+    courseTitle: fullCourseData.course?.title,
+    courseDescription: fullCourseData.course?.description,
+    instructor: fullCourseData.course?.instructor_name,
+    // ... más campos del curso
+    
+    // Contexto del video actual (existente)
+    transcript: currentVideo.transcript_text,
+    videoTitle: currentVideo.video_title
+};
+```
+
+#### Resultado:
+- ✅ **Antes**: "No tengo acceso a la transcripción del video actual"
+- ✅ **Ahora**: LIA puede dar resúmenes detallados del video actual con contexto del curso completo
+- ✅ **Mejor Experiencia**: Respuestas más informativas y contextualmente relevantes
+- ✅ **Coherencia**: Mantiene alineación con los objetivos del curso

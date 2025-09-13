@@ -90,7 +90,7 @@ function mostrarTyping(mostrar) {
 
 // Función para obtener contexto completo del curso
 async function obtenerContextoCompleto(mensaje) {
-    console.log('🧠 Generando contexto completo...');
+    console.log('🧠 Generando contexto ENRIQUECIDO...');
     
     try {
         // Obtener datos del curso actual
@@ -100,9 +100,34 @@ async function obtenerContextoCompleto(mensaje) {
             const data = await response.json();
             
             if (data.success && data.current_video) {
-                const contexto = `Usuario está en: ${data.current_module?.courses?.title || 'Introducción a la IA'} - ${data.current_module?.title || 'Módulo actual'}. Video actual: ${data.current_video.video_title}. Duración del video: ${data.current_video.duration_seconds}s. Transcripción: ${data.current_video.transcript_text?.substring(0, 500) || 'Sin transcripción disponible'}. Pregunta del usuario: ${mensaje}`;
+                // Contexto enriquecido con estructura completa
+                const contexto = `CONTEXTO EDUCATIVO COMPLETO:
+
+=== INFORMACIÓN DEL CURSO ===
+- Curso: ${data.current_module?.courses?.title || 'Introducción a la Inteligencia Artificial'}
+- Descripción del Curso: ${data.current_module?.courses?.description || 'Curso completo de introducción a la IA con aplicaciones prácticas'}
+- Instructor: ${data.current_module?.courses?.instructor_name || 'Coach LIA'}
+- Nivel: ${data.current_module?.courses?.difficulty_level || 'Intermedio'}
+- Duración Total: ${data.current_module?.courses?.estimated_hours || 'Variable'} horas
+- Categoría: ${data.current_module?.courses?.category || 'Tecnología'}
+
+=== CONTEXTO DEL MÓDULO ACTUAL ===
+- Módulo: ${data.current_module?.title || 'Módulo actual'}
+- Descripción: ${data.current_module?.description || 'Descripción no disponible'}
+
+=== VIDEO ACTUAL ===
+- Video: ${data.current_video.video_title}
+- Descripción: ${data.current_video.description || 'Descripción no disponible'}
+- Duración: ${data.current_video.duration_minutes || Math.round(data.current_video.duration_seconds / 60)} minutos
+- Resumen: ${data.current_video.summary || 'Sin resumen disponible'}
+- Conceptos clave: ${data.current_video.key_concepts?.length || 0} conceptos disponibles
+
+=== TRANSCRIPCIÓN DEL VIDEO (para referencia) ===
+${data.current_video.transcript_text?.substring(0, 1500) || 'Sin transcripción disponible'}${data.current_video.transcript_text?.length > 1500 ? '...' : ''}
+
+PREGUNTA DEL USUARIO: ${mensaje}`;
                 
-                console.log('✅ Contexto completo generado');
+                console.log('✅ Contexto ENRIQUECIDO generado');
                 return contexto;
             }
         }
@@ -110,9 +135,21 @@ async function obtenerContextoCompleto(mensaje) {
         console.warn('⚠️ No se pudo obtener contexto completo:', error.message);
     }
     
-    // Fallback a contexto básico
-    const contextoBasico = `Usuario en curso de Introducción a la IA. Pregunta: ${mensaje}`;
-    console.log('📝 Usando contexto básico');
+    // Fallback a contexto enriquecido básico
+    const contextoBasico = `CONTEXTO EDUCATIVO COMPLETO:
+
+=== INFORMACIÓN DEL CURSO ===
+- Curso: Introducción a la Inteligencia Artificial
+- Descripción del Curso: Curso completo de introducción a la IA con aplicaciones prácticas
+- Instructor: Coach LIA
+- Nivel: Intermedio
+
+=== VIDEO ACTUAL ===
+- Información del video no disponible en este momento
+
+=== PREGUNTA DEL USUARIO ===
+${mensaje}`;
+    console.log('📝 Usando contexto enriquecido básico');
     return contextoBasico;
 }
 
