@@ -3079,7 +3079,7 @@ Cargando información...
                                 </div>
 
                                 <div class="question-stats">
-                                    <span class="stat-item">
+                                    <span class="stat-item question-answers clickable" onclick="showQuestionAnswers('${question.id}')" title="Ver respuestas" style="cursor: pointer;">
                                         <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                                         </svg>
@@ -3173,7 +3173,7 @@ Cargando información...
                                 </div>
 
                                 <div class="question-stats">
-                                    <span class="stat-item">
+                                    <span class="stat-item question-answers clickable" onclick="showQuestionAnswers('${question.id}')" title="Ver respuestas" style="cursor: pointer;">
                                         <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                                         </svg>
@@ -3636,14 +3636,27 @@ Cargando información...
                             // Actualizar contador de respuestas inmediatamente
                             window.updateAnswerCount(questionId);
                             
-                            // Si hay instancia de chatOnline, recargar las preguntas
-                            if (window.chatOnline && window.chatOnline.loadCommunityQuestions) {
-                                console.log('🔄 Recargando preguntas para mostrar nueva respuesta...');
-                                setTimeout(() => {
-                                    window.chatOnline.communityQuestionsLoaded = false;
-                                    window.chatOnline.loadCommunityQuestions('after-basic-answer');
-                                }, 500);
-                            }
+                            // Recargar las preguntas para mostrar la nueva respuesta
+                            console.log('🔄 Recargando preguntas para mostrar nueva respuesta...');
+                            setTimeout(async () => {
+                                try {
+                                    // Intentar usar función global loadCommunityQuestions
+                                    if (typeof loadCommunityQuestions === 'function') {
+                                        await loadCommunityQuestions();
+                                    } else if (window.chatOnlineV2 && window.chatOnlineV2.loadCommunityQuestions) {
+                                        await window.chatOnlineV2.loadCommunityQuestions('after-basic-answer');
+                                    } else if (window.chatOnline && window.chatOnline.loadCommunityQuestions) {
+                                        await window.chatOnline.loadCommunityQuestions('after-basic-answer');
+                                    } else {
+                                        console.log('📋 Función de recarga no encontrada, intentando recarga manual');
+                                        // Fallback: recargar la página completa si nada más funciona
+                                        // window.location.reload();
+                                    }
+                                    console.log('✅ Preguntas recargadas después de responder');
+                                } catch (error) {
+                                    console.error('❌ Error recargando preguntas:', error);
+                                }
+                            }, 500);
                         } else {
                             throw new Error(response.error || 'Error al guardar respuesta');
                         }
@@ -3681,30 +3694,105 @@ Cargando información...
                 return;
             }
             
-            // Buscar el contador de respuestas (pueden haber múltiples formatos)
-            const answerCountElements = questionElement.querySelectorAll('.question-answers, [class*="answer"]');
+            // Buscar el contador de respuestas (prioritario: clase question-answers)
+            const answerCountElement = questionElement.querySelector('.question-answers') || 
+                                     questionElement.querySelector('[class*="answer"]');
             
-            answerCountElements.forEach(element => {
-                const text = element.textContent;
-                if (text.includes('respuesta')) {
-                    // Extraer número actual
-                    const currentCount = parseInt(text.match(/\d+/)?.[0] || '0');
-                    const newCount = currentCount + 1;
-                    
-                    // Actualizar texto con nueva cantidad
-                    const newText = text.replace(/\d+/, newCount);
-                    element.textContent = newText;
-                    
-                    console.log(`✅ Contador actualizado de ${currentCount} a ${newCount} respuestas`);
-                    
-                    // Agregar efecto visual
-                    element.style.background = 'rgba(68, 229, 255, 0.2)';
-                    element.style.transition = 'all 0.3s ease';
-                    setTimeout(() => {
-                        element.style.background = '';
-                    }, 1000);
+            if (answerCountElement && answerCountElement.textContent.includes('respuesta')) {
+                const text = answerCountElement.textContent;
+                // Extraer número actual
+                const currentCount = parseInt(text.match(/\d+/)?.[0] || '0');
+                const newCount = currentCount + 1;
+                
+                // Actualizar texto con nueva cantidad
+                const newText = text.replace(/\d+/, newCount);
+                answerCountElement.textContent = newText;
+                
+                console.log(`✅ Contador actualizado de ${currentCount} a ${newCount} respuestas`);
+                
+                // Agregar efecto visual
+                answerCountElement.style.background = 'rgba(68, 229, 255, 0.2)';
+                answerCountElement.style.transition = 'all 0.3s ease';
+                setTimeout(() => {
+                    answerCountElement.style.background = '';
+                }, 1000);
+            }
+        };
+        
+        // Función global para mostrar respuestas de una pregunta
+        window.showQuestionAnswers = async function(questionId) {
+            console.log('📋 Cargando respuestas para pregunta:', questionId);
+            
+            try {
+                if (!window.communityAPI) {
+                    console.log('⚠️ CommunityAPI no disponible');
+                    alert('Función de respuestas no disponible en este momento.');
+                    return;
                 }
-            });
+                
+                // Cargar respuestas de la pregunta
+                const response = await window.communityAPI.getQuestionAnswers(questionId);
+                
+                if (response.success && response.data) {
+                    const answers = response.data;
+                    
+                    if (answers.length === 0) {
+                        alert('Esta pregunta aún no tiene respuestas. ¡Sé el primero en responder!');
+                        return;
+                    }
+                    
+                    // Crear un modal simple para mostrar las respuestas
+                    let answersHTML = `
+                        <div class="answers-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; justify-content: center; align-items: center;">
+                            <div class="answers-content" style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 2rem; max-width: 80%; max-height: 80%; overflow-y: auto; position: relative;">
+                                <div class="answers-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem;">
+                                    <h3 style="color: var(--text-primary); margin: 0;">
+                                        <svg style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        ${answers.length} Respuesta${answers.length > 1 ? 's' : ''}
+                                    </h3>
+                                    <button onclick="document.querySelector('.answers-modal').remove()" style="background: none; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer; padding: 0.5rem;" title="Cerrar">×</button>
+                                </div>
+                                <div class="answers-list">`;
+                    
+                    answers.forEach((answer, index) => {
+                        const timeAgo = formatTimestamp(answer.created_at);
+                        const userName = answer.author?.name || answer.users?.name || answer.users?.display_name || answer.username || 'Usuario Anónimo';
+                        
+                        answersHTML += `
+                            <div class="answer-item" style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 3px solid var(--glass-primary);">
+                                <div class="answer-header" style="display: flex; justify-content: between; align-items: center; margin-bottom: 0.5rem;">
+                                    <span style="color: var(--glass-primary); font-weight: 500;">${userName}</span>
+                                    <span style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-left: auto;">${timeAgo}</span>
+                                </div>
+                                <div class="answer-content" style="color: var(--text-primary); line-height: 1.6;">
+                                    ${answer.content.replace(/\n/g, '<br>')}
+                                </div>
+                                <div class="answer-votes" style="margin-top: 0.5rem; color: rgba(255,255,255,0.6); font-size: 0.9rem;">
+                                    👍 ${answer.votes_count || 0} votos
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    answersHTML += `
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Agregar el modal al DOM
+                    document.body.insertAdjacentHTML('beforeend', answersHTML);
+                    
+                } else {
+                    throw new Error(response.error || 'Error al cargar respuestas');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error cargando respuestas:', error);
+                alert('Error al cargar respuestas. Intenta de nuevo.');
+            }
         };
         
         // Función global para mostrar modal de foto de LIA
