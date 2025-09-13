@@ -1052,21 +1052,108 @@
             box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
         }
 
-        /* ===== ESTILOS PARA RESPUESTAS - Paleta answerContent ===== */
+        /* ===== ESTILOS MEJORADOS PARA RESPUESTAS - Diseño Moderno ===== */
+        .answers-modal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.7) !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+            z-index: 10000 !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            animation: fadeIn 0.3s ease-out !important;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                backdrop-filter: blur(0px);
+            }
+            to {
+                opacity: 1;
+                backdrop-filter: blur(8px);
+            }
+        }
+
+        .answers-content {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05)) !important;
+            border: 1px solid rgba(0, 102, 204, 0.3) !important;
+            border-radius: 20px !important;
+            padding: 2.5rem !important;
+            max-width: 95% !important;
+            max-height: 90% !important;
+            width: 95% !important;
+            min-height: 70vh !important;
+            overflow-y: auto !important;
+            position: relative !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 102, 204, 0.1) !important;
+            animation: slideInUp 0.4s ease-out !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes slideOutDown {
+            from {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+        }
+
+        .answers-modal.closing {
+            animation: fadeOut 0.3s ease-in forwards !important;
+        }
+
+        .answers-modal.closing .answers-content {
+            animation: slideOutDown 0.3s ease-in forwards !important;
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                backdrop-filter: blur(8px);
+            }
+            to {
+                opacity: 0;
+                backdrop-filter: blur(0px);
+            }
+        }
+
         .answers-list {
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            gap: 20px;
         }
 
         .answer-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(68, 229, 255, 0.15);
-            border-radius: 12px;
-            padding: 18px;
-            transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+            border: 1px solid rgba(0, 102, 204, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             color: var(--glass-text-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
 
         .answer-item::before {
@@ -1075,16 +1162,22 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(68, 229, 255, 0.4), transparent);
-            border-radius: 12px 12px 0 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #0066CC, rgba(0, 102, 204, 0.6), transparent);
+            border-radius: 16px 16px 0 0;
+            opacity: 0.8;
         }
 
         .answer-item:hover {
-            border-color: var(--glass-primary);
-            background: rgba(68, 229, 255, 0.08);
-            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
-            transform: translateY(-2px);
+            border-color: #0066CC;
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.1), rgba(0, 102, 204, 0.05));
+            box-shadow: 0 8px 25px rgba(0, 102, 204, 0.2), 0 0 0 1px rgba(0, 102, 204, 0.3);
+            transform: translateY(-4px) scale(1.02);
+        }
+
+        .answer-item:hover::before {
+            background: linear-gradient(90deg, transparent, #0066CC, #0066CC, transparent);
+            opacity: 1;
         }
 
         .answer-item.accepted {
@@ -1097,30 +1190,46 @@
         }
 
         .answer-header {
-            margin-bottom: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .answer-author {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 14px;
+            gap: 12px;
+            font-size: 15px;
         }
 
         .author-avatar {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             object-fit: cover;
+            border: 2px solid rgba(0, 102, 204, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .author-avatar:hover {
+            border-color: #0066CC;
+            transform: scale(1.1);
         }
 
         .author-name {
-            font-weight: 500;
-            color: #ffffff;
+            font-weight: 600;
+            color: #0066CC;
+            font-size: 16px;
         }
 
         .answer-time {
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            background: rgba(0, 102, 204, 0.1);
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 102, 204, 0.2);
         }
 
         .accepted-badge {
@@ -1155,62 +1264,491 @@
         }
 
         .vote-btn {
-            background: transparent;
-            border: 2px solid #0066CC;
-            border-radius: 8px;
-            padding: 8px;
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.1), rgba(0, 102, 204, 0.05));
+            border: 2px solid rgba(0, 102, 204, 0.3);
+            border-radius: 12px;
+            padding: 10px 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #0066CC;
+            font-weight: 600;
+            min-width: 44px;
+            min-height: 44px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vote-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
         }
 
         .vote-btn:hover {
-            background: #0066CC;
+            background: linear-gradient(135deg, #0066CC, #0052A3);
             border-color: #0066CC;
             color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 102, 204, 0.3);
+        }
+
+        .vote-btn:hover::before {
+            left: 100%;
+        }
+
+        .vote-btn:active {
+            transform: translateY(0) scale(0.95);
         }
 
         .vote-btn.upvote.voted {
             background: linear-gradient(135deg, #0066CC, #0052A3);
             color: white;
             border-color: #0066CC;
+            box-shadow: 0 4px 15px rgba(0, 102, 204, 0.4);
         }
 
         .vote-btn.downvote.voted {
-            background: #ef4444;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
             color: white;
             border-color: #ef4444;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
         }
 
         .vote-count {
-            font-weight: 600;
-            color: var(--glass-text-primary);
-            min-width: 24px;
+            font-weight: 700;
+            color: #0066CC;
+            min-width: 28px;
             text-align: center;
+            font-size: 16px;
+            background: rgba(0, 102, 204, 0.1);
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 102, 204, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .vote-count:hover {
+            background: rgba(0, 102, 204, 0.2);
+            transform: scale(1.1);
         }
 
         .comment-btn {
-            background: transparent;
-            border: 2px solid #0066CC;
-            border-radius: 8px;
-            padding: 8px 14px;
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.1), rgba(0, 102, 204, 0.05));
+            border: 2px solid rgba(0, 102, 204, 0.3);
+            border-radius: 12px;
+            padding: 10px 16px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             font-size: 14px;
             color: #0066CC;
             font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .comment-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
         }
 
         .comment-btn:hover {
-            background: #0066CC;
+            background: linear-gradient(135deg, #0066CC, #0052A3);
             border-color: #0066CC;
             color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 102, 204, 0.3);
+        }
+
+        .comment-btn:hover::before {
+            left: 100%;
+        }
+
+        .comment-btn:active {
+            transform: translateY(0) scale(0.95);
+        }
+
+        /* ===== ESTILOS MEJORADOS PARA HEADER DEL MODAL ===== */
+        .answers-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            margin-bottom: 2rem !important;
+            border-bottom: 2px solid rgba(0, 102, 204, 0.2) !important;
+            padding-bottom: 1.5rem !important;
+            position: relative !important;
+        }
+
+        .answers-header::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, #0066CC, rgba(0, 102, 204, 0.6));
+            border-radius: 1px;
+        }
+
+        .answers-header h3 {
+            color: #0066CC !important;
+            margin: 0 !important;
+            font-size: 24px !important;
+            font-weight: 700 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+        }
+
+        .answers-header h3 svg {
+            width: 24px !important;
+            height: 24px !important;
+            margin-right: 0 !important;
+            vertical-align: middle !important;
+            color: #0066CC !important;
+        }
+
+        .answers-close-btn {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05)) !important;
+            border: 2px solid rgba(239, 68, 68, 0.3) !important;
+            color: #ef4444 !important;
+            font-size: 1.5rem !important;
+            cursor: pointer !important;
+            padding: 12px !important;
+            border-radius: 12px !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+
+        .answers-close-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .answers-close-btn:hover {
+            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+            border-color: #ef4444 !important;
+            color: white !important;
+            transform: translateY(-2px) scale(1.1) !important;
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3) !important;
+        }
+
+        .answers-close-btn:hover::before {
+            left: 100%;
+        }
+
+        .answers-close-btn:active {
+            transform: translateY(0) scale(0.95) !important;
+        }
+
+        /* ===== INDICADOR DE CARGA ===== */
+        .answers-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: #0066CC;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 102, 204, 0.2);
+            border-top: 4px solid #0066CC;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0066CC;
+        }
+
+        /* ===== SISTEMA DE NOTIFICACIONES PERSONALIZADO ===== */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10001;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .notification {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.95), rgba(0, 82, 163, 0.95));
+            border: 1px solid rgba(0, 102, 204, 0.3);
+            border-radius: 12px;
+            padding: 16px 20px;
+            min-width: 320px;
+            max-width: 400px;
+            box-shadow: 0 8px 25px rgba(0, 102, 204, 0.3), 0 0 0 1px rgba(0, 102, 204, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notification::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #0066CC, rgba(0, 102, 204, 0.6));
+            border-radius: 12px 12px 0 0;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+            border-color: rgba(16, 185, 129, 0.3);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3), 0 0 0 1px rgba(16, 185, 129, 0.1);
+        }
+
+        .notification.success::before {
+            background: linear-gradient(90deg, #10b981, rgba(16, 185, 129, 0.6));
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95));
+            border-color: rgba(239, 68, 68, 0.3);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3), 0 0 0 1px rgba(239, 68, 68, 0.1);
+        }
+
+        .notification.error::before {
+            background: linear-gradient(90deg, #ef4444, rgba(239, 68, 68, 0.6));
+        }
+
+        .notification.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+            border-color: rgba(245, 158, 11, 0.3);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3), 0 0 0 1px rgba(245, 158, 11, 0.1);
+        }
+
+        .notification.warning::before {
+            background: linear-gradient(90deg, #f59e0b, rgba(245, 158, 11, 0.6));
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .notification-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+        }
+
+        .notification-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 1);
+        }
+
+        .notification-message {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.95);
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .notification-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        /* Animaciones para diferentes tipos */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .notification.slide-in {
+            animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .notification.slide-out {
+            animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* ===== SCROLLBAR PERSONALIZADO ===== */
+        .answers-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .answers-content::-webkit-scrollbar-track {
+            background: rgba(0, 102, 204, 0.1);
+            border-radius: 4px;
+        }
+
+        .answers-content::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #0066CC, #0052A3);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .answers-content::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #0052A3, #003d7a);
+        }
+
+        /* ===== RESPONSIVIDAD MEJORADA ===== */
+        
+        /* Pantallas grandes (desktop) */
+        @media (min-width: 1200px) {
+            .answers-content {
+                max-width: 85% !important;
+                width: 85% !important;
+                min-height: 80vh !important;
+                padding: 3rem !important;
+            }
+        }
+
+        /* Pantallas medianas (tablet) */
+        @media (max-width: 768px) {
+            .answers-content {
+                max-width: 95% !important;
+                max-height: 90% !important;
+                padding: 1.5rem !important;
+                border-radius: 16px !important;
+            }
+
+            .answers-header h3 {
+                font-size: 20px !important;
+            }
+
+            .answer-item {
+                padding: 20px;
+            }
+
+            .vote-controls {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .vote-btn, .comment-btn {
+                min-width: 40px;
+                min-height: 40px;
+                padding: 8px;
+            }
+
+            .comment-btn {
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .answers-content {
+                max-width: 98% !important;
+                padding: 1rem !important;
+            }
+
+            .answer-item {
+                padding: 16px;
+            }
+
+            .author-avatar {
+                width: 32px;
+                height: 32px;
+            }
+
+            .author-name {
+                font-size: 14px;
+            }
+
+            .answer-time {
+                font-size: 11px;
+                padding: 3px 6px;
+            }
         }
 
         /* ===== ESTILOS PARA COMENTARIOS - Paleta answerContent ===== */
@@ -3577,12 +4115,12 @@ Cargando información...
             const questionId = modal?.getAttribute('data-question-id');
             
             if (!answerContent || !answerContent.value.trim()) {
-                alert('Por favor, escribe tu respuesta');
+                window.showNotification('Por favor, escribe tu respuesta', 'warning', 3000);
                 return;
             }
             
             if (!questionId) {
-                alert('Error: No se encontró la pregunta');
+                window.showNotification('Error: No se encontró la pregunta', 'error', 4000);
                 return;
             }
             
@@ -3629,7 +4167,7 @@ Cargando información...
                         const response = await window.communityAPI.createAnswer(questionId, answerData);
                         
                         if (response.success) {
-                            alert('✅ Respuesta guardada exitosamente');
+                            window.showNotification('✅ Respuesta guardada exitosamente', 'success', 4000);
                             answerContent.value = '';
                             window.hideAnswerModal();
                             
@@ -3663,13 +4201,13 @@ Cargando información...
                     } else {
                         // Fallback básico si no hay API
                         console.log('⚠️ CommunityAPI no disponible, usando fallback básico');
-                        alert('Respuesta enviada (modo básico). La funcionalidad completa se activará cuando la página termine de cargar.');
+                        window.showNotification('Respuesta enviada (modo básico). La funcionalidad completa se activará cuando la página termine de cargar.', 'info', 5000);
                         answerContent.value = '';
                         window.hideAnswerModal();
                     }
                 } catch (error) {
                     console.error('❌ Error en submitBasicAnswer:', error);
-                    alert('Error al enviar respuesta. Intenta de nuevo.');
+                    window.showNotification('Error al enviar respuesta. Intenta de nuevo.', 'error', 4000);
                 }
             }
         };
@@ -3723,10 +4261,28 @@ Cargando información...
         window.showQuestionAnswers = async function(questionId) {
             console.log('📋 Cargando respuestas para pregunta:', questionId);
             
+            // Mostrar modal de carga inmediatamente
+            const loadingHTML = `
+                <div class="answers-modal">
+                    <div class="answers-content">
+                        <div class="answers-loading">
+                            <div class="loading-spinner"></div>
+                            <div class="loading-text">Cargando respuestas...</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', loadingHTML);
+            document.body.style.overflow = 'hidden';
+            
             try {
                 if (!window.communityAPI) {
                     console.log('⚠️ CommunityAPI no disponible');
-                    alert('Función de respuestas no disponible en este momento.');
+                    // Cerrar modal de carga
+                    document.querySelector('.answers-modal').remove();
+                    document.body.style.overflow = '';
+                    window.showNotification('Función de respuestas no disponible en este momento.', 'warning', 4000);
                     return;
                 }
                 
@@ -3737,22 +4293,27 @@ Cargando información...
                     const answers = response.data;
                     
                     if (answers.length === 0) {
-                        alert('Esta pregunta aún no tiene respuestas. ¡Sé el primero en responder!');
+                        window.showNotification('Esta pregunta aún no tiene respuestas. ¡Sé el primero en responder!', 'info', 4000);
                         return;
                     }
                     
-                    // Crear un modal simple para mostrar las respuestas
+                    // Crear un modal moderno para mostrar las respuestas
                     let answersHTML = `
-                        <div class="answers-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; justify-content: center; align-items: center;">
-                            <div class="answers-content" style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 2rem; max-width: 80%; max-height: 80%; overflow-y: auto; position: relative;">
-                                <div class="answers-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem;">
-                                    <h3 style="color: var(--text-primary); margin: 0;">
-                                        <svg style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <div class="answers-modal">
+                            <div class="answers-content">
+                                <div class="answers-header">
+                                    <h3>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                                         </svg>
                                         ${answers.length} Respuesta${answers.length > 1 ? 's' : ''}
                                     </h3>
-                                    <button onclick="document.querySelector('.answers-modal').remove()" style="background: none; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer; padding: 0.5rem;" title="Cerrar">×</button>
+                                    <button class="answers-close-btn" onclick="closeAnswersModal()" title="Cerrar">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18"/>
+                                            <line x1="6" y1="6" x2="18" y2="18"/>
+                                        </svg>
+                                    </button>
                                 </div>
                                 <div class="answers-list">`;
                     
@@ -3761,16 +4322,37 @@ Cargando información...
                         const userName = answer.author?.name || answer.users?.name || answer.users?.display_name || answer.username || 'Usuario Anónimo';
                         
                         answersHTML += `
-                            <div class="answer-item" style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 3px solid var(--glass-primary);">
-                                <div class="answer-header" style="display: flex; justify-content: between; align-items: center; margin-bottom: 0.5rem;">
-                                    <span style="color: var(--glass-primary); font-weight: 500;">${userName}</span>
-                                    <span style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-left: auto;">${timeAgo}</span>
+                            <div class="answer-item">
+                                <div class="answer-header">
+                                    <div class="answer-author">
+                                        <img src="/assets/images/default-avatar.svg" alt="${userName}" class="author-avatar">
+                                        <span class="author-name">${userName}</span>
+                                    </div>
+                                    <span class="answer-time">${timeAgo}</span>
                                 </div>
-                                <div class="answer-content" style="color: var(--text-primary); line-height: 1.6;">
-                                    ${answer.content.replace(/\n/g, '<br>')}
+                                <div class="answer-content">
+                                    <p>${answer.content.replace(/\n/g, '<br>')}</p>
                                 </div>
-                                <div class="answer-votes" style="margin-top: 0.5rem; color: rgba(255,255,255,0.6); font-size: 0.9rem;">
-                                    👍 ${answer.votes_count || 0} votos
+                                <div class="answer-actions">
+                                    <div class="vote-controls">
+                                        <button class="vote-btn upvote" onclick="voteAnswer('${answer.id}', 'up')" title="Votar positivamente">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M12 19V5M5 12l7-7 7 7"/>
+                                            </svg>
+                                        </button>
+                                        <span class="vote-count">${answer.votes_count || 0}</span>
+                                        <button class="vote-btn downvote" onclick="voteAnswer('${answer.id}', 'down')" title="Votar negativamente">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M12 5v14M19 12l-7 7-7-7"/>
+                                            </svg>
+                                        </button>
+                                        <button class="comment-btn" onclick="showAnswerComments('${answer.id}')" title="Comentar">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                            </svg>
+                                            Comentar
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -3782,8 +4364,39 @@ Cargando información...
                         </div>
                     `;
                     
-                    // Agregar el modal al DOM
-                    document.body.insertAdjacentHTML('beforeend', answersHTML);
+                    // Reemplazar el modal de carga con el contenido real
+                    const existingModal = document.querySelector('.answers-modal');
+                    if (existingModal) {
+                        existingModal.outerHTML = answersHTML;
+                    } else {
+                        document.body.insertAdjacentHTML('beforeend', answersHTML);
+                    }
+                    
+                    // Obtener referencias a los elementos del modal
+                    const modal = document.querySelector('.answers-modal');
+                    const content = document.querySelector('.answers-content');
+                    
+                    // Event listener para cerrar al hacer clic fuera del modal
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === modal) {
+                            closeAnswersModal();
+                        }
+                    });
+                    
+                    // Prevenir que el clic en el contenido cierre el modal
+                    content.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                    });
+                    
+                    // Event listener para la tecla Escape
+                    document.addEventListener('keydown', window.handleEscapeKey);
+                    
+                    // Limpiar event listener cuando se cierre el modal
+                    const originalCloseModal = window.closeAnswersModal;
+                    window.closeAnswersModal = function() {
+                        document.removeEventListener('keydown', window.handleEscapeKey);
+                        originalCloseModal();
+                    };
                     
                 } else {
                     throw new Error(response.error || 'Error al cargar respuestas');
@@ -3791,10 +4404,135 @@ Cargando información...
                 
             } catch (error) {
                 console.error('❌ Error cargando respuestas:', error);
-                alert('Error al cargar respuestas. Intenta de nuevo.');
+                window.showNotification('Error al cargar respuestas. Intenta de nuevo.', 'error', 4000);
             }
         };
         
+        // ===== SISTEMA DE NOTIFICACIONES PERSONALIZADO =====
+        window.showNotification = function(message, type = 'info', duration = 4000) {
+            // Crear contenedor si no existe
+            let container = document.querySelector('.notification-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'notification-container';
+                document.body.appendChild(container);
+            }
+
+            // Crear notificación
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            // Iconos para diferentes tipos
+            const icons = {
+                success: `<svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22,4 12,14.01 9,11.01"/>
+                </svg>`,
+                error: `<svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>`,
+                warning: `<svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>`,
+                info: `<svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>`
+            };
+
+            const titles = {
+                success: 'Éxito',
+                error: 'Error',
+                warning: 'Advertencia',
+                info: 'Información'
+            };
+
+            notification.innerHTML = `
+                <div class="notification-header">
+                    <h4 class="notification-title">${titles[type] || 'Notificación'}</h4>
+                    <button class="notification-close" onclick="this.parentElement.parentElement.remove()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="notification-content">
+                    ${icons[type] || icons.info}
+                    <p class="notification-message">${message}</p>
+                </div>
+            `;
+
+            // Agregar al contenedor
+            container.appendChild(notification);
+
+            // Animar entrada
+            setTimeout(() => {
+                notification.classList.add('show', 'slide-in');
+            }, 10);
+
+            // Auto-remover después de la duración especificada
+            if (duration > 0) {
+                setTimeout(() => {
+                    notification.classList.add('slide-out');
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }, duration);
+            }
+
+            return notification;
+        };
+
+        // ===== FUNCIONES PARA MANEJAR VOTOS Y COMENTARIOS =====
+        window.voteAnswer = function(answerId, voteType) {
+            console.log('📊 Votando respuesta:', answerId, voteType);
+            // Aquí se implementaría la lógica de votación
+            // Mostrar notificación personalizada en lugar de alert
+            const voteText = voteType === 'up' ? 'positivo' : 'negativo';
+            window.showNotification(`Voto ${voteText} registrado correctamente`, 'success', 3000);
+        };
+
+        window.showAnswerComments = function(answerId) {
+            console.log('💬 Mostrando comentarios para respuesta:', answerId);
+            // Aquí se implementaría la lógica para mostrar comentarios
+            // Mostrar notificación personalizada en lugar de alert
+            window.showNotification('Función de comentarios próximamente disponible', 'info', 3000);
+        };
+
+        window.closeAnswersModal = function() {
+            const modal = document.querySelector('.answers-modal');
+            if (modal && !modal.classList.contains('closing')) {
+                console.log('🔒 Cerrando modal de respuestas...');
+                modal.classList.add('closing');
+                
+                // Restaurar scroll del body
+                document.body.style.overflow = '';
+                
+                setTimeout(() => {
+                    modal.remove();
+                    console.log('✅ Modal de respuestas cerrado completamente');
+                }, 300);
+            }
+        };
+
+        // Función para manejar la tecla Escape
+        window.handleEscapeKey = function(event) {
+            if (event.key === 'Escape') {
+                const modal = document.querySelector('.answers-modal');
+                if (modal && !modal.classList.contains('closing')) {
+                    closeAnswersModal();
+                }
+            }
+        };
+
         // Función global para mostrar modal de foto de LIA
         window.showLiaPhotoModal = function() {
             console.log('📸 Función global de modal de LIA ejecutada');
@@ -4454,10 +5192,6 @@ INSTRUCCIONES:
                                 
 
                                 console.log('[LIA] 🔄 Respuesta de fallback mostrada');
-
-                            }
-
-                            
 
                         } catch (error) {
 
