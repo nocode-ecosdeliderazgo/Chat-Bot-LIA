@@ -3800,15 +3800,43 @@ app.get('/api/courses/module1-videos', async (req, res) => {
         const videos = videosResult.rows;
         console.log(`✅ ${videos.length} videos obtenidos del módulo 1`);
         
-        // Agregar progreso simulado por defecto (se puede conectar con user_progress después)
-        const videosWithProgress = videos.map((video, index) => ({
-            ...video,
-            user_progress: {
-                current_time_seconds: 0,
-                completion_percentage: 0,
-                is_completed: false
+        // Obtener actividad_detalle para todos los videos
+        console.log('📋 Consultando actividad_detalle para los videos...');
+        let actividadDetalleData = [];
+        
+        if (videos.length > 0) {
+            const videoIds = videos.map(video => video.id);
+            
+            try {
+                const actividadResult = await pool.query(`
+                    SELECT id, actividad_id, seccion, orden, tipo, contenido 
+                    FROM actividad_detalle 
+                    WHERE actividad_id = ANY($1)
+                    ORDER BY actividad_id, seccion, orden
+                `, [videoIds]);
+                
+                actividadDetalleData = actividadResult.rows;
+                console.log(`📊 ${actividadDetalleData.length} registros de actividad_detalle encontrados`);
+            } catch (actividadError) {
+                console.warn('⚠️ Error consultando actividad_detalle (continuando con legacy):', actividadError.message);
             }
-        }));
+        }
+        
+        // Agregar progreso simulado por defecto y actividad_detalle
+        const videosWithProgress = videos.map((video, index) => {
+            // Encontrar actividad_detalle para este video
+            const videoActividades = actividadDetalleData.filter(detalle => detalle.actividad_id === video.id);
+            
+            return {
+                ...video,
+                user_progress: {
+                    current_time_seconds: 0,
+                    completion_percentage: 0,
+                    is_completed: false
+                },
+                actividad_detalle: videoActividades
+            };
+        });
 
         res.json({
             success: true,
