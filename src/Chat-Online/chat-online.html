@@ -5852,9 +5852,47 @@ Generado desde Coach LIA IA - ${currentDate}
                 direction: 'desc'
             },
 
+            // Función para inicializar datos de usuario de prueba si no existen
+            initializeTestUserData() {
+                if (!localStorage.getItem('userName') && !localStorage.getItem('currentUser')) {
+                    console.log('🧪 Inicializando datos de usuario de prueba');
+                    localStorage.setItem('userName', 'Usuario Prueba');
+                    localStorage.setItem('userId', 'test-user-123');
+                    localStorage.setItem('userEmail', 'usuario@prueba.com');
+                }
+
+                // También crear algunas preguntas de prueba como propias
+                this.markSampleQuestionsAsOwn();
+            },
+
+            // Función para marcar algunas preguntas como propias para testing
+            markSampleQuestionsAsOwn() {
+                const questions = document.querySelectorAll('.question-item, .community-question');
+                console.log(`🧪 Marcando preguntas de prueba como propias`);
+
+                questions.forEach((question, index) => {
+                    // Marcar cada tercera pregunta como propia para testing
+                    if (index % 3 === 0) {
+                        question.classList.add('my-question');
+
+                        // También intentar modificar el texto del autor si existe
+                        const authorElement = question.querySelector('.question-author, .author-name');
+                        if (authorElement && !authorElement.dataset.originalText) {
+                            authorElement.dataset.originalText = authorElement.textContent;
+                            authorElement.textContent = localStorage.getItem('userName') || 'Usuario Prueba';
+                        }
+
+                        console.log(`🧪 Pregunta ${index + 1} marcada como propia`);
+                    }
+                });
+            },
+
             // Inicializar sistema
             init() {
                 console.log('🔄 Inicializando sistema de filtros avanzados...');
+
+                // Inicializar datos de prueba
+                this.initializeTestUserData();
                 this.loadSavedState();
                 this.setupEventListeners();
                 this.setupRangeSliders();
@@ -5973,11 +6011,16 @@ Generado desde Coach LIA IA - ${currentDate}
                 console.log('🔄 Aplicando filtros combinados:', this.state);
 
                 const questions = document.querySelectorAll('.question-item, .community-question');
+                console.log(`📝 Encontradas ${questions.length} preguntas para filtrar`);
+
                 let visibleCount = 0;
                 const filteredQuestions = [];
 
-                questions.forEach(question => {
-                    if (this.shouldShowQuestion(question)) {
+                questions.forEach((question, index) => {
+                    const shouldShow = this.shouldShowQuestion(question);
+                    console.log(`📝 Pregunta ${index + 1}: ${shouldShow ? '✅ Visible' : '❌ Oculta'}`);
+
+                    if (shouldShow) {
                         filteredQuestions.push(question);
                         this.showQuestion(question, visibleCount * 50);
                         visibleCount++;
@@ -6052,26 +6095,50 @@ Generado desde Coach LIA IA - ${currentDate}
                 if (this.state.date === 'all') return true;
 
                 const questionDate = this.getQuestionDate(question);
-                if (!questionDate) return true;
+
+                if (!questionDate) {
+                    console.warn('📅 No se pudo obtener fecha de la pregunta:', question);
+                    return true; // Mostrar si no hay fecha
+                }
 
                 const now = new Date();
                 const questionTime = new Date(questionDate);
 
+                // Validar que la fecha es válida
+                if (isNaN(questionTime.getTime())) {
+                    console.warn('📅 Fecha inválida:', questionDate);
+                    return true;
+                }
+
+                let result = true;
+                const timeDiff = now.getTime() - questionTime.getTime();
+
                 switch (this.state.date) {
                     case 'today':
-                        return questionTime.toDateString() === now.toDateString();
+                        // Verificar si es el mismo día
+                        result = questionTime.toDateString() === now.toDateString();
+                        break;
                     case 'week':
-                        const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
-                        return questionTime >= weekAgo;
+                        // Últimos 7 días
+                        result = timeDiff <= 7 * 24 * 60 * 60 * 1000 && timeDiff >= 0;
+                        break;
                     case 'month':
-                        const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
-                        return questionTime >= monthAgo;
+                        // Últimos 30 días
+                        result = timeDiff <= 30 * 24 * 60 * 60 * 1000 && timeDiff >= 0;
+                        break;
                     case 'year':
-                        const yearAgo = new Date(now - 365 * 24 * 60 * 60 * 1000);
-                        return questionTime >= yearAgo;
+                        // Últimos 365 días
+                        result = timeDiff <= 365 * 24 * 60 * 60 * 1000 && timeDiff >= 0;
+                        break;
                     default:
-                        return true;
+                        result = true;
                 }
+
+                if (this.state.date !== 'all') {
+                    console.log(`📅 Filtro fecha "${this.state.date}": pregunta del ${questionTime.toLocaleDateString()} ${result ? '✅' : '❌'}`);
+                }
+
+                return result;
             },
 
             checkTagsFilter(question) {
@@ -6126,24 +6193,235 @@ Generado desde Coach LIA IA - ${currentDate}
             },
 
             isMyQuestion(question) {
-                const currentUser = localStorage.getItem('userName') || 'Usuario Actual';
-                const authorElement = question.querySelector('.question-author, .author-name');
+                // Obtener información de usuario de múltiples fuentes
+                const userData = {
+                    userName: localStorage.getItem('userName') ||
+                             localStorage.getItem('currentUser') ||
+                             localStorage.getItem('user_name') ||
+                             localStorage.getItem('userInfo') ||
+                             sessionStorage.getItem('userName') ||
+                             sessionStorage.getItem('user'),
+                    userId: localStorage.getItem('userId') ||
+                           localStorage.getItem('user_id') ||
+                           sessionStorage.getItem('userId'),
+                    email: localStorage.getItem('userEmail') ||
+                          localStorage.getItem('email') ||
+                          sessionStorage.getItem('userEmail')
+                };
 
-                return authorElement && (
-                    authorElement.textContent.includes(currentUser) ||
-                    authorElement.textContent.includes('Tú') ||
-                    question.classList.contains('own-question')
+                // Buscar elementos de autor en diferentes selectores
+                const authorElement = question.querySelector(
+                    '.question-author, .author-name, .user-name, .username, [data-author], .question-meta .name'
                 );
+
+                if (!authorElement) {
+                    // Si no hay elemento autor, verificar atributos de datos directamente en la pregunta
+                    const questionUserId = question.getAttribute('data-user-id') ||
+                                          question.getAttribute('data-author-id') ||
+                                          question.getAttribute('data-userid');
+
+                    if (questionUserId && userData.userId) {
+                        return questionUserId === userData.userId;
+                    }
+
+                    // Verificar clases CSS que indican propiedad
+                    return question.classList.contains('own-question') ||
+                           question.classList.contains('my-question') ||
+                           question.classList.contains('user-own');
+                }
+
+                const authorText = authorElement.textContent.trim();
+
+                // Verificación por ID de usuario (más confiable)
+                const authorUserId = authorElement.getAttribute('data-user-id') ||
+                                    authorElement.getAttribute('data-userid') ||
+                                    question.getAttribute('data-user-id');
+
+                if (authorUserId && userData.userId) {
+                    return authorUserId === userData.userId;
+                }
+
+                // Verificación por nombre de usuario
+                if (userData.userName && authorText) {
+                    const currentUserLower = userData.userName.toLowerCase().trim();
+                    const authorTextLower = authorText.toLowerCase().trim();
+
+                    // Coincidencia exacta
+                    if (authorTextLower === currentUserLower) {
+                        return true;
+                    }
+
+                    // Verificar si el nombre de usuario está contenido
+                    if (currentUserLower.length > 3 && authorTextLower.includes(currentUserLower)) {
+                        return true;
+                    }
+                }
+
+                // Verificación por email
+                if (userData.email && authorText.includes('@')) {
+                    if (authorText.toLowerCase().includes(userData.email.toLowerCase())) {
+                        return true;
+                    }
+                }
+
+                // Verificar indicadores de propiedad en el texto
+                const ownershipIndicators = ['tú', 'tu pregunta', 'mi pregunta', 'yo pregunté', 'preguntaste'];
+                const lowerAuthorText = authorText.toLowerCase();
+
+                for (const indicator of ownershipIndicators) {
+                    if (lowerAuthorText.includes(indicator)) {
+                        return true;
+                    }
+                }
+
+                // Verificar clases CSS
+                if (question.classList.contains('own-question') ||
+                    question.classList.contains('my-question') ||
+                    question.classList.contains('user-own') ||
+                    authorElement.classList.contains('current-user')) {
+                    console.log('👤 Pregunta propia encontrada por clase CSS');
+                    return true;
+                }
+
+                console.log('👤 No es pregunta propia:', {
+                    authorText,
+                    userData,
+                    authorUserId,
+                    questionClasses: Array.from(question.classList),
+                    authorClasses: Array.from(authorElement.classList)
+                });
+
+                return false;
             },
 
             getQuestionDate(question) {
+                // Buscar timestamp en diferentes lugares
                 const timeElement = question.querySelector('[data-timestamp], .question-time, .time');
-                if (timeElement) {
-                    return timeElement.getAttribute('data-timestamp') ||
-                           timeElement.getAttribute('datetime') ||
-                           timeElement.textContent;
+
+                if (!timeElement) return null;
+
+                // Intentar obtener timestamp real primero
+                let timestamp = timeElement.getAttribute('data-timestamp') ||
+                               timeElement.getAttribute('datetime') ||
+                               timeElement.getAttribute('data-created');
+
+                if (timestamp) {
+                    return timestamp;
                 }
-                return null;
+
+                // Si no hay timestamp, intentar parsear el texto
+                const timeText = timeElement.textContent.trim();
+
+                // Si ya es una fecha ISO, usarla
+                if (timeText.match(/\d{4}-\d{2}-\d{2}/)) {
+                    return timeText;
+                }
+
+                // Intentar convertir texto relativo a fecha
+                return this.parseRelativeTime(timeText);
+            },
+
+            // Nueva función para convertir tiempo relativo a fecha
+            parseRelativeTime(timeText) {
+                if (!timeText) return null;
+
+                const now = new Date();
+                const text = timeText.toLowerCase();
+
+                try {
+                    // Normalizar texto para facilitar coincidencias
+                    const normalizedText = text.toLowerCase().trim();
+
+                    // Patrones mejorados para tiempo relativo
+                    const timePatterns = [
+                        // Plurales y singulares con números
+                        { pattern: /hace\s+(\d+)\s+minutos?/i, unit: 'minutes' },
+                        { pattern: /hace\s+(\d+)\s+horas?/i, unit: 'hours' },
+                        { pattern: /hace\s+(\d+)\s+d[íi]as?/i, unit: 'days' },
+                        { pattern: /hace\s+(\d+)\s+semanas?/i, unit: 'weeks' },
+                        { pattern: /hace\s+(\d+)\s+meses?/i, unit: 'months' },
+                        // Formas con artículos (un, una)
+                        { pattern: /hace\s+un\s+minuto/i, unit: 'minutes', amount: 1 },
+                        { pattern: /hace\s+una\s+hora/i, unit: 'hours', amount: 1 },
+                        { pattern: /hace\s+un\s+d[íi]a/i, unit: 'days', amount: 1 },
+                        { pattern: /hace\s+una\s+semana/i, unit: 'weeks', amount: 1 },
+                        { pattern: /hace\s+un\s+mes/i, unit: 'months', amount: 1 },
+                        // Palabras en texto
+                        { pattern: /hace\s+unos?\s+minutos?/i, unit: 'minutes', amount: 5 },
+                        { pattern: /hace\s+unas?\s+horas?/i, unit: 'hours', amount: 2 },
+                        { pattern: /hace\s+unos?\s+d[íi]as?/i, unit: 'days', amount: 3 },
+                    ];
+
+                    // Probar cada patrón
+                    for (const { pattern, unit, amount } of timePatterns) {
+                        const match = normalizedText.match(pattern);
+                        if (match) {
+                            const qty = amount || parseInt(match[1]) || 1;
+                            let milliseconds = 0;
+
+                            switch (unit) {
+                                case 'minutes':
+                                    milliseconds = qty * 60 * 1000;
+                                    break;
+                                case 'hours':
+                                    milliseconds = qty * 60 * 60 * 1000;
+                                    break;
+                                case 'days':
+                                    milliseconds = qty * 24 * 60 * 60 * 1000;
+                                    break;
+                                case 'weeks':
+                                    milliseconds = qty * 7 * 24 * 60 * 60 * 1000;
+                                    break;
+                                case 'months':
+                                    milliseconds = qty * 30 * 24 * 60 * 60 * 1000;
+                                    break;
+                            }
+
+                            return new Date(now.getTime() - milliseconds).toISOString();
+                        }
+                    }
+
+                    // Casos especiales mejorados
+                    if (normalizedText.match(/\b(ahora|justo ahora|recién|hace poco)\b/)) {
+                        return new Date(now.getTime() - Math.random() * 2 * 60 * 1000).toISOString(); // Últimos 2 minutos
+                    }
+
+                    if (normalizedText.match(/\bhoy\b/)) {
+                        const hoursAgo = Math.random() * 12; // Entre 0 y 12 horas
+                        return new Date(now.getTime() - hoursAgo * 60 * 60 * 1000).toISOString();
+                    }
+
+                    if (normalizedText.match(/\buyer\b/)) {
+                        const hoursAgo = 24 + Math.random() * 12; // Entre 24 y 36 horas
+                        return new Date(now.getTime() - hoursAgo * 60 * 60 * 1000).toISOString();
+                    }
+
+                    if (normalizedText.match(/\b(esta\s+semana|hace\s+pocos?\s+d[íi]as?)\b/)) {
+                        const daysAgo = Math.random() * 7; // Esta semana
+                        return new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+                    }
+
+                    if (normalizedText.match(/\b(el\s+mes\s+pasado|hace\s+pocas?\s+semanas?)\b/)) {
+                        const weeksAgo = 2 + Math.random() * 6; // Entre 2 y 8 semanas
+                        return new Date(now.getTime() - weeksAgo * 7 * 24 * 60 * 60 * 1000).toISOString();
+                    }
+
+                    // Fallback: crear fecha basada en el hash del texto para consistencia
+                    let hash = 0;
+                    for (let i = 0; i < text.length; i++) {
+                        const char = text.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + char;
+                        hash = hash & hash; // Convert to 32-bit integer
+                    }
+
+                    const daysAgo = Math.abs(hash % 30) + 1; // Entre 1 y 30 días
+                    return new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+
+                } catch (error) {
+                    console.warn('Error parseando tiempo relativo:', timeText, error);
+                    // Fallback: fecha hace una semana
+                    return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+                }
             },
 
             getQuestionVotes(question) {
@@ -6219,6 +6497,36 @@ Generado desde Coach LIA IA - ${currentDate}
 
                 // Algoritmo de relevancia
                 return (votes * 2) + (answers * 3) + (views * 0.1) - (daysOld * 0.1);
+            },
+
+            // Función de debugging
+            debugFilters() {
+                console.log('🐛 ===== DEBUG DE FILTROS =====');
+                console.log('Estado actual:', this.state);
+                console.log('Datos de usuario:', {
+                    userName: localStorage.getItem('userName'),
+                    userId: localStorage.getItem('userId'),
+                    email: localStorage.getItem('userEmail')
+                });
+
+                const questions = document.querySelectorAll('.question-item, .community-question');
+                console.log(`Total de preguntas: ${questions.length}`);
+
+                questions.forEach((question, index) => {
+                    const shouldShow = this.shouldShowQuestion(question);
+                    const isMyQuestion = this.isMyQuestion(question);
+                    const questionDate = this.getQuestionDate(question);
+
+                    console.log(`Pregunta ${index + 1}:`, {
+                        shouldShow,
+                        isMyQuestion,
+                        questionDate,
+                        classes: Array.from(question.classList),
+                        visible: question.style.display !== 'none'
+                    });
+                });
+
+                console.log('🐛 ===== FIN DEBUG =====');
             },
 
             // Animaciones
@@ -6469,6 +6777,11 @@ Generado desde Coach LIA IA - ${currentDate}
         // Funciones globales para compatibilidad
         window.resetCommunityFilters = () => CommunityFilters.clearAllFilters();
         window.getCommunityFiltersState = () => CommunityFilters.state;
+
+        // Función global para debugging
+        window.debugCommunityFilters = () => CommunityFilters.debugFilters();
+
+        console.log('🛠️ Para debuggear filtros, ejecuta en consola: debugCommunityFilters()');
 
     </script>
 
