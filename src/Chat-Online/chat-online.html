@@ -5020,13 +5020,8 @@ INSTRUCCIONES:
             if (backButton) {
                 backButton.addEventListener('click', function(e) {
                     e.preventDefault();
-                    // Regresar a la página anterior
-                    if (window.history.length > 1) {
-                        window.history.back();
-                    } else {
-                        // Si no hay historial, redirigir a la página principal
-                        window.location.href = '/';
-                    }
+                    // Redirigir directamente al menú principal de talleres
+                    window.location.href = '../cursos.html';
                 });
             }
             
