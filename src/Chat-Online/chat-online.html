@@ -363,8 +363,8 @@
 
         /* ===== HEADER BAJO Y CON BORDES REDONDEADOS ===== */
         .header-course-info {
-            padding: 0.4rem 1.5rem 0.4rem 1rem;
-            height: 35px;
+            padding: 0.3rem 1.2rem 0.3rem 0.8rem;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -386,24 +386,24 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(68, 229, 255, 0.15);
             color: var(--glass-text-secondary);
-            border-radius: 12px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             display: flex;
             align-items: center;
             position: relative;
             overflow: hidden;
-            min-height: 48px;
-            width: 48px; /* Solo mostrar el ícono por defecto */
+            min-height: 36px;
+            width: 36px; /* Solo mostrar el ícono por defecto */
             padding: 0;
             flex-shrink: 0;
         }
 
         /* Ícono del botón de regreso */
         .back-icon {
-            width: 48px;
-            height: 48px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -412,8 +412,8 @@
         }
 
         .back-icon svg {
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             transition: all 0.3s ease;
         }
 
@@ -511,8 +511,8 @@
         /* Responsive para botón de regreso */
         @media (max-width: 768px) {
             .back-button {
-                width: 44px;
-                min-height: 44px;
+                width: 32px;
+                min-height: 32px;
             }
             
             .back-button:hover {
@@ -520,13 +520,13 @@
             }
             
             .back-icon {
-                width: 44px;
-                height: 44px;
+                width: 32px;
+                height: 32px;
             }
             
             .back-icon svg {
-                width: 18px;
-                height: 18px;
+                width: 14px;
+                height: 14px;
             }
         }
 
@@ -534,6 +534,7 @@
             margin: 0;
             font-size: 1rem;
             font-weight: 500;
+            white-space: nowrap;
             color: #44e5ff;
             letter-spacing: 0.2px;
         }
@@ -574,19 +575,20 @@
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            width: 100%;
+            width: auto;
+            flex-shrink: 0;
         }
         
         .progress-bar-clean {
             display: flex;
             align-items: center;
             gap: 12px;
-            width: 100%;
+            width: auto;
             max-width: 200px;
         }
         
         .progress-track-clean {
-            flex: 1;
+            width: 80px;
             height: 6px;
             background: rgba(255, 255, 255, 0.08);
             border-radius: 4px;
@@ -665,8 +667,8 @@
         /* Responsive para header bajo */
         @media (max-width: 768px) {
             .header-course-info {
-                padding: 0.3rem 1rem 0.3rem 0.6rem;
-                height: 32px;
+                padding: 0.25rem 0.8rem 0.25rem 0.5rem;
+                height: 28px;
             }
             
             .header-content-group {
@@ -1907,6 +1909,95 @@
             color: #28a745;
         }
 
+        /* ===== ESTILOS DE PROGRESO DE VIDEO ===== */
+        .video-progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+        }
+
+        .video-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--glass-primary), var(--glass-secondary));
+            border-radius: inherit;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .video-progress-fill.completed {
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+
+        /* Estados de progreso de video */
+        .video-item.in-progress {
+            border-left: 3px solid var(--glass-primary);
+        }
+
+        .video-item.completed {
+            border-left: 3px solid #28a745;
+        }
+
+        .video-item.not-started {
+            border-left: 3px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Animación sutil para la barra de progreso */
+        .video-progress-fill:not(.completed)::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Indicador de progreso en el icono */
+        .video-item.in-progress .video-icon::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background: var(--glass-primary);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .video-item.completed .video-icon::after {
+            content: '✓';
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 16px;
+            height: 16px;
+            background: #28a745;
+            border-radius: 50%;
+            color: white;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
         .video-icon {
             flex-shrink: 0;
             width: 32px;
@@ -2700,24 +2791,24 @@ Cargando información...
 
                 <!-- Chat de LIA -->
                 <div class="lia-chat">
-                <div class="lia-messages" id="liaMessages">
+                    <div class="lia-messages" id="liaMessages">
                         <div class="lia-message">
                             <div class="lia-avatar">
                                 <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
-                        </div>
-                            <div class="message-content">
-                            <div class="message-text">
-                                ¡Hola! Soy LIA, tu tutora personalizada en el Taller de fundamentos de Inteligencia Artificial. Estoy aquí para acompañarte en tu aprendizaje con:
-                                • Conceptos fundamentales de IA explicados de forma clara
-                                • Introducción a Machine Learning y sus tipos  
-                                • Aplicaciones prácticas de IA en diferentes sectores
-                                • Historia y evolución de la Inteligencia Artificial
-                                • Ejercicios prácticos y ejemplos de la vida real
-                                • Resolución de dudas paso a paso
-                                • Consultas sobre el documento de apoyo del taller
-                                ¿Qué tema de IA te gustaría explorar primero? ¡Vamos a aprender juntos! 🤖✨
                             </div>
-                            <div class="message-time">ahora</div>
+                            <div class="message-content">
+                                <div class="message-text">
+                                    ¡Hola! Soy LIA, tu tutora personalizada en el Taller de fundamentos de Inteligencia Artificial. Estoy aquí para acompañarte en tu aprendizaje con:
+                                    • Conceptos fundamentales de IA explicados de forma clara
+                                    • Introducción a Machine Learning y sus tipos  
+                                    • Aplicaciones prácticas de IA en diferentes sectores
+                                    • Historia y evolución de la Inteligencia Artificial
+                                    • Ejercicios prácticos y ejemplos de la vida real
+                                    • Resolución de dudas paso a paso
+                                    • Consultas sobre el documento de apoyo del taller
+                                    ¿Qué tema de IA te gustaría explorar primero? ¡Vamos a aprender juntos! 🤖✨
+                                </div>
+                                <div class="message-time">ahora</div>
                             </div>
                         </div>
                     </div>
@@ -2728,17 +2819,17 @@ Cargando información...
                             <div class="reply-info">
                                 <span class="reply-label">Respondiendo a:</span>
                                 <span class="reply-text" id="replyText"></span>
-                        </div>
+                            </div>
                             <button class="reply-close" onclick="window.chatOnline.cancelReply()" title="Cancelar respuesta">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                     <line x1="6" y1="6" x2="18" y2="18"></line>
                                 </svg>
                             </button>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Input de LIA -->
+                    
+                    <!-- Input de LIA -->
                     <div class="lia-input">
                         <input type="text" id="liaMessageInput" placeholder="Pregunta a LIA...">
                         <div class="input-actions">
@@ -2794,8 +2885,6 @@ Cargando información...
                         <p>No hay notas aún. ¡Agrega tu primera nota!</p>
                     </div>
                 </div>
-            </div>
-            
             </div>
 
         </aside>
@@ -3484,16 +3573,34 @@ INSTRUCCIONES:
     <script src="chat-online.js"></script>
     
     <!-- Quick Video Fix - Carga videos desde la base de datos -->
-    <script src="../scripts/quick-video-fix.js"></script>
+    <!-- <script src="../scripts/quick-video-fix.js"></script> DESHABILITADO - HARDCODES -->
     
     <!-- Chat Debug Fix - Desbloquea el chat de Lia -->
-    <script src="chat-debug-fix.js"></script>
+    <!-- <script src="chat-debug-fix.js"></script> DESHABILITADO - HARDCODES -->
     
     <!-- Script de cambio de tema global -->
     <script src="../scripts/theme-toggle.js">    </script>
     
+    <!-- Configuración global del usuario y curso -->
+    <script>
+        // Establecer contexto global para todos los scripts
+        window.currentUser = {
+            id: '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0' // TODO: Obtener dinámicamente desde auth
+        };
+        
+        window.currentCourse = {
+            id: 'intro-to-ai',
+            identifier: 'intro-to-ai'
+        };
+        
+        console.log('🌍 Contexto global establecido:', { 
+            user: window.currentUser, 
+            course: window.currentCourse 
+        });
+    </script>
+    
     <!-- Sistema de Módulos Expandibles -->
-    <script src="../scripts/modules-expandable-system.js"></script>
+    <!-- <script src="../scripts/modules-expandable-system.js"></script> DESHABILITADO - HARDCODES -->
 </body>
 </html>
                             rows="2"

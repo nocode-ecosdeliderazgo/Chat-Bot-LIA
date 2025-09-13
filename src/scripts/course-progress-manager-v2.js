@@ -37,10 +37,13 @@ class CourseProgressManagerV2 {
             // 2. Cargar progreso inicial
             await this.loadInitialProgress();
 
-            // 3. Configurar tracking de video
+            // 3. Cargar progreso de módulos y actualizar UI
+            await this.loadModulesProgress();
+
+            // 4. Configurar tracking de video
             this.setupVideoTracking();
 
-            // 4. Configurar auto-guardado
+            // 5. Configurar auto-guardado
             this.setupAutoSave();
 
             console.log('✅ Course Progress Manager V2 inicializado exitosamente');
@@ -54,7 +57,7 @@ class CourseProgressManagerV2 {
         try {
             console.log('📊 Cargando progreso inicial...');
 
-            const response = await this.apiCall(`/users/${this.userId}/progress/${this.courseId}`, {
+            const response = await this.apiCall(`/users/${this.userId}/course/intro-to-ai/progress`, {
                 method: 'GET'
             });
 
@@ -219,6 +222,179 @@ class CourseProgressManagerV2 {
         };
     }
 
+    extractModuleNumber(moduleId) {
+        // Extraer número de módulo del ID (ej: "module-1" -> 1)
+        if (!moduleId) return 1;
+        const match = moduleId.toString().match(/module-?(\d+)/i) || moduleId.toString().match(/(\d+)/);
+        return match ? parseInt(match[1]) : 1;
+    }
+
+    async loadModulesProgress() {
+        try {
+            console.log('📊 Cargando progreso de módulos...');
+            
+            const response = await this.apiCall(`/api/users/${this.userId}/course/intro-to-ai/modules/progress`, {
+                method: 'GET'
+            });
+            
+            if (response.success) {
+                console.log('✅ Progreso de módulos obtenido:', response.data.length, 'módulos');
+                this.updateModulesProgressUI(response.data);
+                return response.data;
+            } else {
+                console.warn('⚠️ No se pudo obtener progreso de módulos');
+                return [];
+            }
+            
+        } catch (error) {
+            console.error('❌ Error cargando progreso de módulos:', error);
+            return [];
+        }
+    }
+
+    updateModulesProgressUI(modulesProgress) {
+        console.log('🎨 Actualizando UI del progreso de módulos');
+        
+        modulesProgress.forEach(moduleData => {
+            const moduleNumber = moduleData.module_number;
+            const progressPercentage = moduleData.progress_percentage || 0;
+            const videoProgressPercentage = moduleData.video_progress_percentage || 0;
+            const isCompleted = moduleData.status === 'completed';
+            const videoCompleted = moduleData.video_completed || false;
+            
+            // Buscar elementos de video por data-video-id o identificar por módulo
+            // Los videos generalmente tienen IDs como "module-1-intro-ia", "module1-video-1", etc.
+            const videoElements = document.querySelectorAll('.video-item');
+            
+            videoElements.forEach(videoElement => {
+                const videoId = videoElement.getAttribute('data-video-id');
+                const youtubeId = videoElement.getAttribute('data-youtube-id');
+                
+                // Verificar si este video pertenece al módulo actual
+                const belongsToModule = this.videobelongsToModule(videoId, youtubeId, moduleNumber, moduleData);
+                
+                if (belongsToModule) {
+                    // Actualizar estado visual del video
+                    this.updateVideoProgressUI(videoElement, {
+                        progressPercentage: videoProgressPercentage,
+                        isCompleted: videoCompleted,
+                        status: moduleData.status
+                    });
+                }
+            });
+            
+            // También buscar elementos de módulo tradicionales si existen
+            const moduleElement = document.querySelector(`[data-module="${moduleNumber}"]`);
+            if (moduleElement) {
+                this.updateModuleElementUI(moduleElement, moduleData, progressPercentage, isCompleted);
+            }
+        });
+        
+        // Emitir evento para que otros componentes puedan reaccionar
+        window.dispatchEvent(new CustomEvent('modulesProgressUpdated', {
+            detail: { modulesProgress }
+        }));
+    }
+
+    videobelongsToModule(videoId, youtubeId, moduleNumber, moduleData) {
+        // Verificar por ID del video si coincide con el video del módulo
+        if (moduleData.video_id && (youtubeId === moduleData.video_id || videoId === moduleData.video_id)) {
+            return true;
+        }
+        
+        // Verificar por patrones de nomenclatura común
+        if (videoId) {
+            // Patrones: "module-1-...", "module1-...", etc.
+            const modulePattern = new RegExp(`module[-_]?${moduleNumber}`, 'i');
+            if (modulePattern.test(videoId)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    updateVideoProgressUI(videoElement, progressData) {
+        const { progressPercentage, isCompleted, status } = progressData;
+        
+        // Actualizar clases CSS
+        videoElement.classList.remove('not-started', 'in-progress', 'completed');
+        videoElement.classList.add(status || 'not-started');
+        
+        if (isCompleted) {
+            videoElement.classList.add('completed');
+        }
+        
+        // Buscar o crear barra de progreso
+        let progressBar = videoElement.querySelector('.video-progress-bar');
+        if (!progressBar && progressPercentage > 0) {
+            // Crear barra de progreso si no existe
+            progressBar = document.createElement('div');
+            progressBar.className = 'video-progress-bar';
+            progressBar.innerHTML = '<div class="video-progress-fill"></div>';
+            
+            // Insertar después del video-info
+            const videoInfo = videoElement.querySelector('.video-info');
+            if (videoInfo) {
+                videoInfo.appendChild(progressBar);
+            } else {
+                videoElement.appendChild(progressBar);
+            }
+        }
+        
+        // Actualizar barra de progreso
+        if (progressBar) {
+            const progressFill = progressBar.querySelector('.video-progress-fill');
+            if (progressFill) {
+                progressFill.style.width = `${progressPercentage}%`;
+                progressFill.classList.toggle('completed', isCompleted);
+            }
+        }
+        
+        // Actualizar icono si es completado
+        const videoIcon = videoElement.querySelector('.video-icon svg');
+        if (videoIcon && isCompleted) {
+            videoIcon.innerHTML = `
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" fill="currentColor"/>
+            `;
+        }
+    }
+
+    updateModuleElementUI(moduleElement, moduleData, progressPercentage, isCompleted) {
+        // Actualizar barra de progreso del módulo
+        const progressBar = moduleElement.querySelector('.module-progress-bar, .progress-bar');
+        if (progressBar) {
+            progressBar.style.width = `${progressPercentage}%`;
+            progressBar.classList.toggle('completed', isCompleted);
+        }
+        
+        // Actualizar icono de estado
+        const statusIcon = moduleElement.querySelector('.module-status-icon, .status-icon');
+        if (statusIcon) {
+            statusIcon.classList.remove('not-started', 'in-progress', 'completed');
+            statusIcon.classList.add(moduleData.status);
+            
+            if (isCompleted) {
+                statusIcon.innerHTML = '✓';
+            } else if (progressPercentage > 0) {
+                statusIcon.innerHTML = '▶';
+            } else {
+                statusIcon.innerHTML = '○';
+            }
+        }
+        
+        // Actualizar texto de progreso
+        const progressText = moduleElement.querySelector('.progress-text, .module-progress');
+        if (progressText) {
+            progressText.textContent = `${progressPercentage}%`;
+        }
+        
+        // Agregar clases CSS para estilos
+        moduleElement.classList.toggle('module-completed', isCompleted);
+        moduleElement.classList.toggle('module-in-progress', progressPercentage > 0 && !isCompleted);
+        moduleElement.classList.toggle('module-not-started', progressPercentage === 0);
+    }
+
     // =====================================================
     // TRACKING DE VIDEO
     // =====================================================
@@ -353,17 +529,17 @@ class CourseProgressManagerV2 {
 
             console.log(`📊 Actualizando progreso: ${Math.round(completionPercentage)}% (${time}s/${videoDuration}s)`);
 
-            const response = await this.apiCall(`/users/${this.userId}/video-progress`, {
+            // Determinar número de módulo desde el currentVideo
+            const moduleNumber = currentVideo.module_number || this.extractModuleNumber(currentVideo.module_id) || 1;
+            
+            const response = await this.apiCall(`/api/users/${this.userId}/course/intro-to-ai/module/${moduleNumber}/progress`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    userId: this.userId,
-                    courseId: this.courseId,
-                    moduleId: currentVideo.module_id,
-                    videoId: currentVideo.id,
-                    currentTimeSeconds: Math.round(time),
-                    completionPercentage: Math.round(completionPercentage * 100) / 100,
-                    isCompleted: isCompleted,
-                    actionType: 'progress_update'
+                    video_progress_percentage: Math.round(completionPercentage),
+                    last_video_position: Math.round(time),
+                    video_completed: isCompleted,
+                    time_watched_seconds: Math.round(time),
+                    video_id: currentVideo.youtube_video_id || currentVideo.id
                 })
             });
 
@@ -371,13 +547,28 @@ class CourseProgressManagerV2 {
                 this.currentProgress.video_progress = response.video_progress;
                 this.lastProgressUpdate = Date.now();
                 
-                // Actualizar UI si es necesario
-                this.updateProgressUI(response);
+                // Actualizar progreso local
+                this.lastVideoTime = time;
+                this.lastCompletion = completionPercentage;
+                
+                // Recargar y actualizar UI completa del progreso de módulos
+                await this.loadModulesProgress();
                 
                 // Si el video se completó, emitir evento
                 if (isCompleted) {
                     this.emitVideoCompletedEvent(currentVideo);
                 }
+                
+                // Emitir evento de progreso actualizado
+                window.dispatchEvent(new CustomEvent('videoProgressUpdated', {
+                    detail: {
+                        moduleNumber,
+                        completionPercentage,
+                        isCompleted,
+                        time,
+                        videoDuration
+                    }
+                }));
                 
                 console.log('✅ Progreso actualizado exitosamente');
             }
@@ -467,6 +658,62 @@ class CourseProgressManagerV2 {
     // =====================================================
     // MÉTODOS PÚBLICOS PARA INTEGRACIÓN
     // =====================================================
+
+    /**
+     * Método de compatibilidad con YouTubeProgressTracker
+     * @param {number} moduleNumber - Número del módulo
+     * @param {Object} videoUpdates - Datos del video a actualizar
+     * @returns {Promise<Object>} Resultado de la actualización
+     */
+    async updateVideoProgress(moduleNumber, videoUpdates) {
+        try {
+            console.log(`🔗 Método de compatibilidad - Módulo ${moduleNumber}:`, videoUpdates);
+            
+            // Mapear los datos al formato que espera updateProgressImmediate
+            this.lastVideoTime = videoUpdates.last_video_position || 0;
+            
+            // Simular currentVideo para el método interno
+            if (!window.dynamicVideoLoader?.currentVideo) {
+                // Crear objeto video temporal si no existe
+                window.dynamicVideoLoader = window.dynamicVideoLoader || {};
+                window.dynamicVideoLoader.currentVideo = {
+                    module_number: moduleNumber,
+                    youtube_video_id: videoUpdates.video_id || `module-${moduleNumber}-video`,
+                    duration_seconds: 187, // Duración estimada
+                    id: `module-${moduleNumber}-video`
+                };
+            }
+            
+            // Llamar al método interno corregido
+            await this.updateProgressImmediate(this.lastVideoTime);
+            
+            return {
+                success: true,
+                video_progress_percentage: videoUpdates.video_progress_percentage,
+                module_completed: videoUpdates.video_completed,
+                last_video_position: videoUpdates.last_video_position
+            };
+            
+        } catch (error) {
+            console.error('❌ Error en updateVideoProgress:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Método de compatibilidad para iniciar módulo
+     * @param {number} moduleNumber - Número del módulo
+     * @returns {Promise<void>}
+     */
+    async startModule(moduleNumber) {
+        try {
+            console.log(`🎬 Iniciando módulo ${moduleNumber}`);
+            // No necesita hacer nada específico, el progreso se maneja automáticamente
+            return Promise.resolve();
+        } catch (error) {
+            console.error('❌ Error iniciando módulo:', error);
+        }
+    }
 
     async switchToModule(moduleId) {
         try {

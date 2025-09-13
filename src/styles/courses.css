@@ -218,7 +218,7 @@ html, body.courses-page {
     padding: 14px 24px;
     border: none;
     background: rgba(68, 229, 255, 0.05);
-    color: var(--course-text-secondary);
+    color: white;
     border-radius: 16px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -2426,7 +2426,7 @@ html, body.courses-page {
 
 [data-theme="light"] .tab-button.active {
     background: linear-gradient(135deg, var(--course-accent), var(--course-accent-hover)) !important;
-    color: #001018 !important;
+    color: white !important;
     box-shadow: 0 4px 12px rgba(68, 229, 255, 0.3) !important;
 }
 
