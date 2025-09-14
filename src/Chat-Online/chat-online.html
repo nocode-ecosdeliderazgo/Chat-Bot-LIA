@@ -4334,7 +4334,7 @@ Cargando información...
                                                 <line x1="17" y1="16" x2="23" y2="16"/>
                                             </svg>
                                         </button>
-                                    </div>
+                            </div>
                             </div>
 
                                 <!-- Panel Filtros Avanzados (colapsable) -->
@@ -6731,7 +6731,6 @@ INSTRUCCIONES:
                             collapseRight.title = 'Expandir panel';
                             // Desfijar panel cuando se colapsa manualmente
                             rightPanelPinned = false;
-                            console.log('📌 Panel derecho desfijado');
                         }, 200);
                         
                     } else {
@@ -6807,7 +6806,6 @@ INSTRUCCIONES:
                 }
                 
                 // Estado inicial logging
-                console.log('🚀 Panel derecho inicializado:', isCollapsed ? 'colapsado' : 'expandido');
             } else {
                 console.warn('⚠️ Elementos del panel derecho no encontrados');
             }
@@ -6852,7 +6850,6 @@ INSTRUCCIONES:
                         collapseLeft.title = 'Expandir panel';
                         // Desfijar panel cuando se colapsa manualmente
                         leftPanelPinned = false;
-                        console.log('📌 Panel izquierdo desfijado');
                     }, 200);
                     
                 } else {
@@ -6973,17 +6970,14 @@ INSTRUCCIONES:
                             }
                         }));
                         
-                        console.log('📱 Panel izquierdo expandido automáticamente con hover');
                     }
                 });
                 
                 
                 // Fijar panel izquierdo al hacer clic
                 sidebarLeft.addEventListener('click', function(e) {
-                    console.log('🖱️ Panel izquierdo click - leftPanelPinned:', leftPanelPinned, 'collapsed:', sidebarLeft.classList.contains('collapsed'));
                     if (!sidebarLeft.classList.contains('collapsed')) {
                         leftPanelPinned = true;
-                        console.log('📌 Panel izquierdo fijado - leftPanelPinned ahora:', leftPanelPinned);
                     }
                 });
             }
@@ -7020,17 +7014,14 @@ INSTRUCCIONES:
                             }
                         }));
                         
-                        console.log('📱 Panel derecho expandido automáticamente con hover');
                     }
                 });
                 
                 
                 // Fijar panel derecho al hacer clic
                 sidebarRight.addEventListener('click', function(e) {
-                    console.log('🖱️ Panel derecho click - rightPanelPinned:', rightPanelPinned, 'collapsed:', sidebarRight.classList.contains('collapsed'));
                     if (!sidebarRight.classList.contains('collapsed')) {
                         rightPanelPinned = true;
-                        console.log('📌 Panel derecho fijado - rightPanelPinned ahora:', rightPanelPinned);
                     }
                 });
             }
@@ -7040,12 +7031,9 @@ INSTRUCCIONES:
             // Desfijar paneles cuando se colapsan automáticamente
             if (sidebarLeft) {
                 sidebarLeft.addEventListener('mouseleave', function(e) {
-                    console.log('🖱️ Panel izquierdo mouseleave - leftPanelPinned:', leftPanelPinned, 'collapsed:', sidebarLeft.classList.contains('collapsed'));
                     if (!leftPanelPinned && !sidebarLeft.classList.contains('collapsed')) {
-                        console.log('✅ Panel izquierdo - condiciones cumplidas, iniciando colapso automático');
                         // Pequeño delay para evitar cierre accidental
                         setTimeout(() => {
-                            console.log('⏰ Panel izquierdo - timeout ejecutado - leftPanelPinned:', leftPanelPinned, 'collapsed:', sidebarLeft.classList.contains('collapsed'));
                             if (!leftPanelPinned && !sidebarLeft.classList.contains('collapsed')) {
                                 sidebarLeft.classList.add('collapsed');
                                 collapseLeft.title = 'Expandir panel';
@@ -7063,25 +7051,19 @@ INSTRUCCIONES:
                                     }
                                 }));
                                 
-                                console.log('📱 Panel izquierdo colapsado automáticamente al salir del hover');
                             } else {
-                                console.log('❌ Panel izquierdo - condiciones no cumplidas en timeout');
                             }
                         }, 300);
                     } else {
-                        console.log('❌ Panel izquierdo - condiciones no cumplidas:', 'leftPanelPinned:', leftPanelPinned, 'collapsed:', sidebarLeft.classList.contains('collapsed'));
                     }
                 });
             }
             
             if (sidebarRight) {
                 sidebarRight.addEventListener('mouseleave', function(e) {
-                    console.log('🖱️ Panel derecho mouseleave - rightPanelPinned:', rightPanelPinned, 'collapsed:', sidebarRight.classList.contains('collapsed'));
                     if (!rightPanelPinned && !sidebarRight.classList.contains('collapsed')) {
-                        console.log('✅ Panel derecho - condiciones cumplidas, iniciando colapso automático');
                         // Pequeño delay para evitar cierre accidental
                         setTimeout(() => {
-                            console.log('⏰ Panel derecho - timeout ejecutado - rightPanelPinned:', rightPanelPinned, 'collapsed:', sidebarRight.classList.contains('collapsed'));
                             if (!rightPanelPinned && !sidebarRight.classList.contains('collapsed')) {
                                 sidebarRight.classList.add('collapsed');
                                 collapseRight.title = 'Expandir panel';
@@ -7099,13 +7081,10 @@ INSTRUCCIONES:
                                     }
                                 }));
                                 
-                                console.log('📱 Panel derecho colapsado automáticamente al salir del hover');
                             } else {
-                                console.log('❌ Panel derecho - condiciones no cumplidas en timeout');
                             }
                         }, 300);
                     } else {
-                        console.log('❌ Panel derecho - condiciones no cumplidas:', 'rightPanelPinned:', rightPanelPinned, 'collapsed:', sidebarRight.classList.contains('collapsed'));
                     }
                 });
             }
@@ -8152,9 +8131,9 @@ Generado desde Coach LIA IA - ${currentDate}
 
             updateQuestionCounter(count) {
                 // Mostrar/ocultar mensaje vacío
-                if (count === 0) {
+            if (count === 0) {
                     this.showEmptyState();
-                } else {
+            } else {
                     this.hideEmptyState();
                 }
             },
