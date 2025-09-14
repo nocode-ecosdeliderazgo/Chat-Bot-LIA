@@ -1,4 +1,5 @@
 // ===== CHAT ONLINE - JAVASCRIPT PRINCIPAL =====
+console.log('🚀🚀🚀 ARCHIVO chat-online.js CARGADO CORRECTAMENTE 🚀🚀🚀');
 
 // ===== FUNCIONES GLOBALES INMEDIATAS =====
 // Definir funciones globales antes de la clase para que estén disponibles inmediatamente
@@ -95,7 +96,13 @@ class ChatOnline {
         
         // Asegurar que los botones de notas funcionen
         this.ensureNotesButtonsWork();
-        
+
+        // Cargar notas como backup (con delay para asegurar DOM listo)
+        setTimeout(() => {
+            console.log('🔄 Ejecutando loadNotesList() de backup desde init()');
+            this.loadNotesList();
+        }, 500);
+
         console.log('✅ Chat Online inicializado correctamente');
         
         // Exponer funciones de diagnóstico globalmente
@@ -299,6 +306,7 @@ class ChatOnline {
         this.setupContentTabs();
         
         // Notas
+        console.log('🔧 Ejecutando setupNotes() desde setupEventListeners()');
         this.setupNotes();
         
         // Materiales
@@ -3189,10 +3197,13 @@ class ChatOnline {
     // ===== NOTAS =====
     setupNotes() {
         console.log('📝 Configurando notas...');
-        
+
         // Usar setTimeout para asegurar que el DOM esté listo
         setTimeout(() => {
+            console.log('🔧 Iniciando configuración de notas después del timeout');
             this.initializeNotesButtons();
+            console.log('🔧 Llamando loadNotesList() desde setupNotes()');
+            this.loadNotesList(); // Cargar notas existentes al inicializar
         }, 100);
     }
     
@@ -6160,10 +6171,21 @@ class ChatOnline {
     }
     
     loadNotesList() {
+        console.log('🔍 loadNotesList() ejecutándose...');
+
         const notesList = document.getElementById('notesList');
+        console.log('📋 Elemento notesList encontrado:', !!notesList);
+
+        if (!notesList) {
+            console.error('❌ No se encontró el elemento notesList');
+            return;
+        }
+
         const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
-        
+        console.log('📝 Notas en localStorage:', notes.length, notes);
+
         if (notes.length === 0) {
+            console.log('📝 No hay notas, mostrando estado vacío');
             notesList.innerHTML = `
                 <div class="no-notes">
                     <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -6176,12 +6198,14 @@ class ChatOnline {
             `;
             return;
         }
-        
+
         // Ordenar notas por fecha de actualización (más recientes primero)
         const sortedNotes = notes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-        
+        console.log('📝 Notas ordenadas:', sortedNotes);
+
         notesList.innerHTML = sortedNotes.map(note => this.createNoteHTML(note)).join('');
-        
+        console.log('✅ Notas cargadas en el DOM');
+
         // Agregar event listeners a las notas
         this.setupNoteClickListeners();
     }
