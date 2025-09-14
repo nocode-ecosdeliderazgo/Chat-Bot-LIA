@@ -2452,13 +2452,13 @@
         .community-filters {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-            padding: 1.5rem;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1.25rem;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
-            border-radius: 16px;
+            border-radius: 14px;
             border: 1px solid rgba(0, 102, 204, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 102, 204, 0.1);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 102, 204, 0.1);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             position: relative;
@@ -2480,13 +2480,15 @@
         .filter-tabs {
             display: flex;
             gap: 0.5rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.25rem;
             padding: 0.5rem;
             background: rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid rgba(0, 102, 204, 0.1);
             position: relative;
             overflow: hidden;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .filter-tabs::before {
@@ -2504,23 +2506,26 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.75rem 1.25rem;
+            padding: 0.625rem 1.25rem;
             background: linear-gradient(135deg, rgba(0, 102, 204, 0.1), rgba(0, 102, 204, 0.05));
             border: 1px solid rgba(0, 102, 204, 0.3);
-            border-radius: 10px;
+            border-radius: 8px;
             color: #ffffff;
             font-size: 0.9rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             flex: 1;
             justify-content: center;
-            min-height: 44px;
-            box-shadow: 0 4px 15px rgba(0, 102, 204, 0.15);
+            min-height: 42px;
+            box-shadow: 0 3px 12px rgba(0, 102, 204, 0.15);
+            min-width: 160px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
         }
 
         .filter-tab::before {
@@ -2588,9 +2593,11 @@
             flex-wrap: wrap;
             padding: 1rem;
             background: rgba(0, 0, 0, 0.05);
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid rgba(0, 102, 204, 0.1);
             position: relative;
+            justify-content: space-between;
+            margin-top: 0.25rem;
         }
 
         .filter-row::before {
@@ -2608,17 +2615,21 @@
             padding: 0.75rem 1rem;
             background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08));
             border: 1px solid rgba(0, 102, 204, 0.3);
-            border-radius: 10px;
+            border-radius: 8px;
             color: #ffffff;
             font-size: 0.9rem;
             font-weight: 500;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
             min-width: 180px;
-            box-shadow: 0 4px 15px rgba(0, 102, 204, 0.2);
+            box-shadow: 0 3px 12px rgba(0, 102, 204, 0.2);
+            flex: 1;
+            height: 48px;
+            display: flex;
+            align-items: center;
         }
 
         .module-filter::before, .date-filter::before, .tag-filter::before {
@@ -2658,22 +2669,134 @@
             font-weight: 500;
         }
 
+        /* Estilos para el dropdown del select */
+        .module-filter, .date-filter, .tag-filter {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08));
+        }
+
+        .module-filter:focus, .date-filter:focus, .tag-filter:focus {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.3), rgba(0, 102, 204, 0.2));
+        }
+
+        /* Estilos para el dropdown cuando está abierto */
+        .module-filter option:hover, .date-filter option:hover, .tag-filter option:hover {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 1), rgba(0, 102, 204, 0.9));
+            color: #ffffff;
+        }
+
+        .module-filter option:checked, .date-filter option:checked, .tag-filter option:checked {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 1), rgba(0, 102, 204, 0.9));
+            color: #ffffff;
+        }
+
+        /* Estilos adicionales para mejorar el dropdown */
+        .module-filter, .date-filter, .tag-filter, #statusFilter, #sortSelect {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1rem;
+            padding-right: 2.5rem;
+        }
+
+        /* Estilos para el fondo del dropdown en navegadores webkit */
+        .module-filter::-webkit-list-button, .date-filter::-webkit-list-button, .tag-filter::-webkit-list-button,
+        #statusFilter::-webkit-list-button, #sortSelect::-webkit-list-button {
+            display: none;
+        }
+
+        /* Estilos para el contenedor del dropdown */
+        .module-filter optgroup, .date-filter optgroup, .tag-filter optgroup,
+        #statusFilter optgroup, #sortSelect optgroup {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.9), rgba(0, 102, 204, 0.8));
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Estilos para el fondo del dropdown en navegadores webkit */
+        .module-filter::-webkit-list-button, .date-filter::-webkit-list-button, .tag-filter::-webkit-list-button,
+        #statusFilter::-webkit-list-button, #sortSelect::-webkit-list-button {
+            display: none;
+        }
+
+        /* Estilos para el contenedor del dropdown en webkit */
+        .module-filter::-webkit-list-box, .date-filter::-webkit-list-box, .tag-filter::-webkit-list-box,
+        #statusFilter::-webkit-list-box, #sortSelect::-webkit-list-box {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.9), rgba(0, 102, 204, 0.8));
+            border: 1px solid rgba(0, 102, 204, 0.5);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+        }
+
+        /* Estilos para el fondo del dropdown en Firefox */
+        .module-filter option, .date-filter option, .tag-filter option,
+        #statusFilter option, #sortSelect option {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.9), rgba(0, 102, 204, 0.8)) !important;
+            color: #ffffff !important;
+            padding: 0.5rem !important;
+            font-weight: 500 !important;
+        }
+
+        /* Estilos adicionales para el dropdown abierto */
+        .module-filter:focus, .date-filter:focus, .tag-filter:focus,
+        #statusFilter:focus, #sortSelect:focus {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.3), rgba(0, 102, 204, 0.2));
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.4), 0 8px 25px rgba(0, 102, 204, 0.4);
+        }
+
+        /* Estilos para el fondo del dropdown usando pseudo-elementos */
+        .module-filter::before, .date-filter::before, .tag-filter::before,
+        #statusFilter::before, #sortSelect::before {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            height: 0;
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.9), rgba(0, 102, 204, 0.8));
+            border-radius: 0 0 8px 8px;
+            z-index: 1000;
+            transition: height 0.3s ease;
+        }
+
+        .module-filter:focus::before, .date-filter:focus::before, .tag-filter:focus::before,
+        #statusFilter:focus::before, #sortSelect:focus::before {
+            height: 200px; /* Altura aproximada del dropdown */
+        }
+
+        /* Estilos específicos para el fondo del dropdown en Chrome/Safari */
+        .module-filter::-webkit-calendar-picker-indicator,
+        .date-filter::-webkit-calendar-picker-indicator,
+        .tag-filter::-webkit-calendar-picker-indicator,
+        #statusFilter::-webkit-calendar-picker-indicator,
+        #sortSelect::-webkit-calendar-picker-indicator {
+            display: none;
+        }
+
+        /* Estilos para listbox - color oscuro */
+        .module-filter option, .date-filter option, .tag-filter option, #sortSelect option, #statusFilter option {
+            background: rgba(0, 0, 0, 0.8) !important;
+            color: #ffffff !important;
+        }
+
         /* Estilos para otros elementos select */
         #statusFilter, #sortSelect {
             padding: 0.75rem 1rem;
             background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08));
             border: 1px solid rgba(0, 102, 204, 0.3);
-            border-radius: 10px;
+            border-radius: 8px;
             color: #ffffff;
             font-size: 0.9rem;
             font-weight: 500;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
             min-width: 180px;
-            box-shadow: 0 4px 15px rgba(0, 102, 204, 0.2);
+            box-shadow: 0 3px 12px rgba(0, 102, 204, 0.2);
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -2682,6 +2805,10 @@
             background-position: right 0.75rem center;
             background-size: 1.25rem;
             padding-right: 2.5rem;
+            flex: 1;
+            height: 48px;
+            display: flex;
+            align-items: center;
         }
 
         #statusFilter:hover, #sortSelect:hover {
@@ -2706,19 +2833,30 @@
             font-weight: 500;
         }
 
+        /* Estilos para el dropdown de statusFilter y sortSelect */
+        #statusFilter option:hover, #sortSelect option:hover {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 1), rgba(0, 102, 204, 0.9));
+            color: #ffffff;
+        }
+
+        #statusFilter option:checked, #sortSelect option:checked {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 1), rgba(0, 102, 204, 0.9));
+            color: #ffffff;
+        }
+
         /* ===== BOTÓN DE BÚSQUEDA MEJORADO ===== */
         .search-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 44px;
-            height: 44px;
+            width: 36px;
+            height: 36px;
             background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1));
             border: 1px solid rgba(0, 102, 204, 0.3);
-            border-radius: 10px;
+            border-radius: 6px;
             color: #0066CC;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
             backdrop-filter: blur(10px);
@@ -2761,14 +2899,20 @@
             transform: scale(1.1);
         }
 
+        .filter-controls-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
         .advanced-toggle {
-            background: linear-gradient(135deg, rgba(0, 102, 204, 0.1), rgba(0, 102, 204, 0.05));
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08));
             border: 1px solid rgba(0, 102, 204, 0.3);
             color: #0066CC;
             padding: 0.75rem 1rem;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -2778,6 +2922,9 @@
             overflow: hidden;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 3px 12px rgba(0, 102, 204, 0.2);
+            min-width: 120px;
+            height: 48px;
         }
 
         .advanced-toggle::before {
@@ -2804,12 +2951,12 @@
 
         /* ===== PANEL AVANZADO MEJORADO ===== */
         .advanced-panel {
-            margin-top: 1rem;
-            padding: 1.5rem;
+            margin-top: 0.75rem;
+            padding: 1rem;
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.05));
-            border-radius: 12px;
+            border-radius: 8px;
             border: 1px solid rgba(0, 102, 204, 0.2);
-            animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
             backdrop-filter: blur(10px);
@@ -3023,10 +3170,10 @@
         .sort-controls {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 1rem;
+            gap: 0.75rem;
+            padding: 0.75rem;
             background: rgba(0, 0, 0, 0.05);
-            border-radius: 12px;
+            border-radius: 8px;
             border: 1px solid rgba(0, 102, 204, 0.1);
             position: relative;
         }
@@ -3043,13 +3190,13 @@
         }
 
         .sort-direction {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
-            border: 1px solid rgba(0, 102, 204, 0.2);
-            color: var(--glass-text-secondary);
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08));
+            border: 1px solid rgba(0, 102, 204, 0.3);
+            color: #0066CC;
             padding: 0.75rem;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -3057,6 +3204,9 @@
             overflow: hidden;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
+            width: 48px;
+            height: 48px;
+            box-shadow: 0 3px 12px rgba(0, 102, 204, 0.2);
         }
 
         .sort-direction::before {
@@ -3214,11 +3364,6 @@
             padding: 0.5rem 0;
         }
 
-        .questions-counter {
-            font-size: 0.9rem;
-            color: var(--glass-text-secondary);
-            font-weight: 500;
-        }
 
         .clear-all-filters {
             background: rgba(239, 68, 68, 0.1);
@@ -3776,16 +3921,6 @@
                             </svg>
                         </button>
                         <div class="toolbar-separator"></div>
-                        <button class="toolbar-btn" id="listBtn" title="Lista">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="8" y1="6" x2="21" y2="6"/>
-                                <line x1="8" y1="12" x2="21" y2="12"/>
-                                <line x1="8" y1="18" x2="21" y2="18"/>
-                                <line x1="3" y1="6" x2="3.01" y2="6"/>
-                                <line x1="3" y1="12" x2="3.01" y2="12"/>
-                                <line x1="3" y1="18" x2="3.01" y2="18"/>
-                            </svg>
-                        </button>
                         <button class="toolbar-btn" id="linkBtn" title="Enlace">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
@@ -4176,19 +4311,30 @@ Cargando información...
 
                                     <input type="text" class="tag-filter" id="tagFilter" placeholder="Buscar por etiqueta...">
 
-                                    <button class="advanced-toggle" id="advancedToggle" title="Mostrar filtros avanzados">
-                                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <line x1="4" y1="21" x2="4" y2="14"/>
-                                            <line x1="4" y1="10" x2="4" y2="3"/>
-                                            <line x1="12" y1="21" x2="12" y2="12"/>
-                                            <line x1="12" y1="8" x2="12" y2="3"/>
-                                            <line x1="20" y1="21" x2="20" y2="16"/>
-                                            <line x1="20" y1="12" x2="20" y2="3"/>
-                                            <line x1="1" y1="14" x2="7" y2="14"/>
-                                            <line x1="9" y1="8" x2="15" y2="8"/>
-                                            <line x1="17" y1="16" x2="23" y2="16"/>
-                                        </svg>
-                                    </button>
+                                <select id="sortSelect">
+                                    <option value="recent">Más Recientes</option>
+                                    <option value="votes">Más Votadas</option>
+                                    <option value="answers">Más Respondidas</option>
+                                    <option value="views">Más Vistas</option>
+                                        <option value="relevance">Más Relevantes</option>
+                                </select>
+
+                                    <div class="filter-controls-group">
+
+                                        <button class="advanced-toggle" id="advancedToggle" title="Mostrar filtros avanzados">
+                                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="4" y1="21" x2="4" y2="14"/>
+                                                <line x1="4" y1="10" x2="4" y2="3"/>
+                                                <line x1="12" y1="21" x2="12" y2="12"/>
+                                                <line x1="12" y1="8" x2="12" y2="3"/>
+                                                <line x1="20" y1="21" x2="20" y2="16"/>
+                                                <line x1="20" y1="12" x2="20" y2="3"/>
+                                                <line x1="1" y1="14" x2="7" y2="14"/>
+                                                <line x1="9" y1="8" x2="15" y2="8"/>
+                                                <line x1="17" y1="16" x2="23" y2="16"/>
+                                            </svg>
+                                        </button>
+                                    </div>
                             </div>
 
                                 <!-- Panel Filtros Avanzados (colapsable) -->
@@ -4224,35 +4370,7 @@ Cargando información...
                                 </div>
                             </div>
 
-                            <!-- Ordenamiento -->
-                            <div class="sort-controls">
-                                <select id="sortSelect">
-                                    <option value="recent">Más Recientes</option>
-                                    <option value="votes">Más Votadas</option>
-                                    <option value="answers">Más Respondidas</option>
-                                    <option value="views">Más Vistas</option>
-                                    <option value="relevance">Más Relevantes</option>
-                                </select>
 
-                                <button class="sort-direction" id="sortDirection" data-direction="desc" title="Cambiar dirección">
-                                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <line x1="3" y1="6" x2="21" y2="6"/>
-                                        <line x1="3" y1="12" x2="21" y2="12"/>
-                                        <line x1="3" y1="18" x2="21" y2="18"/>
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <!-- Contador y Estado -->
-                            <div class="filter-status">
-                                <span class="questions-counter">Cargando preguntas...</span>
-                                <button class="clear-all-filters" id="clearAllFilters" title="Limpiar todos los filtros" style="display: none;">
-                                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <line x1="18" y1="6" x2="6" y2="18"/>
-                                        <line x1="6" y1="6" x2="18" y2="18"/>
-                                    </svg>
-                                </button>
-                            </div>
                         </div>
 
                         <!-- Lista de Preguntas -->
@@ -5985,17 +6103,7 @@ INSTRUCCIONES:
                         console.warn('⚠️ CourseProgressManager no inicializado - puede afectar la carga de videos');
                         // Mostrar mensaje de advertencia al usuario
                         const videoContainer = document.querySelector('.main-video-player');
-                        if (videoContainer && !videoContainer.querySelector('.loading-warning')) {
-                            const warning = document.createElement('div');
-                            warning.className = 'loading-warning';
-                            warning.innerHTML = `
-                                <div style="padding: 15px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 8px; margin: 10px; text-align: center;">
-                                    <strong>⚠️ Cargando sistema de videos...</strong><br>
-                                    <small>Si los videos no aparecen, recarga la página.</small>
-                                </div>
-                            `;
-                            videoContainer.appendChild(warning);
-                        }
+                        // Mensaje de carga de videos eliminado
                     }
                 }, 2000);
 
@@ -6005,17 +6113,7 @@ INSTRUCCIONES:
                 
                 // Mostrar error al usuario
                 const videoContainer = document.querySelector('.main-video-player');
-                if (videoContainer && !videoContainer.querySelector('.error-message')) {
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'error-message';
-                    errorDiv.innerHTML = `
-                        <div style="padding: 15px; background: rgba(220,53,69,0.2); border: 1px solid #dc3545; border-radius: 8px; margin: 10px; text-align: center;">
-                            <strong>❌ Error cargando sistema de videos</strong><br>
-                            <small>Por favor, recarga la página. Si el problema persiste, verifica tu conexión.</small>
-                        </div>
-                    `;
-                    videoContainer.appendChild(errorDiv);
-                }
+                // Mensaje de error de videos eliminado
 
                 // Configurar event listeners para el chat
                 setTimeout(() => {
@@ -6363,7 +6461,7 @@ INSTRUCCIONES:
                 if (userData) {
                     return JSON.parse(userData);
                 }
-                
+
                 // Fallback para desarrollo
                 return {
                     id: 'chat-online-user',
@@ -6435,19 +6533,20 @@ INSTRUCCIONES:
             console.log('🔄 switchTab directo:', contentType);
             
             // Ocultar todos los contenidos
-            const allContents = document.querySelectorAll('[data-content]');
+            const allContents = document.querySelectorAll('.content-area [data-content]');
             allContents.forEach(content => {
-                if (content.closest('.content-area')) {
                     content.style.display = 'none';
-                }
+                console.log('❌ Ocultando:', content.getAttribute('data-content'));
             });
             
             // Mostrar el contenido seleccionado
-            const targetContent = document.querySelector(`[data-content="${contentType}"]`);
-            if (targetContent && targetContent.closest('.content-area')) {
+            const targetContent = document.querySelector(`.content-area [data-content="${contentType}"]`);
+            if (targetContent) {
                 const displayType = contentType === 'community' ? 'flex' : 'block';
                 targetContent.style.display = displayType;
-                console.log('✅ Contenido mostrado:', contentType);
+                console.log('✅ Contenido mostrado:', contentType, 'con display:', displayType);
+            } else {
+                console.error('❌ No se encontró contenido para:', contentType);
             }
             
             // Actualizar botones activos
@@ -6458,12 +6557,31 @@ INSTRUCCIONES:
             if (activeTab) {
                 activeTab.classList.add('active');
                 console.log('✅ Tab activado:', contentType);
+            } else {
+                console.error('❌ No se encontró tab para:', contentType);
             }
         }
         
         // Hacer disponible globalmente INMEDIATAMENTE
         window.switchTab = switchTab;
         console.log('✅ switchTab definido directamente en HTML');
+        
+        // Función de debug temporal
+        window.debugCommunity = function() {
+            console.log('🔍 DEBUG: Verificando elementos de comunidad...');
+            const communityContent = document.querySelector('.community-content');
+            const communityTab = document.querySelector('.tab-btn[data-content="community"]');
+            console.log('📋 Community content:', communityContent);
+            console.log('📋 Community tab:', communityTab);
+            console.log('📋 Community content display:', communityContent ? communityContent.style.display : 'No encontrado');
+            console.log('📋 Community content computed style:', communityContent ? window.getComputedStyle(communityContent).display : 'No encontrado');
+            
+            // Forzar mostrar comunidad
+            if (communityContent) {
+                communityContent.style.display = 'flex';
+                console.log('✅ Comunidad forzada a mostrar');
+            }
+        };
 
     </script>
 
@@ -8033,23 +8151,10 @@ Generado desde Coach LIA IA - ${currentDate}
             },
 
             updateQuestionCounter(count) {
-                const counter = document.querySelector('.questions-counter');
-                if (counter) {
-                const filterNames = {
-                        'all': 'preguntas',
-                        'unanswered': 'sin responder',
-                        'answered': 'respondidas',
-                    'mine': 'mis preguntas'
-                };
-                
-                    const filterName = filterNames[this.state.type] || 'preguntas';
-                    counter.textContent = `${count} ${filterName}`;
-            }
-
                 // Mostrar/ocultar mensaje vacío
-            if (count === 0) {
+                if (count === 0) {
                     this.showEmptyState();
-            } else {
+                } else {
                     this.hideEmptyState();
                 }
             },
