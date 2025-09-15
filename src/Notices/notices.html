@@ -147,6 +147,7 @@
             </div>
         </section>
 
+
         <!-- Categories Section -->
         <section class="categories-section">
             <div class="container">
@@ -265,6 +266,106 @@
 
     <!-- Toast Notifications -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- News Modal -->
+    <div class="news-modal" id="newsModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeNewsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-news-card">
+                <!-- Modal content will be loaded here dynamically -->
+                <div class="news-header-graphic">
+                    <div class="brain-icon">
+                        <i class="fas fa-brain"></i>
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="neural-lines"></div>
+                    <div class="gear-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                </div>
+                <h1 class="news-main-title">Online RL para Cursor Tab: 28% más aceptación con 21% menos sugerencias</h1>
+                <div class="tldr-section">
+                    <h3 class="tldr-heading">
+                        <span class="tldr-icon"></span>
+                        TL;DR:
+                    </h3>
+                    <ul class="tldr-items">
+                        <li>28% más aceptación de sugerencias</li>
+                        <li>21% menos sugerencias mostradas</li>
+                    </ul>
+                </div>
+                <div class="modal-detailed-content">
+                    <p><strong>Por qué importa para desarrolladores:</strong></p>
+                    <p>En Cursor, nuestro objetivo es hacer que los desarrolladores sean un orden de magnitud más productivos. Una parte importante de ese objetivo es Cursor Tab, nuestro sistema que predice tu próxima acción en tu base de código. El nuevo modelo utiliza aprendizaje por refuerzo online para hacer 21% menos sugerencias mientras tiene una tasa de aceptación 28% mayor.</p>
+
+                    <div class="news-main-content">
+                        <div class="left-column">
+                            <div class="suggested-steps">
+                                <h4 class="section-heading">Pasos sugeridos</h4>
+                                <ol class="numbered-list">
+                                    <li>Instala la última versión de Cursor</li>
+                                    <li>Observa las mejoras en predicción de código</li>
+                                    <li>Reporta feedback sobre nuevas sugerencias</li>
+                                </ol>
+                            </div>
+                            <div class="risks-limits">
+                                <h4 class="section-heading">Riesgos/Límites</h4>
+                                <ul class="section-list">
+                                    <li>Modelo en constante evolución</li>
+                                    <li>Requiere datos en tiempo real</li>
+                                    <li>Dependencia de infraestructura robusta</li>
+                                </ul>
+                            </div>
+                            <div class="resources-section">
+                                <h4 class="section-heading">
+                                    <i class="fas fa-info-circle"></i>
+                                    Recursos/Enlaces:
+                                </h4>
+                                <ul class="resources-list">
+                                    <li><a href="https://cursor.com/blog/tab-rl" target="_blank">[Cursor Blog] Online RL para Tab</a></li>
+                                    <li><a href="https://github.com/search?q=policy+gradient+methods" target="_blank">[GitHub] Policy Gradient Methods</a></li>
+                                    <li><a href="https://arxiv.org/search/?query=reinforcement+learning&searchtype=all" target="_blank">[Paper] Reinforcement Learning</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="right-column">
+                            <div class="why-matters-section">
+                                <h4 class="section-heading">Por qué importa:</h4>
+                                <ul class="section-list">
+                                    <li>Productividad de desarrolladores</li>
+                                    <li>Mejor experiencia de programación</li>
+                                </ul>
+                            </div>
+                            <div class="what-changed-section">
+                                <h4 class="section-heading">Qué cambió / Novedad:</h4>
+                                <ul class="section-list">
+                                    <li>Implementación de policy gradient</li>
+                                    <li>Despliegue continuo de modelos</li>
+                                </ul>
+                            </div>
+                            <div class="impact-section">
+                                <h4 class="section-heading">
+                                    <i class="fas fa-chart-bar"></i>
+                                    Impacto en efic.:
+                                </h4>
+                                <ul class="section-list">
+                                    <li>+28% tasa de aceptación</li>
+                                    <li>-21% sugerencias innecesarias</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="cta-section">
+                    <span class="cta-label">CTA:</span>
+                    <button class="cta-button">Prueba Cursor Tab ahora</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="../scripts/global-theme-setup.js"></script>
     <script src="../scripts/force-theme-init.js"></script>

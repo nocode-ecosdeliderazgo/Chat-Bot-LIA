@@ -19,6 +19,18 @@
     --shadow-card-hover: 0 18px 40px rgba(0,0,0,.5);
 }
 
+/* ===== SCROLLBAR OCULTO (GLOBAL) ===== */
+/* Ocultar scrollbar pero mantener funcionalidad de scroll */
+* {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+/* Ocultar scrollbar en navegadores webkit (Chrome, Safari, Edge) */
+*::-webkit-scrollbar {
+    display: none;
+}
+
 /* ===== MODO CLARO ===== */
 [data-theme="light"] {
     --text-primary: #2D3748;
@@ -681,36 +693,47 @@
 /* Course tabs dentro del header */
 .course-tabs {
     display: flex;
-    gap: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 12px;
+    gap: 8px;
+    overflow-x: auto;
+    border: 1px solid rgba(0, 102, 204, 0.18);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(20px);
+    position: relative;
+    margin: 20px auto;
+    width: min(750px, 95vw);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     flex: 1;
     justify-content: center;
-    padding: 12px;
-    width: min(600px, 90vw);
-    margin: 0 auto;
+    min-height: 64px;
 }
 
 /* Regla específica para sobrescribir courses.css - MÁS ESPECÍFICA */
 .catalog-header .course-tabs {
-    width: min(600px, 90vw) !important;
+    width: min(750px, 95vw) !important;
     margin: 0 auto !important;
-    max-width: 600px !important;
+    max-width: 750px !important;
     flex-shrink: 0 !important;
 }
 
 /* Regla adicional para asegurar que se aplique */
 .bg-glow-global .catalog-header .course-tabs {
-    width: min(600px, 90vw) !important;
+    width: min(750px, 95vw) !important;
     margin: 0 auto !important;
-    max-width: 600px !important;
+    max-width: 750px !important;
 }
 
 /* Regla ULTRA ESPECÍFICA para forzar el ancho */
 body.bg-glow-global .catalog-header .course-tabs {
-    width: min(600px, 90vw) !important;
+    width: min(750px, 95vw) !important;
     margin: 0 auto !important;
-    max-width: 600px !important;
+    max-width: 750px !important;
     flex-shrink: 0 !important;
-    flex-basis: min(600px, 90vw) !important;
+    flex-basis: min(750px, 95vw) !important;
 }
 
 /* Estilos para los botones del navbar - exactamente como en la imagen */
@@ -718,23 +741,25 @@ body.bg-glow-global .catalog-header .course-tabs {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 16px 24px;
-    border: none;
-    background: rgba(68, 229, 255, 0.05);
-    color: var(--course-text-secondary, #b8c5d1);
+    gap: 8px;
+    padding: 16px 18px;
+    background: rgba(0, 102, 204, 0.03);
+    border: 1px solid rgba(0, 102, 204, 0.08);
     border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-secondary);
     font-family: var(--font-primary);
     font-weight: 500;
     font-size: 1rem;
-    white-space: nowrap;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(68, 229, 255, 0.1);
-    min-height: auto;
-    text-align: center;
+    white-space: nowrap;
+    min-width: fit-content;
+    cursor: pointer;
+    min-height: 40px;
+    flex: 1;
+    max-width: none;
 }
 
 .tab-button::before {
@@ -746,22 +771,21 @@ body.bg-glow-global .catalog-header .course-tabs {
     height: 100%;
     background: linear-gradient(90deg, 
         transparent, 
-        rgba(68, 229, 255, 0.2), 
+        rgba(0, 102, 204, 0.15), 
         transparent);
-    transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: left 0.6s ease;
 }
 
 .tab-button:hover::before {
-    left: 0;
+    left: 100%;
 }
 
 .tab-button:hover {
-    color: var(--course-accent, var(--turq));
-    background: rgba(68, 229, 255, 0.12);
-    transform: translateY(-1px);
-    box-shadow: 
-        0 4px 12px rgba(68, 229, 255, 0.2),
-        0 0 0 1px rgba(68, 229, 255, 0.2);
+    background: rgba(0, 102, 204, 0.08);
+    border-color: rgba(0, 102, 204, 0.15);
+    color: var(--text-primary);
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.15), 0 0 0 1px rgba(0, 102, 204, 0.15);
+    transform: translateY(-2px);
 }
 
 /* Estilos específicos para apps-directory con máxima prioridad */
@@ -1252,7 +1276,7 @@ body.bg-glow-global .search:focus-within {
         margin: 10px auto;
         padding: 6px;
         gap: 4px;
-        width: min(430px, 92vw);
+        width: min(500px, 96vw);
     }
     
     .filters-sidebar {

@@ -556,6 +556,64 @@ function setupValidations() {
             }
         });
     }
+    
+    // Validación de confirmación de correo
+    const emailInput = document.getElementById('registerEmail');
+    const confirmEmailInput = document.getElementById('confirmEmail');
+    
+    if (confirmEmailInput && emailInput) {
+        confirmEmailInput.addEventListener('blur', () => {
+            validateEmailMatch(emailInput.value, confirmEmailInput.value, confirmEmailInput);
+        });
+        
+        emailInput.addEventListener('input', () => {
+            // Re-validar confirmación si ya se había escrito
+            if (confirmEmailInput.value.length > 0) {
+                validateEmailMatch(emailInput.value, confirmEmailInput.value, confirmEmailInput);
+            }
+        });
+    }
+    
+    // Manejo del selector de país para mostrar solo prefijo cuando está colapsado
+    const phonePrefixSelect = document.getElementById('phonePrefix');
+    if (phonePrefixSelect) {
+        // Función para actualizar el texto mostrado
+        function updateDisplayText() {
+            const selectedOption = phonePrefixSelect.options[phonePrefixSelect.selectedIndex];
+            const fullText = selectedOption.text;
+            const prefix = selectedOption.value;
+            
+            // Cuando está colapsado, solo mostrar el prefijo
+            phonePrefixSelect.setAttribute('data-display', prefix);
+            
+            // Actualizar el texto del option seleccionado para que solo muestre el prefijo
+            selectedOption.text = prefix;
+        }
+        
+        // Event listener para cuando cambia la selección
+        phonePrefixSelect.addEventListener('change', function() {
+            // Restaurar todos los textos originales primero
+            const options = this.options;
+            const originalTexts = [
+                'México (+52)', 'España (+34)', 'Argentina (+54)', 'Chile (+56)', 
+                'Colombia (+57)', 'Perú (+51)', 'Venezuela (+58)', 'Ecuador (+593)',
+                'Paraguay (+595)', 'Uruguay (+598)', 'Bolivia (+591)', 'Nicaragua (+505)',
+                'Costa Rica (+506)', 'Guatemala (+502)', 'El Salvador (+503)', 
+                'Honduras (+504)', 'Panamá (+507)', 'Estados Unidos (+1)', 'Cuba (+53)'
+            ];
+            
+            for (let i = 0; i < options.length; i++) {
+                options[i].text = originalTexts[i];
+            }
+            
+            // Actualizar el texto mostrado
+            updateDisplayText();
+        });
+        
+        // Inicializar con el prefijo de México
+        updateDisplayText();
+    }
+    
 }
 
 // Validar email - acepta input DOM o string
@@ -619,6 +677,12 @@ function normalizeMxPhone(input) {
 function validatePasswordMatch(password, confirmPassword, input) {
     const isMatch = password === confirmPassword && confirmPassword.length > 0;
     input.style.borderColor = confirmPassword.length === 0 ? '' : (isMatch ? '#44E5FF' : '#EF4444');
+    return isMatch;
+}
+
+function validateEmailMatch(email, confirmEmail, input) {
+    const isMatch = email === confirmEmail && confirmEmail.length > 0;
+    input.style.borderColor = confirmEmail.length === 0 ? '' : (isMatch ? '#44E5FF' : '#EF4444');
     return isMatch;
 }
 
@@ -737,6 +801,9 @@ async function handleLogin(e) {
             if (response.status === 401) {
                 showNotification('Credenciales incorrectas', 'error');
                 await handleFailedLogin();
+            } else if (response.status === 403) {
+                showNotification('Error de configuración CORS. Reintenta en unos minutos.', 'error');
+                console.error('CORS Error 403 - Domain not allowed:', window.location.origin);
             } else if (response.status === 429) {
                 showNotification('Demasiados intentos. Espera un momento e inténtalo de nuevo', 'error');
             } else if (response.status >= 500) {
@@ -876,7 +943,9 @@ async function handleRegister(e) {
         last_name: formData.get('last_name')?.trim(),
         username: normalizeUsername(formData.get('username')?.trim() || ''),
         phone: normalizeMxPhone(formData.get('phone')?.trim()),
+        phone_prefix: formData.get('phone_prefix'),
         email: formData.get('email')?.trim(),
+        confirm_email: formData.get('confirm_email')?.trim(),
         password: formData.get('password'),
         confirm_password: formData.get('confirm_password'),
         accept_terms: formData.get('accept_terms') === 'on'
@@ -987,14 +1056,15 @@ async function handleRegister(e) {
 // Validar formulario de registro según PROMPT_CLAUDE.md
 function validateRegisterForm(userData) {
     devLog('validateRegisterForm called with:', userData);
-    const { first_name, last_name, username, email, password, confirm_password, accept_terms } = userData;
+    const { first_name, last_name, username, email, confirm_email, password, confirm_password, accept_terms } = userData;
     
-    if (!first_name || !last_name || !username || !email || !password) {
+    if (!first_name || !last_name || !username || !email || !confirm_email || !password) {
         devLog('Missing required fields:', {
             first_name: !!first_name,
             last_name: !!last_name, 
             username: !!username,
             email: !!email,
+            confirm_email: !!confirm_email,
             password: !!password
         });
         showNotification('Por favor completa todos los campos obligatorios', 'error');
@@ -1043,6 +1113,11 @@ function validateRegisterForm(userData) {
     
     if (!hasLowerCase || !hasNumbers) {
         showNotification('La contraseña debe contener al menos una letra minúscula y un número', 'error');
+        return false;
+    }
+    
+    if (email !== confirm_email) {
+        showNotification('Los correos electrónicos no coinciden', 'error');
         return false;
     }
     
@@ -1938,16 +2013,11 @@ function showTermsTab(tabName) {
  * Acepta los términos y cierra la tarjeta
  */
 function acceptTermsAndClose() {
-    // Marcar los checkboxes como aceptados
-    const acceptTermsCheckbox = document.getElementById('acceptTerms');
-    const acceptPrivacyCheckbox = document.getElementById('acceptPrivacy');
+    // Marcar el checkbox único como aceptado
+    const acceptAllTermsCheckbox = document.getElementById('acceptAllTerms');
     
-    if (acceptTermsCheckbox) {
-        acceptTermsCheckbox.checked = true;
-    }
-    
-    if (acceptPrivacyCheckbox) {
-        acceptPrivacyCheckbox.checked = true;
+    if (acceptAllTermsCheckbox) {
+        acceptAllTermsCheckbox.checked = true;
     }
     
     // Guardar la aceptación en localStorage
@@ -2082,6 +2152,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 openTermsCard('privacy');
             });
+        } else if (link.textContent.includes('Olvidaste tu contraseña')) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                openForgotPasswordModal();
+            });
         }
     });
     
@@ -2094,26 +2169,32 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
-    // Cerrar tarjeta con ESC
+
+    // Cerrar modal de recuperación al hacer clic fuera
+    const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+    if (forgotPasswordModal) {
+        forgotPasswordModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeForgotPasswordModal();
+            }
+        });
+    }
+
+    // Cerrar modales con ESC
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeTermsCard();
+            closeForgotPasswordModal();
         }
     });
     
     // Verificar si ya se aceptaron los términos al cargar la página
     const termsAccepted = localStorage.getItem('termsAccepted');
     if (termsAccepted) {
-        const acceptTermsCheckbox = document.getElementById('acceptTerms');
-        const acceptPrivacyCheckbox = document.getElementById('acceptPrivacy');
+        const acceptAllTermsCheckbox = document.getElementById('acceptAllTerms');
         
-        if (acceptTermsCheckbox) {
-            acceptTermsCheckbox.checked = true;
-        }
-        
-        if (acceptPrivacyCheckbox) {
-            acceptPrivacyCheckbox.checked = true;
+        if (acceptAllTermsCheckbox) {
+            acceptAllTermsCheckbox.checked = true;
         }
     }
 });
@@ -2174,6 +2255,199 @@ async function loginWithCleanup(emailOrUsername, password, remember = false) {
     }
 }
 
+// ===== FUNCIONES PARA RECUPERACIÓN DE CONTRASEÑA =====
+
+/**
+ * Abre el modal de recuperación de contraseña
+ */
+function openForgotPasswordModal() {
+    console.log('🔐 Abriendo modal de recuperación de contraseña');
+    const modal = document.getElementById('forgotPasswordModal');
+    console.log('Modal encontrado:', modal);
+
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        console.log('Modal activado con clases:', modal.className);
+
+        // Enfocar el campo de email
+        const emailInput = document.getElementById('forgotPasswordEmail');
+        console.log('Input de email encontrado:', emailInput);
+        if (emailInput) {
+            setTimeout(() => emailInput.focus(), 100);
+        }
+    } else {
+        console.error('❌ No se encontró el modal forgotPasswordModal');
+    }
+}
+
+/**
+ * Cierra el modal de recuperación de contraseña
+ */
+function closeForgotPasswordModal() {
+    const modal = document.getElementById('forgotPasswordModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+
+        // Limpiar el formulario
+        const form = document.getElementById('forgotPasswordForm');
+        if (form) {
+            form.reset();
+        }
+
+        // Restaurar estado del botón
+        setForgotPasswordLoadingState(false);
+    }
+}
+
+/**
+ * Maneja el envío del formulario de recuperación de contraseña
+ */
+async function handleForgotPassword(e) {
+    e.preventDefault();
+
+    const email = document.getElementById('forgotPasswordEmail').value.trim();
+
+    if (!email) {
+        showNotification('Por favor ingresa tu correo electrónico', 'error');
+        return;
+    }
+
+    if (!validateEmail(email)) {
+        showNotification('Por favor ingresa un correo electrónico válido', 'error');
+        return;
+    }
+
+    setForgotPasswordLoadingState(true);
+
+    try {
+        // Intentar con Supabase si está disponible
+        if (ENABLE_SUPABASE_AUTH && window.supabase) {
+            try {
+                console.log('🔄 Verificando usuario en Supabase para:', email);
+
+                // Primero verificar si el usuario existe en Supabase
+                const { data: userData, error: userError } = await window.supabase
+                    .from('users')
+                    .select('id, email')
+                    .eq('email', email.toLowerCase())
+                    .single();
+
+                console.log('👤 Datos del usuario:', { userData, userError });
+
+                if (userError && userError.code !== 'PGRST116') {
+                    console.error('❌ Error verificando usuario:', userError);
+                } else if (!userData) {
+                    console.log('⚠️ Usuario no encontrado en Supabase, usando servidor propio...');
+                } else {
+                    console.log('✅ Usuario encontrado, enviando email de recuperación...');
+
+                    // URL de redirección más simple
+                    const redirectUrl = `${window.location.protocol}//${window.location.host}/src/login/new-auth.html`;
+                    console.log('🔗 URL de redirección:', redirectUrl);
+
+                    const { data, error } = await window.supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: redirectUrl
+                    });
+
+                    console.log('📄 Respuesta Supabase:', { data, error });
+
+                    if (!error) {
+                        showNotification('Se ha enviado un enlace de recuperación a tu correo electrónico', 'success');
+                        closeForgotPasswordModal();
+                        return;
+                    } else {
+                        console.error('❌ Error de Supabase:', error);
+
+                        // Mostrar error específico si es útil para el usuario
+                        if (error.message.includes('email') || error.message.includes('SMTP')) {
+                            showNotification('Error: El servicio de email no está configurado. Contacta al administrador.', 'error');
+                            return;
+                        }
+                    }
+                }
+            } catch (supabaseError) {
+                console.error('❌ Excepción de Supabase:', supabaseError);
+            }
+
+            console.log('⚠️ Supabase no funcionó, continuando con servidor propio...');
+        } else {
+            console.log('ℹ️ Supabase no está disponible o no está habilitado');
+        }
+
+        // Detectar entorno y usar endpoint apropiado
+        const isNetlify = window.location.hostname.includes('netlify') || window.location.hostname.includes('.app');
+        const endpoint = isNetlify ? '/.netlify/functions/forgot-password' : '/api/forgot-password';
+
+        console.log(`🌐 Entorno detectado: ${isNetlify ? 'Netlify' : 'Local'}, usando endpoint: ${endpoint}`);
+
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+        });
+
+        console.log('📡 Respuesta del servidor:', response.status, response.statusText);
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log('✅ Respuesta exitosa:', result);
+            showNotification('Se ha enviado un enlace de recuperación a tu correo electrónico', 'success');
+            closeForgotPasswordModal();
+        } else {
+            const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
+            console.error('❌ Error del servidor:', response.status, errorData);
+
+            if (response.status === 404) {
+                showNotification('No se encontró una cuenta con ese correo electrónico', 'error');
+            } else if (response.status === 429) {
+                showNotification('Demasiadas solicitudes. Inténtalo más tarde', 'error');
+            } else if (response.status === 400) {
+                showNotification(errorData.error || 'Datos inválidos', 'error');
+            } else {
+                showNotification('Error al enviar el correo de recuperación. Inténtalo más tarde', 'error');
+            }
+        }
+
+    } catch (error) {
+        console.error('Error en recuperación de contraseña:', error);
+
+        // Modo desarrollo: simular envío exitoso
+        if (isDev) {
+            showNotification('Se ha enviado un enlace de recuperación a tu correo electrónico (Modo desarrollo)', 'success');
+            closeForgotPasswordModal();
+        } else {
+            showNotification('Error de conexión. Inténtalo más tarde', 'error');
+        }
+    } finally {
+        setForgotPasswordLoadingState(false);
+    }
+}
+
+/**
+ * Establece el estado de carga del botón de recuperación
+ */
+function setForgotPasswordLoadingState(loading) {
+    const button = document.getElementById('forgotPasswordSubmit');
+    if (!button) return;
+
+    const btnText = button.querySelector('.btn-text');
+    const btnLoader = button.querySelector('.btn-loader');
+
+    if (loading) {
+        button.disabled = true;
+        if (btnText) btnText.style.opacity = '0';
+        if (btnLoader) btnLoader.style.display = 'block';
+    } else {
+        button.disabled = false;
+        if (btnText) btnText.style.opacity = '1';
+        if (btnLoader) btnLoader.style.display = 'none';
+    }
+}
+
 // Exportar funciones para uso global
 window.openTermsCard = openTermsCard;
 window.closeTermsCard = closeTermsCard;
@@ -2181,5 +2455,8 @@ window.showTermsTab = showTermsTab;
 window.acceptTermsAndClose = acceptTermsAndClose;
 window.clearPreviousAccountData = clearPreviousAccountData;
 window.loginWithCleanup = loginWithCleanup;
+window.openForgotPasswordModal = openForgotPasswordModal;
+window.closeForgotPasswordModal = closeForgotPasswordModal;
+window.handleForgotPassword = handleForgotPassword;
 
 

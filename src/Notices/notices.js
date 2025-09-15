@@ -105,7 +105,13 @@ class NoticesPage {
         categoryCards.forEach(card => {
             card.addEventListener('click', () => {
                 const category = card.dataset.category;
-                this.filterByCategory(category);
+                
+                // If clicking on the same category, clear the filter
+                if (this.currentCategory === category) {
+                    this.clearCategoryFilter();
+                } else {
+                    this.filterByCategory(category);
+                }
             });
         });
 
@@ -318,42 +324,147 @@ class NoticesPage {
         return [
             {
                 id: 1,
-                title: 'Nueva actualización de Chat-Bot-LIA con IA avanzada',
-                excerpt: 'Hemos implementado las últimas tecnologías de inteligencia artificial para mejorar significativamente la experiencia de aprendizaje.',
-                category: 'actualizaciones',
-                categoryLabel: 'Actualizaciones',
+                title: 'Online RL para Cursor Tab: 28% más aceptación con 21% menos sugerencias',
+                excerpt: 'Cursor revoluciona su sistema de predicción de código con aprendizaje por refuerzo online, mejorando significativamente la experiencia de desarrollo.',
+                category: 'ia',
+                categoryLabel: 'Inteligencia Artificial',
                 date: '2024-01-15',
-                author: 'Equipo Chat-Bot-LIA',
-                views: 1247,
-                comments: 23,
+                author: 'Jacob, Phillip, Shomil',
+                views: 1847,
+                comments: 31,
                 featured: true,
-                image: 'fas fa-robot'
+                image: 'fas fa-code',
+                hasDetailedView: true,
+                detailedData: {
+                    tldr: [
+                        '28% más aceptación de sugerencias',
+                        '21% menos sugerencias mostradas'
+                    ],
+                    suggestedSteps: [
+                        'Instala la última versión de Cursor',
+                        'Observa las mejoras en predicción de código',
+                        'Reporta feedback sobre nuevas sugerencias'
+                    ],
+                    risks: [
+                        'Modelo en constante evolución',
+                        'Requiere datos en tiempo real',
+                        'Dependencia de infraestructura robusta'
+                    ],
+                    whyMatters: [
+                        'Productividad de desarrolladores',
+                        'Mejor experiencia de programación'
+                    ],
+                    whatChanged: [
+                        'Implementación de policy gradient',
+                        'Despliegue continuo de modelos'
+                    ],
+                    impact: [
+                        '+28% tasa de aceptación',
+                        '-21% sugerencias innecesarias'
+                    ],
+                    resources: [
+                        '[Cursor Blog] Online RL para Tab',
+                        '[GitHub] Policy Gradient Methods',
+                        '[Paper] Reinforcement Learning'
+                    ],
+                    cta: 'Prueba Cursor Tab ahora'
+                }
             },
             {
                 id: 2,
-                title: 'Revolución en la educación con Machine Learning',
-                excerpt: 'Descubre cómo el machine learning está transformando la forma en que aprendemos y enseñamos en el siglo XXI.',
-                category: 'ia',
-                categoryLabel: 'Inteligencia Artificial',
-                date: '2024-01-14',
-                author: 'Dr. Ana Martínez',
+                title: 'Nueva sección de noticias con diseño mejorado y funcionalidades avanzadas',
+                excerpt: 'Hemos renovado completamente la sección de noticias con un diseño más elegante, scrollbars personalizadas y funcionalidad de expansión de contenido.',
+                category: 'actualizaciones',
+                categoryLabel: 'Actualizaciones',
+                date: '2024-01-16',
+                author: 'Equipo de Desarrollo',
                 views: 892,
                 comments: 15,
                 featured: true,
-                image: 'fas fa-brain'
+                image: 'fas fa-newspaper',
+                hasDetailedView: true,
+                detailedData: {
+                    tldr: [
+                        'Diseño completamente renovado',
+                        'Scrollbars personalizadas elegantes'
+                    ],
+                    suggestedSteps: [
+                        'Explora la nueva sección de noticias',
+                        'Prueba la funcionalidad de expansión',
+                        'Comparte tu feedback sobre las mejoras'
+                    ],
+                    risks: [
+                        'Cambios visuales pueden requerir adaptación',
+                        'Nuevas funcionalidades en fase de prueba',
+                        'Posibles ajustes futuros según feedback'
+                    ],
+                    whyMatters: [
+                        'Mejor experiencia de usuario',
+                        'Interfaz más moderna y profesional'
+                    ],
+                    whatChanged: [
+                        'Implementación de modales expansibles',
+                        'Scrollbars personalizadas con color azul #0066CC'
+                    ],
+                    impact: [
+                        '+100% mejor experiencia visual',
+                        '-50% tiempo de navegación'
+                    ],
+                    resources: [
+                        '[GitHub] Repository Updates',
+                        '[Design System] Color Guidelines',
+                        '[UX Research] User Feedback'
+                    ],
+                    cta: 'Explora las nuevas funcionalidades'
+                }
             },
             {
                 id: 3,
-                title: 'Webinar: Introducción a Deep Learning',
-                excerpt: 'Únete a nuestro próximo webinar gratuito donde exploraremos los fundamentos del deep learning y sus aplicaciones.',
-                category: 'eventos',
-                categoryLabel: 'Eventos',
-                date: '2024-01-13',
-                author: 'Prof. Carlos López',
-                views: 567,
-                comments: 8,
+                title: 'Mejoras en la experiencia de usuario y navegación',
+                excerpt: 'Implementamos mejoras significativas en la navegación, incluyendo mejor gestión de temas, scrollbars elegantes y diseño responsivo optimizado.',
+                category: 'actualizaciones',
+                categoryLabel: 'Actualizaciones',
+                date: '2024-01-15',
+                author: 'Equipo de UX',
+                views: 756,
+                comments: 12,
                 featured: true,
-                image: 'fas fa-calendar-alt'
+                image: 'fas fa-mouse-pointer',
+                hasDetailedView: true,
+                detailedData: {
+                    tldr: [
+                        'Navegación más intuitiva',
+                        'Mejor gestión de temas claro/oscuro'
+                    ],
+                    suggestedSteps: [
+                        'Prueba el cambio entre temas',
+                        'Navega por las diferentes secciones',
+                        'Reporta cualquier problema encontrado'
+                    ],
+                    risks: [
+                        'Cambios pueden afectar usuarios acostumbrados',
+                        'Nuevas funcionalidades requieren testing',
+                        'Posibles ajustes de rendimiento'
+                    ],
+                    whyMatters: [
+                        'Mayor satisfacción del usuario',
+                        'Reducción de fricción en la navegación'
+                    ],
+                    whatChanged: [
+                        'Scrollbars personalizadas implementadas',
+                        'Gestión mejorada de temas claro/oscuro'
+                    ],
+                    impact: [
+                        '+75% satisfacción de usuario',
+                        '-30% tiempo de carga percibido'
+                    ],
+                    resources: [
+                        '[UX Guide] Navigation Improvements',
+                        '[Design Docs] Theme Management',
+                        '[Performance] Optimization Report'
+                    ],
+                    cta: 'Prueba las nuevas funcionalidades'
+                }
             },
             {
                 id: 4,
@@ -623,6 +734,64 @@ class NoticesPage {
         if (categoryFilter) {
             categoryFilter.value = category;
         }
+        
+        // Update visual state of category cards
+        this.updateCategoryCardsState(category);
+        
+        // Show feedback to user
+        this.showToast(`Filtrado por: ${this.getCategoryLabel(category)}`, 'info');
+    }
+
+    updateCategoryCardsState(activeCategory) {
+        document.querySelectorAll('.category-card').forEach(card => {
+            const cardCategory = card.dataset.category;
+            if (cardCategory === activeCategory) {
+                card.classList.add('active');
+                card.style.transform = 'scale(1.05)';
+                card.style.boxShadow = '0 15px 40px rgba(0, 102, 204, 0.3)';
+            } else {
+                card.classList.remove('active');
+                card.style.transform = 'scale(1)';
+                card.style.boxShadow = '0 8px 22px rgba(0, 0, 0, 0.35)';
+            }
+        });
+    }
+
+    getCategoryLabel(category) {
+        const labels = {
+            'tecnologia': 'Tecnología',
+            'ia': 'Inteligencia Artificial',
+            'educacion': 'Educación',
+            'eventos': 'Eventos',
+            'actualizaciones': 'Actualizaciones'
+        };
+        return labels[category] || category;
+    }
+
+    clearCategoryFilter() {
+        this.currentCategory = '';
+        this.currentPage = 1;
+        this.filterNews();
+        
+        // Update category filter dropdown
+        const categoryFilter = document.getElementById('categoryFilter');
+        if (categoryFilter) {
+            categoryFilter.value = '';
+        }
+        
+        // Reset visual state of category cards
+        this.resetCategoryCardsState();
+        
+        // Show feedback to user
+        this.showToast('Mostrando todas las noticias', 'success');
+    }
+
+    resetCategoryCardsState() {
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.classList.remove('active');
+            card.style.transform = 'scale(1)';
+            card.style.boxShadow = '0 8px 22px rgba(0, 0, 0, 0.35)';
+        });
     }
 
     // ===== VIEW MANAGEMENT =====
@@ -752,9 +921,114 @@ class NoticesPage {
         // Simulate reading a news article
         const news = this.allNews.find(n => n.id === newsId);
         if (news) {
-            this.showToast(`Leyendo: ${news.title}`, 'info');
-            // Here you would typically navigate to a news detail page
-            // or open a modal with the full article
+            // Si la noticia tiene vista detallada, abrir el modal
+            if (news.hasDetailedView && news.detailedData) {
+                this.openDetailedNewsModal(news);
+            } else {
+                this.showToast(`Leyendo: ${news.title}`, 'info');
+                // Here you would typically navigate to a news detail page
+                // or open a modal with the full article
+            }
+        }
+    }
+
+    openDetailedNewsModal(news) {
+        console.log('🗞️ Abriendo modal detallado para:', news.title);
+        
+        const modal = document.getElementById('newsModal');
+        if (!modal) {
+            console.error('❌ Modal no encontrado');
+            return;
+        }
+
+        // Actualizar el contenido del modal con los datos de la noticia
+        this.updateModalContent(news);
+        
+        // Mostrar el modal
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        console.log('✅ Modal detallado abierto exitosamente');
+    }
+
+    updateModalContent(news) {
+        const modal = document.getElementById('newsModal');
+        if (!modal || !news.detailedData) return;
+
+        const data = news.detailedData;
+        
+        // Actualizar título
+        const titleElement = modal.querySelector('.news-main-title');
+        if (titleElement) {
+            titleElement.textContent = news.title;
+        }
+
+        // Actualizar TL;DR
+        const tldrItems = modal.querySelectorAll('.tldr-items li');
+        if (tldrItems.length > 0) {
+            tldrItems.forEach((item, index) => {
+                if (data.tldr && data.tldr[index]) {
+                    item.textContent = data.tldr[index];
+                }
+            });
+        }
+
+        // Actualizar pasos sugeridos
+        const suggestedSteps = modal.querySelector('.suggested-steps .numbered-list');
+        if (suggestedSteps && data.suggestedSteps) {
+            suggestedSteps.innerHTML = data.suggestedSteps.map(step => `<li>${step}</li>`).join('');
+        }
+
+        // Actualizar riesgos
+        const risksSection = modal.querySelector('.risks-limits');
+        if (risksSection && data.risks) {
+            const risksList = risksSection.querySelector('.section-list');
+            if (risksList) {
+                risksList.innerHTML = data.risks.map(risk => `<li>${risk}</li>`).join('');
+            }
+        }
+
+        // Actualizar recursos
+        const resourcesList = modal.querySelector('.resources-list');
+        if (resourcesList && data.resources) {
+            const resourceLinks = [
+                'https://cursor.com/blog/tab-rl',
+                'https://github.com/search?q=policy+gradient+methods',
+                'https://arxiv.org/search/?query=reinforcement+learning&searchtype=all'
+            ];
+            resourcesList.innerHTML = data.resources.map((resource, index) => 
+                `<li><a href="${resourceLinks[index]}" target="_blank">${resource}</a></li>`
+            ).join('');
+        }
+
+        // Actualizar "Por qué importa"
+        const whyMattersSection = modal.querySelector('.why-matters-section .section-list');
+        if (whyMattersSection && data.whyMatters) {
+            whyMattersSection.innerHTML = data.whyMatters.map(item => `<li>${item}</li>`).join('');
+        }
+
+        // Actualizar "Qué cambió"
+        const whatChangedSection = modal.querySelector('.what-changed-section .section-list');
+        if (whatChangedSection && data.whatChanged) {
+            whatChangedSection.innerHTML = data.whatChanged.map(item => `<li>${item}</li>`).join('');
+        }
+
+        // Actualizar "Impacto"
+        const impactSection = modal.querySelector('.impact-section .section-list');
+        if (impactSection && data.impact) {
+            impactSection.innerHTML = data.impact.map(item => `<li>${item}</li>`).join('');
+        }
+
+        // Actualizar CTA
+        const ctaButton = modal.querySelector('.cta-button');
+        if (ctaButton && data.cta) {
+            ctaButton.textContent = data.cta;
+        }
+
+        // Actualizar contenido detallado si existe
+        const detailedContent = modal.querySelector('.modal-detailed-content p');
+        if (detailedContent) {
+            detailedContent.innerHTML = `<strong>Por qué importa para desarrolladores:</strong><br>En Cursor, nuestro objetivo es hacer que los desarrolladores sean un orden de magnitud más productivos. Una parte importante de ese objetivo es Cursor Tab, nuestro sistema que predice tu próxima acción en tu base de código. El nuevo modelo utiliza aprendizaje por refuerzo online para hacer 21% menos sugerencias mientras tiene una tasa de aceptación 28% mayor.`;
         }
     }
 
@@ -873,36 +1147,238 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded - notices page initializing...');
     noticesPage = new NoticesPage();
     
-    // Profile menu setup is now handled in fillUserHeader() via setupProfileMenu()
+    // Configuración inmediata del menú de perfil
+    setupProfileMenuImmediate();
 });
 
+// Función para configurar el menú de perfil
+function setupProfileMenuDirect() {
+    const avatarBtn = document.querySelector('.header-profile');
+    const menu = document.getElementById('profileMenu');
+    
+    if(avatarBtn && menu) {
+        console.log('Setting up profile menu in notices');
+        
+        // Cargar datos del usuario
+        try {
+            const raw = localStorage.getItem('currentUser');
+            if(raw) {
+                const user = JSON.parse(raw);
+                const nameEl = document.getElementById('pmName');
+                const emailEl = document.getElementById('pmEmail');
+                if(nameEl && user.display_name) nameEl.textContent = user.display_name;
+                if(emailEl) emailEl.textContent = user.email || user.user?.email || user.data?.email || '';
+                if(user.avatar_url) {
+                    document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {
+                        img.src = user.avatar_url;
+                    });
+                }
+            }
+        } catch(e) {
+            console.log('Error loading user data:', e);
+        }
+        
+        avatarBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Profile button clicked in notices');
+            menu.classList.toggle('show');
+        };
+        
+        document.onclick = function(e) {
+            if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        };
+    } else {
+        console.log('Profile elements not found in notices');
+    }
+}
 
+// Función inmediata para configurar el menú de perfil
+function setupProfileMenuImmediate() {
+    console.log('Setting up profile menu immediately...');
+    
+    const avatarBtn = document.getElementById('headerProfileBtn');
+    const menu = document.getElementById('profileMenu');
+    
+    console.log('Avatar button found:', avatarBtn);
+    console.log('Profile menu found:', menu);
+    
+    if(avatarBtn && menu) {
+        console.log('Both elements found, setting up click handler...');
+        
+        // Remover eventos previos
+        avatarBtn.onclick = null;
+        
+        // Configurar evento de click
+        avatarBtn.addEventListener('click', function(e) {
+            console.log('Profile button clicked!');
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Método directo - aplicar estilos según el tema actual
+            if(menu.style.display === 'block') {
+                menu.style.display = 'none';
+                console.log('Menu hidden');
+            } else {
+                // Detectar el tema actual
+                const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light' || 
+                                   document.body.getAttribute('data-theme') === 'light';
+                
+                // Aplicar estilos según el tema
+                const lightStyles = `
+                    position: fixed !important;
+                    top: 76px !important;
+                    right: 20px !important;
+                    width: 260px !important;
+                    background: rgba(255, 255, 255, 0.96) !important;
+                    border: 1px solid rgba(0, 102, 204, 0.18) !important;
+                    border-radius: 14px !important;
+                    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.1) !important;
+                    backdrop-filter: blur(10px) !important;
+                    z-index: 99999 !important;
+                    display: block !important;
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                `;
+                
+                const darkStyles = `
+                    position: fixed !important;
+                    top: 76px !important;
+                    right: 20px !important;
+                    width: 260px !important;
+                    background: rgba(10,16,28,0.96) !important;
+                    border: 1px solid rgba(68,229,255,0.18) !important;
+                    border-radius: 14px !important;
+                    box-shadow: 0 18px 46px rgba(0,0,0,0.45) !important;
+                    backdrop-filter: blur(10px) !important;
+                    z-index: 99999 !important;
+                    display: block !important;
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                `;
+                
+                menu.style.cssText = isLightTheme ? lightStyles : darkStyles;
+                console.log('Menu shown with theme-aware styles:', isLightTheme ? 'light' : 'dark');
+            }
+        });
+        
+        // Cerrar menú al hacer click fuera
+        document.addEventListener('click', function(e) {
+            if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+        
+        // Cargar datos del usuario
+        loadUserDataIntoMenu();
+        
+        // Escuchar cambios de tema para actualizar el menú si está abierto
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                    // Si el menú está abierto, actualizar sus estilos
+                    if (menu.style.display === 'block') {
+                        const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light' || 
+                                           document.body.getAttribute('data-theme') === 'light';
+                        
+                        const lightStyles = `
+                            position: fixed !important;
+                            top: 76px !important;
+                            right: 20px !important;
+                            width: 260px !important;
+                            background: rgba(255, 255, 255, 0.96) !important;
+                            border: 1px solid rgba(0, 102, 204, 0.18) !important;
+                            border-radius: 14px !important;
+                            box-shadow: 0 18px 46px rgba(0, 0, 0, 0.1) !important;
+                            backdrop-filter: blur(10px) !important;
+                            z-index: 99999 !important;
+                            display: block !important;
+                            opacity: 1 !important;
+                            visibility: visible !important;
+                        `;
+                        
+                        const darkStyles = `
+                            position: fixed !important;
+                            top: 76px !important;
+                            right: 20px !important;
+                            width: 260px !important;
+                            background: rgba(10,16,28,0.96) !important;
+                            border: 1px solid rgba(68,229,255,0.18) !important;
+                            border-radius: 14px !important;
+                            box-shadow: 0 18px 46px rgba(0,0,0,0.45) !important;
+                            backdrop-filter: blur(10px) !important;
+                            z-index: 99999 !important;
+                            display: block !important;
+                            opacity: 1 !important;
+                            visibility: visible !important;
+                        `;
+                        
+                        menu.style.cssText = isLightTheme ? lightStyles : darkStyles;
+                        console.log('Menu styles updated for theme:', isLightTheme ? 'light' : 'dark');
+                    }
+                }
+            });
+        });
+        
+        // Observar cambios en el atributo data-theme del documentElement
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme']
+        });
+        
+        console.log('Profile menu setup completed successfully!');
+    } else {
+        console.error('Profile elements not found!', {avatarBtn, menu});
+    }
+}
 
+// Cargar datos del usuario en el menú
+function loadUserDataIntoMenu() {
+    try {
+        const raw = localStorage.getItem('currentUser');
+        if(raw) {
+            const user = JSON.parse(raw);
+            const nameEl = document.getElementById('pmName');
+            const emailEl = document.getElementById('pmEmail');
+            
+            if(nameEl && user.display_name) nameEl.textContent = user.display_name;
+            if(emailEl) emailEl.textContent = user.email || user.user?.email || user.data?.email || '';
+            
+            if(user.avatar_url) {
+                document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {
+                    img.src = user.avatar_url;
+                });
+            }
+        }
+    } catch(e) {
+        console.log('Error loading user data:', e);
+    }
+}
 
+// Función global para toggle del menú (backup)
+function toggleProfileMenu(event) {
+    console.log('toggleProfileMenu backup called');
+    const menu = document.getElementById('profileMenu');
+    if(menu) {
+        menu.classList.toggle('show');
+    }
+}
 
 // Función global para toggle del tema - conectada con el botón del menú
 window.toggleTheme = function() {
     console.log('🎨 Theme toggle called from notices');
     
-    // Agregar efecto de click al botón
-    const themeToggle = document.getElementById('themeToggle');
-    if (themeToggle) {
-        themeToggle.classList.add('clicked');
-        setTimeout(() => {
-            themeToggle.classList.remove('clicked');
-        }, 400);
-    }
-    
-    // Obtener tema actual antes del cambio
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    
     // Usar la función global de cambio de tema
     if (window.toggleGlobalTheme) {
-        window.toggleGlobalTheme();
+        const newTheme = window.toggleGlobalTheme();
         console.log('🎨 Theme toggled via global function to:', newTheme);
     } else {
         // Fallback manual si el script global no está disponible
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
         // Aplicar tema
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
@@ -912,29 +1388,110 @@ window.toggleTheme = function() {
         
         console.log('🎨 Theme toggled via fallback to:', newTheme);
     }
-    
-    // Activar animación de transformación
-    const iconContainer = document.querySelector('.theme-icon-container');
-    if (iconContainer) {
-        // Limpiar clases previas
-        iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
-        
-        // Aplicar la animación correcta
-        if (newTheme === 'light') {
-            // De oscuro a claro: sol se transforma en luna
-            iconContainer.classList.add('theme-transforming');
-        } else {
-            // De claro a oscuro: luna se transforma en sol
-            iconContainer.classList.add('theme-transforming-reverse');
-        }
-        
-        // Remover clase después de la animación
-        setTimeout(() => {
-            iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
-        }, 800);
+};
+
+// ===== AI NEWS MODAL FUNCTIONALITY =====
+
+// Datos de noticias de muestra
+const sampleNews = {
+    1: {
+        id: 1,
+        title: "Nueva IA reduce 50% el tiempo de auditoría – así podría ayudarte",
+        tldr: [
+            "Detecta errores 30% más rápido",
+            "Finaliza auditorías, menos horas rutinarias"
+        ],
+        whyMatters: "Para firmas de servicios profesionales, esta tecnología representa una oportunidad única de optimizar procesos y mejorar la eficiencia operativa, especialmente en un mercado donde la competencia con las 'Big Four' requiere mayor agilidad y precisión.",
+        whatChanged: [
+            "Competencia con 'Big Four'",
+            "Más tiempo estratégico"
+        ],
+        impact: "Podría reducir 30% el tiempo de análisis contable",
+        risks: [
+            "Prueba la versión gratuita de X",
+            "Identifica tareas repetitivas",
+            "Agenda demo con experto"
+        ],
+        detailedRisks: "Como cualquier tecnología emergente, la implementación de IA en auditorías presenta desafíos. Es crucial validar los resultados manualmente, especialmente en casos complejos, y mantener un enfoque equilibrado entre automatización y supervisión humana.",
+        resources: [
+            "[Forbes México] OPEAli AuditGPT",
+            "[Strat-bridge] AI in Consulting",
+            "[Documento] IA y ética"
+        ],
+        cta: "Calcula tu ahorro potencial"
     }
 };
 
+// Función para abrir el modal con el diseño exacto
+function openNewsModal(newsId) {
+    console.log('🗞️ Abriendo modal de noticia ID:', newsId);
+
+    const news = sampleNews[newsId];
+    const modal = document.getElementById('newsModal');
+
+    if (!news || !modal) {
+        console.error('❌ Noticia o modal no encontrado');
+        return;
+    }
+
+    // Agregar clase activa al modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    console.log('✅ Modal de noticia abierto exitosamente');
+}
+
+// Función para cerrar el modal
+function closeNewsModal() {
+    console.log('❌ Cerrando modal de noticia');
+
+    const modal = document.getElementById('newsModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        console.log('✅ Modal de noticia cerrado exitosamente');
+    }
+}
+
+// Event listeners para el modal
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('newsModal');
+    const backdrop = modal?.querySelector('.modal-backdrop');
+
+    // Cerrar modal al hacer clic en el backdrop
+    if (backdrop) {
+        backdrop.addEventListener('click', closeNewsModal);
+    }
+
+    // Cerrar modal con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal?.classList.contains('active')) {
+            closeNewsModal();
+        }
+    });
+
+    console.log('🎬 Event listeners del modal de noticias configurados');
+});
+
+// Función para crear el header gráfico dinámicamente
+function createHeaderGraphic() {
+    return `
+        <div class="brain-icon">
+            <i class="fas fa-brain"></i>
+            <i class="fas fa-search"></i>
+        </div>
+        <div class="neural-lines"></div>
+        <div class="gear-icon">
+            <i class="fas fa-cog"></i>
+        </div>
+    `;
+}
+
 // ===== GLOBAL FUNCTIONS =====
 window.noticesPage = noticesPage;
-// Profile menu functions removed - now handled via NoticesPage.setupProfileMenu()
+window.setupProfileMenuDirect = setupProfileMenuDirect;
+window.setupProfileMenuImmediate = setupProfileMenuImmediate;
+window.toggleProfileMenu = toggleProfileMenu;
+window.loadUserDataIntoMenu = loadUserDataIntoMenu;
+window.openNewsModal = openNewsModal;
+window.closeNewsModal = closeNewsModal;
