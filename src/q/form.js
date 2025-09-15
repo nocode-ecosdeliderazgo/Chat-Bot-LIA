@@ -812,7 +812,7 @@
       const token = localStorage.getItem('userToken') || localStorage.getItem('authToken');
       if (token) {
         console.log('[AutoLogin] Usuario ya autenticado, redirigiendo a cursos.html');
-        location.href = '../cursos.html';
+        location.href = '../estadisticas.html';
         return;
       }
 
@@ -904,7 +904,7 @@
       case 'user':
       default:
         // TODOS los usuarios normales van a cursos.html
-        location.href = '../cursos.html';
+        location.href = '../estadisticas.html';
         break;
     }
   }

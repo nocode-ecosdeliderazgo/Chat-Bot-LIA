@@ -52,7 +52,9 @@
       "Read(/C:\\Users\\Lordg\\OneDrive\\Desktop\\Laburo\\Chat-Bot-LIA\\src\\Notices/**)",
       "Bash(cmd /C:*)",
       "Read(//d/**)",
-      "Bash(del fix-progress-function.sql)"
+      "Bash(del fix-progress-function.sql)",
+      "mcp__playwright"
+
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

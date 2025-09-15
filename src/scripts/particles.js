@@ -112,7 +112,6 @@
     function initParticles() {
         const canvas = document.getElementById('particles-js');
         if (!canvas) {
-            console.warn('⚠️ Canvas de partículas no encontrado');
             return;
         }
         
@@ -120,13 +119,10 @@
             // Verificar si particles.js está disponible
             if (typeof particlesJS !== 'undefined') {
                 particlesJS('particles-js', particlesConfig);
-                console.log('✅ Partículas inicializadas correctamente');
             } else {
-                console.warn('⚠️ particlesJS no está disponible, creando efecto básico');
                 createBasicParticlesEffect(canvas);
             }
         } catch (error) {
-            console.error('❌ Error inicializando partículas:', error);
             createBasicParticlesEffect(canvas);
         }
     }

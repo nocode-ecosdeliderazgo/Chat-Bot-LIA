@@ -689,7 +689,7 @@ class GenAIQuestionnaire {
             submitBtn.onclick = (e) => {
                 e.preventDefault();
                 console.log('🚀 Redirigiendo a la página principal...');
-                window.location.href = '../cursos.html';
+                window.location.href = '../estadisticas.html';
             };
             
             console.log('✅ Botón cambiado a "Ir a Inicio"');
