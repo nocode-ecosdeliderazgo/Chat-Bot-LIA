@@ -737,6 +737,9 @@ async function handleLogin(e) {
             if (response.status === 401) {
                 showNotification('Credenciales incorrectas', 'error');
                 await handleFailedLogin();
+            } else if (response.status === 403) {
+                showNotification('Error de configuración CORS. Reintenta en unos minutos.', 'error');
+                console.error('CORS Error 403 - Domain not allowed:', window.location.origin);
             } else if (response.status === 429) {
                 showNotification('Demasiados intentos. Espera un momento e inténtalo de nuevo', 'error');
             } else if (response.status >= 500) {
