@@ -731,6 +731,8 @@ body {
     padding: 12px 14px;
     transition: all 0.2s ease;
     position: relative;
+    min-height: 48px;
+    flex-wrap: nowrap;
 }
 
 .phone-input-wrapper:focus-within {
@@ -752,6 +754,8 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     min-width: 100px;
+    max-width: 120px;
+    flex-shrink: 0;
 }
 
 .phone-prefix-select:focus {
@@ -775,6 +779,8 @@ body {
     font-size: 0.95rem;
     padding: 8px 0;
     outline: none;
+    min-width: 0;
+    width: 100%;
 }
 
 .phone-number-input::placeholder {
@@ -1262,7 +1268,7 @@ body {
         padding: 0;
         max-width: 98vw;
         width: 98vw;
-        max-height: 95vh;
+        max-height: 98vh;
         display: flex;
         flex-direction: column;
     }
@@ -1274,16 +1280,35 @@ body {
     .auth-content {
         padding: 15px 20px;
         max-height: none;
-        overflow-y: visible;
+        overflow-y: auto;
+        padding-bottom: 40px;
     }
     
     .form-grid {
         grid-template-columns: 1fr;
-        gap: 10px;
+        gap: 12px;
     }
     
     .form-grid.password-row {
         grid-template-columns: 1fr;
+    }
+    
+    /* Mejorar el campo de teléfono en móviles */
+    .phone-input-wrapper {
+        gap: 6px;
+        padding: 10px 12px;
+        min-height: 44px;
+    }
+    
+    .phone-prefix-select {
+        font-size: 0.85rem;
+        padding: 6px 8px;
+        min-width: 80px;
+    }
+    
+    .phone-number-input {
+        font-size: 0.9rem;
+        padding: 6px 0;
     }
     
     .brand-icon {
@@ -1301,6 +1326,206 @@ body {
     
     .form-subtitle {
         font-size: 0.9rem;
+    }
+    
+    /* Asegurar que los botones sean visibles */
+    .btn-primary {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .form-checkboxes {
+        margin: 20px 0;
+    }
+    
+    /* Mejorar el scroll del formulario */
+    .form {
+        min-height: auto;
+    }
+}
+
+/* ===== SURFACE DUO Y PANTALLAS SIMILARES ===== */
+@media (max-width: 720px) and (min-width: 540px) {
+    .auth-card {
+        margin: 8px;
+        max-width: 96vw;
+        width: 96vw;
+        max-height: 96vh;
+    }
+    
+    .auth-content {
+        padding: 16px 18px;
+        padding-bottom: 60px;
+        overflow-y: auto;
+    }
+    
+    .phone-input-wrapper {
+        gap: 6px;
+        padding: 10px 12px;
+        min-height: 46px;
+        flex-wrap: nowrap;
+        overflow: hidden;
+    }
+    
+    .phone-prefix-select {
+        font-size: 0.85rem;
+        padding: 6px 8px;
+        min-width: 75px;
+        max-width: 95px;
+        flex-shrink: 0;
+    }
+    
+    .phone-number-input {
+        font-size: 0.85rem;
+        padding: 6px 0;
+        min-width: 0;
+        flex: 1;
+    }
+    
+    .form h2 {
+        font-size: 1.4rem;
+    }
+    
+    .form-subtitle {
+        font-size: 0.95rem;
+    }
+    
+    .btn-primary {
+        padding: 14px 24px;
+        font-size: 0.95rem;
+        margin-top: 25px;
+        margin-bottom: 25px;
+    }
+    
+    .form-checkboxes {
+        margin: 25px 0;
+    }
+    
+    .checkbox-label {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+}
+
+/* ===== PANTALLAS ANCHAS PERO CORTAS (SURFACE DUO) ===== */
+@media (max-width: 720px) and (min-width: 540px) and (max-height: 800px) {
+    .auth-card {
+        margin: 6px;
+        max-width: 98vw;
+        width: 98vw;
+        max-height: 98vh;
+    }
+    
+    .auth-content {
+        padding: 14px 16px;
+        padding-bottom: 80px;
+        overflow-y: auto;
+        max-height: calc(98vh - 120px);
+    }
+    
+    .phone-input-wrapper {
+        gap: 4px;
+        padding: 8px 10px;
+        min-height: 42px;
+    }
+    
+    .phone-prefix-select {
+        font-size: 0.8rem;
+        padding: 5px 6px;
+        min-width: 70px;
+        max-width: 85px;
+    }
+    
+    .phone-number-input {
+        font-size: 0.8rem;
+        padding: 5px 0;
+    }
+    
+    .form h2 {
+        font-size: 1.3rem;
+        margin-bottom: 8px;
+    }
+    
+    .form-subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+    }
+    
+    .form-grid {
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+    
+    .btn-primary {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .form-checkboxes {
+        margin: 20px 0;
+    }
+    
+    .checkbox-label {
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+}
+
+/* ===== PANTALLAS MUY PEQUEÑAS ===== */
+@media (max-width: 360px) {
+    .auth-card {
+        margin: 5px;
+        max-width: 99vw;
+        width: 99vw;
+        max-height: 99vh;
+    }
+    
+    .auth-content {
+        padding: 12px 15px;
+        padding-bottom: 50px;
+    }
+    
+    .phone-input-wrapper {
+        gap: 4px;
+        padding: 8px 10px;
+        min-height: 40px;
+    }
+    
+    .phone-prefix-select {
+        font-size: 0.8rem;
+        padding: 4px 6px;
+        min-width: 70px;
+    }
+    
+    .phone-number-input {
+        font-size: 0.85rem;
+        padding: 4px 0;
+    }
+    
+    .form h2 {
+        font-size: 1.2rem;
+    }
+    
+    .form-subtitle {
+        font-size: 0.85rem;
+    }
+    
+    .btn-primary {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .form-checkboxes {
+        margin: 15px 0;
+    }
+    
+    .checkbox-label {
+        font-size: 0.85rem;
+        line-height: 1.4;
     }
 }
 
