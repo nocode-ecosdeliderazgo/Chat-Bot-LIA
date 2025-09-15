@@ -264,6 +264,7 @@ El equipo de Aprende y Aplica IA
         `;
     }
 
+
     /**
      * Verifica la configuración del servicio de email
      * @returns {boolean} True si está configurado correctamente

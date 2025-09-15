@@ -848,6 +848,63 @@ app.post('/api/forgot-password', forgotPasswordLimiter, async (req, res) => {
     }
 });
 
+// Endpoint para procesar reset de contraseña
+app.post('/api/reset-password', async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({ error: 'Token y nueva contraseña son requeridos' });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+        }
+
+        // Verificar token en la base de datos
+        const tokenResult = await pool.query(
+            'SELECT email, expires_at FROM password_reset_tokens WHERE token = $1',
+            [token]
+        );
+
+        if (tokenResult.rows.length === 0) {
+            return res.status(400).json({ error: 'Token inválido' });
+        }
+
+        const tokenData = tokenResult.rows[0];
+        const now = new Date();
+
+        if (new Date(tokenData.expires_at) < now) {
+            return res.status(400).json({ error: 'Token expirado' });
+        }
+
+        // Actualizar contraseña del usuario
+        const bcrypt = require('bcryptjs');
+        const hash = await bcrypt.hash(String(newPassword), 10);
+
+        await pool.query(
+            'UPDATE users SET password_hash = $1 WHERE email = $2',
+            [hash, tokenData.email]
+        );
+
+        // Eliminar token usado
+        await pool.query(
+            'DELETE FROM password_reset_tokens WHERE token = $1',
+            [token]
+        );
+
+        console.log(`✅ Contraseña actualizada para ${tokenData.email}`);
+
+        res.status(200).json({
+            message: 'Contraseña actualizada correctamente'
+        });
+
+    } catch (error) {
+        console.error('Error en reset-password:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 // Endpoint para verificar código OTP
 app.post('/api/verify-email', async (req, res) => {
     try {
