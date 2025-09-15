@@ -9,7 +9,9 @@ const allowedOriginsFromEnv = (process.env.ALLOWED_ORIGINS || '')
 
 const hostnameWhitelist = [
     'aprendeyaplica.ai',
-    'www.aprendeyaplica.ai'
+    'www.aprendeyaplica.ai',
+    'ecosdeliderazgo.com',  // Fallback temporal
+    'www.ecosdeliderazgo.com'
 ];
 
 const tldsWhitelist = [
@@ -28,6 +30,7 @@ function isOriginAllowed(origin) {
     console.log('[CORS Debug] Origin:', origin);
     console.log('[CORS Debug] ALLOWED_ORIGINS env:', process.env.ALLOWED_ORIGINS);
     console.log('[CORS Debug] allowedOriginsFromEnv:', allowedOriginsFromEnv);
+    console.log('[CORS Debug] hostnameWhitelist:', hostnameWhitelist);
     
     if (!origin) return true; // Permitir requests sin Origin (same-origin)
     
