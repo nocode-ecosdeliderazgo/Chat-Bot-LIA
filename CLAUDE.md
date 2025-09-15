@@ -400,3 +400,53 @@ The Chat-Online module uses a specialized loader architecture:
 - Supports both Netlify Functions (production) and Express server (development)
 - Auto-fallback to demo content when database unavailable
 - Real-time DOM updates with glass morphism styling
+
+### Port Management & Development Scripts
+The project includes specialized port management for Windows development:
+- `scripts/kill-port-3000.cjs` / `scripts/kill-port-3001.cjs` - Cleanup utilities for occupied ports
+- `npm run port:kill` - Kills processes on port 3000
+- `npm run port:kill:3001` - Kills processes on port 3001
+- `npm run dev:force` - Kills port 3000 first, then starts development server
+- `npm run dev:win` - Windows-specific command with environment variable setup
+
+### Content Security Policy (CSP) Configuration
+The application has a comprehensive CSP configured in `netlify.toml` to support:
+- YouTube video embedding (`https://www.youtube.com`, `https://s.ytimg.com`)
+- Supabase integration (`https://*.supabase.co`)
+- Google APIs and authentication (`https://apis.google.com`, `https://accounts.google.com`)
+- External CDNs (`https://esm.sh`, `https://cdn.jsdelivr.net`)
+- WebSocket connections for real-time features (`wss:`, `ws:`)
+- Font loading from Google Fonts
+- Unsafe inline scripts and styles (required for dynamic content)
+
+### Environment Requirements
+- **Node.js**: 18+ (specified in package.json engines)
+- **npm**: 8+
+- **PostgreSQL**: Primary database for courses, users, progress tracking
+- **Supabase**: Secondary database for real-time features and extended functionality
+- **OpenAI API**: Required for chat functionality
+
+### Dual-Environment API Architecture
+The application supports both local development and production deployment:
+
+**Local Development Mode** (`server.js`):
+- Express server with `/api/*` endpoints
+- Direct PostgreSQL connections
+- Real-time Socket.IO support
+- Environment variables loaded from `.env`
+
+**Production Mode** (Netlify Functions):
+- Serverless functions in `netlify/functions/`
+- API routing through comprehensive `netlify.toml` redirects
+- Stateless operations with Netlify environment variables
+- No persistent connections
+
+### API Routing Strategy (netlify.toml)
+Specific redirects are prioritized over wildcards:
+- Authentication: `/api/login`, `/api/register`, `/api/auth/issue`
+- OpenAI: `/api/openai`
+- Courses: `/api/courses/*`, `/api/modules/*`
+- User Progress: `/api/users/*/progress/*`, `/api/users/*/video-progress`
+- Community: `/api/community/*`
+- Debugging: `/api/debug-cors`, `/api/video-debug`
+- Wildcard: `/api/*` → `/.netlify/functions/:splat` (lowest priority)

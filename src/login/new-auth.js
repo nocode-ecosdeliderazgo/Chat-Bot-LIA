@@ -897,6 +897,8 @@ async function handleRegister(e) {
         // Registro solo por backend para evitar 401 por RLS en Supabase
         devLog('Registro por backend /api/register');
         const registerData = { 
+            first_name: userData.first_name,
+            last_name: userData.last_name,
             full_name: `${userData.first_name} ${userData.last_name}`.trim(), 
             username: userData.username, 
             email: userData.email, 

@@ -17,13 +17,29 @@ exports.handler = async (event) => {
   try {
     if (!process.env.DATABASE_URL) return json(500, { error: 'Base de datos no configurada' }, event);
 
-    const { full_name, username, email, password, type_rol } = JSON.parse(event.body || '{}');
+    const { first_name, last_name, full_name, username, email, password, type_rol } = JSON.parse(event.body || '{}');
     
-    // Validaciones obligatorias
-    if (!full_name || !username || !email || !password) {
+    // Validaciones obligatorias - permitir tanto first_name/last_name como full_name
+    const hasNameData = (first_name && last_name) || full_name;
+    if (!hasNameData || !username || !email || !password) {
       return json(400, { 
-        error: 'Nombre completo, usuario, email y contraseña son requeridos' 
+        error: 'Nombre, apellido (o nombre completo), usuario, email y contraseña son requeridos' 
       }, event);
+    }
+    
+    // Procesar nombre: usar first_name/last_name si están disponibles, sino parsear full_name
+    let processedFirstName = first_name;
+    let processedLastName = last_name;
+    let processedFullName = full_name;
+    
+    if (first_name && last_name) {
+      // Si tenemos first_name y last_name, usarlos directamente
+      processedFullName = `${first_name} ${last_name}`.trim();
+    } else if (full_name && (!first_name || !last_name)) {
+      // Si solo tenemos full_name, intentar parsearlo
+      const nameParts = full_name.trim().split(' ');
+      processedFirstName = nameParts[0] || '';
+      processedLastName = nameParts.slice(1).join(' ') || '';
     }
 
     // Validación de contraseña (mínimo 8 caracteres)
@@ -51,13 +67,15 @@ exports.handler = async (event) => {
     let hasTypeRol = false;
     let hasGoogleId = false;
     let hasAuthProvider = false;
+    let hasFirstName = false;
+    let hasLastName = false;
     
     try {
       const cols = await pool.query(`
         SELECT column_name 
         FROM information_schema.columns 
         WHERE table_name = 'users' 
-        AND column_name IN ('password_hash', 'cargo_rol', 'type_rol', 'google_id', 'auth_provider')
+        AND column_name IN ('password_hash', 'cargo_rol', 'type_rol', 'google_id', 'auth_provider', 'first_name', 'last_name')
       `);
       const columnNames = cols.rows.map(row => row.column_name);
       hasPassword = columnNames.includes('password_hash');
@@ -65,6 +83,8 @@ exports.handler = async (event) => {
       hasTypeRol = columnNames.includes('type_rol');
       hasGoogleId = columnNames.includes('google_id');
       hasAuthProvider = columnNames.includes('auth_provider');
+      hasFirstName = columnNames.includes('first_name');
+      hasLastName = columnNames.includes('last_name');
     } catch (_) {}
 
     if (!hasPassword) {
@@ -82,6 +102,23 @@ exports.handler = async (event) => {
     const selectCols = ['id', 'username', 'email', 'display_name'];
     const insertCols = ['username', 'email', 'password_hash', 'display_name'];
     const insertValues = ['$1', '$2', '$3', '$4'];
+    let paramIndex = 5; // Siguiente parámetro disponible
+    
+    // Agregar first_name si la columna existe
+    if (hasFirstName) {
+      insertCols.push('first_name');
+      insertValues.push(`$${paramIndex}`);
+      selectCols.push('first_name');
+      paramIndex++;
+    }
+    
+    // Agregar last_name si la columna existe
+    if (hasLastName) {
+      insertCols.push('last_name');
+      insertValues.push(`$${paramIndex}`);
+      selectCols.push('last_name');
+      paramIndex++;
+    }
     
     if (hasCargoRol) {
       insertCols.push('cargo_rol');
@@ -104,7 +141,11 @@ exports.handler = async (event) => {
     query = `INSERT INTO users (${insertCols.join(', ')}) 
              VALUES (${insertValues.join(', ')}) 
              RETURNING ${selectCols.join(', ')}`;
-    params = [username, email, hash, full_name];
+    
+    // Construir array de parámetros
+    params = [username, email, hash, processedFullName];
+    if (hasFirstName) params.push(processedFirstName);
+    if (hasLastName) params.push(processedLastName);
     
     try {
       const result = await pool.query(query, params);
@@ -122,7 +163,7 @@ exports.handler = async (event) => {
       query = `INSERT INTO users (username, email, password_hash, display_name) 
                VALUES ($1, $2, $3, $4) 
                RETURNING id, username, email, display_name`;
-      params = [username, email, hash, full_name];
+      params = [username, email, hash, processedFullName];
     }
 
     try {
@@ -130,6 +171,8 @@ exports.handler = async (event) => {
       // Asignar valores por defecto para fallback
       const userData = { 
         ...result.rows[0], 
+        first_name: result.rows[0].first_name || processedFirstName || '',
+        last_name: result.rows[0].last_name || processedLastName || '',
         cargo_rol: result.rows[0].cargo_rol || 'usuario',
         type_rol: null, // CRUCIAL: type_rol debe ser null para usuarios nuevos
         isNewUser: true 
