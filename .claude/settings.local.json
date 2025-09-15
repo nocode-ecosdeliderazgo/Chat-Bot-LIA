@@ -53,8 +53,9 @@
       "Bash(cmd /C:*)",
       "Read(//d/**)",
       "Bash(del fix-progress-function.sql)",
-      "mcp__playwright"
-
+      "mcp__playwright",
+      "Bash(del test-email-config.js)",
+      "Bash(del test-forgot-password.js)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
