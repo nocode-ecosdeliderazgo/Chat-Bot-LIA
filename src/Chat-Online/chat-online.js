@@ -9235,7 +9235,7 @@ async function getFirstVideoIdFromDatabase(moduleNumber) {
         const currentPort = window.location.port;
         const isNetlify = window.location.hostname.includes('netlify') || 
                           window.location.hostname.includes('app') ||
-                          window.location.hostname === 'ecosdeliderazgo.com' ||
+                          window.location.hostname === 'aprendeyaplica.ai' ||
                           window.location.protocol === 'https:' && !isLocalhost;
         
         if (isLocalhost && currentPort === '8888') {

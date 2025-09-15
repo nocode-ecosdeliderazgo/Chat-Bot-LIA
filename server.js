@@ -110,8 +110,8 @@ const allowedOriginsFromEnv = (process.env.ALLOWED_ORIGINS || '')
 
 // Whitelist por hostname cuando no hay ALLOWED_ORIGINS configurado
 const hostnameWhitelist = [
-    'ecosdeliderazgo.com',
-    'www.ecosdeliderazgo.com'
+    'aprendeyaplica.ai',
+    'www.aprendeyaplica.ai'
 ];
 
 const tldsWhitelist = [

@@ -8,8 +8,8 @@ const allowedOriginsFromEnv = (process.env.ALLOWED_ORIGINS || '')
     .filter(Boolean);
 
 const hostnameWhitelist = [
-    'ecosdeliderazgo.com',
-    'www.ecosdeliderazgo.com'
+    'aprendeyaplica.ai',
+    'www.aprendeyaplica.ai'
 ];
 
 const tldsWhitelist = [
