@@ -46,6 +46,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/debug-register"
+  to   = "/.netlify/functions/debug-register"
+  status = 200
+
+[[redirects]]
   from = "/api/openai"
   to   = "/.netlify/functions/openai"
   status = 200
