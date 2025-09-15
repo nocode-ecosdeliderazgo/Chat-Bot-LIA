@@ -27,12 +27,22 @@
 
 [[redirects]]
   from = "/api/register"
-  to   = "/.netlify/functions/register"
+  to   = "/.netlify/functions/register-with-email"
   status = 200
 
 [[redirects]]
   from = "/api/debug-cors"
   to   = "/.netlify/functions/debug-cors"
+  status = 200
+
+[[redirects]]
+  from = "/api/verify-email"
+  to   = "/.netlify/functions/verify-email"
+  status = 200
+
+[[redirects]]
+  from = "/api/setup-otps-table"
+  to   = "/.netlify/functions/setup-otps-table"
   status = 200
 
 [[redirects]]
