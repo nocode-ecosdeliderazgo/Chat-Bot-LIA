@@ -218,7 +218,7 @@ class EmailService {
                 </ul>
                 
                 <div style="text-align: center;">
-                    <a href="${process.env.FRONTEND_URL || 'https://ecosdeliderazgo.com'}" class="button">
+                    <a href="${process.env.FRONTEND_URL || 'https://aprendeyaplica.ai'}" class="button">
                         Ir a la plataforma
                     </a>
                 </div>
@@ -263,6 +263,7 @@ Saludos,
 El equipo de Aprende y Aplica IA
         `;
     }
+
 
     /**
      * Verifica la configuración del servicio de email
