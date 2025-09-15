@@ -12,8 +12,8 @@
 
 /* Mejorar glassmorphism en modo claro */
 [data-theme="light"] .glass-card {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(68, 229, 255, 0.3);
+    background: #FFFFFF !important;
+    border: 1px solid #0066cc;
     box-shadow: 
         0 8px 32px rgba(0, 0, 0, 0.1),
         0 0 0 1px rgba(255, 255, 255, 0.2) inset;
