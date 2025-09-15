@@ -94,7 +94,7 @@ html, body.courses-page {
 /* ===== Header fijo con navbar (para Mis Cursos) ===== */
 .catalog-header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: transparent; backdrop-filter: none; border-bottom: 0; }
 .catalog-header .container { display:flex; align-items:center; justify-content:center; gap:12px; padding: 10px 16px; min-height: 60px; position: relative; }
-.catalog-header .course-tabs { margin: 0; width: auto; background: rgba(20,30,45,0.95); border: 1px solid rgba(68,229,255,0.15); box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(68,229,255,0.1) inset; backdrop-filter: blur(20px); border-radius: 20px; }
+.catalog-header .course-tabs { margin: 0; width: min(750px, 95vw); background: rgba(20,30,45,0.95); border: 1px solid rgba(68,229,255,0.15); box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(68,229,255,0.1) inset; backdrop-filter: blur(20px); border-radius: 20px; }
 .catalog-header .header-profile {
     position: fixed;
     top: 12px;
@@ -141,26 +141,21 @@ html, body.courses-page {
 /* ===== PESTAÑAS DE NAVEGACIÓN ===== */
 .course-tabs {
     display: flex;
-    background: linear-gradient(135deg, 
-        rgba(20, 30, 45, 0.95) 0%, 
-        rgba(15, 25, 40, 0.98) 50%, 
-        rgba(10, 15, 25, 0.95) 100%);
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(10px);
     border-radius: 20px;
     padding: 12px;
-    gap: 10px;
-    overflow-x: auto; /* Restaurado para permitir scroll horizontal si es necesario */
-    border: 1px solid rgba(68, 229, 255, 0.15);
-    box-shadow: 
-        0 12px 40px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(68, 229, 255, 0.1) inset;
+    gap: 8px;
+    overflow-x: auto;
+    border: 1px solid rgba(0, 102, 204, 0.18);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(20px);
     position: relative;
-    margin: 0 auto;
-    width: min(600px, 90vw);
-    
-    /* Solo ocultar el scrollbar visual, pero mantener la funcionalidad */
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    margin: 20px auto;
+    width: min(750px, 95vw);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    min-height: 64px;
 }
 
 /* Botón de perfil flotante para header global */
@@ -214,20 +209,25 @@ html, body.courses-page {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 14px 24px;
-    border: none;
-    background: rgba(68, 229, 255, 0.05);
-    color: white;
+    gap: 8px;
+    padding: 16px 18px;
+    background: rgba(0, 102, 204, 0.03);
+    border: 1px solid rgba(0, 102, 204, 0.08);
     border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-secondary);
+    font-family: var(--font-primary);
     font-weight: 500;
-    white-space: nowrap;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(68, 229, 255, 0.1);
-    text-align: center;
+    white-space: nowrap;
+    min-width: fit-content;
+    cursor: pointer;
+    min-height: 40px;
+    flex: 1;
+    max-width: none;
 }
 
 /* Estados deshabilitados para pestañas */
@@ -248,22 +248,21 @@ html, body.courses-page {
     height: 100%;
     background: linear-gradient(90deg, 
         transparent, 
-        rgba(68, 229, 255, 0.2), 
+        rgba(0, 102, 204, 0.15), 
         transparent);
-    transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: left 0.6s ease;
 }
 
 .tab-button:hover::before {
-    left: 0;
+    left: 100%;
 }
 
 .tab-button:hover {
-    color: var(--course-accent);
-    background: rgba(68, 229, 255, 0.12);
+    background: rgba(0, 102, 204, 0.08);
+    border-color: rgba(0, 102, 204, 0.15);
+    color: var(--text-primary);
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.15), 0 0 0 1px rgba(0, 102, 204, 0.15);
     transform: translateY(-2px);
-    box-shadow: 
-        0 8px 25px rgba(68, 229, 255, 0.2),
-        0 0 0 1px rgba(68, 229, 255, 0.2);
 }
 
 .tab-button.active {
@@ -1212,13 +1211,20 @@ html, body.courses-page {
     }
     
     .course-tabs {
-        gap: 2px;
-        padding: 4px;
+        margin: 10px auto;
+        padding: 6px;
+        gap: 4px;
+        width: min(500px, 96vw);
     }
     
     .tab-button {
-        padding: 10px 12px;
-        font-size: 14px;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        gap: 8px;
+    }
+    
+    .tab-button i {
+        font-size: 18px;
     }
     
     .tab-button span {

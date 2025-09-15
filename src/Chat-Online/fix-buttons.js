@@ -682,137 +682,6 @@ async function submitQuestion() {
     }
 }
 
-// Función para generar respuestas inteligentes de LIA
-function generarRespuestaInteligente(mensaje) {
-    const mensajeLower = mensaje.toLowerCase();
-    
-    // Metáfora del fuego aplicada a la IA
-    if (mensajeLower.includes('fuego') && (mensajeLower.includes('ia') || mensajeLower.includes('inteligencia artificial'))) {
-        return `🔥 **La Metáfora del Fuego y la IA** 🔥
-
-Excelente pregunta. La metáfora del fuego es muy poderosa para entender la IA:
-
-**1. El Fuego como Herramienta Transformadora:**
-• Como el fuego, la IA puede ser una herramienta increíblemente poderosa que transforma todo lo que toca
-• Puede cocinar alimentos (automatizar procesos), proporcionar calor (eficiencia), e iluminar la oscuridad (insights)
-
-**2. Control y Responsabilidad:**
-• El fuego controlado es útil (chimenea, cocina), pero descontrolado es destructivo
-• La IA debe desarrollarse con ética y supervisión humana
-
-**3. Evolución Progresiva:**
-• Como el fuego pasó de antorchas a motores, la IA evoluciona de algoritmos simples a sistemas complejos
-• Cada "combustible" nuevo (datos, compute) hace que la llama sea más brillante
-
-**4. Democratización:**
-• Así como el fuego se extendió por la humanidad, la IA debe ser accesible, no solo para unos pocos
-
-La clave está en ser "guardianes del fuego" - usar la IA para iluminar y calentar, no para quemar. 🤖✨
-
-¿Te gustaría explorar algún aspecto específico de esta metáfora?`;
-    }
-    
-    // Respuestas sobre IA en general
-    if (mensajeLower.includes('ia') || mensajeLower.includes('inteligencia artificial')) {
-        return `🤖 **Sobre Inteligencia Artificial**
-
-La IA es el campo de la informática que busca crear sistemas capaces de realizar tareas que normalmente requieren inteligencia humana.
-
-**Aspectos clave:**
-• **Machine Learning**: Sistemas que aprenden de datos
-• **Deep Learning**: Redes neuronales profundas
-• **Procesamiento de Lenguaje Natural**: Como esta conversación
-• **Visión Computacional**: Análisis de imágenes
-• **Automatización Inteligente**: Decisiones autónomas
-
-¿Hay algún aspecto específico que te interese explorar más? 🧠✨`;
-    }
-    
-    // Respuestas sobre machine learning
-    if (mensajeLower.includes('machine learning') || mensajeLower.includes('aprendizaje')) {
-        return `📚 **Machine Learning**
-
-Es la capacidad de las máquinas de aprender y mejorar automáticamente a través de la experiencia.
-
-**Tipos principales:**
-• **Supervisado**: Aprendizaje con ejemplos etiquetados
-• **No supervisado**: Descubrimiento de patrones ocultos  
-• **Por refuerzo**: Aprendizaje por recompensas/castigos
-
-**Proceso típico:**
-1. Recolección de datos
-2. Preprocesamiento
-3. Entrenamiento del modelo
-4. Evaluación y mejora
-
-¿Te gustaría ver un ejemplo práctico de algún tipo? 🎯`;
-    }
-    
-    // Respuestas sobre redes neuronales
-    if (mensajeLower.includes('redes neuronales') || mensajeLower.includes('neuronal')) {
-        return `🧠 **Redes Neuronales**
-
-Sistemas inspirados en el cerebro humano, compuestos por neuronas artificiales interconectadas.
-
-**Componentes:**
-• **Neuronas**: Procesan información
-• **Capas**: Entrada, ocultas, salida
-• **Pesos**: Conexiones entre neuronas
-• **Funciones de activación**: Determinan si una neurona se "activa"
-
-**Tipos comunes:**
-• **Perceptrón**: La más simple
-• **Feedforward**: Información fluye en una dirección
-• **Recurrentes**: Para secuencias de datos
-• **Convolucionales**: Ideales para imágenes
-
-¿Quieres que profundice en algún tipo específico? 🔗`;
-    }
-    
-    // Respuestas sobre aplicaciones
-    if (mensajeLower.includes('aplicaciones') || mensajeLower.includes('ejemplos')) {
-        return `🚀 **Aplicaciones de la IA**
-
-La IA está transformando múltiples sectores:
-
-**Salud:**
-• Diagnóstico médico por imágenes
-• Descubrimiento de medicamentos
-• Cirugía asistida
-
-**Tecnología:**
-• Asistentes virtuales (Siri, Alexa)
-• Recomendaciones (Netflix, Spotify)
-• Traducción automática
-
-**Transporte:**
-• Vehículos autónomos
-• Optimización de rutas
-• Mantenimiento predictivo
-
-**Finanzas:**
-• Detección de fraude
-• Trading algorítmico
-• Análisis de riesgo
-
-¿Te interesa algún sector en particular? 💼`;
-    }
-    
-    // Respuesta genérica inteligente
-    return `🤖 Interesante pregunta sobre "${mensaje}". 
-
-Como tu tutora LIA, puedo ayudarte con:
-• **Conceptos fundamentales de IA**
-• **Machine Learning y Deep Learning**
-• **Aplicaciones prácticas de IA**
-• **Redes neuronales y algoritmos**
-• **Casos de estudio reales**
-• **Ejercicios y ejemplos**
-
-¿Podrías ser más específico sobre qué aspecto de la IA te gustaría explorar? Así podré darte una respuesta más detallada y útil. 
-
-¡Estoy aquí para hacer tu aprendizaje en IA más claro y emocionante! ✨`;
-}
 
 function startNewLiaChat() {
     const messagesContainer = document.getElementById('liaMessages');
@@ -949,34 +818,33 @@ function sendMessageToLia() {
     // Limpiar input
     input.value = '';
     
-    // Intentar usar el sistema original de LIA si está disponible
-    if (window.chatOnline && typeof window.chatOnline.sendLiaMessage === 'function') {
-        console.log('🤖 Usando sistema original de LIA');
-        // No agregar mensaje duplicado del usuario ya que el sistema original lo hace
-        // Restaurar el input para que el sistema original lo procese
-        input.value = mensaje;
-        window.chatOnline.sendLiaMessage();
+    // Usar el sistema OpenAI de LIA (handleChatWithLIA)
+    if (typeof handleChatWithLIA === 'function') {
+        console.log('🤖 Usando sistema OpenAI de LIA (handleChatWithLIA)');
+        handleChatWithLIA(mensaje);
         return;
-    }
-    
-    // Fallback: Generar respuesta inteligente basada en el mensaje
-    setTimeout(() => {
-        const respuesta = generarRespuestaInteligente(mensaje);
-        const liaMessage = document.createElement('div');
-        liaMessage.className = 'lia-message';
-        liaMessage.innerHTML = `
+    } else if (typeof window.handleChatWithLIA === 'function') {
+        console.log('🤖 Usando sistema OpenAI de LIA (window.handleChatWithLIA)');
+        window.handleChatWithLIA(mensaje);
+        return;
+    } else {
+        console.error('❌ handleChatWithLIA no está disponible');
+        // Mostrar mensaje de error en la interfaz
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'lia-message error';
+        errorMessage.innerHTML = `
             <div class="lia-avatar">
                 <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
             </div>
             <div class="message-content">
-                <div class="message-text">${respuesta}</div>
+                <div class="message-text">❌ Lo siento, el sistema de LIA no está disponible en este momento. Por favor, recarga la página.</div>
                 <div class="message-time">ahora</div>
             </div>
         `;
-        
-        messagesContainer.appendChild(liaMessage);
+        messagesContainer.appendChild(errorMessage);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }, 1500);
+        return;
+    }
     
     // Scroll to bottom
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
