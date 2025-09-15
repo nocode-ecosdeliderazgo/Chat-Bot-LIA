@@ -556,6 +556,64 @@ function setupValidations() {
             }
         });
     }
+    
+    // Validación de confirmación de correo
+    const emailInput = document.getElementById('registerEmail');
+    const confirmEmailInput = document.getElementById('confirmEmail');
+    
+    if (confirmEmailInput && emailInput) {
+        confirmEmailInput.addEventListener('blur', () => {
+            validateEmailMatch(emailInput.value, confirmEmailInput.value, confirmEmailInput);
+        });
+        
+        emailInput.addEventListener('input', () => {
+            // Re-validar confirmación si ya se había escrito
+            if (confirmEmailInput.value.length > 0) {
+                validateEmailMatch(emailInput.value, confirmEmailInput.value, confirmEmailInput);
+            }
+        });
+    }
+    
+    // Manejo del selector de país para mostrar solo prefijo cuando está colapsado
+    const phonePrefixSelect = document.getElementById('phonePrefix');
+    if (phonePrefixSelect) {
+        // Función para actualizar el texto mostrado
+        function updateDisplayText() {
+            const selectedOption = phonePrefixSelect.options[phonePrefixSelect.selectedIndex];
+            const fullText = selectedOption.text;
+            const prefix = selectedOption.value;
+            
+            // Cuando está colapsado, solo mostrar el prefijo
+            phonePrefixSelect.setAttribute('data-display', prefix);
+            
+            // Actualizar el texto del option seleccionado para que solo muestre el prefijo
+            selectedOption.text = prefix;
+        }
+        
+        // Event listener para cuando cambia la selección
+        phonePrefixSelect.addEventListener('change', function() {
+            // Restaurar todos los textos originales primero
+            const options = this.options;
+            const originalTexts = [
+                'México (+52)', 'España (+34)', 'Argentina (+54)', 'Chile (+56)', 
+                'Colombia (+57)', 'Perú (+51)', 'Venezuela (+58)', 'Ecuador (+593)',
+                'Paraguay (+595)', 'Uruguay (+598)', 'Bolivia (+591)', 'Nicaragua (+505)',
+                'Costa Rica (+506)', 'Guatemala (+502)', 'El Salvador (+503)', 
+                'Honduras (+504)', 'Panamá (+507)', 'Estados Unidos (+1)', 'Cuba (+53)'
+            ];
+            
+            for (let i = 0; i < options.length; i++) {
+                options[i].text = originalTexts[i];
+            }
+            
+            // Actualizar el texto mostrado
+            updateDisplayText();
+        });
+        
+        // Inicializar con el prefijo de México
+        updateDisplayText();
+    }
+    
 }
 
 // Validar email - acepta input DOM o string
@@ -619,6 +677,12 @@ function normalizeMxPhone(input) {
 function validatePasswordMatch(password, confirmPassword, input) {
     const isMatch = password === confirmPassword && confirmPassword.length > 0;
     input.style.borderColor = confirmPassword.length === 0 ? '' : (isMatch ? '#44E5FF' : '#EF4444');
+    return isMatch;
+}
+
+function validateEmailMatch(email, confirmEmail, input) {
+    const isMatch = email === confirmEmail && confirmEmail.length > 0;
+    input.style.borderColor = confirmEmail.length === 0 ? '' : (isMatch ? '#44E5FF' : '#EF4444');
     return isMatch;
 }
 
@@ -879,7 +943,9 @@ async function handleRegister(e) {
         last_name: formData.get('last_name')?.trim(),
         username: normalizeUsername(formData.get('username')?.trim() || ''),
         phone: normalizeMxPhone(formData.get('phone')?.trim()),
+        phone_prefix: formData.get('phone_prefix'),
         email: formData.get('email')?.trim(),
+        confirm_email: formData.get('confirm_email')?.trim(),
         password: formData.get('password'),
         confirm_password: formData.get('confirm_password'),
         accept_terms: formData.get('accept_terms') === 'on'
@@ -990,14 +1056,15 @@ async function handleRegister(e) {
 // Validar formulario de registro según PROMPT_CLAUDE.md
 function validateRegisterForm(userData) {
     devLog('validateRegisterForm called with:', userData);
-    const { first_name, last_name, username, email, password, confirm_password, accept_terms } = userData;
+    const { first_name, last_name, username, email, confirm_email, password, confirm_password, accept_terms } = userData;
     
-    if (!first_name || !last_name || !username || !email || !password) {
+    if (!first_name || !last_name || !username || !email || !confirm_email || !password) {
         devLog('Missing required fields:', {
             first_name: !!first_name,
             last_name: !!last_name, 
             username: !!username,
             email: !!email,
+            confirm_email: !!confirm_email,
             password: !!password
         });
         showNotification('Por favor completa todos los campos obligatorios', 'error');
@@ -1046,6 +1113,11 @@ function validateRegisterForm(userData) {
     
     if (!hasLowerCase || !hasNumbers) {
         showNotification('La contraseña debe contener al menos una letra minúscula y un número', 'error');
+        return false;
+    }
+    
+    if (email !== confirm_email) {
+        showNotification('Los correos electrónicos no coinciden', 'error');
         return false;
     }
     
@@ -1941,16 +2013,11 @@ function showTermsTab(tabName) {
  * Acepta los términos y cierra la tarjeta
  */
 function acceptTermsAndClose() {
-    // Marcar los checkboxes como aceptados
-    const acceptTermsCheckbox = document.getElementById('acceptTerms');
-    const acceptPrivacyCheckbox = document.getElementById('acceptPrivacy');
+    // Marcar el checkbox único como aceptado
+    const acceptAllTermsCheckbox = document.getElementById('acceptAllTerms');
     
-    if (acceptTermsCheckbox) {
-        acceptTermsCheckbox.checked = true;
-    }
-    
-    if (acceptPrivacyCheckbox) {
-        acceptPrivacyCheckbox.checked = true;
+    if (acceptAllTermsCheckbox) {
+        acceptAllTermsCheckbox.checked = true;
     }
     
     // Guardar la aceptación en localStorage
@@ -2124,15 +2191,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Verificar si ya se aceptaron los términos al cargar la página
     const termsAccepted = localStorage.getItem('termsAccepted');
     if (termsAccepted) {
-        const acceptTermsCheckbox = document.getElementById('acceptTerms');
-        const acceptPrivacyCheckbox = document.getElementById('acceptPrivacy');
+        const acceptAllTermsCheckbox = document.getElementById('acceptAllTerms');
         
-        if (acceptTermsCheckbox) {
-            acceptTermsCheckbox.checked = true;
-        }
-        
-        if (acceptPrivacyCheckbox) {
-            acceptPrivacyCheckbox.checked = true;
+        if (acceptAllTermsCheckbox) {
+            acceptAllTermsCheckbox.checked = true;
         }
     }
 });
