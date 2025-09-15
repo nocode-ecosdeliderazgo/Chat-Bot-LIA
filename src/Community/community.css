@@ -53,6 +53,18 @@
     --border-radius-xl: 24px;
 }
 
+/* ===== SCROLLBAR OCULTO (GLOBAL) ===== */
+/* Ocultar scrollbar pero mantener funcionalidad de scroll */
+* {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+/* Ocultar scrollbar en navegadores webkit (Chrome, Safari, Edge) */
+*::-webkit-scrollbar {
+    display: none;
+}
+
 /* ===== RESET & BASE STYLES ===== */
 * {
     margin: 0;

@@ -52,6 +52,18 @@
     --transition-slow: 0.5s ease;
 }
 
+/* ===== SCROLLBAR OCULTO (GLOBAL) ===== */
+/* Ocultar scrollbar pero mantener funcionalidad de scroll */
+* {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+/* Ocultar scrollbar en navegadores webkit (Chrome, Safari, Edge) */
+*::-webkit-scrollbar {
+    display: none;
+}
+
 /* ===== MODO CLARO ===== */
 [data-theme="light"] {
     --text-primary: #2D3748;
@@ -2077,30 +2089,36 @@ body[data-theme="light"] .bg-glow-global::before,
     text-shadow: 0 0 8px rgba(0, 102, 204, 0.5);
 }
 
+/* ===== ESTILOS LIMPIOS PARA SECCIONES (SIN MARCOS) ===== */
+
+/* Eliminar marcos de recursos en modo oscuro también */
+.resources-section {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
 /* CTA Section */
 .cta-section {
     padding: 20px;
     display: flex;
     align-items: center;
-    gap: 15px;
-    background: rgba(0, 102, 204, 0.05);
-    border-top: 1px solid rgba(0, 102, 204, 0.2);
+    justify-content: center;
+    gap: 0;
+    background: transparent;
+    border: none;
 }
 
 .cta-label {
-    font-family: var(--font-heading);
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #44e5ff;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    display: none !important;
 }
 
 .cta-button {
     background: linear-gradient(135deg, #0066CC, #004499);
     color: white;
     border: none;
-    padding: 15px 30px;
+    padding: 18px 50px;
     border-radius: 12px;
     font-size: 1.1rem;
     font-weight: 600;
@@ -2109,6 +2127,8 @@ body[data-theme="light"] .bg-glow-global::before,
     transition: all var(--transition-normal);
     box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
     font-family: var(--font-heading);
+    text-align: center;
+    max-width: 500px;
 }
 
 .cta-button:hover {
@@ -2285,49 +2305,11 @@ body[data-theme="light"] .bg-glow-global::before,
 }
 
 /* ===== SCROLLBAR STYLING ===== */
-/* Ocultar scrollbars en todos los navegadores */
-* {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 102, 204, 0.3) transparent;
-}
+/* Los scrollbars ya están ocultos globalmente arriba */
 
-/* Para navegadores WebKit (Chrome, Safari, Edge) */
-*::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-*::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-*::-webkit-scrollbar-thumb {
-    background: rgba(0, 102, 204, 0.3);
-    border-radius: 4px;
-    border: 1px solid transparent;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 102, 204, 0.5);
-}
-
-*::-webkit-scrollbar-corner {
-    background: transparent;
-}
-
-/* Para el modal específicamente */
+/* Para el modal específicamente - scrollbars ocultos */
 .news-modal *::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-.news-modal *::-webkit-scrollbar-thumb {
-    background: rgba(0, 102, 204, 0.4);
-    border-radius: 3px;
-}
-
-.news-modal *::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 102, 204, 0.6);
+    display: none;
 }
 
 /* Ocultar scrollbars completamente en elementos específicos */
@@ -2350,23 +2332,192 @@ body[data-theme="light"] .bg-glow-global::before,
     display: none;
 }
 
-/* Para modo claro - scrollbars más sutiles */
+/* Para modo claro - scrollbars ocultos */
 [data-theme="light"] * {
-    scrollbar-color: rgba(0, 102, 204, 0.2) transparent;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
-[data-theme="light"] *::-webkit-scrollbar-thumb {
-    background: rgba(0, 102, 204, 0.2);
+[data-theme="light"] *::-webkit-scrollbar {
+    display: none;
 }
 
-[data-theme="light"] *::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 102, 204, 0.3);
+[data-theme="light"] .news-modal *::-webkit-scrollbar {
+    display: none;
 }
 
-[data-theme="light"] .news-modal *::-webkit-scrollbar-thumb {
-    background: rgba(0, 102, 204, 0.3);
+/* ===== ESTILOS ESPECÍFICOS PARA MODO CLARO DEL MODAL ===== */
+
+/* Fondo del modal en modo claro */
+[data-theme="light"] .modal-news-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
 }
 
-[data-theme="light"] .news-modal *::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 102, 204, 0.4);
+/* Contenido del modal en modo claro */
+[data-theme="light"] .modal-detailed-content {
+    background: rgba(255, 255, 255, 0.98) !important;
+}
+
+[data-theme="light"] .modal-detailed-content p {
+    color: #2d3748 !important;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+[data-theme="light"] .modal-detailed-content strong {
+    color: #0066CC !important;
+    font-weight: 600;
+}
+
+/* Título principal del modal en modo claro */
+[data-theme="light"] .news-main-title {
+    color: #1a202c !important;
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+    background-clip: unset !important;
+}
+
+/* Sección TL;DR en modo claro */
+[data-theme="light"] .tldr-section {
+    background: rgba(0, 102, 204, 0.08) !important;
+    border-left: 4px solid #0066CC !important;
+}
+
+[data-theme="light"] .tldr-heading {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .tldr-items {
+    color: #4a5568 !important;
+}
+
+[data-theme="light"] .tldr-items li {
+    color: #4a5568 !important;
+}
+
+/* Encabezados de sección en modo claro */
+[data-theme="light"] .section-heading {
+    color: #2d3748 !important;
+}
+
+/* Listas en modo claro */
+[data-theme="light"] .numbered-list li,
+[data-theme="light"] .section-list li {
+    color: #4a5568 !important;
+}
+
+/* ===== ESTILOS LIMPIOS PARA LISTAS (SIN MARCADORES) ===== */
+
+/* Quitar marcadores de todas las listas */
+.tldr-items,
+.numbered-list,
+.section-list,
+.resources-list {
+    list-style: none !important;
+    padding-left: 0 !important;
+}
+
+/* Agregar padding a los elementos de lista */
+.tldr-items li,
+.numbered-list li,
+.section-list li,
+.resources-list li {
+    padding-left: 20px !important;
+    position: relative !important;
+    margin-bottom: 8px !important;
+}
+
+/* Agregar indicadores visuales sutiles */
+.tldr-items li::before {
+    content: "•" !important;
+    color: var(--primary-color) !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    font-weight: bold !important;
+}
+
+.numbered-list li::before {
+    content: counter(item) "." !important;
+    color: var(--primary-color) !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    font-weight: bold !important;
+}
+
+.numbered-list {
+    counter-reset: item !important;
+}
+
+.numbered-list li {
+    counter-increment: item !important;
+}
+
+.section-list li::before {
+    content: "▸" !important;
+    color: var(--primary-color) !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    font-weight: bold !important;
+}
+
+.resources-list li::before {
+    content: "🔗" !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    font-size: 0.8em !important;
+}
+
+/* Estilos específicos para modo claro */
+[data-theme="light"] .tldr-items li::before,
+[data-theme="light"] .numbered-list li::before,
+[data-theme="light"] .section-list li::before {
+    color: #0066CC !important;
+}
+
+/* Sección de recursos en modo claro */
+[data-theme="light"] .resources-section {
+    background: transparent !important;
+    border: none !important;
+}
+
+[data-theme="light"] .resources-list li a {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .resources-list li a:hover {
+    color: #0052A3 !important;
+}
+
+/* Botón CTA en modo claro */
+[data-theme="light"] .cta-button {
+    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3) !important;
+}
+
+[data-theme="light"] .cta-button:hover {
+    background: linear-gradient(135deg, #0052A3, #004080) !important;
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4) !important;
+}
+
+/* Iconos del header del modal en modo claro */
+[data-theme="light"] .news-header-graphic {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.1), rgba(0, 102, 204, 0.05)) !important;
+}
+
+[data-theme="light"] .brain-icon i,
+[data-theme="light"] .gear-icon i {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .neural-lines::before {
+    background: linear-gradient(90deg, transparent, #0066CC, transparent) !important;
 }

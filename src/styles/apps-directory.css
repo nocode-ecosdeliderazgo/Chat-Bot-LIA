@@ -19,6 +19,18 @@
     --shadow-card-hover: 0 18px 40px rgba(0,0,0,.5);
 }
 
+/* ===== SCROLLBAR OCULTO (GLOBAL) ===== */
+/* Ocultar scrollbar pero mantener funcionalidad de scroll */
+* {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+/* Ocultar scrollbar en navegadores webkit (Chrome, Safari, Edge) */
+*::-webkit-scrollbar {
+    display: none;
+}
+
 /* ===== MODO CLARO ===== */
 [data-theme="light"] {
     --text-primary: #2D3748;
