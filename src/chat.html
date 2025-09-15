@@ -593,7 +593,7 @@
 
                 // Si no hay configuración previa, elegir origen según dominio público
                 if (!current) {
-                    if (host.includes('ecosdeliderazgo.com')) {
+                    if (host.includes('aprendeyaplica.ai')) {
                         // Producción: API en Netlify, WebSocket en Heroku
                         var netlify = 'https://bot-lia-ai.netlify.app';
                         var heroku = 'https://lia-ia-live-1da7d26ba883.herokuapp.com';
@@ -610,7 +610,7 @@
                         window.API_BASE = heroku;
                     }
                 } else {
-                    if (host.includes('ecosdeliderazgo.com')) {
+                    if (host.includes('aprendeyaplica.ai')) {
                         var n = 'https://bot-lia-ai.netlify.app';
                         var h = 'https://lia-ia-live-1da7d26ba883.herokuapp.com';
                         window.API_BASE = n;

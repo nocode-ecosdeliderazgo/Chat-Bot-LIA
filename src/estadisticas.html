@@ -624,7 +624,7 @@
                 // Detectar automáticamente la URL base según el entorno
                 const baseURL = window.location.hostname === 'localhost' 
                     ? 'http://localhost:3000' 
-                    : 'https://ecosdeliderazgo.com';
+                    : 'https://aprendeyaplica.ai';
                 console.log(`🔗 Haciendo fetch a: ${baseURL}/api/genai-radar/${userId}`);
                 
                 const response = await fetch(`${baseURL}/api/genai-radar/${userId}`, {
@@ -808,7 +808,7 @@
                 // Detectar automáticamente la URL base según el entorno
                 const baseURL = window.location.hostname === 'localhost' 
                     ? 'http://localhost:3000' 
-                    : 'https://ecosdeliderazgo.com';
+                    : 'https://aprendeyaplica.ai';
                 const response = await fetch(`${baseURL}/api/adopcion-genai`, {
                     headers: {
                         'Content-Type': 'application/json'

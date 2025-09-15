@@ -8,7 +8,9 @@ const allowedOriginsFromEnv = (process.env.ALLOWED_ORIGINS || '')
     .filter(Boolean);
 
 const hostnameWhitelist = [
-    'ecosdeliderazgo.com',
+    'aprendeyaplica.ai',
+    'www.aprendeyaplica.ai',
+    'ecosdeliderazgo.com',  // Fallback temporal
     'www.ecosdeliderazgo.com'
 ];
 
@@ -28,6 +30,7 @@ function isOriginAllowed(origin) {
     console.log('[CORS Debug] Origin:', origin);
     console.log('[CORS Debug] ALLOWED_ORIGINS env:', process.env.ALLOWED_ORIGINS);
     console.log('[CORS Debug] allowedOriginsFromEnv:', allowedOriginsFromEnv);
+    console.log('[CORS Debug] hostnameWhitelist:', hostnameWhitelist);
     
     if (!origin) return true; // Permitir requests sin Origin (same-origin)
     
@@ -60,11 +63,13 @@ function isOriginAllowed(origin) {
     console.log('[CORS Debug] Using fallback hostname whitelist');
     try {
         const host = new URL(origin).hostname;
+        console.log('[CORS Debug] Extracted hostname:', host);
+        console.log('[CORS Debug] Checking against whitelist:', hostnameWhitelist);
         const allowed = isHostAllowed(host);
         console.log('[CORS Debug] Hostname whitelist result:', allowed);
         return allowed;
-    } catch {
-        console.log('[CORS Debug] Error parsing origin URL for fallback');
+    } catch (error) {
+        console.log('[CORS Debug] Error parsing origin URL for fallback:', error.message);
         return false;
     }
 }
