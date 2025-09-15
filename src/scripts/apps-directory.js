@@ -28,132 +28,168 @@ class AppsDirectory {
     }
 
     init() {
+        console.log('🚀 [APPS] Inicializando directorio...');
         this.renderApps();
         this.setupEventListeners();
         this.setupFilterSidebar();
         this.hideLoading();
+        console.log('✅ [APPS] Inicialización completa');
     }
 
     setupEventListeners() {
         console.log('🔗 [APPS] Configurando event listeners...');
         
-        // Search input
-        const searchInput = document.getElementById('searchInput');
-        console.log('🔍 [APPS] Search input encontrado:', !!searchInput);
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                this.currentFilters.search = e.target.value;
-                this.applyFilters();
-            });
-        }
+        // Usar setTimeout para asegurar que el DOM esté completamente cargado
+        setTimeout(() => {
+            // Search input
+            const searchInput = document.getElementById('searchInput');
+            console.log('🔍 [APPS] Search input encontrado:', !!searchInput);
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    this.currentFilters.search = e.target.value;
+                    this.applyFilters();
+                });
+            }
 
-        // Category tabs
-        const categoryTabs = document.querySelectorAll('.cat-tab');
-        console.log('🏷️ [APPS] Category tabs encontrados:', categoryTabs.length);
-        categoryTabs.forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                // Remove active class from all tabs
-                categoryTabs.forEach(t => t.classList.remove('active'));
-                // Add active class to clicked tab
-                e.target.classList.add('active');
-                
-                this.currentFilters.category = e.target.dataset.category || '';
-                this.applyFilters();
+            // Category tabs
+            const categoryTabs = document.querySelectorAll('.cat-tab');
+            console.log('🏷️ [APPS] Category tabs encontrados:', categoryTabs.length);
+            categoryTabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    // Remove active class from all tabs
+                    categoryTabs.forEach(t => t.classList.remove('active'));
+                    // Add active class to clicked tab
+                    e.target.classList.add('active');
+                    
+                    this.currentFilters.category = e.target.dataset.category || '';
+                    this.applyFilters();
+                });
             });
-        });
 
-        // Pricing filters
-        const pricingFilters = document.querySelectorAll('.pricing-filter');
-        pricingFilters.forEach(filter => {
-            filter.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    this.currentFilters.pricing.push(e.target.value);
-                } else {
-                    this.currentFilters.pricing = this.currentFilters.pricing.filter(
-                        price => price !== e.target.value
-                    );
-                }
-                this.applyFilters();
-            });
-        });
-
-        // Tutorial filter
-        const tutorialFilter = document.getElementById('withTutorial');
-        if (tutorialFilter) {
-            tutorialFilter.addEventListener('change', (e) => {
-                this.currentFilters.tutorial = e.target.checked ? true : null;
-                this.applyFilters();
-            });
-        }
+        }, 100);
     }
 
     setupFilterSidebar() {
         const filterToggle = document.getElementById('filterToggle');
         const filtersSidebar = document.getElementById('filtersSidebar');
-        let filtersOverlay = document.querySelector('.filters-overlay');
-        
-        // Crear overlay si no existe
-        if (!filtersOverlay) {
-            filtersOverlay = document.createElement('div');
-            filtersOverlay.className = 'filters-overlay';
-            document.body.appendChild(filtersOverlay);
-        }
+        const filtersOverlay = document.getElementById('filtersOverlay');
+        const closeFilters = document.getElementById('closeFilters');
 
+        // Abrir sidebar
         if (filterToggle) {
-            filterToggle.addEventListener('click', () => {
-                filtersSidebar.classList.toggle('active');
-                filtersOverlay.classList.toggle('active');
+            filterToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                filtersSidebar.classList.add('active');
+                filtersOverlay.classList.add('active');
             });
         }
 
-        // Cerrar sidebar al hacer clic en overlay
-        filtersOverlay.addEventListener('click', () => {
+        // Cerrar sidebar
+        const closeSidebar = () => {
             filtersSidebar.classList.remove('active');
             filtersOverlay.classList.remove('active');
-        });
+        };
 
-        // Cerrar con tecla Escape
+        if (closeFilters) {
+            closeFilters.addEventListener('click', closeSidebar);
+        }
+
+        if (filtersOverlay) {
+            filtersOverlay.addEventListener('click', closeSidebar);
+        }
+
+        // Cerrar con Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && filtersSidebar.classList.contains('active')) {
-                filtersSidebar.classList.remove('active');
-                filtersOverlay.classList.remove('active');
+                closeSidebar();
             }
         });
+
+        // Evitar que se cierre al hacer clic dentro del sidebar
+        if (filtersSidebar) {
+            filtersSidebar.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+
+        // Configurar filtros
+        this.setupFilters();
+    }
+
+    setupFilters() {
+        // Filtros de precio
+        const pricingFilters = document.querySelectorAll('.pricing-filter');
+        pricingFilters.forEach(filter => {
+            filter.addEventListener('change', (e) => {
+                const value = e.target.value;
+                const isChecked = e.target.checked;
+                
+                if (isChecked) {
+                    this.currentFilters.pricing.push(value);
+                } else {
+                    this.currentFilters.pricing = this.currentFilters.pricing.filter(p => p !== value);
+                }
+                
+                console.log('💰 [FILTERS] Precios:', this.currentFilters.pricing);
+                this.applyFilters();
+            });
+        });
+
+        // Filtro de tutorial
+        const tutorialFilter = document.getElementById('withTutorial');
+        if (tutorialFilter) {
+            tutorialFilter.addEventListener('change', (e) => {
+                this.currentFilters.tutorial = e.target.checked ? true : null;
+                console.log('📚 [FILTERS] Tutorial:', this.currentFilters.tutorial);
+                this.applyFilters();
+            });
+        }
     }
 
     applyFilters() {
+        console.log('🔍 [FILTERS] Aplicando filtros:', this.currentFilters);
         let filtered = [...this.apps];
+        console.log('📱 [FILTERS] Apps totales:', this.apps.length);
 
         // Apply search filter
         if (this.currentFilters.search) {
             const searchTerm = this.currentFilters.search.toLowerCase();
+            console.log('🔍 [FILTERS] Buscando:', searchTerm);
             filtered = filtered.filter(app => 
                 app.name.toLowerCase().includes(searchTerm) ||
                 app.description.toLowerCase().includes(searchTerm) ||
                 app.tags.some(tag => tag.toLowerCase().includes(searchTerm))
             );
+            console.log('🔍 [FILTERS] Después de búsqueda:', filtered.length);
         }
 
         // Apply category filter
         if (this.currentFilters.category) {
+            console.log('🏷️ [FILTERS] Filtrando categoría:', this.currentFilters.category);
             filtered = filtered.filter(app => 
                 app.category === this.currentFilters.category
             );
+            console.log('🏷️ [FILTERS] Después de categoría:', filtered.length);
         }
 
         // Apply pricing filters
         if (this.currentFilters.pricing.length > 0) {
+            console.log('💰 [FILTERS] Filtrando precios:', this.currentFilters.pricing);
             filtered = filtered.filter(app => 
                 this.currentFilters.pricing.includes(app.pricing)
             );
+            console.log('💰 [FILTERS] Después de precios:', filtered.length);
         }
 
         // Apply tutorial filter
         if (this.currentFilters.tutorial !== null) {
+            console.log('📚 [FILTERS] Filtrando tutorial:', this.currentFilters.tutorial);
             filtered = filtered.filter(app => app.hasTutorial === this.currentFilters.tutorial);
+            console.log('📚 [FILTERS] Después de tutorial:', filtered.length);
         }
 
         this.filteredApps = filtered;
+        console.log('✅ [FILTERS] Resultado final:', this.filteredApps.length, 'apps');
         this.renderApps();
     }
 

@@ -11,12 +11,18 @@
     --text-primary: #ffffff;
     --text-secondary: #b8c5d1;
     --text-muted: #9fb1bf;
+    --text-on-dark: #ffffff;
     --bg-primary: #06182A;
     --bg-secondary: #0B1220;
     --card-bg: rgba(255,255,255,.04);
     --card-border: rgba(68,229,255,.18);
     --shadow-card: 0 8px 22px rgba(0,0,0,.35);
     --shadow-card-hover: 0 18px 40px rgba(0,0,0,.5);
+    
+    /* Variables para filtros */
+    --color-primary: #44e5ff;
+    --color-accent: #3dd4eb;
+    --color-bg-1: #06182A;
 }
 
 /* ===== SCROLLBAR OCULTO (GLOBAL) ===== */
@@ -36,6 +42,7 @@
     --text-primary: #2D3748;
     --text-secondary: rgba(45, 55, 72, 0.8);
     --text-muted: rgba(45, 55, 72, 0.6);
+    --text-on-dark: #2D3748;
     --bg-primary: #E6F3FF;
     --bg-secondary: #D4E6F1;
     --bg-1: #E6F3FF;
@@ -44,6 +51,7 @@
     --card-border: rgba(68,229,255,.15);
     --shadow-card: 0 4px 12px rgba(0,0,0,.03);
     --shadow-card-hover: 0 8px 24px rgba(0,0,0,.06);
+    --color-bg-1: #E6F3FF;
 }
 
 /* ===== MODO OSCURO ===== */
@@ -210,119 +218,19 @@
     transform: translateY(-2px);
 }
 
-/* Filtros sidebar */
-.filters-sidebar {
-    position: fixed;
-    top: 0;
-    right: -400px;
-    width: 350px;
-    height: 100vh;
-    background: rgba(10, 10, 10, 0.95);
-    backdrop-filter: blur(20px);
-    border-left: 1px solid rgba(68, 229, 255, 0.2);
-    z-index: 1000;
-    transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    overflow-y: auto;
-    padding-top: 80px;
-}
-
-.filters-sidebar.active {
-    right: 0;
-}
-
-.filters-content {
-    padding: 2rem;
-}
-
-.filter-group {
-    margin-bottom: 2rem;
-}
-
-.filter-group h3 {
-    font-family: var(--font-heading);
-    font-weight: 700;
-    color: var(--text-on-dark);
-    margin-bottom: 1rem;
-    font-size: 1.1rem;
-    letter-spacing: 0.3px;
-}
-
-.filter-options {
+/* ===== FILTROS AVANZADOS ===== */
+.hero-cta {
     display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.filter-option {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    font-size: 0.95rem;
-    color: var(--text-muted);
-}
-
-.filter-option:hover {
-    background: rgba(68, 229, 255, 0.08);
-    color: var(--text-on-dark);
-    transform: translateX(4px);
-}
-
-.filter-option input[type="checkbox"] {
-    display: none;
-}
-
-.checkmark {
-    width: 18px;
-    height: 18px;
-    border: 2px solid rgba(68, 229, 255, 0.3);
-    border-radius: 6px;
-    position: relative;
-    transition: all 0.3s ease;
-    flex-shrink: 0;
-    background: rgba(10, 10, 10, 0.6);
-    backdrop-filter: blur(4px);
-}
-
-.filter-option input[type="checkbox"]:checked + .checkmark {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    border-color: var(--color-primary);
-    box-shadow: 0 0 8px rgba(68, 229, 255, 0.4);
-    animation: checkPulse 0.3s ease;
-}
-
-.filter-option input[type="checkbox"]:checked + .checkmark::after {
-    content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: var(--color-bg-1);
-    font-size: 12px;
-    font-weight: bold;
-}
-
-@keyframes checkPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-/* Botón de filtros con animaciones como cursos.html */
-.filter-toggle {
-    display: flex;
-    gap: 1rem;
+    justify-content: center;
+    margin-top: 20px;
 }
 
 .btn-outline { 
     border: 2px solid rgba(68,229,255,.3); 
     background: transparent; 
     color: var(--text-secondary); 
-    padding: 10px 14px; 
-    border-radius: 999px; 
+    padding: 12px 20px; 
+    border-radius: 25px; 
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
     font-weight: 600; 
@@ -331,9 +239,9 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 14px;
 }
 
-/* Efecto de relleno deslizante para btn-outline */
 .btn-outline::before {
     content: '';
     position: absolute;
@@ -357,7 +265,142 @@
     box-shadow: 0 6px 20px rgba(68,229,255,.3);
 }
 
-/* Overlay para cerrar sidebar */
+/* Sidebar de filtros */
+.filters-sidebar {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 350px;
+    height: 100vh;
+    background: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(68, 229, 255, 0.2);
+    z-index: 1000;
+    transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.filters-sidebar.active {
+    right: 0;
+}
+
+.filters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid rgba(68, 229, 255, 0.2);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.filters-header h3 {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.close-filters {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.close-filters:hover {
+    background: rgba(68, 229, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.filters-content {
+    padding: 20px;
+    flex: 1;
+}
+
+.filter-group {
+    margin-bottom: 30px;
+}
+
+.filter-group h4 {
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(68, 229, 255, 0.2);
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.filter-option:hover {
+    background: rgba(68, 229, 255, 0.08);
+    border-color: rgba(68, 229, 255, 0.2);
+}
+
+.filter-option input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(68, 229, 255, 0.4);
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.filter-option input[type="checkbox"]:checked + .checkmark {
+    background: linear-gradient(135deg, var(--turq), var(--turq-2));
+    border-color: var(--turq);
+    box-shadow: 0 0 10px rgba(68, 229, 255, 0.4);
+}
+
+.filter-option input[type="checkbox"]:checked + .checkmark::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #001018;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.filter-label {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.filter-option:hover .filter-label {
+    color: var(--text-primary);
+}
+
+/* Overlay */
 .filters-overlay {
     position: fixed;
     top: 0;
@@ -374,6 +417,23 @@
 .filters-overlay.active {
     opacity: 1;
     visibility: visible;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .filters-sidebar {
+        width: 100%;
+        right: -100%;
+    }
+    
+    .hero-cta {
+        margin-top: 15px;
+    }
+    
+    .btn-outline {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
 }
 
 /* Estilos para las tarjetas de aplicaciones - igual que course-card */
@@ -1250,10 +1310,6 @@ body.bg-glow-global .search:focus-within {
         width: min(500px, 96vw);
     }
     
-    .filters-sidebar {
-        width: 100%;
-        right: -100%;
-    }
     
     .hero-intro {
         flex-direction: column;
@@ -1459,23 +1515,6 @@ body.bg-glow-global .search:focus-within {
     border-color: transparent !important;
 }
 
-[data-theme="light"] .filters-sidebar {
-    background: rgba(255, 255, 255, 0.95) !important;
-    border-left: 1px solid rgba(68, 229, 255, 0.2) !important;
-}
-
-[data-theme="light"] .filter-group h3 {
-    color: #2D3748 !important;
-}
-
-[data-theme="light"] .filter-option {
-    color: #4A5568 !important;
-}
-
-[data-theme="light"] .filter-option:hover {
-    background: rgba(68, 229, 255, 0.1) !important;
-    color: #2D3748 !important;
-}
 
 /* Estilos para barra de búsqueda en modo claro con azul #0066CC */
 [data-theme="light"] .bg-glow-global .search,
@@ -1651,7 +1690,6 @@ main.container {
 }
 
 /* Focus visible para accesibilidad */
-.filter-option:focus-within,
 .discover-btn:focus-visible {
     outline: 2px solid var(--turq);
     outline-offset: 2px;
