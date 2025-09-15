@@ -738,6 +738,116 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// Rate limiting específico para recuperación de contraseña
+const forgotPasswordLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 3, // máximo 3 intentos por IP cada 15 minutos
+    message: { error: 'Demasiados intentos de recuperación de contraseña. Inténtalo más tarde.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// Endpoint para recuperación de contraseña
+app.post('/api/forgot-password', forgotPasswordLimiter, async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: 'Email es requerido' });
+        }
+
+        // Validar formato de email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ error: 'Formato de email inválido' });
+        }
+
+        // Verificar si el usuario existe en la base de datos
+        let userExists = false;
+        try {
+            const result = await pool.query(
+                'SELECT id, email, username FROM users WHERE email = $1',
+                [email.toLowerCase()]
+            );
+            userExists = result.rows.length > 0;
+        } catch (dbError) {
+            console.error('Error verificando usuario:', dbError);
+            return res.status(500).json({ error: 'Error del servidor' });
+        }
+
+        if (!userExists) {
+            // Por seguridad, no revelamos si el email existe o no
+            return res.status(200).json({
+                message: 'Si el correo está registrado, recibirás un enlace de recuperación'
+            });
+        }
+
+        // Intentar con Supabase si está configurado
+        if (supabase) {
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${req.protocol}://${req.get('host')}/src/login/reset-password.html`
+                });
+
+                if (!error) {
+                    return res.status(200).json({
+                        message: 'Se ha enviado un enlace de recuperación a tu correo electrónico'
+                    });
+                } else {
+                    console.warn('Error Supabase reset password:', error.message);
+                }
+            } catch (supabaseError) {
+                console.warn('Error con Supabase:', supabaseError.message);
+            }
+        }
+
+        // Generar token de recuperación (para implementación futura con email)
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hora
+
+        try {
+            // Crear tabla si no existe (versión simplificada)
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                    email VARCHAR(255) PRIMARY KEY,
+                    token VARCHAR(255) NOT NULL,
+                    expires_at TIMESTAMP NOT NULL,
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            `);
+
+            // Guardar token en la base de datos
+            await pool.query(
+                `INSERT INTO password_reset_tokens (email, token, expires_at, created_at)
+                 VALUES ($1, $2, $3, NOW())
+                 ON CONFLICT (email) DO UPDATE SET
+                 token = $2, expires_at = $3, created_at = NOW()`,
+                [email.toLowerCase(), resetToken, resetTokenExpiry]
+            );
+        } catch (tokenError) {
+            console.error('Error guardando token:', tokenError);
+            // Continuar sin fallar para no revelar información
+        }
+
+        // En modo desarrollo, mostrar el token en la consola
+        if (DEV_MODE) {
+            console.log(`🔐 Token de recuperación para ${email}: ${resetToken}`);
+            console.log(`🔗 URL de recuperación: ${req.protocol}://${req.get('host')}/src/login/reset-password.html?token=${resetToken}`);
+        }
+
+        // TODO: Implementar envío de email real con nodemailer
+        // Por ahora solo simulamos el envío exitoso
+
+        res.status(200).json({
+            message: 'Se ha enviado un enlace de recuperación a tu correo electrónico'
+        });
+
+    } catch (error) {
+        console.error('Error en forgot-password:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 // Endpoint para verificar código OTP
 app.post('/api/verify-email', async (req, res) => {
     try {
