@@ -35,7 +35,7 @@
             Noticias
         </button>
     </div>
-    <button class="header-profile" id="headerProfileBtn">
+    <button class="header-profile">
         <img src="../assets/images/icono.png" alt="Perfil" />
     </button>
     <div id="profileMenu" class="profile-menu">
@@ -43,7 +43,7 @@
             <div class="pm-avatar"><img src="../assets/images/icono.png" alt="Perfil"/></div>
             <div>
                 <div class="pm-name" id="pmName">Usuario</div>
-                <div class="pm-email" id="pmEmail"></div>
+                <div class="pm-email" id="pmEmail">user@example.com</div>
             </div>
         </div>
         <div class="pm-section">
@@ -56,8 +56,10 @@
         </div>
         <div class="pm-section">
             <div class="pm-item" id="themeToggle" onclick="toggleTheme()">
-                <i class='bx bx-sun theme-icon-sun'></i>
-                <i class='bx bx-moon theme-icon-moon'></i>
+                <div class="theme-icon-container">
+                    <i class='bx bx-sun theme-icon-sun'></i>
+                    <i class='bx bx-moon theme-icon-moon'></i>
+                </div>
                 Cambiar tema
             </div>
         </div>

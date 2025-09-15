@@ -171,6 +171,25 @@ body {
     display: block;
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
+
+/* Efecto de relleno deslizante para header-profile */
+.header-profile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(68,229,255,.15);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+    border-radius: 50%;
+}
+
+.header-profile:hover::before {
+    left: 0;
+}
+
 .header-profile:hover { 
     border-color: var(--turq);
     transform: scale(1.05);
@@ -259,17 +278,49 @@ body {
 .profile-menu .pm-section { 
     border-top: 1px solid rgba(68,229,255,.08); 
 }
-.profile-menu .pm-item { 
-    display: flex; 
-    align-items: center; 
-    gap: 10px; 
-    padding: 12px 14px; 
-    cursor: pointer; 
-    color: var(--text-primary);
-    transition: background 0.2s ease;
+.profile-menu .pm-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    color: #fff;
 }
-.profile-menu .pm-item:hover { 
-    background: rgba(68,229,255,.08); 
+
+/* Efecto de relleno deslizante para pm-item */
+.profile-menu .pm-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(68,229,255,.08);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.profile-menu .pm-item:hover::before {
+    left: 0;
+}
+
+.profile-menu .pm-item:hover {
+    transform: translateX(4px);
+}
+
+.profile-menu .pm-item:active {
+    transform: translateY(-1px) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+.profile-menu .pm-item:focus {
+    outline: none;
+    box-shadow:
+        0 0 0 3px rgba(68, 229, 255, 0.3),
+        0 8px 25px rgba(68, 229, 255, 0.4);
 }
 .profile-menu .pm-item i { 
     color: var(--turq); 
@@ -561,29 +612,188 @@ body[data-theme="light"] #profileMenu {
 }
 
 /* ===== THEME ICONS AND BODY STYLES ===== */
-[data-theme="light"] .theme-icon-sun {
-    opacity: 0;
-    transform: rotate(90deg);
-}
-
-[data-theme="light"] .theme-icon-moon {
-    opacity: 1;
-    transform: rotate(0deg);
+/* Contenedor para los iconos de tema */
+.theme-icon-container {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    overflow: hidden;
 }
 
 .theme-icon-sun,
 .theme-icon-moon {
-    transition: all 0.3s ease;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    transform: translate(-50%, -50%);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
 }
 
+/* Estado inicial - modo oscuro (sol visible) */
 [data-theme="dark"] .theme-icon-sun {
     opacity: 1;
-    transform: rotate(0deg);
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
 }
 
 [data-theme="dark"] .theme-icon-moon {
     opacity: 0;
-    transform: rotate(-90deg);
+    transform: translate(-50%, -50%) rotate(90deg) scale(0.5);
+}
+
+/* Estado final - modo claro (luna visible) */
+[data-theme="light"] .theme-icon-sun {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-90deg) scale(0.5);
+}
+
+[data-theme="light"] .theme-icon-moon {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+}
+
+/* Animación de transformación durante el cambio */
+.theme-transforming .theme-icon-sun {
+    animation: sunToMoon 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.theme-transforming .theme-icon-moon {
+    animation: moonToSun 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes sunToMoon {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(0deg) scale(1);
+    }
+    30% {
+        opacity: 0.7;
+        transform: translate(-50%, -50%) rotate(-45deg) scale(0.8);
+    }
+    50% {
+        opacity: 0.3;
+        transform: translate(-50%, -50%) rotate(-90deg) scale(0.6);
+    }
+    70% {
+        opacity: 0.1;
+        transform: translate(-50%, -50%) rotate(-135deg) scale(0.4);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(-180deg) scale(0.2);
+    }
+}
+
+@keyframes moonToSun {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(180deg) scale(0.2);
+    }
+    30% {
+        opacity: 0.1;
+        transform: translate(-50%, -50%) rotate(135deg) scale(0.4);
+    }
+    50% {
+        opacity: 0.3;
+        transform: translate(-50%, -50%) rotate(90deg) scale(0.6);
+    }
+    70% {
+        opacity: 0.7;
+        transform: translate(-50%, -50%) rotate(45deg) scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(0deg) scale(1);
+    }
+}
+
+/* Animación inversa para el cambio de claro a oscuro */
+.theme-transforming-reverse .theme-icon-sun {
+    animation: moonToSun 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.theme-transforming-reverse .theme-icon-moon {
+    animation: sunToMoon 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Animación especial para el botón de tema */
+#themeToggle {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+#themeToggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(68, 229, 255, 0.2), 
+        transparent);
+    transition: left 0.6s ease;
+}
+
+#themeToggle:hover::before {
+    left: 100%;
+}
+
+#themeToggle:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+}
+
+/* Animación de click para el botón de tema */
+#themeToggle.clicked {
+    animation: themeToggleClick 0.4s ease;
+}
+
+@keyframes themeToggleClick {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+/* Efecto de brillo en los iconos durante la transición */
+.theme-icon-sun::after,
+.theme-icon-moon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(68, 229, 255, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+#themeToggle:hover .theme-icon-sun::after,
+#themeToggle:hover .theme-icon-moon::after {
+    width: 20px;
+    height: 20px;
+}
+
+/* Animación de pulso para indicar cambio de tema */
+@keyframes themePulse {
+    0% { box-shadow: 0 0 0 0 rgba(68, 229, 255, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(68, 229, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(68, 229, 255, 0); }
+}
+
+#themeToggle.theme-changing {
+    animation: themePulse 0.6s ease;
 }
 
 /* ===== BODY AND BACKGROUND LIGHT MODE ===== */

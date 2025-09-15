@@ -3327,14 +3327,178 @@ body {
     box-shadow: 0 0 20px rgba(0, 102, 204, 0.3) !important;
 }
 
+/* ===== THEME ICONS AND ANIMATIONS ===== */
+/* Contenedor para los iconos de tema */
+.theme-icon-container {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    overflow: hidden;
+}
+
+.theme-icon-sun,
+.theme-icon-moon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+/* Estado inicial - modo oscuro (sol visible) */
+[data-theme="dark"] .theme-icon-sun {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+}
+
+[data-theme="dark"] .theme-icon-moon {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(90deg) scale(0.5);
+}
+
+/* Estado final - modo claro (luna visible) */
 [data-theme="light"] .theme-icon-sun {
     opacity: 0;
-    transform: rotate(90deg);
+    transform: translate(-50%, -50%) rotate(-90deg) scale(0.5);
 }
 
 [data-theme="light"] .theme-icon-moon {
     opacity: 1;
-    transform: rotate(0deg);
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+}
+
+/* Animación de transformación durante el cambio */
+.theme-transforming .theme-icon-sun {
+    animation: sunToMoon 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.theme-transforming .theme-icon-moon {
+    animation: moonToSun 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Animación inversa para el cambio de claro a oscuro */
+.theme-transforming-reverse .theme-icon-sun {
+    animation: moonToSun 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.theme-transforming-reverse .theme-icon-moon {
+    animation: sunToMoon 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Keyframes de animación */
+@keyframes sunToMoon {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(0deg) scale(1);
+    }
+    30% {
+        opacity: 0.7;
+        transform: translate(-50%, -50%) rotate(-45deg) scale(0.8);
+    }
+    70% {
+        opacity: 0.3;
+        transform: translate(-50%, -50%) rotate(-90deg) scale(0.6);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(-180deg) scale(0.2);
+    }
+}
+
+@keyframes moonToSun {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(180deg) scale(0.2);
+    }
+    30% {
+        opacity: 0.3;
+        transform: translate(-50%, -50%) rotate(90deg) scale(0.6);
+    }
+    70% {
+        opacity: 0.7;
+        transform: translate(-50%, -50%) rotate(45deg) scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(0deg) scale(1);
+    }
+}
+
+/* Animación especial para el botón de tema */
+#themeToggle {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+#themeToggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(68,229,255,0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+#themeToggle:hover::before {
+    left: 100%;
+}
+
+#themeToggle:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+}
+
+/* Animación de click para el botón de tema */
+#themeToggle.clicked {
+    animation: themeToggleClick 0.4s ease;
+}
+
+@keyframes themeToggleClick {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+/* Efecto de brillo en los iconos durante la transición */
+.theme-icon-sun::after,
+.theme-icon-moon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(68,229,255,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+#themeToggle:hover .theme-icon-sun::after,
+#themeToggle:hover .theme-icon-moon::after {
+    width: 20px;
+    height: 20px;
+}
+
+/* Animación de pulso para indicar cambio de tema */
+#themeToggle.theme-changing {
+    animation: themePulse 0.6s ease;
+}
+
+@keyframes themePulse {
+    0% { box-shadow: 0 0 0 0 rgba(68, 229, 255, 0.7); }
+    100% { box-shadow: 0 0 0 0 rgba(68, 229, 255, 0); }
 }
 
 /* Transiciones suaves */

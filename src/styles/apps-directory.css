@@ -1004,6 +1004,35 @@ body.bg-glow-global .tab-button.active i {
     background: rgba(68, 229, 255, 0.05) !important;
 }
 
+[data-theme="light"] .pm-item i {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .pm-item .theme-icon-sun,
+[data-theme="light"] .pm-item .theme-icon-moon {
+    color: #00E0F7 !important;
+}
+
+[data-theme="light"] .pm-item:has(.bx-bar-chart-alt-2) i {
+    color: #00E0F7 !important;
+}
+
+[data-theme="light"] .pm-item:has(.bx-book) i {
+    color: #00E0F7 !important;
+}
+
+[data-theme="light"] .pm-item:has(.bx-collection) i {
+    color: #00E0F7 !important;
+}
+
+[data-theme="light"] .pm-item:has(.bx-user) i {
+    color: #00E0F7 !important;
+}
+
+[data-theme="light"] .pm-item:has(.bx-log-out) i {
+    color: #00E0F7 !important;
+}
+
 /* ===== ESTILOS DE FONDO PARA CONSISTENCIA CON CURSOS.HTML ===== */
 
 /* Body con fondo consistente - MÁXIMA ESPECIFICIDAD */

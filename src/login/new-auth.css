@@ -263,6 +263,12 @@ body {
     width: 50px;
     height: 50px;
     border-radius: 50%;
+    background: #0B1220; /* Color gris oscuro del modo oscuro */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     animation: glowPulse 4s ease-in-out infinite;
 }
 
@@ -1674,6 +1680,12 @@ a:focus-visible {
 [data-theme="light"] .brand-text {
     color: #2D3748 !important;
     font-weight: 700 !important;
+}
+
+/* Logo en modo claro */
+[data-theme="light"] .brand-icon {
+    background: #72818A !important; /* Color gris específico para modo claro */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
 /* Tabs en modo claro */

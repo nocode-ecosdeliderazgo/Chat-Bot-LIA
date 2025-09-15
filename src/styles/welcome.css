@@ -91,6 +91,12 @@
     box-shadow: 0 0 12px currentColor;
 }
 
+/* ===== ESTILOS DEL LOGO PARA MODO CLARO ===== */
+[data-theme="light"] .logo-icon {
+    background: #72818A; /* Color gris específico para modo claro */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 /* ===== RESET & BASE STYLES ===== */
 * {
     margin: 0;
@@ -184,8 +190,14 @@ body {
 .logo-icon {
     width: 40px;
     height: 40px;
-    border-radius: var(--border-radius-sm);
+    border-radius: 50%;
     overflow: hidden;
+    background: #0B1220; /* Color gris oscuro del modo oscuro de community.html */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .logo-img {

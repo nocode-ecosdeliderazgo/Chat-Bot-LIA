@@ -151,7 +151,7 @@ class NoticesPage {
     fillUserHeader(){
         try{
             const raw = localStorage.getItem('currentUser');
-            if(!raw) return;
+            if(raw) {
             const user = JSON.parse(raw);
             const nameEl = document.getElementById('pmName');
             const emailEl = document.getElementById('pmEmail');
@@ -160,13 +160,51 @@ class NoticesPage {
             if(user.avatar_url){
                 document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img=>{img.src=user.avatar_url;});
             }
-        }catch(e){}
+            }
+        }catch(e){
+            console.log('Error loading user data:', e);
+        }
+
+        // Setup profile menu functionality
+        this.setupProfileMenu();
+    }
+
+    setupProfileMenu() {
         const avatarBtn = document.querySelector('.header-profile');
         const menu = document.getElementById('profileMenu');
-        if(avatarBtn && menu){
-            avatarBtn.addEventListener('click', (e)=>{ e.preventDefault(); menu.classList.toggle('show');});
-            document.addEventListener('click', (e)=>{ if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) menu.classList.remove('show');});
+        if (!avatarBtn || !menu) {
+            console.error('[PROFILE] ❌ Elementos del menú de perfil no encontrados');
+            return;
         }
+        console.log('[PROFILE] ✅ Menú de perfil configurado correctamente');
+
+        avatarBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            menu.classList.toggle('show');
+        });
+
+        // Cerrar menú al hacer click fuera
+        document.addEventListener('click', (e) => {
+            if (!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        });
+
+        // Llenar datos del usuario
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            const nameEl = document.getElementById('pmName');
+            const emailEl = document.getElementById('pmEmail');
+            if (nameEl) nameEl.textContent = currentUser.display_name || currentUser.username || 'Usuario';
+            if (emailEl) emailEl.textContent = currentUser.email || currentUser.user?.email || currentUser.data?.email || '';
+            // avatar
+            if (currentUser.avatar_url) {
+                document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {
+                    img.src = currentUser.avatar_url;
+                });
+            }
+        } catch (e) { /* noop */ }
     }
 
     // ===== THEME MANAGEMENT =====
@@ -233,19 +271,33 @@ class NoticesPage {
     updateThemeIcons(theme) {
         const sunIcon = document.querySelector('.theme-icon-sun');
         const moonIcon = document.querySelector('.theme-icon-moon');
+        const themeToggle = document.getElementById('themeToggle');
+        const iconContainer = document.querySelector('.theme-icon-container');
         
-        if (sunIcon && moonIcon) {
-            if (theme === 'light') {
-                sunIcon.style.opacity = '0';
-                sunIcon.style.transform = 'rotate(90deg)';
-                moonIcon.style.opacity = '1';
-                moonIcon.style.transform = 'rotate(0deg)';
-            } else {
-                sunIcon.style.opacity = '1';
-                sunIcon.style.transform = 'rotate(0deg)';
-                moonIcon.style.opacity = '0';
-                moonIcon.style.transform = 'rotate(-90deg)';
+        if (sunIcon && moonIcon && themeToggle && iconContainer) {
+            // Agregar clases de animación
+            themeToggle.classList.add('theme-changing');
+            
+            // Determinar la dirección de la animación
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const isTransitioningToLight = theme === 'light' && currentTheme === 'dark';
+            const isTransitioningToDark = theme === 'dark' && currentTheme === 'light';
+            
+            if (isTransitioningToLight) {
+                // De oscuro a claro: sol se transforma en luna
+                iconContainer.classList.add('theme-transforming');
+                iconContainer.classList.remove('theme-transforming-reverse');
+            } else if (isTransitioningToDark) {
+                // De claro a oscuro: luna se transforma en sol
+                iconContainer.classList.add('theme-transforming-reverse');
+                iconContainer.classList.remove('theme-transforming');
             }
+            
+            // Remover clases de animación después de completar
+            setTimeout(() => {
+                themeToggle.classList.remove('theme-changing');
+                iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
+            }, 800);
         }
     }
 
@@ -821,238 +873,36 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded - notices page initializing...');
     noticesPage = new NoticesPage();
     
-    // Configuración inmediata del menú de perfil
-    setupProfileMenuImmediate();
+    // Profile menu setup is now handled in fillUserHeader() via setupProfileMenu()
 });
 
-// Función para configurar el menú de perfil
-function setupProfileMenuDirect() {
-    const avatarBtn = document.querySelector('.header-profile');
-    const menu = document.getElementById('profileMenu');
-    
-    if(avatarBtn && menu) {
-        console.log('Setting up profile menu in notices');
-        
-        // Cargar datos del usuario
-        try {
-            const raw = localStorage.getItem('currentUser');
-            if(raw) {
-                const user = JSON.parse(raw);
-                const nameEl = document.getElementById('pmName');
-                const emailEl = document.getElementById('pmEmail');
-                if(nameEl && user.display_name) nameEl.textContent = user.display_name;
-                if(emailEl) emailEl.textContent = user.email || user.user?.email || user.data?.email || '';
-                if(user.avatar_url) {
-                    document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {
-                        img.src = user.avatar_url;
-                    });
-                }
-            }
-        } catch(e) {
-            console.log('Error loading user data:', e);
-        }
-        
-        avatarBtn.onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Profile button clicked in notices');
-            menu.classList.toggle('show');
-        };
-        
-        document.onclick = function(e) {
-            if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
-                menu.classList.remove('show');
-            }
-        };
-    } else {
-        console.log('Profile elements not found in notices');
-    }
-}
 
-// Función inmediata para configurar el menú de perfil
-function setupProfileMenuImmediate() {
-    console.log('Setting up profile menu immediately...');
-    
-    const avatarBtn = document.getElementById('headerProfileBtn');
-    const menu = document.getElementById('profileMenu');
-    
-    console.log('Avatar button found:', avatarBtn);
-    console.log('Profile menu found:', menu);
-    
-    if(avatarBtn && menu) {
-        console.log('Both elements found, setting up click handler...');
-        
-        // Remover eventos previos
-        avatarBtn.onclick = null;
-        
-        // Configurar evento de click
-        avatarBtn.addEventListener('click', function(e) {
-            console.log('Profile button clicked!');
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Método directo - aplicar estilos según el tema actual
-            if(menu.style.display === 'block') {
-                menu.style.display = 'none';
-                console.log('Menu hidden');
-            } else {
-                // Detectar el tema actual
-                const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light' || 
-                                   document.body.getAttribute('data-theme') === 'light';
-                
-                // Aplicar estilos según el tema
-                const lightStyles = `
-                    position: fixed !important;
-                    top: 76px !important;
-                    right: 20px !important;
-                    width: 260px !important;
-                    background: rgba(255, 255, 255, 0.96) !important;
-                    border: 1px solid rgba(0, 102, 204, 0.18) !important;
-                    border-radius: 14px !important;
-                    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.1) !important;
-                    backdrop-filter: blur(10px) !important;
-                    z-index: 99999 !important;
-                    display: block !important;
-                    opacity: 1 !important;
-                    visibility: visible !important;
-                `;
-                
-                const darkStyles = `
-                    position: fixed !important;
-                    top: 76px !important;
-                    right: 20px !important;
-                    width: 260px !important;
-                    background: rgba(10,16,28,0.96) !important;
-                    border: 1px solid rgba(68,229,255,0.18) !important;
-                    border-radius: 14px !important;
-                    box-shadow: 0 18px 46px rgba(0,0,0,0.45) !important;
-                    backdrop-filter: blur(10px) !important;
-                    z-index: 99999 !important;
-                    display: block !important;
-                    opacity: 1 !important;
-                    visibility: visible !important;
-                `;
-                
-                menu.style.cssText = isLightTheme ? lightStyles : darkStyles;
-                console.log('Menu shown with theme-aware styles:', isLightTheme ? 'light' : 'dark');
-            }
-        });
-        
-        // Cerrar menú al hacer click fuera
-        document.addEventListener('click', function(e) {
-            if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
-                menu.style.display = 'none';
-            }
-        });
-        
-        // Cargar datos del usuario
-        loadUserDataIntoMenu();
-        
-        // Escuchar cambios de tema para actualizar el menú si está abierto
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
-                    // Si el menú está abierto, actualizar sus estilos
-                    if (menu.style.display === 'block') {
-                        const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light' || 
-                                           document.body.getAttribute('data-theme') === 'light';
-                        
-                        const lightStyles = `
-                            position: fixed !important;
-                            top: 76px !important;
-                            right: 20px !important;
-                            width: 260px !important;
-                            background: rgba(255, 255, 255, 0.96) !important;
-                            border: 1px solid rgba(0, 102, 204, 0.18) !important;
-                            border-radius: 14px !important;
-                            box-shadow: 0 18px 46px rgba(0, 0, 0, 0.1) !important;
-                            backdrop-filter: blur(10px) !important;
-                            z-index: 99999 !important;
-                            display: block !important;
-                            opacity: 1 !important;
-                            visibility: visible !important;
-                        `;
-                        
-                        const darkStyles = `
-                            position: fixed !important;
-                            top: 76px !important;
-                            right: 20px !important;
-                            width: 260px !important;
-                            background: rgba(10,16,28,0.96) !important;
-                            border: 1px solid rgba(68,229,255,0.18) !important;
-                            border-radius: 14px !important;
-                            box-shadow: 0 18px 46px rgba(0,0,0,0.45) !important;
-                            backdrop-filter: blur(10px) !important;
-                            z-index: 99999 !important;
-                            display: block !important;
-                            opacity: 1 !important;
-                            visibility: visible !important;
-                        `;
-                        
-                        menu.style.cssText = isLightTheme ? lightStyles : darkStyles;
-                        console.log('Menu styles updated for theme:', isLightTheme ? 'light' : 'dark');
-                    }
-                }
-            });
-        });
-        
-        // Observar cambios en el atributo data-theme del documentElement
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['data-theme']
-        });
-        
-        console.log('Profile menu setup completed successfully!');
-    } else {
-        console.error('Profile elements not found!', {avatarBtn, menu});
-    }
-}
 
-// Cargar datos del usuario en el menú
-function loadUserDataIntoMenu() {
-    try {
-        const raw = localStorage.getItem('currentUser');
-        if(raw) {
-            const user = JSON.parse(raw);
-            const nameEl = document.getElementById('pmName');
-            const emailEl = document.getElementById('pmEmail');
-            
-            if(nameEl && user.display_name) nameEl.textContent = user.display_name;
-            if(emailEl) emailEl.textContent = user.email || user.user?.email || user.data?.email || '';
-            
-            if(user.avatar_url) {
-                document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {
-                    img.src = user.avatar_url;
-                });
-            }
-        }
-    } catch(e) {
-        console.log('Error loading user data:', e);
-    }
-}
 
-// Función global para toggle del menú (backup)
-function toggleProfileMenu(event) {
-    console.log('toggleProfileMenu backup called');
-    const menu = document.getElementById('profileMenu');
-    if(menu) {
-        menu.classList.toggle('show');
-    }
-}
 
 // Función global para toggle del tema - conectada con el botón del menú
 window.toggleTheme = function() {
     console.log('🎨 Theme toggle called from notices');
     
+    // Agregar efecto de click al botón
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.classList.add('clicked');
+        setTimeout(() => {
+            themeToggle.classList.remove('clicked');
+        }, 400);
+    }
+    
+    // Obtener tema actual antes del cambio
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
     // Usar la función global de cambio de tema
     if (window.toggleGlobalTheme) {
-        const newTheme = window.toggleGlobalTheme();
+        window.toggleGlobalTheme();
         console.log('🎨 Theme toggled via global function to:', newTheme);
     } else {
         // Fallback manual si el script global no está disponible
-        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
         // Aplicar tema
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
@@ -1062,11 +912,29 @@ window.toggleTheme = function() {
         
         console.log('🎨 Theme toggled via fallback to:', newTheme);
     }
+    
+    // Activar animación de transformación
+    const iconContainer = document.querySelector('.theme-icon-container');
+    if (iconContainer) {
+        // Limpiar clases previas
+        iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
+        
+        // Aplicar la animación correcta
+        if (newTheme === 'light') {
+            // De oscuro a claro: sol se transforma en luna
+            iconContainer.classList.add('theme-transforming');
+        } else {
+            // De claro a oscuro: luna se transforma en sol
+            iconContainer.classList.add('theme-transforming-reverse');
+        }
+        
+        // Remover clase después de la animación
+        setTimeout(() => {
+            iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
+        }, 800);
+    }
 };
 
 // ===== GLOBAL FUNCTIONS =====
 window.noticesPage = noticesPage;
-window.setupProfileMenuDirect = setupProfileMenuDirect;
-window.setupProfileMenuImmediate = setupProfileMenuImmediate;
-window.toggleProfileMenu = toggleProfileMenu;
-window.loadUserDataIntoMenu = loadUserDataIntoMenu;
+// Profile menu functions removed - now handled via NoticesPage.setupProfileMenu()
