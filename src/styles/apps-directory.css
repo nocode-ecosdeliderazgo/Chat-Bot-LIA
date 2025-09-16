@@ -1723,3 +1723,680 @@ main.container {
     outline: 2px solid var(--turq);
     outline-offset: 2px;
 }
+
+/* ===== APP MODAL STYLES ===== */
+.app-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.app-modal.active {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Asegurar que el modal se muestre por encima de todo */
+.app-modal {
+    pointer-events: none;
+}
+
+.app-modal.active {
+    pointer-events: auto;
+}
+
+/* Asegurar que el contenido del modal sea interactivo */
+.modal-content {
+    pointer-events: auto;
+}
+
+/* Estilos específicos para que el modal se vea como en test-modal.html */
+.app-modal {
+    background: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.app-modal .modal-content {
+    width: 60vw !important;
+    max-width: 60vw !important;
+    min-width: 800px !important;
+}
+
+.app-modal .modal-app-card {
+    width: 100% !important;
+    min-height: 80vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Asegurar que el layout de dos columnas funcione correctamente */
+.app-main-content {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 30px !important;
+    flex: 1 !important;
+}
+
+.modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.modal-content {
+    position: relative;
+    width: 60vw; /* 60% del ancho de la pantalla como solicitado */
+    max-width: 60vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 1;
+    background: transparent;
+}
+
+.modal-close {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 40px;
+    height: 40px;
+    background: #0066CC;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 2;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+}
+
+.modal-close:hover {
+    background: #0052A3;
+    transform: scale(1.1);
+}
+
+.modal-app-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 102, 204, 0.2);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    width: 100%;
+    min-height: 80vh;
+}
+
+/* Header Gráfico (Cerebro) - Más pequeño y elegante */
+.app-header-graphic {
+    background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+    height: 120px;
+    position: relative;
+    border-radius: 20px 20px 0 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.brain-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.5rem;
+    color: #44e5ff;
+    text-shadow: 0 0 15px rgba(68, 229, 255, 0.6);
+    z-index: 2;
+}
+
+.brain-icon .fa-cog {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 1rem;
+    color: #44e5ff;
+    text-shadow: 0 0 8px rgba(68, 229, 255, 0.6);
+}
+
+.neural-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%,
+        rgba(68, 229, 255, 0.3) 0%,
+        transparent 70%);
+    z-index: 1;
+}
+
+.neural-lines::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        linear-gradient(45deg, transparent 48%, rgba(68, 229, 255, 0.1) 50%, transparent 52%),
+        linear-gradient(-45deg, transparent 48%, rgba(68, 229, 255, 0.1) 50%, transparent 52%);
+    background-size: 20px 20px;
+    opacity: 0.3;
+}
+
+.gear-icon {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    font-size: 1.2rem;
+    color: #44e5ff;
+    animation: rotate 10s linear infinite;
+    text-shadow: 0 0 8px rgba(68, 229, 255, 0.6);
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Título Principal - Más elegante */
+.app-main-title {
+    font-family: var(--font-heading);
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #44e5ff, #0066CC);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 25px 25px 0 25px;
+    line-height: 1.2;
+    text-align: center;
+}
+
+/* TL;DR Section - Más atractiva */
+.tldr-section {
+    background: linear-gradient(135deg, rgba(68, 229, 255, 0.08), rgba(0, 102, 204, 0.12));
+    border: 1px solid rgba(68, 229, 255, 0.3);
+    border-left: 4px solid #44e5ff;
+    padding: 20px 25px;
+    border-radius: 12px;
+    margin: 20px 25px;
+    box-shadow: 0 4px 15px rgba(68, 229, 255, 0.1);
+}
+
+.tldr-heading {
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #44e5ff;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tldr-icon {
+    width: 12px;
+    height: 12px;
+    background: #0066CC;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 10px rgba(0, 102, 204, 0.5);
+}
+
+.tldr-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tldr-items li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.tldr-items li:before {
+    content: "•";
+    color: #44e5ff;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    text-shadow: 0 0 5px rgba(0, 102, 204, 0.5);
+}
+
+/* Layout de dos columnas - Mejorado */
+.app-main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin: 25px 0;
+    padding: 0 25px;
+}
+
+.left-column, .right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.section-heading {
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #44e5ff;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 2px solid rgba(68, 229, 255, 0.2);
+}
+
+.section-heading i {
+    font-size: 1rem;
+    text-shadow: 0 0 5px rgba(0, 102, 204, 0.5);
+}
+
+.section-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.section-list li {
+    position: relative;
+    padding: 8px 0 8px 25px;
+    margin-bottom: 5px;
+    color: var(--text-secondary);
+    background: rgba(68, 229, 255, 0.03);
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.section-list li:before {
+    content: "✓";
+    color: #44e5ff;
+    font-weight: bold;
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    text-shadow: 0 0 5px rgba(0, 102, 204, 0.5);
+    font-size: 0.9rem;
+}
+
+.section-list li:hover {
+    background: rgba(68, 229, 255, 0.08);
+    border-left-color: #44e5ff;
+    transform: translateX(5px);
+}
+
+/* Pricing Plans */
+.pricing-plans {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.pricing-plan {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(68, 229, 255, 0.05));
+    border: 1px solid rgba(0, 102, 204, 0.2);
+    border-radius: 15px;
+    padding: 20px;
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.1);
+}
+
+.pricing-plan:hover {
+    background: rgba(0, 102, 204, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.2);
+}
+
+.pricing-plan.popular {
+    border-color: #0066CC;
+    background: rgba(0, 102, 204, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+}
+
+.pricing-plan.popular::before {
+    content: "Más Popular";
+    position: absolute;
+    top: -10px;
+    right: 15px;
+    background: #0066CC;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.plan-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.plan-price {
+    font-weight: 700;
+    color: #0066CC;
+    font-size: 1.2rem;
+}
+
+.plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.plan-features li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 6px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.plan-features li:before {
+    content: "✓";
+    color: #44e5ff;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    text-shadow: 0 0 5px rgba(0, 102, 204, 0.5);
+}
+
+/* CTA Section */
+.cta-section {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    background: transparent;
+    border: none;
+}
+
+.cta-label {
+    display: none !important;
+}
+
+.cta-button {
+    background: linear-gradient(135deg, #0066CC, #004499);
+    color: white;
+    border: none;
+    padding: 20px 60px;
+    border-radius: 15px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    flex: 1;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+    font-family: var(--font-heading);
+    text-align: center;
+    max-width: 500px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.cta-button:hover::before {
+    left: 100%;
+}
+
+.cta-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 102, 204, 0.5);
+    background: linear-gradient(135deg, #0052A3, #003366);
+}
+
+/* Modal Detailed Content */
+.modal-detailed-content {
+    padding: 20px;
+}
+
+.modal-detailed-content p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.modal-detailed-content strong {
+    color: #44e5ff;
+    font-weight: 600;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .modal-content {
+        max-width: 95vw;
+        max-height: 95vh;
+        margin: 10px;
+    }
+
+    .app-main-content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .app-main-title {
+        font-size: 1.5rem;
+        margin: 15px 15px 0 15px;
+    }
+
+    .app-header-graphic {
+        height: 150px;
+    }
+
+    .brain-icon {
+        font-size: 3rem;
+    }
+
+    .brain-icon .fa-cog {
+        font-size: 1.2rem;
+        top: -8px;
+        right: -8px;
+    }
+
+    .gear-icon {
+        font-size: 1.5rem;
+        bottom: 15px;
+        left: 15px;
+    }
+
+    .tldr-section {
+        margin: 15px;
+        padding: 15px;
+    }
+
+    .cta-section {
+        padding: 15px;
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .cta-button {
+        width: 100%;
+        padding: 12px 25px;
+        font-size: 1rem;
+    }
+
+    .modal-close {
+        top: 5px;
+        right: 5px;
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .app-main-title {
+        font-size: 1.3rem;
+    }
+
+    .section-heading {
+        font-size: 1rem;
+    }
+
+    .tldr-heading {
+        font-size: 1.1rem;
+    }
+}
+
+/* ===== ESTILOS ESPECÍFICOS PARA MODO CLARO DEL MODAL ===== */
+
+/* Fondo del modal en modo claro */
+[data-theme="light"] .modal-app-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Contenido del modal en modo claro */
+[data-theme="light"] .modal-detailed-content {
+    background: rgba(255, 255, 255, 0.98) !important;
+}
+
+[data-theme="light"] .modal-detailed-content p {
+    color: #2d3748 !important;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+[data-theme="light"] .modal-detailed-content strong {
+    color: #0066CC !important;
+    font-weight: 600;
+}
+
+/* Título principal del modal en modo claro */
+[data-theme="light"] .app-main-title {
+    color: #1a202c !important;
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+    background-clip: unset !important;
+}
+
+/* Sección TL;DR en modo claro */
+[data-theme="light"] .tldr-section {
+    background: rgba(0, 102, 204, 0.08) !important;
+    border-left: 4px solid #0066CC !important;
+}
+
+[data-theme="light"] .tldr-heading {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .tldr-items {
+    color: #4a5568 !important;
+}
+
+[data-theme="light"] .tldr-items li {
+    color: #4a5568 !important;
+}
+
+/* Encabezados de sección en modo claro */
+[data-theme="light"] .section-heading {
+    color: #2d3748 !important;
+}
+
+/* Listas en modo claro */
+[data-theme="light"] .section-list li {
+    color: #4a5568 !important;
+}
+
+/* Planes de precios en modo claro */
+[data-theme="light"] .pricing-plan {
+    background: rgba(0, 102, 204, 0.05) !important;
+    border: 1px solid rgba(0, 102, 204, 0.15) !important;
+}
+
+[data-theme="light"] .pricing-plan:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+}
+
+[data-theme="light"] .pricing-plan.popular {
+    background: rgba(0, 102, 204, 0.15) !important;
+    border-color: #0066CC !important;
+}
+
+[data-theme="light"] .plan-name {
+    color: #1a202c !important;
+}
+
+[data-theme="light"] .plan-price {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .plan-features li {
+    color: #4a5568 !important;
+}
+
+/* Botón CTA en modo claro */
+[data-theme="light"] .cta-button {
+    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3) !important;
+}
+
+[data-theme="light"] .cta-button:hover {
+    background: linear-gradient(135deg, #0052A3, #004080) !important;
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4) !important;
+}
+
+/* Iconos del header del modal en modo claro */
+[data-theme="light"] .app-header-graphic {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.1), rgba(0, 102, 204, 0.05)) !important;
+}
+
+[data-theme="light"] .brain-icon i,
+[data-theme="light"] .gear-icon i {
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .neural-lines::before {
+    background: linear-gradient(90deg, transparent, #0066CC, transparent) !important;
+}

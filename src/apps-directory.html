@@ -198,6 +198,96 @@
         </main>
     </div> <!-- Cierre del auth-container -->
 
+    <!-- App Details Modal -->
+    <div class="app-modal" id="appModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAppModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-app-card">
+                <!-- Modal content will be loaded here dynamically -->
+                <div class="app-header-graphic">
+                    <div class="brain-icon">
+                        <i class="fas fa-brain"></i>
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <div class="neural-lines"></div>
+                    <div class="gear-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                </div>
+                <h1 class="app-main-title" id="modalAppTitle">Título de la herramienta</h1>
+                <div class="tldr-section">
+                    <h3 class="tldr-heading">
+                        <span class="tldr-icon"></span>
+                        TL;DR:
+                    </h3>
+                    <ul class="tldr-items" id="modalAppTldr">
+                        <!-- TL;DR items will be loaded here -->
+                    </ul>
+                </div>
+                <div class="modal-detailed-content">
+                    <p id="modalAppDescription"><strong>Descripción:</strong></p>
+                    <p id="modalAppDescriptionText">Descripción detallada de la herramienta...</p>
+
+                    <div class="app-main-content">
+                        <div class="left-column">
+                            <div class="pros-section">
+                                <h4 class="section-heading">Ventajas</h4>
+                                <ul class="section-list" id="modalAppPros">
+                                    <!-- Pros will be loaded here -->
+                                </ul>
+                            </div>
+                            <div class="cons-section">
+                                <h4 class="section-heading">Desventajas</h4>
+                                <ul class="section-list" id="modalAppCons">
+                                    <!-- Cons will be loaded here -->
+                                </ul>
+                            </div>
+                            <div class="pricing-section">
+                                <h4 class="section-heading">
+                                    <i class="fas fa-euro-sign"></i>
+                                    Planes y Precios:
+                                </h4>
+                                <div class="pricing-plans" id="modalAppPricing">
+                                    <!-- Pricing plans will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="right-column">
+                            <div class="use-cases-section">
+                                <h4 class="section-heading">Casos de uso:</h4>
+                                <ul class="section-list" id="modalAppUseCases">
+                                    <!-- Use cases will be loaded here -->
+                                </ul>
+                            </div>
+                            <div class="alternatives-section">
+                                <h4 class="section-heading">Alternativas:</h4>
+                                <ul class="section-list" id="modalAppAlternatives">
+                                    <!-- Alternatives will be loaded here -->
+                                </ul>
+                            </div>
+                            <div class="features-section">
+                                <h4 class="section-heading">
+                                    <i class="fas fa-star"></i>
+                                    Características principales:
+                                </h4>
+                                <ul class="section-list" id="modalAppFeatures">
+                                    <!-- Features will be loaded here -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="cta-section">
+                    <span class="cta-label">CTA:</span>
+                    <button class="cta-button" id="modalAppCtaButton">Visitar herramienta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="data/apps-data.js"></script>
     <script src="scripts/apps-directory.js"></script>

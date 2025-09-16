@@ -32,6 +32,7 @@ class AppsDirectory {
         this.renderApps();
         this.setupEventListeners();
         this.setupFilterSidebar();
+        this.setupModalClose();
         this.hideLoading();
         console.log('✅ [APPS] Inicialización completa');
     }
@@ -248,115 +249,165 @@ class AppsDirectory {
 
     setupAppCardListeners() {
         const appCards = document.querySelectorAll('.app-card');
-        appCards.forEach(card => {
+        console.log('🔗 [MODAL] Configurando listeners para', appCards.length, 'tarjetas');
+        
+        appCards.forEach((card, index) => {
+            const appId = card.dataset.appId;
+            console.log(`🔗 [MODAL] Tarjeta ${index + 1} - ID:`, appId);
+            
+            // Click on the card itself (excluding the discover button)
             card.addEventListener('click', (e) => {
+                console.log('🖱️ [MODAL] Click en tarjeta, target:', e.target);
                 // Don't trigger if clicking on the discover button
-                if (e.target.closest('.discover-btn')) return;
+                if (e.target.closest('.discover-btn')) {
+                    console.log('🖱️ [MODAL] Click en botón descubrir, ignorando click de tarjeta');
+                    return;
+                }
                 
-                const appId = card.dataset.appId;
+                console.log('🖱️ [MODAL] Ejecutando showAppDetails desde tarjeta');
                 this.showAppDetails(appId);
             });
+            
+            // Click specifically on the discover button
+            const discoverBtn = card.querySelector('.discover-btn');
+            if (discoverBtn) {
+                console.log(`🔗 [MODAL] Botón descubrir encontrado en tarjeta ${index + 1}`);
+                discoverBtn.addEventListener('click', (e) => {
+                    console.log('🖱️ [MODAL] Click en botón descubrir');
+                    e.preventDefault(); // Prevent default link behavior
+                    e.stopPropagation(); // Prevent card click
+                    
+                    console.log('🖱️ [MODAL] Ejecutando showAppDetails desde botón');
+                    this.showAppDetails(appId);
+                });
+            } else {
+                console.warn(`⚠️ [MODAL] Botón descubrir NO encontrado en tarjeta ${index + 1}`);
+            }
         });
     }
 
     showAppDetails(appId) {
+        console.log('🔍 [MODAL] showAppDetails llamado con ID:', appId);
         const app = getAppById(appId);
-        if (!app) return;
+        if (!app) {
+            console.error('❌ [MODAL] App no encontrada con ID:', appId);
+            return;
+        }
 
-        // Create modal for app details
-        const modal = this.createAppModal(app);
-        document.body.appendChild(modal);
+        console.log('🔍 [MODAL] Mostrando detalles de:', app.name);
         
-        // Show modal with animation
-        requestAnimationFrame(() => {
-            modal.classList.add('show');
-        });
-
-        // Setup close functionality
-        this.setupModalClose(modal);
+        // Show the modal
+        const modal = document.getElementById('appModal');
+        console.log('🔍 [MODAL] Modal encontrado:', !!modal);
+        if (modal) {
+            this.populateModal(app);
+            modal.classList.add('active');
+            console.log('✅ [MODAL] Modal activado, clases:', modal.className);
+        } else {
+            console.error('❌ [MODAL] Modal no encontrado en el DOM');
+        }
     }
 
-    createAppModal(app) {
-        const modal = document.createElement('div');
-        modal.className = 'app-modal';
-        modal.innerHTML = `
-            <div class="modal-overlay"></div>
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div class="modal-app-info">
-                        <img src="${app.logo}" alt="${app.name}" class="modal-app-logo">
-                        <div>
-                            <h2>${app.name}</h2>
-                            <span class="modal-category">${this.getCategoryDisplayName(app.category)}</span>
-                        </div>
+    populateModal(app) {
+        console.log('📝 [MODAL] Poblando modal con datos de:', app.name);
+        
+        // Update title
+        const titleEl = document.getElementById('modalAppTitle');
+        if (titleEl) titleEl.textContent = app.name;
+        
+        // Update description
+        const descEl = document.getElementById('modalAppDescriptionText');
+        if (descEl) descEl.textContent = app.description;
+        
+        // Update TL;DR section
+        const tldrEl = document.getElementById('modalAppTldr');
+        if (tldrEl && app.detailedInfo) {
+            const tldrItems = [
+                `${app.pricing === 'freemium' ? 'Plan freemium disponible' : app.pricing === 'gratis' ? 'Completamente gratuito' : 'Plan de pago'}`,
+                `${app.hasTutorial ? 'Tutorial incluido' : 'Sin tutorial'}`,
+                `${app.features.length} características principales`,
+                `${app.detailedInfo.alternatives.length} alternativas disponibles`
+            ];
+            tldrEl.innerHTML = tldrItems.map(item => `<li>${item}</li>`).join('');
+        }
+        
+        // Update pros
+        const prosEl = document.getElementById('modalAppPros');
+        if (prosEl && app.detailedInfo) {
+            prosEl.innerHTML = app.detailedInfo.pros.map(pro => `<li>${pro}</li>`).join('');
+        }
+        
+        // Update cons
+        const consEl = document.getElementById('modalAppCons');
+        if (consEl && app.detailedInfo) {
+            consEl.innerHTML = app.detailedInfo.cons.map(con => `<li>${con}</li>`).join('');
+        }
+        
+        // Update pricing plans
+        const pricingEl = document.getElementById('modalAppPricing');
+        if (pricingEl && app.detailedInfo) {
+            pricingEl.innerHTML = app.detailedInfo.pricingPlans.map(plan => `
+                <div class="pricing-plan ${plan.popular ? 'popular' : ''}">
+                    <div class="plan-header">
+                        <span class="plan-name">${plan.name}</span>
+                        <span class="plan-price">${plan.price}</span>
                     </div>
-                    <button class="modal-close">
-                        <i class="bx bx-x"></i>
-                    </button>
+                    <ul class="plan-features">
+                        ${plan.features.map(feature => `<li>${feature}</li>`).join('')}
+                    </ul>
                 </div>
-                <div class="modal-body">
-                    <p class="modal-description">${app.description}</p>
-                    
-                    <div class="modal-section">
-                        <h3>Características principales</h3>
-                        <ul class="features-list">
-                            ${app.features.map(feature => `<li>${feature}</li>`).join('')}
-                        </ul>
-                    </div>
-                    
-                    <div class="modal-section">
-                        <h3>Información</h3>
-                        <div class="app-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Precio:</span>
-                                <span class="detail-value ${app.pricing}">${this.getPricingDisplayName(app.pricing)}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Plan gratuito:</span>
-                                <span class="detail-value">${app.hasFreePlan ? 'Sí' : 'No'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Tutorial disponible:</span>
-                                <span class="detail-value">${app.hasTutorial ? 'Sí' : 'No'}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-tags">
-                        ${app.tags.map(tag => `<span class="modal-tag">${tag}</span>`).join('')}
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <a href="${app.url}" target="_blank" rel="noopener noreferrer" class="modal-visit-btn">
-                        Visitar ${app.name}
-                        <i class="bx bx-external-link"></i>
-                    </a>
-                </div>
-            </div>
-        `;
-
-        return modal;
+            `).join('');
+        }
+        
+        // Update use cases
+        const useCasesEl = document.getElementById('modalAppUseCases');
+        if (useCasesEl && app.detailedInfo) {
+            useCasesEl.innerHTML = app.detailedInfo.useCases.map(useCase => `<li>${useCase}</li>`).join('');
+        }
+        
+        // Update alternatives
+        const alternativesEl = document.getElementById('modalAppAlternatives');
+        if (alternativesEl && app.detailedInfo) {
+            alternativesEl.innerHTML = app.detailedInfo.alternatives.map(alt => `<li>${alt}</li>`).join('');
+        }
+        
+        // Update features
+        const featuresEl = document.getElementById('modalAppFeatures');
+        if (featuresEl) {
+            featuresEl.innerHTML = app.features.map(feature => `<li>${feature}</li>`).join('');
+        }
+        
+        // Update CTA button
+        const ctaEl = document.getElementById('modalAppCtaButton');
+        if (ctaEl) {
+            ctaEl.textContent = `Visitar ${app.name}`;
+            ctaEl.onclick = () => {
+                window.open(app.url, '_blank', 'noopener,noreferrer');
+            };
+        }
     }
 
-    setupModalClose(modal) {
+    setupModalClose() {
+        const modal = document.getElementById('appModal');
         const closeBtn = modal.querySelector('.modal-close');
-        const overlay = modal.querySelector('.modal-overlay');
+        const backdrop = modal.querySelector('.modal-backdrop');
 
         const closeModal = () => {
-            modal.classList.remove('show');
-            setTimeout(() => {
-                document.body.removeChild(modal);
-            }, 300);
+            modal.classList.remove('active');
         };
 
+        if (closeBtn) {
         closeBtn.addEventListener('click', closeModal);
-        overlay.addEventListener('click', closeModal);
+        }
+        
+        if (backdrop) {
+            backdrop.addEventListener('click', closeModal);
+        }
         
         // Close on escape key
         const handleEscape = (e) => {
-            if (e.key === 'Escape') {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
                 closeModal();
-                document.removeEventListener('keydown', handleEscape);
             }
         };
         document.addEventListener('keydown', handleEscape);
@@ -662,12 +713,45 @@ document.addEventListener('DOMContentLoaded', () => {
     document.head.insertAdjacentHTML('beforeend', modalStyles);
     
     // Initialize the directory
-    new AppsDirectory();
+    const appsDirectory = new AppsDirectory();
     
     // Setup profile menu functionality
     setupProfileMenu();
     
+    // Test function to manually open modal
+    window.testModal = function() {
+        console.log('🧪 [TEST] Función testModal llamada');
+        const modal = document.getElementById('appModal');
+        if (modal) {
+            modal.classList.add('active');
+            console.log('✅ [TEST] Modal abierto manualmente');
+            console.log('🧪 [TEST] Clases del modal:', modal.className);
+            console.log('🧪 [TEST] Display computed:', window.getComputedStyle(modal).display);
+            console.log('🧪 [TEST] Opacity computed:', window.getComputedStyle(modal).opacity);
+            console.log('🧪 [TEST] Visibility computed:', window.getComputedStyle(modal).visibility);
+        } else {
+            console.error('❌ [TEST] Modal no encontrado');
+        }
+    };
+
+    // Función para verificar el estado del modal
+    window.checkModal = function() {
+        const modal = document.getElementById('appModal');
+        if (modal) {
+            console.log('🔍 [DEBUG] Modal encontrado');
+            console.log('🔍 [DEBUG] Clases:', modal.className);
+            console.log('🔍 [DEBUG] Display:', window.getComputedStyle(modal).display);
+            console.log('🔍 [DEBUG] Opacity:', window.getComputedStyle(modal).opacity);
+            console.log('🔍 [DEBUG] Visibility:', window.getComputedStyle(modal).visibility);
+            console.log('🔍 [DEBUG] Z-index:', window.getComputedStyle(modal).zIndex);
+            console.log('🔍 [DEBUG] Position:', window.getComputedStyle(modal).position);
+        } else {
+            console.error('❌ [DEBUG] Modal no encontrado');
+        }
+    };
+    
     console.log('[APPS-DIRECTORY] ✅ Inicialización completa');
+    console.log('[APPS-DIRECTORY] 🧪 Función testModal disponible: window.testModal()');
 });
 
 // Theme toggle functionality - función global
@@ -688,6 +772,14 @@ window.toggleTheme = function() {
         }
     }
     console.log('[THEME] Tema cambiado a:', newTheme);
+}
+
+// Close app modal functionality - función global
+window.closeAppModal = function() {
+    const modal = document.getElementById('appModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
 }
 
 // Función global de test para el menú de perfil
