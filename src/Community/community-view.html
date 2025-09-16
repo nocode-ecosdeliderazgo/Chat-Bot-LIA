@@ -1234,47 +1234,11 @@
                          console.error('Error cargando posts:', e);
                          posts = [];
                      }
-                 } else {
-                     // Generar posts iniciales más realistas si no hay nada guardado
-                     const initialPosts = [
-                         {
-                             id: Date.now() - 3600000, // 1 hora atrás
-                             user: 'María González',
-                             avatar: 'fas fa-user',
-                             category: 'general',
-                             minutesAgo: 60,
-                             timeAgo: 'Hace 1 hora',
-                             timestamp: Date.now() - 3600000,
-                             content: '¡Hola comunidad! Me alegra estar aquí compartiendo experiencias y aprendiendo de todos ustedes. ¿Cómo están sus proyectos?',
-                             comments: [
-                                 { user: 'Carlos López', content: '¡Bienvenida María! Me alegra verte por aquí', timestamp: Date.now() - 3500000 }
-                             ],
-                             reactions: { like: 8, heart: 3 },
-                             attachments: [],
-                             reacted: null
-                         },
-                         {
-                             id: Date.now() - 1800000, // 30 minutos atrás
-                             user: 'Alejandro Torres',
-                             avatar: 'fas fa-user',
-                             category: 'desarrollo',
-                             minutesAgo: 30,
-                             timeAgo: 'Hace 30 minutos',
-                             timestamp: Date.now() - 1800000,
-                             content: 'Acabo de terminar un proyecto interesante usando React y Node.js. ¿Alguien más está trabajando con estas tecnologías?',
-                             comments: [
-                                 { user: 'Ana Martínez', content: '¡Excelente! Yo también uso React. ¿Qué librerías de estado prefieres?', timestamp: Date.now() - 1700000 },
-                                 { user: 'Alejandro Torres', content: 'Principalmente Redux Toolkit, pero también he probado Zustand', timestamp: Date.now() - 1600000 }
-                             ],
-                             reactions: { like: 12, heart: 5, wow: 2 },
-                             attachments: [],
-                             reacted: null
-                         }
-                     ];
-                     posts = initialPosts;
-                     // Guardar los posts iniciales
-                     savePosts();
-                 }
+                } else {
+                    // Los posts ahora se cargan solo desde la base de datos
+                    // No hay datos hardcodeados
+                    posts = [];
+                }
              }
              
              // Guardar posts
@@ -1880,44 +1844,13 @@
             }
             renderPosts('all');
 
-            // Generar datos de miembros más realistas
+            // Los miembros ahora se cargan solo desde la base de datos
             function generateRealisticMembers() {
-                const realNames = [
-                    'María González', 'Carlos López', 'Ana Martínez', 'Alejandro Torres',
-                    'Sofia Rodríguez', 'Diego Morales', 'Valentina Silva', 'Roberto Jiménez',
-                    'Camila Herrera', 'Andrés Vargas', 'Isabella Castro', 'Miguel Ruiz',
-                    'Daniela Moreno', 'Javier Paredes', 'Gabriela Soto', 'Fernando Rojas',
-                    'Natalia Vega', 'Ricardo Mendoza', 'Paula Guzmán', 'Eduardo Fuentes'
-                ];
-                
-                const locations = [
-                    'Ciudad de México', 'Buenos Aires', 'Bogotá', 'Santiago',
-                    'Lima', 'Caracas', 'Quito', 'Guayaquil', 'Medellín', 'Montevideo'
-                ];
-                
-                const currentTime = Date.now();
-                const onlineProbability = 0.4; // 40% de probabilidad de estar online
-                
-                return Array.from({length: 24}).map((_, i) => {
-                    const isOnline = Math.random() < onlineProbability;
-                    const isAdmin = i < 3; // Primeros 3 son admins
-                    const joinDate = new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
-                    
-                    return {
-                        id: i + 1,
-                        name: realNames[i % realNames.length],
-                        online: isOnline,
-                        admin: isAdmin,
-                        location: locations[i % locations.length],
-                        joined: joinDate.toISOString().split('T')[0],
-                        lastSeen: isOnline ? 'Ahora' : `${Math.floor(Math.random() * 60)} min`,
-                        avatar: `fas fa-user`,
-                        status: isOnline ? 'online' : 'offline'
-                    };
-                });
+                // Función vacía - los miembros se cargan desde la base de datos
+                return [];
             }
             
-            const mockMembers = generateRealisticMembers();
+            const mockMembers = []; // Array vacío - solo datos de la base de datos
             
             // Función para simular actividad real en la comunidad
             function simulateCommunityActivity() {
@@ -3458,20 +3391,9 @@
                 console.log('📦 Cargando usuarios desde localStorage...');
                 const users = JSON.parse(localStorage.getItem('communityUsers') || '[]');
                 if (users.length === 0) {
-                    // Crear usuarios iniciales
-                    this.users = [
-                        { id: null, name: 'Tú', points: 0, posts: 0, comments: 0, reactions: 0 },
-                        { id: null, name: 'María García', points: 1250, posts: 15, comments: 42, reactions: 89 },
-                        { id: null, name: 'Carlos López', points: 890, posts: 8, comments: 23, reactions: 67 },
-                        { id: null, name: 'Ana Martínez', points: 2100, posts: 22, comments: 67, reactions: 145 },
-                        { id: null, name: 'Luis Rodríguez', points: 750, posts: 6, comments: 18, reactions: 34 },
-                        { id: null, name: 'Sofia Pérez', points: 1800, posts: 19, comments: 51, reactions: 112 },
-                        { id: null, name: 'Diego Torres', points: 650, posts: 5, comments: 12, reactions: 28 },
-                        { id: null, name: 'Valentina Silva', points: 1450, posts: 14, comments: 38, reactions: 76 },
-                        { id: null, name: 'Andrés Morales', points: 950, posts: 9, comments: 25, reactions: 45 },
-                        { id: null, name: 'Camila Herrera', points: 1650, posts: 17, comments: 44, reactions: 98 }
-                    ];
-                    this.saveUsers();
+                    // Los usuarios ahora se cargan solo desde la base de datos
+                    // No hay datos hardcodeados
+                    this.users = [];
                 } else {
                     this.users = users;
                 }
