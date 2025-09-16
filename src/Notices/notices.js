@@ -157,7 +157,7 @@ class NoticesPage {
     fillUserHeader(){
         try{
             const raw = localStorage.getItem('currentUser');
-            if(!raw) return;
+            if(raw) {
             const user = JSON.parse(raw);
             const nameEl = document.getElementById('pmName');
             const emailEl = document.getElementById('pmEmail');
@@ -166,13 +166,51 @@ class NoticesPage {
             if(user.avatar_url){
                 document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img=>{img.src=user.avatar_url;});
             }
-        }catch(e){}
+            }
+        }catch(e){
+            console.log('Error loading user data:', e);
+        }
+
+        // Setup profile menu functionality
+        this.setupProfileMenu();
+    }
+
+    setupProfileMenu() {
         const avatarBtn = document.querySelector('.header-profile');
         const menu = document.getElementById('profileMenu');
-        if(avatarBtn && menu){
-            avatarBtn.addEventListener('click', (e)=>{ e.preventDefault(); menu.classList.toggle('show');});
-            document.addEventListener('click', (e)=>{ if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) menu.classList.remove('show');});
+        if (!avatarBtn || !menu) {
+            console.error('[PROFILE] ❌ Elementos del menú de perfil no encontrados');
+            return;
         }
+        console.log('[PROFILE] ✅ Menú de perfil configurado correctamente');
+
+        avatarBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            menu.classList.toggle('show');
+        });
+
+        // Cerrar menú al hacer click fuera
+        document.addEventListener('click', (e) => {
+            if (!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        });
+
+        // Llenar datos del usuario
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            const nameEl = document.getElementById('pmName');
+            const emailEl = document.getElementById('pmEmail');
+            if (nameEl) nameEl.textContent = currentUser.display_name || currentUser.username || 'Usuario';
+            if (emailEl) emailEl.textContent = currentUser.email || currentUser.user?.email || currentUser.data?.email || '';
+            // avatar
+            if (currentUser.avatar_url) {
+                document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {
+                    img.src = currentUser.avatar_url;
+                });
+            }
+        } catch (e) { /* noop */ }
     }
 
     // ===== THEME MANAGEMENT =====
@@ -239,19 +277,33 @@ class NoticesPage {
     updateThemeIcons(theme) {
         const sunIcon = document.querySelector('.theme-icon-sun');
         const moonIcon = document.querySelector('.theme-icon-moon');
+        const themeToggle = document.getElementById('themeToggle');
+        const iconContainer = document.querySelector('.theme-icon-container');
         
-        if (sunIcon && moonIcon) {
-            if (theme === 'light') {
-                sunIcon.style.opacity = '0';
-                sunIcon.style.transform = 'rotate(90deg)';
-                moonIcon.style.opacity = '1';
-                moonIcon.style.transform = 'rotate(0deg)';
-            } else {
-                sunIcon.style.opacity = '1';
-                sunIcon.style.transform = 'rotate(0deg)';
-                moonIcon.style.opacity = '0';
-                moonIcon.style.transform = 'rotate(-90deg)';
+        if (sunIcon && moonIcon && themeToggle && iconContainer) {
+            // Agregar clases de animación
+            themeToggle.classList.add('theme-changing');
+            
+            // Determinar la dirección de la animación
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const isTransitioningToLight = theme === 'light' && currentTheme === 'dark';
+            const isTransitioningToDark = theme === 'dark' && currentTheme === 'light';
+            
+            if (isTransitioningToLight) {
+                // De oscuro a claro: sol se transforma en luna
+                iconContainer.classList.add('theme-transforming');
+                iconContainer.classList.remove('theme-transforming-reverse');
+            } else if (isTransitioningToDark) {
+                // De claro a oscuro: luna se transforma en sol
+                iconContainer.classList.add('theme-transforming-reverse');
+                iconContainer.classList.remove('theme-transforming');
             }
+            
+            // Remover clases de animación después de completar
+            setTimeout(() => {
+                themeToggle.classList.remove('theme-changing');
+                iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
+            }, 800);
         }
     }
 

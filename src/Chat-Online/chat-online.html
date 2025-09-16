@@ -5917,7 +5917,213 @@ INSTRUCCIONES:
     
     <!-- Chat Online Main Script -->
     <script src="chat-online.js"></script>
-    
+
+    <!-- SOLUCIÓN DIRECTA PARA CARGAR NOTAS -->
+    <script>
+        console.log('🔧 Script inline para cargar notas - INICIADO');
+
+        function cargarNotasInmediatamente() {
+            console.log('🔍 Verificando autenticación de usuario...');
+
+            // Verificar si hay un usuario autenticado
+            const authToken = localStorage.getItem('authToken');
+            const userData = localStorage.getItem('userData');
+            const currentUser = localStorage.getItem('currentUser');
+            const userName = localStorage.getItem('userName');
+            const userId = localStorage.getItem('userId');
+            const userEmail = localStorage.getItem('userEmail');
+
+            // Logs detallados para debug
+            console.log('🔍 Valores de autenticación en localStorage:');
+            console.log('  authToken:', authToken);
+            console.log('  userData:', userData);
+            console.log('  currentUser:', currentUser);
+            console.log('  userName:', userName);
+            console.log('  userId:', userId);
+            console.log('  userEmail:', userEmail);
+
+            // Verificar si es modo demostración (más específico)
+            const isDemoMode = (userName === 'Usuario Prueba' && userId === 'test-user-123' && userEmail === 'usuario@prueba.com');
+
+            // Validación más flexible: al menos uno de los métodos de autenticación debe estar presente
+            const isAuthenticated = (authToken && authToken !== null) ||
+                                   (userData && userData !== null && userData !== '') ||
+                                   (currentUser && currentUser !== null && currentUser !== '') ||
+                                   (userName && userName !== null && userName !== '' &&
+                                    userName !== 'Usuario Prueba' && !userName.includes('demo'));
+
+            console.log('🔍 isDemoMode:', isDemoMode);
+            console.log('🔍 isAuthenticated:', isAuthenticated);
+
+            if (isDemoMode || !isAuthenticated) {
+                console.log('🚫 Usuario en modo demo o no autenticado - no se cargarán notas');
+                return;
+            }
+
+            console.log('✅ Usuario autenticado válido - procediendo a cargar notas');
+            console.log('🔍 Buscando elemento notesList...');
+            const notesList = document.getElementById('notesList');
+
+            if (!notesList) {
+                console.log('❌ notesList no encontrado, reintentando en 1 segundo...');
+                setTimeout(cargarNotasInmediatamente, 1000);
+                return;
+            }
+
+            console.log('✅ notesList encontrado, cargando notas...');
+            const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+            console.log('📝 Notas en localStorage:', notes.length, notes);
+
+            if (notes.length === 0) {
+                console.log('📝 No hay notas, mostrando estado vacío');
+                notesList.innerHTML = `
+                    <div class="no-notes">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        <p>No hay notas aún</p>
+                        <span>Crea tu primera nota para comenzar</span>
+                    </div>
+                `;
+                return;
+            }
+
+            // Ordenar notas por fecha de actualización (más recientes primero)
+            const sortedNotes = notes.sort((a, b) => new Date(b.updatedAt || b.timestamp) - new Date(a.updatedAt || a.timestamp));
+
+            // Función simple para crear HTML de nota
+            function createSimpleNoteHTML(note) {
+                return `
+                    <div class="note-item" data-note-id="${note.id}">
+                        <div class="note-header">
+                            <h4>${note.title || 'Sin título'}</h4>
+                            <span class="note-date">${new Date(note.timestamp || note.updatedAt).toLocaleDateString()}</span>
+                        </div>
+                        <div class="note-content">
+                            <p>${(note.content || '').substring(0, 100)}${(note.content || '').length > 100 ? '...' : ''}</p>
+                        </div>
+                        <div class="note-module">
+                            <span>${note.module || 'Sin módulo'}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            notesList.innerHTML = sortedNotes.map(note => createSimpleNoteHTML(note)).join('');
+            console.log('✅ Notas cargadas exitosamente en el DOM');
+        }
+
+        // Función para limpiar notas del localStorage
+        function limpiarNotasLocalStorage() {
+            console.log('🧹 Limpiando notas del localStorage...');
+            const notasAntes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+            console.log('📝 Notas antes de limpiar:', notasAntes.length, notasAntes);
+
+            localStorage.removeItem('lia_notes');
+
+            const notasDespues = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+            console.log('📝 Notas después de limpiar:', notasDespues.length, notasDespues);
+            console.log('✅ Limpieza completada');
+
+            // Recargar la lista de notas
+            const notesList = document.getElementById('notesList');
+            if (notesList) {
+                notesList.innerHTML = `
+                    <div class="no-notes">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        <p>No hay notas aún</p>
+                        <span>Crea tu primera nota para comenzar</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Exponer función globalmente para uso manual
+        window.limpiarNotas = limpiarNotasLocalStorage;
+
+        // (Limpieza automática deshabilitada para evitar borrado en loop)
+
+        // Función para bloquear botones de notas en modo demo
+        function bloquearBotonesEnModoDemo() {
+            console.log('🚫 Verificando si bloquear botones de notas...');
+
+            // Misma lógica de validación de autenticación
+            const authToken = localStorage.getItem('authToken');
+            const userData = localStorage.getItem('userData');
+            const currentUser = localStorage.getItem('currentUser');
+            const userName = localStorage.getItem('userName');
+            const userId = localStorage.getItem('userId');
+            const userEmail = localStorage.getItem('userEmail');
+
+            const isDemoMode = (userName === 'Usuario Prueba' && userId === 'test-user-123' && userEmail === 'usuario@prueba.com');
+            const isAuthenticated = (authToken && authToken !== null) ||
+                                   (userData && userData !== null && userData !== '') ||
+                                   (currentUser && currentUser !== null && currentUser !== '') ||
+                                   (userName && userName !== null && userName !== '' &&
+                                    userName !== 'Usuario Prueba' && !userName.includes('demo'));
+
+            if (isDemoMode || !isAuthenticated) {
+                console.log('🚫 Modo demo detectado - bloqueando botones de notas');
+
+                // Buscar y deshabilitar botón de crear nota
+                const addNoteBtn = document.getElementById('addNoteBtn');
+                if (addNoteBtn) {
+                    addNoteBtn.disabled = true;
+                    addNoteBtn.style.opacity = '0.5';
+                    addNoteBtn.style.cursor = 'not-allowed';
+                    addNoteBtn.title = 'Inicia sesión para crear notas';
+
+                    // Bloquear clics
+                    addNoteBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🚫 Creación de notas bloqueada en modo demo');
+                        alert('Debes iniciar sesión para crear notas');
+                        return false;
+                    });
+                }
+
+                // Buscar otros botones relacionados con notas
+                const searchNotesBtn = document.getElementById('searchNotesBtn');
+                if (searchNotesBtn) {
+                    searchNotesBtn.disabled = true;
+                    searchNotesBtn.style.opacity = '0.5';
+                    searchNotesBtn.style.cursor = 'not-allowed';
+                    searchNotesBtn.title = 'Inicia sesión para buscar notas';
+                }
+
+                console.log('🚫 Botones de notas bloqueados exitosamente');
+            } else {
+                console.log('✅ Usuario autenticado - botones de notas habilitados');
+            }
+        }
+
+        // Ejecutar inmediatamente y también después de que el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarNotasInmediatamente();
+            bloquearBotonesEnModoDemo();
+        });
+
+        setTimeout(() => {
+            cargarNotasInmediatamente();
+            bloquearBotonesEnModoDemo();
+        }, 500);
+
+        setTimeout(() => {
+            cargarNotasInmediatamente();
+            bloquearBotonesEnModoDemo();
+        }, 1500);
+
+        setTimeout(() => {
+            cargarNotasInmediatamente();
+            bloquearBotonesEnModoDemo();
+        }, 3000);
+    </script>
+
     <!-- Quick Video Fix - Carga videos desde la base de datos -->
     <!-- <script src="../scripts/quick-video-fix.js"></script> DESHABILITADO - HARDCODES -->
     

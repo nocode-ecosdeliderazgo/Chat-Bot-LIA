@@ -368,6 +368,88 @@ class CommunityPage {
     }
 }
 
+// ===== THEME TOGGLE FUNCTIONS =====
+window.toggleTheme = function() {
+    console.log('🎨 Theme toggle called from community');
+
+    // Agregar efecto de click al botón
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.classList.add('clicked');
+        setTimeout(() => {
+            themeToggle.classList.remove('clicked');
+        }, 400);
+    }
+
+    // Obtener tema actual antes del cambio
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    // Usar la función global de cambio de tema
+    if (window.toggleGlobalTheme) {
+        window.toggleGlobalTheme();
+        console.log('🎨 Theme toggled via global function to:', newTheme);
+    } else {
+        // Fallback manual si el script global no está disponible
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
+        console.log('🎨 Theme toggled via fallback to:', newTheme);
+    }
+
+    // Activar animación de transformación
+    const iconContainer = document.querySelector('.theme-icon-container');
+    if (iconContainer) {
+        // Limpiar clases previas
+        iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
+
+        // Aplicar la animación correcta
+        if (newTheme === 'light') {
+            iconContainer.classList.add('theme-transforming');
+        } else {
+            iconContainer.classList.add('theme-transforming-reverse');
+        }
+
+        // Remover clase después de la animación
+        setTimeout(() => {
+            iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
+        }, 800);
+    }
+};
+
+window.updateThemeIcons = function(theme) {
+    const sunIcon = document.querySelector('.theme-icon-sun');
+    const moonIcon = document.querySelector('.theme-icon-moon');
+    const themeToggle = document.getElementById('themeToggle');
+    const iconContainer = document.querySelector('.theme-icon-container');
+
+    if (sunIcon && moonIcon && themeToggle && iconContainer) {
+        // Agregar clases de animación
+        themeToggle.classList.add('theme-changing');
+
+        // Determinar la dirección de la animación
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const isTransitioningToLight = theme === 'light' && currentTheme === 'dark';
+        const isTransitioningToDark = theme === 'dark' && currentTheme === 'light';
+
+        if (isTransitioningToLight) {
+            // De oscuro a claro: sol se transforma en luna
+            iconContainer.classList.add('theme-transforming');
+            iconContainer.classList.remove('theme-transforming-reverse');
+        } else if (isTransitioningToDark) {
+            // De claro a oscuro: luna se transforma en sol
+            iconContainer.classList.add('theme-transforming-reverse');
+            iconContainer.classList.remove('theme-transforming');
+        }
+
+        // Remover clases de animación después de completar
+        setTimeout(() => {
+            themeToggle.classList.remove('theme-changing');
+            iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
+        }, 800);
+    }
+};
+
 // ===== INITIALIZATION =====
 let communityPage;
 
