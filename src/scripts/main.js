@@ -278,10 +278,10 @@ async function getGeneralAnswer(question) {
             glossaryError = generalGlossaryError;
         }
         
-        // console.log('[DB_QUERY] Glossary Result:', glossaryData?.length || 0, 'resultados, Error:', glossaryError);
+        // // console.log('[DB_QUERY] Glossary Result:', glossaryData?.length || 0, 'resultados, Error:', glossaryError);
         
         if (glossaryData && glossaryData.length > 0) {
-            // console.log('✔ [DB_QUERY] Respuesta encontrada en Glossary:', glossaryData[0].term);
+            // // console.log('✔ [DB_QUERY] Respuesta encontrada en Glossary:', glossaryData[0].term);
             return glossaryData[0].definition;
         }
         
@@ -290,7 +290,7 @@ async function getGeneralAnswer(question) {
     }
     
     // Fallback solo si las consultas a BD no funcionan
-    // console.log('⚠️ [DB_QUERY] No se encontró respuesta en BD, usando fallback');
+    // // console.log('⚠️ [DB_QUERY] No se encontró respuesta en BD, usando fallback');
     return getFallbackAnswer(question);
 }
 
@@ -333,7 +333,7 @@ function extractKeyTerms(question) {
 
 // Función de fallback mejorada (solo para casos donde la BD no tiene datos)
 function getFallbackAnswer(question) {
-    // console.log('🔄 [FALLBACK] Generando respuesta de fallback para:', question);
+    // // console.log('🔄 [FALLBACK] Generando respuesta de fallback para:', question);
     
     const lowerQuestion = question.toLowerCase();
     
@@ -348,12 +348,12 @@ function getFallbackAnswer(question) {
     
     for (const [term, answer] of Object.entries(basicTerms)) {
         if (lowerQuestion.includes(term)) {
-            // console.log('✔ [FALLBACK] Respuesta básica encontrada para:', term);
+            // // console.log('✔ [FALLBACK] Respuesta básica encontrada para:', term);
             return answer;
         }
     }
     
-    // console.log('❌ [FALLBACK] No hay respuesta disponible');
+    // // console.log('❌ [FALLBACK] No hay respuesta disponible');
     return `No encontré información específica sobre "${question}" en nuestra base de datos. Te recomiendo consultar nuestros cursos donde cubrimos estos temas en detalle.`;
 }
 
@@ -361,7 +361,7 @@ function getFallbackAnswer(question) {
 
 // Función para crear/actualizar sesión de chat
 async function createOrUpdateChatSession(userId, courseId = null) {
-    // console.log('🔧 Creando/actualizando sesión de chat para usuario:', userId);
+    // // console.log('🔧 Creando/actualizando sesión de chat para usuario:', userId);
     
     try {
         if (!window.supabase) {
@@ -378,7 +378,7 @@ async function createOrUpdateChatSession(userId, courseId = null) {
             .single();
 
         if (existingSession) {
-            // console.log('✔ Sesión existente encontrada:', existingSession);
+            // // console.log('✔ Sesión existente encontrada:', existingSession);
             return existingSession;
         }
 
@@ -393,7 +393,7 @@ async function createOrUpdateChatSession(userId, courseId = null) {
             .select()
             .single();
 
-        // console.log('✔ Nueva sesión creada:', newSession);
+        // // console.log('✔ Nueva sesión creada:', newSession);
         return newSession;
     } catch (error) {
         // console.error('❌ Error creando chat_session:', error);
@@ -403,7 +403,7 @@ async function createOrUpdateChatSession(userId, courseId = null) {
 
 // Función para obtener contexto del usuario
 async function getUserChatContext(userId) {
-    // console.log('🔍 Obteniendo contexto de chat para usuario:', userId);
+    // // console.log('🔍 Obteniendo contexto de chat para usuario:', userId);
     
     try {
         if (!window.supabase) {
@@ -438,7 +438,7 @@ async function getUserChatContext(userId) {
             .eq('is_active', true)
             .single();
 
-        // console.log('Session Context:', session, sessionError);
+        // // console.log('Session Context:', session, sessionError);
         return session;
     } catch (error) {
         // console.error('❌ Error obteniendo contexto de chat:', error);
@@ -451,7 +451,7 @@ async function getUserChatContext(userId) {
 // OBLIGATORIO: Consultar información específica del usuario y curso (según PROMPT)
 async function getCurrentUserCourse(userId) {
     try {
-        // console.log('🎓 Consultando cursos del usuario:', userId);
+        // // console.log('🎓 Consultando cursos del usuario:', userId);
         
         if (!window.supabase || !userId) {
             // console.warn('⚠️ Supabase no disponible o userId faltante');
@@ -462,37 +462,37 @@ async function getCurrentUserCourse(userId) {
         const chatContext = await getUserChatContext(userId);
         
         if (chatContext && chatContext.ai_courses) {
-            // console.log('✔ Usuario tiene sesión activa con curso:', chatContext.ai_courses.name);
+            // // console.log('✔ Usuario tiene sesión activa con curso:', chatContext.ai_courses.name);
             return [chatContext.ai_courses];
         }
         
         // SEGUNDO: Si no hay sesión, intentar enrollment (MÉTODO ORIGINAL)
-        // console.log('🔍 No hay sesión activa, intentando enrollment...');
+        // // console.log('🔍 No hay sesión activa, intentando enrollment...');
         const { data: enrollmentData, error: enrollmentError } = await window.supabase
             .from('enrollment')
             .select('*')
             .eq('user_id', userId);
         
-        // console.log('📋 Enrollment Data:', enrollmentData, enrollmentError);
+        // // console.log('📋 Enrollment Data:', enrollmentData, enrollmentError);
         
         if (enrollmentData && enrollmentData.length > 0) {
-            // console.log('✔ Usuario tiene inscripciones:', enrollmentData.length);
+            // // console.log('✔ Usuario tiene inscripciones:', enrollmentData.length);
             
             // 2. Obtener información del curso actual
             const courseIds = enrollmentData.map(enrollment => enrollment.course_id);
-            // console.log('Course IDs:', courseIds);
+            // // console.log('Course IDs:', courseIds);
             
             const { data: courseData, error: courseError } = await window.supabase
                 .from('ai_courses')
                 .select('id_ai_courses, name, short_description, long_description, course_url, session_count, total_duration, price, currency')
                 .in('id_ai_courses', courseIds);
             
-            // console.log('Course Data:', courseData, courseError);
+            // // console.log('Course Data:', courseData, courseError);
             return courseData;
         } else {
-            // console.log('❌ Usuario no tiene inscripciones');
+            // // console.log('❌ Usuario no tiene inscripciones');
             // Intentar método alternativo si enrollment no funciona
-            // console.log('🔄 Intentando método alternativo...');
+            // // console.log('🔄 Intentando método alternativo...');
             return await getCurrentUserCourseAlternative(userId);
         }
     } catch (error) {
@@ -507,7 +507,7 @@ async function getCourseDetails(courseId) {
             return null;
         }
         
-        // console.log('📚 Consultando detalles del curso:', courseId);
+        // // console.log('📚 Consultando detalles del curso:', courseId);
         
         // Consultar información específica del curso
         const { data: courseInfo, error: courseError } = await window.supabase
@@ -523,7 +523,7 @@ async function getCourseDetails(courseId) {
             .eq('course_id', courseId)
             .order('position', { ascending: true });
         
-        // console.log('📚 Course Details:', { courseInfo, courseModules });
+        // // console.log('📚 Course Details:', { courseInfo, courseModules });
         return { courseInfo, courseModules };
     } catch (error) {
         // console.error('❌ Error en getCourseDetails:', error);
@@ -533,7 +533,7 @@ async function getCourseDetails(courseId) {
 
 // FUNCIÓN PARA VERIFICAR SI EL USUARIO ESTÁ INSCRITO (según PROMPT)
 async function checkUserEnrollment(userId) {
-  // console.log('🔍 Verificando inscripción del usuario:', userId);
+  // // console.log('🔍 Verificando inscripción del usuario:', userId);
   
   // Probar tabla enrollment
   const { data: enrollmentData, error: enrollmentError } = await window.supabase
@@ -541,7 +541,7 @@ async function checkUserEnrollment(userId) {
     .select('*')
     .eq('user_id', userId);
   
-  // console.log('Enrollment check:', enrollmentData, enrollmentError);
+  // // console.log('Enrollment check:', enrollmentData, enrollmentError);
   
   // Probar tabla study_session como alternativa
   const { data: sessionData, error: sessionError } = await window.supabase
@@ -549,14 +549,14 @@ async function checkUserEnrollment(userId) {
     .select('*')
     .eq('user_id', userId);
   
-  // console.log('Session check:', sessionData, sessionError);
+  // // console.log('Session check:', sessionData, sessionError);
   
   return { enrollmentData, sessionData, enrollmentError, sessionError };
 }
 
 // FUNCIÓN ALTERNATIVA: Si enrollment no funciona, probar otras tablas (según PROMPT)
 async function getCurrentUserCourseAlternative(userId) {
-  // console.log('🔍 Intentando método alternativo para usuario:', userId);
+  // // console.log('🔍 Intentando método alternativo para usuario:', userId);
   
   // Probar con study_session si existe
   const { data: sessionData, error: sessionError } = await window.supabase
@@ -566,7 +566,7 @@ async function getCurrentUserCourseAlternative(userId) {
     .order('started_at', { ascending: false })
     .limit(1);
 
-  // console.log('Session Data:', sessionData, sessionError);
+  // // console.log('Session Data:', sessionData, sessionError);
 
   if (sessionData && sessionData.length > 0) {
     const courseId = sessionData[0].course_id;
@@ -575,7 +575,7 @@ async function getCurrentUserCourseAlternative(userId) {
       .select('*')
       .eq('id_ai_courses', courseId);
 
-    console.log('Course Data (Alternative):', courseData, courseError);
+    // console.log('Course Data (Alternative):', courseData, courseError);
     return courseData;
   }
 
@@ -618,11 +618,11 @@ function initializeConversationMemory() {
             conversationMemory.previousQuestions = parsed.previousQuestions || [];
             conversationMemory.sessionId = parsed.sessionId;
             
-            // console.log('💾 [MEMORY] Memoria conversacional restaurada:', conversationMemory.fullHistory.length, 'mensajes');
+            // // console.log('💾 [MEMORY] Memoria conversacional restaurada:', conversationMemory.fullHistory.length, 'mensajes');
         } else {
             conversationMemory.sessionId = generateSessionId();
             conversationMemory.conversationStarted = new Date().toISOString();
-            // console.log('🆕 [MEMORY] Nueva sesión conversacional iniciada:', conversationMemory.sessionId);
+            // // console.log('🆕 [MEMORY] Nueva sesión conversacional iniciada:', conversationMemory.sessionId);
         }
     } catch (error) {
         // console.error('❌ Error inicializando memoria conversacional:', error);
@@ -649,7 +649,7 @@ function saveConversationMemory() {
             lastActivity: new Date().toISOString()
         };
         localStorage.setItem('conversationMemory', JSON.stringify(toSave));
-        // console.log('💾 [MEMORY] Memoria guardada exitosamente');
+        // // console.log('💾 [MEMORY] Memoria guardada exitosamente');
     } catch (error) {
         // console.error('❌ Error guardando memoria conversacional:', error);
     }
@@ -689,7 +689,7 @@ function addToConversationHistory(sender, message, messageType = null, context =
     }
     
     saveConversationMemory();
-    console.log('📝 [MEMORY] Mensaje agregado al historial:', sender, message.substring(0, 50) + '...');
+    // console.log('📝 [MEMORY] Mensaje agregado al historial:', sender, message.substring(0, 50) + '...');
 }
 
 // Actualizar temas mencionados
@@ -709,11 +709,11 @@ function updateMentionedTopics(message) {
 
 // Analizar contexto conversacional completo
 function analyzeConversationContext(currentMessage) {
-    // console.log('🧠 [CONTEXT] Analizando contexto conversacional completo...');
+    // // console.log('🧠 [CONTEXT] Analizando contexto conversacional completo...');
     
     // Obtener últimos N mensajes para análisis
     const recentHistory = conversationMemory.fullHistory.slice(-10); // Últimos 10 mensajes
-    // console.log('🧠 [CONTEXT] Analizando últimos', recentHistory.length, 'mensajes');
+    // // console.log('🧠 [CONTEXT] Analizando últimos', recentHistory.length, 'mensajes');
     
     const analysis = {
         // Contexto inmediato (último intercambio)
@@ -755,7 +755,7 @@ function analyzeConversationContext(currentMessage) {
         analysis.suggestedContext = findRelevantContext(currentMessage, recentHistory);
     }
     
-    console.log('🧠 [CONTEXT] Análisis completado:', {
+    // console.log('🧠 [CONTEXT] Análisis completado:', {
         recentQuestions: analysis.recentUserQuestions.length,
         recentActions: analysis.recentBotActions.length,
         needsContext: analysis.needsContext,
@@ -793,7 +793,7 @@ function detectIfNeedsContext(message, analysis) {
 
 // Encontrar contexto relevante de la conversación
 function findRelevantContext(currentMessage, recentHistory) {
-    // console.log('🔍 [CONTEXT] Buscando contexto relevante para:', currentMessage);
+    // // console.log('🔍 [CONTEXT] Buscando contexto relevante para:', currentMessage);
     
     // Buscar el último mensaje del bot que hizo una pregunta o ofreció algo
     const lastBotQuestion = [...recentHistory]
@@ -867,11 +867,11 @@ function determineConversationFlow(recentHistory) {
 
 // Clasificación mejorada de preguntas con análisis completo de contexto
 function classifyQuestion(question) {
-    // console.log('📋 [CLASSIFY] Clasificando pregunta:', question);
+    // // console.log('📋 [CLASSIFY] Clasificando pregunta:', question);
     
     // Analizar contexto completo de la conversación
     const contextAnalysis = analyzeConversationContext(question);
-    // console.log('📋 [CLASSIFY] Contexto analizado:', contextAnalysis.needsContext, contextAnalysis.conversationFlow);
+    // // console.log('📋 [CLASSIFY] Contexto analizado:', contextAnalysis.needsContext, contextAnalysis.conversationFlow);
     
     const lowerQuestion = question.toLowerCase().trim();
     
@@ -887,13 +887,13 @@ function classifyQuestion(question) {
     // Si hay confirmación pendiente Y el contexto indica continuidad conversacional
     if (conversationMemory.awaitingConfirmation && 
         (confirmationTerms.some(term => lowerQuestion.includes(term)) || contextAnalysis.needsContext)) {
-        console.log('✔ [CLASSIFY] Clasificada como: confirmation_yes (con contexto)');
+        // console.log('✔ [CLASSIFY] Clasificada como: confirmation_yes (con contexto)');
         return 'confirmation_yes';
     }
     
     // Si hay confirmación pendiente y el usuario responde negativamente
     if (conversationMemory.awaitingConfirmation && negationTerms.some(term => lowerQuestion === term)) {
-        console.log('✔ [CLASSIFY] Clasificada como: confirmation_no (con contexto)');
+        // console.log('✔ [CLASSIFY] Clasificada como: confirmation_no (con contexto)');
         return 'confirmation_no';
     }
     
@@ -906,7 +906,7 @@ function classifyQuestion(question) {
     ];
     
     if (courseContentTerms.some(term => lowerQuestion.includes(term))) {
-        // console.log('✔ [CLASSIFY] Clasificada como: course_content');
+        // // console.log('✔ [CLASSIFY] Clasificada como: course_content');
         return 'course_content';
     }
     
@@ -917,7 +917,7 @@ function classifyQuestion(question) {
         'curso que estoy tomando', 'curso al que pertenezco'
     ];
     if (currentCourseTerms.some(term => lowerQuestion.includes(term))) {
-        // console.log('✔ [CLASSIFY] Clasificada como: current_course');
+        // // console.log('✔ [CLASSIFY] Clasificada como: current_course');
         return 'current_course';
     }
     
@@ -939,13 +939,13 @@ function classifyQuestion(question) {
     const hasTechTerm = techTerms.some(term => lowerQuestion.includes(term));
     
     if (hasGeneralTerm && hasTechTerm) {
-        console.log('✔ [CLASSIFY] Clasificada como: general (definición técnica)');
+        // console.log('✔ [CLASSIFY] Clasificada como: general (definición técnica)');
         return 'general';
     }
     
     // 4. Preguntas técnicas sin palabras de definición explícitas
     if (hasTechTerm && !hasGeneralTerm) {
-        console.log('✔ [CLASSIFY] Clasificada como: general (término técnico directo)');
+        // console.log('✔ [CLASSIFY] Clasificada como: general (término técnico directo)');
         return 'general';
     }
     
@@ -955,7 +955,7 @@ function classifyQuestion(question) {
         'duración', 'horas', 'cursos disponibles', 'que cursos hay', 'qué cursos hay'
     ];
     if (courseTerms.some(term => lowerQuestion.includes(term))) {
-        // console.log('✔ [CLASSIFY] Clasificada como: course');
+        // // console.log('✔ [CLASSIFY] Clasificada como: course');
         return 'course';
     }
     
@@ -965,25 +965,25 @@ function classifyQuestion(question) {
         'mi progreso', 'mi avance', 'cuántos cursos tengo'
     ];
     if (userTerms.some(term => lowerQuestion.includes(term))) {
-        // console.log('✔ [CLASSIFY] Clasificada como: user_specific');
+        // // console.log('✔ [CLASSIFY] Clasificada como: user_specific');
         return 'user_specific';
     }
     
     // 7. Saludos básicos
     const greetingTerms = ['hola', 'buenos días', 'buenas tardes', 'buenas noches', 'saludos', 'hi', 'hello'];
     if (greetingTerms.some(term => lowerQuestion.includes(term))) {
-        // console.log('✔ [CLASSIFY] Clasificada como: greeting');
+        // // console.log('✔ [CLASSIFY] Clasificada como: greeting');
         return 'greeting';
     }
     
     // 8. Si no se puede clasificar específicamente, tratar como pregunta general
-    console.log('⚠️ [CLASSIFY] Clasificada como: mixed (intentará consulta general)');
+    // console.log('⚠️ [CLASSIFY] Clasificada como: mixed (intentará consulta general)');
     return 'mixed';
 }
 
 // Función para obtener todos los cursos disponibles
 async function getAvailableCourses() {
-    // console.log('🎓 [COURSES] Consultando cursos disponibles...');
+    // // console.log('🎓 [COURSES] Consultando cursos disponibles...');
     
     if (!window.supabase) {
         // console.error('❌ Supabase no está disponible');
@@ -996,8 +996,8 @@ async function getAvailableCourses() {
             .select('id_ai_courses, name, short_description, long_description, session_count, total_duration, price, currency')
             .order('name', { ascending: true });
         
-        // console.log('🎓 [COURSES] Cursos encontrados:', coursesData?.length || 0);
-        // console.log('🎓 [COURSES] Error:', coursesError);
+        // // console.log('🎓 [COURSES] Cursos encontrados:', coursesData?.length || 0);
+        // // console.log('🎓 [COURSES] Error:', coursesError);
         
         return coursesData;
     } catch (error) {
@@ -1008,7 +1008,7 @@ async function getAvailableCourses() {
 
 // Función para obtener contenido/temas de un curso específico
 async function getCourseContent(courseId) {
-    // console.log('📚 [CONTENT] Consultando contenido del curso:', courseId);
+    // // console.log('📚 [CONTENT] Consultando contenido del curso:', courseId);
     
     if (!window.supabase) {
         // console.error('❌ Supabase no está disponible');
@@ -1022,7 +1022,7 @@ async function getCourseContent(courseId) {
             .eq('course_id', courseId)
             .order('position', { ascending: true });
         
-        // console.log('📚 [CONTENT] Módulos encontrados:', moduleData?.length || 0);
+        // // console.log('📚 [CONTENT] Módulos encontrados:', moduleData?.length || 0);
         return moduleData;
     } catch (error) {
         // console.error('❌ Error consultando contenido del curso:', error);
@@ -1042,7 +1042,7 @@ function updateConversationContext(botAction, userIntent, awaitingConfirmation =
     }
     
     saveConversationMemory();
-    console.log('📝 [CONTEXT] Contexto actualizado con memoria persistente:', {
+    // console.log('📝 [CONTEXT] Contexto actualizado con memoria persistente:', {
         botAction,
         userIntent,
         awaitingConfirmation,
@@ -1053,8 +1053,8 @@ function updateConversationContext(botAction, userIntent, awaitingConfirmation =
 // Generación de respuestas personalizada con memoria conversacional persistente
 async function generatePersonalizedResponse(userQuestion, userId, courseId) {
     try {
-        // console.log('🤖 [RESPONSE] Generando respuesta personalizada para:', userQuestion);
-        // console.log('👤 [RESPONSE] Usuario ID:', userId);
+        // // console.log('🤖 [RESPONSE] Generando respuesta personalizada para:', userQuestion);
+        // // console.log('👤 [RESPONSE] Usuario ID:', userId);
         
         // Registrar pregunta del usuario en el historial
         addToConversationHistory('user', userQuestion);
@@ -1062,8 +1062,8 @@ async function generatePersonalizedResponse(userQuestion, userId, courseId) {
         // Analizar contexto completo antes de clasificar
         const contextAnalysis = analyzeConversationContext(userQuestion);
         const questionType = classifyQuestion(userQuestion);
-        // console.log('📋 [RESPONSE] Tipo de pregunta clasificada:', questionType);
-        console.log('🧠 [RESPONSE] Análisis de contexto:', contextAnalysis.needsContext, contextAnalysis.suggestedContext?.lastBotQuestion?.message?.substring(0, 50));
+        // // console.log('📋 [RESPONSE] Tipo de pregunta clasificada:', questionType);
+        // console.log('🧠 [RESPONSE] Análisis de contexto:', contextAnalysis.needsContext, contextAnalysis.suggestedContext?.lastBotQuestion?.message?.substring(0, 50));
         
         const userInfo = await getCurrentUserInfo();
         
@@ -1078,7 +1078,7 @@ async function generatePersonalizedResponse(userQuestion, userId, courseId) {
         switch (questionType) {
             case 'confirmation_yes':
                 // Usuario respondió afirmativamente a una pregunta anterior
-                // console.log('✅ [RESPONSE] Procesando confirmación positiva...');
+                // // console.log('✅ [RESPONSE] Procesando confirmación positiva...');
                 
                 if (conversationContext.awaitingConfirmation === 'show_courses') {
                     // Mostrar cursos disponibles
@@ -1109,14 +1109,14 @@ async function generatePersonalizedResponse(userQuestion, userId, courseId) {
                 
             case 'confirmation_no':
                 // Usuario respondió negativamente
-                // console.log('❌ [RESPONSE] Procesando confirmación negativa...');
+                // // console.log('❌ [RESPONSE] Procesando confirmación negativa...');
                 response = `Entiendo ${userInfo.display_name || userInfo.first_name}. ¿Hay algo más en lo que pueda ayudarte?`;
                 updateConversationContext(null, null, null);
                 break;
                 
             case 'course_content':
                 // Usuario pregunta sobre temas/contenido de un curso
-                // console.log('📚 [RESPONSE] Procesando pregunta sobre contenido del curso...');
+                // // console.log('📚 [RESPONSE] Procesando pregunta sobre contenido del curso...');
                 const userCourses = await getCurrentUserCourse(userId);
                 
                 if (userCourses && userCourses.length > 0) {
@@ -1146,7 +1146,7 @@ async function generatePersonalizedResponse(userQuestion, userId, courseId) {
                 
             case 'general':
                 // OBLIGATORIO: Consultar base de datos para definiciones
-                // console.log('📚 [RESPONSE] Procesando pregunta general...');
+                // // console.log('📚 [RESPONSE] Procesando pregunta general...');
                 const generalAnswer = await getGeneralAnswer(userQuestion);
                 response = `Hola ${userInfo.display_name || userInfo.first_name}, ${generalAnswer}`;
                 updateConversationContext('answered_general', 'asked_general', null);
@@ -1154,7 +1154,7 @@ async function generatePersonalizedResponse(userQuestion, userId, courseId) {
                 
             case 'course':
                 // OBLIGATORIO: Consultar cursos específicos del usuario
-                // console.log('🎓 [RESPONSE] Procesando pregunta sobre cursos...');
+                // // console.log('🎓 [RESPONSE] Procesando pregunta sobre cursos...');
                 const userCourseList = await getCurrentUserCourse(userId);
                 
                 if (userCourseList && userCourseList.length > 0) {
@@ -1169,7 +1169,7 @@ async function generatePersonalizedResponse(userQuestion, userId, courseId) {
                 
             case 'current_course':
                 // Para preguntas específicas sobre el curso actual
-                // console.log('📚 [RESPONSE] Procesando pregunta sobre curso actual...');
+                // // console.log('📚 [RESPONSE] Procesando pregunta sobre curso actual...');
                 const userCurrentCourses = await getCurrentUserCourse(userId);
                 
                 if (userCurrentCourses && userCurrentCourses.length > 0) {
@@ -1190,7 +1190,7 @@ async function generatePersonalizedResponse(userQuestion, userId, courseId) {
                 
             case 'user_specific':
                 // Consultar información específica del usuario
-                // console.log('👤 [RESPONSE] Procesando pregunta específica del usuario...');
+                // // console.log('👤 [RESPONSE] Procesando pregunta específica del usuario...');
                 const userSpecificCourses = await getCurrentUserCourse(userId);
                 if (userSpecificCourses && userSpecificCourses.length > 0) {
                     response = `${userInfo.display_name || userInfo.first_name}, tienes ${userSpecificCourses.length} curso(s) inscrito(s).`;
@@ -1207,7 +1207,7 @@ async function generatePersonalizedResponse(userQuestion, userId, courseId) {
                 
             default:
                 // Intentar consultar base de datos para cualquier pregunta
-                // console.log('🔍 [RESPONSE] Procesando pregunta mixta...');
+                // // console.log('🔍 [RESPONSE] Procesando pregunta mixta...');
                 const mixedAnswer = await getGeneralAnswer(userQuestion);
                 response = `Hola ${userInfo.display_name || userInfo.first_name}, ${mixedAnswer}`;
                 updateConversationContext('answered_mixed', 'asked_mixed', null);
@@ -1221,8 +1221,8 @@ async function generatePersonalizedResponse(userQuestion, userId, courseId) {
             contextUsed: responseContext.contextUsed
         });
         
-        console.log('✅ [RESPONSE] Respuesta generada y guardada en historial:', response.substring(0, 100) + '...');
-        // console.log('📊 [MEMORY] Historial actual:', conversationMemory.fullHistory.length, 'mensajes');
+        // console.log('✅ [RESPONSE] Respuesta generada y guardada en historial:', response.substring(0, 100) + '...');
+        // // console.log('📊 [MEMORY] Historial actual:', conversationMemory.fullHistory.length, 'mensajes');
         
         return response;
         
@@ -1242,26 +1242,26 @@ async function generatePersonalizedResponse(userQuestion, userId, courseId) {
 
 // Función de inicialización principal consolidada
 function init() {
-    // console.log('[CHAT_INIT] Iniciando aplicación...');
+    // // console.log('[CHAT_INIT] Iniciando aplicación...');
     
     try {
         // Inicializar memoria conversacional persistente
         initializeConversationMemory();
-        // console.log('[CHAT_INIT] Memoria conversacional inicializada');
+        // // console.log('[CHAT_INIT] Memoria conversacional inicializada');
         
     // EventBus y UI API para el nuevo layout tipo NotebookLM
     setupEventBusAndUI();
-        // console.log('[CHAT_INIT] EventBus y UI configurados');
+        // // console.log('[CHAT_INIT] EventBus y UI configurados');
         
         // Seguridad e inicializaciones básicas
     initializeSecurity();
-        // console.log('[CHAT_INIT] Seguridad inicializada');
+        // // console.log('[CHAT_INIT] Seguridad inicializada');
         
         // Audio (opcional, no debe romper si falla)
         try {
     initializeAudio();
     loadAudioPreference();
-            // console.log('[CHAT_INIT] Audio inicializado');
+            // // console.log('[CHAT_INIT] Audio inicializado');
         } catch (error) {
             // console.warn('[CHAT_INIT] Error inicializando audio:', error);
         }
@@ -1269,7 +1269,7 @@ function init() {
         // Base de datos (opcional)
         try {
     initializeDatabase();
-            // console.log('[CHAT_INIT] Base de datos inicializada');
+            // // console.log('[CHAT_INIT] Base de datos inicializada');
         } catch (error) {
             // console.warn('[CHAT_INIT] Error inicializando base de datos:', error);
         }
@@ -1277,22 +1277,22 @@ function init() {
         // Animación de apertura y chat principal
     playChatOpenAnimation().then(() => {
     initializeChat();
-            // console.log('[CHAT_INIT] Chat inicializado');
+            // // console.log('[CHAT_INIT] Chat inicializado');
     });
         
         // Event listeners del chat
     setupEventListeners();
-        // console.log('[CHAT_INIT] Event listeners configurados');
+        // // console.log('[CHAT_INIT] Event listeners configurados');
         
         // Paneles redimensionables
     setupResizableLeft();
         setupResizableRight();
-        // console.log('[CHAT_INIT] Paneles redimensionables configurados');
+        // // console.log('[CHAT_INIT] Paneles redimensionables configurados');
         
         // Gestión de sesiones
         try {
             initializeSessionManager();
-            // console.log('[CHAT_INIT] Gestor de sesiones inicializado');
+            // // console.log('[CHAT_INIT] Gestor de sesiones inicializado');
         } catch (error) {
             // console.warn('[CHAT_INIT] Error inicializando gestor de sesiones:', error);
         }
@@ -1300,14 +1300,14 @@ function init() {
         // Componentes UI
     setupLivestreamToggle();
     setupAvatarLightbox();
-        // console.log('[CHAT_INIT] Componentes UI configurados');
+        // // console.log('[CHAT_INIT] Componentes UI configurados');
         
         // Livestream (con delay para Socket.IO, no debe romper si falla)
         try {
             setTimeout(() => {
                 if (typeof io !== 'undefined') {
                     initializeLivestreamChat();
-                    // console.log('[CHAT_INIT] Chat del livestream inicializado');
+                    // // console.log('[CHAT_INIT] Chat del livestream inicializado');
                 } else {
                     // console.warn('[CHAT_INIT] Socket.IO no disponible, livestream deshabilitado');
                 }
@@ -1341,12 +1341,12 @@ function init() {
                     container.classList.remove('loading');
                 }
             });
-            // console.log('[CHAT_INIT] Estados de loading removidos');
+            // // console.log('[CHAT_INIT] Estados de loading removidos');
         } catch (error) {
             // console.warn('[CHAT_INIT] Error removiendo estados loading:', error);
         }
         
-        // console.log('[CHAT_INIT] Inicialización completada exitosamente');
+        // // console.log('[CHAT_INIT] Inicialización completada exitosamente');
         
         // Manejar redirección desde cursos (debe ser al final)
         setTimeout(() => {
@@ -1362,7 +1362,7 @@ function init() {
 document.addEventListener('DOMContentLoaded', () => {
   const hasChat = document.getElementById('chatMessages') || document.querySelector('.telegram-container');
   if (!hasChat) {
-    // console.log('[CHAT_INIT] Página sin chat; se omite inicialización de main.js');
+    // // console.log('[CHAT_INIT] Página sin chat; se omite inicialización de main.js');
     return;
   }
   init();
@@ -1394,7 +1394,7 @@ function handleCourseRedirect() {
         const finalCourseId = courseId || (courseData ? courseData.id : null);
         
         if (finalCourseId) {
-            // console.log(`[CHAT] Iniciando desde curso: ${finalCourseId}`);
+            // // console.log(`[CHAT] Iniciando desde curso: ${finalCourseId}`);
             showCourseWelcomeMessage(finalCourseId);
             
             // Limpiar el localStorage después de usar
@@ -1490,7 +1490,7 @@ async function initializeSecurity() {
             CHATBOT_CONFIG.openai.maxTokens = config.maxTokens || 1000;
             CHATBOT_CONFIG.openai.temperature = config.temperature || 0.5;
             CHATBOT_CONFIG.audioEnabled = config.audioEnabled !== false;
-            // console.log('Configuración cargada de forma segura');
+            // // console.log('Configuración cargada de forma segura');
         } else {
             // console.warn('No se pudo cargar la configuración del servidor');
         }
@@ -1531,7 +1531,7 @@ async function initializeDatabase() {
             // console.warn('URL de base de datos no configurada');
             return;
         }
-        // console.log('Configuración de base de datos cargada');
+        // // console.log('Configuración de base de datos cargada');
     } catch (error) {
         // console.warn('Error inicializando base de datos:', error);
     }
@@ -1624,7 +1624,7 @@ function playWelcomeSpeech() {
         chatState.currentAudio = utterance;
         speechSynthesis.cancel(); // asegurar que no haya colas
         speechSynthesis.speak(utterance);
-        // console.log('Audio de bienvenida reproducido con Web Speech API');
+        // // console.log('Audio de bienvenida reproducido con Web Speech API');
     } catch (error) {
         // console.warn('Error reproduciendo audio con Web Speech API:', error);
         playWelcomeAudioFile();
@@ -1643,7 +1643,7 @@ function playWelcomeAudioFile() {
         if (playPromise !== undefined) {
             playPromise
                 .then(() => {
-                    // console.log('Audio de bienvenida reproducido exitosamente');
+                    // // console.log('Audio de bienvenida reproducido exitosamente');
                 })
                 .catch(error => {
                     // console.warn('Error reproduciendo audio de bienvenida:', error);
@@ -1656,7 +1656,7 @@ function playWelcomeAudioFile() {
 
 // Configurar event listeners
 function setupEventListeners() {
-    // console.log('[CHAT_INIT] Configurando event listeners...');
+    // // console.log('[CHAT_INIT] Configurando event listeners...');
     
     // Guard para messageInput
     if (!messageInput) {
@@ -1680,7 +1680,7 @@ function setupEventListeners() {
     messageInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            // console.log('[CHAT_INIT] Enter presionado, enviando mensaje');
+            // // console.log('[CHAT_INIT] Enter presionado, enviando mensaje');
             sendMessage();
         }
     });
@@ -1749,14 +1749,14 @@ function setupEventListeners() {
 
     actionButton.addEventListener('click', (ev) => {
         try {
-            console.log('[CHAT_INIT] actionButton clicked, text length:', messageInput.value.trim().length);
+            // console.log('[CHAT_INIT] actionButton clicked, text length:', messageInput.value.trim().length);
         // Con texto: enviar (click estándar)
         if (messageInput.value.trim().length > 0) {
             ev.preventDefault();
-                // console.log('[CHAT_INIT] Enviando mensaje via click');
+                // // console.log('[CHAT_INIT] Enviando mensaje via click');
             sendMessage();
             } else {
-                // console.log('[CHAT_INIT] Sin texto, no se envía mensaje');
+                // // console.log('[CHAT_INIT] Sin texto, no se envía mensaje');
             }
         } catch (error) {
             // console.error('[CHAT_INIT] Error en click del actionButton:', error);
@@ -3166,8 +3166,8 @@ async function callOpenAI(prompt, context = '') {
     try {
         const base = (typeof window !== 'undefined' && (window.API_BASE || localStorage.getItem('API_BASE'))) || '';
         
-        // console.log('[OPENAI CALL] Enviando request a:', `${base}/api/openai`);
-        console.log('[OPENAI CALL] Prompt:', prompt.substring(0, 100) + '...');
+        // // console.log('[OPENAI CALL] Enviando request a:', `${base}/api/openai`);
+        // console.log('[OPENAI CALL] Prompt:', prompt.substring(0, 100) + '...');
         
         const response = await fetch(`${base}/api/openai`, {
             method: 'POST',
@@ -3181,7 +3181,7 @@ async function callOpenAI(prompt, context = '') {
             body: JSON.stringify({ prompt, context })
         });
 
-        // console.log('[OPENAI CALL] Response status:', response.status);
+        // // console.log('[OPENAI CALL] Response status:', response.status);
         
         if (!response.ok) {
             const errorText = await response.text();
@@ -3189,7 +3189,7 @@ async function callOpenAI(prompt, context = '') {
             
             // Si es error de autenticación (401), devolver respuesta de fallback
             if (response.status === 401) {
-                // console.log('[OPENAI CALL] Error de autenticación, usando respuesta de fallback');
+                // // console.log('[OPENAI CALL] Error de autenticación, usando respuesta de fallback');
                 return await getFallbackResponse(prompt);
             }
             
@@ -3197,13 +3197,13 @@ async function callOpenAI(prompt, context = '') {
         }
 
         const data = await response.json();
-        // console.log('[OPENAI CALL] Response data:', data);
+        // // console.log('[OPENAI CALL] Response data:', data);
         return data.response;
     } catch (error) {
         // console.error('Error llamando a OpenAI:', error);
         
         // Fallback: respuesta básica de desarrollo
-        // console.log('[OPENAI CALL] Usando respuesta de fallback por error');
+        // // console.log('[OPENAI CALL] Usando respuesta de fallback por error');
         return await getFallbackResponse(prompt);
     }
 }
@@ -3314,25 +3314,25 @@ function getUserAuthHeaders() {
         }
         
         // Logging para debug
-        console.log('[AUTH DEBUG] Token found:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
-        // console.log('[AUTH DEBUG] Token completo:', token);
-        // console.log('[AUTH DEBUG] UserId:', userId || 'NO USER ID');
-        console.log('[AUTH DEBUG] Token source:', localStorage.getItem('userToken') ? 'userToken' : 
+        // console.log('[AUTH DEBUG] Token found:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+        // // console.log('[AUTH DEBUG] Token completo:', token);
+        // // console.log('[AUTH DEBUG] UserId:', userId || 'NO USER ID');
+        // console.log('[AUTH DEBUG] Token source:', localStorage.getItem('userToken') ? 'userToken' : 
                    sessionStorage.getItem('authToken') ? 'authToken(session)' : 
                    localStorage.getItem('authToken') ? 'authToken(local)' : 'none');
         
         // Verificar si el token contiene la firma de desarrollo
         if (token) {
-            console.log('[AUTH DEBUG] Token contiene fake-signature:', token.includes('fake-signature-for-dev-testing-only'));
+            // console.log('[AUTH DEBUG] Token contiene fake-signature:', token.includes('fake-signature-for-dev-testing-only'));
             if (token.includes('.')) {
                 const parts = token.split('.');
-                // console.log('[AUTH DEBUG] Token parts:', parts.length);
+                // // console.log('[AUTH DEBUG] Token parts:', parts.length);
                 if (parts.length >= 2) {
                     try {
                         const payload = JSON.parse(atob(parts[1]));
-                        // console.log('[AUTH DEBUG] Token payload:', payload);
+                        // // console.log('[AUTH DEBUG] Token payload:', payload);
                     } catch (e) {
-                        // console.log('[AUTH DEBUG] Error decodificando payload:', e.message);
+                        // // console.log('[AUTH DEBUG] Error decodificando payload:', e.message);
                     }
                 }
             }
@@ -3358,7 +3358,7 @@ async function loadCourseData() {
             return eval(`(${moduleText})`);
         }
     } catch (error) {
-        // console.log('Usando datos de curso embebidos como fallback');
+        // // console.log('Usando datos de curso embebidos como fallback');
     }
     return null;
 }
@@ -3419,7 +3419,7 @@ function searchCourseData(courseData, query) {
 // Procesar mensaje del usuario con IA - ACTUALIZADO SEGÚN PROMPT_CLAUDE.md
 async function processUserMessageWithAI(message) {
     try {
-        // console.log('🤖 Procesando mensaje con IA mejorada:', message);
+        // // console.log('🤖 Procesando mensaje con IA mejorada:', message);
         
         // Obtener usuario actual
         const currentUser = getCurrentUser();
@@ -3432,11 +3432,11 @@ async function processUserMessageWithAI(message) {
         const personalizedResponse = await generatePersonalizedResponse(message, currentUser.id);
         
         if (personalizedResponse) {
-            // console.log('✅ Respuesta personalizada generada exitosamente');
+            // // console.log('✅ Respuesta personalizada generada exitosamente');
             return personalizedResponse;
         }
         
-        // console.log('⚠️ No se pudo generar respuesta personalizada, usando fallback');
+        // // console.log('⚠️ No se pudo generar respuesta personalizada, usando fallback');
         
         // Fallback: mantener algo del sistema anterior como respaldo
         const courseData = await loadCourseData();
@@ -3556,7 +3556,7 @@ Responde siguiendo exactamente el formato especificado y utilizando la informaci
         
         // Si no hay respuesta de OpenAI, usar fallback
         if (!aiResponse || aiResponse.trim() === '') {
-            // console.log('[PROCESS MESSAGE] No hay respuesta de OpenAI, usando fallback');
+            // // console.log('[PROCESS MESSAGE] No hay respuesta de OpenAI, usando fallback');
             return await getFallbackResponse(message);
         }
         
@@ -3572,12 +3572,12 @@ Responde siguiendo exactamente el formato especificado y utilizando la informaci
                 const errorData = await error.response.json();
                 // console.error('📋 Error details:', errorData);
             } catch (e) {
-                console.error('📋 Error text:', await error.response.text());
+                // console.error('📋 Error text:', await error.response.text());
             }
         }
         
         // En caso de error, usar respuesta de fallback
-        // console.log('[PROCESS MESSAGE] Error en procesamiento, usando fallback');
+        // // console.log('[PROCESS MESSAGE] Error en procesamiento, usando fallback');
         return await getFallbackResponse(message);
     }
 }
@@ -3585,11 +3585,11 @@ Responde siguiendo exactamente el formato especificado y utilizando la informaci
 // Enviar mensaje
 // REEMPLAZAR completamente la función sendMessage según PROMPT_CLAUDE.md
 async function sendMessage() {
-    // console.log('[CHAT] 🚀 Iniciando envío de mensaje mejorado...');
+    // // console.log('[CHAT] 🚀 Iniciando envío de mensaje mejorado...');
     const message = messageInput.value.trim();
     
     if (!message) {
-        // console.log('[CHAT] Mensaje vacío, cancelando envío');
+        // // console.log('[CHAT] Mensaje vacío, cancelando envío');
         return;
     }
     
@@ -3601,7 +3601,7 @@ async function sendMessage() {
         return;
     }
     
-    // console.log('[CHAT] 👤 Usuario identificado:', currentUser.username || currentUser.email);
+    // // console.log('[CHAT] 👤 Usuario identificado:', currentUser.username || currentUser.email);
     
     // Cancelar cualquier escritura del bot en curso
     try {
@@ -3611,7 +3611,7 @@ async function sendMessage() {
         chatState.isTyping = false;
     } catch (_) {}
 
-    // console.log('[CHAT] Enviando mensaje:', message);
+    // // console.log('[CHAT] Enviando mensaje:', message);
     addUserMessage(message);
     messageInput.value = '';
     messageInput.style.height = 'auto';
@@ -3639,15 +3639,15 @@ async function sendMessage() {
     
     // Clasificar pregunta
     const questionType = classifyQuestion(message);
-    // console.log('[CHAT] 📋 Tipo de pregunta clasificada:', questionType);
+    // // console.log('[CHAT] 📋 Tipo de pregunta clasificada:', questionType);
     
     try {
         // Generar respuesta personalizada
-        // console.log('[CHAT] 🤖 Generando respuesta personalizada...');
+        // // console.log('[CHAT] 🤖 Generando respuesta personalizada...');
         const response = await generatePersonalizedResponse(message, currentUser.id);
         
         hideTypingIndicator();
-        // console.log('[CHAT] ✅ Respuesta personalizada generada exitosamente');
+        // // console.log('[CHAT] ✅ Respuesta personalizada generada exitosamente');
         
         // Mostrar respuesta
         await addBotMessage(response);
@@ -3717,7 +3717,7 @@ function toggleAudio() {
             }
         }
     } catch(_) {}
-    console.log('Audio ' + (chatState.audioEnabled ? 'activado' : 'desactivado'));
+    // console.log('Audio ' + (chatState.audioEnabled ? 'activado' : 'desactivado'));
     return chatState.audioEnabled;
 }
 
@@ -3730,7 +3730,7 @@ function getAudioStatus() {
 function setAudioVolume(volume) {
     if (volume >= 0 && volume <= 1) {
         CHATBOT_CONFIG.welcomeAudio.volume = volume;
-        // console.log('Volumen configurado a:', volume);
+        // // console.log('Volumen configurado a:', volume);
     }
 }
 
@@ -4484,8 +4484,8 @@ let livestreamChatState = {
 };
 
 function initializeLivestreamChat() {
-    // console.log('[LIVESTREAM] Inicializando chat del livestream...');
-    // console.log('[LIVESTREAM] Estado inicial del chat:', livestreamChatState);
+    // // console.log('[LIVESTREAM] Inicializando chat del livestream...');
+    // // console.log('[LIVESTREAM] Estado inicial del chat:', livestreamChatState);
     
     // Verificar que Socket.IO está disponible
     if (typeof io === 'undefined') {
@@ -4551,15 +4551,15 @@ function initializeLivestreamChat() {
             ? clean
             : `Usuario_${Math.floor(Math.random() * 1000)}`;
             
-        // console.log('[LIVESTREAM] Username configurado:', livestreamChatState.username);
+        // // console.log('[LIVESTREAM] Username configurado:', livestreamChatState.username);
     } catch (_) {
     livestreamChatState.username = `Usuario_${Math.floor(Math.random() * 1000)}`;
-        // console.log('[LIVESTREAM] Username fallback:', livestreamChatState.username);
+        // // console.log('[LIVESTREAM] Username fallback:', livestreamChatState.username);
     }
 
     // Eventos de conexión
     livestreamSocket.on('connect', () => {
-        // console.log('[LIVESTREAM] Conectado al chat del livestream');
+        // // console.log('[LIVESTREAM] Conectado al chat del livestream');
         livestreamChatState.isConnected = true;
         updateConnectionStatus('Conectado', true);
         
@@ -4587,9 +4587,9 @@ function initializeLivestreamChat() {
 
         // Reintentar envío de pendientes
         if (livestreamChatState.pendingMessages.length > 0) {
-            // console.log('[LIVESTREAM] Procesando mensajes pendientes:', livestreamChatState.pendingMessages.length);
+            // // console.log('[LIVESTREAM] Procesando mensajes pendientes:', livestreamChatState.pendingMessages.length);
             livestreamChatState.pendingMessages.forEach(p => {
-                // console.log('[LIVESTREAM] Procesando mensaje pendiente:', p.messageType, p.message);
+                // // console.log('[LIVESTREAM] Procesando mensaje pendiente:', p.messageType, p.message);
                 if (p.messageType === 'lia') {
                     sendMessageToLIA(p.message, p.id);
                 } else if (p.messageType) {
@@ -4603,7 +4603,7 @@ function initializeLivestreamChat() {
         }
         
         // Verificar estado del selector después de la conexión
-        console.log('[LIVESTREAM] Estado del selector después de conexión:', {
+        // console.log('[LIVESTREAM] Estado del selector después de conexión:', {
             messageType: livestreamChatState.messageType,
             selectorExists: !!document.getElementById('messageTypeSelector'),
             buttonsExist: document.querySelectorAll('#messageTypeSelector .type-btn').length
@@ -4611,7 +4611,7 @@ function initializeLivestreamChat() {
     });
 
     livestreamSocket.on('disconnect', () => {
-        // console.log('[LIVESTREAM] Desconectado del chat del livestream');
+        // // console.log('[LIVESTREAM] Desconectado del chat del livestream');
         livestreamChatState.isConnected = false;
         updateConnectionStatus('Desconectado', false);
         
@@ -4672,13 +4672,13 @@ function initializeLivestreamChat() {
     });
 
     // Inicializar selector de tipo de mensaje
-    // console.log('[LIVESTREAM] Antes de inicializar selector...');
-    console.log('[LIVESTREAM] Elemento messageTypeSelector existe:', !!document.getElementById('messageTypeSelector'));
-    console.log('[LIVESTREAM] Elemento messageTypeSelector HTML:', document.getElementById('messageTypeSelector')?.outerHTML);
+    // // console.log('[LIVESTREAM] Antes de inicializar selector...');
+    // console.log('[LIVESTREAM] Elemento messageTypeSelector existe:', !!document.getElementById('messageTypeSelector'));
+    // console.log('[LIVESTREAM] Elemento messageTypeSelector HTML:', document.getElementById('messageTypeSelector')?.outerHTML);
     
     // Esperar un poco para asegurar que el DOM esté completamente cargado
     setTimeout(() => {
-        // console.log('[LIVESTREAM] Inicializando selector después de delay...');
+        // // console.log('[LIVESTREAM] Inicializando selector después de delay...');
         initializeMessageTypeSelector();
     }, 100);
     
@@ -4702,7 +4702,7 @@ function initializeLivestreamChat() {
     }
 
     function initializeMessageTypeSelector() {
-        // console.log('[LIVESTREAM] Inicializando selector de tipo de mensaje...');
+        // // console.log('[LIVESTREAM] Inicializando selector de tipo de mensaje...');
         const typeSelector = document.getElementById('messageTypeSelector');
         if (!typeSelector) {
             // console.error('[LIVESTREAM] Selector de tipo de mensaje no encontrado');
@@ -4710,27 +4710,27 @@ function initializeLivestreamChat() {
         }
 
         const typeBtns = typeSelector.querySelectorAll('.type-btn');
-        // console.log('[LIVESTREAM] Botones encontrados:', typeBtns.length);
+        // // console.log('[LIVESTREAM] Botones encontrados:', typeBtns.length);
         
         typeBtns.forEach(btn => {
-            console.log('[LIVESTREAM] Configurando botón:', btn.dataset.type, 'Estado inicial:', btn.classList.contains('active'));
-            // console.log('[LIVESTREAM] Botón HTML:', btn.outerHTML);
+            // console.log('[LIVESTREAM] Configurando botón:', btn.dataset.type, 'Estado inicial:', btn.classList.contains('active'));
+            // // console.log('[LIVESTREAM] Botón HTML:', btn.outerHTML);
             
             btn.addEventListener('click', (e) => {
-                // console.log('[LIVESTREAM] Botón clickeado:', btn.dataset.type);
-                // console.log('[LIVESTREAM] Evento click recibido:', e);
+                // // console.log('[LIVESTREAM] Botón clickeado:', btn.dataset.type);
+                // // console.log('[LIVESTREAM] Evento click recibido:', e);
                 e.preventDefault();
                 e.stopPropagation();
                 
                 // Remover clase active de todos los botones
                 typeBtns.forEach(b => {
                     b.classList.remove('active');
-                    // console.log('[LIVESTREAM] Removiendo active de:', b.dataset.type);
+                    // // console.log('[LIVESTREAM] Removiendo active de:', b.dataset.type);
                 });
                 
                 // Agregar clase active al botón clickeado
                 btn.classList.add('active');
-                // console.log('[LIVESTREAM] Agregando active a:', btn.dataset.type);
+                // // console.log('[LIVESTREAM] Agregando active a:', btn.dataset.type);
                 
                 // Agregar indicador visual temporal para debugging
                 btn.style.border = '2px solid red';
@@ -4744,20 +4744,20 @@ function initializeLivestreamChat() {
                 // Actualizar placeholder del input y estado del botón de envío
                 updateInputPlaceholder();
                 
-                // console.log('[LIVESTREAM] Tipo de mensaje cambiado a:', livestreamChatState.messageType);
-                console.log('[LIVESTREAM] Estado actual del botón:', btn.classList.contains('active'));
+                // // console.log('[LIVESTREAM] Tipo de mensaje cambiado a:', livestreamChatState.messageType);
+                // console.log('[LIVESTREAM] Estado actual del botón:', btn.classList.contains('active'));
             });
         });
         
         // No establecer tipo por defecto - el usuario debe seleccionar
         updateInputPlaceholder();
-        // console.log('[LIVESTREAM] Selector inicializado. Estado inicial:', livestreamChatState.messageType);
+        // // console.log('[LIVESTREAM] Selector inicializado. Estado inicial:', livestreamChatState.messageType);
         
         // Test: Simular un click en el botón LIA después de 2 segundos para debugging
         setTimeout(() => {
             const liaBtn = typeSelector.querySelector('[data-type="lia"]');
             if (liaBtn) {
-                // console.log('[LIVESTREAM] Test: Simulando click en botón LIA');
+                // // console.log('[LIVESTREAM] Test: Simulando click en botón LIA');
                 liaBtn.click();
             } else {
                 // console.error('[LIVESTREAM] Test: No se encontró el botón LIA');
@@ -4784,7 +4784,7 @@ function initializeLivestreamChat() {
             const hasType = livestreamChatState.messageType !== null;
             sendBtn.disabled = !hasMessage || !hasType;
             
-            console.log('[LIVESTREAM] Actualizando botón de envío:', {
+            // console.log('[LIVESTREAM] Actualizando botón de envío:', {
                 hasMessage,
                 hasType,
                 disabled: sendBtn.disabled,
@@ -4795,21 +4795,21 @@ function initializeLivestreamChat() {
     
     // Función global para testing desde la consola del navegador
     window.testLiaButton = function() {
-        // console.log('[TEST] Función global testLiaButton llamada');
+        // // console.log('[TEST] Función global testLiaButton llamada');
         const liaBtn = document.querySelector('[data-type="lia"]');
         if (liaBtn) {
-            // console.log('[TEST] Botón LIA encontrado:', liaBtn);
-            // console.log('[TEST] HTML del botón:', liaBtn.outerHTML);
-            // console.log('[TEST] Event listeners del botón:', liaBtn.onclick);
+            // // console.log('[TEST] Botón LIA encontrado:', liaBtn);
+            // // console.log('[TEST] HTML del botón:', liaBtn.outerHTML);
+            // // console.log('[TEST] Event listeners del botón:', liaBtn.onclick);
             
             // Verificar posición y elementos superpuestos
             const rect = liaBtn.getBoundingClientRect();
-            // console.log('[TEST] Posición del botón:', rect);
-            console.log('[TEST] Elementos en la posición del botón:', document.elementsFromPoint(rect.left + rect.width/2, rect.top + rect.height/2));
+            // // console.log('[TEST] Posición del botón:', rect);
+            // console.log('[TEST] Elementos en la posición del botón:', document.elementsFromPoint(rect.left + rect.width/2, rect.top + rect.height/2));
             
             // Verificar si el botón está visible
             const style = window.getComputedStyle(liaBtn);
-            console.log('[TEST] Visibilidad del botón:', {
+            // console.log('[TEST] Visibilidad del botón:', {
                 display: style.display,
                 visibility: style.visibility,
                 opacity: style.opacity,
@@ -4817,11 +4817,11 @@ function initializeLivestreamChat() {
             });
             
             // Intentar hacer click manualmente
-            // console.log('[TEST] Intentando click manual...');
+            // // console.log('[TEST] Intentando click manual...');
             liaBtn.click();
             
             // También intentar con dispatchEvent
-            // console.log('[TEST] Intentando dispatchEvent...');
+            // // console.log('[TEST] Intentando dispatchEvent...');
             const clickEvent = new Event('click', { bubbles: true, cancelable: true });
             liaBtn.dispatchEvent(clickEvent);
         } else {
@@ -4830,16 +4830,16 @@ function initializeLivestreamChat() {
     };
 
     function sendLivestreamMessage() {
-        // console.log('[LIVESTREAM] Intentando enviar mensaje...');
+        // // console.log('[LIVESTREAM] Intentando enviar mensaje...');
         const message = messageInput.value.trim();
         if (!message) {
-            // console.log('[LIVESTREAM] Mensaje vacío, no se envía');
+            // // console.log('[LIVESTREAM] Mensaje vacío, no se envía');
             return;
         }
 
         // Verificar que se haya seleccionado un tipo de mensaje
         if (!livestreamChatState.messageType) {
-            // console.log('[LIVESTREAM] No se ha seleccionado tipo de mensaje. Estado actual:', livestreamChatState.messageType);
+            // // console.log('[LIVESTREAM] No se ha seleccionado tipo de mensaje. Estado actual:', livestreamChatState.messageType);
             alert('Por favor selecciona LIA antes de enviar un mensaje');
             return;
         }
@@ -4884,7 +4884,7 @@ function initializeLivestreamChat() {
 
     async function sendMessageToLIA(message, clientMessageId) {
         try {
-            // console.log('[LIVESTREAM] Enviando mensaje a LIA:', message);
+            // // console.log('[LIVESTREAM] Enviando mensaje a LIA:', message);
             
             // Mostrar indicador de que LIA está pensando
             addLivestreamMessage({
@@ -5076,7 +5076,7 @@ function initializeLivestreamChat() {
 
 // Función para actualizar todos los avatares de usuario en el chat cuando cambie el perfil
 function refreshUserAvatarsInChat() {
-    // console.log('🔄 Actualizando avatares de usuario en el chat...');
+    // // console.log('🔄 Actualizando avatares de usuario en el chat...');
     const userAvatars = document.querySelectorAll('.msg-avatar.user .avatar-circle img');
     const newProfilePicture = getCurrentUserProfilePicture();
     
@@ -5084,13 +5084,13 @@ function refreshUserAvatarsInChat() {
         img.src = newProfilePicture;
     });
     
-    // console.log(`✅ Actualizados ${userAvatars.length} avatares de usuario en el chat`);
+    // // console.log(`✅ Actualizados ${userAvatars.length} avatares de usuario en el chat`);
 }
 
 // Escuchar cambios en localStorage para actualizar avatares automáticamente
 window.addEventListener('storage', function(e) {
     if (e.key === 'currentUser') {
-        // console.log('👤 Datos de usuario actualizados, refrescando avatares...');
+        // // console.log('👤 Datos de usuario actualizados, refrescando avatares...');
         setTimeout(refreshUserAvatarsInChat, 500); // Pequeño delay para asegurar que los datos estén actualizados
     }
 });
@@ -5100,7 +5100,7 @@ let lastUserData = localStorage.getItem('currentUser');
 setInterval(function() {
     const currentUserData = localStorage.getItem('currentUser');
     if (currentUserData !== lastUserData) {
-        // console.log('👤 Cambio en datos de usuario detectado, refrescando avatares...');
+        // // console.log('👤 Cambio en datos de usuario detectado, refrescando avatares...');
         refreshUserAvatarsInChat();
         lastUserData = currentUserData;
     }
@@ -5146,17 +5146,17 @@ let liveStreamState = {
 
 // Inicializar controles de live stream y grabación
 function initializeStreamAndRecordingControls() {
-    // console.log('🎥 Inicializando controles de live stream y grabación...');
+    // // console.log('🎥 Inicializando controles de live stream y grabación...');
     
     // NOTA: Botón principal ahora es controlado por Zoom Video SDK
     // No agregamos event listener para evitar conflictos
-    // console.log('ℹ️ Botón principal delegado a Zoom Video SDK integration');
+    // // console.log('ℹ️ Botón principal delegado a Zoom Video SDK integration');
     
     // Verificar si el usuario es host (esto se puede determinar por el rol o permisos)
     recordingState.isHost = checkIfUserIsHost();
     
     if (recordingState.isHost) {
-        // console.log('✅ Usuario es host, iniciando controles de grabación heredados');
+        // // console.log('✅ Usuario es host, iniciando controles de grabación heredados');
         
         // Solo inicializar controles de grabación si existen
         // El Zoom SDK se encarga de los controles principales de video
@@ -5168,7 +5168,7 @@ function initializeStreamAndRecordingControls() {
         // Verificar si ya hay una grabación en curso
         checkExistingRecording();
     } else {
-        // console.log('ℹ️ Usuario no es host, controles de grabación manejados por Zoom SDK');
+        // // console.log('ℹ️ Usuario no es host, controles de grabación manejados por Zoom SDK');
     }
 }
 
@@ -5190,7 +5190,7 @@ async function toggleLiveStream() {
 // Conectar live stream
 async function connectLiveStream() {
     try {
-        // console.log('📡 Conectando live stream...');
+        // // console.log('📡 Conectando live stream...');
         
         // Aquí iría la lógica real de conexión
         // Por ahora simulamos la conexión
@@ -5198,7 +5198,7 @@ async function connectLiveStream() {
         liveStreamState.isConnected = true;
         updateLiveStreamUI();
         
-        // console.log('✅ Live stream conectado');
+        // // console.log('✅ Live stream conectado');
         
     } catch (error) {
         // console.error('❌ Error al conectar live stream:', error);
@@ -5208,7 +5208,7 @@ async function connectLiveStream() {
 // Desconectar live stream
 async function disconnectLiveStream() {
     try {
-        // console.log('📡 Desconectando live stream...');
+        // // console.log('📡 Desconectando live stream...');
         
         // Aquí iría la lógica real de desconexión
         // Por ahora simulamos la desconexión
@@ -5216,7 +5216,7 @@ async function disconnectLiveStream() {
         liveStreamState.isConnected = false;
         updateLiveStreamUI();
         
-        // console.log('✅ Live stream desconectado');
+        // // console.log('✅ Live stream desconectado');
         
     } catch (error) {
         // console.error('❌ Error al desconectar live stream:', error);
@@ -5254,7 +5254,7 @@ async function checkExistingRecording() {
     try {
         // Aquí deberías verificar con tu RecordingClient si hay una grabación activa
         // Por ahora, asumimos que no hay grabación activa
-        // console.log('🔍 Verificando grabación existente...');
+        // // console.log('🔍 Verificando grabación existente...');
         
         // Si hay grabación activa, actualizar el estado
         // recordingState.isRecording = true;
@@ -5267,7 +5267,7 @@ async function checkExistingRecording() {
 // Iniciar grabación
 async function startRecording() {
     try {
-        // console.log('🎬 Iniciando grabación...');
+        // // console.log('🎬 Iniciando grabación...');
         
         // Verificar permisos
         if (!await checkRecordingPermissions()) {
@@ -5295,7 +5295,7 @@ async function startRecording() {
         // Iniciar timer
         startRecordingTimer();
         
-        // console.log('✅ Grabación iniciada correctamente');
+        // // console.log('✅ Grabación iniciada correctamente');
         
     } catch (error) {
         // console.error('❌ Error al iniciar grabación:', error);
@@ -5306,7 +5306,7 @@ async function startRecording() {
 // Pausar grabación
 async function pauseRecording() {
     try {
-        // console.log('⏸️ Pausando grabación...');
+        // // console.log('⏸️ Pausando grabación...');
         
         if (recordingState.recordingClient) {
             await recordingState.recordingClient.pause();
@@ -5318,7 +5318,7 @@ async function pauseRecording() {
         updateRecordingUI();
         pauseRecordingTimer();
         
-        // console.log('✅ Grabación pausada');
+        // // console.log('✅ Grabación pausada');
         
     } catch (error) {
         // console.error('❌ Error al pausar grabación:', error);
@@ -5329,7 +5329,7 @@ async function pauseRecording() {
 // Reanudar grabación
 async function resumeRecording() {
     try {
-        // console.log('▶️ Reanudando grabación...');
+        // // console.log('▶️ Reanudando grabación...');
         
         if (recordingState.recordingClient) {
             await recordingState.recordingClient.resume();
@@ -5341,7 +5341,7 @@ async function resumeRecording() {
         updateRecordingUI();
         resumeRecordingTimer();
         
-        // console.log('✅ Grabación reanudada');
+        // // console.log('✅ Grabación reanudada');
         
     } catch (error) {
         // console.error('❌ Error al reanudar grabación:', error);
@@ -5352,7 +5352,7 @@ async function resumeRecording() {
 // Detener grabación
 async function stopRecording() {
     try {
-        // console.log('⏹️ Deteniendo grabación...');
+        // // console.log('⏹️ Deteniendo grabación...');
         
         if (recordingState.recordingClient) {
             await recordingState.recordingClient.stop();
@@ -5371,7 +5371,7 @@ async function stopRecording() {
         // Actualizar UI
         updateRecordingUI();
         
-        // console.log('✅ Grabación detenida');
+        // // console.log('✅ Grabación detenida');
         
     } catch (error) {
         // console.error('❌ Error al detener grabación:', error);
@@ -5405,24 +5405,24 @@ async function checkRecordingPermissions() {
 async function initializeRecordingClient() {
     // Esta función debe implementarse según tu RecordingClient
     // Por ahora, retornamos un mock
-    // console.log('🔧 Inicializando RecordingClient...');
+    // // console.log('🔧 Inicializando RecordingClient...');
     
     return {
         start: async () => {
-            // console.log('🎬 Mock: Iniciando grabación...');
+            // // console.log('🎬 Mock: Iniciando grabación...');
             // Simular delay
             await new Promise(resolve => setTimeout(resolve, 1000));
         },
         pause: async () => {
-            // console.log('⏸️ Mock: Pausando grabación...');
+            // // console.log('⏸️ Mock: Pausando grabación...');
             await new Promise(resolve => setTimeout(resolve, 500));
         },
         resume: async () => {
-            // console.log('▶️ Mock: Reanudando grabación...');
+            // // console.log('▶️ Mock: Reanudando grabación...');
             await new Promise(resolve => setTimeout(resolve, 500));
         },
         stop: async () => {
-            // console.log('⏹️ Mock: Deteniendo grabación...');
+            // // console.log('⏹️ Mock: Deteniendo grabación...');
             await new Promise(resolve => setTimeout(resolve, 1000));
         }
     };
