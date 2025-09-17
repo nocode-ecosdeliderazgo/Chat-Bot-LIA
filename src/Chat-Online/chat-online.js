@@ -100,7 +100,14 @@ class ChatOnline {
         // Cargar notas como backup (con delay para asegurar DOM listo)
         setTimeout(() => {
             console.log('🔄 Ejecutando loadNotesList() de backup desde init()');
-            this.loadNotesList();
+            
+            // PRIMERO: Limpiar cualquier nota hardcodeada "xs"
+            this.removeHardcodedXsNote();
+            
+            // DESPUÉS: Cargar notas normalmente
+            setTimeout(() => {
+                this.loadNotesList();
+            }, 200);
         }, 500);
 
         console.log('✅ Chat Online inicializado correctamente');
@@ -108,6 +115,10 @@ class ChatOnline {
         // Exponer funciones de diagnóstico globalmente
         window.debugNotesButton = () => this.debugNotesButton();
         window.debugLeftPanelButtons = () => this.debugLeftPanelButtons();
+        
+        // Exponer función para eliminar nota hardcodeada
+        window.removeXsNote = () => this.removeHardcodedXsNote();
+        window.nuclearCleanNotes = () => this.nuclearCleanNotes();
     }
     
     // Función de diagnóstico para el botón de notas
@@ -1019,6 +1030,80 @@ class ChatOnline {
         this.scrollToBottom(messagesContainer);
     }
     
+    applyInlineFormatting(text) {
+        if (!text) {
+            return '';
+        }
+
+        let formatted = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        formatted = formatted.replace(/(^|[^*])\*(?!\s)([^*]+?)\*(?!\*)/g, '$1<em>$2</em>');
+        return formatted;
+    }
+
+    formatAssistantMessage(rawMessage) {
+        if (!rawMessage) {
+            return '';
+        }
+
+        const escaped = this.escapeHtml(rawMessage);
+        const lines = escaped.split(/\r?\n/);
+        const parts = [];
+        let listBuffer = [];
+
+        const flushList = () => {
+            if (listBuffer.length === 0) {
+                return;
+            }
+            parts.push('<ul>' + listBuffer.join('') + '</ul>');
+            listBuffer = [];
+        };
+
+        lines.forEach((originalLine) => {
+            const trimmed = originalLine.trim();
+            if (!trimmed) {
+                flushList();
+                return;
+            }
+
+            if (/^[-*]\s+/.test(trimmed)) {
+                const itemText = this.applyInlineFormatting(trimmed.replace(/^[-*]\s+/, ''));
+                listBuffer.push('<li>' + itemText + '</li>');
+                return;
+            }
+
+            flushList();
+
+            if (/^###\s+/.test(trimmed)) {
+                const headingText = this.applyInlineFormatting(trimmed.replace(/^###\s+/, ''));
+                parts.push('<h3>' + headingText + '</h3>');
+                return;
+            }
+
+            if (/^##\s+/.test(trimmed)) {
+                const headingText = this.applyInlineFormatting(trimmed.replace(/^##\s+/, ''));
+                parts.push('<h2>' + headingText + '</h2>');
+                return;
+            }
+
+            if (/^#\s+/.test(trimmed)) {
+                const headingText = this.applyInlineFormatting(trimmed.replace(/^#\s+/, ''));
+                parts.push('<h1>' + headingText + '</h1>');
+                return;
+            }
+
+            const paragraph = this.applyInlineFormatting(trimmed);
+            parts.push('<p>' + paragraph + '</p>');
+        });
+
+        flushList();
+
+        if (parts.length === 0) {
+            return '<p>' + this.applyInlineFormatting(escaped) + '</p>';
+        }
+
+        return parts.join('');
+    }
+
     addLiaMessage(message) {
         // Guardar respuesta de LIA en historial antes de mostrar en UI
         this.guardarMensajeEnHistorial('assistant', message);
@@ -1031,7 +1116,7 @@ class ChatOnline {
                 <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
             </div>
             <div class="message-content">
-                <div class="message-text">${this.escapeHtml(message)}</div>
+                <div class="message-text">${this.formatAssistantMessage(message)}</div>
                 <div class="message-time">ahora</div>
                 <div class="message-actions">
                     <button class="action-btn-small" onclick="window.chatOnline.copyMessage(this)" title="Copiar mensaje">
@@ -6155,6 +6240,89 @@ class ChatOnline {
             this.loadNotesList();
             console.log('🗑️ Todas las notas eliminadas');
         }
+    }
+    
+    // Función específica para eliminar la nota "xs" hardcodeada
+    removeHardcodedXsNote() {
+        console.log('🧹 Eliminando nota hardcodeada "xs"...');
+        
+        // 1. Limpiar localStorage completamente
+        console.log('🗑️ Limpiando localStorage...');
+        localStorage.removeItem('lia_notes');
+        
+        // 2. Limpiar cualquier nota del DOM directamente
+        console.log('🗑️ Limpiando DOM...');
+        const notesList = document.getElementById('notesList');
+        if (notesList) {
+            // Buscar y eliminar cualquier nota que contenga "xs"
+            const noteItems = notesList.querySelectorAll('.note-item');
+            let removedFromDOM = 0;
+            
+            noteItems.forEach(item => {
+                const noteContent = item.textContent || '';
+                if (noteContent.includes('xs') || noteContent.trim() === 'xs') {
+                    console.log('🗑️ Eliminando del DOM nota que contiene "xs":', noteContent);
+                    item.remove();
+                    removedFromDOM++;
+                }
+            });
+            
+            console.log(`🗑️ Eliminadas ${removedFromDOM} notas del DOM`);
+            
+            // Si no hay notas, mostrar mensaje vacío
+            const remainingNotes = notesList.querySelectorAll('.note-item');
+            if (remainingNotes.length === 0) {
+                notesList.innerHTML = `
+                    <div class="no-notes">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        <p>No hay notas aún</p>
+                        <span>Crea tu primera nota para comenzar</span>
+                    </div>
+                `;
+            }
+        }
+        
+        // 3. Forzar recarga de la lista
+        setTimeout(() => {
+            this.loadNotesList();
+        }, 100);
+        
+        console.log('✅ Limpieza completa realizada');
+        return true;
+    }
+    
+    // Función nuclear - elimina TODO
+    nuclearCleanNotes() {
+        console.log('💥 LIMPIEZA NUCLEAR DE NOTAS...');
+        
+        // Eliminar del localStorage
+        localStorage.removeItem('lia_notes');
+        localStorage.removeItem('notes'); // Por si acaso hay otra clave
+        localStorage.removeItem('userNotes'); // Por si acaso
+        
+        // Limpiar el DOM completamente
+        const notesList = document.getElementById('notesList');
+        if (notesList) {
+            notesList.innerHTML = `
+                <div class="no-notes">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    <p>No hay notas aún</p>
+                    <span>Todas las notas han sido eliminadas</span>
+                </div>
+            `;
+        }
+        
+        // Limpiar la propiedad de la clase
+        this.notes = [];
+        
+        console.log('💥 LIMPIEZA NUCLEAR COMPLETADA');
+        return true;
     }
     
     updateProgress(percentage) {
