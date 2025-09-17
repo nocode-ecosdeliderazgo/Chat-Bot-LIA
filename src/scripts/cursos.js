@@ -1,6 +1,6 @@
 // Catálogo de cursos: data mínima simulada (podrás reemplazar por API)
 const CATALOG = [
-  {id: 'chatgpt_gemini', title: 'Dominando ChatGPT y Gemini para la Productividad', instructor:'Ernesto Hernandez', rating: 4.9, price: 2990, cat:'ia', level:'Intermedio', img:'assets/images/brain-icon.jpg'}
+  {id: 'chatgpt_gemini', title: 'Introducción a la IA', instructor:'Ernesto Hernandez', rating: 4.9, price: 2990, cat:'ia', level:'Intermedio', img:'assets/images/brain-icon.jpg'}
 ];
 
 // Ocultar todos los cursos (toggle)
