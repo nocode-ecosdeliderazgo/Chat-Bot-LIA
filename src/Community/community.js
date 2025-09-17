@@ -177,8 +177,9 @@ class CommunityPage {
 
         // Grid Discover (solo las dos comunidades principales)
         this.communities = [
-            { id:0, rank:0, title:'Comunidad General', category:'general', members:'1.2k', price:'Free', desc:'Comunidad principal para todos los miembros. Comparte experiencias, haz preguntas y conecta con otros estudiantes.', thumb:'./images/comunidad-general.png', icon:'fas fa-globe' },
-            { id:-1, rank:-1, title:'Amigos, Directores y Empresarios', category:'negocios', members:'856', price:'Free', desc:'Comunidad para mentes abiertas. Explora nuevas ideas, comparte perspectivas únicas y expande tu horizonte mental.', thumb:'./images/openminder.png', icon:'fas fa-lightbulb' }
+            { id:0, rank:0, title:'Comunidad de Profesionales', category:'general', members:'1.2k', price:'Free', desc:'Comunidad principal para todos los miembros. Comparte experiencias, haz preguntas y conecta con otros estudiantes.', thumb:'./images/comunidad-general.png', icon:'fas fa-globe' },
+            { id:-1, rank:-1, title:'Comunidad SIF ICAP', category:'negocios', members:'856', price:'Free', desc:'Comunidad para mentes abiertas. Explora nuevas ideas, comparte perspectivas únicas y expande tu horizonte mental.', thumb:'./images/openminder.png', icon:'fas fa-lightbulb' },
+            { id:-2, rank:-2, title:'Comunidad RBA', category:'general', members:'432', price:'Free', desc:'Comunidad especializada en RBA. Conecta con profesionales que comparten tu interés en esta área específica.', thumb:'./images/comunidad-RBA.png', icon:'fas fa-users' }
         ];
 
         // (sin posts/leaderboard)
