@@ -1,6 +1,35 @@
 // Apps Directory JavaScript - Nuevo diseño
 console.log('🚀 [SCRIPT] apps-directory.js cargándose...');
 
+// Función para obtener todas las apps
+function getAllApps() {
+    console.log('📋 [APPS] Obteniendo todas las apps...');
+    try {
+        // Verificar si appsData está disponible
+        if (typeof appsData !== 'undefined') {
+            console.log('✅ [APPS] appsData encontrado:', appsData.length, 'apps');
+            return appsData;
+        } else {
+            console.error('❌ [APPS] appsData no está definido');
+            return [];
+        }
+    } catch (error) {
+        console.error('❌ [APPS] Error al obtener apps:', error);
+        return [];
+    }
+}
+
+// Esperar a que el DOM esté completamente cargado
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 [DOM] DOM completamente cargado');
+    
+    // Esperar un poco más para asegurar que apps-data.js se haya cargado
+    setTimeout(() => {
+        console.log('⏰ [TIMEOUT] Iniciando AppsDirectory después del timeout');
+        window.appsDirectory = new AppsDirectory();
+    }, 100);
+});
+
 // Función de test simple para verificar que el script funciona
 window.testAppsScript = function() {
     console.log('🧪 [TEST] Script de apps funcionando correctamente');
@@ -287,10 +316,15 @@ class AppsDirectory {
     }
 
     showAppDetails(appId) {
-        console.log('🔍 [MODAL] showAppDetails llamado con ID:', appId);
-        const app = getAppById(appId);
+        console.log('🔍 [MODAL] showAppDetails llamado con ID:', appId, 'tipo:', typeof appId);
+        // Convertir appId a número para la comparación
+        const numericId = parseInt(appId);
+        console.log('🔍 [MODAL] ID convertido a número:', numericId);
+        
+        const app = this.apps.find(app => app.id === numericId);
         if (!app) {
-            console.error('❌ [MODAL] App no encontrada con ID:', appId);
+            console.error('❌ [MODAL] App no encontrada con ID:', numericId);
+            console.log('🔍 [MODAL] Apps disponibles:', this.apps.map(a => ({ id: a.id, name: a.name, tipo: typeof a.id })));
             return;
         }
 
@@ -416,14 +450,18 @@ class AppsDirectory {
     getCategoryDisplayName(category) {
         const categoryNames = {
             'productividad-automatizacion': 'Productividad y Automatización',
-            'contenido-escritura': 'Contenido y escritura',
+            'contenido-escritura': 'Contenido y Escritura',
             'musica-audio': 'Música y Audio',
-            'fotografia-imagen': 'Fotografía e imagen',
+            'fotografia-imagen': 'Fotografía e Imagen',
             'miscelaneas': 'Misceláneas',
-            'desarrollo-programacion': 'Desarrollo y programación',
+            'desarrollo-programacion': 'Desarrollo y Programación',
             'video': 'Video',
-            'arte-ilustracion': 'Arte e ilustración',
-            'negocios-finanzas': 'Negocios y finanzas'
+            'arte-ilustracion': 'Arte e Ilustración',
+            'negocios-finanzas': 'Negocios y Finanzas',
+            'marketing-ventas': 'Marketing y Ventas',
+            'contabilidad-finanzas': 'Contabilidad y Finanzas',
+            'rrhh-gestion': 'RRHH y Gestión',
+            'it-operaciones': 'IT y Operaciones'
         };
         return categoryNames[category] || category;
     }
@@ -711,9 +749,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Inject modal styles
     document.head.insertAdjacentHTML('beforeend', modalStyles);
-    
-    // Initialize the directory
-    const appsDirectory = new AppsDirectory();
     
     // Setup profile menu functionality
     setupProfileMenu();
