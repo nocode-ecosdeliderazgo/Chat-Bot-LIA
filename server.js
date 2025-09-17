@@ -239,6 +239,110 @@ app.get('/api/adopcion-genai', async (req, res) => {
     }
 });
 
+// Endpoint para obtener mensajes explicativos personalizados
+app.get('/api/analysis-messages', async (req, res) => {
+    try {
+        const { messageType, score, area, userId } = req.query;
+
+        // Validar parámetros requeridos
+        if (!messageType || score === undefined) {
+            return res.status(400).json({
+                success: false,
+                error: 'messageType y score son requeridos'
+            });
+        }
+
+        // Validar tipo de mensaje
+        const validTypes = ['adoption_explanation', 'knowledge_explanation', 'recommendation'];
+        if (!validTypes.includes(messageType)) {
+            return res.status(400).json({
+                success: false,
+                error: 'messageType debe ser: ' + validTypes.join(', ')
+            });
+        }
+
+        // Validar score
+        const scoreNum = parseInt(score);
+        if (isNaN(scoreNum) || scoreNum < 0 || scoreNum > 100) {
+            return res.status(400).json({
+                success: false,
+                error: 'score debe ser un número entre 0 y 100'
+            });
+        }
+
+        console.log(`🔍 Buscando mensaje: tipo=${messageType}, score=${scoreNum}, área=${area || 'general'}`);
+
+        if (!supabase) {
+            console.warn('⚠️ Supabase no configurado, usando fallback');
+            return res.json({ success: false, error: 'Supabase no configurado' });
+        }
+
+        // Construir query base
+        let query = supabase
+            .from('analysis_messages')
+            .select('*')
+            .eq('message_type', messageType)
+            .lte('score_range_min', scoreNum)
+            .gte('score_range_max', scoreNum)
+            .eq('is_active', true);
+
+        // Filtrar por área si se proporciona
+        if (area && area !== 'general') {
+            // Buscar primero por área específica, luego por general
+            query = query.in('target_area', [area, 'general']);
+        } else {
+            // Solo mensajes generales
+            query = query.in('target_area', ['general']);
+        }
+
+        // Ordenar por prioridad: área específica primero, luego general
+        if (area && area !== 'general') {
+            query = query.order('target_area', { ascending: false }); // área específica primero
+        }
+
+        // Para recomendaciones, ordenar también por prioridad
+        if (messageType === 'recommendation') {
+            query = query.order('priority_level', { ascending: true }); // high, medium, low
+        }
+
+        query = query.limit(1);
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.error('❌ Error obteniendo mensaje:', error);
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
+
+        if (data && data.length > 0) {
+            console.log(`✅ Mensaje encontrado: ${data[0].title || 'Sin título'}`);
+            res.json({
+                success: true,
+                message: data[0],
+                source: 'database'
+            });
+        } else {
+            console.log(`⚠️ No se encontró mensaje para los criterios especificados`);
+            res.json({
+                success: false,
+                error: 'No se encontró mensaje para los criterios especificados',
+                source: 'database'
+            });
+        }
+
+    } catch (error) {
+        console.error('❌ Error en analysis-messages:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            source: 'database'
+        });
+    }
+});
+
 app.use(express.static('src'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Servir prompts para depuración/inspección (protegido por API en endpoints abajo)
