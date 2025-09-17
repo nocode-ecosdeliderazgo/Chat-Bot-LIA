@@ -6380,8 +6380,33 @@ INSTRUCCIONES:
         // Función para manejar el chat con LIA
         async function handleChatWithLIA(mensaje) {
             try {
-                            const currentUser = obtenerUsuarioActual();
+                const messagesContainer = document.getElementById('liaMessages');
+                if (!messagesContainer) {
+                    console.error('[LIA] ERROR: contenedor de mensajes no encontrado');
+                    return;
+                }
 
+                let typingIndicator = messagesContainer.querySelector('.typing-indicator');
+                if (!typingIndicator) {
+                    typingIndicator = document.createElement('div');
+                    typingIndicator.className = 'lia-message typing-indicator';
+                    typingIndicator.innerHTML = [
+                        '<div class="lia-avatar">',
+                        '    <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">',
+                        '</div>',
+                        '<div class="typing-dots-only">',
+                        '    <div class="typing-dot"></div>',
+                        '    <div class="typing-dot"></div>',
+                        '    <div class="typing-dot"></div>',
+                        '</div>'
+                    ].join('');
+                    messagesContainer.appendChild(typingIndicator);
+                }
+
+                typingIndicator.style.display = 'flex';
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                            const currentUser = obtenerUsuarioActual();
                             console.log('[LIA] 👤 Usuario actual:', currentUser);
 
                             
@@ -6654,6 +6679,9 @@ INSTRUCCIONES:
                                 console.log('[LIA] 🔄 Respuesta de fallback mostrada');
                             }
                         } catch (error) {
+                            if (typingIndicator) {
+                                typingIndicator.style.display = 'none';
+                            }
                             console.error('💥 Error en handleChatWithLIA:', error);
                         }
                     }
