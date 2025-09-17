@@ -5994,6 +5994,11 @@ INSTRUCCIONES:
 
             // Función simple para crear HTML de nota
             function createSimpleNoteHTML(note) {
+                const rawModule = note && typeof note.module === 'string' ? note.module.trim() : '';
+                const normalizedModule = rawModule.normalize ? rawModule.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : rawModule;
+                const shouldShowModule = normalizedModule && normalizedModule.toLowerCase() !== 'sin modulo';
+                const moduleLabel = shouldShowModule ? rawModule : '';
+
                 return `
                     <div class="note-item" data-note-id="${note.id}">
                         <div class="note-header">
@@ -6003,14 +6008,40 @@ INSTRUCCIONES:
                         <div class="note-content">
                             <p>${(note.content || '').substring(0, 100)}${(note.content || '').length > 100 ? '...' : ''}</p>
                         </div>
-                        <div class="note-module">
-                            <span>${note.module || 'Sin módulo'}</span>
-                        </div>
+                        ${moduleLabel ? `<div class="note-module"><span>${moduleLabel}</span></div>` : ''}
                     </div>
                 `;
             }
 
+            function attachNoteClickListeners(container, notes) {
+                if (!container || !Array.isArray(notes)) {
+                    return;
+                }
+
+                const noteItems = container.querySelectorAll('.note-item');
+                noteItems.forEach((item) => {
+                    item.addEventListener('click', () => {
+                        const datasetId = item.getAttribute('data-note-id');
+                        const noteData = notes.find((n) => String(n.id) === datasetId);
+                        const idToUse = noteData ? noteData.id : datasetId;
+
+                        if (window.chatOnline && typeof window.chatOnline.openNoteForEditing === 'function') {
+                            window.chatOnline.openNoteForEditing(idToUse);
+                        } else {
+                            console.warn('[NOTES] Editor de notas no disponible aun');
+                        }
+                    });
+                });
+            }
+
+
             notesList.innerHTML = sortedNotes.map(note => createSimpleNoteHTML(note)).join('');
+            attachNoteClickListeners(notesList, sortedNotes);
+
+            if (window.chatOnline && typeof window.chatOnline.loadNotesList === 'function') {
+                setTimeout(() => window.chatOnline.loadNotesList(), 50);
+            }
+
             console.log('✅ Notas cargadas exitosamente en el DOM');
         }
 
