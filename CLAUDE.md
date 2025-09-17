@@ -65,6 +65,14 @@ node scripts/test-activities.js
 node scripts/insert-sample-activities.js
 node scripts/run-activity-migration.js
 
+# Check and fix progress data
+node scripts/check-progress-data.js
+node scripts/fix-progress-function.js
+node scripts/reset-user-progress.js
+
+# Update specific activities
+node scripts/update-specific-activities.js
+
 # Import GenAI questions (if using Supabase)
 SUPABASE_URL="your_url" SUPABASE_SERVICE_KEY="your_key" node scripts/import-genai-questions.js --clear --verbose
 ```
@@ -362,6 +370,9 @@ The project includes several utility scripts for database management:
 - `scripts/run-activity-migration.js` - Migrate activity data
 - `scripts/test-activities.js` - Test activity functionality
 - `scripts/update-specific-activities.js` - Update specific activity records
+- `scripts/check-progress-data.js` - Validate progress data integrity
+- `scripts/fix-progress-function.js` - Repair progress functions
+- `scripts/reset-user-progress.js` - Reset user progress data
 
 ### Chat System Architecture
 The chat system has dual deployment modes:
@@ -402,8 +413,7 @@ The Chat-Online module uses a specialized loader architecture:
 - Real-time DOM updates with glass morphism styling
 
 ### Port Management & Development Scripts
-The project includes specialized port management for Windows development:
-- `scripts/kill-port-3000.cjs` / `scripts/kill-port-3001.cjs` - Cleanup utilities for occupied ports
+The project includes specialized port management for cross-platform development:
 - `npm run port:kill` - Kills processes on port 3000
 - `npm run port:kill:3001` - Kills processes on port 3001
 - `npm run dev:force` - Kills port 3000 first, then starts development server
