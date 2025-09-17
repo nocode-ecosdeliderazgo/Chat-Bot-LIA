@@ -16,8 +16,13 @@
   status = 200
 
 [[redirects]]
-  from = "/api/profile"
-  to   = "/.netlify/functions/get-profile"
+  from = "/api/test-profile"
+  to   = "/.netlify/functions/test-profile"
+  status = 200
+
+[[redirects]]
+  from = "/api/profile/upload"
+  to   = "/.netlify/functions/profile-upload"
   status = 200
 
 [[redirects]]
@@ -26,8 +31,8 @@
   status = 200
 
 [[redirects]]
-  from = "/api/profile/upload"
-  to   = "/.netlify/functions/profile-upload"
+  from = "/api/profile"
+  to   = "/.netlify/functions/get-profile"
   status = 200
 
 [[redirects]]
