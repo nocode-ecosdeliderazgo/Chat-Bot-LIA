@@ -73,8 +73,9 @@
                         </div>
                     </div>
                     <div class="pm-section">
-                        <div class="pm-item" onclick="location.href='estadisticas.html'"><i class='bx bx-bar-chart-alt-2'></i> Mis Estadísticas</div>
-                        <div class="pm-item" onclick="location.href='courses.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
+                    <div class="pm-item" onclick="location.href='estadisticas.html'"><i class='bx bx-bar-chart-alt-2'></i> Mis Estadísticas</div>
+                    <div class="pm-item" onclick="location.href='courses.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
+                    <div class="pm-item" onclick="location.href='cursos.html'"><i class='bx bx-collection'></i> Talleres</div>
                     </div>
                     <div class="pm-section">
                         <div class="pm-item" onclick="location.href='profile.html'"><i class='bx bx-user'></i> Editar perfil</div>
@@ -120,56 +121,63 @@
                     <p>Descubre las mejores herramientas de inteligencia artificial organizadas por categorías. Encuentra la herramienta perfecta para tu proyecto o flujo de trabajo.</p>
                 </div>
                 <div class="hero-cta">
-                    <div class="filter-toggle">
-                        <button class="btn btn-outline" id="filterToggle">
-                            <i class='bx bx-filter-alt'></i>
-                            Filtros avanzados
-                        </button>
-                    </div>
+                    <button class="btn btn-outline" id="filterToggle">
+                        <i class='bx bx-filter-alt'></i>
+                        Filtros avanzados
+                    </button>
                 </div>
             </section>
 
-            <!-- Sidebar de filtros (inicialmente oculto) -->
+            <!-- Sidebar de filtros -->
             <aside class="filters-sidebar" id="filtersSidebar">
+                <div class="filters-header">
+                    <h3>Filtros avanzados</h3>
+                    <button class="close-filters" id="closeFilters">
+                        <i class='bx bx-x'></i>
+                    </button>
+                </div>
                 <div class="filters-content">
                     <div class="filter-group">
-                        <h3>Modelo de precio</h3>
+                        <h4>Modelo de precio</h4>
                         <div class="filter-options">
                             <label class="filter-option">
                                 <input type="checkbox" value="gratis" class="pricing-filter">
                                 <span class="checkmark"></span>
-                                Gratis
+                                <span class="filter-label">Gratis</span>
                             </label>
                             <label class="filter-option">
                                 <input type="checkbox" value="freemium" class="pricing-filter">
                                 <span class="checkmark"></span>
-                                Freemium
+                                <span class="filter-label">Freemium</span>
                             </label>
                             <label class="filter-option">
                                 <input type="checkbox" value="de-pago" class="pricing-filter">
                                 <span class="checkmark"></span>
-                                De pago
+                                <span class="filter-label">De pago</span>
                             </label>
                             <label class="filter-option">
                                 <input type="checkbox" value="prueba-gratis" class="pricing-filter">
                                 <span class="checkmark"></span>
-                                Prueba gratis
+                                <span class="filter-label">Prueba gratis</span>
                             </label>
                         </div>
                     </div>
                     
                     <div class="filter-group">
-                        <h3>Tutorial disponible</h3>
+                        <h4>Tutorial disponible</h4>
                         <div class="filter-options">
                             <label class="filter-option">
-                                <input type="checkbox" id="withTutorial">
+                                <input type="checkbox" id="withTutorial" class="tutorial-filter">
                                 <span class="checkmark"></span>
-                                Con tutorial
+                                <span class="filter-label">Con tutorial</span>
                             </label>
                         </div>
                     </div>
                 </div>
             </aside>
+
+            <!-- Overlay -->
+            <div class="filters-overlay" id="filtersOverlay"></div>
 
             <!-- Grid de aplicaciones -->
             <section id="appsGrid" class="courses-grid">
@@ -189,6 +197,96 @@
             </div>
         </main>
     </div> <!-- Cierre del auth-container -->
+
+    <!-- App Details Modal -->
+    <div class="app-modal" id="appModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAppModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-app-card">
+                <!-- Modal content will be loaded here dynamically -->
+                <div class="app-header-graphic">
+                    <div class="brain-icon">
+                        <i class="fas fa-brain"></i>
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <div class="neural-lines"></div>
+                    <div class="gear-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                </div>
+                <h1 class="app-main-title" id="modalAppTitle">Título de la herramienta</h1>
+                <div class="tldr-section">
+                    <h3 class="tldr-heading">
+                        <span class="tldr-icon"></span>
+                        TL;DR:
+                    </h3>
+                    <ul class="tldr-items" id="modalAppTldr">
+                        <!-- TL;DR items will be loaded here -->
+                    </ul>
+                </div>
+                <div class="modal-detailed-content">
+                    <p id="modalAppDescription"><strong>Descripción:</strong></p>
+                    <p id="modalAppDescriptionText">Descripción detallada de la herramienta...</p>
+
+                    <div class="app-main-content">
+                        <div class="left-column">
+                            <div class="pros-section">
+                                <h4 class="section-heading">Ventajas</h4>
+                                <ul class="section-list" id="modalAppPros">
+                                    <!-- Pros will be loaded here -->
+                                </ul>
+                            </div>
+                            <div class="cons-section">
+                                <h4 class="section-heading">Desventajas</h4>
+                                <ul class="section-list" id="modalAppCons">
+                                    <!-- Cons will be loaded here -->
+                                </ul>
+                            </div>
+                            <div class="pricing-section">
+                                <h4 class="section-heading">
+                                    <i class="fas fa-euro-sign"></i>
+                                    Planes y Precios:
+                                </h4>
+                                <div class="pricing-plans" id="modalAppPricing">
+                                    <!-- Pricing plans will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="right-column">
+                            <div class="use-cases-section">
+                                <h4 class="section-heading">Casos de uso:</h4>
+                                <ul class="section-list" id="modalAppUseCases">
+                                    <!-- Use cases will be loaded here -->
+                                </ul>
+                            </div>
+                            <div class="alternatives-section">
+                                <h4 class="section-heading">Alternativas:</h4>
+                                <ul class="section-list" id="modalAppAlternatives">
+                                    <!-- Alternatives will be loaded here -->
+                                </ul>
+                            </div>
+                            <div class="features-section">
+                                <h4 class="section-heading">
+                                    <i class="fas fa-star"></i>
+                                    Características principales:
+                                </h4>
+                                <ul class="section-list" id="modalAppFeatures">
+                                    <!-- Features will be loaded here -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="cta-section">
+                    <span class="cta-label">CTA:</span>
+                    <button class="cta-button" id="modalAppCtaButton">Visitar herramienta</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Scripts -->
     <script src="data/apps-data.js"></script>

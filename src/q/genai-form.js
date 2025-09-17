@@ -372,6 +372,7 @@ class GenAIQuestionnaire {
                     peso,
                     escala,
                     scoring,
+                    respuesta_correcta,
                     created_at
                 `)
                 .eq('exclusivo_rol_id', this.genaiRol)
@@ -404,6 +405,7 @@ class GenAIQuestionnaire {
                 weight_to_100: q.peso,
                 scale_mapping: q.escala,
                 scoring_mapping: q.scoring,
+                respuesta_correcta: q.respuesta_correcta,
                 created_at: q.created_at
             }));
             
@@ -768,48 +770,79 @@ class GenAIQuestionnaire {
         let adoptionCount = 0;
         let knowledgeTotal = 0;
         let knowledgeCount = 0;
-        
+        let knowledgeCorrect = 0; // Contador de respuestas correctas en conocimiento
+
+        console.log('🎯 Iniciando cálculo de scores...');
+
         Object.values(this.responses).forEach(response => {
             const question = this.questions.find(q => q.id == response.questionId);
             if (!question) {
                 console.warn('⚠️ Pregunta no encontrada para ID:', response.questionId);
                 return;
             }
-            
+
             const score = this.calculateQuestionScore(question, response.answer);
-            
+
             if (question.block === 'Adopción') {
                 adoptionTotal += score;
                 adoptionCount++;
+                console.log(`📈 Adopción - P${question.id}: ${score} pts`);
             } else if (question.block === 'Conocimiento') {
                 knowledgeTotal += score;
                 knowledgeCount++;
+                if (score === 100) knowledgeCorrect++; // Contar respuestas correctas
+                console.log(`🧠 Conocimiento - P${question.id}: ${score === 100 ? 'CORRECTA' : 'INCORRECTA'} (${score} pts)`);
             }
         });
-        
+
         const adoptionScore = adoptionCount > 0 ? (adoptionTotal / adoptionCount) : 0;
         const knowledgeScore = knowledgeCount > 0 ? (knowledgeTotal / knowledgeCount) : 0;
         const totalScore = (adoptionScore + knowledgeScore) / 2;
-        
-        console.log('📊 Scores calculados:', {
-            adoption: adoptionScore,
-            knowledge: knowledgeScore,
-            total: totalScore
+
+        console.log('📊 Resumen de Scores:', {
+            'Adopción': {
+                preguntas: adoptionCount,
+                promedio: Math.round(adoptionScore * 100) / 100
+            },
+            'Conocimiento': {
+                preguntas: knowledgeCount,
+                correctas: knowledgeCorrect,
+                porcentaje_acierto: knowledgeCount > 0 ? Math.round((knowledgeCorrect / knowledgeCount) * 100) : 0,
+                promedio: Math.round(knowledgeScore * 100) / 100
+            },
+            'Score Total': Math.round(totalScore * 100) / 100
         });
-        
+
         return {
             adoption_score: Math.round(adoptionScore * 100) / 100,
             knowledge_score: Math.round(knowledgeScore * 100) / 100,
-            total_score: Math.round(totalScore * 100) / 100
+            total_score: Math.round(totalScore * 100) / 100,
+            knowledge_correct_count: knowledgeCorrect,
+            knowledge_total_count: knowledgeCount,
+            adoption_total_count: adoptionCount
         };
     }
     
     calculateQuestionScore(question, answer) {
+        // Para preguntas de conocimiento con respuesta_correcta definida
+        if (question.block === 'Conocimiento' && question.respuesta_correcta) {
+            console.log(`📚 Evaluando pregunta de conocimiento ${question.id}: respuesta="${answer}", correcta="${question.respuesta_correcta}"`);
+
+            // Si la respuesta es correcta, dar puntuación máxima (100)
+            // Si es incorrecta, dar puntuación mínima (0)
+            const isCorrect = answer === question.respuesta_correcta;
+            const score = isCorrect ? 100 : 0;
+
+            console.log(`✅ Pregunta ${question.id}: ${isCorrect ? 'CORRECTA' : 'INCORRECTA'} - Score: ${score}`);
+            return score;
+        }
+
+        // Para preguntas de adopción (escala Likert) usar el scoring original
         if (!question || !question.scoring_mapping) {
             console.warn('⚠️ Sin scoring_mapping para pregunta:', question?.id || 'undefined');
             return 0;
         }
-        
+
         let scoring;
         try {
             if (typeof question.scoring_mapping === 'string') {
@@ -821,29 +854,33 @@ class GenAIQuestionnaire {
             console.error('❌ Error parseando scoring_mapping para pregunta', question.id, ':', error);
             return 0;
         }
-        
+
         if (typeof scoring === 'object' && scoring !== null) {
             const score = scoring[answer];
             if (score === undefined) {
                 console.warn(`⚠️ Sin score para respuesta "${answer}" en pregunta ${question.id}`);
                 return 0;
             }
+            console.log(`📊 Pregunta ${question.id} (${question.block}): respuesta="${answer}" - Score: ${score}`);
             return score;
         }
-        
+
         console.warn('⚠️ scoring_mapping no es un objeto válido para pregunta', question.id);
         return 0;
     }
     
     checkAnswer(question, answer) {
-        // Para preguntas de conocimiento, verificar si la respuesta es correcta
-        if (question.type === 'Multiple Choice (una respuesta)') {
-            // Buscar la respuesta correcta en las opciones
-            // Por ahora, asumimos que la respuesta correcta es 'B' para la mayoría
-            // Esto se puede mejorar analizando el contenido de las preguntas
-            return answer === 'B'; // Respuesta correcta por defecto
+        // Para preguntas de conocimiento, verificar si la respuesta es correcta usando respuesta_correcta
+        if (question.type === 'Multiple Choice (una respuesta)' && question.respuesta_correcta) {
+            return answer === question.respuesta_correcta;
         }
-        
+
+        // Fallback para preguntas de conocimiento sin respuesta_correcta definida
+        if (question.type === 'Multiple Choice (una respuesta)') {
+            console.warn(`⚠️ Pregunta ${question.id} no tiene respuesta_correcta definida, usando fallback`);
+            return answer === 'B'; // Respuesta correcta por defecto (mantener compatibilidad)
+        }
+
         return null; // No aplica para preguntas de adopción
     }
     

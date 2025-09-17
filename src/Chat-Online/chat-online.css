@@ -7618,6 +7618,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     cursor: pointer;
     transition: all 0.3s ease;
     margin-bottom: 0.5rem;
+    position: relative;
 }
 
 .video-item:hover {
@@ -7661,6 +7662,140 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     color: inherit;
     display: block;
     margin: auto;
+}
+
+/* ===== ESTILOS PARA CHECKBOXES DE PROGRESO ===== */
+
+/* Contenedor del checkbox posicionado en esquina inferior derecha */
+.lesson-checkbox-container {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ocultar el checkbox nativo */
+.lesson-checkbox {
+    opacity: 0;
+    position: absolute;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+/* Label que actúa como checkbox visual */
+.lesson-checkbox-label {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(68, 229, 255, 0.4);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Estado hover del checkbox */
+.lesson-checkbox-label:hover {
+    border-color: #0066CC;
+    background: rgba(0, 102, 204, 0.1);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+}
+
+/* Estado checked del checkbox */
+.lesson-checkbox:checked + .lesson-checkbox-label {
+    background: linear-gradient(135deg, #0066CC, #44e5ff);
+    border-color: #0066CC;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
+}
+
+/* Icono de check dentro del checkbox */
+.lesson-checkbox:checked + .lesson-checkbox-label::after {
+    content: '✓';
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Estado disabled - checkbox no clickeable */
+.lesson-checkbox:disabled + .lesson-checkbox-label {
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+/* Estado disabled y checked - completado permanentemente */
+.lesson-checkbox:disabled:checked + .lesson-checkbox-label {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border-color: #16a34a;
+    cursor: default;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+/* Animación de completado */
+.lesson-checkbox:checked + .lesson-checkbox-label {
+    animation: checkboxComplete 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes checkboxComplete {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Mejorar visibilidad en tema claro */
+[data-theme="light"] .lesson-checkbox-label {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(0, 102, 204, 0.6);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .lesson-checkbox-label:hover {
+    background: rgba(0, 102, 204, 0.1);
+    border-color: #0066CC;
+}
+
+[data-theme="light"] .lesson-checkbox:checked + .lesson-checkbox-label {
+    background: linear-gradient(135deg, #0066CC, #44e5ff);
+    border-color: #0066CC;
+}
+
+[data-theme="light"] .lesson-checkbox:disabled:checked + .lesson-checkbox-label {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border-color: #16a34a;
+}
+
+/* Responsive: checkbox más pequeño en móviles */
+@media (max-width: 768px) {
+    .lesson-checkbox-container {
+        bottom: 6px;
+        right: 6px;
+    }
+
+    .lesson-checkbox-label {
+        width: 18px;
+        height: 18px;
+    }
+
+    .lesson-checkbox:checked + .lesson-checkbox-label::after {
+        font-size: 11px;
+    }
 }
 
 .video-info {

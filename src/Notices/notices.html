@@ -35,7 +35,7 @@
             Noticias
         </button>
     </div>
-    <button class="header-profile" id="headerProfileBtn">
+    <button class="header-profile">
         <img src="../assets/images/icono.png" alt="Perfil" />
     </button>
     <div id="profileMenu" class="profile-menu">
@@ -43,21 +43,22 @@
             <div class="pm-avatar"><img src="../assets/images/icono.png" alt="Perfil"/></div>
             <div>
                 <div class="pm-name" id="pmName">Usuario</div>
-                <div class="pm-email" id="pmEmail"></div>
+                <div class="pm-email" id="pmEmail">user@example.com</div>
             </div>
         </div>
         <div class="pm-section">
             <div class="pm-item" onclick="location.href='../estadisticas.html'"><i class='bx bx-bar-chart-alt-2'></i> Mis Estadísticas</div>
             <div class="pm-item" onclick="location.href='../courses.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
-            <div class="pm-item" onclick="location.href='../cursos.html'"><i class='bx bx-collection'></i> Talleres</div>
         </div>
         <div class="pm-section">
             <div class="pm-item" onclick="location.href='../profile.html'"><i class='bx bx-user'></i> Editar perfil</div>
         </div>
         <div class="pm-section">
             <div class="pm-item" id="themeToggle" onclick="toggleTheme()">
-                <i class='bx bx-sun theme-icon-sun'></i>
-                <i class='bx bx-moon theme-icon-moon'></i>
+                <div class="theme-icon-container">
+                    <i class='bx bx-sun theme-icon-sun'></i>
+                    <i class='bx bx-moon theme-icon-moon'></i>
+                </div>
                 Cambiar tema
             </div>
         </div>
@@ -145,6 +146,7 @@
             </div>
         </section>
 
+
         <!-- Categories Section -->
         <section class="categories-section">
             <div class="container">
@@ -159,7 +161,7 @@
                         </div>
                         <h3 class="category-title">Tecnología</h3>
                         <p class="category-description">Últimas innovaciones y avances tecnológicos</p>
-                        <span class="category-count">12 noticias</span>
+                        <span class="category-count">0 noticias</span>
                     </div>
                     <div class="category-card" data-category="ia">
                         <div class="category-icon">
@@ -167,7 +169,7 @@
                         </div>
                         <h3 class="category-title">Inteligencia Artificial</h3>
                         <p class="category-description">Avances en IA y machine learning</p>
-                        <span class="category-count">8 noticias</span>
+                        <span class="category-count">0 noticias</span>
                     </div>
                     <div class="category-card" data-category="educacion">
                         <div class="category-icon">
@@ -175,7 +177,7 @@
                         </div>
                         <h3 class="category-title">Educación</h3>
                         <p class="category-description">Nuevas metodologías y herramientas educativas</p>
-                        <span class="category-count">15 noticias</span>
+                        <span class="category-count">0 noticias</span>
                     </div>
                     <div class="category-card" data-category="eventos">
                         <div class="category-icon">
@@ -183,7 +185,7 @@
                         </div>
                         <h3 class="category-title">Eventos</h3>
                         <p class="category-description">Conferencias, webinars y eventos especiales</p>
-                        <span class="category-count">6 noticias</span>
+                        <span class="category-count">0 noticias</span>
                     </div>
                     <div class="category-card" data-category="actualizaciones">
                         <div class="category-icon">
@@ -191,7 +193,7 @@
                         </div>
                         <h3 class="category-title">Actualizaciones</h3>
                         <p class="category-description">Nuevas funcionalidades y mejoras del sistema</p>
-                        <span class="category-count">10 noticias</span>
+                        <span class="category-count">0 noticias</span>
                     </div>
                 </div>
             </div>
@@ -263,6 +265,106 @@
 
     <!-- Toast Notifications -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- News Modal -->
+    <div class="news-modal" id="newsModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeNewsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-news-card">
+                <!-- Modal content will be loaded here dynamically -->
+                <div class="news-header-graphic">
+                    <div class="brain-icon">
+                        <i class="fas fa-brain"></i>
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="neural-lines"></div>
+                    <div class="gear-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                </div>
+                <h1 class="news-main-title">Título de la noticia</h1>
+                <div class="tldr-section">
+                    <h3 class="tldr-heading">
+                        <span class="tldr-icon"></span>
+                        TL;DR:
+                    </h3>
+                    <ul class="tldr-items">
+                        <li>Resumen punto 1</li>
+                        <li>Resumen punto 2</li>
+                    </ul>
+                </div>
+                <div class="modal-detailed-content">
+                    <p><strong>Descripción:</strong></p>
+                    <p>Contenido detallado de la noticia se cargará aquí dinámicamente.</p>
+
+                    <div class="news-main-content">
+                        <div class="left-column">
+                            <div class="suggested-steps">
+                                <h4 class="section-heading">Pasos sugeridos</h4>
+                                <ol class="numbered-list">
+                                    <li>Paso 1</li>
+                                    <li>Paso 2</li>
+                                    <li>Paso 3</li>
+                                </ol>
+                            </div>
+                            <div class="risks-limits">
+                                <h4 class="section-heading">Riesgos/Límites</h4>
+                                <ul class="section-list">
+                                    <li>Riesgo 1</li>
+                                    <li>Riesgo 2</li>
+                                    <li>Riesgo 3</li>
+                                </ul>
+                            </div>
+                            <div class="resources-section">
+                                <h4 class="section-heading">
+                                    <i class="fas fa-info-circle"></i>
+                                    Recursos/Enlaces:
+                                </h4>
+                                <ul class="resources-list">
+                                    <li><a href="#" target="_blank">Recurso 1</a></li>
+                                    <li><a href="#" target="_blank">Recurso 2</a></li>
+                                    <li><a href="#" target="_blank">Recurso 3</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="right-column">
+                            <div class="why-matters-section">
+                                <h4 class="section-heading">Por qué importa:</h4>
+                                <ul class="section-list">
+                                    <li>Razón 1</li>
+                                    <li>Razón 2</li>
+                                </ul>
+                            </div>
+                            <div class="what-changed-section">
+                                <h4 class="section-heading">Qué cambió / Novedad:</h4>
+                                <ul class="section-list">
+                                    <li>Cambio 1</li>
+                                    <li>Cambio 2</li>
+                                </ul>
+                            </div>
+                            <div class="impact-section">
+                                <h4 class="section-heading">
+                                    <i class="fas fa-chart-bar"></i>
+                                    Impacto en efic.:
+                                </h4>
+                                <ul class="section-list">
+                                    <li>Impacto 1</li>
+                                    <li>Impacto 2</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="cta-section">
+                    <span class="cta-label">CTA:</span>
+                    <button class="cta-button">Acción disponible</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="../scripts/global-theme-setup.js"></script>
     <script src="../scripts/force-theme-init.js"></script>

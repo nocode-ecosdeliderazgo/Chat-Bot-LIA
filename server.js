@@ -239,6 +239,110 @@ app.get('/api/adopcion-genai', async (req, res) => {
     }
 });
 
+// Endpoint para obtener mensajes explicativos personalizados
+app.get('/api/analysis-messages', async (req, res) => {
+    try {
+        const { messageType, score, area, userId } = req.query;
+
+        // Validar parámetros requeridos
+        if (!messageType || score === undefined) {
+            return res.status(400).json({
+                success: false,
+                error: 'messageType y score son requeridos'
+            });
+        }
+
+        // Validar tipo de mensaje
+        const validTypes = ['adoption_explanation', 'knowledge_explanation', 'recommendation'];
+        if (!validTypes.includes(messageType)) {
+            return res.status(400).json({
+                success: false,
+                error: 'messageType debe ser: ' + validTypes.join(', ')
+            });
+        }
+
+        // Validar score
+        const scoreNum = parseInt(score);
+        if (isNaN(scoreNum) || scoreNum < 0 || scoreNum > 100) {
+            return res.status(400).json({
+                success: false,
+                error: 'score debe ser un número entre 0 y 100'
+            });
+        }
+
+        console.log(`🔍 Buscando mensaje: tipo=${messageType}, score=${scoreNum}, área=${area || 'general'}`);
+
+        if (!supabase) {
+            console.warn('⚠️ Supabase no configurado, usando fallback');
+            return res.json({ success: false, error: 'Supabase no configurado' });
+        }
+
+        // Construir query base
+        let query = supabase
+            .from('analysis_messages')
+            .select('*')
+            .eq('message_type', messageType)
+            .lte('score_range_min', scoreNum)
+            .gte('score_range_max', scoreNum)
+            .eq('is_active', true);
+
+        // Filtrar por área si se proporciona
+        if (area && area !== 'general') {
+            // Buscar primero por área específica, luego por general
+            query = query.in('target_area', [area, 'general']);
+        } else {
+            // Solo mensajes generales
+            query = query.in('target_area', ['general']);
+        }
+
+        // Ordenar por prioridad: área específica primero, luego general
+        if (area && area !== 'general') {
+            query = query.order('target_area', { ascending: false }); // área específica primero
+        }
+
+        // Para recomendaciones, ordenar también por prioridad
+        if (messageType === 'recommendation') {
+            query = query.order('priority_level', { ascending: true }); // high, medium, low
+        }
+
+        query = query.limit(1);
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.error('❌ Error obteniendo mensaje:', error);
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
+
+        if (data && data.length > 0) {
+            console.log(`✅ Mensaje encontrado: ${data[0].title || 'Sin título'}`);
+            res.json({
+                success: true,
+                message: data[0],
+                source: 'database'
+            });
+        } else {
+            console.log(`⚠️ No se encontró mensaje para los criterios especificados`);
+            res.json({
+                success: false,
+                error: 'No se encontró mensaje para los criterios especificados',
+                source: 'database'
+            });
+        }
+
+    } catch (error) {
+        console.error('❌ Error en analysis-messages:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            source: 'database'
+        });
+    }
+});
+
 app.use(express.static('src'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Servir prompts para depuración/inspección (protegido por API en endpoints abajo)
@@ -735,6 +839,173 @@ app.post('/api/login', async (req, res) => {
     } catch (err) {
         console.error('Error en /api/login:', err);
         return res.status(500).json({ error: 'Error interno en login' });
+    }
+});
+
+// Rate limiting específico para recuperación de contraseña
+const forgotPasswordLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 3, // máximo 3 intentos por IP cada 15 minutos
+    message: { error: 'Demasiados intentos de recuperación de contraseña. Inténtalo más tarde.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// Endpoint para recuperación de contraseña
+app.post('/api/forgot-password', forgotPasswordLimiter, async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: 'Email es requerido' });
+        }
+
+        // Validar formato de email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ error: 'Formato de email inválido' });
+        }
+
+        // Verificar si el usuario existe en la base de datos
+        let userExists = false;
+        try {
+            const result = await pool.query(
+                'SELECT id, email, username FROM users WHERE email = $1',
+                [email.toLowerCase()]
+            );
+            userExists = result.rows.length > 0;
+        } catch (dbError) {
+            console.error('Error verificando usuario:', dbError);
+            return res.status(500).json({ error: 'Error del servidor' });
+        }
+
+        if (!userExists) {
+            // Por seguridad, no revelamos si el email existe o no
+            return res.status(200).json({
+                message: 'Si el correo está registrado, recibirás un enlace de recuperación'
+            });
+        }
+
+        // Intentar con Supabase si está configurado
+        if (supabase) {
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${req.protocol}://${req.get('host')}/src/login/reset-password.html`
+                });
+
+                if (!error) {
+                    return res.status(200).json({
+                        message: 'Se ha enviado un enlace de recuperación a tu correo electrónico'
+                    });
+                } else {
+                    console.warn('Error Supabase reset password:', error.message);
+                }
+            } catch (supabaseError) {
+                console.warn('Error con Supabase:', supabaseError.message);
+            }
+        }
+
+        // Generar token de recuperación (para implementación futura con email)
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hora
+
+        try {
+            // Crear tabla si no existe (versión simplificada)
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                    email VARCHAR(255) PRIMARY KEY,
+                    token VARCHAR(255) NOT NULL,
+                    expires_at TIMESTAMP NOT NULL,
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            `);
+
+            // Guardar token en la base de datos
+            await pool.query(
+                `INSERT INTO password_reset_tokens (email, token, expires_at, created_at)
+                 VALUES ($1, $2, $3, NOW())
+                 ON CONFLICT (email) DO UPDATE SET
+                 token = $2, expires_at = $3, created_at = NOW()`,
+                [email.toLowerCase(), resetToken, resetTokenExpiry]
+            );
+        } catch (tokenError) {
+            console.error('Error guardando token:', tokenError);
+            // Continuar sin fallar para no revelar información
+        }
+
+        // En modo desarrollo, mostrar el token en la consola
+        if (DEV_MODE) {
+            console.log(`🔐 Token de recuperación para ${email}: ${resetToken}`);
+            console.log(`🔗 URL de recuperación: ${req.protocol}://${req.get('host')}/src/login/reset-password.html?token=${resetToken}`);
+        }
+
+        // TODO: Implementar envío de email real con nodemailer
+        // Por ahora solo simulamos el envío exitoso
+
+        res.status(200).json({
+            message: 'Se ha enviado un enlace de recuperación a tu correo electrónico'
+        });
+
+    } catch (error) {
+        console.error('Error en forgot-password:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Endpoint para procesar reset de contraseña
+app.post('/api/reset-password', async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({ error: 'Token y nueva contraseña son requeridos' });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+        }
+
+        // Verificar token en la base de datos
+        const tokenResult = await pool.query(
+            'SELECT email, expires_at FROM password_reset_tokens WHERE token = $1',
+            [token]
+        );
+
+        if (tokenResult.rows.length === 0) {
+            return res.status(400).json({ error: 'Token inválido' });
+        }
+
+        const tokenData = tokenResult.rows[0];
+        const now = new Date();
+
+        if (new Date(tokenData.expires_at) < now) {
+            return res.status(400).json({ error: 'Token expirado' });
+        }
+
+        // Actualizar contraseña del usuario
+        const bcrypt = require('bcryptjs');
+        const hash = await bcrypt.hash(String(newPassword), 10);
+
+        await pool.query(
+            'UPDATE users SET password_hash = $1 WHERE email = $2',
+            [hash, tokenData.email]
+        );
+
+        // Eliminar token usado
+        await pool.query(
+            'DELETE FROM password_reset_tokens WHERE token = $1',
+            [token]
+        );
+
+        console.log(`✅ Contraseña actualizada para ${tokenData.email}`);
+
+        res.status(200).json({
+            message: 'Contraseña actualizada correctamente'
+        });
+
+    } catch (error) {
+        console.error('Error en reset-password:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 

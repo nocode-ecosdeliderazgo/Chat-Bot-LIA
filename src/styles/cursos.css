@@ -695,21 +695,26 @@ main.container { padding-top: 120px; }
 .tab-button {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    padding: 16px 20px;
-    border: none;
-    background: rgba(68, 229, 255, 0.05);
-    color: var(--course-text-secondary, #b8c5d1);
+    padding: 16px 18px;
+    background: rgba(0, 102, 204, 0.03);
+    border: 1px solid rgba(0, 102, 204, 0.08);
     border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-secondary);
     font-family: var(--font-primary);
     font-weight: 500;
     font-size: 1rem;
-    white-space: nowrap;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(68, 229, 255, 0.1);
+    white-space: nowrap;
+    min-width: fit-content;
+    cursor: pointer;
+    min-height: 40px;
+    flex: 1;
+    max-width: none;
 }
 
 .tab-button::before {
@@ -721,22 +726,21 @@ main.container { padding-top: 120px; }
     height: 100%;
     background: linear-gradient(90deg, 
         transparent, 
-        rgba(68, 229, 255, 0.2), 
+        rgba(0, 102, 204, 0.15), 
         transparent);
-    transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: left 0.6s ease;
 }
 
 .tab-button:hover::before {
-    left: 0;
+    left: 100%;
 }
 
 .tab-button:hover {
-    color: var(--course-accent, var(--turq));
-    background: rgba(68, 229, 255, 0.12);
+    background: rgba(0, 102, 204, 0.08);
+    border-color: rgba(0, 102, 204, 0.15);
+    color: var(--text-primary);
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.15), 0 0 0 1px rgba(0, 102, 204, 0.15);
     transform: translateY(-2px);
-    box-shadow: 
-        0 8px 25px rgba(68, 229, 255, 0.2),
-        0 0 0 1px rgba(68, 229, 255, 0.2);
 }
 
 .tab-button.active {
@@ -1012,7 +1016,7 @@ body.bg-glow-global .catalog-header .course-tabs {
         margin: 10px auto;
         padding: 6px;
         gap: 4px;
-        width: min(430px, 92vw);
+        width: min(500px, 96vw);
     }
     
     .tab-button {
@@ -1201,31 +1205,32 @@ body.bg-glow-global .catalog-header .course-tabs {
 .category-group .cta .enroll { padding: 8px 10px; font-size: 13px; }
 .category-group .cta .wishlist { width: 36px; }
 
-/* Estilos base del navbar para coincidir con community.css */
+/* Estilos base del navbar para coincidir con notices.css */
 .course-tabs {
     display: flex;
     background: rgba(255, 255, 255, 0.04);
     backdrop-filter: blur(10px);
     border-radius: 20px;
     padding: 12px;
-    gap: 10px;
+    gap: 8px;
     overflow-x: auto;
-    border: 1px solid rgba(68, 229, 255, 0.18);
+    border: 1px solid rgba(0, 102, 204, 0.18);
     box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(20px);
     position: relative;
     margin: 20px auto;
-    width: min(600px, 90vw);
+    width: min(750px, 95vw);
     scrollbar-width: none;
     -ms-overflow-style: none;
+    min-height: 64px;
 }
 
 .course-tabs::-webkit-scrollbar {
     display: none;
 }
 
-/* Reducir ancho del navbar (no altura) solo en cursos */
-.catalog-header .course-tabs { width: min(600px, 90vw); margin: 0 auto; }
+/* Ancho estándar del navbar para cursos */
+.catalog-header .course-tabs { width: min(750px, 95vw); margin: 0 auto; }
 
 /* ===== ESTILOS PARA EL BOTÓN DE CAMBIO DE TEMA EN EL MENÚ ===== */
 .pm-item#themeToggle {

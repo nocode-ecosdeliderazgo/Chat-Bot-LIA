@@ -177,8 +177,9 @@ class CommunityPage {
 
         // Grid Discover (solo las dos comunidades principales)
         this.communities = [
-            { id:0, rank:0, title:'Comunidad General', category:'general', members:'1.2k', price:'Free', desc:'Comunidad principal para todos los miembros. Comparte experiencias, haz preguntas y conecta con otros estudiantes.', thumb:'./images/comunidad-general.png', icon:'fas fa-globe' },
-            { id:-1, rank:-1, title:'Amigos, Directores y Empresarios', category:'negocios', members:'856', price:'Free', desc:'Comunidad para mentes abiertas. Explora nuevas ideas, comparte perspectivas únicas y expande tu horizonte mental.', thumb:'./images/openminder.png', icon:'fas fa-lightbulb' }
+            { id:0, rank:0, title:'Comunidad de Profesionales', category:'general', members:'1.2k', price:'Free', desc:'Comunidad principal para todos los miembros. Comparte experiencias, haz preguntas y conecta con otros estudiantes.', thumb:'./images/comunidad-general.png', icon:'fas fa-globe' },
+            { id:-1, rank:-1, title:'Comunidad SIF ICAP', category:'negocios', members:'856', price:'Free', desc:'Comunidad para mentes abiertas. Explora nuevas ideas, comparte perspectivas únicas y expande tu horizonte mental.', thumb:'./images/openminder.png', icon:'fas fa-lightbulb' },
+            { id:-2, rank:-2, title:'Comunidad RBA', category:'general', members:'432', price:'Free', desc:'Comunidad especializada en RBA. Conecta con profesionales que comparten tu interés en esta área específica.', thumb:'./images/comunidad-RBA.png', icon:'fas fa-users' }
         ];
 
         // (sin posts/leaderboard)
@@ -367,6 +368,88 @@ class CommunityPage {
         }, 5000);
     }
 }
+
+// ===== THEME TOGGLE FUNCTIONS =====
+window.toggleTheme = function() {
+    console.log('🎨 Theme toggle called from community');
+
+    // Agregar efecto de click al botón
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.classList.add('clicked');
+        setTimeout(() => {
+            themeToggle.classList.remove('clicked');
+        }, 400);
+    }
+
+    // Obtener tema actual antes del cambio
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    // Usar la función global de cambio de tema
+    if (window.toggleGlobalTheme) {
+        window.toggleGlobalTheme();
+        console.log('🎨 Theme toggled via global function to:', newTheme);
+    } else {
+        // Fallback manual si el script global no está disponible
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
+        console.log('🎨 Theme toggled via fallback to:', newTheme);
+    }
+
+    // Activar animación de transformación
+    const iconContainer = document.querySelector('.theme-icon-container');
+    if (iconContainer) {
+        // Limpiar clases previas
+        iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
+
+        // Aplicar la animación correcta
+        if (newTheme === 'light') {
+            iconContainer.classList.add('theme-transforming');
+        } else {
+            iconContainer.classList.add('theme-transforming-reverse');
+        }
+
+        // Remover clase después de la animación
+        setTimeout(() => {
+            iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
+        }, 800);
+    }
+};
+
+window.updateThemeIcons = function(theme) {
+    const sunIcon = document.querySelector('.theme-icon-sun');
+    const moonIcon = document.querySelector('.theme-icon-moon');
+    const themeToggle = document.getElementById('themeToggle');
+    const iconContainer = document.querySelector('.theme-icon-container');
+
+    if (sunIcon && moonIcon && themeToggle && iconContainer) {
+        // Agregar clases de animación
+        themeToggle.classList.add('theme-changing');
+
+        // Determinar la dirección de la animación
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const isTransitioningToLight = theme === 'light' && currentTheme === 'dark';
+        const isTransitioningToDark = theme === 'dark' && currentTheme === 'light';
+
+        if (isTransitioningToLight) {
+            // De oscuro a claro: sol se transforma en luna
+            iconContainer.classList.add('theme-transforming');
+            iconContainer.classList.remove('theme-transforming-reverse');
+        } else if (isTransitioningToDark) {
+            // De claro a oscuro: luna se transforma en sol
+            iconContainer.classList.add('theme-transforming-reverse');
+            iconContainer.classList.remove('theme-transforming');
+        }
+
+        // Remover clases de animación después de completar
+        setTimeout(() => {
+            themeToggle.classList.remove('theme-changing');
+            iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
+        }, 800);
+    }
+};
 
 // ===== INITIALIZATION =====
 let communityPage;

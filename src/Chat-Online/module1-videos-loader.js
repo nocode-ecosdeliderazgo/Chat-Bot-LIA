@@ -29,11 +29,17 @@ class Module1VideosLoader {
             // 2. Cargar videos del módulo 1
             await this.loadModule1Videos();
 
-            // 3. Renderizar lista de videos
+            // 3. Cargar progreso guardado
+            this.loadLessonProgress();
+
+            // 4. Renderizar lista de videos
             this.renderVideosList();
 
-            // 4. Configurar eventos
+            // 5. Configurar eventos
             this.setupEventListeners();
+
+            // 6. Actualizar progreso inicial
+            this.updateCourseProgress();
 
             console.log('✅ Module 1 Videos Loader inicializado exitosamente');
 
@@ -707,11 +713,11 @@ class Module1VideosLoader {
         const progress = video.user_progress || { current_time_seconds: 0, completion_percentage: 0, is_completed: false };
         const isActive = this.currentVideoId === video.id;
         const isCompleted = progress.is_completed;
-        
+
         // Determinar estado del video
         let statusClass = 'pending';
         let icon = `<polygon points="5,3 19,12 5,21"/>`;
-        
+
         if (isCompleted) {
             statusClass = 'completed';
             icon = `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/>`;
@@ -722,7 +728,7 @@ class Module1VideosLoader {
 
         // Formatear duración
         const duration = this.formatDuration(video.duration_seconds);
-        
+
         // Calcular porcentaje de progreso
         const progressPercent = Math.min(progress.completion_percentage || 0, 100);
 
@@ -732,8 +738,12 @@ class Module1VideosLoader {
         videoElement.setAttribute('data-youtube-id', video.youtube_video_id);
         videoElement.setAttribute('data-video-title', video.video_title);
         videoElement.setAttribute('data-duration-seconds', video.duration_seconds);
-        
+
         videoElement.innerHTML = `
+            <div class="lesson-checkbox-container">
+                <input type="checkbox" class="lesson-checkbox" id="lesson-checkbox-${video.id}" data-lesson-id="${video.id}" ${isCompleted ? 'checked disabled' : ''}>
+                <label class="lesson-checkbox-label" for="lesson-checkbox-${video.id}" title="${isCompleted ? 'Completado' : 'Marcar como completado'}"></label>
+            </div>
             <div class="video-icon">
                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     ${icon}
@@ -1305,20 +1315,26 @@ class Module1VideosLoader {
             videosContainer.addEventListener('click', (event) => {
                 console.log('👆 Click detectado en contenedor de videos');
                 console.log('🎯 Target del click:', event.target.tagName, event.target.className);
-                
+
+                // Verificar si el click fue en un checkbox
+                if (event.target.closest('.lesson-checkbox-container')) {
+                    this.handleCheckboxClick(event);
+                    return;
+                }
+
                 // Encontrar el elemento .video-item más cercano
                 const videoItem = event.target.closest('.video-item');
                 if (videoItem) {
                     const videoId = videoItem.getAttribute('data-video-id');
                     const youtubeId = videoItem.getAttribute('data-youtube-id');
                     const videoTitle = videoItem.getAttribute('data-video-title');
-                    
+
                     console.log('🎬 Click detectado en video:', {
                         id: videoId,
                         youtubeId: youtubeId,
                         title: videoTitle
                     });
-                    
+
                     // Encontrar el video en nuestros datos
                     const video = this.videos.find(v => v.id === videoId);
                     if (video) {
@@ -1391,6 +1407,288 @@ class Module1VideosLoader {
         });
 
         console.log('✅ Event listeners configurados');
+    }
+
+    // =====================================================
+    // FUNCIONES DE MANEJO DE CHECKBOXES
+    // =====================================================
+
+    handleCheckboxClick(event) {
+        const checkbox = event.target.closest('.lesson-checkbox-container')?.querySelector('.lesson-checkbox');
+        if (!checkbox || checkbox.disabled) {
+            console.log('⚠️ Checkbox disabled o no encontrado');
+            return;
+        }
+
+        const lessonId = checkbox.getAttribute('data-lesson-id');
+        console.log('✅ Checkbox clicked for lesson:', lessonId);
+
+        this.markLessonCompleted(lessonId);
+    }
+
+    markLessonCompleted(lessonId) {
+        try {
+            console.log('📝 Marcando lección como completada:', lessonId);
+
+            // Encontrar el video
+            const video = this.videos.find(v => v.id === lessonId);
+            if (!video) {
+                console.error('❌ Video no encontrado:', lessonId);
+                return;
+            }
+
+            // Actualizar el progreso del video
+            if (!video.user_progress) {
+                video.user_progress = {};
+            }
+            video.user_progress.is_completed = true;
+            video.user_progress.completion_percentage = 100;
+            video.user_progress.completed_at = new Date().toISOString();
+
+            // Encontrar elementos del DOM
+            const videoItem = document.querySelector(`[data-video-id="${lessonId}"]`);
+            const checkbox = videoItem?.querySelector('.lesson-checkbox');
+            const label = videoItem?.querySelector('.lesson-checkbox-label');
+
+            if (checkbox && label && videoItem) {
+                // Marcar checkbox y deshabilitarlo
+                checkbox.checked = true;
+                checkbox.disabled = true;
+
+                // Actualizar clases del video-item
+                videoItem.classList.add('completed');
+                videoItem.classList.remove('pending', 'active');
+
+                // Actualizar tooltip
+                label.title = 'Completado';
+
+                console.log('✅ Lección marcada como completada en UI');
+            }
+
+            // Guardar progreso en localStorage
+            this.saveLessonProgress();
+
+            // Actualizar contador de progreso del curso
+            this.updateCourseProgress();
+
+            // Mostrar notificación
+            this.showCompletionNotification(video.video_title);
+
+        } catch (error) {
+            console.error('❌ Error marcando lección como completada:', error);
+        }
+    }
+
+    saveLessonProgress() {
+        try {
+            const lessonProgress = {};
+
+            this.videos.forEach(video => {
+                if (video.user_progress && video.user_progress.is_completed) {
+                    lessonProgress[video.id] = {
+                        completed: true,
+                        completedAt: video.user_progress.completed_at,
+                        completion_percentage: video.user_progress.completion_percentage || 100
+                    };
+                } else {
+                    lessonProgress[video.id] = {
+                        completed: false,
+                        completion_percentage: video.user_progress?.completion_percentage || 0
+                    };
+                }
+            });
+
+            localStorage.setItem('lessonProgress', JSON.stringify(lessonProgress));
+            console.log('💾 Progreso de lecciones guardado en localStorage');
+
+        } catch (error) {
+            console.error('❌ Error guardando progreso de lecciones:', error);
+        }
+    }
+
+    loadLessonProgress() {
+        try {
+            const savedProgress = localStorage.getItem('lessonProgress');
+            if (!savedProgress) {
+                console.log('📋 No hay progreso guardado');
+                return;
+            }
+
+            const lessonProgress = JSON.parse(savedProgress);
+            console.log('📂 Cargando progreso guardado:', lessonProgress);
+
+            this.videos.forEach(video => {
+                const progress = lessonProgress[video.id];
+                if (progress) {
+                    if (!video.user_progress) {
+                        video.user_progress = {};
+                    }
+                    video.user_progress.is_completed = progress.completed;
+                    video.user_progress.completion_percentage = progress.completion_percentage || 0;
+                    if (progress.completedAt) {
+                        video.user_progress.completed_at = progress.completedAt;
+                    }
+                }
+            });
+
+            console.log('✅ Progreso de lecciones cargado');
+        } catch (error) {
+            console.error('❌ Error cargando progreso de lecciones:', error);
+        }
+    }
+
+    updateCourseProgress() {
+        try {
+            const completedLessons = this.videos.filter(v =>
+                v.user_progress && v.user_progress.is_completed
+            ).length;
+
+            const totalLessons = this.videos.length;
+            const progressPercentage = totalLessons > 0 ?
+                Math.round((completedLessons / totalLessons) * 100) : 0;
+
+            console.log(`📊 Progreso del curso: ${completedLessons}/${totalLessons} (${progressPercentage}%)`);
+
+            // Actualizar el indicador de progreso en el módulo
+            const moduleProgress = document.querySelector('.module-progress');
+            if (moduleProgress) {
+                moduleProgress.textContent = `${progressPercentage}% completado`;
+            }
+
+            // Actualizar counter de videos
+            const videoCount = document.querySelector('.module-video-count');
+            if (videoCount) {
+                videoCount.textContent = `${completedLessons}/${totalLessons} videos completados`;
+            }
+
+            // Integrar con sistema de progreso general si existe
+            if (typeof updateProgress === 'function') {
+                updateProgress();
+            }
+
+            // Emitir eventos para el sistema de progreso global
+            this.emitProgressEvent();
+
+            // Actualizar la barra de progreso del header si existe
+            if (typeof window.updateHeaderProgressBar === 'function' && typeof window.countCompletedVideos === 'function') {
+                const videoCounts = window.countCompletedVideos();
+                window.updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
+            }
+
+        } catch (error) {
+            console.error('❌ Error actualizando progreso del curso:', error);
+        }
+    }
+
+    showCompletionNotification(videoTitle) {
+        // Crear notificación temporal
+        const notification = document.createElement('div');
+        notification.className = 'completion-notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        `;
+
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22,4 12,14.01 9,11.01"/>
+                </svg>
+                <span>¡Completado! ${videoTitle}</span>
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Animar entrada
+        setTimeout(() => {
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+
+        // Auto-remover después de 3 segundos
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    emitProgressEvent() {
+        try {
+            // Emitir evento de progreso del módulo actualizado
+            const moduleProgressEvent = new CustomEvent('moduleProgressUpdated', {
+                detail: {
+                    moduleId: this.moduleId,
+                    completedLessons: this.videos.filter(v => v.user_progress?.is_completed).length,
+                    totalLessons: this.videos.length,
+                    progress: Math.round((this.videos.filter(v => v.user_progress?.is_completed).length / this.videos.length) * 100)
+                }
+            });
+            window.dispatchEvent(moduleProgressEvent);
+
+            // Emitir evento general de video completado para el sistema global
+            const videoCompletedEvent = new CustomEvent('videoCompleted', {
+                detail: {
+                    moduleId: this.moduleId,
+                    timestamp: new Date().toISOString()
+                }
+            });
+            window.dispatchEvent(videoCompletedEvent);
+
+            console.log('📡 Eventos de progreso emitidos al sistema global');
+        } catch (error) {
+            console.error('❌ Error emitiendo eventos de progreso:', error);
+        }
+    }
+
+    // =====================================================
+    // FUNCIÓN PARA LIMPIAR PROGRESO (DESARROLLO)
+    // =====================================================
+
+    clearAllProgress() {
+        try {
+            console.log('🧹 Limpiando todo el progreso guardado...');
+
+            // Limpiar localStorage
+            localStorage.removeItem('lessonProgress');
+
+            // Resetear progreso en memoria
+            this.videos.forEach(video => {
+                if (video.user_progress) {
+                    video.user_progress.is_completed = false;
+                    video.user_progress.completion_percentage = 0;
+                    delete video.user_progress.completed_at;
+                }
+            });
+
+            // Re-renderizar la lista para actualizar checkboxes
+            this.renderVideosList();
+
+            // Actualizar progreso
+            this.updateCourseProgress();
+
+            console.log('✅ Progreso limpiado exitosamente');
+        } catch (error) {
+            console.error('❌ Error limpiando progreso:', error);
+        }
     }
 
     // =====================================================

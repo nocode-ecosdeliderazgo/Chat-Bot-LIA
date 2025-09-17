@@ -105,7 +105,13 @@ class NoticesPage {
         categoryCards.forEach(card => {
             card.addEventListener('click', () => {
                 const category = card.dataset.category;
-                this.filterByCategory(category);
+                
+                // If clicking on the same category, clear the filter
+                if (this.currentCategory === category) {
+                    this.clearCategoryFilter();
+                } else {
+                    this.filterByCategory(category);
+                }
             });
         });
 
@@ -151,7 +157,7 @@ class NoticesPage {
     fillUserHeader(){
         try{
             const raw = localStorage.getItem('currentUser');
-            if(!raw) return;
+            if(raw) {
             const user = JSON.parse(raw);
             const nameEl = document.getElementById('pmName');
             const emailEl = document.getElementById('pmEmail');
@@ -160,13 +166,51 @@ class NoticesPage {
             if(user.avatar_url){
                 document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img=>{img.src=user.avatar_url;});
             }
-        }catch(e){}
+            }
+        }catch(e){
+            // console.log('Error loading user data:', e);
+        }
+
+        // Setup profile menu functionality
+        this.setupProfileMenu();
+    }
+
+    setupProfileMenu() {
         const avatarBtn = document.querySelector('.header-profile');
         const menu = document.getElementById('profileMenu');
-        if(avatarBtn && menu){
-            avatarBtn.addEventListener('click', (e)=>{ e.preventDefault(); menu.classList.toggle('show');});
-            document.addEventListener('click', (e)=>{ if(!menu.contains(e.target) && !avatarBtn.contains(e.target)) menu.classList.remove('show');});
+        if (!avatarBtn || !menu) {
+            // console.error('[PROFILE] ❌ Elementos del menú de perfil no encontrados');
+            return;
         }
+        // console.log('[PROFILE] ✅ Menú de perfil configurado correctamente');
+
+        avatarBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            menu.classList.toggle('show');
+        });
+
+        // Cerrar menú al hacer click fuera
+        document.addEventListener('click', (e) => {
+            if (!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        });
+
+        // Llenar datos del usuario
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            const nameEl = document.getElementById('pmName');
+            const emailEl = document.getElementById('pmEmail');
+            if (nameEl) nameEl.textContent = currentUser.display_name || currentUser.username || 'Usuario';
+            if (emailEl) emailEl.textContent = currentUser.email || currentUser.user?.email || currentUser.data?.email || '';
+            // avatar
+            if (currentUser.avatar_url) {
+                document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {
+                    img.src = currentUser.avatar_url;
+                });
+            }
+        } catch (e) { /* noop */ }
     }
 
     // ===== THEME MANAGEMENT =====
@@ -197,7 +241,7 @@ class NoticesPage {
 
     handleThemeChange() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
-        console.log('🎨 Notice page theme changed to:', currentTheme);
+        // console.log('🎨 Notice page theme changed to:', currentTheme);
         
         // Forzar re-aplicación de estilos del body
         this.forceBackgroundUpdate();
@@ -217,11 +261,11 @@ class NoticesPage {
         if (currentTheme === 'light') {
             // Aplicar fondo claro manualmente
             body.style.background = 'linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%)';
-            console.log('🎨 Forced light background application');
+            // console.log('🎨 Forced light background application');
         } else {
             // Remover estilo inline para que use el CSS por defecto
             body.style.background = '';
-            console.log('🎨 Restored dark background');
+            // console.log('🎨 Restored dark background');
         }
         
         // Remover clase de transición después de un tiempo
@@ -233,169 +277,48 @@ class NoticesPage {
     updateThemeIcons(theme) {
         const sunIcon = document.querySelector('.theme-icon-sun');
         const moonIcon = document.querySelector('.theme-icon-moon');
+        const themeToggle = document.getElementById('themeToggle');
+        const iconContainer = document.querySelector('.theme-icon-container');
         
-        if (sunIcon && moonIcon) {
-            if (theme === 'light') {
-                sunIcon.style.opacity = '0';
-                sunIcon.style.transform = 'rotate(90deg)';
-                moonIcon.style.opacity = '1';
-                moonIcon.style.transform = 'rotate(0deg)';
-            } else {
-                sunIcon.style.opacity = '1';
-                sunIcon.style.transform = 'rotate(0deg)';
-                moonIcon.style.opacity = '0';
-                moonIcon.style.transform = 'rotate(-90deg)';
+        if (sunIcon && moonIcon && themeToggle && iconContainer) {
+            // Agregar clases de animación
+            themeToggle.classList.add('theme-changing');
+            
+            // Determinar la dirección de la animación
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const isTransitioningToLight = theme === 'light' && currentTheme === 'dark';
+            const isTransitioningToDark = theme === 'dark' && currentTheme === 'light';
+            
+            if (isTransitioningToLight) {
+                // De oscuro a claro: sol se transforma en luna
+                iconContainer.classList.add('theme-transforming');
+                iconContainer.classList.remove('theme-transforming-reverse');
+            } else if (isTransitioningToDark) {
+                // De claro a oscuro: luna se transforma en sol
+                iconContainer.classList.add('theme-transforming-reverse');
+                iconContainer.classList.remove('theme-transforming');
             }
+            
+            // Remover clases de animación después de completar
+            setTimeout(() => {
+                themeToggle.classList.remove('theme-changing');
+                iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
+            }, 800);
         }
     }
 
     // ===== DATA LOADING =====
     loadNewsData() {
         this.showLoading();
-        
-        // Simulate API call delay
-        setTimeout(() => {
-            this.allNews = this.getMockNewsData();
-            this.filteredNews = [...this.allNews];
-            this.renderNews();
-            this.hideLoading();
-        }, 1000);
+
+        // TODO: Implementar carga desde BD
+        // Por ahora, inicializar con arrays vacíos
+        this.allNews = [];
+        this.filteredNews = [];
+        this.renderNews();
+        this.hideLoading();
     }
 
-    getMockNewsData() {
-        return [
-            {
-                id: 1,
-                title: 'Nueva actualización de Chat-Bot-LIA con IA avanzada',
-                excerpt: 'Hemos implementado las últimas tecnologías de inteligencia artificial para mejorar significativamente la experiencia de aprendizaje.',
-                category: 'actualizaciones',
-                categoryLabel: 'Actualizaciones',
-                date: '2024-01-15',
-                author: 'Equipo Chat-Bot-LIA',
-                views: 1247,
-                comments: 23,
-                featured: true,
-                image: 'fas fa-robot'
-            },
-            {
-                id: 2,
-                title: 'Revolución en la educación con Machine Learning',
-                excerpt: 'Descubre cómo el machine learning está transformando la forma en que aprendemos y enseñamos en el siglo XXI.',
-                category: 'ia',
-                categoryLabel: 'Inteligencia Artificial',
-                date: '2024-01-14',
-                author: 'Dr. Ana Martínez',
-                views: 892,
-                comments: 15,
-                featured: true,
-                image: 'fas fa-brain'
-            },
-            {
-                id: 3,
-                title: 'Webinar: Introducción a Deep Learning',
-                excerpt: 'Únete a nuestro próximo webinar gratuito donde exploraremos los fundamentos del deep learning y sus aplicaciones.',
-                category: 'eventos',
-                categoryLabel: 'Eventos',
-                date: '2024-01-13',
-                author: 'Prof. Carlos López',
-                views: 567,
-                comments: 8,
-                featured: true,
-                image: 'fas fa-calendar-alt'
-            },
-            {
-                id: 4,
-                title: 'Nuevas herramientas educativas disponibles',
-                excerpt: 'Hemos agregado nuevas herramientas interactivas que harán tu experiencia de aprendizaje más dinámica y efectiva.',
-                category: 'educacion',
-                categoryLabel: 'Educación',
-                date: '2024-01-12',
-                author: 'Equipo de Desarrollo',
-                views: 445,
-                comments: 12,
-                featured: false,
-                image: 'fas fa-graduation-cap'
-            },
-            {
-                id: 5,
-                title: 'El futuro de la tecnología educativa',
-                excerpt: 'Exploramos las tendencias emergentes que están dando forma al futuro de la educación digital.',
-                category: 'tecnologia',
-                categoryLabel: 'Tecnología',
-                date: '2024-01-11',
-                author: 'María González',
-                views: 678,
-                comments: 19,
-                featured: false,
-                image: 'fas fa-microchip'
-            },
-            {
-                id: 6,
-                title: 'ChatGPT y su impacto en la educación',
-                excerpt: 'Analizamos cómo ChatGPT y otras IAs conversacionales están cambiando el panorama educativo.',
-                category: 'ia',
-                categoryLabel: 'Inteligencia Artificial',
-                date: '2024-01-10',
-                author: 'Dr. Roberto Silva',
-                views: 1123,
-                comments: 31,
-                featured: false,
-                image: 'fas fa-comments'
-            },
-            {
-                id: 7,
-                title: 'Conferencia anual de tecnología educativa',
-                excerpt: 'Resumen de los momentos más destacados de nuestra conferencia anual sobre tecnología educativa.',
-                category: 'eventos',
-                categoryLabel: 'Eventos',
-                date: '2024-01-09',
-                author: 'Equipo de Eventos',
-                views: 789,
-                comments: 14,
-                featured: false,
-                image: 'fas fa-users'
-            },
-            {
-                id: 8,
-                title: 'Mejoras en la interfaz de usuario',
-                excerpt: 'Hemos rediseñado completamente la interfaz para ofrecer una experiencia más intuitiva y moderna.',
-                category: 'actualizaciones',
-                categoryLabel: 'Actualizaciones',
-                date: '2024-01-08',
-                author: 'Equipo de UX',
-                views: 456,
-                comments: 7,
-                featured: false,
-                image: 'fas fa-paint-brush'
-            },
-            {
-                id: 9,
-                title: 'Nuevos cursos de programación disponibles',
-                excerpt: 'Ampliamos nuestra oferta educativa con cursos especializados en programación y desarrollo.',
-                category: 'educacion',
-                categoryLabel: 'Educación',
-                date: '2024-01-07',
-                author: 'Departamento Académico',
-                views: 634,
-                comments: 18,
-                featured: false,
-                image: 'fas fa-code'
-            },
-            {
-                id: 10,
-                title: 'Innovaciones en realidad virtual educativa',
-                excerpt: 'Descubre cómo la realidad virtual está revolucionando la forma en que aprendemos y experimentamos.',
-                category: 'tecnologia',
-                categoryLabel: 'Tecnología',
-                date: '2024-01-06',
-                author: 'Ing. Laura Fernández',
-                views: 523,
-                comments: 11,
-                featured: false,
-                image: 'fas fa-vr-cardboard'
-            }
-        ];
-    }
 
     // ===== RENDERING =====
     renderNews() {
@@ -571,6 +494,64 @@ class NoticesPage {
         if (categoryFilter) {
             categoryFilter.value = category;
         }
+        
+        // Update visual state of category cards
+        this.updateCategoryCardsState(category);
+        
+        // Show feedback to user
+        this.showToast(`Filtrado por: ${this.getCategoryLabel(category)}`, 'info');
+    }
+
+    updateCategoryCardsState(activeCategory) {
+        document.querySelectorAll('.category-card').forEach(card => {
+            const cardCategory = card.dataset.category;
+            if (cardCategory === activeCategory) {
+                card.classList.add('active');
+                card.style.transform = 'scale(1.05)';
+                card.style.boxShadow = '0 15px 40px rgba(0, 102, 204, 0.3)';
+            } else {
+                card.classList.remove('active');
+                card.style.transform = 'scale(1)';
+                card.style.boxShadow = '0 8px 22px rgba(0, 0, 0, 0.35)';
+            }
+        });
+    }
+
+    getCategoryLabel(category) {
+        const labels = {
+            'tecnologia': 'Tecnología',
+            'ia': 'Inteligencia Artificial',
+            'educacion': 'Educación',
+            'eventos': 'Eventos',
+            'actualizaciones': 'Actualizaciones'
+        };
+        return labels[category] || category;
+    }
+
+    clearCategoryFilter() {
+        this.currentCategory = '';
+        this.currentPage = 1;
+        this.filterNews();
+        
+        // Update category filter dropdown
+        const categoryFilter = document.getElementById('categoryFilter');
+        if (categoryFilter) {
+            categoryFilter.value = '';
+        }
+        
+        // Reset visual state of category cards
+        this.resetCategoryCardsState();
+        
+        // Show feedback to user
+        this.showToast('Mostrando todas las noticias', 'success');
+    }
+
+    resetCategoryCardsState() {
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.classList.remove('active');
+            card.style.transform = 'scale(1)';
+            card.style.boxShadow = '0 8px 22px rgba(0, 0, 0, 0.35)';
+        });
     }
 
     // ===== VIEW MANAGEMENT =====
@@ -700,9 +681,114 @@ class NoticesPage {
         // Simulate reading a news article
         const news = this.allNews.find(n => n.id === newsId);
         if (news) {
-            this.showToast(`Leyendo: ${news.title}`, 'info');
-            // Here you would typically navigate to a news detail page
-            // or open a modal with the full article
+            // Si la noticia tiene vista detallada, abrir el modal
+            if (news.hasDetailedView && news.detailedData) {
+                this.openDetailedNewsModal(news);
+            } else {
+                this.showToast(`Leyendo: ${news.title}`, 'info');
+                // Here you would typically navigate to a news detail page
+                // or open a modal with the full article
+            }
+        }
+    }
+
+    openDetailedNewsModal(news) {
+        // console.log('🗞️ Abriendo modal detallado para:', news.title);
+        
+        const modal = document.getElementById('newsModal');
+        if (!modal) {
+            // console.error('❌ Modal no encontrado');
+            return;
+        }
+
+        // Actualizar el contenido del modal con los datos de la noticia
+        this.updateModalContent(news);
+        
+        // Mostrar el modal
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // console.log('✅ Modal detallado abierto exitosamente');
+    }
+
+    updateModalContent(news) {
+        const modal = document.getElementById('newsModal');
+        if (!modal || !news.detailedData) return;
+
+        const data = news.detailedData;
+        
+        // Actualizar título
+        const titleElement = modal.querySelector('.news-main-title');
+        if (titleElement) {
+            titleElement.textContent = news.title;
+        }
+
+        // Actualizar TL;DR
+        const tldrItems = modal.querySelectorAll('.tldr-items li');
+        if (tldrItems.length > 0) {
+            tldrItems.forEach((item, index) => {
+                if (data.tldr && data.tldr[index]) {
+                    item.textContent = data.tldr[index];
+                }
+            });
+        }
+
+        // Actualizar pasos sugeridos
+        const suggestedSteps = modal.querySelector('.suggested-steps .numbered-list');
+        if (suggestedSteps && data.suggestedSteps) {
+            suggestedSteps.innerHTML = data.suggestedSteps.map(step => `<li>${step}</li>`).join('');
+        }
+
+        // Actualizar riesgos
+        const risksSection = modal.querySelector('.risks-limits');
+        if (risksSection && data.risks) {
+            const risksList = risksSection.querySelector('.section-list');
+            if (risksList) {
+                risksList.innerHTML = data.risks.map(risk => `<li>${risk}</li>`).join('');
+            }
+        }
+
+        // Actualizar recursos
+        const resourcesList = modal.querySelector('.resources-list');
+        if (resourcesList && data.resources) {
+            const resourceLinks = [
+                'https://cursor.com/blog/tab-rl',
+                'https://github.com/search?q=policy+gradient+methods',
+                'https://arxiv.org/search/?query=reinforcement+learning&searchtype=all'
+            ];
+            resourcesList.innerHTML = data.resources.map((resource, index) => 
+                `<li><a href="${resourceLinks[index]}" target="_blank">${resource}</a></li>`
+            ).join('');
+        }
+
+        // Actualizar "Por qué importa"
+        const whyMattersSection = modal.querySelector('.why-matters-section .section-list');
+        if (whyMattersSection && data.whyMatters) {
+            whyMattersSection.innerHTML = data.whyMatters.map(item => `<li>${item}</li>`).join('');
+        }
+
+        // Actualizar "Qué cambió"
+        const whatChangedSection = modal.querySelector('.what-changed-section .section-list');
+        if (whatChangedSection && data.whatChanged) {
+            whatChangedSection.innerHTML = data.whatChanged.map(item => `<li>${item}</li>`).join('');
+        }
+
+        // Actualizar "Impacto"
+        const impactSection = modal.querySelector('.impact-section .section-list');
+        if (impactSection && data.impact) {
+            impactSection.innerHTML = data.impact.map(item => `<li>${item}</li>`).join('');
+        }
+
+        // Actualizar CTA
+        const ctaButton = modal.querySelector('.cta-button');
+        if (ctaButton && data.cta) {
+            ctaButton.textContent = data.cta;
+        }
+
+        // Actualizar contenido detallado si existe
+        const detailedContent = modal.querySelector('.modal-detailed-content p');
+        if (detailedContent) {
+            detailedContent.innerHTML = `<strong>Por qué importa para desarrolladores:</strong><br>En Cursor, nuestro objetivo es hacer que los desarrolladores sean un orden de magnitud más productivos. Una parte importante de ese objetivo es Cursor Tab, nuestro sistema que predice tu próxima acción en tu base de código. El nuevo modelo utiliza aprendizaje por refuerzo online para hacer 21% menos sugerencias mientras tiene una tasa de aceptación 28% mayor.`;
         }
     }
 
@@ -818,7 +904,7 @@ class NoticesPage {
 let noticesPage;
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded - notices page initializing...');
+    // console.log('DOM loaded - notices page initializing...');
     noticesPage = new NoticesPage();
     
     // Configuración inmediata del menú de perfil
@@ -831,7 +917,7 @@ function setupProfileMenuDirect() {
     const menu = document.getElementById('profileMenu');
     
     if(avatarBtn && menu) {
-        console.log('Setting up profile menu in notices');
+        // console.log('Setting up profile menu in notices');
         
         // Cargar datos del usuario
         try {
@@ -849,13 +935,13 @@ function setupProfileMenuDirect() {
                 }
             }
         } catch(e) {
-            console.log('Error loading user data:', e);
+            // console.log('Error loading user data:', e);
         }
         
         avatarBtn.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Profile button clicked in notices');
+            // console.log('Profile button clicked in notices');
             menu.classList.toggle('show');
         };
         
@@ -865,36 +951,36 @@ function setupProfileMenuDirect() {
             }
         };
     } else {
-        console.log('Profile elements not found in notices');
+        // console.log('Profile elements not found in notices');
     }
 }
 
 // Función inmediata para configurar el menú de perfil
 function setupProfileMenuImmediate() {
-    console.log('Setting up profile menu immediately...');
+    // console.log('Setting up profile menu immediately...');
     
     const avatarBtn = document.getElementById('headerProfileBtn');
     const menu = document.getElementById('profileMenu');
     
-    console.log('Avatar button found:', avatarBtn);
-    console.log('Profile menu found:', menu);
+    // console.log('Avatar button found:', avatarBtn);
+    // console.log('Profile menu found:', menu);
     
     if(avatarBtn && menu) {
-        console.log('Both elements found, setting up click handler...');
+        // console.log('Both elements found, setting up click handler...');
         
         // Remover eventos previos
         avatarBtn.onclick = null;
         
         // Configurar evento de click
         avatarBtn.addEventListener('click', function(e) {
-            console.log('Profile button clicked!');
+            // console.log('Profile button clicked!');
             e.preventDefault();
             e.stopPropagation();
             
             // Método directo - aplicar estilos según el tema actual
             if(menu.style.display === 'block') {
                 menu.style.display = 'none';
-                console.log('Menu hidden');
+                // console.log('Menu hidden');
             } else {
                 // Detectar el tema actual
                 const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light' || 
@@ -934,7 +1020,7 @@ function setupProfileMenuImmediate() {
                 `;
                 
                 menu.style.cssText = isLightTheme ? lightStyles : darkStyles;
-                console.log('Menu shown with theme-aware styles:', isLightTheme ? 'light' : 'dark');
+                // console.log('Menu shown with theme-aware styles:', isLightTheme ? 'light' : 'dark');
             }
         });
         
@@ -990,7 +1076,7 @@ function setupProfileMenuImmediate() {
                         `;
                         
                         menu.style.cssText = isLightTheme ? lightStyles : darkStyles;
-                        console.log('Menu styles updated for theme:', isLightTheme ? 'light' : 'dark');
+                        // console.log('Menu styles updated for theme:', isLightTheme ? 'light' : 'dark');
                     }
                 }
             });
@@ -1002,9 +1088,9 @@ function setupProfileMenuImmediate() {
             attributeFilter: ['data-theme']
         });
         
-        console.log('Profile menu setup completed successfully!');
+        // console.log('Profile menu setup completed successfully!');
     } else {
-        console.error('Profile elements not found!', {avatarBtn, menu});
+        // console.error('Profile elements not found!', {avatarBtn, menu});
     }
 }
 
@@ -1027,13 +1113,13 @@ function loadUserDataIntoMenu() {
             }
         }
     } catch(e) {
-        console.log('Error loading user data:', e);
+        // console.log('Error loading user data:', e);
     }
 }
 
 // Función global para toggle del menú (backup)
 function toggleProfileMenu(event) {
-    console.log('toggleProfileMenu backup called');
+    // console.log('toggleProfileMenu backup called');
     const menu = document.getElementById('profileMenu');
     if(menu) {
         menu.classList.toggle('show');
@@ -1042,12 +1128,12 @@ function toggleProfileMenu(event) {
 
 // Función global para toggle del tema - conectada con el botón del menú
 window.toggleTheme = function() {
-    console.log('🎨 Theme toggle called from notices');
+    // console.log('🎨 Theme toggle called from notices');
     
     // Usar la función global de cambio de tema
     if (window.toggleGlobalTheme) {
         const newTheme = window.toggleGlobalTheme();
-        console.log('🎨 Theme toggled via global function to:', newTheme);
+        // console.log('🎨 Theme toggled via global function to:', newTheme);
     } else {
         // Fallback manual si el script global no está disponible
         const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
@@ -1060,9 +1146,77 @@ window.toggleTheme = function() {
         // Disparar evento personalizado
         window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
         
-        console.log('🎨 Theme toggled via fallback to:', newTheme);
+        // console.log('🎨 Theme toggled via fallback to:', newTheme);
     }
 };
+
+// ===== AI NEWS MODAL FUNCTIONALITY =====
+
+
+// Función para abrir el modal con el diseño exacto
+function openNewsModal(newsId) {
+    // console.log('🗞️ Abriendo modal de noticia ID:', newsId);
+
+    const news = sampleNews[newsId];
+    const modal = document.getElementById('newsModal');
+
+    if (!news || !modal) {
+        // console.error('❌ Noticia o modal no encontrado');
+        return;
+    }
+
+    // Agregar clase activa al modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // console.log('✅ Modal de noticia abierto exitosamente');
+}
+
+// Función para cerrar el modal
+function closeNewsModal() {
+    // console.log('❌ Cerrando modal de noticia');
+
+    const modal = document.getElementById('newsModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        // console.log('✅ Modal de noticia cerrado exitosamente');
+    }
+}
+
+// Event listeners para el modal
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('newsModal');
+    const backdrop = modal?.querySelector('.modal-backdrop');
+
+    // Cerrar modal al hacer clic en el backdrop
+    if (backdrop) {
+        backdrop.addEventListener('click', closeNewsModal);
+    }
+
+    // Cerrar modal con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal?.classList.contains('active')) {
+            closeNewsModal();
+        }
+    });
+
+    // console.log('🎬 Event listeners del modal de noticias configurados');
+});
+
+// Función para crear el header gráfico dinámicamente
+function createHeaderGraphic() {
+    return `
+        <div class="brain-icon">
+            <i class="fas fa-brain"></i>
+            <i class="fas fa-search"></i>
+        </div>
+        <div class="neural-lines"></div>
+        <div class="gear-icon">
+            <i class="fas fa-cog"></i>
+        </div>
+    `;
+}
 
 // ===== GLOBAL FUNCTIONS =====
 window.noticesPage = noticesPage;
@@ -1070,3 +1224,5 @@ window.setupProfileMenuDirect = setupProfileMenuDirect;
 window.setupProfileMenuImmediate = setupProfileMenuImmediate;
 window.toggleProfileMenu = toggleProfileMenu;
 window.loadUserDataIntoMenu = loadUserDataIntoMenu;
+window.openNewsModal = openNewsModal;
+window.closeNewsModal = closeNewsModal;
