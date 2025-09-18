@@ -4929,7 +4929,7 @@ Cargando información...
                 
                 // Datos del usuario desde la API (nested en users object)
                 const userName = question.users?.name || question.users?.display_name || question.display_name || question.first_name || question.username || 'Usuario Anónimo';
-                const userAvatar = question.users?.avatar_url || question.avatar_url || '../../assets/images/default-avatar.svg';
+                const userAvatar = question.users?.profile_picture_url || question.users?.avatar_url || question.avatar_url || '../../assets/images/default-avatar.svg';
                 
                 // Tags
                 const tags = Array.isArray(question.tags) ? question.tags : [];
@@ -5023,7 +5023,7 @@ Cargando información...
                 
                 // Datos del usuario
                 const userName = question.users?.name || question.users?.display_name || 'Usuario Anónimo';
-                const userAvatar = question.users?.avatar_url || '../../assets/images/default-avatar.svg';
+                const userAvatar = question.users?.profile_picture_url || question.users?.avatar_url || '../../assets/images/default-avatar.svg';
                 
                 // Tags
                 const tags = Array.isArray(question.tags) ? question.tags : [];

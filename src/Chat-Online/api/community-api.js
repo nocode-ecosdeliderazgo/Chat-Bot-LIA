@@ -25,6 +25,70 @@ class CommunityAPI {
     }
 
     /**
+     * Mapear datos de usuario para compatibilidad entre localhost y Netlify
+     */
+    mapUserData(userData) {
+        if (!userData) return userData;
+
+        // Si es un objeto con información de usuario
+        if (userData.profile_picture_url && !userData.avatar_url) {
+            userData.avatar_url = userData.profile_picture_url;
+        }
+
+        return userData;
+    }
+
+    /**
+     * Mapear respuesta de pregunta para compatibilidad
+     */
+    mapQuestionData(questionData) {
+        if (!questionData) return questionData;
+
+        // Mapear datos de usuario en la pregunta
+        if (questionData.users) {
+            questionData.users = this.mapUserData(questionData.users);
+        }
+
+        // Si la pregunta tiene respuestas, mapear sus usuarios también
+        if (questionData.answers && Array.isArray(questionData.answers)) {
+            questionData.answers = questionData.answers.map(answer => {
+                if (answer.users) {
+                    answer.users = this.mapUserData(answer.users);
+                }
+                return answer;
+            });
+        }
+
+        return questionData;
+    }
+
+    /**
+     * Mapear respuesta de la API para compatibilidad
+     */
+    mapResponse(data) {
+        if (!data) return data;
+
+        // Si es una respuesta con array de preguntas
+        if (data.data && Array.isArray(data.data)) {
+            data.data = data.data.map(item => this.mapQuestionData(item));
+        }
+        // Si es una pregunta individual
+        else if (data.data && data.data.users) {
+            data.data = this.mapQuestionData(data.data);
+        }
+        // Si es directamente un array de preguntas
+        else if (Array.isArray(data)) {
+            data = data.map(item => this.mapQuestionData(item));
+        }
+        // Si es una pregunta individual sin wrapper
+        else if (data.users) {
+            data = this.mapQuestionData(data);
+        }
+
+        return data;
+    }
+
+    /**
      * Realizar petición HTTP
      */
     async makeRequest(endpoint, options = {}) {
@@ -37,17 +101,19 @@ class CommunityAPI {
         };
 
         const finalOptions = { ...defaultOptions, ...options };
-        
+
         try {
             console.log(`🌐 API Request: ${finalOptions.method || 'GET'} ${url}`);
             const response = await fetch(url, finalOptions);
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || `HTTP ${response.status}`);
+                throw new Error(data.error || `HTTP ${response.status}: ${data.details || ''}`);
             }
 
-            return data;
+            // Mapear respuesta para compatibilidad
+            const mappedData = this.mapResponse(data);
+            return mappedData;
         } catch (error) {
             console.error(`❌ API Error: ${error.message}`);
             throw error;

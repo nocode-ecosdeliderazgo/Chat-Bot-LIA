@@ -41,7 +41,7 @@ async function getQuestions(req, res) {
                     id,
                     username,
                     display_name,
-                    avatar_url
+                    profile_picture_url
                 )
             `);
 
@@ -167,7 +167,7 @@ async function createQuestion(req, res) {
                     id,
                     username,
                     display_name,
-                    avatar_url
+                    profile_picture_url
                 )
             `)
             .single();
@@ -370,7 +370,7 @@ async function createAnswer(req, res) {
                     id,
                     username,
                     display_name,
-                    avatar_url
+                    profile_picture_url
                 )
             `)
             .single();
@@ -422,7 +422,7 @@ async function getQuestionAnswers(req, res) {
                     id,
                     username,
                     display_name,
-                    avatar_url
+                    profile_picture_url
                 )
             `)
             .eq('question_id', questionId);
