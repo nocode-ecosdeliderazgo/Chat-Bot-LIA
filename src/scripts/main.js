@@ -1042,12 +1042,14 @@ function updateConversationContext(botAction, userIntent, awaitingConfirmation =
     }
     
     saveConversationMemory();
-    // console.log('📝 [CONTEXT] Contexto actualizado con memoria persistente:', {
+    /*
+    console.log('📝 [CONTEXT] Contexto actualizado con memoria persistente:', {
         botAction,
         userIntent,
         awaitingConfirmation,
         historyLength: conversationMemory.fullHistory.length
     });
+    */
 }
 
 // Generación de respuestas personalizada con memoria conversacional persistente
@@ -2392,7 +2394,7 @@ function setupEventBusAndUI() {
                         <li>Promotora del trabajo colaborativo y la innovación multidisciplinaria.</li>
                     </ul>
                 </div>
-            `); 
+            `);
         },
         openReport(opts={}) { 
             addCard('Informes y Resúmenes', `
@@ -2436,6 +2438,7 @@ function setupEventBusAndUI() {
     EventBus.on('ui:openQuizzes', () => UI.openQuizzes());
     EventBus.on('ui:openZoom', () => UI.openZoomSessions());
     EventBus.on('ui:openTeachers', () => UI.openTeachers());
+}
 }
 
 // Reconocimiento de voz básico (si disponible)
@@ -3317,9 +3320,11 @@ function getUserAuthHeaders() {
         // console.log('[AUTH DEBUG] Token found:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
         // // console.log('[AUTH DEBUG] Token completo:', token);
         // // console.log('[AUTH DEBUG] UserId:', userId || 'NO USER ID');
-        // console.log('[AUTH DEBUG] Token source:', localStorage.getItem('userToken') ? 'userToken' : 
-                   sessionStorage.getItem('authToken') ? 'authToken(session)' : 
+        /*
+        console.log('[AUTH DEBUG] Token source:', localStorage.getItem('userToken') ? 'userToken' :
+                   sessionStorage.getItem('authToken') ? 'authToken(session)' :
                    localStorage.getItem('authToken') ? 'authToken(local)' : 'none');
+        */
         
         // Verificar si el token contiene la firma de desarrollo
         if (token) {
@@ -4603,11 +4608,13 @@ function initializeLivestreamChat() {
         }
         
         // Verificar estado del selector después de la conexión
-        // console.log('[LIVESTREAM] Estado del selector después de conexión:', {
+        /*
+        console.log('[LIVESTREAM] Estado del selector después de conexión:', {
             messageType: livestreamChatState.messageType,
             selectorExists: !!document.getElementById('messageTypeSelector'),
             buttonsExist: document.querySelectorAll('#messageTypeSelector .type-btn').length
         });
+        */
     });
 
     livestreamSocket.on('disconnect', () => {
@@ -4784,12 +4791,14 @@ function initializeLivestreamChat() {
             const hasType = livestreamChatState.messageType !== null;
             sendBtn.disabled = !hasMessage || !hasType;
             
-            // console.log('[LIVESTREAM] Actualizando botón de envío:', {
+            /*
+            console.log('[LIVESTREAM] Actualizando botón de envío:', {
                 hasMessage,
                 hasType,
                 disabled: sendBtn.disabled,
                 messageType: livestreamChatState.messageType
             });
+            */
         }
     }
     
@@ -4809,12 +4818,14 @@ function initializeLivestreamChat() {
             
             // Verificar si el botón está visible
             const style = window.getComputedStyle(liaBtn);
-            // console.log('[TEST] Visibilidad del botón:', {
+            /*
+            console.log('[TEST] Visibilidad del botón:', {
                 display: style.display,
                 visibility: style.visibility,
                 opacity: style.opacity,
                 pointerEvents: style.pointerEvents
             });
+            */
             
             // Intentar hacer click manualmente
             // // console.log('[TEST] Intentando click manual...');
