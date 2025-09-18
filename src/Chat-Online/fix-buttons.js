@@ -418,55 +418,68 @@ function getCurrentModuleId() {
 async function refreshQuestionsDirectly() {
     try {
         console.log('📋 Obteniendo preguntas directamente de la API...');
-        
+
         // Usar la misma API que usa loadCommunityQuestions
         if (!window.communityAPI) {
             console.error('❌ communityAPI no está disponible');
             return;
         }
-        
+
         // Obtener preguntas con el mismo patrón de la función original
         const response = await window.communityAPI.getQuestions({
             filter: 'all',
             sort: 'recent'
         });
-        
+
         console.log('📋 Respuesta de la API:', response);
-        
+
         if (response && response.data && Array.isArray(response.data)) {
             const questions = response.data;
             console.log(`✅ ${questions.length} preguntas obtenidas directamente`);
-            
+
             // Renderizar directamente en el DOM (patrón de transcripciones/resúmenes)
             renderQuestionsDirectly(questions);
+
+            // Mostrar feedback visual de que las preguntas se actualizaron
+            showNotification(`🔄 ${questions.length} preguntas actualizadas`, 'info');
+
         } else if (response && Array.isArray(response)) {
             // Algunas APIs devuelven directamente el array
             const questions = response;
             console.log(`✅ ${questions.length} preguntas obtenidas directamente (array directo)`);
             renderQuestionsDirectly(questions);
+
+            // Mostrar feedback visual
+            showNotification(`🔄 ${questions.length} preguntas actualizadas`, 'info');
+
         } else {
             console.warn('⚠️ Respuesta de API inesperada:', response);
-            
+
             // Fallback: intentar usar las funciones existentes
             if (window.chatOnline && typeof window.chatOnline.loadCommunityQuestions === 'function') {
+                console.log('🔄 Intentando fallback con loadCommunityQuestions...');
                 window.chatOnline.communityQuestionsLoaded = false;
                 window.chatOnline.loadingQuestions = false;
                 await window.chatOnline.loadCommunityQuestions('direct-refresh-fallback');
+                showNotification('🔄 Preguntas actualizadas (fallback)', 'info');
             }
         }
-        
+
     } catch (error) {
         console.error('❌ Error recargando preguntas directamente:', error);
-        
+
         // Fallback final
         if (window.chatOnline && typeof window.chatOnline.loadCommunityQuestions === 'function') {
             try {
+                console.log('🔄 Usando fallback final...');
                 window.chatOnline.communityQuestionsLoaded = false;
                 window.chatOnline.loadingQuestions = false;
                 await window.chatOnline.loadCommunityQuestions('direct-refresh-error-fallback');
                 console.log('✅ Fallback exitoso');
+                showNotification('🔄 Preguntas actualizadas', 'info');
             } catch (fallbackError) {
                 console.error('❌ Fallback también falló:', fallbackError);
+                showNotification('⚠️ Error actualizando preguntas', 'warning');
             }
         }
     }
@@ -475,16 +488,16 @@ async function refreshQuestionsDirectly() {
 // Función para renderizar preguntas directamente en el DOM
 function renderQuestionsDirectly(questions) {
     console.log('🎨 Renderizando preguntas directamente en DOM...');
-    
+
     const questionsList = document.getElementById('questionsList');
     if (!questionsList) {
         console.error('❌ Lista de preguntas no encontrada');
         return;
     }
-    
+
     // Limpiar completamente el contenedor (patrón de transcripciones)
     questionsList.innerHTML = '';
-    
+
     if (!questions || questions.length === 0) {
         questionsList.innerHTML = `
             <div class="empty-questions">
@@ -508,26 +521,46 @@ function renderQuestionsDirectly(questions) {
         `;
         return;
     }
-    
-    // Generar HTML para cada pregunta (usar función existente si está disponible)
+
+    // Intentar usar las funciones de renderizado existentes del sistema principal
     let questionsHTML = '';
-    
+
+    if (window.renderQuestionsFromAPI && typeof window.renderQuestionsFromAPI === 'function') {
+        // Usar la función principal de renderizado
+        console.log('✅ Usando función principal renderQuestionsFromAPI');
+        try {
+            window.renderQuestionsFromAPI(questions);
+            console.log('✅ Preguntas renderizadas con función principal');
+            return;
+        } catch (error) {
+            console.warn('⚠️ Error con renderQuestionsFromAPI, usando fallback:', error);
+        }
+    }
+
     if (window.chatOnline && typeof window.chatOnline.createQuestionHTML === 'function') {
         // Usar la función existente del sistema
+        console.log('✅ Usando función del sistema chatOnline.createQuestionHTML');
         questionsHTML = questions.map(question => window.chatOnline.createQuestionHTML(question)).join('');
     } else {
-        // Fallback: generar HTML básico
+        // Fallback: generar HTML básico pero compatible
+        console.log('⚠️ Usando fallback createBasicQuestionHTML');
         questionsHTML = questions.map(question => createBasicQuestionHTML(question)).join('');
     }
-    
+
     // Actualizar DOM directamente (patrón de transcripciones/resúmenes)
     questionsList.innerHTML = questionsHTML;
-    
+
+    // Scroll para mostrar las nuevas preguntas
+    const questionsContainer = questionsList.closest('.questions-container, .community-content');
+    if (questionsContainer) {
+        questionsContainer.scrollTop = 0; // Scroll al top para ver la pregunta recién creada
+    }
+
     // Reconfigurar event listeners si la función existe
     if (window.chatOnline && typeof window.chatOnline.setupQuestionEventListeners === 'function') {
         window.chatOnline.setupQuestionEventListeners();
     }
-    
+
     console.log('✅ Preguntas renderizadas directamente en DOM');
 }
 
@@ -653,19 +686,45 @@ async function submitQuestion() {
             if (response && response.success !== false) {
                 console.log('✅ Pregunta enviada exitosamente');
                 closeQuestionModalFunc();
-                
+
                 // Mostrar mensaje de éxito
-                alert('¡Pregunta enviada exitosamente!');
-                
-                // Recargar preguntas inmediatamente
+                showNotification('✅ ¡Pregunta enviada exitosamente!', 'success');
+
+                // Recargar preguntas inmediatamente - Sin delay
                 console.log('🔄 Recargando preguntas después de envío exitoso...');
-                
-                // Esperar un momento para sincronización de BD
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Recargar preguntas usando el patrón directo de actualización DOM
-                console.log('🔄 Recargando preguntas con patrón directo...');
-                await refreshQuestionsDirectly();
+
+                // Ejecutar múltiples estrategias de recarga en paralelo
+                const reloadPromises = [
+                    // Estrategia 1: Recarga directa con el patrón DOM actualizado
+                    refreshQuestionsDirectly(),
+
+                    // Estrategia 2: Usar loadCommunityQuestions si está disponible
+                    (async () => {
+                        if (typeof loadCommunityQuestions === 'function') {
+                            try {
+                                console.log('🔄 Usando loadCommunityQuestions como backup...');
+                                await loadCommunityQuestions();
+                                console.log('✅ loadCommunityQuestions exitoso');
+                            } catch (error) {
+                                console.warn('⚠️ loadCommunityQuestions falló:', error);
+                            }
+                        }
+                    })(),
+
+                    // Estrategia 3: Resetear flags si existen
+                    (async () => {
+                        if (window.chatOnline) {
+                            window.chatOnline.communityQuestionsLoaded = false;
+                            window.chatOnline.loadingQuestions = false;
+                            console.log('🔄 Flags de carga reseteados');
+                        }
+                    })()
+                ];
+
+                // Ejecutar todas las estrategias
+                await Promise.allSettled(reloadPromises);
+
+                console.log('✅ Recarga de preguntas completada con múltiples estrategias');
             } else {
                 throw new Error(response?.error || 'Error al enviar pregunta');
             }
