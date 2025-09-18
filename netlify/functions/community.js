@@ -134,23 +134,42 @@ async function getQuestions(req, res) {
 
 /**
  * POST /api/community/questions
- * Crea una nueva pregunta en la comunidad
+ * Crea una nueva pregunta en la comunidad - REPLICANDO SERVER.JS
  */
 async function createQuestion(req, res) {
     try {
+        console.log('📝 === INICIO CREACIÓN PREGUNTA (NETLIFY) ===');
+        console.log('📋 Body recibido:', req.body);
+
         const { title, content, tags, course_id, module_id, user_id } = req.body;
 
-        console.log(`📝 Creando nueva pregunta: "${title}"`);
+        console.log('📝 Datos extraídos:', {
+            title: title?.substring(0, 50) + '...',
+            content: content?.substring(0, 50) + '...',
+            tags,
+            course_id,
+            module_id,
+            user_id
+        });
 
-        // Validar datos requeridos
+        // Validar datos requeridos (igual que server.js)
         if (!title || !content || !user_id) {
-            return res.status(400).json({ 
+            console.log('❌ Validación fallida - datos faltantes');
+            return res.status(400).json({
+                success: false,
                 error: 'Datos requeridos faltantes',
-                message: 'Título, contenido y usuario son requeridos'
+                message: 'Título, contenido y usuario son requeridos',
+                received: {
+                    title: !!title,
+                    content: !!content,
+                    user_id: !!user_id
+                }
             });
         }
 
-        // Crear la pregunta
+        console.log('🗃️ Supabase disponible, procediendo con INSERT...');
+
+        // Crear la pregunta (replicando la lógica de server.js)
         const { data: question, error } = await supabase
             .from('community_questions')
             .insert({
@@ -159,39 +178,76 @@ async function createQuestion(req, res) {
                 tags: tags || [],
                 course_id: course_id || null,
                 module_id: module_id || null,
-                user_id: user_id
+                user_id: user_id,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
             })
-            .select(`
-                *,
-                users:user_id (
-                    id,
-                    username,
-                    display_name,
-                    profile_picture_url
-                )
-            `)
+            .select()
             .single();
 
         if (error) {
             console.error('❌ Error creando pregunta:', error);
-            return res.status(500).json({ 
+            return res.status(500).json({
+                success: false,
                 error: 'Error creando pregunta',
-                details: error.message 
+                details: error.message
             });
         }
 
+        console.log('📊 Resultado de INSERT:', {
+            hasQuestion: !!question,
+            questionId: question?.id
+        });
+
+        if (!question) {
+            throw new Error('No se pudo crear la pregunta');
+        }
+
+        // Obtener datos del usuario (replicando server.js)
+        const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('id, username, display_name, first_name, profile_picture_url')
+            .eq('id', user_id)
+            .single();
+
+        if (userError) {
+            console.log('⚠️ Error obteniendo datos de usuario, usando datos básicos:', userError);
+        }
+
+        // Construir respuesta igual que server.js
+        const responseData = {
+            id: question.id,
+            title: question.title,
+            content: question.content,
+            tags: question.tags,
+            course_id: question.course_id,
+            module_id: question.module_id,
+            user_id: question.user_id,
+            votes_count: 0,
+            answers_count: 0,
+            views_count: 0,
+            created_at: question.created_at,
+            users: {
+                id: user_id,
+                name: userData?.display_name || userData?.first_name || userData?.username || 'Usuario',
+                avatar_url: userData?.profile_picture_url || '/assets/images/default-avatar.svg'
+            }
+        };
+
         console.log(`✅ Pregunta creada exitosamente: ${question.id}`);
-        res.status(201).json({
+
+        return res.status(201).json({
             success: true,
-            data: question,
+            data: responseData,
             message: 'Pregunta creada exitosamente'
         });
 
     } catch (error) {
-        console.error('💥 Error en createQuestion:', error);
-        res.status(500).json({ 
-            error: 'Error interno del servidor',
-            details: error.message 
+        console.error('❌ Error creando pregunta:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Error creando pregunta',
+            details: error.message
         });
     }
 }
@@ -576,10 +632,23 @@ exports.handler = async (event, context) => {
         };
 
         const res = {
-            status: (code) => ({ json: (data) => ({ statusCode: code, headers, body: JSON.stringify(data) }) }),
-            json: (data) => ({ statusCode: 200, headers, body: JSON.stringify(data) }),
+            status: (code) => ({
+                json: (data) => ({
+                    statusCode: code,
+                    headers,
+                    body: JSON.stringify(data)
+                })
+            }),
+            json: (data) => ({
+                statusCode: 200,
+                headers,
+                body: JSON.stringify(data)
+            }),
             statusCode: 200,
-            headers: headers
+            headers: headers,
+            // Agregar métodos que esperan las funciones
+            setHeader: (name, value) => { headers[name] = value; },
+            end: () => ({ statusCode: res.statusCode, headers, body: '' })
         };
 
         // Router de endpoints
