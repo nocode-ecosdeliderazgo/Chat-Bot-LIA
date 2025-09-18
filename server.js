@@ -5845,17 +5845,19 @@ app.post('/api/community/questions/:questionId/answers', async (req, res) => {
     try {
         console.log('📝 === INICIO CREACIÓN RESPUESTA (NUEVA RUTA) ===');
         const { questionId } = req.params;
-        const { content, user_id } = req.body;
-        
+        const { content } = req.body;
+        const userId = req.headers['x-user-id'] || req.body.user_id;
+
         console.log('📋 Body recibido:', req.body);
         console.log('📋 Question ID desde params:', questionId);
-        
+        console.log('📋 User ID desde headers/body:', userId);
+
         // Validación de campos requeridos
-        if (!questionId || !content || !user_id) {
+        if (!questionId || !content || !userId) {
             console.log('❌ Faltan campos obligatorios');
             return res.status(400).json({
                 success: false,
-                error: 'Faltan campos obligatorios: questionId (params), content, user_id (body)'
+                error: 'Faltan campos obligatorios: questionId (params), content, user_id (body o header)'
             });
         }
         
@@ -5871,24 +5873,24 @@ app.post('/api/community/questions/:questionId/answers', async (req, res) => {
         console.log('🗃️ Pool de base de datos disponible, procediendo con validaciones...');
         
         // Verificar si el usuario existe o crearlo si es el usuario demo
-        if (user_id === '123e4567-e89b-12d3-a456-426614174000') {
+        if (userId === '123e4567-e89b-12d3-a456-426614174000') {
             console.log('👤 Verificando/creando usuario demo...');
-            const demoUserCheck = await pool.query('SELECT id FROM users WHERE id = $1', [user_id]);
-            
+            const demoUserCheck = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
+
             if (demoUserCheck.rows.length === 0) {
                 console.log('🔧 Creando usuario demo...');
                 await pool.query(`
                     INSERT INTO users (id, username, display_name, email, created_at, updated_at)
                     VALUES ($1, $2, $3, $4, NOW(), NOW())
                     ON CONFLICT (id) DO NOTHING
-                `, [user_id, 'usuario_demo', 'Usuario Demo', 'demo@example.com']);
+                `, [userId, 'usuario_demo', 'Usuario Demo', 'demo@example.com']);
                 console.log('✅ Usuario demo creado');
             }
         } else {
             // Verificar que el usuario real existe
-            const userCheck = await pool.query('SELECT id FROM users WHERE id = $1', [user_id]);
+            const userCheck = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
             if (userCheck.rows.length === 0) {
-                console.log('❌ Usuario no encontrado:', user_id);
+                console.log('❌ Usuario no encontrado:', userId);
                 return res.status(400).json({
                     success: false,
                     error: 'Usuario no encontrado. Por favor inicia sesión nuevamente.'
@@ -5910,11 +5912,11 @@ app.post('/api/community/questions/:questionId/answers', async (req, res) => {
         
         // Crear la respuesta
         const result = await pool.query(`
-            INSERT INTO community_answers 
+            INSERT INTO community_answers
             (question_id, user_id, content, votes_count, created_at, updated_at)
             VALUES ($1, $2, $3, 0, NOW(), NOW())
             RETURNING *
-        `, [questionId, user_id, content.trim()]);
+        `, [questionId, userId, content.trim()]);
         
         console.log('📊 Resultado de INSERT:', {
             rowCount: result.rowCount,
@@ -5931,9 +5933,9 @@ app.post('/api/community/questions/:questionId/answers', async (req, res) => {
         // Obtener datos del usuario para la respuesta
         const userResult = await pool.query(`
             SELECT username, display_name, first_name, profile_picture_url
-            FROM users 
+            FROM users
             WHERE id = $1
-        `, [user_id]);
+        `, [userId]);
         
         const userData = userResult.rows[0] || {};
         console.log('👤 Datos de usuario encontrados:', userData);
