@@ -55,7 +55,8 @@
       "Bash(del fix-progress-function.sql)",
       "mcp__playwright",
       "Bash(del test-email-config.js)",
-      "Bash(del test-forgot-password.js)"
+      "Bash(del test-forgot-password.js)",
+      "Bash(copy:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

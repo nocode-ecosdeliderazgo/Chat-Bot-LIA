@@ -6346,6 +6346,333 @@ app.get('/api/users/:userId/course/:courseId/modules/progress', async (req, res)
     }
 });
 
+// =====================================================
+// ENDPOINTS DE COMUNIDAD
+// =====================================================
+
+// Obtener preguntas de la comunidad
+app.get('/api/community/questions', async (req, res) => {
+    try {
+        const { 
+            course_id, 
+            module_id, 
+            filter = 'all', 
+            sort = 'recent', 
+            page = 1, 
+            limit = 20, 
+            search 
+        } = req.query;
+
+        console.log(`📋 Obteniendo preguntas - Filtro: ${filter}, Orden: ${sort}`);
+
+        if (!supabase) {
+            // Datos demo si no hay Supabase configurado
+            const demoQuestions = [
+                {
+                    id: 'demo-1',
+                    user_id: 'user-1',
+                    course_id: course_id || null,
+                    module_id: module_id || null,
+                    title: '¿Cuál es la diferencia entre Machine Learning y Deep Learning?',
+                    content: 'Estoy viendo el curso de IA pero no me queda clara la diferencia entre estos conceptos...',
+                    tags: ['machine-learning', 'deep-learning'],
+                    votes_count: 15,
+                    answers_count: 3,
+                    views_count: 127,
+                    is_answered: true,
+                    is_featured: false,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    author: {
+                        id: 'user-1',
+                        username: 'carlos_estudiante',
+                        display_name: 'Carlos Mendez',
+                        avatar_url: null
+                    }
+                },
+                {
+                    id: 'demo-2',
+                    user_id: 'user-2',
+                    course_id: course_id || null,
+                    module_id: module_id || null,
+                    title: '¿Cómo funciona el procesamiento de lenguaje natural?',
+                    content: 'Me gustaría entender mejor cómo las máquinas pueden entender texto...',
+                    tags: ['nlp', 'procesamiento-lenguaje'],
+                    votes_count: 8,
+                    answers_count: 1,
+                    views_count: 89,
+                    is_answered: false,
+                    is_featured: true,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    author: {
+                        id: 'user-2',
+                        username: 'ana_garcia',
+                        display_name: 'Ana García',
+                        avatar_url: null
+                    }
+                }
+            ];
+
+            return res.json({
+                success: true,
+                data: demoQuestions,
+                pagination: {
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    total: demoQuestions.length,
+                    pages: 1
+                }
+            });
+        }
+
+        // Si hay Supabase configurado, usar la implementación real
+        let query = supabase
+            .from('community_questions')
+            .select(`
+                *,
+                users:user_id (
+                    id,
+                    username,
+                    display_name,
+                    profile_picture_url
+                )
+            `);
+
+        // Aplicar filtros
+        if (course_id) query = query.eq('course_id', course_id);
+        if (module_id) query = query.eq('module_id', module_id);
+        if (search) query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
+
+        // Aplicar filtros específicos
+        switch (filter) {
+            case 'unanswered':
+                query = query.eq('is_answered', false);
+                break;
+            case 'answered':
+                query = query.eq('is_answered', true);
+                break;
+            case 'featured':
+                query = query.eq('is_featured', true);
+                break;
+        }
+
+        // Aplicar ordenamiento
+        switch (sort) {
+            case 'votes':
+                query = query.order('votes_count', { ascending: false });
+                break;
+            case 'answers':
+                query = query.order('answers_count', { ascending: false });
+                break;
+            case 'views':
+                query = query.order('views_count', { ascending: false });
+                break;
+            case 'recent':
+            default:
+                query = query.order('created_at', { ascending: false });
+                break;
+        }
+
+        // Aplicar paginación
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+        query = query.range(offset, offset + parseInt(limit) - 1);
+
+        const { data: questions, error } = await query;
+
+        if (error) {
+            console.error('❌ Error obteniendo preguntas:', error);
+            return res.status(500).json({ 
+                error: 'Error obteniendo preguntas',
+                details: error.message 
+            });
+        }
+
+        // Obtener conteo total para paginación
+        const { count } = await supabase
+            .from('community_questions')
+            .select('*', { count: 'exact', head: true });
+
+        console.log(`✅ ${questions.length} preguntas obtenidas`);
+        res.json({
+            success: true,
+            data: questions,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total: count,
+                pages: Math.ceil(count / parseInt(limit))
+            }
+        });
+
+    } catch (error) {
+        console.error('💥 Error en /api/community/questions:', error);
+        res.status(500).json({ 
+            error: 'Error interno del servidor',
+            details: error.message 
+        });
+    }
+});
+
+// Crear nueva pregunta en la comunidad
+app.post('/api/community/questions', async (req, res) => {
+    try {
+        const { title, content, tags, course_id, module_id, user_id } = req.body;
+
+        console.log(`📝 Creando nueva pregunta: "${title}"`);
+
+        // Validar datos requeridos
+        if (!title || !content || !user_id) {
+            return res.status(400).json({ 
+                error: 'Datos requeridos faltantes',
+                message: 'Título, contenido y usuario son requeridos'
+            });
+        }
+
+        if (!supabase) {
+            // Respuesta demo si no hay Supabase
+            const demoQuestion = {
+                id: `demo-${Date.now()}`,
+                title: title.trim(),
+                content: content.trim(),
+                tags: tags || [],
+                course_id: course_id || null,
+                module_id: module_id || null,
+                user_id: user_id,
+                votes_count: 0,
+                answers_count: 0,
+                views_count: 1,
+                is_answered: false,
+                is_featured: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                author: {
+                    id: user_id,
+                    username: 'usuario_demo',
+                    display_name: 'Usuario Demo',
+                    avatar_url: null
+                }
+            };
+
+            console.log(`✅ Pregunta demo creada: ${demoQuestion.id}`);
+            return res.status(201).json({
+                success: true,
+                data: demoQuestion,
+                message: 'Pregunta creada exitosamente (modo demo)'
+            });
+        }
+
+        // Crear la pregunta en Supabase
+        const { data: question, error } = await supabase
+            .from('community_questions')
+            .insert({
+                title: title.trim(),
+                content: content.trim(),
+                tags: tags || [],
+                course_id: course_id || null,
+                module_id: module_id || null,
+                user_id: user_id
+            })
+            .select(`
+                *,
+                users:user_id (
+                    id,
+                    username,
+                    display_name,
+                    profile_picture_url
+                )
+            `)
+            .single();
+
+        if (error) {
+            console.error('❌ Error creando pregunta:', error);
+            return res.status(500).json({ 
+                error: 'Error creando pregunta',
+                details: error.message 
+            });
+        }
+
+        console.log(`✅ Pregunta creada exitosamente: ${question.id}`);
+        res.status(201).json({
+            success: true,
+            data: question,
+            message: 'Pregunta creada exitosamente'
+        });
+
+    } catch (error) {
+        console.error('💥 Error en POST /api/community/questions:', error);
+        res.status(500).json({ 
+            error: 'Error interno del servidor',
+            details: error.message 
+        });
+    }
+});
+
+// Obtener estadísticas de la comunidad
+app.get('/api/community/stats', async (req, res) => {
+    try {
+        const { course_id, module_id } = req.query;
+
+        console.log('📊 Obteniendo estadísticas de comunidad');
+
+        if (!supabase) {
+            // Estadísticas demo
+            const demoStats = {
+                total_questions: 15,
+                answered_questions: 12,
+                total_answers: 28,
+                total_users: 8,
+                most_active_users: [
+                    {
+                        user_id: 'user-1',
+                        full_name: 'Ana García',
+                        questions_count: 3,
+                        answers_count: 8,
+                        is_instructor: true
+                    },
+                    {
+                        user_id: 'user-2',
+                        full_name: 'Carlos Mendez',
+                        questions_count: 5,
+                        answers_count: 4,
+                        is_instructor: false
+                    }
+                ],
+                popular_tags: [
+                    { tag: 'machine-learning', count: 8 },
+                    { tag: 'deep-learning', count: 5 },
+                    { tag: 'nlp', count: 3 }
+                ]
+            };
+
+            return res.json({
+                success: true,
+                data: demoStats
+            });
+        }
+
+        // Implementación real con Supabase aquí...
+        res.json({
+            success: true,
+            data: {
+                total_questions: 0,
+                answered_questions: 0,
+                total_answers: 0,
+                total_users: 0,
+                most_active_users: [],
+                popular_tags: []
+            }
+        });
+
+    } catch (error) {
+        console.error('💥 Error en /api/community/stats:', error);
+        res.status(500).json({ 
+            error: 'Error interno del servidor',
+            details: error.message 
+        });
+    }
+});
+
 // Middleware para rutas no encontrada (DEBE IR AL FINAL)
 app.use((req, res) => {
     console.log(`❌ Ruta no encontrada: ${req.method} ${req.path}`);

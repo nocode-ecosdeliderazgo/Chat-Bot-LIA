@@ -755,7 +755,7 @@ function analyzeConversationContext(currentMessage) {
         analysis.suggestedContext = findRelevantContext(currentMessage, recentHistory);
     }
     
-    // console.log('🧠 [CONTEXT] Análisis completado:', {
+    console.log('🧠 [CONTEXT] Análisis completado:', {
         recentQuestions: analysis.recentUserQuestions.length,
         recentActions: analysis.recentBotActions.length,
         needsContext: analysis.needsContext,

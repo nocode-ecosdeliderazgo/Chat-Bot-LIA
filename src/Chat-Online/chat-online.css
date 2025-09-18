@@ -5525,7 +5525,8 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     border-top-color: #0066CC !important;
 }
 
-/* Theme toggle button */
+/* Theme toggle button - DESHABILITADO para evitar flash visual */
+/*
 [data-theme="light"] .theme-toggle-btn {
     background: var(--glass-surface) !important;
     border: var(--glass-border) !important;
@@ -5538,8 +5539,10 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     border-color: #0066CC !important;
     color: #0066CC !important;
 }
+*/
 
-/* Icon colors in light mode */
+/* Icon colors in light mode - DESHABILITADO (botón de tema removido) */
+/*
 [data-theme="light"] .theme-icon-moon {
     display: none;
 }
@@ -5547,6 +5550,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 [data-theme="light"] .theme-icon-sun {
     display: block;
 }
+*/
 
 /* ===== PANEL DERECHO COLAPSABLE ===== */
 

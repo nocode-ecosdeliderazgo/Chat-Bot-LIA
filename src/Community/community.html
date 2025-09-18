@@ -1,13 +1,15 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
+    <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY">
     <title>Comunidad</title>
     <link rel="stylesheet" href="community.css">
     <link rel="icon" type="image/x-icon" href="../assets/images/icono.png">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- BoxIcons - iconografía principal -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     
     <!-- Global theme setup - Configuración global del tema -->
@@ -172,9 +174,9 @@
         <section class="discover-section">
             <div class="container">
                 <div class="discover-search">
-                    <i class="fas fa-search"></i>
+                    <i class="bx bx-search"></i>
                     <input id="discoverSearch" class="discover-input" type="text" placeholder="Buscar comunidades o contenido...">
-                    <button id="discoverClear" class="discover-clear" title="Limpiar" style="display:none"><i class="fas fa-times"></i></button>
+                    <button id="discoverClear" class="discover-clear" title="Limpiar" style="display:none"><i class="bx bx-x"></i></button>
                 </div>
                 <div class="discover-filters" id="discoverFilters">
                     <button class="discover-chip active" data-category="all">Todos</button>
@@ -209,9 +211,50 @@
 
     <script src="../scripts/particles.js"></script>
     <script src="../scripts/main.js"></script>
+    <script src="../scripts/supabase-client.js"></script>
+    <script src="../scripts/community-database.js"></script>
+
+    <!-- VERIFICACIÓN DE DEPENDENCIAS CRÍTICAS -->
+    <script>
+    console.log('🔍 Verificando dependencias críticas...');
+
+    // Verificar que main.js no tenga errores
+    try {
+        console.log('✅ main.js se ejecutó sin errores de sintaxis');
+    } catch (error) {
+        console.error('❌ Error en main.js:', error);
+    }
+
+    // NUEVO: Verificar que CommunityDatabase esté disponible
+    setTimeout(() => {
+        console.log('🔍 Estado de dependencias después de carga:');
+        console.log('📊 window.supabase:', window.supabase ? 'Disponible' : 'No disponible');
+        console.log('📊 window.supabaseInitialized:', window.supabaseInitialized);
+        console.log('📊 window.CommunityDatabase:', typeof window.CommunityDatabase);
+
+        if (typeof window.CommunityDatabase === 'function') {
+            console.log('✅ CommunityDatabase está disponible');
+        } else {
+            console.error('❌ CommunityDatabase NO está disponible');
+            console.error('🔍 Verificar que community-database.js se cargue correctamente');
+        }
+
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
+            console.log('✅ Supabase está disponible para community.js');
+        } else {
+            console.error('❌ Supabase NO está disponible para community.js');
+        }
+    }, 1000);
+    </script>
+
     <script src="community.js"></script>
     <script src="../scripts/profile-avatar-manager.js"></script>
     <script src="../scripts/force-theme-init.js"></script>
     <script src="../scripts/theme-manager.js"></script>
 </body>
 </html>
+
+
+
+
+

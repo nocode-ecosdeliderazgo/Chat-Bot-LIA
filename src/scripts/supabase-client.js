@@ -52,14 +52,30 @@ async function initializeSupabaseClient() {
             }
         }
         
-        // Verificar si createClient existe
-        if (typeof supabase.createClient !== 'function') {
-            // console.error('❌ supabase.createClient no es una función');
-            throw new Error('supabase.createClient no está disponible');
+        // VERIFICACIÓN SIMPLIFICADA Y DIRECTA
+        console.log('🔍 Verificando disponibilidad de Supabase...');
+
+        // Verificar window.supabase primero
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
+            console.log('✅ window.supabase.createClient está disponible');
+        } else {
+            console.error('❌ window.supabase.createClient NO está disponible');
+            console.log('📊 window.supabase:', window.supabase);
+            console.log('📊 typeof window.supabase:', typeof window.supabase);
+
+            if (window.supabase) {
+                console.log('📊 window.supabase.createClient:', window.supabase.createClient);
+                console.log('📊 typeof window.supabase.createClient:', typeof window.supabase.createClient);
+            }
+
+            console.error('🗄️ Sin acceso a las tablas: communities, community_members, community_posts, community_reactions');
+            throw new Error('window.supabase.createClient no está disponible');
         }
+
+        let supabaseClient = window.supabase.createClient;
         
         // Crear cliente con configuración optimizada
-        const client = supabase.createClient(credentials.url, credentials.key, {
+        const client = supabaseClient(credentials.url, credentials.key, {
             auth: { 
                 storageKey: 'sb-lia',
                 autoRefreshToken: true,
@@ -74,6 +90,9 @@ async function initializeSupabaseClient() {
         
         // Verificar conexión
         await testSupabaseConnection(client);
+        
+        // Verificar conexión específica a tablas de comunidad
+        await testCommunityTablesConnection(client);
         
         // Exponer globalmente
         window.supabase = client;
@@ -92,20 +111,24 @@ async function initializeSupabaseClient() {
     } catch (error) {
         // console.error('❌ Error inicializando cliente de Supabase:', error);
         
-        // Implementar retry con backoff
+        // Implementar retry con backoff LIMITADO
         if (window.supabaseRetries < MAX_RETRIES) {
             window.supabaseRetries++;
             const delay = Math.pow(2, window.supabaseRetries) * 1000; // Exponential backoff
             
-            // console.log(`🔄 Reintentando inicialización en ${delay/1000}s (intento ${window.supabaseRetries}/${MAX_RETRIES})`);
+            console.log(`🔄 Reintentando inicialización en ${delay/1000}s (intento ${window.supabaseRetries}/${MAX_RETRIES})`);
             
             setTimeout(() => {
                 window.supabaseLoading = false;
                 initializeSupabaseClient();
             }, delay);
         } else {
-            // console.error('❌ Se agotaron los reintentos de inicialización de Supabase');
+            console.error('❌ Se agotaron los reintentos de inicialización de Supabase');
+            console.error('🛑 DETENIENDO BUCLE INFINITO - No más reintentos');
             window.supabase = null;
+            window.supabaseInitialized = false;
+            window.supabaseLoading = false;
+            // NO REINTENTAR MÁS
             window.dispatchEvent(new CustomEvent('supabaseFallback', { detail: error }));
         }
         
@@ -176,42 +199,55 @@ async function fetchCredentialsFromAPI() {
 
 // Función para cargar la librería de Supabase
 async function loadSupabaseLibrary() {
+    console.log('🔄 NUEVA CARGA DE SUPABASE - Método directo');
+
     try {
-        // Verificar si ya está disponible globalmente
-        if (window.supabase && typeof window.supabase.createClient === 'function') {
-            return;
-        }
-        
-        // Intentar importación dinámica ES modules
-        try {
-            const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
-            window.supabase = { createClient };
-            // console.log('✅ Librería cargada vía ES modules');
-            return;
-        } catch (esError) {
-            // console.warn('⚠️ Error cargando vía ES modules:', esError);
-        }
-        
-        // Fallback: cargar desde CDN usando script tag
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+        // MÉTODO DIRECTO: Cargar script y esperar
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js';
+        script.crossOrigin = 'anonymous';
+
+        // Promesa que espera a que el script se cargue
+        await new Promise((resolve, reject) => {
             script.onload = () => {
-                // console.log('✅ Librería cargada vía CDN script tag');
-                resolve();
+                console.log('✅ Script de Supabase cargado');
+
+                // Verificar inmediatamente
+                if (window.supabase && typeof window.supabase.createClient === 'function') {
+                    console.log('✅ window.supabase.createClient disponible');
+                    resolve();
+                } else if (typeof createClient === 'function') {
+                    // Si createClient está disponible globalmente
+                    window.supabase = { createClient };
+                    console.log('✅ createClient global asignado a window.supabase');
+                    resolve();
+                } else {
+                    console.error('❌ Supabase cargado pero createClient no disponible');
+                    reject(new Error('createClient no encontrado después de cargar script'));
+                }
             };
+
             script.onerror = (error) => {
-                // console.error('❌ Error cargando desde CDN:', error);
+                console.error('❌ Error cargando script de Supabase:', error);
                 reject(error);
             };
+
+            // Timeout de 15 segundos
+            setTimeout(() => {
+                reject(new Error('Timeout cargando Supabase'));
+            }, 15000);
+
             document.head.appendChild(script);
         });
-        
+
+        console.log('✅ Supabase cargado exitosamente');
+
     } catch (error) {
-        // console.error('❌ Error cargando librería de Supabase:', error);
+        console.error('❌ Error crítico en loadSupabaseLibrary:', error);
         throw error;
     }
 }
+
 
 // Función para probar la conexión de Supabase
 async function testSupabaseConnection(client) {
@@ -231,6 +267,45 @@ async function testSupabaseConnection(client) {
     } catch (error) {
         // console.warn('⚠️ Advertencia en test de conexión:', error);
         // No fallar completamente por problemas de conexión
+    }
+}
+
+// Función para verificar conexión específica a tablas de comunidad
+async function testCommunityTablesConnection(client) {
+    try {
+        console.log('🔍 Probando conexión a tablas de comunidad...');
+        
+        // Test específico para tabla communities
+        const { data: communitiesTest, error: communitiesError } = await client
+            .from('communities')
+            .select('count', { count: 'exact', head: true });
+            
+        if (communitiesError && communitiesError.code !== 'PGRST116') {
+            throw new Error(`Error en tabla communities: ${communitiesError.message}`);
+        }
+        
+        // Test específico para tabla community_members  
+        const { data: membersTest, error: membersError } = await client
+            .from('community_members')
+            .select('count', { count: 'exact', head: true });
+            
+        if (membersError && membersError.code !== 'PGRST116') {
+            throw new Error(`Error en tabla community_members: ${membersError.message}`);
+        }
+        
+        // Test específico para tabla community_posts
+        const { data: postsTest, error: postsError } = await client
+            .from('community_posts')
+            .select('count', { count: 'exact', head: true });
+            
+        if (postsError && postsError.code !== 'PGRST116') {
+            throw new Error(`Error en tabla community_posts: ${postsError.message}`);
+        }
+        
+        console.log('✅ Conexión a tablas de comunidad verificada');
+    } catch (error) {
+        console.error('⚠️ Error en test de tablas de comunidad:', error);
+        throw error;
     }
 }
 
@@ -257,5 +332,3 @@ window.reinitializeSupabase = async function() {
         setTimeout(initializeSupabaseClient, 100);
     }
 })();
-
-
