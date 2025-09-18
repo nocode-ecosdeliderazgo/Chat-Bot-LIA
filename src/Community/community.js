@@ -38,6 +38,9 @@ class CommunityPage {
         try {
             console.log('[COMMUNITY] 🚀 Iniciando sistema de comunidades...');
 
+            // NUEVO: Debug completo de autenticación
+            this.debugUserAuthentication();
+
             // Verificar que CommunityDatabase esté disponible
             if (typeof CommunityDatabase === 'undefined') {
                 console.error('[COMMUNITY] ❌ CommunityDatabase no está definido');
@@ -82,6 +85,83 @@ class CommunityPage {
         this.setupEventListeners();
         this.setupAnimations();
         this.fillUserHeader();
+    }
+
+    // NUEVA función para debug completo de autenticación
+    debugUserAuthentication() {
+        console.log('🔍 === DEBUG AUTENTICACIÓN DE USUARIO (COMMUNITY) ===');
+
+        // Verificar localStorage (donde funciona el menú de perfil)
+        console.log('📊 LocalStorage:');
+        const localStorageKeys = ['currentUser', 'userData', 'user', 'authToken', 'userSession', 'profile'];
+        localStorageKeys.forEach(key => {
+            const value = localStorage.getItem(key);
+            if (value && value !== 'null' && value !== 'undefined') {
+                console.log(`  ✅ ${key}: Presente (${value.length} chars)`, value.substring(0, 100) + '...');
+
+                // Intentar parsear para ver contenido
+                try {
+                    const parsed = JSON.parse(value);
+                    if (parsed && (parsed.email || parsed.id)) {
+                        console.log(`    📧 Email: ${parsed.email || 'No definido'}`);
+                        console.log(`    🆔 ID: ${parsed.id || parsed.user_id || 'No definido'}`);
+                    }
+                } catch (e) {
+                    console.log(`    ⚠️ No es JSON válido`);
+                }
+            } else {
+                console.log(`  ❌ ${key}: Ausente o null`);
+            }
+        });
+
+        // Verificar sessionStorage
+        console.log('📊 SessionStorage:');
+        localStorageKeys.forEach(key => {
+            const value = sessionStorage.getItem(key);
+            if (value && value !== 'null') {
+                console.log(`  ✅ ${key}: Presente (${value.length} chars)`);
+            } else {
+                console.log(`  ❌ ${key}: Ausente`);
+            }
+        });
+
+        // Verificar variables globales
+        console.log('📊 Variables globales:');
+        console.log('  window.currentUser:', window.currentUser ? '✅ Presente' : '❌ Ausente');
+        console.log('  window.user:', window.user ? '✅ Presente' : '❌ Ausente');
+        console.log('  window.userData:', window.userData ? '✅ Presente' : '❌ Ausente');
+
+        // Verificar AuthUtils
+        console.log('📊 AuthUtils:');
+        if (window.AuthUtils) {
+            console.log('  ✅ AuthUtils disponible');
+            // Usar AuthUtils para debug completo
+            window.AuthUtils.debugAuthenticationState();
+        } else {
+            console.log('  ❌ AuthUtils NO disponible - Verificar carga de script');
+        }
+
+        // Verificar estado de Supabase
+        console.log('📊 Estado Supabase:');
+        console.log('  window.supabase:', window.supabase ? '✅ Disponible' : '❌ No disponible');
+        console.log('  window.supabaseInitialized:', window.supabaseInitialized);
+
+        if (window.supabase && window.supabase.auth) {
+            console.log('  ✅ Supabase auth disponible - Verificando sesión...');
+            window.supabase.auth.getSession().then(({ data: { session }, error }) => {
+                console.log('  📊 Supabase session:', session ? '✅ Presente' : '❌ Ausente');
+                console.log('  📊 Supabase session error:', error);
+                if (session?.user) {
+                    console.log('  📧 Supabase user email:', session.user.email);
+                }
+            }).catch(err => {
+                console.log('  ❌ Error obteniendo sesión Supabase:', err);
+            });
+        } else {
+            console.log('  ❌ Supabase auth NO disponible');
+        }
+
+        console.log('🔍 === FIN DEBUG AUTENTICACIÓN (COMMUNITY) ===');
     }
 
     async ensureSupabaseClient() {
@@ -186,7 +266,7 @@ class CommunityPage {
             console.error('[PROFILE] âŒ Elementos del menÃº de perfil no encontrados');
             return;
         }
-        console.log('[PROFILE] âœ… MenÃº de perfil configurado correctamente');
+        console.log('[PROFILE] ✅ Menú de perfil configurado correctamente');
         
         avatarBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -243,7 +323,7 @@ class CommunityPage {
 
     // ===== DATA LOADING =====
     async loadCommunityData() {
-        console.log('📊 Cargando datos de comunidad...');
+        console.log('📊 ULTRATHINK: Cargando datos de comunidad con autenticación mejorada...');
         this.showLoading();
 
         try {
@@ -256,17 +336,25 @@ class CommunityPage {
                 return;
             }
 
-            // Obtener comunidades
+            // ULTRATHINK: Verificar estado de autenticación antes de cargar comunidades
+            console.log('🔍 ULTRATHINK: Verificando autenticación antes de cargar comunidades...');
+            const currentUser = await this.db.getCurrentUser();
+            console.log('👤 ULTRATHINK: Estado de autenticación:', currentUser ? currentUser.email : 'No autenticado');
+
+            // Obtener comunidades usando método ULTRATHINK híbrido
+            console.log('🏘️ ULTRATHINK: Cargando comunidades con método híbrido...');
             this.communities = await this.db.getCommunities();
-            console.log('🏘️ Comunidades cargadas:', this.communities);
-            console.log('📊 Número de comunidades:', this.communities.length);
+            console.log('🏘️ ULTRATHINK: Comunidades cargadas:', this.communities);
+            console.log('📊 ULTRATHINK: Número de comunidades encontradas:', this.communities.length);
 
             if (this.communities.length === 0) {
-                console.warn('⚠️ No se encontraron comunidades - Verificar:');
-                console.warn('  1. Datos en tabla communities');
-                console.warn('  2. Filtros aplicados (is_active, etc.)');
-                console.warn('  3. Permisos RLS');
-                console.warn('  4. Autenticación de usuario');
+                console.warn('⚠️ ULTRATHINK: No se encontraron comunidades - DIAGNÓSTICO COMPLETO:');
+                console.warn('  1. 📊 Estado autenticación:', currentUser ? '✅ Usuario autenticado' : '❌ Sin autenticación');
+                console.warn('  2. 🏗️ Datos en tabla communities');
+                console.warn('  3. 🔍 Filtros aplicados (is_active, etc.)');
+                console.warn('  4. 🔐 Permisos Row Level Security (RLS)');
+                console.warn('  5. 🔑 Políticas de acceso en Supabase');
+                console.warn('  📋 ACCIÓN: Revisar console log del método getCommunities() para detalles específicos');
             }
 
             const baseCommunities = this.communities;

@@ -1042,7 +1042,7 @@ function updateConversationContext(botAction, userIntent, awaitingConfirmation =
     }
     
     saveConversationMemory();
-    // console.log('📝 [CONTEXT] Contexto actualizado con memoria persistente:', {
+    console.log('📝 [CONTEXT] Contexto actualizado con memoria persistente:', {
         botAction,
         userIntent,
         awaitingConfirmation,

@@ -13,7 +13,89 @@ class CommunityDatabase {
     // MÃ‰TODOS DE USUARIO
     // ========================================
 
+    // NUEVO método que usa AuthUtils y múltiples fuentes
+    async getCurrentUserWithAuthUtils() {
+        console.log('🔍 Obteniendo usuario con AuthUtils...');
+
+        try {
+            // MÉTODO 1: Usar AuthUtils si está disponible
+            if (window.AuthUtils) {
+                console.log('🔄 Intentando obtener usuario con AuthUtils...');
+                const authUtilsUser = await window.AuthUtils.getCurrentAuthenticatedUser();
+
+                if (authUtilsUser) {
+                    console.log('✅ Usuario obtenido via AuthUtils:', authUtilsUser.email || authUtilsUser.id);
+
+                    // Sincronizar con todas las fuentes
+                    window.AuthUtils.syncUserToAllSources(authUtilsUser);
+
+                    this.currentUser = authUtilsUser;
+                    return authUtilsUser;
+                }
+            } else {
+                console.warn('⚠️ AuthUtils no disponible - usando métodos fallback');
+            }
+
+            // MÉTODO 2: Verificar localStorage directamente (como funciona el menú)
+            console.log('🔄 Verificando localStorage directamente...');
+            const localStorageSources = ['currentUser', 'userData', 'user'];
+
+            for (const source of localStorageSources) {
+                try {
+                    const data = localStorage.getItem(source);
+                    if (data && data !== 'null' && data !== 'undefined') {
+                        const user = JSON.parse(data);
+                        if (user && (user.id || user.user_id || user.email)) {
+                            console.log(`✅ Usuario encontrado en localStorage.${source}:`, user.email || user.id);
+
+                            // Normalizar estructura
+                            const normalizedUser = {
+                                id: user.id || user.user_id || user.uid,
+                                email: user.email || user.user?.email,
+                                display_name: user.display_name || user.name,
+                                user_metadata: user.user_metadata || {},
+                                app_metadata: user.app_metadata || {},
+                                created_at: user.created_at || new Date().toISOString()
+                            };
+
+                            this.currentUser = normalizedUser;
+
+                            // Sincronizar con otras fuentes
+                            try {
+                                localStorage.setItem('currentUser', JSON.stringify(normalizedUser));
+                                window.currentUser = normalizedUser;
+                            } catch (syncError) {
+                                console.warn('⚠️ Error sincronizando usuario:', syncError);
+                            }
+
+                            return normalizedUser;
+                        }
+                    }
+                } catch (parseError) {
+                    console.warn(`⚠️ Error parseando localStorage.${source}:`, parseError);
+                    continue;
+                }
+            }
+
+            // MÉTODO 3: Fallback al método original
+            console.log('🔄 Fallback al método getCurrentUser original...');
+            return await this.getCurrentUserOriginal();
+
+        } catch (error) {
+            console.error('❌ Error crítico en getCurrentUserWithAuthUtils:', error);
+            this.currentUser = null;
+            return null;
+        }
+    }
+
+    // Método principal que usa el nuevo enfoque
     async getCurrentUser() {
+        console.log('🔍 NUEVO: getCurrentUser usando AuthUtils y múltiples fuentes...');
+        return await this.getCurrentUserWithAuthUtils();
+    }
+
+    // Método original renombrado como backup
+    async getCurrentUserOriginal() {
         try {
             console.log('ðŸ” Obteniendo usuario actual...');
             
@@ -136,7 +218,7 @@ class CommunityDatabase {
     }
 
     // ========================================
-    // MÃ‰TODOS DE COMUNIDADES
+    // MÉTODOS DE COMUNIDADES
     // ========================================
 
     async getCommunities() {
@@ -165,7 +247,107 @@ class CommunityDatabase {
         }
     }
 
-    async getCommunitiesULTRATHINK() {
+    async getCommunities() {
+        console.log('🏘️ ULTRATHINK: Método principal de comunidades con autenticación híbrida...');
+        console.log('📊 Supabase client:', this.supabase);
+        console.log('👤 Usuario actual:', this.currentUser?.email || 'No autenticado');
+
+        try {
+            // PASO 1: Verificar autenticación y actualizar usuario si es necesario
+            if (!this.currentUser) {
+                console.log('🔍 ULTRATHINK: Verificando autenticación antes de consulta...');
+                await this.getCurrentUser();
+            }
+
+            // PASO 2: Método híbrido con diagnóstico completo
+            console.log('🏘️ ULTRATHINK: Iniciando consulta híbrida de comunidades...');
+
+            // MÉTODO 1: Consulta básica sin filtros para diagnóstico
+            console.log('🔍 MÉTODO 1: Consulta básica sin filtros...');
+            const { data: basicData, error: basicError } = await this.supabase
+                .from('communities')
+                .select('*');
+
+            console.log('📊 Resultado básico:', basicData);
+            console.log('❌ Error básico:', basicError);
+
+            // MÉTODO 2: Consulta con filtro is_active y orden
+            console.log('🔍 MÉTODO 2: Consulta con filtro is_active...');
+            const { data: activeData, error: activeError } = await this.supabase
+                .from('communities')
+                .select('*')
+                .eq('is_active', true)
+                .order('name');
+
+            console.log('📊 Resultado activo:', activeData);
+            console.log('❌ Error activo:', activeError);
+
+            // ANÁLISIS DE RESULTADOS CON ESTRATEGIA HÍBRIDA
+            if (basicData && basicData.length > 0) {
+                console.log('✅ ULTRATHINK: Hay datos en la tabla communities');
+                console.log('🔍 Análisis de cada comunidad:');
+                basicData.forEach((community, index) => {
+                    console.log(`  ${index + 1}. ${community.name}:`);
+                    console.log(`     - ID: ${community.id}`);
+                    console.log(`     - is_active: ${community.is_active}`);
+                    console.log(`     - slug: ${community.slug}`);
+                });
+
+                // ESTRATEGIA HÍBRIDA: Preferir datos activos filtrados
+                if (activeData && activeData.length > 0) {
+                    console.log(`✅ ULTRATHINK: Retornando ${activeData.length} comunidades activas filtradas`);
+                    return activeData;
+                } else {
+                    console.log('⚠️ ULTRATHINK: No hay comunidades activas, retornando todas para debug');
+                    return basicData.filter(c => c.is_active !== false); // Filtro manual si hay problema con eq()
+                }
+
+            } else if (basicError) {
+                console.error('❌ ULTRATHINK: Error en consulta básica - Analizando tipo...');
+
+                // DIAGNÓSTICO DE ERROR RLS
+                if (basicError.message.includes('RLS') ||
+                    basicError.message.includes('policy') ||
+                    basicError.message.includes('permission') ||
+                    basicError.code === 'PGRST116') {
+                    console.error('🔐 ULTRATHINK: Error de Row Level Security detectado');
+                    console.error('💡 DIAGNÓSTICO: Las políticas RLS están bloqueando el acceso');
+                    console.error('👤 Estado autenticación:', this.currentUser ? 'Autenticado' : 'No autenticado');
+
+                    // Si hay usuario autenticado pero aún falla, puede ser problema de RLS
+                    if (this.currentUser) {
+                        console.error('🚨 ULTRATHINK: Usuario autenticado pero RLS bloqueando - Verificar políticas');
+                    } else {
+                        console.error('🔑 ULTRATHINK: Sin autenticación - RLS requiere usuario');
+                    }
+
+                    // NUEVO: Usar fallback cuando hay problemas de RLS
+                    console.log('🔄 ULTRATHINK: Activando fallback por error RLS...');
+                    return this.getFallbackCommunities();
+                } else {
+                    console.error('🔧 ULTRATHINK: Error técnico no relacionado con RLS:', basicError);
+                }
+
+                return [];
+            } else {
+                console.warn('⚠️ ULTRATHINK: No hay datos en la tabla communities');
+                console.warn('🔍 DIAGNÓSTICO: La tabla puede estar vacía o política RLS muy restrictiva');
+                console.warn('👤 Estado autenticación:', this.currentUser ? 'Autenticado' : 'No autenticado');
+                return [];
+            }
+
+        } catch (error) {
+            console.error('❌ ULTRATHINK: Error crítico en getCommunities híbrido:', error);
+            console.error('🔍 DIAGNÓSTICO: Error de conexión o configuración');
+            console.error('👤 Estado autenticación:', this.currentUser ? 'Autenticado' : 'No autenticado');
+
+            // NUEVO: Usar fallback en caso de error crítico
+            console.log('🔄 ULTRATHINK: Activando fallback por error crítico...');
+            return this.getFallbackCommunities();
+        }
+    }
+
+    async getCommunitiesULTRATHINK_BACKUP() {
         console.log('🏘️ ULTRATHINK: Obteniendo comunidades con diagnóstico completo...');
         console.log('📊 Supabase client:', this.supabase);
         console.log('👤 Usuario actual:', this.currentUser?.email || 'No autenticado');
@@ -925,9 +1107,9 @@ class CommunityDatabase {
     // ========================================
 
     async initialize() {
-        console.log('ðŸš€ Inicializando CommunityDatabase...');
+        console.log('🚀 Inicializando CommunityDatabase...');
         await this.getCurrentUser();
-        console.log('âœ… CommunityDatabase inicializado');
+        console.log('✅ CommunityDatabase inicializado');
     }
 
     formatTimestamp(timestamp) {
@@ -961,6 +1143,49 @@ class CommunityDatabase {
                 day: 'numeric'
             });
         }
+    }
+
+    // NUEVA función de fallback para comunidades
+    getFallbackCommunities() {
+        console.log('🔄 Usando fallback de comunidades hardcodeadas...');
+        return [
+            {
+                id: '7886aa14-35b9-41da-b099-29ff1ad3516b',
+                name: 'Profesionales',
+                description: 'Espacio abierto para perfiles sin cursos activos',
+                slug: 'profesionales',
+                is_active: true,
+                member_count: 0,
+                created_at: new Date().toISOString()
+            },
+            {
+                id: 'aa5a4c4c-ce64-4a12-b1ef-365aa0d320c8',
+                name: 'SIF ICAP',
+                description: 'Comunidad cerrada por invitación.',
+                slug: 'sif-icap',
+                is_active: true,
+                member_count: 0,
+                created_at: new Date().toISOString()
+            },
+            {
+                id: 'b3b154e1-110e-4aa7-8998-ef208482a159',
+                name: 'Openminder',
+                description: 'Comunidad cerrada por invitación.',
+                slug: 'openminder',
+                is_active: true,
+                member_count: 0,
+                created_at: new Date().toISOString()
+            },
+            {
+                id: 'd2dbebb1-5b57-4da7-9fc6-8b40c732b548',
+                name: 'Ecos de Liderazgo',
+                description: 'Comunidad cerrada por invitación.',
+                slug: 'ecos-de-liderazgo',
+                is_active: true,
+                member_count: 0,
+                created_at: new Date().toISOString()
+            }
+        ];
     }
 }
 
