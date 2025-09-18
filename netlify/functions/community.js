@@ -681,14 +681,20 @@ exports.handler = async (event, context) => {
 
         // GET /api/community/questions/:questionId/answers
         if (path.match(/^\/api\/community\/questions\/[^\/]+\/answers$/) && method === 'GET') {
-            const questionId = path.split('/')[4];
+            // Extraer ID del path o de pathParameters
+            const questionId = event.pathParameters?.questionId || path.split('/')[4];
+            console.log(`📋 Obteniendo respuestas para pregunta: ${questionId}`);
+
             req.params = { questionId };
             return await getQuestionAnswers(req, res);
         }
 
         // POST /api/community/questions/:questionId/answers (el endpoint que espera el frontend)
         if (path.match(/^\/api\/community\/questions\/[^\/]+\/answers$/) && method === 'POST') {
-            const questionId = path.split('/')[4];
+            // Extraer ID del path o de pathParameters
+            const questionId = event.pathParameters?.questionId || path.split('/')[4];
+            console.log(`💬 Creando respuesta para pregunta: ${questionId}`);
+
             // Agregar question_id al body automáticamente
             req.body.question_id = questionId;
             return await createAnswer(req, res);
@@ -701,7 +707,10 @@ exports.handler = async (event, context) => {
 
         // POST /api/community/questions/:questionId/vote
         if (path.match(/^\/api\/community\/questions\/[^\/]+\/vote$/) && method === 'POST') {
-            const questionId = path.split('/')[4];
+            // Extraer ID del path o de pathParameters
+            const questionId = event.pathParameters?.questionId || path.split('/')[4];
+            console.log(`🗳️ Vote en pregunta: ${questionId}`);
+
             // Adaptar el body para la función handleVote
             req.body.target_id = questionId;
             req.body.target_type = 'question';
@@ -711,7 +720,10 @@ exports.handler = async (event, context) => {
 
         // POST /api/community/answers/:answerId/vote
         if (path.match(/^\/api\/community\/answers\/[^\/]+\/vote$/) && method === 'POST') {
-            const answerId = path.split('/')[4];
+            // Extraer ID del path o de pathParameters
+            const answerId = event.pathParameters?.answerId || path.split('/')[4];
+            console.log(`🗳️ Vote en respuesta: ${answerId}`);
+
             // Adaptar el body para la función handleVote
             req.body.target_id = answerId;
             req.body.target_type = 'answer';

@@ -171,32 +171,36 @@
   to   = "/.netlify/functions/courses"
   status = 200
 
-# Community API redirects (NEW)
+# Community API redirects (NEW) - Específicos primero, más generales al final
 [[redirects]]
   from = "/api/community/debug"
   to   = "/.netlify/functions/community-debug"
   status = 200
 
+# Votes - usar splat para capturar IDs dinámicos
 [[redirects]]
-  from = "/api/community/questions/*/vote"
-  to   = "/.netlify/functions/community-vote"
+  from = "/api/community/questions/:questionId/vote"
+  to   = "/.netlify/functions/community"
   status = 200
 
 [[redirects]]
-  from = "/api/community/answers/*/vote"
-  to   = "/.netlify/functions/community-vote"
+  from = "/api/community/answers/:answerId/vote"
+  to   = "/.netlify/functions/community"
   status = 200
 
+# Answers - usar splat para capturar IDs dinámicos
 [[redirects]]
-  from = "/api/community/questions/*/answers"
-  to   = "/.netlify/functions/community-answers"
+  from = "/api/community/questions/:questionId/answers"
+  to   = "/.netlify/functions/community"
   status = 200
 
+# Questions endpoints
 [[redirects]]
   from = "/api/community/questions"
-  to   = "/.netlify/functions/community-questions"
+  to   = "/.netlify/functions/community"
   status = 200
 
+# General community fallback (debe ir al final)
 [[redirects]]
   from = "/api/community/*"
   to   = "/.netlify/functions/community"
