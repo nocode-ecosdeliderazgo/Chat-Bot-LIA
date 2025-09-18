@@ -143,6 +143,10 @@ class CommunityDatabase {
         console.log('🏘️ Obteniendo comunidades...');
         console.log('📊 Supabase client:', this.supabase);
 
+        // TEMPORARY: Usar diagnóstico completo
+        console.log('🔧 MODO DIAGNÓSTICO: Ejecutando getCommunitiesULTRATHINK...');
+        return await this.getCommunitiesULTRATHINK();
+
         try {
             console.log('ðŸ˜ï¸ Obteniendo comunidades...');
             
