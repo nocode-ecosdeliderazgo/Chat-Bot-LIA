@@ -1,4 +1,4 @@
-// ===== COMMUNITY PAGE JAVASCRIPT =====
+﻿// ===== COMMUNITY PAGE JAVASCRIPT =====
 
 class CommunityPage {
     constructor() {
@@ -9,6 +9,22 @@ class CommunityPage {
             role: 'Estudiante',
             avatar: 'fas fa-user'
         };
+        this.db = null;
+        this.inviteOnlySlugs = new Set(['openminder', 'sif-icap', 'ecos-de-liderazgo']);
+        this.slugCategoryMap = {
+            profesionales: 'general',
+            openminder: 'negocios',
+            'sif-icap': 'negocios',
+            'ecos-de-liderazgo': 'negocios'
+        };
+        this.slugIconMap = {
+            profesionales: 'fas fa-globe',
+            openminder: 'fas fa-lightbulb'
+        };
+        this.slugBannerMap = {
+            profesionales: './images/comunidad-general.png',
+            openminder: './images/openminder.png'
+        };
         // Datos de Discover
         this.communities = [];
         this.communityStats = { totalMembers: 0, totalPosts: 0 };
@@ -18,14 +34,77 @@ class CommunityPage {
         this.init();
     }
 
-    init() {
+    async init() {
         this.setupEventListeners();
-        this.loadCommunityData();
-        this.updateStats();
+        try {
+            await this.ensureSupabaseClient();
+            this.db = new CommunityDatabase();
+            await this.db.initialize();
+            await this.loadCommunityData();
+        } catch (error) {
+            console.error('[COMMUNITY] Error inicializando datos:', error);
+            this.communities = [];
+            this.communityStats = { totalMembers: 0, totalPosts: 0 };
+            this.renderDiscover('all', '');
+            this.updateStats();
+            this.showToast('No se pudieron cargar tus comunidades. Intenta nuevamente.', 'error');
+            this.hideLoading();
+        }
         this.setupAnimations();
         this.fillUserHeader();
     }
 
+    async ensureSupabaseClient() {
+        if (window.supabase && typeof window.supabase.from === 'function') {
+            return window.supabase;
+        }
+        if (window.supabaseInitialized && window.supabase && typeof window.supabase.from === 'function') {
+            return window.supabase;
+        }
+
+        return new Promise((resolve, reject) => {
+            let settled = false;
+            let timeoutId;
+
+            const cleanup = () => {
+                if (settled) return;
+                settled = true;
+                window.removeEventListener('supabaseReady', onReady);
+                window.removeEventListener('supabaseFallback', onFallback);
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+            };
+
+            const onReady = (event) => {
+                cleanup();
+                resolve(event.detail || window.supabase);
+            };
+
+            const onFallback = (event) => {
+                cleanup();
+                reject(event.detail || new Error('Supabase no disponible'));
+            };
+
+            timeoutId = setTimeout(() => {
+                if (settled) return;
+                if (window.supabase && typeof window.supabase.from === 'function') {
+                    cleanup();
+                    resolve(window.supabase);
+                } else {
+                    cleanup();
+                    reject(new Error('Supabase no disponible'));
+                }
+            }, 8000);
+
+            window.addEventListener('supabaseReady', onReady, { once: true });
+            window.addEventListener('supabaseFallback', onFallback, { once: true });
+
+            if (typeof window.reinitializeSupabase === 'function') {
+                window.reinitializeSupabase().catch(() => {});
+            }
+        });
+    }
     // ===== EVENT LISTENERS =====
     setupEventListeners() {
         // Navigation bar functionality
@@ -45,7 +124,7 @@ class CommunityPage {
             });
         });
 
-        // Búsqueda Discover
+        // BÃºsqueda Discover
         const search = document.getElementById('discoverSearch');
         const clearBtn = document.getElementById('discoverClear');
         if(search){
@@ -99,10 +178,10 @@ class CommunityPage {
         const avatarBtn = document.querySelector('.header-profile');
         const menu = document.getElementById('profileMenu');
         if (!avatarBtn || !menu) {
-            console.error('[PROFILE] ❌ Elementos del menú de perfil no encontrados');
+            console.error('[PROFILE] âŒ Elementos del menÃº de perfil no encontrados');
             return;
         }
-        console.log('[PROFILE] ✅ Menú de perfil configurado correctamente');
+        console.log('[PROFILE] âœ… MenÃº de perfil configurado correctamente');
         
         avatarBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -110,7 +189,7 @@ class CommunityPage {
             menu.classList.toggle('show');
         });
         
-        // Cerrar menú al hacer click fuera
+        // Cerrar menÃº al hacer click fuera
         document.addEventListener('click', (e) => {
             if (!menu.contains(e.target) && !avatarBtn.contains(e.target)) {
                 menu.classList.remove('show');
@@ -141,7 +220,7 @@ class CommunityPage {
         // Handle different tabs
         switch(tab) {
             case 'mis-cursos':
-                // Navegar a la versión ES de cursos
+                // Navegar a la versiÃ³n ES de cursos
                 window.location.href = '../cursos.html';
                 break;
             case 'noticias':
@@ -153,74 +232,220 @@ class CommunityPage {
                 window.location.reload();
                 break;
             default:
-                this.showToast('Sección no disponible', 'warning');
+                this.showToast('SecciÃ³n no disponible', 'warning');
         }
     }
 
     // ===== DATA LOADING =====
-    loadCommunityData() {
+    async loadCommunityData() {
         this.showLoading();
-        
-        // Simula llamada a API
-        setTimeout(() => {
-            this.loadMockData();
-            this.renderDiscover('all', '');
-            // (Sin feed)
+
+        try {
+            if (!this.db) {
+                console.warn('[COMMUNITY] Base de datos no inicializada');
+                this.communities = [];
+                this.communityStats = { totalMembers: 0, totalPosts: 0 };
+                this.renderDiscover('all', '');
+                this.updateStats();
+                return;
+            }
+
+            const baseCommunities = await this.db.getCommunities();
+
+            if (!Array.isArray(baseCommunities) || baseCommunities.length === 0) {
+                this.communities = [];
+                this.communityStats = { totalMembers: 0, totalPosts: 0 };
+                this.renderDiscover('all', '');
+                this.updateStats();
+                return;
+            }
+
+            const hydrated = await Promise.all(baseCommunities.map(async (community) => {
+                let memberCount = 0;
+                let postCount = 0;
+
+                try {
+                    if (typeof this.db.countCommunityMembers === 'function') {
+                        memberCount = await this.db.countCommunityMembers(community.id);
+                    } else if (typeof this.db.getCommunityMembers === 'function') {
+                        const members = await this.db.getCommunityMembers(community.id);
+                        memberCount = Array.isArray(members) ? members.length : 0;
+                    }
+                } catch (memberError) {
+                    console.warn('[COMMUNITY] Error obteniendo miembros:', memberError);
+                }
+
+                try {
+                    if (typeof this.db.countCommunityPosts === 'function') {
+                        postCount = await this.db.countCommunityPosts(community.id);
+                    }
+                } catch (postError) {
+                    console.warn('[COMMUNITY] Error obteniendo publicaciones:', postError);
+                }
+
+                return this.mapCommunityRecord(community, memberCount, postCount);
+            }));
+
+            this.communities = hydrated;
+            this.communityStats.totalMembers = hydrated.reduce((sum, item) => sum + (item.memberCount || 0), 0);
+            this.communityStats.totalPosts = hydrated.reduce((sum, item) => sum + (item.postCount || 0), 0);
+
+            const activeChip = document.querySelector('.discover-chip.active');
+            const category = activeChip ? activeChip.dataset.category : 'all';
+            const query = (document.getElementById('discoverSearch')?.value || '').trim();
+
+            this.renderDiscover(category, query);
             this.updateStats();
+        } catch (error) {
+            console.error('[COMMUNITY] Error cargando comunidades:', error);
+            this.communities = [];
+            this.communityStats = { totalMembers: 0, totalPosts: 0 };
+            this.renderDiscover('all', '');
+            this.updateStats();
+            this.showToast('No se pudieron cargar tus comunidades. Intenta nuevamente.', 'error');
+        } finally {
             this.hideLoading();
-        }, 1000);
+        }
     }
 
-    loadMockData() {
-        // Estadísticas
-        this.communityStats = { totalMembers: 2103, totalPosts: 0 };
+    mapCommunityRecord(record, memberCount = 0, postCount = 0) {
+        const slug = record.slug || String(record.id);
+        const category = this.getCategoryForCommunity(record);
+        const icon = this.getIconForCommunity(record);
+        const banner = record.banner_url || record.cover_image_url || record.hero_image_url || record.image_url || this.defaultBannerForSlug(slug);
+        const accessLabel = this.getAccessLabel(record, slug);
 
-        // Grid Discover (solo las dos comunidades principales)
-        this.communities = [
-            { id:0, rank:0, title:'Comunidad General', category:'general', members:'1.2k', price:'Free', desc:'Comunidad principal para todos los miembros. Comparte experiencias, haz preguntas y conecta con otros estudiantes.', thumb:'./images/comunidad-general.png', icon:'fas fa-globe' },
-            { id:-1, rank:-1, title:'Amigos, Directores y Empresarios', category:'negocios', members:'856', price:'Free', desc:'Comunidad para mentes abiertas. Explora nuevas ideas, comparte perspectivas únicas y expande tu horizonte mental.', thumb:'./images/openminder.png', icon:'fas fa-lightbulb' }
-        ];
+        return {
+            id: record.id,
+            slug,
+            title: record.name || record.title || 'Comunidad',
+            description: record.description || '',
+            category,
+            icon,
+            thumb: banner,
+            memberCount,
+            postCount,
+            membersLabel: memberCount ? this.formatMemberCount(memberCount) + ' Members' : '0 Members',
+            accessLabel,
+            inviteOnly: this.inviteOnlySlugs.has(slug) || accessLabel.toLowerCase() !== 'free'
+        };
+    }
 
-        // (sin posts/leaderboard)
+    formatMemberCount(value) {
+        if (!value) return '0';
+        if (value >= 1_000_000) return (value / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+        if (value >= 1_000) return (value / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
+        return String(value);
+    }
+
+    defaultBannerForSlug(slug) {
+        return this.slugBannerMap[slug] || '';
+    }
+
+    getIconForCommunity(record) {
+        const slug = record.slug || '';
+        if (this.slugIconMap[slug]) {
+            return this.slugIconMap[slug];
+        }
+        return record.icon_class || record.icon || 'fas fa-users';
+    }
+
+    getCategoryForCommunity(record) {
+        const slug = record.slug || '';
+        if (record.category) {
+            return String(record.category).toLowerCase();
+        }
+        if (this.slugCategoryMap[slug]) {
+            return this.slugCategoryMap[slug];
+        }
+        return 'general';
+    }
+
+    getAccessLabel(record, slug) {
+        if (record.access_label) {
+            return record.access_label;
+        }
+        if (record.access_type === 'invite_only' || record.visibility === 'invite_only') {
+            return 'Invitación';
+        }
+        if (this.inviteOnlySlugs.has(slug)) {
+            return 'Invitación';
+        }
+        return 'Free';
+    }
+
+    escapeHtml(text) {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     // ===== DISCOVER GRID =====
-    renderDiscover(category='all', query=''){
+    renderDiscover(category = 'all', query = '') {
         const grid = document.getElementById('discoverGrid');
-        if(!grid) return;
-        const byCat = category==='all' ? this.communities : this.communities.filter(c=> c.category===category);
-        const q = (query||'').toLowerCase();
-        const list = q ? byCat.filter(c => `${c.title} ${c.desc}`.toLowerCase().includes(q)) : byCat;
-        grid.innerHTML = list.map(c => `
-            <div class="discover-card" data-id="${c.id}">
-                <div class="discover-thumb">
-                    ${c.thumb ? `<img src="${c.thumb}" alt="${c.title}" class="discover-image">` : ''}
+        if (!grid) return;
+
+        const normalizedCategory = category || 'all';
+        const normalizedQuery = (query || '').toLowerCase();
+
+        const filteredByCategory = normalizedCategory === 'all'
+            ? this.communities
+            : this.communities.filter(c => (c.category || 'general') === normalizedCategory);
+
+        const list = normalizedQuery
+            ? filteredByCategory.filter(c => `${c.title} ${c.description}`.toLowerCase().includes(normalizedQuery))
+            : filteredByCategory;
+
+        if (!list.length) {
+            grid.innerHTML = `
+                <div class="discover-empty">
+                    <i class="fas fa-users-slash"></i>
+                    <h3>No tienes comunidades disponibles</h3>
+                    <p>Cuando recibas acceso a una comunidad aparecerá en este panel.</p>
                 </div>
-                <div class="discover-body">
-                    <div class="discover-icon"><i class="${c.icon}"></i></div>
-                    <div class="discover-main">
-                        <div class="discover-title">${c.title}</div>
-                        <div class="discover-desc">${c.desc}</div>
-                        <div class="discover-meta"><span>${c.members} Members</span><span class="dot"></span><span>${c.price}</span></div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = list.map(c => {
+            const title = this.escapeHtml(c.title);
+            const desc = this.escapeHtml(c.description) || 'Pronto tendrás más detalles.';
+            const membersLabel = this.escapeHtml(c.membersLabel || '0 Members');
+            const accessLabel = this.escapeHtml(c.accessLabel || 'Free');
+            const cardSlug = this.escapeHtml(c.slug);
+            const iconClass = this.escapeHtml(c.icon || 'fas fa-users');
+
+            return `
+                <div class="discover-card" data-slug="${cardSlug}">
+                    <div class="discover-thumb">
+                        ${c.thumb ? `<img src="${c.thumb}" alt="${title}" class="discover-image">` : ''}
+                    </div>
+                    <div class="discover-body">
+                        <div class="discover-icon"><i class="${iconClass}"></i></div>
+                        <div class="discover-main">
+                            <div class="discover-title">${title}</div>
+                            <div class="discover-desc">${desc}</div>
+                            <div class="discover-meta"><span>${membersLabel}</span><span class="dot"></span><span>${accessLabel}</span></div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
-        // Asignar click -> abrir vista
         grid.querySelectorAll('.discover-card').forEach(card => {
             card.addEventListener('click', () => {
-                const id = card.getAttribute('data-id');
-                const item = this.communities.find(x => String(x.id) === String(id));
-                if(item){
-                    localStorage.setItem('community.view.item', JSON.stringify(item));
-                    window.location.href = './community-view.html';
-                }
+                const slug = card.getAttribute('data-slug');
+                if (!slug) return;
+                window.location.href = `./community-view.html?slug=${encodeURIComponent(slug)}`;
             });
         });
     }
 
-    // (Se elimina el módulo de feed)
+    // (Se elimina el mÃ³dulo de feed)
 
     // ===== ACTIVITY FEED =====
     renderActivityFeed() {
@@ -243,23 +468,23 @@ class CommunityPage {
 
     loadMoreActivity() {
         // Simulate loading more activity
-        this.showToast('Cargando más actividad...', 'info');
+        this.showToast('Cargando mÃ¡s actividad...', 'info');
         
         setTimeout(() => {
             // Add more mock activity
             const newActivity = [
                 {
                     id: this.activityData.length + 1,
-                    user: 'Laura Fernández',
+                    user: 'Laura FernÃ¡ndez',
                     avatar: 'fas fa-user',
-                    action: 'completó el curso de ChatGPT',
+                    action: 'completÃ³ el curso de ChatGPT',
                     time: 'Hace 3 horas'
                 },
                 {
                     id: this.activityData.length + 2,
-                    user: 'Diego Ramírez',
+                    user: 'Diego RamÃ­rez',
                     avatar: 'fas fa-user',
-                    action: 'se unió a la comunidad',
+                    action: 'se uniÃ³ a la comunidad',
                     time: 'Hace 4 horas'
                 }
             ];
@@ -272,11 +497,11 @@ class CommunityPage {
 
     // ===== STATISTICS =====
     updateStats() {
-        // Estadísticas del hero
+        // EstadÃ­sticas del hero
         const totalMembersElement = document.getElementById('totalMembers');
         const totalPostsElement = document.getElementById('totalPosts');
         if (totalMembersElement) this.animateNumber(totalMembersElement, 0, this.communityStats.totalMembers, 2000);
-        if (totalPostsElement) this.animateNumber(totalPostsElement, 0, (this.communities?.length || this.communityStats.totalPosts), 2000);
+        if (totalPostsElement) this.animateNumber(totalPostsElement, 0, this.communityStats.totalPosts, 2000);
     }
 
     // (Se elimina updateChatStats)
@@ -370,9 +595,9 @@ class CommunityPage {
 
 // ===== THEME TOGGLE FUNCTIONS =====
 window.toggleTheme = function() {
-    console.log('🎨 Theme toggle called from community');
+    console.log('ðŸŽ¨ Theme toggle called from community');
 
-    // Agregar efecto de click al botón
+    // Agregar efecto de click al botÃ³n
     const themeToggle = document.getElementById('themeToggle');
     if (themeToggle) {
         themeToggle.classList.add('clicked');
@@ -385,32 +610,32 @@ window.toggleTheme = function() {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-    // Usar la función global de cambio de tema
+    // Usar la funciÃ³n global de cambio de tema
     if (window.toggleGlobalTheme) {
         window.toggleGlobalTheme();
-        console.log('🎨 Theme toggled via global function to:', newTheme);
+        console.log('ðŸŽ¨ Theme toggled via global function to:', newTheme);
     } else {
-        // Fallback manual si el script global no está disponible
+        // Fallback manual si el script global no estÃ¡ disponible
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
         window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
-        console.log('🎨 Theme toggled via fallback to:', newTheme);
+        console.log('ðŸŽ¨ Theme toggled via fallback to:', newTheme);
     }
 
-    // Activar animación de transformación
+    // Activar animaciÃ³n de transformaciÃ³n
     const iconContainer = document.querySelector('.theme-icon-container');
     if (iconContainer) {
         // Limpiar clases previas
         iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
 
-        // Aplicar la animación correcta
+        // Aplicar la animaciÃ³n correcta
         if (newTheme === 'light') {
             iconContainer.classList.add('theme-transforming');
         } else {
             iconContainer.classList.add('theme-transforming-reverse');
         }
 
-        // Remover clase después de la animación
+        // Remover clase despuÃ©s de la animaciÃ³n
         setTimeout(() => {
             iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
         }, 800);
@@ -424,10 +649,10 @@ window.updateThemeIcons = function(theme) {
     const iconContainer = document.querySelector('.theme-icon-container');
 
     if (sunIcon && moonIcon && themeToggle && iconContainer) {
-        // Agregar clases de animación
+        // Agregar clases de animaciÃ³n
         themeToggle.classList.add('theme-changing');
 
-        // Determinar la dirección de la animación
+        // Determinar la direcciÃ³n de la animaciÃ³n
         const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
         const isTransitioningToLight = theme === 'light' && currentTheme === 'dark';
         const isTransitioningToDark = theme === 'dark' && currentTheme === 'light';
@@ -442,7 +667,7 @@ window.updateThemeIcons = function(theme) {
             iconContainer.classList.remove('theme-transforming');
         }
 
-        // Remover clases de animación después de completar
+        // Remover clases de animaciÃ³n despuÃ©s de completar
         setTimeout(() => {
             themeToggle.classList.remove('theme-changing');
             iconContainer.classList.remove('theme-transforming', 'theme-transforming-reverse');
@@ -459,3 +684,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== GLOBAL FUNCTIONS =====
 window.communityPage = communityPage;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
