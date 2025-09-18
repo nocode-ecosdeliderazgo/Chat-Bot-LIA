@@ -20,7 +20,7 @@
 <body>
     <!-- Partículas de fondo del login original -->
     <!-- Botón de cambio de tema -->
-    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">
+    <button class="theme-toggle-btn" type="button" onclick="toggleTheme()" title="Cambiar tema" aria-label="Cambiar tema">
         <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="5"></circle>
             <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -63,10 +63,10 @@
                 </div>
                 
                 <div class="auth-tabs">
-                    <button class="tab-btn active" data-tab="login" id="loginTab">
+                    <button class="tab-btn active" data-tab="login" id="loginTab" type="button">
                         <span>Ingresar</span>
                     </button>
-                    <button class="tab-btn" data-tab="register" id="registerTab">
+                    <button class="tab-btn" data-tab="register" id="registerTab" type="button">
                         <span>Crear cuenta</span>
                     </button>
                 </div>
@@ -120,9 +120,9 @@
 
                         <button type="submit" class="btn-primary" id="loginSubmit">
                             <span class="btn-text">Ingresar</span>
-                            <div class="btn-loader" style="display: none;">
-                                <div class="spinner"></div>
-                            </div>
+                            <span class="btn-loader" style="display: none;">
+                                <span class="spinner"></span>
+                            </span>
                         </button>
 
 
@@ -288,9 +288,9 @@
 
                         <button type="submit" class="btn-primary" id="registerSubmit">
                             <span class="btn-text">Crear cuenta</span>
-                            <div class="btn-loader" style="display: none;">
-                                <div class="spinner"></div>
-                            </div>
+                            <span class="btn-loader" style="display: none;">
+                                <span class="spinner"></span>
+                            </span>
                         </button>
 
 
@@ -318,7 +318,7 @@
                     </svg>
                     <h3>Documentos Legales</h3>
                 </div>
-                <button class="terms-close" onclick="closeTermsCard()">
+                <button class="terms-close" type="button" onclick="closeTermsCard()" aria-label="Cerrar">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -326,7 +326,7 @@
             </div>
             
             <div class="terms-card-tabs">
-                <button class="terms-tab active" onclick="showTermsTab('terms')">
+                <button class="terms-tab active" type="button" onclick="showTermsTab('terms')">
                     <svg class="tab-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -336,7 +336,7 @@
                     </svg>
                     <span>Términos y Condiciones</span>
                 </button>
-                <button class="terms-tab" onclick="showTermsTab('privacy')">
+                <button class="terms-tab" type="button" onclick="showTermsTab('privacy')">
                     <svg class="tab-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M12 8V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -344,7 +344,7 @@
                     </svg>
                     <span>Política de Privacidad</span>
                 </button>
-                <button class="terms-tab" onclick="showTermsTab('conduct')">
+                <button class="terms-tab" type="button" onclick="showTermsTab('conduct')">
                     <svg class="tab-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -488,13 +488,13 @@
             </div>
             
             <div class="terms-card-footer">
-                <button class="btn-terms-accept" onclick="acceptTermsAndClose()">
+                <button class="btn-terms-accept" type="button" onclick="acceptTermsAndClose()">
                     <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     <span>Aceptar y Continuar</span>
                 </button>
-                <button class="btn-terms-close" onclick="closeTermsCard()">
+                <button class="btn-terms-close" type="button" onclick="closeTermsCard()">
                     <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -505,16 +505,16 @@
     </div>
 
     <!-- Modal de Recuperación de Contraseña -->
-    <div id="forgotPasswordModal" class="terms-card-overlay">
+    <div id="forgotPasswordModal" class="terms-card-overlay" role="dialog" aria-modal="true" aria-labelledby="forgotTitle">
         <div class="terms-card forgot-password-modal">
             <div class="terms-card-header">
                 <div class="header-content">
                     <svg class="header-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="currentColor"/>
                     </svg>
-                    <h3>Recuperar Contraseña</h3>
+                    <h3 id="forgotTitle">Recuperar Contraseña</h3>
                 </div>
-                <button class="terms-close" onclick="closeForgotPasswordModal()">
+                <button class="terms-close" type="button" onclick="closeForgotPasswordModal()" aria-label="Cerrar">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -540,15 +540,15 @@
 
                     <button type="submit" class="btn-primary" id="forgotPasswordSubmit">
                         <span class="btn-text">Enviar enlace de recuperación</span>
-                        <div class="btn-loader" style="display: none;">
-                            <div class="spinner"></div>
-                        </div>
+                        <span class="btn-loader" style="display: none;">
+                            <span class="spinner"></span>
+                        </span>
                     </button>
                 </form>
             </div>
 
             <div class="terms-card-footer">
-                <button class="btn-terms-close" onclick="closeForgotPasswordModal()">
+                <button class="btn-terms-close" type="button" onclick="closeForgotPasswordModal()">
                     <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>

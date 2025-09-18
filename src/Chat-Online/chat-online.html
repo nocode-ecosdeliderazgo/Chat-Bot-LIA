@@ -3794,6 +3794,64 @@
                 font-size: 0.75rem;
             }
         }
+
+        /* ===== ESTILOS PARA MENSAJES DE CHAT ===== */
+        .message-author {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--glass-primary, #44e5ff);
+            margin-bottom: 4px;
+            text-transform: capitalize;
+        }
+
+        .message-text {
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 6px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: right;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+        }
+
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+
+        .user-message .message-content {
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.15), rgba(68, 229, 255, 0.08));
+            border: 1px solid rgba(68, 229, 255, 0.2);
+            margin-left: auto;
+        }
+
+        .lia-message .message-content {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive para mensajes */
+        @media (max-width: 768px) {
+            .message-content {
+                max-width: 90%;
+                padding: 10px 12px;
+            }
+
+            .message-author {
+                font-size: 11px;
+            }
+
+            .message-text {
+                font-size: 13px;
+            }
+        }
     </style>
     <!-- Favicon -->
     <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
@@ -6363,6 +6421,10 @@ INSTRUCCIONES:
                         function enviarMensaje() {
                             const mensaje = input.value.trim();
                             if (mensaje) {
+                                // Obtener información actual del usuario
+                                const currentUser = obtenerUsuarioActual();
+                                const userName = currentUser?.username || localStorage.getItem('userName') || 'Usuario';
+
                                 // Agregar mensaje del usuario
                                 const userMsg = document.createElement('div');
                                 userMsg.className = 'message user-message';
@@ -6371,16 +6433,17 @@ INSTRUCCIONES:
                                         <i class="fas fa-user"></i>
                                     </div>
                                     <div class="message-content neo-card">
+                                        <div class="message-author">${userName}</div>
                                         <div class="message-text">${mensaje}</div>
                                         <div class="message-time">ahora</div>
                                     </div>
                                 `;
                                 messagesContainer.appendChild(userMsg);
                                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                                
+
                                 // Limpiar input
                                 input.value = '';
-                                
+
                                 // Llamar a LIA
                                 handleChatWithLIA(mensaje);
                             }
@@ -6471,12 +6534,13 @@ INSTRUCCIONES:
                             // Determinar URL de API según el entorno
 
                             const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                            const isNetlify = window.location.hostname.includes('netlify.app') || window.location.hostname.includes('netlify.com');
 
                             const currentPort = window.location.port;
 
                             let apiUrl;
 
-                            
+
 
                             console.log('[LIA] 🔍 Debugging URL:');
 
@@ -6485,34 +6549,42 @@ INSTRUCCIONES:
                             console.log('[LIA] 🔌 Puerto detectado:', currentPort);
 
                             console.log('[LIA] 🏠 Es localhost:', isLocalhost);
+                            console.log('[LIA] 🌐 Es Netlify:', isNetlify);
 
-                            
 
-                            // Forzar URL correcta para puerto 3000
+
+                            // Lógica mejorada para detección de entorno
 
                             if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
 
-                                apiUrl = '/api/openai';  // URL relativa para evitar problemas de CORS
+                                apiUrl = '/api/openai';  // Servidor Express local
 
-                                console.log('[LIA] ✅ Usando URL relativa para puerto 3000');
+                                console.log('[LIA] ✅ Usando servidor Express local (puerto 3000)');
 
                             } else if (isLocalhost && currentPort === '8888') {
 
                                 apiUrl = '/.netlify/functions/openai';  // Para Netlify Dev
 
-                                console.log('[LIA] ✅ Usando URL de Netlify Dev');
+                                console.log('[LIA] ✅ Usando Netlify Dev local');
+
+                            } else if (isNetlify) {
+
+                                apiUrl = '/.netlify/functions/openai';  // Netlify en producción
+
+                                console.log('[LIA] ✅ Usando Netlify Functions en producción');
 
                             } else if (isLocalhost) {
 
                                 apiUrl = '/api/openai';  // Fallback local
 
-                                console.log('[LIA] ✅ Usando fallback local');
+                                console.log('[LIA] ✅ Usando fallback local Express');
 
                             } else {
 
-                                apiUrl = '/api/openai';  // Producción
+                                // Para otros entornos de producción (Heroku, etc.)
+                                apiUrl = '/api/openai';  // Servidor Express en producción
 
-                                console.log('[LIA] ✅ Usando URL de producción');
+                                console.log('[LIA] ✅ Usando servidor Express en producción');
 
                             }
 
@@ -6720,18 +6792,59 @@ INSTRUCCIONES:
         // Funciones auxiliares
         function obtenerUsuarioActual() {
             try {
-                // Intentar obtener del localStorage
-                const userData = localStorage.getItem('userData');
+                // Intentar obtener del localStorage de múltiples fuentes
+                let userData = localStorage.getItem('userData');
+                let currentUser = localStorage.getItem('currentUser');
+                let userName = localStorage.getItem('userName');
+                let userId = localStorage.getItem('userId');
+                let userEmail = localStorage.getItem('userEmail');
 
-                if (userData) {
-                    return JSON.parse(userData);
+                // Si tenemos userData como JSON, parsearlo
+                if (userData && userData !== 'null') {
+                    try {
+                        const parsedUserData = JSON.parse(userData);
+                        if (parsedUserData && parsedUserData.username) {
+                            return {
+                                id: parsedUserData.id || userId || 'chat-online-user',
+                                username: parsedUserData.username,
+                                email: parsedUserData.email || userEmail || 'usuario@ejemplo.com'
+                            };
+                        }
+                    } catch (e) {
+                        console.log('[LIA] Error parseando userData:', e);
+                    }
+                }
+
+                // Si tenemos currentUser como JSON, parsearlo
+                if (currentUser && currentUser !== 'null') {
+                    try {
+                        const parsedCurrentUser = JSON.parse(currentUser);
+                        if (parsedCurrentUser && parsedCurrentUser.username) {
+                            return {
+                                id: parsedCurrentUser.id || userId || 'chat-online-user',
+                                username: parsedCurrentUser.username,
+                                email: parsedCurrentUser.email || userEmail || 'usuario@ejemplo.com'
+                            };
+                        }
+                    } catch (e) {
+                        console.log('[LIA] Error parseando currentUser:', e);
+                    }
+                }
+
+                // Usar datos individuales si están disponibles
+                if (userName && userName !== 'null' && userName !== 'Usuario Prueba') {
+                    return {
+                        id: userId || 'chat-online-user',
+                        username: userName,
+                        email: userEmail || 'usuario@ejemplo.com'
+                    };
                 }
 
                 // Fallback para desarrollo
                 return {
                     id: 'chat-online-user',
-                    username: 'Usuario',
-                    email: 'usuario@ejemplo.com'
+                    username: userName || 'Usuario',
+                    email: userEmail || 'usuario@ejemplo.com'
                 };
             } catch (error) {
                 console.log('[LIA] Error obteniendo usuario:', error);
@@ -6792,6 +6905,33 @@ INSTRUCCIONES:
             return devToken;
 
         }
+
+        // Función para actualizar nombres de usuario en mensajes existentes
+        function actualizarNombresUsuarioEnMensajes() {
+            const currentUser = obtenerUsuarioActual();
+            const userName = currentUser?.username || localStorage.getItem('userName') || 'Usuario';
+
+            // Solo actualizar si no es el usuario de prueba por defecto
+            if (userName && userName !== 'Usuario' && userName !== 'Usuario Prueba') {
+                const messageAuthors = document.querySelectorAll('.message-author');
+                messageAuthors.forEach(authorElement => {
+                    if (authorElement.textContent === 'Usuario' || authorElement.textContent === 'Usuario Prueba') {
+                        authorElement.textContent = userName;
+                        console.log('[LIA] 📝 Nombre de usuario actualizado en mensaje:', userName);
+                    }
+                });
+            }
+        }
+
+        // Llamar a la función de actualización cuando se carga el usuario
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'userName' || e.key === 'userData' || e.key === 'currentUser') {
+                setTimeout(actualizarNombresUsuarioEnMensajes, 100);
+            }
+        });
+
+        // También llamar después de un breve delay para capturar datos del login
+        setTimeout(actualizarNombresUsuarioEnMensajes, 2000);
 
         // ===== FUNCIÓN INMEDIATA PARA TABS - NO DEPENDE DE NADA =====
         function switchTab(contentType) {

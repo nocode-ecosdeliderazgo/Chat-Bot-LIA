@@ -2154,13 +2154,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 openTermsCard('privacy');
             });
-        } else if (link.textContent.includes('Olvidaste tu contraseña')) {
+        } else if (link.textContent.includes('Olvidaste tu contraseña') || link.classList.contains('forgot-link')) {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 openForgotPasswordModal();
             });
         }
     });
+
+    // También configurar específicamente el enlace de recuperación por clase
+    const forgotPasswordLink = document.querySelector('.forgot-link');
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            openForgotPasswordModal();
+        });
+    }
     
     // Cerrar tarjeta al hacer clic fuera de ella
     const termsCardOverlay = document.getElementById('termsCard');
