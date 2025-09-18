@@ -1,117 +1,110 @@
-# Prompt para Claude: Eliminación de Noticias Hardcodeadas
+# Prompt para Claude: Análisis y Solución del Modal de Recuperación de Contraseña
 
-## Objetivo
-Analizar la página de noticias (`src/Notices/notices.css`, `src/Notices/notices.html`, `src/Notices/notices.js`) para identificar y eliminar TODAS las noticias hardcodeadas, manteniendo intactos los estilos de las ventanas/tarjetas y el funcionamiento de la página.
+## Contexto del Problema
 
-## Análisis de Archivos
+En el archivo `src/login/new-auth.html` y `src/login/new-auth.css`, existe un modal de recuperación de contraseña que se activa al hacer clic en "¿Olvidaste tu contraseña?". Sin embargo, el campo de entrada de email (textbox) no es visible en este modal, lo que impide su funcionalidad.
 
-### 1. Archivo `notices.js` - Noticias Hardcodeadas Identificadas
+## Archivos Involucrados
 
-#### A. Función `getMockNewsData()` (líneas 323-561)
-**CONTENIDO A ELIMINAR COMPLETAMENTE:**
-- Array completo de 10 noticias hardcodeadas con IDs del 1 al 10
-- Cada noticia incluye: id, title, excerpt, category, categoryLabel, date, author, views, comments, featured, image, hasDetailedView, detailedData
-- Las noticias tienen datos detallados con: tldr, suggestedSteps, risks, whyMatters, whatChanged, impact, resources, cta
+- **HTML**: `src/login/new-auth.html` (líneas 507-559)
+- **CSS**: `src/login/new-auth.css` (líneas 52-426)
 
-#### B. Función `loadNewsData()` (líneas 311-321)
-**MODIFICAR:**
-- Eliminar la llamada a `this.getMockNewsData()`
-- Cambiar para cargar desde BD (placeholder para implementación futura)
-- Mantener la estructura de loading y rendering
+## Estructura del Modal en HTML
 
-#### C. Datos de muestra `sampleNews` (líneas 1396-1423)
-**CONTENIDO A ELIMINAR COMPLETAMENTE:**
-- Objeto con noticia de muestra hardcodeada
-- Incluye datos detallados de ejemplo
+El modal se encuentra en las líneas 507-559 del archivo HTML:
 
-### 2. Archivo `notices.html` - Contenido Hardcodeado Identificado
-
-#### A. Modal de noticias (líneas 270-367)
-**CONTENIDO A ELIMINAR:**
-- Título hardcodeado: "Online RL para Cursor Tab: 28% más aceptación con 21% menos sugerencias"
-- Sección TL;DR hardcodeada con datos específicos
-- Contenido detallado del modal con datos específicos de Cursor
-- Pasos sugeridos, riesgos, recursos, etc. hardcodeados
-
-#### B. Estadísticas hardcodeadas (líneas 114-125)
-**MANTENER ESTRUCTURA, ELIMINAR VALORES:**
-- `totalNews`: cambiar de "0" a valor dinámico
-- `totalCategories`: cambiar de "5" a valor dinámico  
-- `totalViews`: cambiar de "0" a valor dinámico
-
-### 3. Archivo `notices.css` - Mantener Intacto
-**NO MODIFICAR:** Todos los estilos están correctos y deben mantenerse para el funcionamiento futuro.
-
-## Instrucciones Específicas de Eliminación
-
-### Paso 1: Limpiar `notices.js`
-
-1. **Eliminar función `getMockNewsData()` completa** (líneas 323-561)
-2. **Modificar función `loadNewsData()`** para:
-   ```javascript
-   loadNewsData() {
-       this.showLoading();
-       
-       // TODO: Implementar carga desde BD
-       // Por ahora, inicializar con arrays vacíos
-       this.allNews = [];
-       this.filteredNews = [];
-       this.renderNews();
-       this.hideLoading();
-   }
-   ```
-
-3. **Eliminar objeto `sampleNews`** (líneas 1396-1423)
-4. **Mantener todas las funciones de rendering** (`renderNews()`, `renderFeaturedNews()`, `renderLatestNews()`) - deben funcionar con arrays vacíos
-5. **Mantener funciones de filtrado y búsqueda** - deben funcionar con arrays vacíos
-6. **Mantener funciones del modal** - deben funcionar sin datos
-
-### Paso 2: Limpiar `notices.html`
-
-1. **Eliminar contenido hardcodeado del modal** (líneas 288-364):
-   - Mantener la estructura HTML del modal
-   - Eliminar el título específico
-   - Eliminar el contenido TL;DR específico
-   - Eliminar el contenido detallado específico
-   - Dejar placeholders vacíos o con texto genérico
-
-2. **Actualizar estadísticas** para mostrar valores dinámicos:
    ```html
-   <span class="stat-number" id="totalNews">0</span>
-   <span class="stat-number" id="totalCategories">0</span>
-   <span class="stat-number" id="totalViews">0</span>
-   ```
+<div id="forgotPasswordModal" class="terms-card-overlay">
+    <div class="terms-card forgot-password-modal">
+        <div class="terms-card-header">
+            <!-- Header con título y botón de cerrar -->
+        </div>
+        <div class="terms-card-content forgot-password-content">
+            <form id="forgotPasswordForm">
+                <div class="forgot-password-info">
+                    <p>Ingresa tu correo electrónico...</p>
+                </div>
+                <div class="form-group">
+                    <label for="forgotPasswordEmail">Correo electrónico</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="forgotPasswordEmail" name="email" required placeholder="tu@email.com">
+                        <svg class="input-icon">...</svg>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary">Enviar enlace de recuperación</button>
+            </form>
+        </div>
+        <div class="terms-card-footer">
+            <button class="btn-terms-close">Cancelar</button>
+        </div>
+    </div>
+</div>
+```
 
-### Paso 3: Verificar Funcionalidad
+## Estilos CSS del Modal
 
-1. **Asegurar que la página cargue sin errores** con arrays vacíos
-2. **Verificar que los filtros funcionen** (aunque no haya noticias)
-3. **Verificar que el modal se abra** (aunque esté vacío)
-4. **Verificar que las categorías se muestren** con contadores en 0
-5. **Verificar que la búsqueda funcione** (aunque no devuelva resultados)
+Los estilos se encuentran en las líneas 52-426 del archivo CSS, incluyendo:
 
-## Resultado Esperado
+- `.forgot-password-modal` (líneas 75-90)
+- `.forgot-password-content` (líneas 168-174)
+- `.forgot-password-modal .form-group` (líneas 197-201)
+- `.forgot-password-modal .input-wrapper` (líneas 214-225)
+- `.forgot-password-modal .input-wrapper input` (líneas 235-247)
 
-- Página de noticias completamente funcional pero sin contenido hardcodeado
-- Estilos y funcionalidad intactos
-- Arrays de noticias vacíos listos para cargar desde BD
-- Modal funcional pero sin contenido específico
-- Estadísticas mostrando valores en 0
-- Categorías mostrando "0 noticias" cada una
+## Tarea a Realizar
+
+### Paso 1: Análisis del Problema
+1. **Revisar la estructura HTML** del modal de recuperación de contraseña
+2. **Identificar los estilos CSS** que afectan al campo de entrada
+3. **Detectar conflictos** entre estilos del modal y estilos generales
+4. **Verificar la especificidad** de los selectores CSS
+5. **Comprobar la herencia** de estilos del modal de términos
+
+### Paso 2: Diagnóstico
+1. **Identificar por qué el input no es visible**:
+   - ¿Está oculto por `display: none`?
+   - ¿Tiene `opacity: 0`?
+   - ¿Está fuera del viewport?
+   - ¿Tiene colores que lo hacen invisible?
+   - ¿Hay conflictos de z-index?
+
+2. **Verificar la estructura del DOM**:
+   - ¿El input está correctamente anidado?
+   - ¿Los contenedores tienen las dimensiones correctas?
+   - ¿Hay elementos que lo estén ocultando?
+
+### Paso 3: Solución
+1. **Corregir los estilos CSS** para que el input sea visible
+2. **Asegurar que el input tenga**:
+   - Dimensiones apropiadas (width, height)
+   - Colores visibles (background, border, text)
+   - Posicionamiento correcto
+   - Z-index apropiado
+
+3. **Mantener la consistencia** con el diseño del resto del formulario
+4. **Asegurar la funcionalidad** del campo de entrada
+
+### Paso 4: Verificación
+1. **Probar que el input sea visible** en el modal
+2. **Verificar que sea funcional** (se pueda escribir en él)
+3. **Comprobar que mantenga el estilo** consistente con el resto del formulario
+4. **Asegurar que funcione** en diferentes tamaños de pantalla
+
+## Criterios de Éxito
+
+- ✅ El campo de entrada de email es visible en el modal
+- ✅ El campo es funcional (se puede escribir en él)
+- ✅ Mantiene la consistencia visual con el resto del formulario
+- ✅ No interfiere con otros elementos del modal
+- ✅ Funciona correctamente en modo oscuro y claro
 
 ## Notas Importantes
 
-- **NO eliminar** ninguna función de JavaScript que no sea específicamente de datos hardcodeados
-- **NO modificar** el archivo CSS
-- **Mantener** toda la lógica de UI, filtros, búsqueda, modales, etc.
-- **Preservar** la estructura HTML del modal y las tarjetas
-- **Asegurar** que la página sea completamente funcional sin contenido
+- El modal reutiliza estilos del modal de términos y condiciones
+- Debe mantener la consistencia con el diseño general de la aplicación
+- Los estilos deben ser específicos para evitar conflictos
+- Considerar la responsividad del modal
 
-## Archivos a Modificar
+## Resultado Esperado
 
-1. `src/Notices/notices.js` - Eliminar datos hardcodeados, mantener funcionalidad
-2. `src/Notices/notices.html` - Limpiar contenido específico del modal y estadísticas
-
-## Archivos a NO Modificar
-
-1. `src/Notices/notices.css` - Mantener intacto
+Al finalizar, el modal de recuperación de contraseña debe mostrar claramente el campo de entrada de email, permitiendo al usuario escribir su correo electrónico para recibir el enlace de recuperación.

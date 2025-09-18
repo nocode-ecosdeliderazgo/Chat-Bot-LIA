@@ -20,25 +20,8 @@
     <!-- Global theme setup - Configuración global del tema -->
     <script src="scripts/global-theme-setup.js"></script>
 </head>
-<body>
-    <!-- Partículas de fondo estáticas CSS -->
-    <div class="particles-container">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-    </div>
-
-    <!-- Contenedor principal con fondo dinámico -->
-    <div class="auth-container">
-        <div class="auth-bg">
-            <div class="bg-glow"></div>
-            <canvas id="bgParticles"></canvas>
-        </div>
+<body class="bg-glow-global">
+    <div class="particles-container"></div>
 
     <!-- Header fijo a ancho completo -->
     <header class="header">
@@ -326,7 +309,6 @@
             </div>
         </div>
     </div>
-    </div> <!-- Cierre del auth-container -->
 
     <script src="scripts/theme-manager.js"></script>
     <script src="scripts/profile-manager.js"></script>
