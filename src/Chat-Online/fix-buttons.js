@@ -693,38 +693,65 @@ async function submitQuestion() {
                 // Recargar preguntas inmediatamente - Sin delay
                 console.log('🔄 Recargando preguntas después de envío exitoso...');
 
-                // Ejecutar múltiples estrategias de recarga en paralelo
-                const reloadPromises = [
-                    // Estrategia 1: Recarga directa con el patrón DOM actualizado
-                    refreshQuestionsDirectly(),
+                // ESTRATEGIA DE FUERZA BRUTA: Actualización agresiva e inmediata
+                console.log('🔄 Iniciando estrategia de fuerza bruta para actualización inmediata...');
 
-                    // Estrategia 2: Usar loadCommunityQuestions si está disponible
-                    (async () => {
-                        if (typeof loadCommunityQuestions === 'function') {
-                            try {
-                                console.log('🔄 Usando loadCommunityQuestions como backup...');
-                                await loadCommunityQuestions();
-                                console.log('✅ loadCommunityQuestions exitoso');
-                            } catch (error) {
-                                console.warn('⚠️ loadCommunityQuestions falló:', error);
+                // 1. Forzar limpieza completa de cache y estado
+                if (window.chatOnline) {
+                    window.chatOnline.communityQuestionsLoaded = false;
+                    window.chatOnline.loadingQuestions = false;
+                    console.log('🧹 Estado de chatOnline limpiado');
+                }
+
+                // 2. Limpiar cualquier cache de communityAPI
+                if (window.communityAPI && window.communityAPI.clearCache) {
+                    window.communityAPI.clearCache();
+                    console.log('🧹 Cache de communityAPI limpiado');
+                }
+
+                // 3. Ejecutar múltiples estrategias de forma secuencial para garantizar éxito
+                const strategies = [
+                    {
+                        name: 'Recarga Directa Inmediata',
+                        fn: () => refreshQuestionsDirectly()
+                    },
+                    {
+                        name: 'Fuerza Bruta communityAPI',
+                        fn: () => forceBruteAPIReload()
+                    },
+                    {
+                        name: 'loadCommunityQuestions Forzado',
+                        fn: () => {
+                            if (typeof loadCommunityQuestions === 'function') {
+                                return loadCommunityQuestions();
                             }
                         }
-                    })(),
-
-                    // Estrategia 3: Resetear flags si existen
-                    (async () => {
-                        if (window.chatOnline) {
-                            window.chatOnline.communityQuestionsLoaded = false;
-                            window.chatOnline.loadingQuestions = false;
-                            console.log('🔄 Flags de carga reseteados');
-                        }
-                    })()
+                    },
+                    {
+                        name: 'DOM Injection Manual',
+                        fn: () => forceManualDOMUpdate()
+                    }
                 ];
 
-                // Ejecutar todas las estrategias
-                await Promise.allSettled(reloadPromises);
+                // Ejecutar estrategias secuencialmente hasta que una funcione
+                for (const strategy of strategies) {
+                    try {
+                        console.log(`🔄 Ejecutando estrategia: ${strategy.name}`);
+                        await strategy.fn();
+                        console.log(`✅ Estrategia exitosa: ${strategy.name}`);
 
-                console.log('✅ Recarga de preguntas completada con múltiples estrategias');
+                        // Verificar si realmente se actualizó el DOM
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        if (await verifyQuestionWasAdded()) {
+                            console.log('✅ Pregunta confirmada en DOM - Deteniendo estrategias');
+                            break;
+                        }
+                    } catch (error) {
+                        console.warn(`⚠️ Estrategia falló: ${strategy.name}`, error);
+                    }
+                }
+
+                console.log('✅ Proceso de actualización de preguntas completado');
             } else {
                 throw new Error(response?.error || 'Error al enviar pregunta');
             }
@@ -1174,7 +1201,7 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.textContent = message;
-    
+
     notification.style.cssText = `
         position: fixed;
         top: 20px;
@@ -1188,7 +1215,7 @@ function showNotification(message, type = 'info') {
         transform: translateX(100%);
         transition: all 0.3s ease;
     `;
-    
+
     // Colores según el tipo
     switch(type) {
         case 'success':
@@ -1203,15 +1230,15 @@ function showNotification(message, type = 'info') {
         default:
             notification.style.background = '#3b82f6';
     }
-    
+
     document.body.appendChild(notification);
-    
+
     // Mostrar notificación
     setTimeout(() => {
         notification.style.opacity = '1';
         notification.style.transform = 'translateX(0)';
     }, 100);
-    
+
     // Ocultar después de 3 segundos
     setTimeout(() => {
         notification.style.opacity = '0';
@@ -1222,6 +1249,308 @@ function showNotification(message, type = 'info') {
             }
         }, 300);
     }, 3000);
+}
+
+// =====================================================
+// FUNCIONES DE FUERZA BRUTA PARA ACTUALIZACIÓN INMEDIATA
+// =====================================================
+
+// Función para forzar la recarga de la API sin importar cache o estado
+async function forceBruteAPIReload() {
+    console.log('🔨 Iniciando recarga de fuerza bruta de la API...');
+
+    if (!window.communityAPI) {
+        console.error('❌ communityAPI no disponible para fuerza bruta');
+        return;
+    }
+
+    try {
+        // Forzar una nueva llamada a la API con parámetros únicos para evitar cache
+        const timestamp = Date.now();
+        const response = await window.communityAPI.getQuestions({
+            filter: 'all',
+            sort: 'recent',
+            _t: timestamp, // Cache buster
+            _force: true
+        });
+
+        console.log('🔨 Respuesta de fuerza bruta:', response);
+
+        // Procesar respuesta sin importar la estructura
+        let questions = null;
+
+        if (response && response.data && Array.isArray(response.data)) {
+            questions = response.data;
+        } else if (response && Array.isArray(response)) {
+            questions = response;
+        } else if (response && response.questions) {
+            questions = response.questions;
+        }
+
+        if (questions && questions.length > 0) {
+            console.log(`🔨 ${questions.length} preguntas obtenidas por fuerza bruta`);
+            await forceRenderQuestions(questions);
+            return true;
+        } else {
+            console.warn('🔨 Fuerza bruta no obtuvo preguntas válidas');
+            return false;
+        }
+
+    } catch (error) {
+        console.error('❌ Error en fuerza bruta API:', error);
+        return false;
+    }
+}
+
+// Función para forzar el renderizado de preguntas directamente en el DOM
+async function forceRenderQuestions(questions) {
+    console.log('🔨 Forzando renderizado directo de preguntas...');
+
+    const questionsList = document.getElementById('questionsList');
+    if (!questionsList) {
+        console.error('❌ No se encontró questionsList para fuerza bruta');
+        return;
+    }
+
+    // Limpiar completamente
+    questionsList.innerHTML = '';
+
+    // Crear HTML directamente sin depender de funciones externas
+    const questionsHTML = questions.map(question => {
+        const timeAgo = getTimeAgo(question.created_at || question.created_at || new Date().toISOString());
+        const userName = question.users?.name || question.users?.email || question.author_name || 'Usuario';
+        const userAvatar = question.users?.profile_picture_url || question.users?.avatar_url || '';
+
+        return `
+            <div class="question-item" data-question-id="${question.id}">
+                <div class="question-content">
+                    <div class="question-header">
+                        <h4 class="question-title">${question.title}</h4>
+                        <div class="question-meta">
+                            <span class="question-author">
+                                ${userAvatar ?
+                                    `<img src="${userAvatar}" alt="Usuario" class="author-avatar">` :
+                                    `<div class="user-avatar-circle">${userName.charAt(0).toUpperCase()}</div>`
+                                }
+                                ${userName}
+                            </span>
+                            <span class="question-time">${timeAgo}</span>
+                            <span class="question-module">${question.module_name || 'General'}</span>
+                        </div>
+                    </div>
+                    <div class="question-preview">
+                        <p>${question.content.length > 200 ? question.content.substring(0, 200) + '...' : question.content}</p>
+                    </div>
+                    <div class="question-footer">
+                        <div class="question-actions">
+                            <div class="question-votes">
+                                <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"/>
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                </button>
+                                <span class="vote-count">${question.votes_count || 0}</span>
+                                <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="question-stats">
+                            <span class="stat-item question-answers clickable" onclick="showQuestionAnswers('${question.id}')" title="Ver respuestas" style="cursor: pointer;">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                ${question.answers_count || 0} respuestas
+                            </span>
+                            <span class="stat-item">
+                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                                ${question.views_count || 0} vistas
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Insertar HTML directamente
+    questionsList.innerHTML = questionsHTML;
+
+    // Hacer scroll al top para mostrar la nueva pregunta
+    const questionsContainer = questionsList.closest('.questions-container, .community-content');
+    if (questionsContainer) {
+        questionsContainer.scrollTop = 0;
+    }
+
+    console.log('🔨 Preguntas renderizadas por fuerza bruta');
+}
+
+// Función para actualizar manualmente el DOM agregando la pregunta sin recargar todo
+async function forceManualDOMUpdate() {
+    console.log('🔨 Intentando actualización manual del DOM...');
+
+    // Esta función intentará agregar manualmente la pregunta más reciente al DOM
+    // sin depender de las funciones de recarga
+
+    try {
+        if (!window.communityAPI) {
+            console.error('❌ No hay communityAPI para actualización manual');
+            return;
+        }
+
+        // Obtener solo la pregunta más reciente
+        const response = await window.communityAPI.getQuestions({
+            filter: 'all',
+            sort: 'recent',
+            limit: 1
+        });
+
+        let latestQuestion = null;
+        if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
+            latestQuestion = response.data[0];
+        } else if (response && Array.isArray(response) && response.length > 0) {
+            latestQuestion = response[0];
+        }
+
+        if (latestQuestion) {
+            console.log('🔨 Pregunta más reciente encontrada:', latestQuestion);
+
+            // Verificar si ya existe en el DOM
+            const existingQuestion = document.querySelector(`[data-question-id="${latestQuestion.id}"]`);
+            if (existingQuestion) {
+                console.log('🔨 La pregunta ya existe en DOM - actualizando posición');
+                // Mover al principio
+                const questionsList = document.getElementById('questionsList');
+                if (questionsList) {
+                    questionsList.insertBefore(existingQuestion, questionsList.firstChild);
+                }
+                return;
+            }
+
+            // Crear y agregar la nueva pregunta al principio
+            const questionsList = document.getElementById('questionsList');
+            if (questionsList) {
+                const questionHTML = createDetailedQuestionHTML(latestQuestion);
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = questionHTML;
+                const questionElement = tempDiv.firstElementChild;
+
+                // Agregar al principio de la lista
+                questionsList.insertBefore(questionElement, questionsList.firstChild);
+
+                // Highlight temporal para mostrar que es nueva
+                questionElement.style.backgroundColor = 'rgba(0, 123, 255, 0.1)';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = '';
+                }, 2000);
+
+                console.log('🔨 Nueva pregunta agregada manualmente al DOM');
+                showNotification('✅ Nueva pregunta agregada', 'success');
+            }
+        }
+
+    } catch (error) {
+        console.error('❌ Error en actualización manual del DOM:', error);
+    }
+}
+
+// Función auxiliar para crear HTML detallado de una pregunta
+function createDetailedQuestionHTML(question) {
+    const timeAgo = getTimeAgo(question.created_at || new Date().toISOString());
+    const userName = question.users?.name || question.users?.email || question.author_name || 'Usuario';
+    const userAvatar = question.users?.profile_picture_url || question.users?.avatar_url || '';
+
+    return `
+        <div class="question-item" data-question-id="${question.id}">
+            <div class="question-content">
+                <div class="question-header">
+                    <h4 class="question-title">${question.title}</h4>
+                    <div class="question-meta">
+                        <span class="question-author">
+                            ${userAvatar ?
+                                `<img src="${userAvatar}" alt="Usuario" class="author-avatar">` :
+                                `<div class="user-avatar-circle">${userName.charAt(0).toUpperCase()}</div>`
+                            }
+                            ${userName}
+                        </span>
+                        <span class="question-time">${timeAgo}</span>
+                        <span class="question-module">${question.module_name || 'General'}</span>
+                    </div>
+                </div>
+                <div class="question-preview">
+                    <p>${question.content.length > 200 ? question.content.substring(0, 200) + '...' : question.content}</p>
+                </div>
+                <div class="question-footer">
+                    <div class="question-actions">
+                        <div class="question-votes">
+                            <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </button>
+                            <span class="vote-count">${question.votes_count || 0}</span>
+                        </div>
+                        <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="question-stats">
+                        <span class="stat-item question-answers clickable" onclick="showQuestionAnswers('${question.id}')" title="Ver respuestas" style="cursor: pointer;">
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            ${question.answers_count || 0} respuestas
+                        </span>
+                        <span class="stat-item">
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            ${question.views_count || 0} vistas
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Función para verificar si la pregunta fue realmente agregada al DOM
+async function verifyQuestionWasAdded() {
+    const questionsList = document.getElementById('questionsList');
+    if (!questionsList) return false;
+
+    const questionItems = questionsList.querySelectorAll('.question-item');
+    const previousCount = parseInt(localStorage.getItem('previousQuestionCount') || '0');
+    const currentCount = questionItems.length;
+
+    console.log(`🔍 Verificando preguntas: Anterior: ${previousCount}, Actual: ${currentCount}`);
+
+    if (currentCount > previousCount) {
+        localStorage.setItem('previousQuestionCount', currentCount.toString());
+        return true;
+    }
+
+    return false;
 }
 
 // =====================================================
@@ -1241,6 +1570,58 @@ window.exportNoteToPDF = exportNoteToPDF;
 window.showQuestionModal = showQuestionModal;
 window.closeQuestionModalFunc = closeQuestionModalFunc;
 window.submitQuestion = submitQuestion;
+
+// Exponer funciones de debugging para troubleshooting
+window.debugCommunitySystem = function() {
+    console.log('🔧 === DEBUG: SISTEMA DE COMUNIDAD ===');
+    console.log('🔧 communityAPI disponible:', !!window.communityAPI);
+    console.log('🔧 loadCommunityQuestions disponible:', typeof loadCommunityQuestions);
+    console.log('🔧 questionsList elemento:', !!document.getElementById('questionsList'));
+
+    if (window.communityAPI) {
+        console.log('🔧 communityAPI métodos:', Object.getOwnPropertyNames(window.communityAPI));
+    }
+
+    const questionsList = document.getElementById('questionsList');
+    if (questionsList) {
+        const currentQuestions = questionsList.querySelectorAll('.question-item');
+        console.log('🔧 Preguntas actuales en DOM:', currentQuestions.length);
+        currentQuestions.forEach((q, i) => {
+            console.log(`🔧 Pregunta ${i+1}:`, q.dataset.questionId, q.querySelector('.question-title')?.textContent);
+        });
+    }
+
+    console.log('🔧 === FIN DEBUG ===');
+};
+
+window.testQuestionRefresh = async function() {
+    console.log('🧪 === TEST: ACTUALIZACIÓN DE PREGUNTAS ===');
+
+    try {
+        console.log('🧪 Ejecutando refreshQuestionsDirectly...');
+        await refreshQuestionsDirectly();
+        console.log('🧪 refreshQuestionsDirectly completado');
+
+        console.log('🧪 Ejecutando forceBruteAPIReload...');
+        await forceBruteAPIReload();
+        console.log('🧪 forceBruteAPIReload completado');
+
+        console.log('🧪 Ejecutando forceManualDOMUpdate...');
+        await forceManualDOMUpdate();
+        console.log('🧪 forceManualDOMUpdate completado');
+
+        showNotification('🧪 Test de actualización completado', 'info');
+    } catch (error) {
+        console.error('🧪 Error en test:', error);
+        showNotification('🧪 Error en test: ' + error.message, 'error');
+    }
+
+    console.log('🧪 === FIN TEST ===');
+};
+
+console.log('🔧 Funciones de debugging disponibles:');
+console.log('🔧 - debugCommunitySystem() - Ver estado del sistema');
+console.log('🔧 - testQuestionRefresh() - Probar actualización de preguntas');
 
 // Función para inicializar cuando el DOM esté listo
 function initializeFixButtons() {
