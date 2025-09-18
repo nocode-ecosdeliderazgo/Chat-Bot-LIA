@@ -18,10 +18,50 @@ class CommunityDatabase {
             console.log('ðŸ” Obteniendo usuario actual...');
             
             // Intentar obtener usuario autenticado de Supabase
-            const { data: { user }, error } = await this.supabase.auth.getUser();
+            // DIAGNÓSTICO: Verificar que Supabase auth esté disponible
+            if (!this.supabase || !this.supabase.auth) {
+                console.error('❌ DIAGNÓSTICO: Supabase auth no está disponible');
+                console.log('📊 this.supabase:', this.supabase);
+                return null;
+            }
+
+            console.log('✅ DIAGNÓSTICO: Supabase auth disponible');
+
+            // USAR getSession() como otros archivos exitosos
+            console.log('🔍 ULTRATHINK: Usando getSession() en lugar de getUser()...');
+            const { data: { session }, error: sessionError } = await this.supabase.auth.getSession();
+
+            console.log('📊 DIAGNÓSTICO Session completa:', session);
+            console.log('📊 DIAGNÓSTICO Session error:', sessionError);
+
+            if (sessionError) {
+                console.error('❌ Error obteniendo sesión:', sessionError);
+                return null;
+            }
+
+            // Verificar session && session.user como patrón exitoso
+            if (!session || !session.user) {
+                console.warn('⚠️ DIAGNÓSTICO: No hay sesión activa o usuario en sesión');
+                console.log('📊 session:', session);
+                console.log('📊 session?.user:', session?.user);
+
+                // Intentar también getUser() para comparación
+                console.log('🔍 DIAGNÓSTICO: Intentando getUser() para comparación...');
+                const { data: { user }, error: userError } = await this.supabase.auth.getUser();
+                console.log('📊 DIAGNÓSTICO getUser() result:', user);
+                console.log('📊 DIAGNÓSTICO getUser() error:', userError);
+
+                this.currentUser = null;
+                return null;
+            }
+
+            const user = session.user;
+            console.log('✅ ULTRATHINK: Usuario encontrado en sesión:', user.email);
+            console.log('📊 DIAGNÓSTICO User ID:', user.id);
+            console.log('📊 DIAGNÓSTICO Session expires:', new Date(session.expires_at * 1000));
             
-            if (!error && user) {
-                console.log('âœ… Usuario autenticado encontrado:', user);
+            if (user) {
+                console.log('✅ Usuario autenticado encontrado:', user.email);
                 
                 // Buscar o crear usuario en la tabla users
                 let { data: userData, error: userError } = await this.supabase
@@ -60,7 +100,7 @@ class CommunityDatabase {
                 }
 
                 this.currentUser = userData;
-                console.log('ðŸ‘¤ Usuario actual:', this.currentUser);
+                console.log('👤 ULTRATHINK: Usuario establecido correctamente:', this.currentUser.email);
                 return this.currentUser;
             } else {
                 console.log('âš ï¸ No hay usuario autenticado');
@@ -121,6 +161,89 @@ class CommunityDatabase {
             return data;
         } catch (error) {
             console.error('âŒ Error en getCommunities:', error);
+            return [];
+        }
+    }
+
+    async getCommunitiesULTRATHINK() {
+        console.log('🏘️ ULTRATHINK: Obteniendo comunidades con diagnóstico completo...');
+        console.log('📊 Supabase client:', this.supabase);
+        console.log('👤 Usuario actual:', this.currentUser?.email || 'No autenticado');
+
+        try {
+            // MÉTODO 1: Consulta básica sin filtros para diagnóstico
+            console.log('🔍 MÉTODO 1: Consulta básica sin filtros...');
+            const { data: basicData, error: basicError } = await this.supabase
+                .from('communities')
+                .select('*');
+
+            console.log('📊 Resultado básico:', basicData);
+            console.log('❌ Error básico:', basicError);
+
+            // MÉTODO 2: Consulta con filtro is_active
+            console.log('🔍 MÉTODO 2: Consulta con filtro is_active...');
+            const { data: activeData, error: activeError } = await this.supabase
+                .from('communities')
+                .select('*')
+                .eq('is_active', true);
+
+            console.log('📊 Resultado activo:', activeData);
+            console.log('❌ Error activo:', activeError);
+
+            // MÉTODO 3: Contar total de registros
+            console.log('🔍 MÉTODO 3: Contando registros...');
+            const { count, error: countError } = await this.supabase
+                .from('communities')
+                .select('*', { count: 'exact', head: true });
+
+            console.log('📊 Total de registros:', count);
+            console.log('❌ Error de conteo:', countError);
+
+            // ANÁLISIS DE RESULTADOS
+            if (basicData && basicData.length > 0) {
+                console.log('✅ ULTRATHINK: Hay datos en la tabla communities');
+                console.log('🔍 Análisis de cada comunidad:');
+                basicData.forEach((community, index) => {
+                    console.log(`  ${index + 1}. ${community.name}:`);
+                    console.log(`     - ID: ${community.id}`);
+                    console.log(`     - is_active: ${community.is_active}`);
+                    console.log(`     - slug: ${community.slug}`);
+                });
+
+                // Determinar qué datos retornar
+                if (activeData && activeData.length > 0) {
+                    console.log('✅ ULTRATHINK: Retornando comunidades activas filtradas');
+                    return activeData;
+                } else {
+                    console.log('⚠️ ULTRATHINK: No hay comunidades activas, retornando todas para debug');
+                    return basicData;
+                }
+
+            } else if (basicError) {
+                console.error('❌ ULTRATHINK: Error en consulta básica - Analizando tipo...');
+
+                // Verificar si es error de RLS
+                if (basicError.message.includes('RLS') ||
+                    basicError.message.includes('policy') ||
+                    basicError.message.includes('permission') ||
+                    basicError.code === 'PGRST116') {
+                    console.error('🔐 ULTRATHINK: Error de Row Level Security detectado');
+                    console.error('💡 DIAGNÓSTICO: Las políticas RLS están bloqueando el acceso');
+                    console.error('📋 SOLUCIÓN: Crear política pública o verificar autenticación');
+                } else {
+                    console.error('🔧 ULTRATHINK: Error técnico no relacionado con RLS:', basicError);
+                }
+
+                return [];
+            } else {
+                console.warn('⚠️ ULTRATHINK: No hay datos en la tabla communities');
+                console.warn('🔍 DIAGNÓSTICO: La tabla puede estar vacía o política RLS muy restrictiva');
+                return [];
+            }
+
+        } catch (error) {
+            console.error('❌ ULTRATHINK: Error crítico obteniendo comunidades:', error);
+            console.error('🔍 DIAGNÓSTICO: Error de conexión o configuración');
             return [];
         }
     }
