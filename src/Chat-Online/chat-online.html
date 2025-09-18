@@ -8106,23 +8106,25 @@ Generado desde Coach LIA IA - ${currentDate}
         function updateHeaderProgressBar(completedVideos = 0, totalVideos = 19) {
             const progressFillHeader = document.getElementById('progressFillHeader');
             const progressPercentage = document.getElementById('progressPercentage');
-            
+
+            // Calcular porcentaje una sola vez
+            const percentage = totalVideos > 0 ? (completedVideos / totalVideos) * 100 : 0;
+            const percentageRounded = Math.round(percentage);
+
             if (progressFillHeader) {
-                const percentage = totalVideos > 0 ? (completedVideos / totalVideos) * 100 : 0;
                 progressFillHeader.style.width = `${percentage}%`;
             }
-            
+
             if (progressPercentage) {
-                const percentage = totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0;
-                progressPercentage.textContent = `${percentage}%`;
+                progressPercentage.textContent = `${percentageRounded}%`;
                 // Agregar animación al porcentaje
                 progressPercentage.classList.add('progress-counter-animation');
                 setTimeout(() => {
                     progressPercentage.classList.remove('progress-counter-animation');
                 }, 500);
             }
-            
-            console.log(`📊 Progreso actualizado: ${completedVideos}/${totalVideos} videos (${percentage}%)`);
+
+            console.log(`📊 Progreso actualizado: ${completedVideos}/${totalVideos} videos (${percentageRounded}%)`);
         }
 
         // ===== FUNCIÓN PARA CONTAR VIDEOS COMPLETADOS =====

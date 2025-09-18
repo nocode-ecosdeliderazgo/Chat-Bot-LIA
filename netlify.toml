@@ -173,6 +173,26 @@
 
 # Community API redirects (NEW)
 [[redirects]]
+  from = "/api/community/questions/*/vote"
+  to   = "/.netlify/functions/community-vote"
+  status = 200
+
+[[redirects]]
+  from = "/api/community/answers/*/vote"
+  to   = "/.netlify/functions/community-vote"
+  status = 200
+
+[[redirects]]
+  from = "/api/community/questions/*/answers"
+  to   = "/.netlify/functions/community-answers"
+  status = 200
+
+[[redirects]]
+  from = "/api/community/questions"
+  to   = "/.netlify/functions/community-questions"
+  status = 200
+
+[[redirects]]
   from = "/api/community/*"
   to   = "/.netlify/functions/community"
   status = 200
