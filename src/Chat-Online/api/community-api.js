@@ -170,13 +170,20 @@ class CommunityAPI {
     /**
      * Crear nueva respuesta
      */
-    async createAnswer(answerData) {
+    async createAnswer(questionId, answerData) {
+        // Si questionId es un objeto, significa que se llamó con el patrón viejo
+        if (typeof questionId === 'object') {
+            answerData = questionId;
+            questionId = answerData.question_id;
+        }
+
         const data = {
             ...answerData,
             user_id: this.currentUser?.id || 'demo-user'
         };
 
-        return await this.makeRequest('/answers', {
+        // Usar el endpoint que espera el frontend: POST /questions/{id}/answers
+        return await this.makeRequest(`/questions/${questionId}/answers`, {
             method: 'POST',
             body: JSON.stringify(data)
         });
@@ -241,6 +248,22 @@ class CommunityAPI {
      */
     async downvote(targetType, targetId) {
         return await this.vote(targetType, targetId, 'downvote');
+    }
+
+    /**
+     * Votar en una pregunta específica (función simplificada)
+     */
+    async voteQuestion(questionId, voteType) {
+        const mappedVoteType = voteType === 'up' ? 'upvote' : voteType === 'down' ? 'downvote' : voteType;
+        return await this.vote('question', questionId, mappedVoteType);
+    }
+
+    /**
+     * Votar en una respuesta específica
+     */
+    async voteAnswer(answerId, voteType) {
+        const mappedVoteType = voteType === 'up' ? 'upvote' : voteType === 'down' ? 'downvote' : voteType;
+        return await this.vote('answer', answerId, mappedVoteType);
     }
 
     // =====================================================

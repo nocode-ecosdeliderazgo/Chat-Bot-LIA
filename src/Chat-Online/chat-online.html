@@ -5387,13 +5387,42 @@ Cargando información...
         };
         
         // Función global inmediata para votar preguntas
-        window.voteQuestion = function(questionId, voteType) {
+        window.voteQuestion = async function(questionId, voteType) {
             console.log('📊 Función global voteQuestion ejecutada (inmediata):', questionId, voteType);
-            
-            if (window.chatOnline && window.chatOnline.voteQuestion) {
-                window.chatOnline.voteQuestion(questionId, voteType);
-            } else {
-                console.log('⚠️ ChatOnline no disponible para voteQuestion');
+
+            try {
+                if (window.communityAPI && window.communityAPI.voteQuestion) {
+                    console.log('🗳️ Usando communityAPI para votar...');
+                    const response = await window.communityAPI.voteQuestion(questionId, voteType);
+
+                    if (response && response.success) {
+                        console.log('✅ Voto procesado exitosamente:', response);
+
+                        // Actualizar visualmente el botón de voto
+                        updateVoteButtons(questionId, voteType, response.data);
+
+                        // Mostrar notificación
+                        const action = response.data?.action;
+                        if (action === 'removed') {
+                            showNotification('🗳️ Voto eliminado', 'info');
+                        } else if (action === 'updated') {
+                            showNotification('🗳️ Voto actualizado', 'success');
+                        } else {
+                            showNotification('✅ Voto registrado', 'success');
+                        }
+                    } else {
+                        throw new Error(response?.error || 'Error al procesar voto');
+                    }
+                } else if (window.chatOnline && window.chatOnline.voteQuestion) {
+                    console.log('🗳️ Usando chatOnline como fallback...');
+                    window.chatOnline.voteQuestion(questionId, voteType);
+                } else {
+                    console.log('⚠️ No se encontró método de votación disponible');
+                    showNotification('⚠️ Sistema de votación no disponible', 'warning');
+                }
+            } catch (error) {
+                console.error('❌ Error al votar:', error);
+                showNotification('❌ Error al votar: ' + error.message, 'error');
             }
         };
         
@@ -5492,13 +5521,54 @@ Cargando información...
             
             console.log('📝 Respuesta:', answerContent.value.trim());
             console.log('📋 Pregunta ID:', questionId);
-            
-            // Si chatOnline está disponible, usar su método
-            if (window.chatOnline && window.chatOnline.submitAnswer) {
-                window.chatOnline.submitAnswer();
-            } else {
-                // Fallback con guardado en base de datos
+
+            // Usar la API mejorada de comunidad
+            if (window.communityAPI && window.communityAPI.createAnswer) {
                 try {
+                    console.log('🔧 Usando communityAPI.createAnswer mejorado...');
+
+                    const answerData = {
+                        content: answerContent.value.trim(),
+                        question_id: questionId
+                    };
+
+                    const response = await window.communityAPI.createAnswer(questionId, answerData);
+
+                    if (response && response.success) {
+                        console.log('✅ Respuesta guardada exitosamente:', response);
+                        window.showNotification('¡Respuesta publicada exitosamente!', 'success', 3000);
+
+                        // Limpiar formulario y cerrar modal
+                        answerContent.value = '';
+                        window.hideAnswerModal();
+
+                        // Actualizar contador de respuestas
+                        if (window.updateAnswerCount) {
+                            window.updateAnswerCount(questionId);
+                        }
+
+                        // Recargar preguntas después de un pequeño delay
+                        setTimeout(async () => {
+                            try {
+                                console.log('🔄 Recargando preguntas después de crear respuesta...');
+                                if (window.loadCommunityQuestions) {
+                                    await window.loadCommunityQuestions();
+                                }
+                            } catch (error) {
+                                console.error('❌ Error recargando preguntas:', error);
+                            }
+                        }, 500);
+                    } else {
+                        throw new Error(response?.error || 'Error al crear respuesta');
+                    }
+                } catch (error) {
+                    console.error('❌ Error usando communityAPI.createAnswer:', error);
+                    window.showNotification('Error al enviar respuesta: ' + error.message, 'error', 4000);
+                }
+            } else {
+                // Fallback si communityAPI no está disponible
+                try {
+                    console.log('⚠️ Fallback: communityAPI no disponible, intentando método alternativo...');
                     // Intentar obtener usuario real primero
                     let currentUser = null;
                     
@@ -5858,13 +5928,88 @@ Cargando información...
         };
 
         // ===== FUNCIONES PARA MANEJAR VOTOS Y COMENTARIOS =====
-        window.voteAnswer = function(answerId, voteType) {
-            console.log('📊 Votando respuesta:', answerId, voteType);
-            // Aquí se implementaría la lógica de votación
-            // Mostrar notificación personalizada en lugar de alert
-            const voteText = voteType === 'up' ? 'positivo' : 'negativo';
-            window.showNotification(`Voto ${voteText} registrado correctamente`, 'success', 3000);
+        window.voteAnswer = async function(answerId, voteType) {
+            console.log('📊 Función global voteAnswer ejecutada:', answerId, voteType);
+
+            try {
+                if (window.communityAPI && window.communityAPI.voteAnswer) {
+                    console.log('🗳️ Usando communityAPI para votar respuesta...');
+                    const response = await window.communityAPI.voteAnswer(answerId, voteType);
+
+                    if (response && response.success) {
+                        console.log('✅ Voto en respuesta procesado exitosamente:', response);
+
+                        // Actualizar visualmente el botón de voto de la respuesta
+                        updateAnswerVoteButtons(answerId, voteType, response.data);
+
+                        // Mostrar notificación
+                        const action = response.data?.action;
+                        if (action === 'removed') {
+                            showNotification('🗳️ Voto en respuesta eliminado', 'info');
+                        } else if (action === 'updated') {
+                            showNotification('🗳️ Voto en respuesta actualizado', 'success');
+                        } else {
+                            showNotification('✅ Voto en respuesta registrado', 'success');
+                        }
+                    } else {
+                        console.error('❌ Error en la respuesta del voto:', response);
+                        showNotification('❌ Error al procesar voto en respuesta', 'error');
+                    }
+                } else {
+                    console.error('❌ communityAPI.voteAnswer no disponible');
+                    showNotification('❌ Sistema de votación no disponible', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error ejecutando voto en respuesta:', error);
+                showNotification('❌ Error al votar respuesta: ' + error.message, 'error');
+            }
         };
+
+        // Función para actualizar botones de voto de respuestas después de votar
+        function updateAnswerVoteButtons(answerId, voteType, voteData) {
+            console.log('🔄 Actualizando botones de voto para respuesta:', answerId, voteType, voteData);
+
+            try {
+                // Buscar la respuesta específica en el DOM
+                const answerElement = document.querySelector(`[data-answer-id="${answerId}"]`);
+                if (!answerElement) {
+                    console.warn('⚠️ No se encontró el elemento de respuesta con ID:', answerId);
+                    return;
+                }
+
+                // Buscar los botones de voto dentro de esta respuesta
+                const upvoteBtn = answerElement.querySelector('.vote-btn.upvote');
+                const downvoteBtn = answerElement.querySelector('.vote-btn.downvote');
+                const voteCount = answerElement.querySelector('.vote-count');
+
+                // Actualizar contadores de votos si están disponibles
+                if (voteData && typeof voteData.total_votes !== 'undefined') {
+                    if (voteCount) {
+                        voteCount.textContent = voteData.total_votes;
+                    }
+                }
+
+                // Actualizar estado visual de los botones
+                if (upvoteBtn && downvoteBtn) {
+                    // Remover clases activas
+                    upvoteBtn.classList.remove('active', 'voted');
+                    downvoteBtn.classList.remove('active', 'voted');
+
+                    // Agregar clase activa según el voto
+                    if (voteData && voteData.action !== 'removed') {
+                        if (voteType === 'up' || voteType === 'upvote') {
+                            upvoteBtn.classList.add('active', 'voted');
+                        } else if (voteType === 'down' || voteType === 'downvote') {
+                            downvoteBtn.classList.add('active', 'voted');
+                        }
+                    }
+                }
+
+                console.log('✅ Botones de voto de respuesta actualizados correctamente');
+            } catch (error) {
+                console.error('❌ Error actualizando botones de voto de respuesta:', error);
+            }
+        }
 
         window.showAnswerComments = function(answerId) {
             console.log('💬 Mostrando comentarios para respuesta:', answerId);
@@ -7818,6 +7963,52 @@ Generado desde Coach LIA IA - ${currentDate}
             }
         }
 
+
+        // Función para actualizar botones de voto después de votar
+        function updateVoteButtons(questionId, voteType, voteData) {
+            console.log('🔄 Actualizando botones de voto para pregunta:', questionId, voteType, voteData);
+
+            try {
+                // Buscar la pregunta específica en el DOM
+                const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+                if (!questionElement) {
+                    console.warn('⚠️ No se encontró el elemento de pregunta con ID:', questionId);
+                    return;
+                }
+
+                // Buscar los botones de voto dentro de esta pregunta
+                const upvoteBtn = questionElement.querySelector('.vote-btn[onclick*="upvote"], .vote-btn[onclick*="up"]');
+                const downvoteBtn = questionElement.querySelector('.vote-btn[onclick*="downvote"], .vote-btn[onclick*="down"]');
+                const voteCount = questionElement.querySelector('.vote-count, .votes-count');
+
+                // Actualizar contadores de votos si están disponibles
+                if (voteData && typeof voteData.total_votes !== 'undefined') {
+                    if (voteCount) {
+                        voteCount.textContent = voteData.total_votes;
+                    }
+                }
+
+                // Actualizar estado visual de los botones
+                if (upvoteBtn && downvoteBtn) {
+                    // Remover clases activas
+                    upvoteBtn.classList.remove('active', 'voted');
+                    downvoteBtn.classList.remove('active', 'voted');
+
+                    // Agregar clase activa según el voto
+                    if (voteData && voteData.action !== 'removed') {
+                        if (voteType === 'up' || voteType === 'upvote') {
+                            upvoteBtn.classList.add('active', 'voted');
+                        } else if (voteType === 'down' || voteType === 'downvote') {
+                            downvoteBtn.classList.add('active', 'voted');
+                        }
+                    }
+                }
+
+                console.log('✅ Botones de voto actualizados correctamente');
+            } catch (error) {
+                console.error('❌ Error actualizando botones de voto:', error);
+            }
+        }
 
         // Función para mostrar notificaciones
         function showNotification(message, type = 'info') {

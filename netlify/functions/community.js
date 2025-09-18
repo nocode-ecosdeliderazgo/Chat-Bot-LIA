@@ -674,7 +674,15 @@ exports.handler = async (event, context) => {
             return await getQuestionAnswers(req, res);
         }
 
-        // POST /api/community/answers
+        // POST /api/community/questions/:questionId/answers (el endpoint que espera el frontend)
+        if (path.match(/^\/api\/community\/questions\/[^\/]+\/answers$/) && method === 'POST') {
+            const questionId = path.split('/')[4];
+            // Agregar question_id al body automáticamente
+            req.body.question_id = questionId;
+            return await createAnswer(req, res);
+        }
+
+        // POST /api/community/answers (endpoint alternativo)
         if (path === '/api/community/answers' && method === 'POST') {
             return await createAnswer(req, res);
         }
