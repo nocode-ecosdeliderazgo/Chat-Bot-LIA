@@ -5393,6 +5393,31 @@ Cargando información...
             try {
                 if (window.communityAPI && window.communityAPI.voteQuestion) {
                     console.log('🗳️ Usando communityAPI para votar...');
+
+                    // Asegurar que tenemos un usuario configurado
+                    if (!window.communityAPI.currentUser) {
+                        // Intentar obtener usuario del localStorage o usar uno por defecto
+                        let currentUser = null;
+                        try {
+                            const userData = localStorage.getItem('userData') || localStorage.getItem('currentUser');
+                            if (userData) {
+                                currentUser = JSON.parse(userData);
+                            }
+                        } catch (e) {
+                            console.log('⚠️ No se pudo obtener usuario del localStorage');
+                        }
+
+                        if (!currentUser) {
+                            currentUser = {
+                                id: 'demo-user-' + Date.now(),
+                                name: 'Usuario Demo'
+                            };
+                        }
+
+                        window.communityAPI.setCurrentUser(currentUser);
+                        console.log('👤 Usuario configurado:', currentUser);
+                    }
+
                     const response = await window.communityAPI.voteQuestion(questionId, voteType);
 
                     if (response && response.success) {
@@ -5413,12 +5438,9 @@ Cargando información...
                     } else {
                         throw new Error(response?.error || 'Error al procesar voto');
                     }
-                } else if (window.chatOnline && window.chatOnline.voteQuestion) {
-                    console.log('🗳️ Usando chatOnline como fallback...');
-                    window.chatOnline.voteQuestion(questionId, voteType);
                 } else {
-                    console.log('⚠️ No se encontró método de votación disponible');
-                    showNotification('⚠️ Sistema de votación no disponible', 'warning');
+                    console.error('❌ communityAPI.voteQuestion no disponible');
+                    showNotification('❌ Sistema de votación no disponible', 'error');
                 }
             } catch (error) {
                 console.error('❌ Error al votar:', error);
@@ -5526,6 +5548,30 @@ Cargando información...
             if (window.communityAPI && window.communityAPI.createAnswer) {
                 try {
                     console.log('🔧 Usando communityAPI.createAnswer mejorado...');
+
+                    // Asegurar que tenemos un usuario configurado
+                    if (!window.communityAPI.currentUser) {
+                        // Intentar obtener usuario del localStorage o usar uno por defecto
+                        let currentUser = null;
+                        try {
+                            const userData = localStorage.getItem('userData') || localStorage.getItem('currentUser');
+                            if (userData) {
+                                currentUser = JSON.parse(userData);
+                            }
+                        } catch (e) {
+                            console.log('⚠️ No se pudo obtener usuario del localStorage');
+                        }
+
+                        if (!currentUser) {
+                            currentUser = {
+                                id: 'demo-user-' + Date.now(),
+                                name: 'Usuario Demo'
+                            };
+                        }
+
+                        window.communityAPI.setCurrentUser(currentUser);
+                        console.log('👤 Usuario configurado para respuesta:', currentUser);
+                    }
 
                     const answerData = {
                         content: answerContent.value.trim(),
@@ -5934,6 +5980,31 @@ Cargando información...
             try {
                 if (window.communityAPI && window.communityAPI.voteAnswer) {
                     console.log('🗳️ Usando communityAPI para votar respuesta...');
+
+                    // Asegurar que tenemos un usuario configurado
+                    if (!window.communityAPI.currentUser) {
+                        // Intentar obtener usuario del localStorage o usar uno por defecto
+                        let currentUser = null;
+                        try {
+                            const userData = localStorage.getItem('userData') || localStorage.getItem('currentUser');
+                            if (userData) {
+                                currentUser = JSON.parse(userData);
+                            }
+                        } catch (e) {
+                            console.log('⚠️ No se pudo obtener usuario del localStorage');
+                        }
+
+                        if (!currentUser) {
+                            currentUser = {
+                                id: 'demo-user-' + Date.now(),
+                                name: 'Usuario Demo'
+                            };
+                        }
+
+                        window.communityAPI.setCurrentUser(currentUser);
+                        console.log('👤 Usuario configurado para voto de respuesta:', currentUser);
+                    }
+
                     const response = await window.communityAPI.voteAnswer(answerId, voteType);
 
                     if (response && response.success) {
