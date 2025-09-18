@@ -3795,61 +3795,138 @@
             }
         }
 
-        /* ===== ESTILOS PARA MENSAJES DE CHAT ===== */
-        .message-author {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--glass-primary, #44e5ff);
-            margin-bottom: 4px;
-            text-transform: capitalize;
-        }
-
-        .message-text {
-            font-size: 14px;
-            line-height: 1.4;
-            margin-bottom: 6px;
-        }
-
-        .message-time {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.6);
-            text-align: right;
-        }
-
-        .message {
-            margin-bottom: 1rem;
-        }
-
-        .message-content {
-            padding: 12px 16px;
+        /* ===== ESTILOS PARA MENSAJES DE CHAT (SOLO PARA #liaMessages) ===== */
+        #liaMessages .message {
+            margin-bottom: 1.5rem;
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            max-width: 80%;
+            transition: all 0.3s ease;
         }
 
-        .user-message .message-content {
+        #liaMessages .user-message {
             background: linear-gradient(135deg, rgba(68, 229, 255, 0.15), rgba(68, 229, 255, 0.08));
             border: 1px solid rgba(68, 229, 255, 0.2);
             margin-left: auto;
+            max-width: 85%;
         }
 
-        .lia-message .message-content {
+        #liaMessages .user-message:hover {
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.2), rgba(68, 229, 255, 0.1));
+            border-color: rgba(68, 229, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        #liaMessages .message-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #ffffff;
+            margin-top: 8px;
+        }
+
+        /* Avatar circular para usuario (solo en chat) */
+        #liaMessages .user-avatar-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--glass-primary, #44e5ff), #0066CC);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            margin-right: 10px;
+            border: 2px solid rgba(68, 229, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(68, 229, 255, 0.2);
+        }
+
+        /* Mejorar la estructura de header de pregunta para mensajes de chat */
+        #liaMessages .user-message .question-header {
+            margin-bottom: 0;
+        }
+
+        #liaMessages .user-message .question-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        #liaMessages .user-message .question-author {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        #liaMessages .user-message .author-name {
+            color: var(--glass-primary, #44e5ff);
+            font-weight: 600;
+        }
+
+        #liaMessages .user-message .question-time {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Estilos específicos para mensajes de LIA (solo en chat) */
+        #liaMessages .lia-message {
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
             border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-right: auto;
+            max-width: 85%;
         }
 
-        /* Responsive para mensajes */
+        #liaMessages .lia-message:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        #liaMessages .lia-message .author-name {
+            color: #44e5ff;
+            font-weight: 600;
+        }
+
+        #liaMessages .lia-message .author-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid rgba(68, 229, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(68, 229, 255, 0.2);
+        }
+
+        /* Responsive para mensajes de chat */
         @media (max-width: 768px) {
-            .message-content {
-                max-width: 90%;
-                padding: 10px 12px;
+            #liaMessages .message {
+                padding: 12px;
+                margin-bottom: 1rem;
             }
 
-            .message-author {
-                font-size: 11px;
+            #liaMessages .user-message {
+                max-width: 95%;
             }
 
-            .message-text {
+            #liaMessages .user-avatar-circle {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+                margin-right: 8px;
+            }
+
+            #liaMessages .message-text {
                 font-size: 13px;
+            }
+
+            #liaMessages .user-message .question-author {
+                font-size: 13px;
+            }
+
+            #liaMessages .lia-message .author-avatar {
+                width: 28px;
+                height: 28px;
             }
         }
     </style>
@@ -6384,6 +6461,14 @@ INSTRUCCIONES:
 
                 }
 
+                // 4. Inicializar protección de mensajes de chat
+                setTimeout(() => {
+                    if (typeof initializeMessageProtection === 'function') {
+                        initializeMessageProtection();
+                        console.log('✅ Sistema de protección de mensajes inicializado');
+                    }
+                }, 1000);
+
                 
 
                 console.log('🎉 Sistema dinámico completamente inicializado');
@@ -6425,27 +6510,134 @@ INSTRUCCIONES:
                                 const currentUser = obtenerUsuarioActual();
                                 const userName = currentUser?.username || localStorage.getItem('userName') || 'Usuario';
 
+                                // Generar avatar inicial desde el nombre
+                                const avatarLetter = userName.charAt(0).toUpperCase();
+
                                 // Agregar mensaje del usuario
                                 const userMsg = document.createElement('div');
                                 userMsg.className = 'message user-message';
+                                // Agregar un ID único para proteger este mensaje
+                                const messageId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                                userMsg.setAttribute('data-message-id', messageId);
+                                userMsg.setAttribute('data-protected', 'true');
+
                                 userMsg.innerHTML = `
-                                    <div class="message-avatar neo-circle">
-                                        <i class="fas fa-user"></i>
+                                    <div class="question-header">
+                                        <div class="question-meta">
+                                            <span class="question-author">
+                                                <div class="user-avatar-circle">${avatarLetter}</div>
+                                                <span class="author-name" data-original-name="${userName}">${userName}</span>
+                                            </span>
+                                            <span class="question-time">ahora</span>
+                                        </div>
                                     </div>
-                                    <div class="message-content neo-card">
-                                        <div class="message-author">${userName}</div>
+                                    <div class="message-content">
                                         <div class="message-text">${mensaje}</div>
-                                        <div class="message-time">ahora</div>
                                     </div>
                                 `;
                                 messagesContainer.appendChild(userMsg);
                                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                                // Proteger el mensaje recién agregado contra modificaciones externas
+                                setTimeout(() => {
+                                    protectChatMessage(userMsg, userName, avatarLetter);
+                                }, 100);
 
                                 // Limpiar input
                                 input.value = '';
 
                                 // Llamar a LIA
                                 handleChatWithLIA(mensaje);
+                            }
+                        }
+
+                        // Función para proteger mensajes de chat contra modificaciones externas
+                        function protectChatMessage(messageElement, originalName, originalAvatar) {
+                            if (!messageElement || !messageElement.querySelector) return;
+
+                            const authorName = messageElement.querySelector('.author-name');
+                            const avatarCircle = messageElement.querySelector('.user-avatar-circle');
+
+                            if (authorName && authorName.textContent !== originalName) {
+                                console.log('🛡️ Restaurando nombre de usuario en mensaje protegido:', originalName);
+                                authorName.textContent = originalName;
+                            }
+
+                            if (avatarCircle && avatarCircle.textContent !== originalAvatar) {
+                                console.log('🛡️ Restaurando avatar en mensaje protegido:', originalAvatar);
+                                avatarCircle.textContent = originalAvatar;
+                            }
+                        }
+
+                        // Función para proteger todos los mensajes existentes y aplicar vigilancia continua
+                        function initializeMessageProtection() {
+                            // Proteger mensajes existentes al cargar la página
+                            const existingMessages = document.querySelectorAll('#liaMessages .user-message');
+                            existingMessages.forEach(msg => {
+                                if (!msg.hasAttribute('data-protected')) {
+                                    const currentUser = obtenerUsuarioActual();
+                                    const userName = currentUser?.username || localStorage.getItem('userName') || 'Usuario';
+                                    const avatarLetter = userName.charAt(0).toUpperCase();
+
+                                    // Marcar como protegido
+                                    msg.setAttribute('data-protected', 'true');
+                                    msg.setAttribute('data-message-id', 'legacy-msg-' + Date.now());
+
+                                    // Actualizar contenido si es necesario
+                                    const authorName = msg.querySelector('.author-name');
+                                    const avatarCircle = msg.querySelector('.user-avatar-circle');
+
+                                    if (authorName) {
+                                        authorName.setAttribute('data-original-name', userName);
+                                        if (authorName.textContent === 'Usuario' || authorName.textContent === 'Usuario Prueba') {
+                                            authorName.textContent = userName;
+                                        }
+                                    }
+
+                                    if (avatarCircle && (avatarCircle.textContent === 'U' || avatarCircle.textContent === 'P')) {
+                                        avatarCircle.textContent = avatarLetter;
+                                    }
+                                }
+                            });
+
+                            // Configurar vigilancia continua con MutationObserver
+                            if (typeof window.chatMutationObserver === 'undefined') {
+                                const observer = new MutationObserver((mutations) => {
+                                    mutations.forEach((mutation) => {
+                                        if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                                            // Verificar si algún mensaje protegido fue modificado
+                                            const protectedMessages = document.querySelectorAll('#liaMessages .user-message[data-protected="true"]');
+                                            protectedMessages.forEach(msg => {
+                                                const authorName = msg.querySelector('.author-name');
+                                                const avatarCircle = msg.querySelector('.user-avatar-circle');
+                                                const originalName = authorName?.getAttribute('data-original-name');
+
+                                                if (originalName && authorName && authorName.textContent !== originalName) {
+                                                    console.log('🛡️ MutationObserver: Restaurando nombre modificado:', originalName);
+                                                    authorName.textContent = originalName;
+                                                }
+
+                                                if (originalName && avatarCircle) {
+                                                    const expectedAvatar = originalName.charAt(0).toUpperCase();
+                                                    if (avatarCircle.textContent !== expectedAvatar) {
+                                                        console.log('🛡️ MutationObserver: Restaurando avatar modificado:', expectedAvatar);
+                                                        avatarCircle.textContent = expectedAvatar;
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    });
+                                });
+
+                                observer.observe(document.getElementById('liaMessages'), {
+                                    childList: true,
+                                    subtree: true,
+                                    characterData: true,
+                                    attributes: true
+                                });
+
+                                window.chatMutationObserver = observer;
+                                console.log('🛡️ MutationObserver inicializado para protección de mensajes');
                             }
                         }
 
@@ -6680,21 +6872,18 @@ INSTRUCCIONES:
                                 liaMsg.className = 'message lia-message';
 
                                 liaMsg.innerHTML = `
-
-                                    <div class="message-avatar neo-circle">
-
-                                        <i class="fas fa-robot"></i>
-
+                                    <div class="question-header">
+                                        <div class="question-meta">
+                                            <span class="question-author">
+                                                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="author-avatar">
+                                                <span class="author-name">LIA - Asistente IA</span>
+                                            </span>
+                                            <span class="question-time">ahora</span>
+                                        </div>
                                     </div>
-
-                                    <div class="message-content neo-card">
-
+                                    <div class="message-content">
                                         <div class="message-text">${respuestaLIA}</div>
-
-                                        <div class="message-time">ahora</div>
-
                                     </div>
-
                                 `;
 
                                 
@@ -6754,21 +6943,18 @@ INSTRUCCIONES:
                                 liaMsg.className = 'message lia-message';
 
                                 liaMsg.innerHTML = `
-
-                                    <div class="message-avatar neo-circle">
-
-                                        <i class="fas fa-robot"></i>
-
+                                    <div class="question-header">
+                                        <div class="question-meta">
+                                            <span class="question-author">
+                                                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="author-avatar">
+                                                <span class="author-name">LIA - Asistente IA</span>
+                                            </span>
+                                            <span class="question-time">ahora</span>
+                                        </div>
                                     </div>
-
-                                    <div class="message-content neo-card">
-
+                                    <div class="message-content">
                                         <div class="message-text">${respuestaFallback}</div>
-
-                                        <div class="message-time">ahora</div>
-
                                     </div>
-
                                 `;
 
                                 
@@ -6906,18 +7092,30 @@ INSTRUCCIONES:
 
         }
 
-        // Función para actualizar nombres de usuario en mensajes existentes
+        // Función para actualizar nombres de usuario en mensajes existentes (solo en chat)
         function actualizarNombresUsuarioEnMensajes() {
             const currentUser = obtenerUsuarioActual();
             const userName = currentUser?.username || localStorage.getItem('userName') || 'Usuario';
 
             // Solo actualizar si no es el usuario de prueba por defecto
             if (userName && userName !== 'Usuario' && userName !== 'Usuario Prueba') {
-                const messageAuthors = document.querySelectorAll('.message-author');
+                // Actualizar nombres en elementos .author-name dentro de mensajes de usuario (solo en chat)
+                // EXCLUIR mensajes protegidos
+                const messageAuthors = document.querySelectorAll('#liaMessages .user-message:not([data-protected="true"]) .author-name');
                 messageAuthors.forEach(authorElement => {
                     if (authorElement.textContent === 'Usuario' || authorElement.textContent === 'Usuario Prueba') {
                         authorElement.textContent = userName;
-                        console.log('[LIA] 📝 Nombre de usuario actualizado en mensaje:', userName);
+                        console.log('[LIA] 📝 Nombre de usuario actualizado en mensaje no protegido:', userName);
+                    }
+                });
+
+                // Actualizar avatares circulares (solo en chat y solo en mensajes no protegidos)
+                const avatarCircles = document.querySelectorAll('#liaMessages .user-message:not([data-protected="true"]) .user-avatar-circle');
+                const avatarLetter = userName.charAt(0).toUpperCase();
+                avatarCircles.forEach(avatarElement => {
+                    if (avatarElement.textContent === 'U' || avatarElement.textContent === 'P') {
+                        avatarElement.textContent = avatarLetter;
+                        console.log('[LIA] 📝 Avatar de usuario actualizado en mensaje no protegido:', avatarLetter);
                     }
                 });
             }
@@ -7807,40 +8005,9 @@ Generado desde Coach LIA IA - ${currentDate}
 
             // Función para marcar algunas preguntas como propias para testing
             markSampleQuestionsAsOwn(forceRefresh = false) {
-                const questions = document.querySelectorAll('.question-item, .community-question');
-                console.log(`🧪 Intentando marcar ${questions.length} preguntas encontradas`);
-
-                if (questions.length === 0) {
-                    console.warn('⚠️ No se encontraron preguntas. Reintentando en 2 segundos...');
-                    setTimeout(() => this.markSampleQuestionsAsOwn(true), 2000);
-                    return;
-                }
-
-                let marked = 0;
-                questions.forEach((question, index) => {
-                    // Marcar cada tercera pregunta como propia para testing
-                    if (index % 3 === 0) {
-                        question.classList.add('my-question');
-                        question.dataset.isOwn = 'true';
-
-                        // También intentar modificar el texto del autor si existe
-                        const authorElement = question.querySelector('.question-author, .author-name, .user-name');
-                        if (authorElement && !authorElement.dataset.originalText) {
-                            authorElement.dataset.originalText = authorElement.textContent;
-                            authorElement.textContent = localStorage.getItem('userName') || 'Usuario Prueba';
-                        }
-
-                        marked++;
-                        console.log(`🧪 Pregunta ${index + 1} marcada como propia (total: ${marked})`);
-                    }
-                });
-
-                console.log(`✅ Se marcaron ${marked} preguntas como propias de ${questions.length} totales`);
-
-                // Si se ejecutó por fuerza, aplicar filtros después
-                if (forceRefresh) {
-                    setTimeout(() => this.applyAllFilters(), 500);
-                }
+                // FUNCIÓN DESHABILITADA - Causaba conflictos visuales con el chat
+                console.log('🧪 markSampleQuestionsAsOwn: Función deshabilitada para evitar conflictos con el chat');
+                return;
             },
 
             // Función para crear preguntas propias manualmente (para debugging)
