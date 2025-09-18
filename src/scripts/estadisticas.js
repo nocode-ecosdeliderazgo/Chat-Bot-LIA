@@ -293,8 +293,8 @@ class GrafanaStatisticsManager {
             const adoptionAnalysis = this.analyzeAdoptionResponses();
             const knowledgeAnalysis = this.analyzeKnowledgeResponses();
 
-            // Generar explicaciones
-            const analysis = this.generateAnalysisExplanation(scores, adoptionAnalysis, knowledgeAnalysis);
+            // Generar explicaciones (ahora asíncrono)
+            const analysis = await this.generateAnalysisExplanation(scores, adoptionAnalysis, knowledgeAnalysis);
             const recommendations = this.generateRecommendations(scores, adoptionAnalysis, knowledgeAnalysis);
 
             // Mostrar resultados
@@ -615,19 +615,19 @@ class GrafanaStatisticsManager {
         return bestTopic;
     }
 
-    generateAnalysisExplanation(scores, adoptionAnalysis, knowledgeAnalysis) {
+    async generateAnalysisExplanation(scores, adoptionAnalysis, knowledgeAnalysis) {
         return {
             adoption: {
                 score: scores.adoption,
                 level: adoptionAnalysis.adoptionLevel,
-                explanation: this.getAdoptionExplanation(scores.adoption, adoptionAnalysis),
+                explanation: await this.getAdoptionExplanation(scores.adoption, adoptionAnalysis),
                 tools: adoptionAnalysis.toolsUsed,
                 thresholds: adoptionAnalysis.thresholds
             },
             knowledge: {
                 score: scores.knowledge,
                 level: knowledgeAnalysis.knowledgeLevel,
-                explanation: this.getKnowledgeExplanation(scores.knowledge, knowledgeAnalysis),
+                explanation: await this.getKnowledgeExplanation(scores.knowledge, knowledgeAnalysis),
                 correct: knowledgeAnalysis.correct,
                 total: knowledgeAnalysis.total,
                 percentage: knowledgeAnalysis.percentage,
@@ -636,7 +636,37 @@ class GrafanaStatisticsManager {
         };
     }
 
-    getAdoptionExplanation(score, analysis) {
+    async getAdoptionExplanation(score, analysis) {
+        try {
+            // Obtener área del usuario si está disponible
+            const userArea = this.getCurrentUserArea();
+
+            // Intentar obtener mensaje de la base de datos
+            const explanation = await this.getExplanationFromDatabase(
+                'adoption_explanation',
+                score,
+                userArea,
+                {
+                    tools_used: analysis.toolsUsed.length > 0 ? analysis.toolsUsed.join(', ') : 'herramientas de IA',
+                    tools_context: this.getToolsContext(analysis.toolsUsed),
+                    level: analysis.adoptionLevel
+                }
+            );
+
+            if (explanation) {
+                return explanation;
+            }
+
+            // Fallback a lógica original si no hay mensaje en BD
+            return this.getFallbackAdoptionExplanation(score, analysis);
+
+        } catch (error) {
+            console.warn('Error obteniendo explicación de adopción de BD, usando fallback:', error);
+            return this.getFallbackAdoptionExplanation(score, analysis);
+        }
+    }
+
+    getFallbackAdoptionExplanation(score, analysis) {
         const thresholds = analysis.thresholds;
         const toolsText = analysis.toolsUsed.length > 0 ?
             analysis.toolsUsed.join(', ') : 'herramientas de IA';
@@ -650,7 +680,51 @@ class GrafanaStatisticsManager {
         }
     }
 
-    getKnowledgeExplanation(score, analysis) {
+    async getKnowledgeExplanation(score, analysis) {
+        try {
+            // Obtener área del usuario si está disponible
+            const userArea = this.getCurrentUserArea();
+
+            // Crear análisis de temas específicos
+            let topicDetails = '';
+            if (analysis.topicAnalysis && Object.keys(analysis.topicAnalysis).length > 0) {
+                const topicSummary = Object.entries(analysis.topicAnalysis)
+                    .map(([topic, data]) => {
+                        const pct = Math.round((data.correct / data.total) * 100);
+                        return `${topic}: ${data.correct}/${data.total} (${pct}%)`;
+                    })
+                    .join(', ');
+                topicDetails = ` Desglose por temas: ${topicSummary}.`;
+            }
+
+            // Intentar obtener mensaje de la base de datos
+            const explanation = await this.getExplanationFromDatabase(
+                'knowledge_explanation',
+                analysis.percentage, // Usar porcentaje para conocimiento
+                userArea,
+                {
+                    correct_answers: analysis.correct,
+                    total_questions: analysis.total,
+                    percentage: analysis.percentage,
+                    topic_details: topicDetails,
+                    level: analysis.knowledgeLevel
+                }
+            );
+
+            if (explanation) {
+                return explanation;
+            }
+
+            // Fallback a lógica original si no hay mensaje en BD
+            return this.getFallbackKnowledgeExplanation(score, analysis);
+
+        } catch (error) {
+            console.warn('Error obteniendo explicación de conocimiento de BD, usando fallback:', error);
+            return this.getFallbackKnowledgeExplanation(score, analysis);
+        }
+    }
+
+    getFallbackKnowledgeExplanation(score, analysis) {
         const correctPercentage = analysis.percentage;
         const thresholds = analysis.thresholds;
 
@@ -887,6 +961,174 @@ class GrafanaStatisticsManager {
                 </div>
             </div>
         `;
+    }
+
+    // ===== MÉTODOS PARA INTEGRACIÓN CON BASE DE DATOS =====
+
+    /**
+     * Obtiene explicación personalizada desde la base de datos
+     */
+    async getExplanationFromDatabase(messageType, score, area, additionalData = {}) {
+        try {
+            const params = new URLSearchParams({
+                messageType,
+                score: Math.round(score),
+                area: area || 'general'
+            });
+
+            console.log(`🔍 Consultando BD: ${messageType}, score=${score}, área=${area}`);
+
+            const response = await fetch(`/api/analysis-messages?${params}`);
+            const result = await response.json();
+
+            if (result.success && result.message) {
+                console.log(`✅ Mensaje encontrado en BD: ${result.message.title}`);
+
+                // Procesar template con variables
+                const processedMessage = this.processMessageTemplate(
+                    result.message.message_template,
+                    {
+                        score: Math.round(score),
+                        user_area: area || 'general',
+                        ...additionalData
+                    }
+                );
+
+                return processedMessage;
+            }
+
+            console.log(`⚠️ No se encontró mensaje en BD para ${messageType}`);
+            return null;
+
+        } catch (error) {
+            console.warn('Error consultando BD para explicación:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Procesa templates con variables dinámicas
+     */
+    processMessageTemplate(template, variables) {
+        if (!template) return '';
+
+        let processed = template;
+
+        // Reemplazar variables del formato {variable_name}
+        Object.entries(variables).forEach(([key, value]) => {
+            const regex = new RegExp(`\\{${key}\\}`, 'g');
+            processed = processed.replace(regex, value || '');
+        });
+
+        // Limpiar variables no reemplazadas (opcional)
+        processed = processed.replace(/\{[^}]+\}/g, '');
+
+        return processed;
+    }
+
+    /**
+     * Obtiene el área profesional del usuario actual
+     */
+    getCurrentUserArea() {
+        try {
+            // Intentar obtener área desde diferentes fuentes
+
+            // 1. Desde datos del cuestionario de perfil
+            const profileData = localStorage.getItem('profileQuestionnaireData');
+            if (profileData) {
+                const data = JSON.parse(profileData);
+                if (data.perfilFinal) {
+                    // Mapear perfil a área GenAI
+                    return this.mapProfileToGenAIArea(data.perfilFinal);
+                }
+            }
+
+            // 2. Desde datos del usuario
+            const userData = localStorage.getItem('userData') || localStorage.getItem('currentUser');
+            if (userData) {
+                const user = JSON.parse(userData);
+                if (user.type_rol) {
+                    return this.mapProfileToGenAIArea(user.type_rol);
+                }
+            }
+
+            // 3. Desde parámetros URL (si viene del cuestionario)
+            const urlParams = new URLSearchParams(window.location.search);
+            const areaParam = urlParams.get('area');
+            if (areaParam) {
+                return areaParam;
+            }
+
+            return 'general';
+
+        } catch (error) {
+            console.warn('Error obteniendo área del usuario:', error);
+            return 'general';
+        }
+    }
+
+    /**
+     * Mapea perfil profesional a área GenAI
+     */
+    mapProfileToGenAIArea(profile) {
+        const mapping = {
+            'CEO': 'CEO/Alta Dirección',
+            'CTO/CIO': 'Tecnología/Desarrollo de Software',
+            'Dirección de Marketing': 'Marketing y Comunicación',
+            'Miembros de Marketing': 'Marketing y Comunicación',
+            'Dirección de Finanzas (CFO)': 'Finanzas/Contabilidad',
+            'Miembros de Finanzas': 'Finanzas/Contabilidad',
+            'Dirección/Jefatura de Contabilidad': 'Finanzas/Contabilidad',
+            'Miembros de Contabilidad': 'Finanzas/Contabilidad',
+            'Dirección de RRHH': 'Salud/Bienestar',
+            'Miembros de RRHH': 'Salud/Bienestar',
+            'Consultor': 'Administración Pública/Gobierno',
+            'Dirección de Operaciones': 'Administración Pública/Gobierno',
+            'Miembros de Operaciones': 'Administración Pública/Gobierno',
+            'Gerencia Media': 'Administración Pública/Gobierno',
+            'Freelancer': 'Diseño/Industrias Creativas',
+            'Dirección de Ventas': 'Marketing y Comunicación',
+            'Miembros de Ventas': 'Marketing y Comunicación',
+            'Dirección de Compras / Supply': 'Marketing y Comunicación',
+            'Miembros de Compras': 'Marketing y Comunicación'
+        };
+
+        return mapping[profile] || 'general';
+    }
+
+    /**
+     * Genera contexto específico de herramientas para mensajes
+     */
+    getToolsContext(toolsUsed) {
+        if (!toolsUsed || toolsUsed.length === 0) {
+            return 'Considera explorar herramientas como ChatGPT, Gemini o Claude para comenzar.';
+        }
+
+        const toolCategories = {
+            'conversational': ['ChatGPT', 'Claude', 'Gemini', 'Bard'],
+            'coding': ['GitHub Copilot', 'Copilot'],
+            'design': ['Midjourney', 'DALL-E', 'DALL·E', 'Stable Diffusion'],
+            'business': ['Notion AI', 'Jasper', 'Copy.ai']
+        };
+
+        const detectedCategories = [];
+        for (const [category, tools] of Object.entries(toolCategories)) {
+            if (tools.some(tool => toolsUsed.some(used => used.toLowerCase().includes(tool.toLowerCase())))) {
+                detectedCategories.push(category);
+            }
+        }
+
+        if (detectedCategories.length > 1) {
+            return 'Tu uso diversificado de herramientas de IA muestra una adopción integral.';
+        } else if (detectedCategories.includes('conversational')) {
+            return 'Tu enfoque en asistentes conversacionales es un excelente punto de partida.';
+        } else if (detectedCategories.includes('coding')) {
+            return 'Tu uso de herramientas de programación asistida muestra una adopción técnica avanzada.';
+        } else if (detectedCategories.includes('design')) {
+            return 'Tu experiencia con herramientas de diseño visual demuestra creatividad con IA.';
+        }
+
+        return `Tu experiencia con ${toolsUsed.join(', ')} te da una base sólida para expandir.`;
     }
 }
 

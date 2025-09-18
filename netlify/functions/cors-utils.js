@@ -94,7 +94,7 @@ function createCorsResponse(status, data, event = null, includeCredentials = fal
         'Access-Control-Allow-Origin': origin || '*',
         'Vary': 'Origin',
         'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With, Authorization, X-User-Id, X-API-Key',
-        'Access-Control-Allow-Methods': 'OPTIONS,POST'
+        'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,PUT,DELETE'
     };
 
     if (includeCredentials) {

@@ -239,6 +239,110 @@ app.get('/api/adopcion-genai', async (req, res) => {
     }
 });
 
+// Endpoint para obtener mensajes explicativos personalizados
+app.get('/api/analysis-messages', async (req, res) => {
+    try {
+        const { messageType, score, area, userId } = req.query;
+
+        // Validar parámetros requeridos
+        if (!messageType || score === undefined) {
+            return res.status(400).json({
+                success: false,
+                error: 'messageType y score son requeridos'
+            });
+        }
+
+        // Validar tipo de mensaje
+        const validTypes = ['adoption_explanation', 'knowledge_explanation', 'recommendation'];
+        if (!validTypes.includes(messageType)) {
+            return res.status(400).json({
+                success: false,
+                error: 'messageType debe ser: ' + validTypes.join(', ')
+            });
+        }
+
+        // Validar score
+        const scoreNum = parseInt(score);
+        if (isNaN(scoreNum) || scoreNum < 0 || scoreNum > 100) {
+            return res.status(400).json({
+                success: false,
+                error: 'score debe ser un número entre 0 y 100'
+            });
+        }
+
+        console.log(`🔍 Buscando mensaje: tipo=${messageType}, score=${scoreNum}, área=${area || 'general'}`);
+
+        if (!supabase) {
+            console.warn('⚠️ Supabase no configurado, usando fallback');
+            return res.json({ success: false, error: 'Supabase no configurado' });
+        }
+
+        // Construir query base
+        let query = supabase
+            .from('analysis_messages')
+            .select('*')
+            .eq('message_type', messageType)
+            .lte('score_range_min', scoreNum)
+            .gte('score_range_max', scoreNum)
+            .eq('is_active', true);
+
+        // Filtrar por área si se proporciona
+        if (area && area !== 'general') {
+            // Buscar primero por área específica, luego por general
+            query = query.in('target_area', [area, 'general']);
+        } else {
+            // Solo mensajes generales
+            query = query.in('target_area', ['general']);
+        }
+
+        // Ordenar por prioridad: área específica primero, luego general
+        if (area && area !== 'general') {
+            query = query.order('target_area', { ascending: false }); // área específica primero
+        }
+
+        // Para recomendaciones, ordenar también por prioridad
+        if (messageType === 'recommendation') {
+            query = query.order('priority_level', { ascending: true }); // high, medium, low
+        }
+
+        query = query.limit(1);
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.error('❌ Error obteniendo mensaje:', error);
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
+
+        if (data && data.length > 0) {
+            console.log(`✅ Mensaje encontrado: ${data[0].title || 'Sin título'}`);
+            res.json({
+                success: true,
+                message: data[0],
+                source: 'database'
+            });
+        } else {
+            console.log(`⚠️ No se encontró mensaje para los criterios especificados`);
+            res.json({
+                success: false,
+                error: 'No se encontró mensaje para los criterios especificados',
+                source: 'database'
+            });
+        }
+
+    } catch (error) {
+        console.error('❌ Error en analysis-messages:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            source: 'database'
+        });
+    }
+});
+
 app.use(express.static('src'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Servir prompts para depuración/inspección (protegido por API en endpoints abajo)
@@ -5741,17 +5845,19 @@ app.post('/api/community/questions/:questionId/answers', async (req, res) => {
     try {
         console.log('📝 === INICIO CREACIÓN RESPUESTA (NUEVA RUTA) ===');
         const { questionId } = req.params;
-        const { content, user_id } = req.body;
-        
+        const { content } = req.body;
+        const userId = req.headers['x-user-id'] || req.body.user_id;
+
         console.log('📋 Body recibido:', req.body);
         console.log('📋 Question ID desde params:', questionId);
-        
+        console.log('📋 User ID desde headers/body:', userId);
+
         // Validación de campos requeridos
-        if (!questionId || !content || !user_id) {
+        if (!questionId || !content || !userId) {
             console.log('❌ Faltan campos obligatorios');
             return res.status(400).json({
                 success: false,
-                error: 'Faltan campos obligatorios: questionId (params), content, user_id (body)'
+                error: 'Faltan campos obligatorios: questionId (params), content, user_id (body o header)'
             });
         }
         
@@ -5767,24 +5873,24 @@ app.post('/api/community/questions/:questionId/answers', async (req, res) => {
         console.log('🗃️ Pool de base de datos disponible, procediendo con validaciones...');
         
         // Verificar si el usuario existe o crearlo si es el usuario demo
-        if (user_id === '123e4567-e89b-12d3-a456-426614174000') {
+        if (userId === '123e4567-e89b-12d3-a456-426614174000') {
             console.log('👤 Verificando/creando usuario demo...');
-            const demoUserCheck = await pool.query('SELECT id FROM users WHERE id = $1', [user_id]);
-            
+            const demoUserCheck = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
+
             if (demoUserCheck.rows.length === 0) {
                 console.log('🔧 Creando usuario demo...');
                 await pool.query(`
                     INSERT INTO users (id, username, display_name, email, created_at, updated_at)
                     VALUES ($1, $2, $3, $4, NOW(), NOW())
                     ON CONFLICT (id) DO NOTHING
-                `, [user_id, 'usuario_demo', 'Usuario Demo', 'demo@example.com']);
+                `, [userId, 'usuario_demo', 'Usuario Demo', 'demo@example.com']);
                 console.log('✅ Usuario demo creado');
             }
         } else {
             // Verificar que el usuario real existe
-            const userCheck = await pool.query('SELECT id FROM users WHERE id = $1', [user_id]);
+            const userCheck = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
             if (userCheck.rows.length === 0) {
-                console.log('❌ Usuario no encontrado:', user_id);
+                console.log('❌ Usuario no encontrado:', userId);
                 return res.status(400).json({
                     success: false,
                     error: 'Usuario no encontrado. Por favor inicia sesión nuevamente.'
@@ -5806,11 +5912,11 @@ app.post('/api/community/questions/:questionId/answers', async (req, res) => {
         
         // Crear la respuesta
         const result = await pool.query(`
-            INSERT INTO community_answers 
+            INSERT INTO community_answers
             (question_id, user_id, content, votes_count, created_at, updated_at)
             VALUES ($1, $2, $3, 0, NOW(), NOW())
             RETURNING *
-        `, [questionId, user_id, content.trim()]);
+        `, [questionId, userId, content.trim()]);
         
         console.log('📊 Resultado de INSERT:', {
             rowCount: result.rowCount,
@@ -5827,9 +5933,9 @@ app.post('/api/community/questions/:questionId/answers', async (req, res) => {
         // Obtener datos del usuario para la respuesta
         const userResult = await pool.query(`
             SELECT username, display_name, first_name, profile_picture_url
-            FROM users 
+            FROM users
             WHERE id = $1
-        `, [user_id]);
+        `, [userId]);
         
         const userData = userResult.rows[0] || {};
         console.log('👤 Datos de usuario encontrados:', userData);
@@ -6565,6 +6671,206 @@ app.get('/api/community/stats', async (req, res) => {
         res.status(500).json({ 
             error: 'Error interno del servidor',
             details: error.message 
+        });
+    }
+});
+
+// POST /api/community/questions/:id/vote - Votar en una pregunta específica
+app.post('/api/community/questions/:id/vote', async (req, res) => {
+    try {
+        console.log('🗳️ === VOTO EN PREGUNTA ===');
+        console.log('Question ID:', req.params.id);
+        console.log('Body:', req.body);
+
+        const questionId = req.params.id;
+        const { vote_type } = req.body;
+        const userId = req.headers['x-user-id'] || req.body.user_id;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: 'Usuario no autenticado'
+            });
+        }
+
+        if (!vote_type || !['up', 'down', 'upvote', 'downvote'].includes(vote_type)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Tipo de voto inválido. Usar: up, down, upvote, downvote'
+            });
+        }
+
+        // Normalizar tipo de voto
+        const normalizedVoteType = vote_type === 'upvote' ? 'up' :
+                                 vote_type === 'downvote' ? 'down' : vote_type;
+
+        // Verificar si ya existe un voto del usuario
+        const existingVoteResult = await pool.query(`
+            SELECT * FROM community_votes
+            WHERE user_id = $1 AND target_type = 'question' AND target_id = $2
+        `, [userId, questionId]);
+
+        let voteAction = 'created';
+
+        if (existingVoteResult.rows.length > 0) {
+            const existingVote = existingVoteResult.rows[0];
+
+            if (existingVote.vote_type === normalizedVoteType) {
+                // Eliminar voto si es el mismo tipo
+                await pool.query('DELETE FROM community_votes WHERE id = $1', [existingVote.id]);
+                voteAction = 'removed';
+            } else {
+                // Actualizar tipo de voto
+                await pool.query(
+                    'UPDATE community_votes SET vote_type = $1 WHERE id = $2',
+                    [normalizedVoteType, existingVote.id]
+                );
+                voteAction = 'updated';
+            }
+        } else {
+            // Crear nuevo voto
+            await pool.query(`
+                INSERT INTO community_votes (user_id, target_type, target_id, vote_type, created_at)
+                VALUES ($1, 'question', $2, $3, NOW())
+            `, [userId, questionId, normalizedVoteType]);
+        }
+
+        // Actualizar contador de votos en la pregunta
+        await updateVoteCount('question', questionId);
+
+        // Contar votos actuales
+        const upVotesResult = await pool.query(`
+            SELECT COUNT(*) as count FROM community_votes
+            WHERE target_type = 'question' AND target_id = $1 AND vote_type = 'up'
+        `, [questionId]);
+
+        const downVotesResult = await pool.query(`
+            SELECT COUNT(*) as count FROM community_votes
+            WHERE target_type = 'question' AND target_id = $1 AND vote_type = 'down'
+        `, [questionId]);
+
+        const upCount = parseInt(upVotesResult.rows[0].count);
+        const downCount = parseInt(downVotesResult.rows[0].count);
+        const totalVotes = upCount - downCount;
+
+        res.status(200).json({
+            success: true,
+            data: {
+                action: voteAction,
+                vote_type: normalizedVoteType,
+                total_votes: totalVotes,
+                up_votes: upCount,
+                down_votes: downCount
+            },
+            message: `Voto ${voteAction === 'removed' ? 'eliminado' : voteAction === 'updated' ? 'actualizado' : 'registrado'} exitosamente`
+        });
+
+    } catch (error) {
+        console.error('❌ Error en voto de pregunta:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+});
+
+// POST /api/community/answers/:id/vote - Votar en una respuesta específica
+app.post('/api/community/answers/:id/vote', async (req, res) => {
+    try {
+        console.log('🗳️ === VOTO EN RESPUESTA ===');
+        console.log('Answer ID:', req.params.id);
+        console.log('Body:', req.body);
+
+        const answerId = req.params.id;
+        const { vote_type } = req.body;
+        const userId = req.headers['x-user-id'] || req.body.user_id;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: 'Usuario no autenticado'
+            });
+        }
+
+        if (!vote_type || !['up', 'down', 'upvote', 'downvote'].includes(vote_type)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Tipo de voto inválido. Usar: up, down, upvote, downvote'
+            });
+        }
+
+        // Normalizar tipo de voto
+        const normalizedVoteType = vote_type === 'upvote' ? 'up' :
+                                 vote_type === 'downvote' ? 'down' : vote_type;
+
+        // Verificar si ya existe un voto del usuario
+        const existingVoteResult = await pool.query(`
+            SELECT * FROM community_votes
+            WHERE user_id = $1 AND target_type = 'answer' AND target_id = $2
+        `, [userId, answerId]);
+
+        let voteAction = 'created';
+
+        if (existingVoteResult.rows.length > 0) {
+            const existingVote = existingVoteResult.rows[0];
+
+            if (existingVote.vote_type === normalizedVoteType) {
+                // Eliminar voto si es el mismo tipo
+                await pool.query('DELETE FROM community_votes WHERE id = $1', [existingVote.id]);
+                voteAction = 'removed';
+            } else {
+                // Actualizar tipo de voto
+                await pool.query(
+                    'UPDATE community_votes SET vote_type = $1 WHERE id = $2',
+                    [normalizedVoteType, existingVote.id]
+                );
+                voteAction = 'updated';
+            }
+        } else {
+            // Crear nuevo voto
+            await pool.query(`
+                INSERT INTO community_votes (user_id, target_type, target_id, vote_type, created_at)
+                VALUES ($1, 'answer', $2, $3, NOW())
+            `, [userId, answerId, normalizedVoteType]);
+        }
+
+        // Actualizar contador de votos en la respuesta
+        await updateVoteCount('answer', answerId);
+
+        // Contar votos actuales
+        const upVotesResult = await pool.query(`
+            SELECT COUNT(*) as count FROM community_votes
+            WHERE target_type = 'answer' AND target_id = $1 AND vote_type = 'up'
+        `, [answerId]);
+
+        const downVotesResult = await pool.query(`
+            SELECT COUNT(*) as count FROM community_votes
+            WHERE target_type = 'answer' AND target_id = $1 AND vote_type = 'down'
+        `, [answerId]);
+
+        const upCount = parseInt(upVotesResult.rows[0].count);
+        const downCount = parseInt(downVotesResult.rows[0].count);
+        const totalVotes = upCount - downCount;
+
+        res.status(200).json({
+            success: true,
+            data: {
+                action: voteAction,
+                vote_type: normalizedVoteType,
+                total_votes: totalVotes,
+                up_votes: upCount,
+                down_votes: downCount
+            },
+            message: `Voto ${voteAction === 'removed' ? 'eliminado' : voteAction === 'updated' ? 'actualizado' : 'registrado'} exitosamente`
+        });
+
+    } catch (error) {
+        console.error('❌ Error en voto de respuesta:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor',
+            details: error.message
         });
     }
 });

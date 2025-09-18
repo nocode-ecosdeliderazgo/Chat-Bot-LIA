@@ -963,6 +963,8 @@ async function handleRegister(e) {
         // Registro solo por backend para evitar 401 por RLS en Supabase
         devLog('Registro por backend /api/register');
         const registerData = { 
+            first_name: userData.first_name,
+            last_name: userData.last_name,
             full_name: `${userData.first_name} ${userData.last_name}`.trim(), 
             username: userData.username, 
             email: userData.email, 
@@ -2152,13 +2154,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 openTermsCard('privacy');
             });
-        } else if (link.textContent.includes('Olvidaste tu contraseña')) {
+        } else if (link.textContent.includes('Olvidaste tu contraseña') || link.classList.contains('forgot-link')) {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 openForgotPasswordModal();
             });
         }
     });
+
+    // También configurar específicamente el enlace de recuperación por clase
+    const forgotPasswordLink = document.querySelector('.forgot-link');
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            openForgotPasswordModal();
+        });
+    }
     
     // Cerrar tarjeta al hacer clic fuera de ella
     const termsCardOverlay = document.getElementById('termsCard');

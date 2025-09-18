@@ -3794,6 +3794,141 @@
                 font-size: 0.75rem;
             }
         }
+
+        /* ===== ESTILOS PARA MENSAJES DE CHAT (SOLO PARA #liaMessages) ===== */
+        #liaMessages .message {
+            margin-bottom: 1.5rem;
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        #liaMessages .user-message {
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.15), rgba(68, 229, 255, 0.08));
+            border: 1px solid rgba(68, 229, 255, 0.2);
+            margin-left: auto;
+            max-width: 85%;
+        }
+
+        #liaMessages .user-message:hover {
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.2), rgba(68, 229, 255, 0.1));
+            border-color: rgba(68, 229, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        #liaMessages .message-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #ffffff;
+            margin-top: 8px;
+        }
+
+        /* Avatar circular para usuario (solo en chat) */
+        #liaMessages .user-avatar-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--glass-primary, #44e5ff), #0066CC);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            margin-right: 10px;
+            border: 2px solid rgba(68, 229, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(68, 229, 255, 0.2);
+        }
+
+        /* Mejorar la estructura de header de pregunta para mensajes de chat */
+        #liaMessages .user-message .question-header {
+            margin-bottom: 0;
+        }
+
+        #liaMessages .user-message .question-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        #liaMessages .user-message .question-author {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        #liaMessages .user-message .author-name {
+            color: var(--glass-primary, #44e5ff);
+            font-weight: 600;
+        }
+
+        #liaMessages .user-message .question-time {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Estilos específicos para mensajes de LIA (solo en chat) */
+        #liaMessages .lia-message {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-right: auto;
+            max-width: 85%;
+        }
+
+        #liaMessages .lia-message:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        #liaMessages .lia-message .author-name {
+            color: #44e5ff;
+            font-weight: 600;
+        }
+
+        #liaMessages .lia-message .author-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid rgba(68, 229, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(68, 229, 255, 0.2);
+        }
+
+        /* Responsive para mensajes de chat */
+        @media (max-width: 768px) {
+            #liaMessages .message {
+                padding: 12px;
+                margin-bottom: 1rem;
+            }
+
+            #liaMessages .user-message {
+                max-width: 95%;
+            }
+
+            #liaMessages .user-avatar-circle {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+                margin-right: 8px;
+            }
+
+            #liaMessages .message-text {
+                font-size: 13px;
+            }
+
+            #liaMessages .user-message .question-author {
+                font-size: 13px;
+            }
+
+            #liaMessages .lia-message .author-avatar {
+                width: 28px;
+                height: 28px;
+            }
+        }
     </style>
     <!-- Favicon -->
     <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
@@ -4797,7 +4932,7 @@ Cargando información...
                 
                 // Datos del usuario desde la API (nested en users object)
                 const userName = question.users?.name || question.users?.display_name || question.display_name || question.first_name || question.username || 'Usuario Anónimo';
-                const userAvatar = question.users?.avatar_url || question.avatar_url || '../../assets/images/default-avatar.svg';
+                const userAvatar = question.users?.profile_picture_url || question.users?.avatar_url || question.avatar_url || '../../assets/images/default-avatar.svg';
                 
                 // Tags
                 const tags = Array.isArray(question.tags) ? question.tags : [];
@@ -4891,7 +5026,7 @@ Cargando información...
                 
                 // Datos del usuario
                 const userName = question.users?.name || question.users?.display_name || 'Usuario Anónimo';
-                const userAvatar = question.users?.avatar_url || '../../assets/images/default-avatar.svg';
+                const userAvatar = question.users?.profile_picture_url || question.users?.avatar_url || '../../assets/images/default-avatar.svg';
                 
                 // Tags
                 const tags = Array.isArray(question.tags) ? question.tags : [];
@@ -5255,13 +5390,64 @@ Cargando información...
         };
         
         // Función global inmediata para votar preguntas
-        window.voteQuestion = function(questionId, voteType) {
+        window.voteQuestion = async function(questionId, voteType) {
             console.log('📊 Función global voteQuestion ejecutada (inmediata):', questionId, voteType);
-            
-            if (window.chatOnline && window.chatOnline.voteQuestion) {
-                window.chatOnline.voteQuestion(questionId, voteType);
-            } else {
-                console.log('⚠️ ChatOnline no disponible para voteQuestion');
+
+            try {
+                if (window.communityAPI && window.communityAPI.voteQuestion) {
+                    console.log('🗳️ Usando communityAPI para votar...');
+
+                    // Asegurar que tenemos un usuario configurado
+                    if (!window.communityAPI.currentUser) {
+                        // Intentar obtener usuario del localStorage o usar uno por defecto
+                        let currentUser = null;
+                        try {
+                            const userData = localStorage.getItem('userData') || localStorage.getItem('currentUser');
+                            if (userData) {
+                                currentUser = JSON.parse(userData);
+                            }
+                        } catch (e) {
+                            console.log('⚠️ No se pudo obtener usuario del localStorage');
+                        }
+
+                        if (!currentUser) {
+                            currentUser = {
+                                id: 'demo-user-' + Date.now(),
+                                name: 'Usuario Demo'
+                            };
+                        }
+
+                        window.communityAPI.setCurrentUser(currentUser);
+                        console.log('👤 Usuario configurado:', currentUser);
+                    }
+
+                    const response = await window.communityAPI.voteQuestion(questionId, voteType);
+
+                    if (response && response.success) {
+                        console.log('✅ Voto procesado exitosamente:', response);
+
+                        // Actualizar visualmente el botón de voto
+                        updateVoteButtons(questionId, voteType, response.data);
+
+                        // Mostrar notificación
+                        const action = response.data?.action;
+                        if (action === 'removed') {
+                            showNotification('🗳️ Voto eliminado', 'info');
+                        } else if (action === 'updated') {
+                            showNotification('🗳️ Voto actualizado', 'success');
+                        } else {
+                            showNotification('✅ Voto registrado', 'success');
+                        }
+                    } else {
+                        throw new Error(response?.error || 'Error al procesar voto');
+                    }
+                } else {
+                    console.error('❌ communityAPI.voteQuestion no disponible');
+                    showNotification('❌ Sistema de votación no disponible', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error al votar:', error);
+                showNotification('❌ Error al votar: ' + error.message, 'error');
             }
         };
         
@@ -5360,13 +5546,78 @@ Cargando información...
             
             console.log('📝 Respuesta:', answerContent.value.trim());
             console.log('📋 Pregunta ID:', questionId);
-            
-            // Si chatOnline está disponible, usar su método
-            if (window.chatOnline && window.chatOnline.submitAnswer) {
-                window.chatOnline.submitAnswer();
-            } else {
-                // Fallback con guardado en base de datos
+
+            // Usar la API mejorada de comunidad
+            if (window.communityAPI && window.communityAPI.createAnswer) {
                 try {
+                    console.log('🔧 Usando communityAPI.createAnswer mejorado...');
+
+                    // Asegurar que tenemos un usuario configurado
+                    if (!window.communityAPI.currentUser) {
+                        // Intentar obtener usuario del localStorage o usar uno por defecto
+                        let currentUser = null;
+                        try {
+                            const userData = localStorage.getItem('userData') || localStorage.getItem('currentUser');
+                            if (userData) {
+                                currentUser = JSON.parse(userData);
+                            }
+                        } catch (e) {
+                            console.log('⚠️ No se pudo obtener usuario del localStorage');
+                        }
+
+                        if (!currentUser) {
+                            currentUser = {
+                                id: 'demo-user-' + Date.now(),
+                                name: 'Usuario Demo'
+                            };
+                        }
+
+                        window.communityAPI.setCurrentUser(currentUser);
+                        console.log('👤 Usuario configurado para respuesta:', currentUser);
+                    }
+
+                    const answerData = {
+                        content: answerContent.value.trim(),
+                        question_id: questionId
+                    };
+
+                    const response = await window.communityAPI.createAnswer(questionId, answerData);
+
+                    if (response && response.success) {
+                        console.log('✅ Respuesta guardada exitosamente:', response);
+                        window.showNotification('¡Respuesta publicada exitosamente!', 'success', 3000);
+
+                        // Limpiar formulario y cerrar modal
+                        answerContent.value = '';
+                        window.hideAnswerModal();
+
+                        // Actualizar contador de respuestas
+                        if (window.updateAnswerCount) {
+                            window.updateAnswerCount(questionId);
+                        }
+
+                        // Recargar preguntas después de un pequeño delay
+                        setTimeout(async () => {
+                            try {
+                                console.log('🔄 Recargando preguntas después de crear respuesta...');
+                                if (window.loadCommunityQuestions) {
+                                    await window.loadCommunityQuestions();
+                                }
+                            } catch (error) {
+                                console.error('❌ Error recargando preguntas:', error);
+                            }
+                        }, 500);
+                    } else {
+                        throw new Error(response?.error || 'Error al crear respuesta');
+                    }
+                } catch (error) {
+                    console.error('❌ Error usando communityAPI.createAnswer:', error);
+                    window.showNotification('Error al enviar respuesta: ' + error.message, 'error', 4000);
+                }
+            } else {
+                // Fallback si communityAPI no está disponible
+                try {
+                    console.log('⚠️ Fallback: communityAPI no disponible, intentando método alternativo...');
                     // Intentar obtener usuario real primero
                     let currentUser = null;
                     
@@ -5726,13 +5977,113 @@ Cargando información...
         };
 
         // ===== FUNCIONES PARA MANEJAR VOTOS Y COMENTARIOS =====
-        window.voteAnswer = function(answerId, voteType) {
-            console.log('📊 Votando respuesta:', answerId, voteType);
-            // Aquí se implementaría la lógica de votación
-            // Mostrar notificación personalizada en lugar de alert
-            const voteText = voteType === 'up' ? 'positivo' : 'negativo';
-            window.showNotification(`Voto ${voteText} registrado correctamente`, 'success', 3000);
+        window.voteAnswer = async function(answerId, voteType) {
+            console.log('📊 Función global voteAnswer ejecutada:', answerId, voteType);
+
+            try {
+                if (window.communityAPI && window.communityAPI.voteAnswer) {
+                    console.log('🗳️ Usando communityAPI para votar respuesta...');
+
+                    // Asegurar que tenemos un usuario configurado
+                    if (!window.communityAPI.currentUser) {
+                        // Intentar obtener usuario del localStorage o usar uno por defecto
+                        let currentUser = null;
+                        try {
+                            const userData = localStorage.getItem('userData') || localStorage.getItem('currentUser');
+                            if (userData) {
+                                currentUser = JSON.parse(userData);
+                            }
+                        } catch (e) {
+                            console.log('⚠️ No se pudo obtener usuario del localStorage');
+                        }
+
+                        if (!currentUser) {
+                            currentUser = {
+                                id: 'demo-user-' + Date.now(),
+                                name: 'Usuario Demo'
+                            };
+                        }
+
+                        window.communityAPI.setCurrentUser(currentUser);
+                        console.log('👤 Usuario configurado para voto de respuesta:', currentUser);
+                    }
+
+                    const response = await window.communityAPI.voteAnswer(answerId, voteType);
+
+                    if (response && response.success) {
+                        console.log('✅ Voto en respuesta procesado exitosamente:', response);
+
+                        // Actualizar visualmente el botón de voto de la respuesta
+                        updateAnswerVoteButtons(answerId, voteType, response.data);
+
+                        // Mostrar notificación
+                        const action = response.data?.action;
+                        if (action === 'removed') {
+                            showNotification('🗳️ Voto en respuesta eliminado', 'info');
+                        } else if (action === 'updated') {
+                            showNotification('🗳️ Voto en respuesta actualizado', 'success');
+                        } else {
+                            showNotification('✅ Voto en respuesta registrado', 'success');
+                        }
+                    } else {
+                        console.error('❌ Error en la respuesta del voto:', response);
+                        showNotification('❌ Error al procesar voto en respuesta', 'error');
+                    }
+                } else {
+                    console.error('❌ communityAPI.voteAnswer no disponible');
+                    showNotification('❌ Sistema de votación no disponible', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error ejecutando voto en respuesta:', error);
+                showNotification('❌ Error al votar respuesta: ' + error.message, 'error');
+            }
         };
+
+        // Función para actualizar botones de voto de respuestas después de votar
+        function updateAnswerVoteButtons(answerId, voteType, voteData) {
+            console.log('🔄 Actualizando botones de voto para respuesta:', answerId, voteType, voteData);
+
+            try {
+                // Buscar la respuesta específica en el DOM
+                const answerElement = document.querySelector(`[data-answer-id="${answerId}"]`);
+                if (!answerElement) {
+                    console.warn('⚠️ No se encontró el elemento de respuesta con ID:', answerId);
+                    return;
+                }
+
+                // Buscar los botones de voto dentro de esta respuesta
+                const upvoteBtn = answerElement.querySelector('.vote-btn.upvote');
+                const downvoteBtn = answerElement.querySelector('.vote-btn.downvote');
+                const voteCount = answerElement.querySelector('.vote-count');
+
+                // Actualizar contadores de votos si están disponibles
+                if (voteData && typeof voteData.total_votes !== 'undefined') {
+                    if (voteCount) {
+                        voteCount.textContent = voteData.total_votes;
+                    }
+                }
+
+                // Actualizar estado visual de los botones
+                if (upvoteBtn && downvoteBtn) {
+                    // Remover clases activas
+                    upvoteBtn.classList.remove('active', 'voted');
+                    downvoteBtn.classList.remove('active', 'voted');
+
+                    // Agregar clase activa según el voto
+                    if (voteData && voteData.action !== 'removed') {
+                        if (voteType === 'up' || voteType === 'upvote') {
+                            upvoteBtn.classList.add('active', 'voted');
+                        } else if (voteType === 'down' || voteType === 'downvote') {
+                            downvoteBtn.classList.add('active', 'voted');
+                        }
+                    }
+                }
+
+                console.log('✅ Botones de voto de respuesta actualizados correctamente');
+            } catch (error) {
+                console.error('❌ Error actualizando botones de voto de respuesta:', error);
+            }
+        }
 
         window.showAnswerComments = function(answerId) {
             console.log('💬 Mostrando comentarios para respuesta:', answerId);
@@ -6290,6 +6641,14 @@ INSTRUCCIONES:
 
                 }
 
+                // 4. Inicializar protección de mensajes de chat
+                setTimeout(() => {
+                    if (typeof initializeMessageProtection === 'function') {
+                        initializeMessageProtection();
+                        console.log('✅ Sistema de protección de mensajes inicializado');
+                    }
+                }, 1000);
+
                 
 
                 console.log('🎉 Sistema dinámico completamente inicializado');
@@ -6327,26 +6686,138 @@ INSTRUCCIONES:
                         function enviarMensaje() {
                             const mensaje = input.value.trim();
                             if (mensaje) {
+                                // Obtener información actual del usuario
+                                const currentUser = obtenerUsuarioActual();
+                                const userName = currentUser?.username || localStorage.getItem('userName') || 'Usuario';
+
+                                // Generar avatar inicial desde el nombre
+                                const avatarLetter = userName.charAt(0).toUpperCase();
+
                                 // Agregar mensaje del usuario
                                 const userMsg = document.createElement('div');
                                 userMsg.className = 'message user-message';
+                                // Agregar un ID único para proteger este mensaje
+                                const messageId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                                userMsg.setAttribute('data-message-id', messageId);
+                                userMsg.setAttribute('data-protected', 'true');
+
                                 userMsg.innerHTML = `
-                                    <div class="message-avatar neo-circle">
-                                        <i class="fas fa-user"></i>
+                                    <div class="question-header">
+                                        <div class="question-meta">
+                                            <span class="question-author">
+                                                <div class="user-avatar-circle">${avatarLetter}</div>
+                                                <span class="author-name" data-original-name="${userName}">${userName}</span>
+                                            </span>
+                                            <span class="question-time">ahora</span>
+                                        </div>
                                     </div>
-                                    <div class="message-content neo-card">
+                                    <div class="message-content">
                                         <div class="message-text">${mensaje}</div>
-                                        <div class="message-time">ahora</div>
                                     </div>
                                 `;
                                 messagesContainer.appendChild(userMsg);
                                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                                
+
+                                // Proteger el mensaje recién agregado contra modificaciones externas
+                                setTimeout(() => {
+                                    protectChatMessage(userMsg, userName, avatarLetter);
+                                }, 100);
+
                                 // Limpiar input
                                 input.value = '';
-                                
+
                                 // Llamar a LIA
                                 handleChatWithLIA(mensaje);
+                            }
+                        }
+
+                        // Función para proteger mensajes de chat contra modificaciones externas
+                        function protectChatMessage(messageElement, originalName, originalAvatar) {
+                            if (!messageElement || !messageElement.querySelector) return;
+
+                            const authorName = messageElement.querySelector('.author-name');
+                            const avatarCircle = messageElement.querySelector('.user-avatar-circle');
+
+                            if (authorName && authorName.textContent !== originalName) {
+                                console.log('🛡️ Restaurando nombre de usuario en mensaje protegido:', originalName);
+                                authorName.textContent = originalName;
+                            }
+
+                            if (avatarCircle && avatarCircle.textContent !== originalAvatar) {
+                                console.log('🛡️ Restaurando avatar en mensaje protegido:', originalAvatar);
+                                avatarCircle.textContent = originalAvatar;
+                            }
+                        }
+
+                        // Función para proteger todos los mensajes existentes y aplicar vigilancia continua
+                        function initializeMessageProtection() {
+                            // Proteger mensajes existentes al cargar la página
+                            const existingMessages = document.querySelectorAll('#liaMessages .user-message');
+                            existingMessages.forEach(msg => {
+                                if (!msg.hasAttribute('data-protected')) {
+                                    const currentUser = obtenerUsuarioActual();
+                                    const userName = currentUser?.username || localStorage.getItem('userName') || 'Usuario';
+                                    const avatarLetter = userName.charAt(0).toUpperCase();
+
+                                    // Marcar como protegido
+                                    msg.setAttribute('data-protected', 'true');
+                                    msg.setAttribute('data-message-id', 'legacy-msg-' + Date.now());
+
+                                    // Actualizar contenido si es necesario
+                                    const authorName = msg.querySelector('.author-name');
+                                    const avatarCircle = msg.querySelector('.user-avatar-circle');
+
+                                    if (authorName) {
+                                        authorName.setAttribute('data-original-name', userName);
+                                        if (authorName.textContent === 'Usuario' || authorName.textContent === 'Usuario Prueba') {
+                                            authorName.textContent = userName;
+                                        }
+                                    }
+
+                                    if (avatarCircle && (avatarCircle.textContent === 'U' || avatarCircle.textContent === 'P')) {
+                                        avatarCircle.textContent = avatarLetter;
+                                    }
+                                }
+                            });
+
+                            // Configurar vigilancia continua con MutationObserver
+                            if (typeof window.chatMutationObserver === 'undefined') {
+                                const observer = new MutationObserver((mutations) => {
+                                    mutations.forEach((mutation) => {
+                                        if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                                            // Verificar si algún mensaje protegido fue modificado
+                                            const protectedMessages = document.querySelectorAll('#liaMessages .user-message[data-protected="true"]');
+                                            protectedMessages.forEach(msg => {
+                                                const authorName = msg.querySelector('.author-name');
+                                                const avatarCircle = msg.querySelector('.user-avatar-circle');
+                                                const originalName = authorName?.getAttribute('data-original-name');
+
+                                                if (originalName && authorName && authorName.textContent !== originalName) {
+                                                    console.log('🛡️ MutationObserver: Restaurando nombre modificado:', originalName);
+                                                    authorName.textContent = originalName;
+                                                }
+
+                                                if (originalName && avatarCircle) {
+                                                    const expectedAvatar = originalName.charAt(0).toUpperCase();
+                                                    if (avatarCircle.textContent !== expectedAvatar) {
+                                                        console.log('🛡️ MutationObserver: Restaurando avatar modificado:', expectedAvatar);
+                                                        avatarCircle.textContent = expectedAvatar;
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    });
+                                });
+
+                                observer.observe(document.getElementById('liaMessages'), {
+                                    childList: true,
+                                    subtree: true,
+                                    characterData: true,
+                                    attributes: true
+                                });
+
+                                window.chatMutationObserver = observer;
+                                console.log('🛡️ MutationObserver inicializado para protección de mensajes');
                             }
                         }
 
@@ -6435,12 +6906,13 @@ INSTRUCCIONES:
                             // Determinar URL de API según el entorno
 
                             const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                            const isNetlify = window.location.hostname.includes('netlify.app') || window.location.hostname.includes('netlify.com');
 
                             const currentPort = window.location.port;
 
                             let apiUrl;
 
-                            
+
 
                             console.log('[LIA] 🔍 Debugging URL:');
 
@@ -6449,34 +6921,42 @@ INSTRUCCIONES:
                             console.log('[LIA] 🔌 Puerto detectado:', currentPort);
 
                             console.log('[LIA] 🏠 Es localhost:', isLocalhost);
+                            console.log('[LIA] 🌐 Es Netlify:', isNetlify);
 
-                            
 
-                            // Forzar URL correcta para puerto 3000
+
+                            // Lógica mejorada para detección de entorno
 
                             if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
 
-                                apiUrl = '/api/openai';  // URL relativa para evitar problemas de CORS
+                                apiUrl = '/api/openai';  // Servidor Express local
 
-                                console.log('[LIA] ✅ Usando URL relativa para puerto 3000');
+                                console.log('[LIA] ✅ Usando servidor Express local (puerto 3000)');
 
                             } else if (isLocalhost && currentPort === '8888') {
 
                                 apiUrl = '/.netlify/functions/openai';  // Para Netlify Dev
 
-                                console.log('[LIA] ✅ Usando URL de Netlify Dev');
+                                console.log('[LIA] ✅ Usando Netlify Dev local');
+
+                            } else if (isNetlify) {
+
+                                apiUrl = '/.netlify/functions/openai';  // Netlify en producción
+
+                                console.log('[LIA] ✅ Usando Netlify Functions en producción');
 
                             } else if (isLocalhost) {
 
                                 apiUrl = '/api/openai';  // Fallback local
 
-                                console.log('[LIA] ✅ Usando fallback local');
+                                console.log('[LIA] ✅ Usando fallback local Express');
 
                             } else {
 
-                                apiUrl = '/api/openai';  // Producción
+                                // Para otros entornos de producción (Heroku, etc.)
+                                apiUrl = '/api/openai';  // Servidor Express en producción
 
-                                console.log('[LIA] ✅ Usando URL de producción');
+                                console.log('[LIA] ✅ Usando servidor Express en producción');
 
                             }
 
@@ -6572,21 +7052,18 @@ INSTRUCCIONES:
                                 liaMsg.className = 'message lia-message';
 
                                 liaMsg.innerHTML = `
-
-                                    <div class="message-avatar neo-circle">
-
-                                        <i class="fas fa-robot"></i>
-
+                                    <div class="question-header">
+                                        <div class="question-meta">
+                                            <span class="question-author">
+                                                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="author-avatar">
+                                                <span class="author-name">LIA - Asistente IA</span>
+                                            </span>
+                                            <span class="question-time">ahora</span>
+                                        </div>
                                     </div>
-
-                                    <div class="message-content neo-card">
-
+                                    <div class="message-content">
                                         <div class="message-text">${respuestaLIA}</div>
-
-                                        <div class="message-time">ahora</div>
-
                                     </div>
-
                                 `;
 
                                 
@@ -6646,21 +7123,18 @@ INSTRUCCIONES:
                                 liaMsg.className = 'message lia-message';
 
                                 liaMsg.innerHTML = `
-
-                                    <div class="message-avatar neo-circle">
-
-                                        <i class="fas fa-robot"></i>
-
+                                    <div class="question-header">
+                                        <div class="question-meta">
+                                            <span class="question-author">
+                                                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="author-avatar">
+                                                <span class="author-name">LIA - Asistente IA</span>
+                                            </span>
+                                            <span class="question-time">ahora</span>
+                                        </div>
                                     </div>
-
-                                    <div class="message-content neo-card">
-
+                                    <div class="message-content">
                                         <div class="message-text">${respuestaFallback}</div>
-
-                                        <div class="message-time">ahora</div>
-
                                     </div>
-
                                 `;
 
                                 
@@ -6684,18 +7158,59 @@ INSTRUCCIONES:
         // Funciones auxiliares
         function obtenerUsuarioActual() {
             try {
-                // Intentar obtener del localStorage
-                const userData = localStorage.getItem('userData');
+                // Intentar obtener del localStorage de múltiples fuentes
+                let userData = localStorage.getItem('userData');
+                let currentUser = localStorage.getItem('currentUser');
+                let userName = localStorage.getItem('userName');
+                let userId = localStorage.getItem('userId');
+                let userEmail = localStorage.getItem('userEmail');
 
-                if (userData) {
-                    return JSON.parse(userData);
+                // Si tenemos userData como JSON, parsearlo
+                if (userData && userData !== 'null') {
+                    try {
+                        const parsedUserData = JSON.parse(userData);
+                        if (parsedUserData && parsedUserData.username) {
+                            return {
+                                id: parsedUserData.id || userId || 'chat-online-user',
+                                username: parsedUserData.username,
+                                email: parsedUserData.email || userEmail || 'usuario@ejemplo.com'
+                            };
+                        }
+                    } catch (e) {
+                        console.log('[LIA] Error parseando userData:', e);
+                    }
+                }
+
+                // Si tenemos currentUser como JSON, parsearlo
+                if (currentUser && currentUser !== 'null') {
+                    try {
+                        const parsedCurrentUser = JSON.parse(currentUser);
+                        if (parsedCurrentUser && parsedCurrentUser.username) {
+                            return {
+                                id: parsedCurrentUser.id || userId || 'chat-online-user',
+                                username: parsedCurrentUser.username,
+                                email: parsedCurrentUser.email || userEmail || 'usuario@ejemplo.com'
+                            };
+                        }
+                    } catch (e) {
+                        console.log('[LIA] Error parseando currentUser:', e);
+                    }
+                }
+
+                // Usar datos individuales si están disponibles
+                if (userName && userName !== 'null' && userName !== 'Usuario Prueba') {
+                    return {
+                        id: userId || 'chat-online-user',
+                        username: userName,
+                        email: userEmail || 'usuario@ejemplo.com'
+                    };
                 }
 
                 // Fallback para desarrollo
                 return {
                     id: 'chat-online-user',
-                    username: 'Usuario',
-                    email: 'usuario@ejemplo.com'
+                    username: userName || 'Usuario',
+                    email: userEmail || 'usuario@ejemplo.com'
                 };
             } catch (error) {
                 console.log('[LIA] Error obteniendo usuario:', error);
@@ -6756,6 +7271,45 @@ INSTRUCCIONES:
             return devToken;
 
         }
+
+        // Función para actualizar nombres de usuario en mensajes existentes (solo en chat)
+        function actualizarNombresUsuarioEnMensajes() {
+            const currentUser = obtenerUsuarioActual();
+            const userName = currentUser?.username || localStorage.getItem('userName') || 'Usuario';
+
+            // Solo actualizar si no es el usuario de prueba por defecto
+            if (userName && userName !== 'Usuario' && userName !== 'Usuario Prueba') {
+                // Actualizar nombres en elementos .author-name dentro de mensajes de usuario (solo en chat)
+                // EXCLUIR mensajes protegidos
+                const messageAuthors = document.querySelectorAll('#liaMessages .user-message:not([data-protected="true"]) .author-name');
+                messageAuthors.forEach(authorElement => {
+                    if (authorElement.textContent === 'Usuario' || authorElement.textContent === 'Usuario Prueba') {
+                        authorElement.textContent = userName;
+                        console.log('[LIA] 📝 Nombre de usuario actualizado en mensaje no protegido:', userName);
+                    }
+                });
+
+                // Actualizar avatares circulares (solo en chat y solo en mensajes no protegidos)
+                const avatarCircles = document.querySelectorAll('#liaMessages .user-message:not([data-protected="true"]) .user-avatar-circle');
+                const avatarLetter = userName.charAt(0).toUpperCase();
+                avatarCircles.forEach(avatarElement => {
+                    if (avatarElement.textContent === 'U' || avatarElement.textContent === 'P') {
+                        avatarElement.textContent = avatarLetter;
+                        console.log('[LIA] 📝 Avatar de usuario actualizado en mensaje no protegido:', avatarLetter);
+                    }
+                });
+            }
+        }
+
+        // Llamar a la función de actualización cuando se carga el usuario
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'userName' || e.key === 'userData' || e.key === 'currentUser') {
+                setTimeout(actualizarNombresUsuarioEnMensajes, 100);
+            }
+        });
+
+        // También llamar después de un breve delay para capturar datos del login
+        setTimeout(actualizarNombresUsuarioEnMensajes, 2000);
 
         // ===== FUNCIÓN INMEDIATA PARA TABS - NO DEPENDE DE NADA =====
         function switchTab(contentType) {
@@ -7445,6 +7999,52 @@ Generado desde Coach LIA IA - ${currentDate}
         }
 
 
+        // Función para actualizar botones de voto después de votar
+        function updateVoteButtons(questionId, voteType, voteData) {
+            console.log('🔄 Actualizando botones de voto para pregunta:', questionId, voteType, voteData);
+
+            try {
+                // Buscar la pregunta específica en el DOM
+                const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+                if (!questionElement) {
+                    console.warn('⚠️ No se encontró el elemento de pregunta con ID:', questionId);
+                    return;
+                }
+
+                // Buscar los botones de voto dentro de esta pregunta
+                const upvoteBtn = questionElement.querySelector('.vote-btn[onclick*="upvote"], .vote-btn[onclick*="up"]');
+                const downvoteBtn = questionElement.querySelector('.vote-btn[onclick*="downvote"], .vote-btn[onclick*="down"]');
+                const voteCount = questionElement.querySelector('.vote-count, .votes-count');
+
+                // Actualizar contadores de votos si están disponibles
+                if (voteData && typeof voteData.total_votes !== 'undefined') {
+                    if (voteCount) {
+                        voteCount.textContent = voteData.total_votes;
+                    }
+                }
+
+                // Actualizar estado visual de los botones
+                if (upvoteBtn && downvoteBtn) {
+                    // Remover clases activas
+                    upvoteBtn.classList.remove('active', 'voted');
+                    downvoteBtn.classList.remove('active', 'voted');
+
+                    // Agregar clase activa según el voto
+                    if (voteData && voteData.action !== 'removed') {
+                        if (voteType === 'up' || voteType === 'upvote') {
+                            upvoteBtn.classList.add('active', 'voted');
+                        } else if (voteType === 'down' || voteType === 'downvote') {
+                            downvoteBtn.classList.add('active', 'voted');
+                        }
+                    }
+                }
+
+                console.log('✅ Botones de voto actualizados correctamente');
+            } catch (error) {
+                console.error('❌ Error actualizando botones de voto:', error);
+            }
+        }
+
         // Función para mostrar notificaciones
         function showNotification(message, type = 'info') {
             // Crear elemento de notificación
@@ -7506,23 +8106,25 @@ Generado desde Coach LIA IA - ${currentDate}
         function updateHeaderProgressBar(completedVideos = 0, totalVideos = 19) {
             const progressFillHeader = document.getElementById('progressFillHeader');
             const progressPercentage = document.getElementById('progressPercentage');
-            
+
+            // Calcular porcentaje una sola vez
+            const percentage = totalVideos > 0 ? (completedVideos / totalVideos) * 100 : 0;
+            const percentageRounded = Math.round(percentage);
+
             if (progressFillHeader) {
-                const percentage = totalVideos > 0 ? (completedVideos / totalVideos) * 100 : 0;
                 progressFillHeader.style.width = `${percentage}%`;
             }
-            
+
             if (progressPercentage) {
-                const percentage = totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0;
-                progressPercentage.textContent = `${percentage}%`;
+                progressPercentage.textContent = `${percentageRounded}%`;
                 // Agregar animación al porcentaje
                 progressPercentage.classList.add('progress-counter-animation');
                 setTimeout(() => {
                     progressPercentage.classList.remove('progress-counter-animation');
                 }, 500);
             }
-            
-            console.log(`📊 Progreso actualizado: ${completedVideos}/${totalVideos} videos (${percentage}%)`);
+
+            console.log(`📊 Progreso actualizado: ${completedVideos}/${totalVideos} videos (${percentageRounded}%)`);
         }
 
         // ===== FUNCIÓN PARA CONTAR VIDEOS COMPLETADOS =====
@@ -7631,40 +8233,9 @@ Generado desde Coach LIA IA - ${currentDate}
 
             // Función para marcar algunas preguntas como propias para testing
             markSampleQuestionsAsOwn(forceRefresh = false) {
-                const questions = document.querySelectorAll('.question-item, .community-question');
-                console.log(`🧪 Intentando marcar ${questions.length} preguntas encontradas`);
-
-                if (questions.length === 0) {
-                    console.warn('⚠️ No se encontraron preguntas. Reintentando en 2 segundos...');
-                    setTimeout(() => this.markSampleQuestionsAsOwn(true), 2000);
-                    return;
-                }
-
-                let marked = 0;
-                questions.forEach((question, index) => {
-                    // Marcar cada tercera pregunta como propia para testing
-                    if (index % 3 === 0) {
-                        question.classList.add('my-question');
-                        question.dataset.isOwn = 'true';
-
-                        // También intentar modificar el texto del autor si existe
-                        const authorElement = question.querySelector('.question-author, .author-name, .user-name');
-                        if (authorElement && !authorElement.dataset.originalText) {
-                            authorElement.dataset.originalText = authorElement.textContent;
-                            authorElement.textContent = localStorage.getItem('userName') || 'Usuario Prueba';
-                        }
-
-                        marked++;
-                        console.log(`🧪 Pregunta ${index + 1} marcada como propia (total: ${marked})`);
-                    }
-                });
-
-                console.log(`✅ Se marcaron ${marked} preguntas como propias de ${questions.length} totales`);
-
-                // Si se ejecutó por fuerza, aplicar filtros después
-                if (forceRefresh) {
-                    setTimeout(() => this.applyAllFilters(), 500);
-                }
+                // FUNCIÓN DESHABILITADA - Causaba conflictos visuales con el chat
+                console.log('🧪 markSampleQuestionsAsOwn: Función deshabilitada para evitar conflictos con el chat');
+                return;
             },
 
             // Función para crear preguntas propias manualmente (para debugging)
