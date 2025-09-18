@@ -35,75 +35,80 @@ class CommunityPage {
     }
 
     async init() {
-        this.setupEventListeners();
         try {
-            await this.ensureSupabaseClient();
+            console.log('[COMMUNITY] 🚀 Iniciando sistema de comunidades...');
+
+            // Verificar que CommunityDatabase esté disponible
+            if (typeof CommunityDatabase === 'undefined') {
+                console.error('[COMMUNITY] ❌ CommunityDatabase no está definido');
+                console.error('[COMMUNITY] 🔍 Verificar que community-database.js se cargue antes que community.js');
+                throw new Error('CommunityDatabase no está disponible - Verificar orden de scripts');
+            }
+
+            // Verificar que main.js no tenga errores
+            if (typeof window === 'undefined') {
+                throw new Error('Entorno de JavaScript no disponible');
+            }
+
+            // Intentar inicializar Supabase UNA SOLA VEZ
+            console.log('[COMMUNITY] 🔄 Verificando Supabase...');
+            const supabaseOk = await this.ensureSupabaseClient();
+
+            if (!supabaseOk) {
+                console.error('[COMMUNITY] ❌ Supabase no disponible - Mostrando error al usuario');
+                this.showSupabaseError();
+                return;
+            }
+
+            // Continuar con inicialización normal
+            console.log('[COMMUNITY] 🔄 Inicializando CommunityDatabase...');
             this.db = new CommunityDatabase();
             await this.db.initialize();
             await this.loadCommunityData();
+
+            console.log('[COMMUNITY] ✅ Sistema de comunidades inicializado');
+
         } catch (error) {
-            console.error('[COMMUNITY] Error inicializando datos:', error);
-            this.communities = [];
-            this.communityStats = { totalMembers: 0, totalPosts: 0 };
-            this.renderDiscover('all', '');
-            this.updateStats();
-            this.showToast('No se pudieron cargar tus comunidades. Intenta nuevamente.', 'error');
-            this.hideLoading();
+            console.error('[COMMUNITY] ❌ Error crítico en init:', error);
+
+            // Mostrar error específico según el tipo
+            if (error.message.includes('CommunityDatabase')) {
+                this.showScriptError('CommunityDatabase no disponible', 'Verificar que community-database.js se cargue correctamente');
+            } else {
+                this.showSupabaseError();
+            }
         }
+
+        this.setupEventListeners();
         this.setupAnimations();
         this.fillUserHeader();
     }
 
     async ensureSupabaseClient() {
-        if (window.supabase && typeof window.supabase.from === 'function') {
-            return window.supabase;
+        console.log('[COMMUNITY] 🔍 Verificando cliente Supabase...');
+
+        // UNA SOLA VERIFICACIÓN - NO REINTENTOS
+        if (window.supabase && window.supabaseInitialized) {
+            console.log('[COMMUNITY] ✅ Supabase ya disponible');
+            return true;
         }
-        if (window.supabaseInitialized && window.supabase && typeof window.supabase.from === 'function') {
-            return window.supabase;
-        }
 
-        return new Promise((resolve, reject) => {
-            let settled = false;
-            let timeoutId;
+        // UN SOLO INTENTO DE INICIALIZACIÓN
+        try {
+            console.log('[COMMUNITY] 🔄 Intentando inicializar Supabase (una sola vez)...');
+            await initializeSupabaseClient();
 
-            const cleanup = () => {
-                if (settled) return;
-                settled = true;
-                window.removeEventListener('supabaseReady', onReady);
-                window.removeEventListener('supabaseFallback', onFallback);
-                if (timeoutId) {
-                    clearTimeout(timeoutId);
-                }
-            };
-
-            const onReady = (event) => {
-                cleanup();
-                resolve(event.detail || window.supabase);
-            };
-
-            const onFallback = (event) => {
-                cleanup();
-                reject(event.detail || new Error('Supabase no disponible'));
-            };
-
-            timeoutId = setTimeout(() => {
-                if (settled) return;
-                if (window.supabase && typeof window.supabase.from === 'function') {
-                    cleanup();
-                    resolve(window.supabase);
-                } else {
-                    cleanup();
-                    reject(new Error('Supabase no disponible'));
-                }
-            }, 8000);
-
-            window.addEventListener('supabaseReady', onReady, { once: true });
-            window.addEventListener('supabaseFallback', onFallback, { once: true });
-
-            if (typeof window.reinitializeSupabase === 'function') {
-                window.reinitializeSupabase().catch(() => {});
+            if (window.supabase && window.supabaseInitialized) {
+                console.log('[COMMUNITY] ✅ Supabase inicializado exitosamente');
+                return true;
+            } else {
+                console.error('[COMMUNITY] ❌ Supabase no se inicializó correctamente');
+                return false;
             }
-        });
+        } catch (error) {
+            console.error('[COMMUNITY] ❌ Error inicializando Supabase:', error);
+            return false;
+        }
     }
     // ===== EVENT LISTENERS =====
     setupEventListeners() {
@@ -238,6 +243,7 @@ class CommunityPage {
 
     // ===== DATA LOADING =====
     async loadCommunityData() {
+        console.log('📊 Cargando datos de comunidad...');
         this.showLoading();
 
         try {
@@ -250,7 +256,20 @@ class CommunityPage {
                 return;
             }
 
-            const baseCommunities = await this.db.getCommunities();
+            // Obtener comunidades
+            this.communities = await this.db.getCommunities();
+            console.log('🏘️ Comunidades cargadas:', this.communities);
+            console.log('📊 Número de comunidades:', this.communities.length);
+
+            if (this.communities.length === 0) {
+                console.warn('⚠️ No se encontraron comunidades - Verificar:');
+                console.warn('  1. Datos en tabla communities');
+                console.warn('  2. Filtros aplicados (is_active, etc.)');
+                console.warn('  3. Permisos RLS');
+                console.warn('  4. Autenticación de usuario');
+            }
+
+            const baseCommunities = this.communities;
 
             if (!Array.isArray(baseCommunities) || baseCommunities.length === 0) {
                 this.communities = [];
@@ -290,10 +309,14 @@ class CommunityPage {
             this.communityStats.totalMembers = hydrated.reduce((sum, item) => sum + (item.memberCount || 0), 0);
             this.communityStats.totalPosts = hydrated.reduce((sum, item) => sum + (item.postCount || 0), 0);
 
+            // Obtener estadísticas
+            console.log('📈 Estadísticas:', this.communityStats);
+
             const activeChip = document.querySelector('.discover-chip.active');
             const category = activeChip ? activeChip.dataset.category : 'all';
             const query = (document.getElementById('discoverSearch')?.value || '').trim();
 
+            // Renderizar
             this.renderDiscover(category, query);
             this.updateStats();
         } catch (error) {
@@ -590,6 +613,42 @@ class CommunityPage {
                 toast.remove();
             }
         }, 5000);
+    }
+
+    showSupabaseError() {
+        console.log('[COMMUNITY] 📊 Mostrando error de Supabase al usuario...');
+        this.communities = [];
+        this.communityStats = { totalMembers: 0, totalPosts: 0 };
+        this.renderDiscover('all', '');
+        this.updateStats();
+        this.showToast('No se pudieron cargar tus comunidades. Base de datos no disponible.', 'error');
+        this.hideLoading();
+    }
+
+    showScriptError(title, message) {
+        console.log('🚨 Mostrando error de script al usuario');
+
+        const discoverGrid = document.getElementById('discoverGrid');
+        if (discoverGrid) {
+            discoverGrid.innerHTML = `
+                <div class="error-message">
+                    <div class="error-icon">⚠️</div>
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                    <p>Revisar consola del navegador para más detalles.</p>
+                    <button onclick="location.reload()" class="retry-button">Recargar Página</button>
+                </div>
+            `;
+        }
+
+        this.updateStatsWithError();
+    }
+
+    updateStatsWithError() {
+        this.communities = [];
+        this.communityStats = { totalMembers: 0, totalPosts: 0 };
+        this.updateStats();
+        this.hideLoading();
     }
 }
 

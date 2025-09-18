@@ -1,131 +1,316 @@
-# PROMPT PARA CLAUDE - MEJORA DE CONTRASTE EN MODO CLARO
+# PROMPT PARA CLAUDE - CORRECCIÓN DE ERRORES EN COMMUNITY.HTML
 
-## OBJETIVO
-Mejorar el contraste y la estética de la página de bienvenida (`index.html`) en modo claro cambiando los colores de fuente a `#0066cc` donde sea conveniente, para mejorar la legibilidad y la experiencia visual.
+## OBJETIVO PRINCIPAL
+Resolver los errores críticos que impiden que las comunidades se carguen correctamente en la página `community.html`, específicamente:
 
-## CONTEXTO
-La página actual usa un sistema de colores con:
-- `--course-primary: #44E5FF` (Turquesa IA)
-- `--course-secondary: #0077A6` (Azul Oscuro)
-- `--text-primary: #1E293B` (Gris oscuro para modo claro)
-- `--text-secondary: rgba(30, 41, 59, 0.9)` (Gris secundario)
+1. **Error de CSP (Content Security Policy)**: FontAwesome bloqueado
+2. **Error de sintaxis en main.js**: Token inesperado en línea 760  
+3. **Error de Supabase**: `supabase.createClient no está disponible` (window.supabase: null)
 
-## CAMBIOS SOLICITADOS
+## ESTRUCTURA DE BASE DE DATOS ESPECÍFICA
+**IMPORTANTE**: El sistema utiliza estas tablas específicas de Supabase:
 
-### 1. VARIABLES CSS EN `welcome.css`
-Actualizar las variables del modo claro para usar `#0066cc`:
+### Tablas de Comunidad:
+1. **`communities`** - Tabla principal de comunidades
+   - `id` (uuid)
+   - `name` (text)
+   - `description` (text) 
+   - `slug` (text)
+   - `image_url` (text)
+   - `member_count` (int4)
+   - `is_active` (bool)
+   - `created_at` (timestamptz)
+   - `updated_at` (timestamptz)
 
-```css
-/* ===== MODO CLARO ===== */
-[data-theme="light"] {
-    /* Colores de fondo y texto - Modo Claro */
-    --bg-primary: #F0F4F8;
-    --bg-secondary: #E2E8F0;
-    --bg-tertiary: rgba(0, 0, 0, 0.08);
-    --text-primary: #0066cc;                    /* CAMBIAR de #1E293B a #0066cc */
-    --text-secondary: rgba(0, 102, 204, 0.9);  /* CAMBIAR de rgba(30, 41, 59, 0.9) */
-    --text-muted: rgba(0, 102, 204, 0.7);      /* CAMBIAR de rgba(30, 41, 59, 0.7) */
-    
-    /* Actualizar course-secondary para mejor contraste */
-    --course-secondary: #0066cc;               /* CAMBIAR de #0077A6 a #0066cc */
+2. **`community_members`** - Miembros de las comunidades
+   - `id` (uuid)
+   - `community_id` (uuid)
+   - `user_id` (uuid)
+   - `role` (text)
+   - `joined_at` (timestamptz)
+   - `is_active` (bool)
+
+3. **`community_posts`** - Publicaciones en comunidades
+   - `id` (uuid)
+   - `community_id` (uuid)
+   - `user_id` (uuid)
+   - `title` (text)
+   - `content` (text)
+   - `attachment_url` (text)
+   - `attachment_type` (text)
+   - `likes_count` (int4)
+   - `comments_count` (int4)
+   - `is_pinned` (bool)
+   - `is_edited` (bool)
+   - `edited_at` (timestamptz)
+   - `created_at` (timestamptz)
+   - `updated_at` (timestamptz)
+
+4. **`community_reactions`** - Reacciones a publicaciones
+   - `id` (uuid)
+   - `user_id` (uuid)
+   - `post_id` (uuid)
+   - `comment_id` (uuid)
+   - `reaction_type` (text)
+   - `created_at` (timestamptz)
+
+## ANÁLISIS DE ERRORES IDENTIFICADOS
+
+### 1. ERROR CSP - FontAwesome Bloqueado
+**Error**: `Refused to load the stylesheet 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css' because it violates the following Content Security Policy directive`
+
+**Causa**: El CSP en `netlify.toml` (línea 198) no incluye `https://cdnjs.cloudflare.com` en la directiva `style-src`
+
+**Ubicación del problema**: 
+- Archivo: `netlify.toml` línea 198
+- Archivo: `src/Community/community.html` línea 12
+
+### 2. ERROR SINTAXIS - main.js línea 760
+**Error**: `Uncaught SyntaxError: Unexpected token ':'`
+
+**Análisis**: Error de sintaxis JavaScript en línea 760 de main.js que está bloqueando la ejecución del script.
+
+### 3. ERROR SUPABASE - createClient null (CRÍTICO)
+**Errores específicos del console log**:
+```
+supabase-client.js:57 ❌ supabase.createClient no está disponible
+supabase-client.js:58 📊 Estado actual de window.supabase: null
+community.js:45 [COMMUNITY] Error inicializando datos: Error: supabase.createClient no está disponible
+```
+
+**Causa**: La librería de Supabase no se está cargando correctamente, causando que `window.supabase` sea `null` y por tanto `supabase.createClient` no esté disponible.
+
+**Ubicación**: `src/scripts/supabase-client.js` línea 57-59
+
+**Impacto**: Este error está impidiendo que el sistema de comunidades funcione completamente, ya que no puede conectarse a la base de datos de Supabase para cargar las tablas `communities`, `community_members`, `community_posts` y `community_reactions`.
+
+## SOLUCIONES PASO A PASO
+
+### PASO 1: CORREGIR CSP PARA FONTAWESOME
+
+Modificar el archivo `netlify.toml` línea 198 para incluir cdnjs.cloudflare.com:
+
+```toml
+# ANTES (línea 198)
+Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://www.gstatic.com https://apis.google.com https://esm.sh https://cdn.jsdelivr.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; frame-src 'self' https://www.youtube.com https://youtube.com; connect-src 'self' https://aprendeyaplica.ai https://www.aprendeyaplica.ai https://www.youtube.com https://youtubei.googleapis.com https://www.google.com https://accounts.google.com https://apis.google.com https://*.supabase.co wss: ws:; object-src 'none'; base-uri 'self'"
+
+# DESPUÉS (CORREGIDO)
+Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://www.gstatic.com https://apis.google.com https://esm.sh https://cdn.jsdelivr.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; frame-src 'self' https://www.youtube.com https://youtube.com; connect-src 'self' https://aprendeyaplica.ai https://www.aprendeyaplica.ai https://www.youtube.com https://youtubei.googleapis.com https://www.google.com https://accounts.google.com https://apis.google.com https://*.supabase.co wss: ws:; object-src 'none'; base-uri 'self'"
+```
+
+**Cambios específicos**:
+- Añadir `https://cdnjs.cloudflare.com` a `style-src`
+- Verificar que `https://unpkg.com` esté incluido (ya presente)
+
+### PASO 2: CORREGIR ERROR DE SINTAXIS EN main.js
+
+Revisar y corregir el código alrededor de la línea 760 en `src/scripts/main.js`:
+
+**Buscar este bloque problemático**:
+```javascript
+// console.log('🧠 [CONTEXT] Análisis completado:', {
+    recentQuestions: analysis.recentUserQuestions.length,
+    recentActions: analysis.recentBotActions.length,
+    needsContext: analysis.needsContext,
+    hasContext: !!analysis.suggestedContext
+});
+```
+
+**Posibles correcciones**:
+1. Verificar que no haya comas extra
+2. Asegurar que todas las propiedades del objeto estén bien definidas
+3. Verificar que las variables `analysis.recentUserQuestions`, `analysis.recentBotActions`, etc. existan
+
+### PASO 3: CORREGIR CARGA DE SUPABASE (CRÍTICO PARA COMUNIDADES)
+
+Modificar `src/scripts/supabase-client.js` para mejorar la carga de la librería:
+
+**Problema identificado**: La función `loadSupabaseLibrary()` está fallando completamente, causando que `window.supabase` sea `null`. Esto impide el acceso a las tablas de comunidad: `communities`, `community_members`, `community_posts` y `community_reactions`.
+
+**Solución A - Mejorar carga desde CDN con múltiples fallbacks**:
+```javascript
+// En loadSupabaseLibrary() - línea ~178
+async function loadSupabaseLibrary() {
+    try {
+        // Verificar si ya está disponible globalmente
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
+            return;
+        }
+        
+        // NUEVO: Intentar múltiples CDNs en orden de preferencia
+        const cdnUrls = [
+            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+            'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js',
+            'https://esm.sh/@supabase/supabase-js@2'
+        ];
+        
+        for (const url of cdnUrls) {
+            try {
+                await loadScriptFromCDN(url);
+                if (window.supabase && typeof window.supabase.createClient === 'function') {
+                    console.log(`✅ Librería cargada desde: ${url}`);
+                    return;
+                }
+            } catch (error) {
+                console.warn(`⚠️ Error cargando desde ${url}:`, error);
+                continue;
+            }
+        }
+        
+        throw new Error('No se pudo cargar Supabase desde ningún CDN');
+        
+    } catch (error) {
+        console.error('❌ Error cargando librería de Supabase:', error);
+        throw error;
+    }
+}
+
+// NUEVA función auxiliar
+function loadScriptFromCDN(url) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = reject;
+        script.timeout = 10000; // 10 segundos timeout
+        document.head.appendChild(script);
+    });
 }
 ```
 
-### 2. ELEMENTOS ESPECÍFICOS A ACTUALIZAR
-
-#### A. Títulos y Textos Principales
-- `.hero-title` - Usar `#0066cc` en lugar del gradiente actual
-- `.section-header h2` - Aplicar `#0066cc`
-- `.feature-card h3` - Usar `#0066cc`
-- `.cta-content h2` - Aplicar `#0066cc`
-
-#### B. Textos Secundarios
-- `.hero-description` - Usar `rgba(0, 102, 204, 0.9)`
-- `.section-header p` - Aplicar `rgba(0, 102, 204, 0.9)`
-- `.feature-card p` - Usar `rgba(0, 102, 204, 0.9)`
-- `.cta-content p` - Aplicar `rgba(0, 102, 204, 0.9)`
-
-#### C. Elementos de Navegación
-- `.logo-text` - Mantener gradiente pero con `#0066cc` como color base
-- `.nav-actions` - Actualizar colores de botones para usar `#0066cc`
-
-#### D. Testimonios
-- `.testimonial-content p` - Usar `#0066cc`
-- `.testimonial-author h4` - Aplicar `#0066cc`
-- `.testimonial-author span` - Usar `#0066cc`
-
-### 3. GRADIENTES Y EFECTOS
-Actualizar gradientes para incluir `#0066cc`:
-
-```css
-/* Gradientes actualizados para modo claro */
-[data-theme="light"] {
-    --gradient-primary: linear-gradient(135deg, #44E5FF 0%, #0066cc 100%);
-    --gradient-glass: linear-gradient(135deg, rgba(0, 102, 204, 0.08) 0%, rgba(0, 102, 204, 0.08) 100%);
+**Solución B - Agregar verificación más robusta con información específica de tablas**:
+```javascript
+// Mejorar la verificación en línea 56-59
+if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+    console.error('❌ supabase.createClient no está disponible');
+    console.log('📊 Estado actual de window.supabase:', window.supabase);
+    console.error('🗄️ Sin acceso a las tablas: communities, community_members, community_posts, community_reactions');
+    throw new Error('supabase.createClient no está disponible - No se pueden cargar las comunidades');
 }
 ```
 
-### 4. ANIMACIONES Y EFECTOS HOVER
-Actualizar las animaciones del logo y efectos hover para usar `#0066cc`:
-
-```css
-/* Estilos para modo claro - MEJORADOS */
-[data-theme="light"] .animated-text .letter {
-    background: linear-gradient(45deg, #0066cc, var(--course-primary), #0066cc);
-    /* ... resto de estilos ... */
-}
-
-[data-theme="light"] .animated-text:hover .letter {
-    background: linear-gradient(45deg, var(--course-primary), #0066cc, var(--course-primary));
-    filter: drop-shadow(0 0 15px #0066cc) drop-shadow(0 0 30px #0066cc);
+**Solución C - Verificar conexión específica a tablas de comunidad**:
+```javascript
+// Agregar después de crear el cliente (línea ~76)
+async function testCommunityTablesConnection(client) {
+    try {
+        console.log('🔍 Probando conexión a tablas de comunidad...');
+        
+        // Test específico para tabla communities
+        const { data: communitiesTest, error: communitiesError } = await client
+            .from('communities')
+            .select('count', { count: 'exact', head: true });
+            
+        if (communitiesError && communitiesError.code !== 'PGRST116') {
+            throw new Error(`Error en tabla communities: ${communitiesError.message}`);
+        }
+        
+        // Test específico para tabla community_members  
+        const { data: membersTest, error: membersError } = await client
+            .from('community_members')
+            .select('count', { count: 'exact', head: true });
+            
+        if (membersError && membersError.code !== 'PGRST116') {
+            throw new Error(`Error en tabla community_members: ${membersError.message}`);
+        }
+        
+        // Test específico para tabla community_posts
+        const { data: postsTest, error: postsError } = await client
+            .from('community_posts')
+            .select('count', { count: 'exact', head: true });
+            
+        if (postsError && postsError.code !== 'PGRST116') {
+            throw new Error(`Error en tabla community_posts: ${postsError.message}`);
+        }
+        
+        console.log('✅ Conexión a tablas de comunidad verificada');
+    } catch (error) {
+        console.error('⚠️ Error en test de tablas de comunidad:', error);
+        throw error;
+    }
 }
 ```
 
-### 5. BOTONES Y ELEMENTOS INTERACTIVOS
-Actualizar colores de botones para modo claro:
+### PASO 4: ALTERNATIVA PARA FONTAWESOME
 
-```css
-/* Mejorar botón primario en modo claro */
-[data-theme="light"] .btn-primary {
-    color: #0066cc;
-    border-color: #0066cc;
-    box-shadow: 0 4px 16px rgba(0, 102, 204, 0.2);
-}
+Si el problema de CSP persiste, reemplazar FontAwesome con Boxicons (ya incluido):
 
-/* Mejorar contraste del botón secundario en modo claro */
-[data-theme="light"] .btn-secondary {
-    color: #0066cc;
-    border-color: rgba(0, 102, 204, 0.4);
-    box-shadow: 0 4px 16px rgba(0, 102, 204, 0.1);
-}
+**En `src/Community/community.html`**:
+```html
+<!-- REMOVER esta línea (línea 12) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Boxicons ya está incluido en línea 13 - usar solo este -->
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 ```
 
-## CONSIDERACIONES DE ACCESIBILIDAD
+**Reemplazar iconos FontAwesome con Boxicons**:
+- `fas fa-search` → `bx bx-search`
+- `fas fa-times` → `bx bx-x`
 
-1. **Contraste**: Asegurar que `#0066cc` sobre fondos claros tenga al menos 4.5:1 de contraste
-2. **Consistencia**: Mantener la jerarquía visual con diferentes opacidades del mismo color
-3. **Legibilidad**: Verificar que todos los textos sean legibles en diferentes tamaños de pantalla
+### PASO 5: VERIFICAR ORDEN DE CARGA DE SCRIPTS
 
-## ELEMENTOS A NO CAMBIAR
+Asegurar que los scripts se carguen en el orden correcto en `community.html`:
 
-1. **Colores de fondo**: Mantener los fondos actuales para preservar la estética
-2. **Colores de acento**: Mantener `--course-primary: #44E5FF` para elementos de acento
-3. **Modo oscuro**: No modificar los estilos del modo oscuro
-4. **Estructura HTML**: No cambiar la estructura, solo los estilos CSS
-
-## RESULTADO ESPERADO
-
-- Mejor contraste y legibilidad en modo claro
-- Consistencia visual con el color `#0066cc`
-- Mantenimiento de la estética y funcionalidad actual
-- Mejor experiencia de usuario en dispositivos con pantallas claras
+```html
+<!-- ORDEN CORRECTO (líneas 212-219) -->
+<script src="../scripts/particles.js"></script>
+<script src="../scripts/main.js"></script>                    <!-- ← Verificar que no tenga errores -->
+<script src="../scripts/supabase-client.js"></script>         <!-- ← Debe cargar antes de community.js -->
+<script src="../scripts/community-database.js"></script>
+<script src="community.js"></script>                          <!-- ← Depende de supabase-client.js -->
+<script src="../scripts/profile-avatar-manager.js"></script>
+<script src="../scripts/force-theme-init.js"></script>
+<script src="../scripts/theme-manager.js"></script>
+```
 
 ## ARCHIVOS A MODIFICAR
 
-1. `src/styles/welcome.css` - Actualizar variables CSS y estilos específicos
-2. `src/index.html` - Verificar que no necesite cambios estructurales
-3. `src/scripts/welcome.js` - Verificar que no necesite cambios en la lógica
+1. **`netlify.toml`** (línea 198) - Actualizar CSP
+2. **`src/scripts/main.js`** (línea ~760) - Corregir error de sintaxis
+3. **`src/scripts/supabase-client.js`** (líneas 178-214) - Mejorar carga de librería
+4. **`src/Community/community.html`** (línea 12) - Opcional: remover FontAwesome
+
+## ORDEN DE EJECUCIÓN
+
+1. **PRIMERO**: Corregir CSP en `netlify.toml`
+2. **SEGUNDO**: Corregir error de sintaxis en `main.js`
+3. **TERCERO**: Mejorar carga de Supabase en `supabase-client.js`
+4. **CUARTO**: Probar la carga de comunidades
+5. **QUINTO**: Si persisten problemas, implementar alternativa de FontAwesome
+
+## VERIFICACIÓN DE ÉXITO
+
+Después de aplicar las correcciones, verificar en el console log:
+
+### ✅ **Errores Eliminados**:
+1. No más errores de CSP: `Refused to load the stylesheet 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'`
+2. No más errores de sintaxis: `Uncaught SyntaxError: Unexpected token ':'`
+3. No más errores de Supabase: `❌ supabase.createClient no está disponible`
+4. No más errores en community.js: `[COMMUNITY] Error inicializando datos`
+
+### ✅ **Funcionalidades Restauradas**:
+1. **Carga de comunidades**: Las comunidades se cargan desde la tabla `communities`
+2. **Conteo de miembros**: Se muestran correctamente desde `community_members`
+3. **Publicaciones**: Se pueden cargar desde `community_posts` 
+4. **Reacciones**: Sistema funcional con `community_reactions`
+5. **Iconos**: Se muestran correctamente (FontAwesome o Boxicons)
+
+### ✅ **Console Log Esperado** (sin errores):
+```
+✅ Cliente de Supabase inicializado correctamente
+🔍 Probando conexión a tablas de comunidad...
+✅ Conexión a tablas de comunidad verificada
+[COMMUNITY] ✅ Datos de comunidad cargados correctamente
+[PROFILE] ✅ Menú de perfil configurado correctamente
+```
+
+### 🗄️ **Verificación Específica de Tablas**:
+- **`communities`**: Debe cargar lista de comunidades disponibles
+- **`community_members`**: Debe mostrar conteo correcto de miembros
+- **`community_posts`**: Debe permitir cargar publicaciones
+- **`community_reactions`**: Debe permitir sistema de reacciones
 
 ---
 
-**NOTA**: Este prompt debe ejecutarse paso a paso, comenzando por las variables CSS y luego aplicando los cambios específicos a cada elemento para asegurar la coherencia visual.
+**NOTA CRÍTICA**: Estos errores están bloqueando completamente el acceso a las tablas de comunidad (`communities`, `community_members`, `community_posts`, `community_reactions`). Deben resolverse en el orden especificado para restaurar la funcionalidad completa del sistema de comunidades.
