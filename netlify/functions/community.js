@@ -7,7 +7,12 @@ const { createClient } = require('@supabase/supabase-js');
 
 // Configuración de Supabase
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('❌ Variables de entorno de Supabase no configuradas');
+}
+
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // =====================================================
@@ -281,12 +286,16 @@ async function handleVote(req, res) {
             });
         }
 
-        if (!['upvote', 'downvote'].includes(vote_type)) {
-            return res.status(400).json({ 
+        if (!['up', 'down', 'upvote', 'downvote'].includes(vote_type)) {
+            return res.status(400).json({
                 error: 'Tipo de voto inválido',
-                message: 'vote_type debe ser: upvote o downvote'
+                message: 'vote_type debe ser: up, down, upvote o downvote'
             });
         }
+
+        // Normalizar tipo de voto
+        const normalizedVoteType = vote_type === 'upvote' ? 'up' :
+                                 vote_type === 'downvote' ? 'down' : vote_type;
 
         // Verificar si ya existe un voto
         const { data: existingVote } = await supabase
@@ -301,7 +310,7 @@ async function handleVote(req, res) {
 
         if (existingVote) {
             // Si el voto es el mismo, eliminarlo (toggle)
-            if (existingVote.vote_type === vote_type) {
+            if (existingVote.vote_type === normalizedVoteType) {
                 const { error: deleteError } = await supabase
                     .from('community_votes')
                     .delete()
@@ -320,20 +329,20 @@ async function handleVote(req, res) {
                 // Si es diferente, actualizarlo
                 const { data: updatedVote, error: updateError } = await supabase
                     .from('community_votes')
-                    .update({ vote_type })
+                    .update({ vote_type: normalizedVoteType })
                     .eq('id', existingVote.id)
                     .select()
                     .single();
 
                 if (updateError) {
                     console.error('❌ Error actualizando voto:', updateError);
-                    return res.status(500).json({ 
+                    return res.status(500).json({
                         error: 'Error actualizando voto',
-                        details: updateError.message 
+                        details: updateError.message
                     });
                 }
 
-                result = { action: 'updated', vote_type, data: updatedVote };
+                result = { action: 'updated', vote_type: normalizedVoteType, data: updatedVote };
             }
         } else {
             // Crear nuevo voto
@@ -343,20 +352,20 @@ async function handleVote(req, res) {
                     user_id,
                     target_type,
                     target_id,
-                    vote_type
+                    vote_type: normalizedVoteType
                 })
                 .select()
                 .single();
 
             if (insertError) {
                 console.error('❌ Error creando voto:', insertError);
-                return res.status(500).json({ 
+                return res.status(500).json({
                     error: 'Error creando voto',
-                    details: insertError.message 
+                    details: insertError.message
                 });
             }
 
-            result = { action: 'created', vote_type, data: newVote };
+            result = { action: 'created', vote_type: normalizedVoteType, data: newVote };
         }
 
         console.log(`✅ Voto procesado: ${result.action}`);
@@ -385,13 +394,15 @@ async function handleVote(req, res) {
  */
 async function createAnswer(req, res) {
     try {
-        const { question_id, content, user_id, is_instructor_answer = false } = req.body;
+        const { question_id, content, is_instructor_answer = false } = req.body;
+        const userId = req.body.user_id || req.headers['x-user-id'];
 
         console.log(`💬 Creando respuesta para pregunta: ${question_id}`);
+        console.log(`👤 User ID: ${userId}`);
 
         // Validar datos
-        if (!question_id || !content || !user_id) {
-            return res.status(400).json({ 
+        if (!question_id || !content || !userId) {
+            return res.status(400).json({
                 error: 'Datos requeridos faltantes',
                 message: 'question_id, content y user_id son requeridos'
             });
@@ -417,7 +428,7 @@ async function createAnswer(req, res) {
             .insert({
                 question_id,
                 content: content.trim(),
-                user_id,
+                user_id: userId,
                 is_instructor_answer
             })
             .select(`
@@ -628,7 +639,8 @@ exports.handler = async (event, context) => {
             path: event.path,
             query: event.queryStringParameters || {},
             body: body,
-            params: event.pathParameters || {}
+            params: event.pathParameters || {},
+            headers: event.headers || {}
         };
 
         const res = {
@@ -685,6 +697,26 @@ exports.handler = async (event, context) => {
         // POST /api/community/answers (endpoint alternativo)
         if (path === '/api/community/answers' && method === 'POST') {
             return await createAnswer(req, res);
+        }
+
+        // POST /api/community/questions/:questionId/vote
+        if (path.match(/^\/api\/community\/questions\/[^\/]+\/vote$/) && method === 'POST') {
+            const questionId = path.split('/')[4];
+            // Adaptar el body para la función handleVote
+            req.body.target_id = questionId;
+            req.body.target_type = 'question';
+            req.body.user_id = req.body.user_id || req.headers['x-user-id'];
+            return await handleVote(req, res);
+        }
+
+        // POST /api/community/answers/:answerId/vote
+        if (path.match(/^\/api\/community\/answers\/[^\/]+\/vote$/) && method === 'POST') {
+            const answerId = path.split('/')[4];
+            // Adaptar el body para la función handleVote
+            req.body.target_id = answerId;
+            req.body.target_type = 'answer';
+            req.body.user_id = req.body.user_id || req.headers['x-user-id'];
+            return await handleVote(req, res);
         }
 
         // POST /api/community/votes
