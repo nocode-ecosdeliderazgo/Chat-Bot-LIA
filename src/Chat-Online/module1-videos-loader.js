@@ -1353,7 +1353,8 @@ class Module1VideosLoader {
             console.warn('⚠️ Contenedor de videos no encontrado');
         }
 
-        // Event listener para cambio de tema
+        // Event listener para cambio de tema - DESHABILITADO (botón removido)
+        /*
         const themeToggle = document.querySelector('.theme-toggle-btn');
         if (themeToggle) {
             themeToggle.addEventListener('click', () => {
@@ -1361,6 +1362,7 @@ class Module1VideosLoader {
                 console.log('🎨 Tema cambiado, actualizando estilos de videos...');
             });
         }
+        */
 
         // Event delegation para botones de copiar
         document.addEventListener('click', (event) => {
