@@ -171,39 +171,39 @@
   to   = "/.netlify/functions/courses"
   status = 200
 
-# Community API redirects (NEW) - Específicos primero, más generales al final
+# Community API redirects (NEW) - Usar funciones específicas que funcionan
 [[redirects]]
   from = "/api/community/debug"
   to   = "/.netlify/functions/community-debug"
   status = 200
 
-# Votes - usar splat para capturar IDs dinámicos
+# Votes - usar funciones específicas que ya funcionan
 [[redirects]]
-  from = "/api/community/questions/:questionId/vote"
-  to   = "/.netlify/functions/community"
+  from = "/api/community/questions/*/vote"
+  to   = "/.netlify/functions/community-vote"
   status = 200
 
 [[redirects]]
-  from = "/api/community/answers/:answerId/vote"
-  to   = "/.netlify/functions/community"
+  from = "/api/community/answers/*/vote"
+  to   = "/.netlify/functions/community-vote"
   status = 200
 
-# Answers - usar splat para capturar IDs dinámicos
+# Answers - usar función específica
 [[redirects]]
-  from = "/api/community/questions/:questionId/answers"
-  to   = "/.netlify/functions/community"
+  from = "/api/community/questions/*/answers"
+  to   = "/.netlify/functions/community-answers"
   status = 200
 
-# Questions endpoints
+# Questions - usar función específica
 [[redirects]]
   from = "/api/community/questions"
-  to   = "/.netlify/functions/community"
+  to   = "/.netlify/functions/community-questions"
   status = 200
 
-# General community fallback (debe ir al final)
+# General community fallback (solo para endpoints no cubiertos)
 [[redirects]]
   from = "/api/community/*"
-  to   = "/.netlify/functions/community"
+  to   = "/.netlify/functions/community-questions"
   status = 200
 
 # Supabase Configuration API redirects (NEW)
