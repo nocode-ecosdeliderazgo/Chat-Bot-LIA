@@ -239,7 +239,7 @@
             console.error('🔍 Verificar que community-database.js se cargue correctamente');
         }
 
-        if (window.supabase && typeof window.supabase.createClient === 'function') {
+        if (window.supabase && window.supabaseInitialized) {
             console.log('✅ Supabase está disponible para community.js');
         } else {
             console.error('❌ Supabase NO está disponible para community.js');
