@@ -443,7 +443,9 @@ class CommunityPage {
         const slug = record.slug || String(record.id);
         const category = this.getCategoryForCommunity(record);
         const icon = this.getIconForCommunity(record);
-        const banner = record.banner_url || record.cover_image_url || record.hero_image_url || record.image_url || this.defaultBannerForSlug(slug);
+
+        // Priorizar imagen_url de la base de datos, luego otros campos, y finalmente fallback local
+        const thumb = record.imagen_url || record.banner_url || record.cover_image_url || record.hero_image_url || record.image_url || this.defaultBannerForSlug(slug);
         const accessLabel = this.getAccessLabel(record, slug);
 
         return {
@@ -453,7 +455,7 @@ class CommunityPage {
             description: record.description || '',
             category,
             icon,
-            thumb: banner,
+            thumb: thumb,
             memberCount,
             postCount,
             membersLabel: memberCount ? this.formatMemberCount(memberCount) + ' Members' : '0 Members',
