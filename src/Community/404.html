@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunidad No Encontrada - 404</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="community.css">
+    <link rel="icon" type="image/x-icon" href="../assets/images/icono.png">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- BoxIcons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    <!-- Global theme setup -->
+    <script src="../scripts/global-theme-setup.js"></script>
+
+    <style>
+        /* Error page specific styles */
+        .error-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--background);
+            padding: 20px;
+        }
+
+        .error-container {
+            text-align: center;
+            max-width: 600px;
+            background: var(--surface);
+            padding: 3rem 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .error-icon {
+            font-size: 5rem;
+            color: #ef4444;
+            margin-bottom: 1.5rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .error-code {
+            font-size: 6rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            margin: 0;
+            line-height: 1;
+            opacity: 0.3;
+        }
+
+        .error-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 1rem 0;
+        }
+
+        .error-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin: 0 0 2rem;
+            line-height: 1.6;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .error-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: #0066CC;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0052A3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--surface);
+            border-color: #0066CC;
+            color: #0066CC;
+        }
+
+        .btn-text {
+            background: none;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+        }
+
+        .btn-text:hover {
+            color: #0066CC;
+            background: rgba(0, 102, 204, 0.1);
+        }
+
+        .search-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--background);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .search-section h4 {
+            color: var(--text-primary);
+            margin: 0 0 1rem;
+            font-size: 1.1rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #0066CC;
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+
+        .popular-communities {
+            margin-top: 2rem;
+            text-align: left;
+        }
+
+        .popular-communities h4 {
+            color: var(--text-primary);
+            margin: 0 0 1rem;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .communities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .community-card {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .community-card:hover {
+            border-color: #0066CC;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.1);
+        }
+
+        .community-card-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #0066CC;
+        }
+
+        .community-card-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 0.5rem;
+        }
+
+        .community-card-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .suggestions {
+            margin-top: 2rem;
+            text-align: left;
+        }
+
+        .suggestions h4 {
+            color: var(--text-primary);
+            margin: 0 0 1rem;
+            font-size: 1.1rem;
+        }
+
+        .suggestions ul {
+            color: var(--text-secondary);
+            margin: 0;
+            padding-left: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .suggestions li {
+            margin-bottom: 0.5rem;
+        }
+
+        .debug-info {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: var(--background);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: left;
+        }
+
+        .debug-info summary {
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-code {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 2rem;
+            opacity: 0.7;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .error-container {
+                margin: 1rem;
+                padding: 2rem 1.5rem;
+            }
+
+            .error-code {
+                font-size: 4rem;
+            }
+
+            .error-title {
+                font-size: 2rem;
+            }
+
+            .error-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .btn-group {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .communities-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .error-container {
+                padding: 1.5rem 1rem;
+            }
+
+            .error-icon {
+                font-size: 4rem;
+            }
+
+            .error-code {
+                font-size: 3rem;
+            }
+
+            .error-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-glow-global">
+    <div class="particles-container"></div>
+
+    <div class="error-page">
+        <div class="error-container">
+            <div class="error-icon">
+                <i class="bx bx-search-alt"></i>
+            </div>
+
+            <div class="error-code">404</div>
+            <h1 class="error-title">Comunidad No Encontrada</h1>
+            <p class="error-subtitle">La comunidad que buscas no existe o no está disponible</p>
+
+            <div class="error-message" id="errorMessage">
+                La comunidad especificada no se encuentra en nuestro sistema. Es posible que el enlace sea incorrecto, la comunidad haya sido movida o ya no esté disponible.
+            </div>
+
+            <div class="error-actions">
+                <div class="btn-group">
+                    <a href="./community.html" class="btn btn-primary">
+                        <i class="bx bx-arrow-back"></i>
+                        Ver Todas las Comunidades
+                    </a>
+                    <a href="../index.html" class="btn btn-secondary">
+                        <i class="bx bx-home"></i>
+                        Ir al Inicio
+                    </a>
+                </div>
+
+                <button class="btn btn-text" onclick="window.history.back()">
+                    <i class="bx bx-arrow-back"></i>
+                    Volver Atrás
+                </button>
+            </div>
+
+            <div class="search-section">
+                <h4>Buscar Comunidad</h4>
+                <input
+                    type="text"
+                    class="search-input"
+                    placeholder="Buscar por nombre de comunidad..."
+                    id="communitySearch"
+                    onkeypress="if(event.key==='Enter') searchCommunity()"
+                >
+                <button class="btn btn-primary" onclick="searchCommunity()">
+                    <i class="bx bx-search"></i>
+                    Buscar
+                </button>
+            </div>
+
+            <div class="popular-communities">
+                <h4>Comunidades Populares</h4>
+                <div class="communities-grid">
+                    <a href="./community-view.html?id=profesionales&slug=profesionales" class="community-card">
+                        <div class="community-card-icon">
+                            <i class="bx bx-briefcase"></i>
+                        </div>
+                        <div class="community-card-name">Profesionales</div>
+                        <div class="community-card-desc">Red de profesionales en IA</div>
+                    </a>
+                    <a href="./community-view.html?id=openminder&slug=openminder" class="community-card">
+                        <div class="community-card-icon">
+                            <i class="bx bx-bulb"></i>
+                        </div>
+                        <div class="community-card-name">OpenMinder</div>
+                        <div class="community-card-desc">Innovación y creatividad</div>
+                    </a>
+                    <a href="./community-view.html?id=sif-icap&slug=sif-icap" class="community-card">
+                        <div class="community-card-icon">
+                            <i class="bx bx-award"></i>
+                        </div>
+                        <div class="community-card-name">SIF ICAP</div>
+                        <div class="community-card-desc">Comunidad exclusiva</div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="suggestions">
+                <h4>¿Qué puedes hacer?</h4>
+                <ul>
+                    <li><strong>Verificar el enlace:</strong> Asegúrate de que la URL sea correcta</li>
+                    <li><strong>Buscar en todas las comunidades:</strong> Explora las comunidades disponibles</li>
+                    <li><strong>Contactar soporte:</strong> Si crees que debería existir, contáctanos</li>
+                    <li><strong>Volver más tarde:</strong> La comunidad podría estar temporalmente no disponible</li>
+                </ul>
+            </div>
+
+            <details class="debug-info">
+                <summary>Información de Depuración</summary>
+                <div id="debugInfo">
+                    <!-- Debug information will be populated by JavaScript -->
+                </div>
+            </details>
+
+            <div class="status-code">
+                Error 404 - Not Found
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../scripts/particles.js"></script>
+
+    <script>
+        // Extract and display specific error message from URL parameters
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const communitySlug = urlParams.get('slug');
+            const communityId = urlParams.get('id');
+
+            if (message) {
+                const errorMessageEl = document.getElementById('errorMessage');
+                if (errorMessageEl) {
+                    errorMessageEl.textContent = decodeURIComponent(message);
+                }
+            }
+
+            // Populate debug information
+            const debugInfo = document.getElementById('debugInfo');
+            if (debugInfo) {
+                const referrer = document.referrer || 'Direct access';
+                const currentUrl = window.location.href;
+                const userAgent = navigator.userAgent;
+                const timestamp = new Date().toISOString();
+
+                debugInfo.innerHTML = `
+                    <strong>URL Actual:</strong> ${currentUrl}<br>
+                    <strong>Referrer:</strong> ${referrer}<br>
+                    <strong>Comunidad ID:</strong> ${communityId || 'No especificado'}<br>
+                    <strong>Comunidad Slug:</strong> ${communitySlug || 'No especificado'}<br>
+                    <strong>Timestamp:</strong> ${timestamp}<br>
+                    <strong>User Agent:</strong> ${userAgent.substring(0, 100)}...
+                `;
+            }
+
+            // Log the 404 for debugging
+            console.log('🔍 [404] Comunidad no encontrada:', {
+                url: window.location.href,
+                referrer: document.referrer,
+                timestamp: new Date().toISOString(),
+                communityId: communityId,
+                communitySlug: communitySlug,
+                customMessage: message || 'No specific message'
+            });
+
+            // Auto-focus search input
+            const searchInput = document.getElementById('communitySearch');
+            if (searchInput && communitySlug) {
+                searchInput.value = communitySlug;
+            }
+        });
+
+        function searchCommunity() {
+            const searchInput = document.getElementById('communitySearch');
+            const query = searchInput.value.trim();
+
+            if (query) {
+                // Redirect to community list with search query
+                window.location.href = `./community.html?search=${encodeURIComponent(query)}`;
+            } else {
+                // Redirect to community list
+                window.location.href = './community.html';
+            }
+        }
+
+        // Analytics tracking (optional)
+        if (window.gtag) {
+            gtag('event', 'page_view', {
+                page_title: 'Community Not Found - 404',
+                page_location: window.location.href
+            });
+        }
+
+        // Report 404 to analytics if configured
+        if (window.analytics && typeof window.analytics.track === 'function') {
+            window.analytics.track('Community 404', {
+                url: window.location.href,
+                referrer: document.referrer,
+                timestamp: new Date().toISOString()
+            });
+        }
+    </script>
+
+    <!-- Theme management -->
+    <script src="../scripts/theme-manager.js"></script>
+</body>
+</html>

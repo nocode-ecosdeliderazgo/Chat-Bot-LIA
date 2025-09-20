@@ -531,7 +531,7 @@ class CommunityPage {
             const iconClass = this.escapeHtml(c.icon || 'fas fa-users');
 
             return `
-                <div class="discover-card" data-slug="${cardSlug}">
+                <div class="discover-card" data-id="${this.escapeHtml(c.id)}" data-slug="${cardSlug}">
                     <div class="discover-thumb">
                         ${c.thumb ? `<img src="${c.thumb}" alt="${title}" class="discover-image">` : ''}
                     </div>
@@ -549,9 +549,10 @@ class CommunityPage {
 
         grid.querySelectorAll('.discover-card').forEach(card => {
             card.addEventListener('click', () => {
+                const id = card.getAttribute('data-id');
                 const slug = card.getAttribute('data-slug');
-                if (!slug) return;
-                window.location.href = `./community-view.html?slug=${encodeURIComponent(slug)}`;
+                if (!id || !slug) return;
+                window.location.href = `./community-view.html?id=${encodeURIComponent(id)}&slug=${encodeURIComponent(slug)}`;
             });
         });
     }
