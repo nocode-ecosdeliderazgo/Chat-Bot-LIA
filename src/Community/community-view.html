@@ -646,17 +646,6 @@
                         </div>
                     </div>
                     <div class="attachments-preview" id="attachmentsPreview"></div>
-                    <div class="feed-filters" id="feedFilters">
-                        <button class="feed-chip active" data-category="all">Todos</button>
-                        <button class="feed-chip" data-category="general">General</button>
-                        <button class="feed-chip" data-category="ia">IA</button>
-                        <button class="feed-chip" data-category="datos">Datos</button>
-                        <button class="feed-chip" data-category="desarrollo">Desarrollo</button>
-                        <button class="feed-chip" data-category="diseno">Diseño</button>
-                        <button class="feed-chip" data-category="it">IT & Software</button>
-                        <button class="feed-chip" data-category="marketing">Marketing</button>
-                        <button class="feed-chip" data-category="negocios">Negocios</button>
-                    </div>
                     <div id="postsList" class="posts-list"></div>
                 </div>
             </div>
@@ -1348,9 +1337,7 @@
                         console.log('⚠️ No se encontraron posts para esta comunidad');
                         posts = [];
                         // Re-renderizar con array vacío para mostrar estado vacío
-                        const activeChip = document.querySelector('.feed-chip.active');
-                        const currentCategory = activeChip ? activeChip.dataset.category : 'all';
-                        renderPosts(currentCategory);
+                        renderPosts('all');
                         updateStats();
                         return;
                     }
@@ -1406,9 +1393,7 @@
                     console.log('✅ Posts convertidos para UI:', posts);
 
                     // Re-renderizar posts
-                    const activeChip = document.querySelector('.feed-chip.active');
-                    const currentCategory = activeChip ? activeChip.dataset.category : 'all';
-                    renderPosts(currentCategory);
+                    renderPosts('all');
 
                     // Actualizar estadísticas
                     updateStats();
@@ -1566,10 +1551,9 @@
                  updatePostTimestamps();
                  updateStats();
                  // Re-renderizar solo si hay posts visibles
-                 const activeCategory = document.querySelector('.feed-chip.active')?.dataset.category || 'all';
-                 if (document.getElementById('postsList').children.length > 0) {
-                     renderPosts(activeCategory);
-                 }
+                if (document.getElementById('postsList').children.length > 0) {
+                    renderPosts('all');
+                }
              }, 60000); // Cada minuto
              
              // Actualizar estadísticas iniciales
@@ -1744,13 +1728,6 @@
                     });
                 });
             }
-            document.querySelectorAll('.feed-chip').forEach(chip=>{
-                chip.addEventListener('click', ()=>{
-                    document.querySelectorAll('.feed-chip').forEach(c=>c.classList.remove('active'));
-                    chip.classList.add('active');
-                    renderPosts(chip.dataset.category);
-                });
-            });
             // Adjuntos
             function bytesToMB(bytes){ return bytes / (1024*1024); }
             function addPreviewImage(src){
@@ -2271,7 +2248,7 @@
                             id: Date.now(),
                             user:'Tú',
                             avatar:'fas fa-user',
-                            category:(document.querySelector('.feed-chip.active')?.dataset.category||'general'),
+                            category:'general',
                             minutesAgo:0,
                             timeAgo: 'Ahora mismo',
                             timestamp: Date.now(),
@@ -2290,7 +2267,7 @@
                         pendingAttachments = [];
                         document.getElementById('attachmentsPreview').innerHTML='';
 
-                        renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all');
+                        renderPosts('all');
                     }
                 });
             }
