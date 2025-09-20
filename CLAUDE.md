@@ -77,13 +77,19 @@ node scripts/update-specific-activities.js
 SUPABASE_URL="your_url" SUPABASE_SERVICE_KEY="your_key" node scripts/import-genai-questions.js --clear --verbose
 ```
 
-### Testing Activity Migration
+### Development Testing
 ```bash
 # Test the activity migration functionality
 start test-activity-migration.html
 
-# Test specific Chat-Online components  
+# Test specific Chat-Online components
 start src/Chat-Online/chat-online.html
+
+# Test community functionality
+start test-community-functionality.html
+
+# Test database integration
+start test-database-integration.html
 ```
 
 ## Architecture Overview
@@ -244,6 +250,8 @@ tests/
   └── integration/       # Integration tests
 ```
 
+**Note**: Test directory structure is configured but test files may not exist yet. Create test files as needed following Jest conventions.
+
 ### Running Specific Tests
 ```bash
 # Run a specific test file
@@ -362,6 +370,12 @@ const observeElements = () => {
 - UI Components: `src/scripts/` (animations, themes, particles, progress managers)
 
 ## Important Development Notes
+
+### Recent Development Context
+- Current branch: `gael-deploy` (see git status for deployment-related changes)
+- Community system with RLS policies and diagnostic tools for debugging
+- Enhanced authentication system with hybrid user ID handling
+- Comprehensive CSP configuration optimized for YouTube embeds and external integrations
 
 ### Database Scripts & Operations
 The project includes several utility scripts for database management:
