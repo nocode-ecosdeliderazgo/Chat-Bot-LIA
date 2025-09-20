@@ -1273,132 +1273,151 @@
                          // Feed mock con persistencia
              let posts = [];
 
-            // Función para cargar posts desde la base de datos
+            // Función para esperar que Supabase esté disponible
+            async function waitForSupabase(maxRetries = 10, delay = 1000) {
+                for (let i = 0; i < maxRetries; i++) {
+                    if (window.supabase && window.supabaseInitialized) {
+                        console.log('✅ Supabase está disponible');
+                        return true;
+                    }
+                    console.log(`⏳ Esperando Supabase... intento ${i + 1}/${maxRetries}`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+                return false;
+            }
+
+            // Función SIMPLIFICADA para cargar posts desde la API
             async function loadPostsFromDatabase() {
-                console.log('🚀 Cargando posts desde base de datos...');
+                console.log('🚀 [SIMPLE] Cargando posts desde API...');
                 try {
-                    // Usar CommunitySystem para obtener la comunidad (mismo que usa el banner)
-                    console.log('🏠 Obteniendo comunidad para cargar posts...');
+                    // Obtener community ID desde URL
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const communitySlug = urlParams.get('slug') || 'profesionales';
 
-                    let communityId = null;
-                    let communityName = 'Desconocida';
+                    console.log('🏠 Community slug:', communitySlug);
 
-                    // MÉTODO 1: Usar CommunitySystem
-                    if (window.communitySystem && window.communitySystem.currentCommunity) {
-                        communityId = window.communitySystem.currentCommunity.id;
-                        communityName = window.communitySystem.currentCommunity.name;
-                        console.log(`✅ Comunidad desde CommunitySystem: ${communityName} (ID: ${communityId})`);
-                    }
+                    // Mapeo simple de slugs conocidos
+                    const communityMap = {
+                        'profesionales': '7886aa14-35b9-41da-b099-29ff1ad3516b',
+                        'sif-icap': 'aa5a4c4c-ce64-4a12-b1ef-365aa0d320c8',
+                        'openminder': 'b3b154e1-110e-4aa7-8998-ef208482a159',
+                        'ecos-de-liderazgo': 'd2dbebb1-5b57-4da7-9fc6-8b40c732b548'
+                    };
 
-                    // MÉTODO 2: Usar localStorage (mismo método que el banner)
+                    const communityId = communityMap[communitySlug];
                     if (!communityId) {
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const communitySlug = urlParams.get('slug') || 'profesionales';
-
-                        const savedCommunities = localStorage.getItem('savedCommunities');
-                        if (savedCommunities) {
-                            const communities = JSON.parse(savedCommunities);
-                            const community = communities.find(c => c.slug === communitySlug);
-                            if (community) {
-                                communityId = community.id;
-                                communityName = community.name;
-                                console.log(`✅ Comunidad desde localStorage: ${communityName} (ID: ${communityId})`);
-                            }
-                        }
-                    }
-
-                    // MÉTODO 3: Fallback hardcodeado
-                    if (!communityId) {
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const communitySlug = urlParams.get('slug') || 'profesionales';
-
-                        const hardcodedCommunities = {
-                            'profesionales': { id: '7886aa14-35b9-41da-b099-29ff1ad3516b', name: 'Profesionales' },
-                            'sif-icap': { id: 'aa5a4c4c-ce64-4a12-b1ef-365aa0d320c8', name: 'SIF ICAP' },
-                            'openminder': { id: 'b3b154e1-110e-4aa7-8998-ef208482a159', name: 'Openminder' },
-                            'ecos-de-liderazgo': { id: 'd2dbebb1-5b57-4da7-9fc6-8b40c732b548', name: 'Ecos de Liderazgo' }
-                        };
-
-                        if (hardcodedCommunities[communitySlug]) {
-                            communityId = hardcodedCommunities[communitySlug].id;
-                            communityName = hardcodedCommunities[communitySlug].name;
-                            console.log(`✅ Comunidad desde fallback: ${communityName} (ID: ${communityId})`);
-                        }
-                    }
-
-                    if (!communityId) {
-                        console.warn('⚠️ No se pudo obtener community ID con ningún método');
+                        console.warn('⚠️ Community ID no encontrado para slug:', communitySlug);
                         return;
                     }
 
-                    console.log(`📊 Cargando posts de: ${communityName} (ID: ${communityId})`);
+                    console.log('📊 Cargando posts de communityId:', communityId);
 
-                    // Verificar que CommunityDatabase esté disponible
-                    if (!window.CommunityDatabase) {
-                        console.error('❌ CommunityDatabase no está disponible');
+                    // ESPERAR A QUE SUPABASE ESTÉ DISPONIBLE
+                    console.log('⏳ Verificando disponibilidad de Supabase...');
+                    const supabaseReady = await waitForSupabase();
+
+                    if (!supabaseReady) {
+                        throw new Error('Supabase no se pudo inicializar después de múltiples intentos');
+                    }
+
+                    console.log('📡 Haciendo consulta directa a Supabase...');
+
+                    const { data: dbPosts, error } = await window.supabase
+                        .from('community_posts')
+                        .select(`
+                            *,
+                            users:user_id (
+                                id,
+                                display_name,
+                                username,
+                                profile_picture_url
+                            )
+                        `)
+                        .eq('community_id', communityId)
+                        .order('created_at', { ascending: false })
+                        .limit(50);
+
+                    if (error) {
+                        throw new Error(`Supabase error: ${error.message}`);
+                    }
+
+                    console.log('📊 Posts obtenidos de Supabase:', dbPosts);
+                    console.log('📊 Cantidad de posts encontrados:', dbPosts ? dbPosts.length : 0);
+
+                    if (!dbPosts || dbPosts.length === 0) {
+                        console.log('⚠️ No se encontraron posts para esta comunidad');
+                        posts = [];
+                        // Re-renderizar con array vacío para mostrar estado vacío
+                        const activeChip = document.querySelector('.feed-chip.active');
+                        const currentCategory = activeChip ? activeChip.dataset.category : 'all';
+                        renderPosts(currentCategory);
+                        updateStats();
                         return;
                     }
 
-                    // Crear instancia de la base de datos
-                    const db = new window.CommunityDatabase();
-                    await db.initialize();
-
-                    // Obtener posts de la base de datos
-                    const dbPosts = await db.getPosts(communityId);
-                    console.log(`📊 Posts obtenidos de ${communityName}:`, dbPosts);
-
-                    // Convertir posts de la base de datos al formato esperado por la UI
+                    // Convertir posts al formato esperado por la UI
                     posts = dbPosts.map(post => {
-                        // Formatear el timestamp
-                        let timestamp, timeAgo;
-                        if (post.created_at) {
-                            timestamp = db.formatTimestamp(post.created_at);
-                            timeAgo = timestamp;
+                        // Calcular tiempo transcurrido
+                        const createdDate = new Date(post.created_at);
+                        const now = new Date();
+                        const diffMs = now - createdDate;
+                        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+                        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+                        let timeAgo;
+                        if (diffMinutes < 1) {
+                            timeAgo = 'Ahora mismo';
+                        } else if (diffMinutes < 60) {
+                            timeAgo = `Hace ${diffMinutes} minuto${diffMinutes > 1 ? 's' : ''}`;
+                        } else if (diffHours < 24) {
+                            timeAgo = `Hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
+                        } else if (diffDays < 30) {
+                            timeAgo = `Hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
                         } else {
-                            timestamp = db.formatTimestamp(post.timestamp);
-                            timeAgo = timestamp;
+                            timeAgo = createdDate.toLocaleDateString('es-ES', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                            });
                         }
 
                         return {
                             id: post.id,
-                            user: post.users ? (post.users.display_name || post.users.first_name || post.users.username || 'Usuario') : 'Usuario',
+                            user: post.users ? (post.users.display_name || post.users.username || 'Usuario') : 'Usuario',
                             avatar: 'fas fa-user',
-                            category: 'general', // Por ahora todas las publicaciones van a general
-                            minutesAgo: 0,
+                            category: 'general',
+                            minutesAgo: diffMinutes,
                             timeAgo: timeAgo,
-                            timestamp: new Date(post.created_at || post.timestamp).getTime(),
-                            content: post.content,
+                            timestamp: createdDate.getTime(),
+                            content: post.content || post.title || '',
                             title: post.title || null,
-                            comments: [], // Los comentarios se cargarán por separado si es necesario
-                            reactions: {like:0, heart:0, wow:0, laugh:0, sad:0}, // Las reacciones se cargarán por separado si es necesario
-                            attachments: post.attachment_url ? [{
-                                type: post.attachment_type || 'image',
-                                url: post.attachment_url,
-                                src: post.attachment_url
-                            }] : [],
+                            comments: [],
+                            reactions: {like:0, heart:0, wow:0, laugh:0, sad:0},
+                            attachments: [],
                             reacted: null,
-                            // Datos adicionales de la base de datos
+                            // Datos adicionales
                             user_id: post.user_id,
                             community_id: post.community_id,
-                            created_at: post.created_at,
-                            is_edited: post.is_edited,
-                            edited_at: post.edited_at,
-                            likes_count: post.likes_count || 0,
-                            comments_count: post.comments_count || 0
+                            created_at: post.created_at
                         };
                     });
 
-                    console.log('✅ Posts convertidos para la UI:', posts);
+                    console.log('✅ Posts convertidos para UI:', posts);
 
-                    // Re-renderizar posts con la categoría activa actual
+                    // Re-renderizar posts
                     const activeChip = document.querySelector('.feed-chip.active');
                     const currentCategory = activeChip ? activeChip.dataset.category : 'all';
                     renderPosts(currentCategory);
 
+                    // Actualizar estadísticas
+                    updateStats();
+
                 } catch (error) {
-                    console.error('❌ Error cargando posts desde base de datos:', error);
-                    // En caso de error, mantener los posts existentes o cargar desde localStorage como fallback
-                    loadPosts(); // Fallback a localStorage
+                    console.error('❌ Error cargando posts desde API:', error);
+                    console.error('Error details:', error.message);
+                    // Fallback a localStorage
+                    loadPosts();
                 }
             }
              
@@ -1494,17 +1513,37 @@
                  });
              }
              
-             // Cargar posts al iniciar
-             loadPosts();
-             
-             // Limpiar posts antiguos
-             cleanupOldPosts();
-             
-             // Limpiar datos falsos
-             cleanupFakeData();
-             
-             // Actualizar timestamps al cargar
-             updatePostTimestamps();
+             // Cargar posts al iniciar (NUEVO: priorizar base de datos)
+             async function initializePosts() {
+                 console.log('🚀 Inicializando carga de posts...');
+
+                 try {
+                     // 1. Intentar cargar desde base de datos primero
+                     await loadPostsFromDatabase();
+                     console.log('✅ Posts cargados desde base de datos');
+                 } catch (error) {
+                     console.warn('⚠️ Error cargando desde BD, usando localStorage como fallback:', error);
+                     // 2. Fallback a localStorage si falla la BD
+                     loadPosts();
+                 }
+
+                 // 3. Limpiar posts antiguos
+                 cleanupOldPosts();
+
+                 // 4. Limpiar datos falsos
+                 cleanupFakeData();
+
+                 // 5. Actualizar timestamps al cargar
+                 updatePostTimestamps();
+
+                 // 6. Actualizar estadísticas iniciales
+                 updateStats();
+
+                 console.log('✅ Inicialización de posts completada');
+             }
+
+             // Llamar función de inicialización
+             initializePosts();
              
              // Función para actualizar estadísticas
              function updateStats() {
