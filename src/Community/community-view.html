@@ -1296,9 +1296,9 @@
 
                     console.log('🏠 Community slug:', communitySlug);
 
-                    // Mapeo simple de slugs conocidos
+                    // Mapeo simple de slugs conocidos (CORREGIDO profesionales ID)
                     const communityMap = {
-                        'profesionales': '7886aa14-35b9-41da-b099-29ff1ad3516b',
+                        'profesionales': '7886aa14-35b9-41da-b099-29f11ad3516b',
                         'sif-icap': 'aa5a4c4c-ce64-4a12-b1ef-365aa0d320c8',
                         'openminder': 'b3b154e1-110e-4aa7-8998-ef208482a159',
                         'ecos-de-liderazgo': 'd2dbebb1-5b57-4da7-9fc6-8b40c732b548'
@@ -1343,6 +1343,9 @@
 
                     console.log('📊 Posts obtenidos de Supabase:', dbPosts);
                     console.log('📊 Cantidad de posts encontrados:', dbPosts ? dbPosts.length : 0);
+
+                    // Log para verificar que está funcionando correctamente
+                    console.log(`✅ Posts cargados para ${communitySlug}: ${dbPosts ? dbPosts.length : 0} encontrados`);
 
                     if (!dbPosts || dbPosts.length === 0) {
                         console.log('⚠️ No se encontraron posts para esta comunidad');
@@ -2099,7 +2102,7 @@
                             const communitySlug = urlParams.get('slug') || 'profesionales';
 
                             const hardcodedCommunities = {
-                                'profesionales': { id: '7886aa14-35b9-41da-b099-29ff1ad3516b', name: 'Profesionales' },
+                                'profesionales': { id: '7886aa14-35b9-41da-b099-29f11ad3516b', name: 'Profesionales' },
                                 'sif-icap': { id: 'aa5a4c4c-ce64-4a12-b1ef-365aa0d320c8', name: 'SIF ICAP' },
                                 'openminder': { id: 'b3b154e1-110e-4aa7-8998-ef208482a159', name: 'Openminder' },
                                 'ecos-de-liderazgo': { id: 'd2dbebb1-5b57-4da7-9fc6-8b40c732b548', name: 'Ecos de Liderazgo' }
