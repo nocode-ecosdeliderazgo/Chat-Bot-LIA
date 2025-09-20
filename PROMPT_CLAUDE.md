@@ -1,316 +1,220 @@
-# PROMPT PARA CLAUDE - CORRECCIÓN DE ERRORES EN COMMUNITY.HTML
+Contexto
 
-## OBJETIVO PRINCIPAL
-Resolver los errores críticos que impiden que las comunidades se carguen correctamente en la página `community.html`, específicamente:
+En la vista de comunidad se agregaron flujos de “Solicitar acceso” para comunidades invite_only.
 
-1. **Error de CSP (Content Security Policy)**: FontAwesome bloqueado
-2. **Error de sintaxis en main.js**: Token inesperado en línea 760  
-3. **Error de Supabase**: `supabase.createClient no está disponible` (window.supabase: null)
+En runtime, la consola muestra:
 
-## ESTRUCTURA DE BASE DE DATOS ESPECÍFICA
-**IMPORTANTE**: El sistema utiliza estas tablas específicas de Supabase:
+Auth session missing! y Session no encontrada o inválida provenientes de community-auth.js.
 
-### Tablas de Comunidad:
-1. **`communities`** - Tabla principal de comunidades
-   - `id` (uuid)
-   - `name` (text)
-   - `description` (text) 
-   - `slug` (text)
-   - `image_url` (text)
-   - `member_count` (int4)
-   - `is_active` (bool)
-   - `created_at` (timestamptz)
-   - `updated_at` (timestamptz)
+POST .../rest/v1/community_access_requests 401 (Unauthorized) y, acto seguido, 42501 new row violates row-level security policy for table "community_access_requests".
 
-2. **`community_members`** - Miembros de las comunidades
-   - `id` (uuid)
-   - `community_id` (uuid)
-   - `user_id` (uuid)
-   - `role` (text)
-   - `joined_at` (timestamptz)
-   - `is_active` (bool)
+Hay un usuario en localStorage (currentUser) pero no hay sesión de Supabase; por eso la llamada al REST va sin Authorization: Bearer <access_token> y falla RLS.
 
-3. **`community_posts`** - Publicaciones en comunidades
-   - `id` (uuid)
-   - `community_id` (uuid)
-   - `user_id` (uuid)
-   - `title` (text)
-   - `content` (text)
-   - `attachment_url` (text)
-   - `attachment_type` (text)
-   - `likes_count` (int4)
-   - `comments_count` (int4)
-   - `is_pinned` (bool)
-   - `is_edited` (bool)
-   - `edited_at` (timestamptz)
-   - `created_at` (timestamptz)
-   - `updated_at` (timestamptz)
+Archivos relevantes
 
-4. **`community_reactions`** - Reacciones a publicaciones
-   - `id` (uuid)
-   - `user_id` (uuid)
-   - `post_id` (uuid)
-   - `comment_id` (uuid)
-   - `reaction_type` (text)
-   - `created_at` (timestamptz)
+src/Community/community-view.html (meta con supabase-url/key, botones “Solicitar acceso / pendiente”). 
 
-## ANÁLISIS DE ERRORES IDENTIFICADOS
+community-view
 
-### 1. ERROR CSP - FontAwesome Bloqueado
-**Error**: `Refused to load the stylesheet 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css' because it violates the following Content Security Policy directive`
+src/Community/community.js (clase CommunityPage, métodos init, loadCommunityData, getLastRequest, isMember, requestAccess, etc.). 
 
-**Causa**: El CSP en `netlify.toml` (línea 198) no incluye `https://cdnjs.cloudflare.com` en la directiva `style-src`
+community
 
-**Ubicación del problema**: 
-- Archivo: `netlify.toml` línea 198
-- Archivo: `src/Community/community.html` línea 12
+src/Community/community.css (estilos y clases usadas en la vista, incl. banner y acciones). 
 
-### 2. ERROR SINTAXIS - main.js línea 760
-**Error**: `Uncaught SyntaxError: Unexpected token ':'`
+community
 
-**Análisis**: Error de sintaxis JavaScript en línea 760 de main.js que está bloqueando la ejecución del script.
+src/Community/community-auth.js (clase CommunityAuth con métodos supabaseGetSession, supabaseGetUser, getCurrentUserId, etc.). 
 
-### 3. ERROR SUPABASE - createClient null (CRÍTICO)
-**Errores específicos del console log**:
-```
-supabase-client.js:57 ❌ supabase.createClient no está disponible
-supabase-client.js:58 📊 Estado actual de window.supabase: null
-community.js:45 [COMMUNITY] Error inicializando datos: Error: supabase.createClient no está disponible
-```
+community-auth
 
-**Causa**: La librería de Supabase no se está cargando correctamente, causando que `window.supabase` sea `null` y por tanto `supabase.createClient` no esté disponible.
+src/Community/community.html (Discover + wiring general y meta supabase). 
 
-**Ubicación**: `src/scripts/supabase-client.js` línea 57-59
+community
 
-**Impacto**: Este error está impidiendo que el sistema de comunidades funcione completamente, ya que no puede conectarse a la base de datos de Supabase para cargar las tablas `communities`, `community_members`, `community_posts` y `community_reactions`.
+Objetivo
 
-## SOLUCIONES PASO A PASO
+No depender de localStorage.currentUser para acciones protegidas.
 
-### PASO 1: CORREGIR CSP PARA FONTAWESOME
+Requerir sesión real de Supabase antes de leer estado (isMember/getLastRequest) o insertar solicitudes.
 
-Modificar el archivo `netlify.toml` línea 198 para incluir cdnjs.cloudflare.com:
+Usar RPC rpc_request_access(p_community_id uuid) para crear la solicitud (seguridad por auth.uid()), no acceso directo a tabla.
 
-```toml
-# ANTES (línea 198)
-Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://www.gstatic.com https://apis.google.com https://esm.sh https://cdn.jsdelivr.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; frame-src 'self' https://www.youtube.com https://youtube.com; connect-src 'self' https://aprendeyaplica.ai https://www.aprendeyaplica.ai https://www.youtube.com https://youtubei.googleapis.com https://www.google.com https://accounts.google.com https://apis.google.com https://*.supabase.co wss: ws:; object-src 'none'; base-uri 'self'"
+Manejar estados de UI:
 
-# DESPUÉS (CORREGIDO)
-Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://www.gstatic.com https://apis.google.com https://esm.sh https://cdn.jsdelivr.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; frame-src 'self' https://www.youtube.com https://youtube.com; connect-src 'self' https://aprendeyaplica.ai https://www.aprendeyaplica.ai https://www.youtube.com https://youtubei.googleapis.com https://www.google.com https://accounts.google.com https://apis.google.com https://*.supabase.co wss: ws:; object-src 'none'; base-uri 'self'"
-```
+Sin sesión → mostrar CTA “Inicia sesión para solicitar acceso” (modal o toast) y bloquear botones.
 
-**Cambios específicos**:
-- Añadir `https://cdnjs.cloudflare.com` a `style-src`
-- Verificar que `https://unpkg.com` esté incluido (ya presente)
+Con sesión → permitir Solicitar acceso y reflejar “pendiente / rechazada / aprobada”.
 
-### PASO 2: CORREGIR ERROR DE SINTAXIS EN main.js
+Tareas concretas (por archivo)
 
-Revisar y corregir el código alrededor de la línea 760 en `src/scripts/main.js`:
+1) community-auth.js
 
-**Buscar este bloque problemático**:
-```javascript
-// console.log('🧠 [CONTEXT] Análisis completado:', {
-    recentQuestions: analysis.recentUserQuestions.length,
-    recentActions: analysis.recentBotActions.length,
-    needsContext: analysis.needsContext,
-    hasContext: !!analysis.suggestedContext
-});
-```
+Añade hasSupabaseSession() y requireSupabaseSession():
 
-**Posibles correcciones**:
-1. Verificar que no haya comas extra
-2. Asegurar que todas las propiedades del objeto estén bien definidas
-3. Verificar que las variables `analysis.recentUserQuestions`, `analysis.recentBotActions`, etc. existan
+hasSupabaseSession() devuelve true si await supabase.auth.getSession() trae data.session con user.
 
-### PASO 3: CORREGIR CARGA DE SUPABASE (CRÍTICO PARA COMUNIDADES)
+requireSupabaseSession() comprueba sesión; si no hay, emite un evento global community:auth-required o llama a un callback para abrir modal/login.
 
-Modificar `src/scripts/supabase-client.js` para mejorar la carga de la librería:
+Ajusta logs para no confundir: cuando se usa localStorageCurrentUser, no marcarlo como autenticación válida; úsalo solo para UI (nombre/avatar), no para permisos.
 
-**Problema identificado**: La función `loadSupabaseLibrary()` está fallando completamente, causando que `window.supabase` sea `null`. Esto impide el acceso a las tablas de comunidad: `communities`, `community_members`, `community_posts` y `community_reactions`.
+Exporta helpers:
 
-**Solución A - Mejorar carga desde CDN con múltiples fallbacks**:
-```javascript
-// En loadSupabaseLibrary() - línea ~178
-async function loadSupabaseLibrary() {
-    try {
-        // Verificar si ya está disponible globalmente
-        if (window.supabase && typeof window.supabase.createClient === 'function') {
-            return;
-        }
-        
-        // NUEVO: Intentar múltiples CDNs en orden de preferencia
-        const cdnUrls = [
-            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
-            'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js',
-            'https://esm.sh/@supabase/supabase-js@2'
-        ];
-        
-        for (const url of cdnUrls) {
-            try {
-                await loadScriptFromCDN(url);
-                if (window.supabase && typeof window.supabase.createClient === 'function') {
-                    console.log(`✅ Librería cargada desde: ${url}`);
-                    return;
-                }
-            } catch (error) {
-                console.warn(`⚠️ Error cargando desde ${url}:`, error);
-                continue;
-            }
-        }
-        
-        throw new Error('No se pudo cargar Supabase desde ningún CDN');
-        
-    } catch (error) {
-        console.error('❌ Error cargando librería de Supabase:', error);
-        throw error;
-    }
+window.hasCommunitySession = () => window.CommunityAuth.hasSupabaseSession();
+window.requireCommunitySession = () => window.CommunityAuth.requireSupabaseSession();
+
+
+Mantén debugAuthState() pero deja claro en consola cuándo no existe sesión y que el localStorage no habilita RLS. 
+
+community-auth
+
+2) community.js
+
+En init():
+
+Tras ensureSupabaseClient(), llama a await window.hasCommunitySession().
+
+Si no hay sesión, deshabilita acciones protegidas (descubrir puede cargar, pero no debe consultar isMember/getLastRequest ni mostrar botón “Solicitar acceso” como activo).
+
+En openAccessRequestModal, isMember, getLastRequest, y especialmente requestAccess:
+
+Primer paso: if (!(await window.hasCommunitySession())) { await window.requireCommunitySession(); showToast("Inicia sesión para continuar", "warning"); return; }
+
+Reemplaza el insert directo a la tabla community_access_requests por una llamada a RPC:
+
+await supabase.rpc('rpc_request_access', { p_community_id: communityId });
+
+
+Esto evita tener que mandar requester_id desde el cliente y hace que RLS pase usando auth.uid().
+
+Donde se chequea estado de solicitud (getLastRequest) o membresía (isMember), omite las llamadas si no hay sesión (retorna null/false y UI en modo lectura).
+
+Si recibes 401 en cualquier operación Supabase, muestra un toast claro y bloquea el botón por unos segundos para evitar spam. 
+
+community
+
+3) community-view.html y community.html
+
+Asegura que los botones de banner (“Solicitar acceso / Solicitud pendiente”) existan y se muestren solo si hay sesión y visibility='invite_only'. Si no hay sesión, muestra botón “Inicia sesión”.
+
+Verifica que el cliente de Supabase se inicializa una sola vez con persistSession: true, autoRefreshToken: true. (La página ya tiene las metas supabase-url y supabase-key; respétalas).
+
+4) Manejo de estados de UI
+
+Estados de botón en banner y Discover:
+
+no-session: botón “Inicia sesión” → llama a requireCommunitySession()
+
+invite_only + !member + no request: “Solicitar acceso”
+
+invite_only + request pending: “Solicitud pendiente” (disabled)
+
+invite_only + request rejected: “Volver a solicitar” (opcional, reintento crea nueva solicitud si la anterior no está pending)
+
+Si la comunidad es public, nunca mostrar “Solicitar acceso”.
+
+5) Errores actuales y su causa — y cómo se corrigen
+
+401 Unauthorized al POST /rest/v1/community_access_requests: el cliente no lleva Authorization: Bearer <access_token> porque no hay sesión. Solución: requerir sesión antes y usar RPC en lugar de from('community_access_requests').insert(...).
+
+42501 new row violates row-level security policy: con anon o sin auth.uid() la política RLS bloquea el INSERT. Con RPC + sesión, pasa.
+
+Logs “Session no encontrada” y “Auth session missing!”: son correctos; hay que degradar UI cuando no hay sesión en lugar de seguir con llamadas protegidas. 
+
+community-auth
+
+Cambios de código sugeridos (extractos)
+
+En community-auth.js:
+
+async hasSupabaseSession() {
+  if (!window.supabase?.auth?.getSession) return false;
+  const { data, error } = await window.supabase.auth.getSession();
+  return !!(data?.session?.user?.id) && !error;
+}
+async requireSupabaseSession() {
+  const has = await this.hasSupabaseSession();
+  if (has) return true;
+  // dispara evento para que UI muestre login modal / redireccione
+  window.dispatchEvent(new CustomEvent('community:auth-required'));
+  this.warn('Se requiere autenticación para continuar');
+  return false;
 }
 
-// NUEVA función auxiliar
-function loadScriptFromCDN(url) {
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = url;
-        script.onload = resolve;
-        script.onerror = reject;
-        script.timeout = 10000; // 10 segundos timeout
-        document.head.appendChild(script);
-    });
+
+En community.js (dentro de requestAccess(communityId)):
+
+if (!(await window.hasCommunitySession())) {
+  await window.requireCommunitySession();
+  this.showToast('Inicia sesión para solicitar acceso', 'warning');
+  return;
 }
-```
-
-**Solución B - Agregar verificación más robusta con información específica de tablas**:
-```javascript
-// Mejorar la verificación en línea 56-59
-if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-    console.error('❌ supabase.createClient no está disponible');
-    console.log('📊 Estado actual de window.supabase:', window.supabase);
-    console.error('🗄️ Sin acceso a las tablas: communities, community_members, community_posts, community_reactions');
-    throw new Error('supabase.createClient no está disponible - No se pueden cargar las comunidades');
+try {
+  console.log('[ACCESS] 🚀 Solicitando acceso vía RPC…');
+  const { error } = await window.supabase.rpc('rpc_request_access', { p_community_id: communityId });
+  if (error) throw error;
+  this.showToast('Solicitud enviada', 'success');
+  // refrescar estado: getLastRequest / UI
+} catch (e) {
+  if (e?.status === 401) {
+    this.showToast('Tu sesión expiró. Inicia sesión e inténtalo de nuevo.', 'error');
+  } else {
+    this.showToast('No se pudo enviar la solicitud. Inténtalo más tarde.', 'error');
+  }
+  console.error('[ACCESS] ❌ Error solicitando acceso:', e);
 }
-```
 
-**Solución C - Verificar conexión específica a tablas de comunidad**:
-```javascript
-// Agregar después de crear el cliente (línea ~76)
-async function testCommunityTablesConnection(client) {
-    try {
-        console.log('🔍 Probando conexión a tablas de comunidad...');
-        
-        // Test específico para tabla communities
-        const { data: communitiesTest, error: communitiesError } = await client
-            .from('communities')
-            .select('count', { count: 'exact', head: true });
-            
-        if (communitiesError && communitiesError.code !== 'PGRST116') {
-            throw new Error(`Error en tabla communities: ${communitiesError.message}`);
-        }
-        
-        // Test específico para tabla community_members  
-        const { data: membersTest, error: membersError } = await client
-            .from('community_members')
-            .select('count', { count: 'exact', head: true });
-            
-        if (membersError && membersError.code !== 'PGRST116') {
-            throw new Error(`Error en tabla community_members: ${membersError.message}`);
-        }
-        
-        // Test específico para tabla community_posts
-        const { data: postsTest, error: postsError } = await client
-            .from('community_posts')
-            .select('count', { count: 'exact', head: true });
-            
-        if (postsError && postsError.code !== 'PGRST116') {
-            throw new Error(`Error en tabla community_posts: ${postsError.message}`);
-        }
-        
-        console.log('✅ Conexión a tablas de comunidad verificada');
-    } catch (error) {
-        console.error('⚠️ Error en test de tablas de comunidad:', error);
-        throw error;
-    }
-}
-```
 
-### PASO 4: ALTERNATIVA PARA FONTAWESOME
+En renderizado del banner (páginas view/discover): si !hasSession, pinta botón “Inicia sesión”; si hasSession y comunidad invite_only & !member, pinta “Solicitar acceso”; si pending, “Solicitud pendiente” (disabled).
 
-Si el problema de CSP persiste, reemplazar FontAwesome con Boxicons (ya incluido):
+Asegurarte de que existe el RPC en BD
+(Gael ya lo ejecutó / lo ejecutará en Supabase)
 
-**En `src/Community/community.html`**:
-```html
-<!-- REMOVER esta línea (línea 12) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+create or replace function public.rpc_request_access(p_community_id uuid)
+returns void language plpgsql security definer set search_path=public as $$
+begin
+  insert into public.community_access_requests (community_id, requester_id)
+  values (p_community_id, auth.uid());
+end; $$;
+grant execute on function public.rpc_request_access(uuid) to authenticated;
 
-<!-- Boxicons ya está incluido en línea 13 - usar solo este -->
-<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-```
 
-**Reemplazar iconos FontAwesome con Boxicons**:
-- `fas fa-search` → `bx bx-search`
-- `fas fa-times` → `bx bx-x`
+Criterios de aceptación
 
-### PASO 5: VERIFICAR ORDEN DE CARGA DE SCRIPTS
+Sin sesión:
 
-Asegurar que los scripts se carguen en el orden correcto en `community.html`:
+supabase.auth.getSession() devuelve null → botones protegidos deshabilitados o “Inicia sesión”.
 
-```html
-<!-- ORDEN CORRECTO (líneas 212-219) -->
-<script src="../scripts/particles.js"></script>
-<script src="../scripts/main.js"></script>                    <!-- ← Verificar que no tenga errores -->
-<script src="../scripts/supabase-client.js"></script>         <!-- ← Debe cargar antes de community.js -->
-<script src="../scripts/community-database.js"></script>
-<script src="community.js"></script>                          <!-- ← Depende de supabase-client.js -->
-<script src="../scripts/profile-avatar-manager.js"></script>
-<script src="../scripts/force-theme-init.js"></script>
-<script src="../scripts/theme-manager.js"></script>
-```
+No se intenta getLastRequest/isMember ni se hace insert; no aparecen 401/42501.
 
-## ARCHIVOS A MODIFICAR
+Con sesión válida:
 
-1. **`netlify.toml`** (línea 198) - Actualizar CSP
-2. **`src/scripts/main.js`** (línea ~760) - Corregir error de sintaxis
-3. **`src/scripts/supabase-client.js`** (líneas 178-214) - Mejorar carga de librería
-4. **`src/Community/community.html`** (línea 12) - Opcional: remover FontAwesome
+rpc_request_access crea la solicitud sin enviar requester_id desde el cliente.
 
-## ORDEN DE EJECUCIÓN
+UI actualiza a “Solicitud pendiente”.
 
-1. **PRIMERO**: Corregir CSP en `netlify.toml`
-2. **SEGUNDO**: Corregir error de sintaxis en `main.js`
-3. **TERCERO**: Mejorar carga de Supabase en `supabase-client.js`
-4. **CUARTO**: Probar la carga de comunidades
-5. **QUINTO**: Si persisten problemas, implementar alternativa de FontAwesome
+No hay 401; no hay 42501.
 
-## VERIFICACIÓN DE ÉXITO
+Regresión: comunidades públicas siguen funcionando sin fricción.
 
-Después de aplicar las correcciones, verificar en el console log:
+Pruebas manuales
 
-### ✅ **Errores Eliminados**:
-1. No más errores de CSP: `Refused to load the stylesheet 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'`
-2. No más errores de sintaxis: `Uncaught SyntaxError: Unexpected token ':'`
-3. No más errores de Supabase: `❌ supabase.createClient no está disponible`
-4. No más errores en community.js: `[COMMUNITY] Error inicializando datos`
+Abrir Discover sin sesión → ver CTA “Inicia sesión para solicitar acceso”.
 
-### ✅ **Funcionalidades Restauradas**:
-1. **Carga de comunidades**: Las comunidades se cargan desde la tabla `communities`
-2. **Conteo de miembros**: Se muestran correctamente desde `community_members`
-3. **Publicaciones**: Se pueden cargar desde `community_posts` 
-4. **Reacciones**: Sistema funcional con `community_reactions`
-5. **Iconos**: Se muestran correctamente (FontAwesome o Boxicons)
+Iniciar sesión (con Supabase Auth) → Discover muestra “Solicitar acceso” en invite_only.
 
-### ✅ **Console Log Esperado** (sin errores):
-```
-✅ Cliente de Supabase inicializado correctamente
-🔍 Probando conexión a tablas de comunidad...
-✅ Conexión a tablas de comunidad verificada
-[COMMUNITY] ✅ Datos de comunidad cargados correctamente
-[PROFILE] ✅ Menú de perfil configurado correctamente
-```
+Click “Solicitar acceso” → RPC OK, UI pasa a “Solicitud pendiente”.
 
-### 🗄️ **Verificación Específica de Tablas**:
-- **`communities`**: Debe cargar lista de comunidades disponibles
-- **`community_members`**: Debe mostrar conteo correcto de miembros
-- **`community_posts`**: Debe permitir cargar publicaciones
-- **`community_reactions`**: Debe permitir sistema de reacciones
+Cerrar sesión → volver a ver CTA de login y sin llamadas protegidas.
 
----
+Aprobar en BD → al recargar, el usuario ya es miembro y puede publicar (composer habilitado).
 
-**NOTA CRÍTICA**: Estos errores están bloqueando completamente el acceso a las tablas de comunidad (`communities`, `community_members`, `community_posts`, `community_reactions`). Deben resolverse en el orden especificado para restaurar la funcionalidad completa del sistema de comunidades.
+Notas
+
+No elimines la info de localStorage.currentUser, pero úsala solo para UI (nombre/avatar). Nunca como prueba de autenticación.
+
+Asegura en la inicialización del cliente Supabase persistSession: true y autoRefreshToken: true.
+
+Evita llamadas duplicadas a initializeSupabaseClient(); ya hay ensureSupabaseClient() en community.js. 
+
+community

@@ -525,6 +525,15 @@
                         <h1 class="community-banner-title" id="communityBannerTitle">Comunidad</h1>
                         <p class="community-banner-desc" id="communityBannerDesc">Descripción de la comunidad</p>
                         <div class="community-banner-meta" id="communityBannerMeta">• Members • Free</div>
+                    </div>
+                    <div class="community-banner-actions" id="communityBannerActions" style="display: none;">
+                        <button id="requestAccessBtn" class="btn-primary" style="display: none;">
+                            Solicitar acceso
+                        </button>
+                        <button id="requestPendingBtn" class="btn-secondary" disabled style="display: none;">
+                            Solicitud pendiente
+                        </button>
+                    </div>
                      <div class="community-stats" id="communityStats">
                          <div class="stat-item">
                              <span class="stat-number" id="totalPosts">0</span>
@@ -2933,6 +2942,9 @@
         const notifications = new NotificationSystem();
     </script>
 
+    <!-- Community Auth - Sistema robusto de autenticación para comunidades -->
+    <script src="community-auth.js"></script>
+
     <script src="../scripts/community-database.js"></script>
     <script>
         // Sistema de comunidad con base de datos
@@ -3989,15 +4001,18 @@
         // Integrar con el sistema existente
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🚀 DOMContentLoaded - Initializing community system...');
-            
+
             // Verificar estado de Supabase
             await checkSupabaseStatus();
-            
+
             // Probar conexión a Supabase
             await testSupabaseConnection();
-            
+
             // Sincronizar con Supabase al cargar la página
             await syncWithSupabase();
+
+            // NUEVO: Cargar estado de acceso a la comunidad
+            await loadAccessState();
 
 
             
@@ -4116,6 +4131,279 @@
                 }
             } catch (error) {
                 console.error('❌ Error syncing with Supabase:', error);
+            }
+        }
+
+        // ===== FUNCIONES DE ACCESO A COMUNIDADES =====
+
+        async function getCurrentUserId() {
+            try {
+                // Usar el sistema robusto de autenticación
+                if (window.CommunityAuth) {
+                    return await window.CommunityAuth.getCurrentUserId();
+                }
+
+                console.error('[ACCESS] ❌ CommunityAuth no está disponible');
+                return null;
+            } catch (error) {
+                console.error('[ACCESS] ❌ Error obteniendo userId:', error);
+                return null;
+            }
+        }
+
+        async function isMember(communityId) {
+            try {
+                // Verificar sesión de Supabase primero
+                if (!(await window.hasCommunitySession())) {
+                    console.warn('[ACCESS] Sin sesión Supabase - no verificando membresía');
+                    return false;
+                }
+
+                // Obtener userId usando método robusto
+                const userId = await getCurrentUserId();
+                if (!userId) {
+                    console.warn('[ACCESS] Usuario no autenticado para verificar membresía');
+                    return false;
+                }
+                const { data, error } = await window.supabase
+                    .from('community_members')
+                    .select('user_id')
+                    .eq('community_id', communityId)
+                    .eq('user_id', userId)
+                    .eq('is_active', true)
+                    .maybeSingle();
+
+                if (error && error.code !== 'PGRST116') {
+                    console.warn('[ACCESS] Error verificando membresía:', error);
+                    return false;
+                }
+
+                return !!data;
+            } catch (error) {
+                console.error('[ACCESS] Error en isMember:', error);
+                return false;
+            }
+        }
+
+        async function getLastRequest(communityId) {
+            try {
+                // Verificar sesión de Supabase primero
+                if (!(await window.hasCommunitySession())) {
+                    console.warn('[ACCESS] Sin sesión Supabase - no obteniendo solicitudes');
+                    return null;
+                }
+
+                // Obtener userId usando método robusto
+                const userId = await getCurrentUserId();
+                if (!userId) {
+                    console.warn('[ACCESS] Usuario no autenticado para obtener solicitudes');
+                    return null;
+                }
+                const { data, error } = await window.supabase
+                    .from('community_access_requests')
+                    .select('id,status,created_at')
+                    .eq('community_id', communityId)
+                    .eq('requester_id', userId)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+
+                if (error) {
+                    console.warn('[ACCESS] Error obteniendo solicitud:', error);
+                    return null;
+                }
+
+                return (data && data[0]) || null;
+            } catch (error) {
+                console.error('[ACCESS] Error en getLastRequest:', error);
+                return null;
+            }
+        }
+
+        async function requestAccess(communityId) {
+            try {
+                console.log('[ACCESS] 🚀 Solicitando acceso a comunidad:', communityId);
+
+                // Verificar sesión de Supabase primero
+                if (!(await window.hasCommunitySession())) {
+                    await window.requireCommunitySession();
+                    showToast('Inicia sesión para solicitar acceso', 'warning');
+                    return;
+                }
+
+                console.log('[ACCESS] 🚀 Solicitando acceso vía RPC...');
+
+                const { error } = await window.executeRPCWithAuth('rpc_request_access', {
+                    p_community_id: communityId
+                });
+
+                if (error) {
+                    console.error('[ACCESS] ❌ Error en RPC Supabase:', error);
+                    throw error;
+                }
+
+                console.log('[ACCESS] ✅ Solicitud creada exitosamente via RPC');
+                showToast('Solicitud enviada exitosamente', 'success');
+                return true;
+            } catch (error) {
+                console.error('[ACCESS] ❌ Error solicitando acceso:', error);
+
+                // Manejar errores específicos
+                if (error?.status === 401 || error?.code === '401') {
+                    showToast('Tu sesión expiró. Inicia sesión e inténtalo de nuevo.', 'error');
+                } else if (error?.code === '42501') {
+                    showToast('No tienes permisos para realizar esta acción.', 'error');
+                } else {
+                    showToast('No se pudo enviar la solicitud. Inténtalo más tarde.', 'error');
+                }
+
+                console.error('[ACCESS] ❌ Error solicitando acceso:', error);
+                showToast('Error enviando solicitud: ' + error.message, 'error');
+                throw error;
+            }
+        }
+
+        async function loadAccessState() {
+            try {
+                // Obtener slug de la URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const slug = urlParams.get('slug');
+                if (!slug) return;
+
+                // Buscar comunidad por slug (simplificado)
+                const { data: communities, error } = await window.supabase
+                    .from('communities')
+                    .select('id, visibility, access_type')
+                    .eq('slug', slug)
+                    .maybeSingle();
+
+                if (error || !communities) {
+                    console.warn('[ACCESS] No se pudo cargar la comunidad');
+                    return;
+                }
+
+                const community = communities;
+                const isInviteOnly = community.visibility === 'invite_only' || community.access_type === 'invite_only';
+
+                if (!isInviteOnly) {
+                    // No es invite_only, no mostrar botones
+                    return;
+                }
+
+                // Verificar sesión de Supabase
+                const hasSession = await window.hasCommunitySession();
+
+                if (!hasSession) {
+                    // Sin sesión, mostrar botón de login
+                    const bannerActions = document.getElementById('communityBannerActions');
+                    const requestAccessBtn = document.getElementById('requestAccessBtn');
+
+                    if (bannerActions) {
+                        bannerActions.style.display = 'block';
+                    }
+
+                    if (requestAccessBtn) {
+                        requestAccessBtn.style.display = 'block';
+                        requestAccessBtn.textContent = 'Inicia sesión';
+                        requestAccessBtn.classList.remove('btn-primary');
+                        requestAccessBtn.classList.add('btn-secondary');
+                        requestAccessBtn.addEventListener('click', async () => {
+                            await window.requireCommunitySession();
+                        });
+                    }
+
+                    // Bloquear UI del composer
+                    blockComposerUI();
+                    return;
+                }
+
+                // Con sesión, verificar si es miembro
+                const isMemberResult = await isMember(community.id);
+
+                if (isMemberResult) {
+                    // Es miembro, no bloquear UI
+                    return;
+                }
+
+                // No es miembro de comunidad invite_only
+                // Mostrar botón de solicitud y bloquear UI
+                const bannerActions = document.getElementById('communityBannerActions');
+                const requestAccessBtn = document.getElementById('requestAccessBtn');
+                const requestPendingBtn = document.getElementById('requestPendingBtn');
+
+                if (bannerActions) {
+                    bannerActions.style.display = 'block';
+                }
+
+                // Verificar estado de solicitud
+                const lastRequest = await getLastRequest(community.id);
+
+                if (lastRequest && lastRequest.status === 'pending') {
+                    // Mostrar botón de pendiente
+                    if (requestPendingBtn) {
+                        requestPendingBtn.style.display = 'block';
+                    }
+                } else {
+                    // Mostrar botón de solicitar acceso
+                    if (requestAccessBtn) {
+                        requestAccessBtn.style.display = 'block';
+                        requestAccessBtn.addEventListener('click', async () => {
+                            requestAccessBtn.disabled = true;
+                            requestAccessBtn.textContent = 'Enviando...';
+
+                            try {
+                                await requestAccess(community.id);
+                                // Cambiar a estado pendiente
+                                requestAccessBtn.style.display = 'none';
+                                if (requestPendingBtn) {
+                                    requestPendingBtn.style.display = 'block';
+                                }
+                            } catch (error) {
+                                requestAccessBtn.disabled = false;
+                                requestAccessBtn.textContent = 'Solicitar acceso';
+                            }
+                        });
+                    }
+                }
+
+                // Bloquear UI del composer
+                blockComposerUI();
+
+            } catch (error) {
+                console.error('[ACCESS] Error cargando estado de acceso:', error);
+            }
+        }
+
+        function blockComposerUI() {
+            const composerInput = document.getElementById('composerInput');
+            const publishPostBtn = document.getElementById('publishPostBtn');
+            const composerCard = document.querySelector('.composer-card');
+
+            if (composerInput) {
+                composerInput.disabled = true;
+                composerInput.placeholder = 'Necesitas acceso para participar en esta comunidad';
+            }
+
+            if (publishPostBtn) {
+                publishPostBtn.disabled = true;
+                publishPostBtn.textContent = 'Acceso requerido';
+            }
+
+            if (composerCard) {
+                composerCard.style.opacity = '0.6';
+                composerCard.style.pointerEvents = 'none';
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            // Usar sistema de toast existente o crear uno simple
+            console.log(`[TOAST ${type.toUpperCase()}] ${message}`);
+
+            // Intentar usar el sistema existente de toasts
+            if (window.showToast) {
+                window.showToast(message, type);
+            } else {
+                // Fallback simple
+                alert(message);
             }
         }
     </script>

@@ -72,10 +72,8 @@ async function initializeSupabaseClient() {
             throw new Error('window.supabase.createClient no está disponible');
         }
 
-        let supabaseClient = window.supabase.createClient;
-        
         // Crear cliente con configuración optimizada
-        const client = supabaseClient(credentials.url, credentials.key, {
+        const client = window.supabase.createClient(credentials.url, credentials.key, {
             auth: { 
                 storageKey: 'sb-lia',
                 autoRefreshToken: true,
@@ -90,9 +88,23 @@ async function initializeSupabaseClient() {
         
         // Verificar conexión
         await testSupabaseConnection(client);
-        
+
         // Verificar conexión específica a tablas de comunidad
         await testCommunityTablesConnection(client);
+
+        // Verificar estado de autenticación
+        try {
+            const { data: { session }, error: sessionError } = await client.auth.getSession();
+            if (sessionError) {
+                console.warn('⚠️ Error obteniendo sesión:', sessionError.message);
+            } else if (session?.user) {
+                console.log('✅ Usuario autenticado encontrado:', session.user.email || session.user.id);
+            } else {
+                console.log('ℹ️ No hay sesión activa - usuario anónimo');
+            }
+        } catch (authError) {
+            console.warn('⚠️ Error verificando autenticación:', authError.message);
+        }
         
         // Exponer globalmente
         window.supabase = client;
