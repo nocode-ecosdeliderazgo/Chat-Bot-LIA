@@ -793,18 +793,27 @@ class CommunityDatabase {
 
     async countCommunityMembers(communityId) {
         try {
+            console.log('[COMMUNITY_DB] Contando miembros para community_id:', communityId);
+            console.log('[COMMUNITY_DB] Supabase disponible:', !!this.supabase);
+            
             const { count, error } = await this.supabase
                 .from('community_members')
                 .select('id', { count: 'exact', head: true })
                 .eq('community_id', communityId)
                 .eq('is_active', true);
 
+            console.log('[COMMUNITY_DB] Resultado de la consulta:');
+            console.log('  - count:', count);
+            console.log('  - error:', error);
+
             if (error) {
                 console.error('[COMMUNITY_DB] Error contando miembros:', error);
                 return 0;
             }
 
-            return count || 0;
+            const result = count || 0;
+            console.log('[COMMUNITY_DB] Número final de miembros:', result);
+            return result;
         } catch (error) {
             console.error('[COMMUNITY_DB] Error en countCommunityMembers:', error);
             return 0;
@@ -1145,6 +1154,33 @@ class CommunityDatabase {
         }
     }
 
+    // Método auxiliar para obtener comunidad por slug con fallback
+    async getCommunityBySlugWithFallback(slug) {
+        try {
+            // Primero intentar con la base de datos
+            const community = await this.getCommunityBySlug(slug);
+            if (community) {
+                return community;
+            }
+            
+            // Si no se encuentra, usar fallback
+            console.log('🔄 Usando fallback para slug:', slug);
+            const fallbackCommunities = this.getFallbackCommunities();
+            const fallbackCommunity = fallbackCommunities.find(c => c.slug === slug);
+            
+            if (fallbackCommunity) {
+                console.log('✅ Comunidad encontrada en fallback:', fallbackCommunity.name);
+                return fallbackCommunity;
+            }
+            
+            console.warn('⚠️ No se encontró la comunidad en BD ni en fallback:', slug);
+            return null;
+        } catch (error) {
+            console.error('❌ Error en getCommunityBySlugWithFallback:', error);
+            return null;
+        }
+    }
+
     // NUEVA función de fallback para comunidades
     getFallbackCommunities() {
         console.log('🔄 Usando fallback de comunidades hardcodeadas...');
@@ -1154,8 +1190,11 @@ class CommunityDatabase {
                 name: 'Profesionales',
                 description: 'Espacio abierto para perfiles sin cursos activos',
                 slug: 'profesionales',
+                image_url: null,
                 is_active: true,
                 member_count: 0,
+                access_type: 'Free',
+                visibility: 'public',
                 created_at: new Date().toISOString()
             },
             {
@@ -1163,8 +1202,11 @@ class CommunityDatabase {
                 name: 'SIF ICAP',
                 description: 'Comunidad cerrada por invitación.',
                 slug: 'sif-icap',
+                image_url: null,
                 is_active: true,
                 member_count: 0,
+                access_type: 'Invitación',
+                visibility: 'invite_only',
                 created_at: new Date().toISOString()
             },
             {
@@ -1172,8 +1214,11 @@ class CommunityDatabase {
                 name: 'Openminder',
                 description: 'Comunidad cerrada por invitación.',
                 slug: 'openminder',
+                image_url: null,
                 is_active: true,
                 member_count: 0,
+                access_type: 'Invitación',
+                visibility: 'invite_only',
                 created_at: new Date().toISOString()
             },
             {
@@ -1181,8 +1226,11 @@ class CommunityDatabase {
                 name: 'Ecos de Liderazgo',
                 description: 'Comunidad cerrada por invitación.',
                 slug: 'ecos-de-liderazgo',
+                image_url: null,
                 is_active: true,
                 member_count: 0,
+                access_type: 'Invitación',
+                visibility: 'invite_only',
                 created_at: new Date().toISOString()
             }
         ];

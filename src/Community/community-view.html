@@ -8,7 +8,8 @@
 
     
     <link rel="stylesheet" href="community.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Font Awesome - usando versión compatible con CSP -->
+    <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" crossorigin="anonymous" />
     
     <!-- Global theme setup -->
     <script src="../scripts/global-theme-setup.js"></script>
@@ -17,6 +18,32 @@
     <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY
 ">
     
+    <!-- OPTIMIZACIÓN: Script inline para cargar banner inmediatamente -->
+    <script>
+        // Cargar banner inmediatamente sin esperar DOMContentLoaded
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const communitySlug = urlParams.get('slug') || 'general';
+            
+            // Buscar datos en localStorage inmediatamente
+            const savedCommunities = localStorage.getItem('savedCommunities');
+            if (savedCommunities) {
+                try {
+                    const communities = JSON.parse(savedCommunities);
+                    const community = communities.find(c => c.slug === communitySlug);
+                    
+                    if (community) {
+                        // Actualizar título de la página inmediatamente
+                        document.title = `Comunidad de ${community.name}`;
+                        console.log('🚀 Banner precargado desde localStorage:', community.name);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Error precargando banner:', error);
+                }
+            }
+        })();
+    </script>
+
     <style>
         /* Estilos para los rangos de ligas */
         .league-ranges-container {
@@ -483,6 +510,44 @@
                 height: 50px;
             }
         }
+
+        /* OPTIMIZACIÓN: Estilos para skeleton loading */
+        .loading-skeleton {
+            background: linear-gradient(90deg, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                rgba(255, 255, 255, 0.2) 50%, 
+                rgba(255, 255, 255, 0.1) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 100px;
+        }
+
+        @keyframes skeleton-loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* Ocultar skeleton cuando se carga el contenido real */
+        .banner-loaded .loading-skeleton {
+            display: none;
+        }
+
+        .banner-loaded .community-banner-title,
+        .banner-loaded .community-banner-desc,
+        .banner-loaded .community-banner-meta {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="bg-glow-global">
@@ -522,9 +587,15 @@
                         <i class="fas fa-globe"></i>
                     </div>
                     <div class="community-banner-info">
-                        <h1 class="community-banner-title" id="communityBannerTitle">Comunidad</h1>
-                        <p class="community-banner-desc" id="communityBannerDesc">Descripción de la comunidad</p>
-                        <div class="community-banner-meta" id="communityBannerMeta">• Members • Free</div>
+                        <h1 class="community-banner-title" id="communityBannerTitle">
+                            <span class="loading-skeleton" id="bannerTitleSkeleton">Cargando...</span>
+                        </h1>
+                        <p class="community-banner-desc" id="communityBannerDesc">
+                            <span class="loading-skeleton" id="bannerDescSkeleton">Cargando descripción...</span>
+                        </p>
+                        <div class="community-banner-meta" id="communityBannerMeta">
+                            <span class="loading-skeleton" id="bannerMetaSkeleton">• Cargando... • Free</span>
+                        </div>
                     </div>
                     <div class="community-banner-actions" id="communityBannerActions" style="display: none;">
                         <button id="requestAccessBtn" class="btn-primary" style="display: none;">
@@ -2773,9 +2844,11 @@
             };
              
              // Mejorar el sistema de cambio de tema
-             document.getElementById('themeToggleBtn').addEventListener('click', () => {
-                 const currentTheme = document.documentElement.getAttribute('data-theme');
-                 const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+             const themeToggleBtn = document.getElementById('themeToggleBtn');
+             if (themeToggleBtn) {
+                 themeToggleBtn.addEventListener('click', () => {
+                     const currentTheme = document.documentElement.getAttribute('data-theme');
+                     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
                  
                  document.documentElement.setAttribute('data-theme', newTheme);
                  localStorage.setItem('theme', newTheme);
@@ -2786,8 +2859,9 @@
                      document.body.style.transition = '';
                  }, 300);
                  
-                 notifications.info(`Tema cambiado a ${newTheme === 'light' ? 'claro' : 'oscuro'}`);
-             });
+                     notifications.info(`Tema cambiado a ${newTheme === 'light' ? 'claro' : 'oscuro'}`);
+                 });
+             }
         })();
     </script>
          <!-- Funcionalidades de accesibilidad -->
@@ -2961,27 +3035,182 @@
 
             async init() {
                 console.log('🚀 Inicializando sistema de comunidad...');
+                console.log('🔍 URL actual:', window.location.href);
+                console.log('🔍 Slug de la URL:', new URLSearchParams(window.location.search).get('slug'));
+                
                 await this.db.initialize();
                 
                 // Obtener comunidad actual desde URL
                 const urlParams = new URLSearchParams(window.location.search);
-                const communitySlug = urlParams.get('community') || 'general';
+                const communitySlug = urlParams.get('slug') || 'general';
                 
-                await this.loadCommunity(communitySlug);
-                await this.loadPosts();
-                await this.loadMembers();
+                console.log('🔍 Slug a cargar:', communitySlug);
+                
+                // OPTIMIZACIÓN: Cargar banner primero, luego el resto en paralelo
+                await this.loadBannerOnly(communitySlug);
+                
+                // Cargar el resto de datos en paralelo (no críticos para el banner)
+                this.loadRemainingData(communitySlug);
                 
                 console.log('✅ Sistema de comunidad inicializado');
             }
 
-            async loadCommunity(slug) {
-                console.log(`🏘️ Cargando comunidad: ${slug}`);
-                this.currentCommunity = await this.db.getCommunityBySlug(slug);
+            // OPTIMIZACIÓN: Función para cargar solo los datos del banner (rápida)
+            async loadBannerOnly(slug) {
+                console.log(`🚀 Cargando banner de comunidad: ${slug}`);
+                this.currentCommunity = await this.db.getCommunityBySlugWithFallback(slug);
                 
                 if (this.currentCommunity) {
-                    document.getElementById('communityName').textContent = this.currentCommunity.name;
-                    document.getElementById('communityDescription').textContent = this.currentCommunity.description;
-                    document.getElementById('memberCount').textContent = this.currentCommunity.member_count;
+                    console.log('✅ Comunidad cargada para banner:', this.currentCommunity);
+                    
+                    // Actualizar banner inmediatamente con datos básicos
+                    this.updateBannerBasic();
+                    
+                    // Actualizar título de la página
+                    document.title = `Comunidad de ${this.currentCommunity.name}`;
+                } else {
+                    console.error('❌ No se pudo cargar la comunidad:', slug);
+                }
+            }
+
+            // OPTIMIZACIÓN: Función para cargar datos restantes en paralelo
+            async loadRemainingData(slug) {
+                console.log('🔄 Cargando datos restantes en paralelo...');
+                
+                // Cargar posts y miembros en paralelo
+                const [postsResult, membersResult] = await Promise.allSettled([
+                    this.loadPosts(),
+                    this.loadMembers()
+                ]);
+                
+                // Actualizar banner con conteo de miembros (después de cargar miembros)
+                if (membersResult.status === 'fulfilled') {
+                    this.updateBannerWithMemberCount();
+                }
+                
+                console.log('✅ Datos restantes cargados');
+            }
+
+            // OPTIMIZACIÓN: Actualizar banner con datos básicos (sin conteo de miembros)
+            updateBannerBasic() {
+                const bannerTitle = document.getElementById('communityBannerTitle');
+                const bannerDesc = document.getElementById('communityBannerDesc');
+                const bannerMeta = document.getElementById('communityBannerMeta');
+                const bannerContainer = document.getElementById('communityBanner');
+                const bannerImage = document.getElementById('communityBannerImage');
+                
+                if (bannerTitle) {
+                    bannerTitle.textContent = this.currentCommunity.name;
+                }
+                if (bannerDesc) {
+                    bannerDesc.textContent = this.currentCommunity.description || 'Descripción de la comunidad';
+                }
+                if (bannerMeta) {
+                    const accessType = this.currentCommunity.access_type || 'Free';
+                    bannerMeta.textContent = `• Cargando... • ${accessType}`;
+                }
+                
+                // Cargar imagen del banner desde image_url de la base de datos
+                if (bannerImage && this.currentCommunity.image_url) {
+                    console.log('🖼️ Cargando imagen del banner:', this.currentCommunity.image_url);
+                    bannerImage.style.backgroundImage = `url(${this.currentCommunity.image_url})`;
+                    bannerImage.style.display = 'block';
+                } else if (bannerImage) {
+                    console.log('⚠️ No hay image_url disponible para la comunidad');
+                    bannerImage.style.display = 'none';
+                }
+                
+                // Marcar banner como cargado para ocultar skeleton (solo si no está ya cargado)
+                if (bannerContainer && !bannerContainer.classList.contains('banner-loaded')) {
+                    bannerContainer.classList.add('banner-loaded');
+                }
+                
+                console.log('✅ Banner actualizado con datos de Supabase');
+            }
+
+            // OPTIMIZACIÓN: Actualizar banner con conteo de miembros (después de cargar)
+            updateBannerWithMemberCount() {
+                const bannerMeta = document.getElementById('communityBannerMeta');
+                if (bannerMeta && this.members) {
+                    const memberCount = this.members.length;
+                    const accessType = this.currentCommunity.access_type || 'Free';
+                    bannerMeta.textContent = `• ${memberCount} Members • ${accessType}`;
+                }
+            }
+
+            async loadCommunity(slug) {
+                console.log(`🏘️ Cargando comunidad: ${slug}`);
+                this.currentCommunity = await this.db.getCommunityBySlugWithFallback(slug);
+                
+                if (this.currentCommunity) {
+                    console.log('✅ Comunidad cargada:', this.currentCommunity);
+                    
+                    // Calcular el número real de miembros (igual que en community.js)
+                    let memberCount = 0;
+                    console.log('🔍 Calculando número real de miembros...');
+                    console.log('🔍 Community ID:', this.currentCommunity.id);
+                    console.log('🔍 countCommunityMembers disponible:', typeof this.db.countCommunityMembers === 'function');
+                    console.log('🔍 getCommunityMembers disponible:', typeof this.db.getCommunityMembers === 'function');
+                    console.log('🔍 Supabase disponible:', !!this.db.supabase);
+                    
+                    try {
+                        if (typeof this.db.countCommunityMembers === 'function') {
+                            console.log('🔍 Usando countCommunityMembers...');
+                            console.log('🔍 Community ID que se está pasando:', this.currentCommunity.id);
+                            console.log('🔍 Tipo de Community ID:', typeof this.currentCommunity.id);
+                            memberCount = await this.db.countCommunityMembers(this.currentCommunity.id);
+                            console.log('🔍 Resultado countCommunityMembers:', memberCount);
+                        } else if (typeof this.db.getCommunityMembers === 'function') {
+                            console.log('🔍 Usando getCommunityMembers...');
+                            const members = await this.db.getCommunityMembers(this.currentCommunity.id);
+                            console.log('🔍 Miembros obtenidos:', members);
+                            memberCount = Array.isArray(members) ? members.length : 0;
+                            console.log('🔍 Número calculado de miembros:', memberCount);
+                        } else {
+                            console.warn('⚠️ Ningún método de conteo disponible');
+                            memberCount = this.currentCommunity.member_count || 0;
+                        }
+                    } catch (memberError) {
+                        console.warn('[COMMUNITY-VIEW] Error obteniendo miembros:', memberError);
+                        memberCount = this.currentCommunity.member_count || 0; // Fallback a BD
+                        console.log('🔍 Usando fallback member_count:', memberCount);
+                    }
+                    
+                    console.log('🔍 Número final de miembros:', memberCount);
+                    
+                    // Actualizar el banner de la comunidad
+                    const bannerTitle = document.getElementById('communityBannerTitle');
+                    const bannerDesc = document.getElementById('communityBannerDesc');
+                    const bannerMeta = document.getElementById('communityBannerMeta');
+                    
+                    console.log('🔍 Elementos del banner encontrados:');
+                    console.log('  - bannerTitle:', !!bannerTitle);
+                    console.log('  - bannerDesc:', !!bannerDesc);
+                    console.log('  - bannerMeta:', !!bannerMeta);
+                    
+                    if (bannerTitle) {
+                        bannerTitle.textContent = this.currentCommunity.name;
+                        console.log('✅ Título actualizado:', this.currentCommunity.name);
+                    }
+                    if (bannerDesc) {
+                        bannerDesc.textContent = this.currentCommunity.description || 'Descripción de la comunidad';
+                        console.log('✅ Descripción actualizada:', this.currentCommunity.description);
+                    }
+                    if (bannerMeta) {
+                        const accessType = this.currentCommunity.access_type || 'Free';
+                        const bannerText = `• ${memberCount} Members • ${accessType}`;
+                        bannerMeta.textContent = bannerText;
+                        console.log('✅ Banner actualizado:', bannerText);
+                        console.log('🔍 Elemento bannerMeta después de actualizar:', bannerMeta);
+                        console.log('🔍 Texto del elemento:', bannerMeta.textContent);
+                    } else {
+                        console.warn('⚠️ Elemento bannerMeta no encontrado');
+                    }
+                    
+                    // Actualizar el título de la página
+                    document.title = `Comunidad de ${this.currentCommunity.name}`;
+                } else {
+                    console.error('❌ No se pudo cargar la comunidad:', slug);
                 }
             }
 
@@ -2999,6 +3228,9 @@
                 console.log('👥 Cargando miembros...');
                 this.members = await this.db.getCommunityMembers(this.currentCommunity.id);
                 this.renderMembers();
+                
+                // OPTIMIZACIÓN: Actualizar banner con conteo de miembros después de cargar
+                this.updateBannerWithMemberCount();
             }
 
             async createPost(content, title = null, attachmentUrl = null, attachmentType = null) {
@@ -3946,10 +4178,7 @@
             }
         }
 
-        // Inicializar sistemas
-        window.pointsSystem = new PointsSystem();
-        window.communitySystem = new CommunitySystem();
-        window.leagueFilterSystem = new LeagueFilterSystem();
+        // Inicializar sistemas - se moverá dentro de DOMContentLoaded
 
         // Event listener para el botón de debug - se moverá dentro de DOMContentLoaded
 
@@ -3998,23 +4227,143 @@
 
         // Sistema de filtros de liga - CLASE DUPLICADA ELIMINADA COMPLETAMENTE
 
-        // Integrar con el sistema existente
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 DOMContentLoaded - Initializing community system...');
+        // OPTIMIZACIÓN: Función para inicializar sistemas cuando Supabase esté listo
+        async function initializeSystemsWhenReady() {
+            console.log('🚀 Inicializando sistemas cuando Supabase esté listo...');
+            console.log('🔍 Supabase disponible globalmente:', !!window.supabase);
+            console.log('🔍 SUPABASE_URL disponible:', !!window.SUPABASE_URL);
+            console.log('🔍 SUPABASE_ANON_KEY disponible:', !!window.SUPABASE_ANON_KEY);
 
-            // Verificar estado de Supabase
-            await checkSupabaseStatus();
-
-            // Probar conexión a Supabase
-            await testSupabaseConnection();
-
-            // Sincronizar con Supabase al cargar la página
-            await syncWithSupabase();
-
-            // NUEVO: Cargar estado de acceso a la comunidad
+            // OPTIMIZACIÓN: Inicializar solo CommunitySystem primero para cargar banner
+            window.communitySystem = new CommunitySystem();
+            
+            console.log('🔍 CommunitySystem inicializado:', !!window.communitySystem);
+            console.log('🔍 CommunitySystem.db disponible:', !!window.communitySystem?.db);
+            console.log('🔍 CommunitySystem.db.supabase disponible:', !!window.communitySystem?.db?.supabase);
+            
+            // OPTIMIZACIÓN: Cargar estado de acceso inmediatamente después del banner
             await loadAccessState();
 
+            // OPTIMIZACIÓN: Inicializar otros sistemas en paralelo (no críticos para el banner)
+            const otherSystemsPromise = initializeOtherSystems();
+            
+            // Verificar estado de Supabase en paralelo
+            const supabaseCheckPromise = checkSupabaseStatus();
+            
+            // Probar conexión a Supabase en paralelo
+            const connectionTestPromise = testSupabaseConnection();
+            
+            // Sincronizar con Supabase en paralelo
+            const syncPromise = syncWithSupabase();
+            
+            // Esperar a que terminen las tareas críticas
+            await Promise.allSettled([
+                otherSystemsPromise,
+                supabaseCheckPromise,
+                connectionTestPromise,
+                syncPromise
+            ]);
+            
+            console.log('✅ Community system initialized');
+        }
 
+        // OPTIMIZACIÓN: Función para cargar banner inmediatamente desde localStorage
+        function loadBannerFromLocalStorage() {
+            console.log('🚀 Cargando banner desde localStorage...');
+            
+            // Obtener slug de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const communitySlug = urlParams.get('slug') || 'general';
+            
+            // Buscar datos de comunidad en localStorage
+            const savedCommunities = localStorage.getItem('savedCommunities');
+            if (savedCommunities) {
+                try {
+                    const communities = JSON.parse(savedCommunities);
+                    const community = communities.find(c => c.slug === communitySlug);
+                    
+                    if (community) {
+                        console.log('✅ Comunidad encontrada en localStorage:', community);
+                        
+                        // Actualizar banner inmediatamente
+                        const bannerTitle = document.getElementById('communityBannerTitle');
+                        const bannerDesc = document.getElementById('communityBannerDesc');
+                        const bannerMeta = document.getElementById('communityBannerMeta');
+                        const bannerContainer = document.getElementById('communityBanner');
+                        const bannerImage = document.getElementById('communityBannerImage');
+                        
+                        if (bannerTitle) {
+                            bannerTitle.textContent = community.name || 'Comunidad';
+                        }
+                        if (bannerDesc) {
+                            bannerDesc.textContent = community.description || 'Descripción de la comunidad';
+                        }
+                        if (bannerMeta) {
+                            const accessType = community.access_type || 'Free';
+                            bannerMeta.textContent = `• Cargando... • ${accessType}`;
+                        }
+                        
+                        // Cargar imagen del banner desde image_url de localStorage
+                        if (bannerImage && community.image_url) {
+                            console.log('🖼️ Cargando imagen del banner desde localStorage:', community.image_url);
+                            bannerImage.style.backgroundImage = `url(${community.image_url})`;
+                            bannerImage.style.display = 'block';
+                        } else if (bannerImage) {
+                            console.log('⚠️ No hay image_url disponible en localStorage para la comunidad');
+                            bannerImage.style.display = 'none';
+                        }
+                        
+                        // Marcar banner como cargado para ocultar skeleton
+                        if (bannerContainer) {
+                            bannerContainer.classList.add('banner-loaded');
+                        }
+                        
+                        // Actualizar título de la página
+                        document.title = `Comunidad de ${community.name}`;
+                        
+                        console.log('✅ Banner cargado desde localStorage');
+                        return;
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Error parseando comunidades guardadas:', error);
+                }
+            }
+            
+            // Fallback: mostrar datos básicos
+            console.log('⚠️ No se encontró comunidad en localStorage, usando fallback');
+            const bannerTitle = document.getElementById('communityBannerTitle');
+            const bannerDesc = document.getElementById('communityBannerDesc');
+            const bannerMeta = document.getElementById('communityBannerMeta');
+            const bannerContainer = document.getElementById('communityBanner');
+            const bannerImage = document.getElementById('communityBannerImage');
+            
+            if (bannerTitle) {
+                bannerTitle.textContent = 'Comunidad';
+            }
+            if (bannerDesc) {
+                bannerDesc.textContent = 'Cargando información...';
+            }
+            if (bannerMeta) {
+                bannerMeta.textContent = '• Cargando... • Free';
+            }
+            
+            // Ocultar imagen del banner en fallback
+            if (bannerImage) {
+                bannerImage.style.display = 'none';
+            }
+            
+            if (bannerContainer) {
+                bannerContainer.classList.add('banner-loaded');
+            }
+        }
+
+        // OPTIMIZACIÓN: Función separada para inicializar sistemas no críticos
+        async function initializeOtherSystems() {
+            console.log('🔄 Inicializando sistemas secundarios...');
+            
+            // Inicializar sistemas secundarios
+            window.pointsSystem = new PointsSystem();
+            window.leagueFilterSystem = new LeagueFilterSystem();
             
             // Inicializar sistema de filtros de liga
             if (window.leagueFilterSystem) {
@@ -4040,7 +4389,34 @@
                 }
             }, 1000); // 1 segundo de delay
             
-            console.log('✅ Community system initialized');
+            console.log('✅ Sistemas secundarios inicializados');
+        }
+
+        // OPTIMIZACIÓN: Cargar banner inmediatamente sin esperar Supabase
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 DOMContentLoaded - Cargando banner inmediatamente...');
+            
+            // OPTIMIZACIÓN: Cargar banner básico inmediatamente desde localStorage
+            loadBannerFromLocalStorage();
+            
+            // Esperar a que Supabase esté disponible (con menos intentos)
+            let attempts = 0;
+            const maxAttempts = 10; // 1 segundo máximo
+            
+            while (attempts < maxAttempts) {
+                if (window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+                    console.log('✅ Supabase está listo, inicializando sistemas...');
+                    await initializeSystemsWhenReady();
+                    return;
+                }
+                
+                console.log(`⏳ Esperando Supabase... intento ${attempts + 1}/${maxAttempts}`);
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            
+            console.warn('⚠️ Supabase no se cargó en el tiempo esperado, inicializando de todos modos...');
+            await initializeSystemsWhenReady();
             
             // Actualizar el display de ligas cada 30 segundos para mantener sincronización
             setInterval(async () => {

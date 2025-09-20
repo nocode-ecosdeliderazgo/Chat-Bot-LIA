@@ -1,220 +1,138 @@
-Contexto
+# Análisis y Solución: Posts Mostrándose en Todas las Comunidades
 
-En la vista de comunidad se agregaron flujos de “Solicitar acceso” para comunidades invite_only.
+## Problema Identificado
 
-En runtime, la consola muestra:
+Al entrar a diferentes comunidades en el sistema, se muestran los mismos posts en todas las comunidades cuando cada comunidad debería mostrar únicamente sus propios posts/comentarios individuales.
 
-Auth session missing! y Session no encontrada o inválida provenientes de community-auth.js.
+## Archivos Afectados
 
-POST .../rest/v1/community_access_requests 401 (Unauthorized) y, acto seguido, 42501 new row violates row-level security policy for table "community_access_requests".
+- `src/Community/community.html` - Página principal de comunidades
+- `src/Community/community.css` - Estilos de la comunidad
+- `src/Community/community.js` - Lógica principal de comunidades
+- `src/Community/community-view.html` - Vista detallada de comunidad individual
 
-Hay un usuario en localStorage (currentUser) pero no hay sesión de Supabase; por eso la llamada al REST va sin Authorization: Bearer <access_token> y falla RLS.
+## Análisis del Problema
 
-Archivos relevantes
+### 1. **Conflicto de Variables Globales**
+En `community-view.html` hay dos sistemas de posts que se superponen:
 
-src/Community/community-view.html (meta con supabase-url/key, botones “Solicitar acceso / pendiente”). 
+**Sistema 1: Mock/LocalStorage (Líneas 1203-1854)**
+```javascript
+let posts = []; // Variable global que se comparte entre todas las comunidades
+```
 
-community-view
-
-src/Community/community.js (clase CommunityPage, métodos init, loadCommunityData, getLastRequest, isMember, requestAccess, etc.). 
-
-community
-
-src/Community/community.css (estilos y clases usadas en la vista, incl. banner y acciones). 
-
-community
-
-src/Community/community-auth.js (clase CommunityAuth con métodos supabaseGetSession, supabaseGetUser, getCurrentUserId, etc.). 
-
-community-auth
-
-src/Community/community.html (Discover + wiring general y meta supabase). 
-
-community
-
-Objetivo
-
-No depender de localStorage.currentUser para acciones protegidas.
-
-Requerir sesión real de Supabase antes de leer estado (isMember/getLastRequest) o insertar solicitudes.
-
-Usar RPC rpc_request_access(p_community_id uuid) para crear la solicitud (seguridad por auth.uid()), no acceso directo a tabla.
-
-Manejar estados de UI:
-
-Sin sesión → mostrar CTA “Inicia sesión para solicitar acceso” (modal o toast) y bloquear botones.
-
-Con sesión → permitir Solicitar acceso y reflejar “pendiente / rechazada / aprobada”.
-
-Tareas concretas (por archivo)
-
-1) community-auth.js
-
-Añade hasSupabaseSession() y requireSupabaseSession():
-
-hasSupabaseSession() devuelve true si await supabase.auth.getSession() trae data.session con user.
-
-requireSupabaseSession() comprueba sesión; si no hay, emite un evento global community:auth-required o llama a un callback para abrir modal/login.
-
-Ajusta logs para no confundir: cuando se usa localStorageCurrentUser, no marcarlo como autenticación válida; úsalo solo para UI (nombre/avatar), no para permisos.
-
-Exporta helpers:
-
-window.hasCommunitySession = () => window.CommunityAuth.hasSupabaseSession();
-window.requireCommunitySession = () => window.CommunityAuth.requireSupabaseSession();
-
-
-Mantén debugAuthState() pero deja claro en consola cuándo no existe sesión y que el localStorage no habilita RLS. 
-
-community-auth
-
-2) community.js
-
-En init():
-
-Tras ensureSupabaseClient(), llama a await window.hasCommunitySession().
-
-Si no hay sesión, deshabilita acciones protegidas (descubrir puede cargar, pero no debe consultar isMember/getLastRequest ni mostrar botón “Solicitar acceso” como activo).
-
-En openAccessRequestModal, isMember, getLastRequest, y especialmente requestAccess:
-
-Primer paso: if (!(await window.hasCommunitySession())) { await window.requireCommunitySession(); showToast("Inicia sesión para continuar", "warning"); return; }
-
-Reemplaza el insert directo a la tabla community_access_requests por una llamada a RPC:
-
-await supabase.rpc('rpc_request_access', { p_community_id: communityId });
-
-
-Esto evita tener que mandar requester_id desde el cliente y hace que RLS pase usando auth.uid().
-
-Donde se chequea estado de solicitud (getLastRequest) o membresía (isMember), omite las llamadas si no hay sesión (retorna null/false y UI en modo lectura).
-
-Si recibes 401 en cualquier operación Supabase, muestra un toast claro y bloquea el botón por unos segundos para evitar spam. 
-
-community
-
-3) community-view.html y community.html
-
-Asegura que los botones de banner (“Solicitar acceso / Solicitud pendiente”) existan y se muestren solo si hay sesión y visibility='invite_only'. Si no hay sesión, muestra botón “Inicia sesión”.
-
-Verifica que el cliente de Supabase se inicializa una sola vez con persistSession: true, autoRefreshToken: true. (La página ya tiene las metas supabase-url y supabase-key; respétalas).
-
-4) Manejo de estados de UI
-
-Estados de botón en banner y Discover:
-
-no-session: botón “Inicia sesión” → llama a requireCommunitySession()
-
-invite_only + !member + no request: “Solicitar acceso”
-
-invite_only + request pending: “Solicitud pendiente” (disabled)
-
-invite_only + request rejected: “Volver a solicitar” (opcional, reintento crea nueva solicitud si la anterior no está pending)
-
-Si la comunidad es public, nunca mostrar “Solicitar acceso”.
-
-5) Errores actuales y su causa — y cómo se corrigen
-
-401 Unauthorized al POST /rest/v1/community_access_requests: el cliente no lleva Authorization: Bearer <access_token> porque no hay sesión. Solución: requerir sesión antes y usar RPC en lugar de from('community_access_requests').insert(...).
-
-42501 new row violates row-level security policy: con anon o sin auth.uid() la política RLS bloquea el INSERT. Con RPC + sesión, pasa.
-
-Logs “Session no encontrada” y “Auth session missing!”: son correctos; hay que degradar UI cuando no hay sesión en lugar de seguir con llamadas protegidas. 
-
-community-auth
-
-Cambios de código sugeridos (extractos)
-
-En community-auth.js:
-
-async hasSupabaseSession() {
-  if (!window.supabase?.auth?.getSession) return false;
-  const { data, error } = await window.supabase.auth.getSession();
-  return !!(data?.session?.user?.id) && !error;
+**Sistema 2: Base de Datos (Líneas 2950-3100)**
+```javascript
+class CommunitySystem {
+    constructor() {
+        this.posts = []; // Variable de instancia específica por comunidad
+    }
 }
-async requireSupabaseSession() {
-  const has = await this.hasSupabaseSession();
-  if (has) return true;
-  // dispara evento para que UI muestre login modal / redireccione
-  window.dispatchEvent(new CustomEvent('community:auth-required'));
-  this.warn('Se requiere autenticación para continuar');
-  return false;
+```
+
+### 2. **Problema de Inicialización**
+- El sistema mock se ejecuta inmediatamente al cargar la página
+- El sistema de base de datos se inicializa después
+- Ambos sistemas renderizan en el mismo contenedor `#postsList`
+
+### 3. **Filtrado Incorrecto**
+La función `renderPosts()` en el sistema mock (línea 1341) no filtra por `community_id`:
+```javascript
+function renderPosts(category='all'){
+    const filtered = category==='all' ? posts : posts.filter(p=>p.category===category);
+    // ❌ No filtra por community_id
 }
+```
 
+### 4. **Persistencia Global**
+Los posts se guardan en `localStorage` con clave global `'communityPosts'`, compartiendo datos entre todas las comunidades.
 
-En community.js (dentro de requestAccess(communityId)):
+## Solución Requerida
 
-if (!(await window.hasCommunitySession())) {
-  await window.requireCommunitySession();
-  this.showToast('Inicia sesión para solicitar acceso', 'warning');
-  return;
+### 1. **Eliminar Sistema Mock**
+- Remover completamente el sistema de posts mock/localStorage (líneas 1203-1854)
+- Mantener solo el sistema de base de datos que ya filtra correctamente por `community_id`
+
+### 2. **Corregir Inicialización**
+- Asegurar que `CommunitySystem` se inicialice correctamente
+- Verificar que `currentCommunity` se establezca antes de cargar posts
+
+### 3. **Verificar Filtrado en Base de Datos**
+El método `getPosts()` en `community-database.js` ya filtra correctamente:
+```javascript
+async getPosts(communityId, limit = 50) {
+    const { data, error } = await this.supabase
+        .from('community_posts')
+        .select(`...`)
+        .eq('community_id', communityId) // ✅ Filtra por comunidad
+        .order('created_at', { ascending: false })
+        .limit(limit);
 }
-try {
-  console.log('[ACCESS] 🚀 Solicitando acceso vía RPC…');
-  const { error } = await window.supabase.rpc('rpc_request_access', { p_community_id: communityId });
-  if (error) throw error;
-  this.showToast('Solicitud enviada', 'success');
-  // refrescar estado: getLastRequest / UI
-} catch (e) {
-  if (e?.status === 401) {
-    this.showToast('Tu sesión expiró. Inicia sesión e inténtalo de nuevo.', 'error');
-  } else {
-    this.showToast('No se pudo enviar la solicitud. Inténtalo más tarde.', 'error');
-  }
-  console.error('[ACCESS] ❌ Error solicitando acceso:', e);
+```
+
+### 4. **Limpieza de Código**
+- Remover variables globales `posts`
+- Eliminar funciones `loadPosts()`, `savePosts()`, `renderPosts()` del sistema mock
+- Limpiar referencias a `localStorage` para posts
+
+## Tareas Específicas
+
+1. **En `community-view.html`:**
+   - Eliminar líneas 1203-1854 (sistema mock completo)
+   - Verificar que `CommunitySystem` se inicialice correctamente
+   - Asegurar que `loadCommunity()` se ejecute al cargar la página
+
+2. **En `community.js`:**
+   - Verificar que la navegación a `community-view.html` pase correctamente el `slug` de la comunidad
+   - Asegurar que el parámetro se lea correctamente en la vista
+
+3. **En `community-database.js`:**
+   - Verificar que `getPosts()` funcione correctamente (ya parece estar bien)
+
+4. **En `community.css`:**
+   - No se requieren cambios específicos
+
+## Verificación de la Solución
+
+Después de implementar los cambios:
+
+1. **Navegar a diferentes comunidades** y verificar que cada una muestre solo sus posts
+2. **Crear un post en una comunidad** y verificar que no aparezca en otras
+3. **Verificar que los posts se carguen desde la base de datos** y no desde localStorage
+4. **Comprobar que el filtrado por categorías funcione** dentro de cada comunidad
+
+## Código de Referencia
+
+### Sistema Correcto (Mantener)
+```javascript
+class CommunitySystem {
+    async loadPosts() {
+        if (!this.currentCommunity) return;
+        this.posts = await this.db.getPosts(this.currentCommunity.id);
+        this.renderPosts();
+    }
+    
+    renderPosts() {
+        const postsContainer = document.getElementById('postsContainer');
+        this.posts.forEach(post => {
+            const postElement = this.createPostElement(post);
+            postsContainer.appendChild(postElement);
+        });
+    }
 }
+```
 
+### Sistema Problemático (Eliminar)
+```javascript
+let posts = []; // ❌ Variable global compartida
+function renderPosts(category='all'){
+    // ❌ No filtra por community_id
+}
+```
 
-En renderizado del banner (páginas view/discover): si !hasSession, pinta botón “Inicia sesión”; si hasSession y comunidad invite_only & !member, pinta “Solicitar acceso”; si pending, “Solicitud pendiente” (disabled).
+## Notas Adicionales
 
-Asegurarte de que existe el RPC en BD
-(Gael ya lo ejecutó / lo ejecutará en Supabase)
-
-create or replace function public.rpc_request_access(p_community_id uuid)
-returns void language plpgsql security definer set search_path=public as $$
-begin
-  insert into public.community_access_requests (community_id, requester_id)
-  values (p_community_id, auth.uid());
-end; $$;
-grant execute on function public.rpc_request_access(uuid) to authenticated;
-
-
-Criterios de aceptación
-
-Sin sesión:
-
-supabase.auth.getSession() devuelve null → botones protegidos deshabilitados o “Inicia sesión”.
-
-No se intenta getLastRequest/isMember ni se hace insert; no aparecen 401/42501.
-
-Con sesión válida:
-
-rpc_request_access crea la solicitud sin enviar requester_id desde el cliente.
-
-UI actualiza a “Solicitud pendiente”.
-
-No hay 401; no hay 42501.
-
-Regresión: comunidades públicas siguen funcionando sin fricción.
-
-Pruebas manuales
-
-Abrir Discover sin sesión → ver CTA “Inicia sesión para solicitar acceso”.
-
-Iniciar sesión (con Supabase Auth) → Discover muestra “Solicitar acceso” en invite_only.
-
-Click “Solicitar acceso” → RPC OK, UI pasa a “Solicitud pendiente”.
-
-Cerrar sesión → volver a ver CTA de login y sin llamadas protegidas.
-
-Aprobar en BD → al recargar, el usuario ya es miembro y puede publicar (composer habilitado).
-
-Notas
-
-No elimines la info de localStorage.currentUser, pero úsala solo para UI (nombre/avatar). Nunca como prueba de autenticación.
-
-Asegura en la inicialización del cliente Supabase persistSession: true y autoRefreshToken: true.
-
-Evita llamadas duplicadas a initializeSupabaseClient(); ya hay ensureSupabaseClient() en community.js. 
-
-community
+- El sistema de base de datos ya está implementado correctamente
+- Solo se necesita limpiar el código duplicado/mock
+- La funcionalidad de reacciones, comentarios y compartir debe mantenerse
+- Verificar que no se rompan otras funcionalidades al eliminar el sistema mock
