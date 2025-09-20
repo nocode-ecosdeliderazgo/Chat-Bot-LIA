@@ -1272,6 +1272,135 @@
             });
                          // Feed mock con persistencia
              let posts = [];
+
+            // Función para cargar posts desde la base de datos
+            async function loadPostsFromDatabase() {
+                console.log('🚀 Cargando posts desde base de datos...');
+                try {
+                    // Usar CommunitySystem para obtener la comunidad (mismo que usa el banner)
+                    console.log('🏠 Obteniendo comunidad para cargar posts...');
+
+                    let communityId = null;
+                    let communityName = 'Desconocida';
+
+                    // MÉTODO 1: Usar CommunitySystem
+                    if (window.communitySystem && window.communitySystem.currentCommunity) {
+                        communityId = window.communitySystem.currentCommunity.id;
+                        communityName = window.communitySystem.currentCommunity.name;
+                        console.log(`✅ Comunidad desde CommunitySystem: ${communityName} (ID: ${communityId})`);
+                    }
+
+                    // MÉTODO 2: Usar localStorage (mismo método que el banner)
+                    if (!communityId) {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const communitySlug = urlParams.get('slug') || 'profesionales';
+
+                        const savedCommunities = localStorage.getItem('savedCommunities');
+                        if (savedCommunities) {
+                            const communities = JSON.parse(savedCommunities);
+                            const community = communities.find(c => c.slug === communitySlug);
+                            if (community) {
+                                communityId = community.id;
+                                communityName = community.name;
+                                console.log(`✅ Comunidad desde localStorage: ${communityName} (ID: ${communityId})`);
+                            }
+                        }
+                    }
+
+                    // MÉTODO 3: Fallback hardcodeado
+                    if (!communityId) {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const communitySlug = urlParams.get('slug') || 'profesionales';
+
+                        const hardcodedCommunities = {
+                            'profesionales': { id: '7886aa14-35b9-41da-b099-29ff1ad3516b', name: 'Profesionales' },
+                            'sif-icap': { id: 'aa5a4c4c-ce64-4a12-b1ef-365aa0d320c8', name: 'SIF ICAP' },
+                            'openminder': { id: 'b3b154e1-110e-4aa7-8998-ef208482a159', name: 'Openminder' },
+                            'ecos-de-liderazgo': { id: 'd2dbebb1-5b57-4da7-9fc6-8b40c732b548', name: 'Ecos de Liderazgo' }
+                        };
+
+                        if (hardcodedCommunities[communitySlug]) {
+                            communityId = hardcodedCommunities[communitySlug].id;
+                            communityName = hardcodedCommunities[communitySlug].name;
+                            console.log(`✅ Comunidad desde fallback: ${communityName} (ID: ${communityId})`);
+                        }
+                    }
+
+                    if (!communityId) {
+                        console.warn('⚠️ No se pudo obtener community ID con ningún método');
+                        return;
+                    }
+
+                    console.log(`📊 Cargando posts de: ${communityName} (ID: ${communityId})`);
+
+                    // Verificar que CommunityDatabase esté disponible
+                    if (!window.CommunityDatabase) {
+                        console.error('❌ CommunityDatabase no está disponible');
+                        return;
+                    }
+
+                    // Crear instancia de la base de datos
+                    const db = new window.CommunityDatabase();
+                    await db.initialize();
+
+                    // Obtener posts de la base de datos
+                    const dbPosts = await db.getPosts(communityId);
+                    console.log(`📊 Posts obtenidos de ${communityName}:`, dbPosts);
+
+                    // Convertir posts de la base de datos al formato esperado por la UI
+                    posts = dbPosts.map(post => {
+                        // Formatear el timestamp
+                        let timestamp, timeAgo;
+                        if (post.created_at) {
+                            timestamp = db.formatTimestamp(post.created_at);
+                            timeAgo = timestamp;
+                        } else {
+                            timestamp = db.formatTimestamp(post.timestamp);
+                            timeAgo = timestamp;
+                        }
+
+                        return {
+                            id: post.id,
+                            user: post.users ? (post.users.display_name || post.users.first_name || post.users.username || 'Usuario') : 'Usuario',
+                            avatar: 'fas fa-user',
+                            category: 'general', // Por ahora todas las publicaciones van a general
+                            minutesAgo: 0,
+                            timeAgo: timeAgo,
+                            timestamp: new Date(post.created_at || post.timestamp).getTime(),
+                            content: post.content,
+                            title: post.title || null,
+                            comments: [], // Los comentarios se cargarán por separado si es necesario
+                            reactions: {like:0, heart:0, wow:0, laugh:0, sad:0}, // Las reacciones se cargarán por separado si es necesario
+                            attachments: post.attachment_url ? [{
+                                type: post.attachment_type || 'image',
+                                url: post.attachment_url,
+                                src: post.attachment_url
+                            }] : [],
+                            reacted: null,
+                            // Datos adicionales de la base de datos
+                            user_id: post.user_id,
+                            community_id: post.community_id,
+                            created_at: post.created_at,
+                            is_edited: post.is_edited,
+                            edited_at: post.edited_at,
+                            likes_count: post.likes_count || 0,
+                            comments_count: post.comments_count || 0
+                        };
+                    });
+
+                    console.log('✅ Posts convertidos para la UI:', posts);
+
+                    // Re-renderizar posts con la categoría activa actual
+                    const activeChip = document.querySelector('.feed-chip.active');
+                    const currentCategory = activeChip ? activeChip.dataset.category : 'all';
+                    renderPosts(currentCategory);
+
+                } catch (error) {
+                    console.error('❌ Error cargando posts desde base de datos:', error);
+                    // En caso de error, mantener los posts existentes o cargar desde localStorage como fallback
+                    loadPosts(); // Fallback a localStorage
+                }
+            }
              
              // Limpiar posts muy antiguos (más de 30 días)
              function cleanupOldPosts() {
@@ -1869,60 +1998,366 @@
                 });
                 publishPostBtn.addEventListener('click', async ()=>{
                     console.log('Botón de publicar clickeado');
+
+                    // Verificar autenticación primero
+                    const isAuthenticated = await checkAuthenticationForPosts();
+                    if (!isAuthenticated) {
+                        console.warn('⚠️ No se detectó autenticación, pero intentando crear post de todas formas...');
+                        // No bloquear inmediatamente, intentar crear el post
+                        // notifications.error('Debes iniciar sesión para publicar en la comunidad.');
+                        // return;
+                    }
+
                     const txt = composerInput.value.trim();
                     if(!txt) {
                         console.log('Texto vacío, no se puede publicar');
+                        notifications.warning('Escribe algo antes de publicar.');
                         return;
                     }
-                    
+
                     console.log('Creando publicación con texto:', txt);
                     console.log('Adjuntos pendientes:', pendingAttachments);
-                    
-                                         // Crear nueva publicación
-                     const newPost = { 
-                         id: Date.now(), 
-                         user:'Tú', 
-                         avatar:'fas fa-user', 
-                         category:(document.querySelector('.feed-chip.active')?.dataset.category||'general'), 
-                         minutesAgo:0, 
-                         timeAgo: 'Ahora mismo',
-                         timestamp: Date.now(), // Agregar timestamp
-                         content:txt, 
-                         comments:[], 
-                         reactions:{like:0, heart:0, wow:0, laugh:0, sad:0}, 
-                         attachments: [...pendingAttachments], 
-                         reacted: null 
-                     };
-                    
-                                         console.log('Nueva publicación creada:', newPost);
-                     posts.unshift(newPost);
-                     
-                     // Guardar posts en localStorage
-                     savePosts();
-                     
-                     // Agregar puntos por publicar
-                     if (window.pointsSystem) {
-                         console.log('🎯 Adding points for publication...');
-                         await window.pointsSystem.addPoints(null, 'publish');
-                     }
-                     
-                    composerInput.value='';
-                    publishPostBtn.disabled = true;
-                    publishPostBtn.classList.remove('enabled');
-                     
-                     // Limpiar adjuntos
-                     pendingAttachments = []; 
-                     document.getElementById('attachmentsPreview').innerHTML='';
-                     
-                     // Re-renderizar posts
-                    renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all');
-                     
-                                           // Mostrar confirmación
-                      notifications.success('¡Publicación creada exitosamente!');
-                     console.log('Publicación completada');
+
+                    try {
+                        // Deshabilitar botón durante el proceso
+                        publishPostBtn.disabled = true;
+                        publishPostBtn.textContent = 'Publicando...';
+
+                        // Usar CommunitySystem que ya está cargado y funciona con el banner
+                        console.log('🏠 Obteniendo comunidad desde CommunitySystem...');
+
+                        let currentCommunity = null;
+                        let communityId = null;
+
+                        // MÉTODO 1: Usar CommunitySystem que ya cargó el banner
+                        if (window.communitySystem && window.communitySystem.currentCommunity) {
+                            currentCommunity = window.communitySystem.currentCommunity;
+                            communityId = currentCommunity.id;
+                            console.log(`✅ Comunidad obtenida desde CommunitySystem: ${currentCommunity.name} (ID: ${communityId})`);
+                        }
+
+                        // MÉTODO 2: Usar datos del localStorage (mismo que usa el banner)
+                        if (!communityId) {
+                            console.log('🔄 CommunitySystem no disponible, usando localStorage...');
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const communitySlug = urlParams.get('slug') || 'profesionales';
+
+                            const savedCommunities = localStorage.getItem('savedCommunities');
+                            if (savedCommunities) {
+                                const communities = JSON.parse(savedCommunities);
+                                currentCommunity = communities.find(c => c.slug === communitySlug);
+                                if (currentCommunity) {
+                                    communityId = currentCommunity.id;
+                                    console.log(`✅ Comunidad obtenida desde localStorage: ${currentCommunity.name} (ID: ${communityId})`);
+                                }
+                            }
+                        }
+
+                        // MÉTODO 3: Fallback hardcodeado para comunidades conocidas
+                        if (!communityId) {
+                            console.log('🔄 Usando fallback hardcodeado...');
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const communitySlug = urlParams.get('slug') || 'profesionales';
+
+                            const hardcodedCommunities = {
+                                'profesionales': { id: '7886aa14-35b9-41da-b099-29ff1ad3516b', name: 'Profesionales' },
+                                'sif-icap': { id: 'aa5a4c4c-ce64-4a12-b1ef-365aa0d320c8', name: 'SIF ICAP' },
+                                'openminder': { id: 'b3b154e1-110e-4aa7-8998-ef208482a159', name: 'Openminder' },
+                                'ecos-de-liderazgo': { id: 'd2dbebb1-5b57-4da7-9fc6-8b40c732b548', name: 'Ecos de Liderazgo' }
+                            };
+
+                            if (hardcodedCommunities[communitySlug]) {
+                                currentCommunity = hardcodedCommunities[communitySlug];
+                                communityId = currentCommunity.id;
+                                console.log(`✅ Comunidad obtenida desde fallback: ${currentCommunity.name} (ID: ${communityId})`);
+                            }
+                        }
+
+                        if (!communityId) {
+                            console.error('❌ Debug - Estado del sistema:');
+                            console.error('  - window.communitySystem:', !!window.communitySystem);
+                            console.error('  - window.communitySystem.currentCommunity:', window.communitySystem?.currentCommunity);
+                            console.error('  - localStorage savedCommunities:', !!localStorage.getItem('savedCommunities'));
+                            console.error('  - URL slug:', new URLSearchParams(window.location.search).get('slug'));
+                            throw new Error('No se pudo obtener el ID de la comunidad con ningún método');
+                        }
+
+                        // Verificar que tenemos CommunityDatabase
+                        if (!window.CommunityDatabase) {
+                            throw new Error('CommunityDatabase no está disponible');
+                        }
+
+                        // Crear instancia de la base de datos
+                        const db = new window.CommunityDatabase();
+                        await db.initialize();
+
+                        // Método alternativo para obtener usuario si CommunityDatabase falla
+                        let currentUser = null;
+                        try {
+                            currentUser = await db.getCurrentUser();
+                        } catch (userError) {
+                            console.warn('⚠️ Error obteniendo usuario con CommunityDatabase:', userError);
+                        }
+
+                        // Si CommunityDatabase no funciona, intentar obtener usuario directamente
+                        if (!currentUser) {
+                            console.log('🔄 Intentando obtener usuario directamente de Supabase...');
+                            try {
+                                const { data: { session } } = await window.supabase.auth.getSession();
+                                if (session && session.user) {
+                                    currentUser = {
+                                        id: session.user.id,
+                                        email: session.user.email,
+                                        display_name: session.user.user_metadata?.full_name || session.user.email
+                                    };
+                                    console.log('✅ Usuario obtenido directamente de Supabase:', currentUser.email);
+                                }
+                            } catch (directError) {
+                                console.warn('⚠️ Error obteniendo usuario directamente:', directError);
+                            }
+                        }
+
+                        if (!currentUser) {
+                            console.warn('⚠️ No se pudo obtener usuario con ningún método');
+                            // Continuar de todas formas, el error se mostrará en createPost
+                        }
+
+                        // Preparar datos para adjuntos
+                        let attachmentUrl = null;
+                        let attachmentType = null;
+
+                        if (pendingAttachments.length > 0) {
+                            const firstAttachment = pendingAttachments[0];
+                            attachmentUrl = firstAttachment.url || firstAttachment.src;
+                            attachmentType = firstAttachment.type;
+                        }
+
+                        // Crear publicación en la base de datos
+                        console.log('🚀 Guardando publicación en base de datos...');
+                        let createdPost = null;
+
+                        try {
+                            createdPost = await db.createPost(
+                                communityId,
+                                txt,
+                                null, // title - no estamos usando títulos por ahora
+                                attachmentUrl,
+                                attachmentType
+                            );
+                        } catch (createError) {
+                            console.warn('⚠️ Error con db.createPost, intentando método directo:', createError);
+
+                            // Método directo si CommunityDatabase falla
+                            const { data: { session } } = await window.supabase.auth.getSession();
+                            if (session && session.user) {
+                                const postData = {
+                                    community_id: communityId,
+                                    user_id: session.user.id,
+                                    content: txt,
+                                    title: null,
+                                    attachment_url: attachmentUrl,
+                                    attachment_type: attachmentType
+                                };
+
+                                const { data, error } = await window.supabase
+                                    .from('community_posts')
+                                    .insert(postData)
+                                    .select(`
+                                        *,
+                                        users!community_posts_user_id_fkey (
+                                            id,
+                                            display_name,
+                                            first_name,
+                                            username,
+                                            profile_picture_url
+                                        )
+                                    `)
+                                    .single();
+
+                                if (error) {
+                                    throw new Error(`Error creando post directamente: ${error.message}`);
+                                }
+
+                                createdPost = data;
+                                console.log('✅ Post creado usando método directo');
+                            } else {
+                                throw new Error('No hay sesión válida para crear post');
+                            }
+                        }
+
+                        if (!createdPost) {
+                            throw new Error('No se pudo crear la publicación en la base de datos');
+                        }
+
+                        console.log('✅ Publicación guardada en base de datos:', createdPost);
+
+                        // Agregar puntos por publicar
+                        if (window.pointsSystem) {
+                            console.log('🎯 Adding points for publication...');
+                            await window.pointsSystem.addPoints(null, 'publish');
+                        }
+
+                        // Limpiar formulario
+                        composerInput.value='';
+                        publishPostBtn.disabled = true;
+                        publishPostBtn.classList.remove('enabled');
+                        publishPostBtn.textContent = 'Publicar';
+
+                        // Limpiar adjuntos
+                        pendingAttachments = [];
+                        document.getElementById('attachmentsPreview').innerHTML='';
+
+                        // Recargar posts desde la base de datos
+                        console.log('🔄 Recargando posts desde base de datos...');
+                        await loadPostsFromDatabase();
+
+                        // Mostrar confirmación
+                        notifications.success('¡Publicación creada exitosamente!');
+                        console.log('✅ Publicación completada');
+
+                    } catch (error) {
+                        console.error('❌ Error creando publicación:', error);
+
+                        // Restaurar botón
+                        publishPostBtn.disabled = false;
+                        publishPostBtn.textContent = 'Publicar';
+                        publishPostBtn.classList.add('enabled');
+
+                        // Mostrar error al usuario
+                        notifications.error('No se pudo crear la publicación. Inténtalo de nuevo.');
+
+                        // Como fallback, usar el método anterior de localStorage
+                        console.log('⚠️ Usando fallback a localStorage...');
+                        const newPost = {
+                            id: Date.now(),
+                            user:'Tú',
+                            avatar:'fas fa-user',
+                            category:(document.querySelector('.feed-chip.active')?.dataset.category||'general'),
+                            minutesAgo:0,
+                            timeAgo: 'Ahora mismo',
+                            timestamp: Date.now(),
+                            content:txt,
+                            comments:[],
+                            reactions:{like:0, heart:0, wow:0, laugh:0, sad:0},
+                            attachments: [...pendingAttachments],
+                            reacted: null
+                        };
+
+                        posts.unshift(newPost);
+                        savePosts();
+
+                        // Limpiar formulario en fallback también
+                        composerInput.value='';
+                        pendingAttachments = [];
+                        document.getElementById('attachmentsPreview').innerHTML='';
+
+                        renderPosts(document.querySelector('.feed-chip.active')?.dataset.category||'all');
+                    }
                 });
             }
-            renderPosts('all');
+            // Función para verificar autenticación antes de operaciones de base de datos
+            async function checkAuthenticationForPosts() {
+                console.log('🔐 Verificando autenticación para posts...');
+                try {
+                    // MÉTODO 1: Verificar sesión de Supabase directamente (más confiable)
+                    if (window.supabase && window.supabase.auth) {
+                        const { data: { session }, error } = await window.supabase.auth.getSession();
+                        if (session && session.user) {
+                            console.log('✅ Usuario autenticado vía Supabase session:', session.user.email);
+                            return true;
+                        }
+                    }
+
+                    // MÉTODO 2: Verificar localStorage (mismo método que usa el menú de perfil)
+                    const localStorageSources = ['currentUser', 'userData', 'user'];
+                    for (const source of localStorageSources) {
+                        try {
+                            const data = localStorage.getItem(source);
+                            if (data && data !== 'null' && data !== 'undefined') {
+                                const user = JSON.parse(data);
+                                if (user && (user.id || user.user_id || user.email)) {
+                                    console.log(`✅ Usuario autenticado vía localStorage.${source}:`, user.email || user.id);
+                                    return true;
+                                }
+                            }
+                        } catch (parseError) {
+                            continue;
+                        }
+                    }
+
+                    // MÉTODO 3: Usar CommunityAuth si está disponible
+                    if (window.CommunityAuth) {
+                        const authResult = await window.CommunityAuth.getCurrentUserId();
+                        if (authResult) {
+                            console.log('✅ Usuario autenticado vía CommunityAuth:', authResult);
+                            return true;
+                        }
+                    }
+
+                    // MÉTODO 4: Verificar si puede acceder a comunidades (si está aquí, probablemente esté autenticado)
+                    if (window.location.search.includes('slug=') && !window.location.search.includes('profesionales')) {
+                        // Si está accediendo a una comunidad por invitación, debe estar autenticado
+                        console.log('✅ Usuario autenticado (acceso a comunidad por invitación)');
+                        return true;
+                    }
+
+                    console.warn('⚠️ No se pudo verificar autenticación con ningún método');
+                    return false;
+
+                } catch (error) {
+                    console.error('❌ Error verificando autenticación:', error);
+                    // En caso de error, asumir que está autenticado si puede acceder a la página
+                    return true;
+                }
+            }
+
+            // Inicializar carga de posts
+            async function initializePosts() {
+                console.log('🚀 Inicializando sistema de posts...');
+
+                // Verificar si CommunitySystem ya cargó la comunidad
+                if (window.communitySystem && window.communitySystem.currentCommunity) {
+                    console.log('✅ CommunitySystem ya tiene la comunidad cargada:', window.communitySystem.currentCommunity.name);
+                } else {
+                    console.log('⚠️ CommunitySystem no disponible aún, el banner se encargará de cargar la comunidad');
+                }
+
+                // Intentar cargar desde base de datos primero
+                try {
+                    console.log('📊 Intentando cargar posts desde base de datos...');
+                    await loadPostsFromDatabase();
+                } catch (error) {
+                    console.warn('⚠️ Error cargando desde BD, usando localStorage:', error);
+                    loadPosts();
+                    renderPosts('all');
+                }
+
+                // Verificar autenticación para configurar el formulario
+                const isAuthenticated = await checkAuthenticationForPosts();
+                const composerInput = document.getElementById('composerInput');
+                const publishPostBtn = document.getElementById('publishPostBtn');
+
+                // Habilitar formulario por defecto (ya que el usuario puede acceder a la página)
+                if (composerInput && publishPostBtn) {
+                    console.log('✅ Habilitando formulario de posts (usuario tiene acceso a la página)');
+                    composerInput.disabled = false;
+                    publishPostBtn.disabled = true; // Se habilita cuando escriban algo
+                    publishPostBtn.textContent = 'Publicar';
+                    composerInput.placeholder = 'Escribe algo para la comunidad...';
+
+                    // Solo deshabilitar si definitivamente no hay autenticación
+                    if (!isAuthenticated && !window.supabase) {
+                        console.warn('⚠️ Sin Supabase disponible - deshabilitando formulario');
+                        composerInput.placeholder = 'Sistema no disponible...';
+                        composerInput.disabled = true;
+                        publishPostBtn.disabled = true;
+                        publishPostBtn.textContent = 'No Disponible';
+                    }
+                }
+            }
+
+            // Cargar posts al inicializar
+            initializePosts();
 
             // Los miembros ahora se cargan solo desde la base de datos
             function generateRealisticMembers() {
@@ -2940,6 +3375,7 @@
      
     <script src="../scripts/theme-toggle.js"></script>
     <script src="../scripts/supabase-client.js"></script>
+    <script src="community-identifier.js"></script>
 
     <script>
         // Sistema de notificaciones elegante
