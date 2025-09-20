@@ -8,6 +8,190 @@
     <title>Comunidad</title>
     <link rel="stylesheet" href="community.css">
     <link rel="icon" type="image/x-icon" href="../assets/images/icono.png">
+
+    <!-- Estilos para modal de solicitud de acceso -->
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: var(--background);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 480px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--surface);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            margin-bottom: 24px;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--background);
+            border-color: var(--accent-color);
+        }
+
+        .request-status {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .request-status.pending {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .request-status.rejected {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+
+        .access-status.pending {
+            color: #ffc107;
+            font-weight: 500;
+        }
+
+        .access-status.rejected {
+            color: #dc3545;
+            font-weight: 500;
+        }
+
+        .access-status.invite-only {
+            color: #6f42c1;
+            font-weight: 500;
+        }
+
+        .access-status.login-required {
+            color: #007bff;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .access-status.login-required:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .community-banner-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 12px;
+        }
+
+        .community-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+    </style>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- BoxIcons - iconografía principal -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
@@ -209,12 +393,17 @@
     <!-- Toast Notifications -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- Modal de solicitud de acceso (se inyecta dinámicamente) -->
+
     <script src="../scripts/particles.js"></script>
     <script src="../scripts/main.js"></script>
     <script src="../scripts/supabase-client.js"></script>
 
     <!-- Auth Utils - Sistema unificado de autenticación -->
     <script src="../utils/auth-utils.js"></script>
+
+    <!-- Community Auth - Sistema robusto de autenticación para comunidades -->
+    <script src="community-auth.js"></script>
 
     <script src="../scripts/community-database.js"></script>
 

@@ -31,49 +31,334 @@
 <body class="bg-glow-global" data-community="">
     <div class="particles-container"></div>
 
-    <!-- Loading Overlay for Initial Load -->
-    <div class="loading-overlay active" id="initialLoadingOverlay">
-        <div class="loading-spinner">
-            <div class="spinner"></div>
-            <p>Cargando comunidad...</p>
-        </div>
-    </div>
-
-    <!-- Navigation Bar -->
-    <div class="course-tabs">
-        <button class="tab-button" onclick="location.href='../cursos.html'">
-            <i class='bx bx-collection'></i>
-            Talleres
-        </button>
-        <button class="tab-button" onclick="location.href='../apps-directory.html'">
-            <i class='bx bx-grid-alt'></i>
-            Directorio IA
-        </button>
-        <button class="tab-button" onclick="location.href='./community.html'">
-            <i class='bx bx-group'></i>
-            Comunidad
-        </button>
-        <button class="tab-button" onclick="location.href='../Notices/notices.html'">
-            <i class='bx bx-news'></i>
-            Noticias
-        </button>
-    </div>
-
-    <!-- Profile Menu -->
-    <button class="header-profile">
-        <img src="../assets/images/icono.png" alt="Perfil" />
+    <!-- Botón de regreso -->
+    <button class="back-btn" onclick="window.location.href='community.html'" title="Volver a Comunidad">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        <span>Volver</span>
     </button>
-    <div id="profileMenu" class="profile-menu">
-        <div class="pm-header">
-            <div class="pm-avatar"><img src="../assets/images/icono.png" alt="Perfil"/></div>
-            <div>
-                <div class="pm-name" id="pmName">Usuario</div>
-                <div class="pm-email" id="pmEmail">user@example.com</div>
+
+
+    <nav class="community-subnav">
+        <div class="subnav-inner">
+            <div class="subnav-tabs">
+                <button class="subnav-link active" data-tab="community">Comunidad</button>
+                <button class="subnav-link" data-tab="members">Miembros</button>
+                <button class="subnav-link" data-tab="leagues">Ligas</button>
+                <button class="subnav-link" data-tab="about">Acerca de</button>
+            </div>
+            <div class="subnav-search">
+                <i class="fas fa-search"></i>
+                <input class="subnav-input" id="viewSearch" type="text" placeholder="Buscar en esta comunidad...">
             </div>
         </div>
-        <div class="pm-section">
-            <div class="pm-item" onclick="location.href='../estadisticas.html'"><i class='bx bx-bar-chart-alt-2'></i> Mis Estadísticas</div>
-            <div class="pm-item" onclick="location.href='../courses.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
+    </nav>
+
+         <main class="main-content" id="main-content" style="padding-top:10px">
+        <!-- Banner de la comunidad -->
+        <div class="community-banner" id="communityBanner">
+            <div class="community-banner-image" id="communityBannerImage"></div>
+            <div class="community-banner-overlay">
+                <div class="community-banner-content">
+                    <div class="community-banner-icon" id="communityBannerIcon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="community-banner-info">
+                        <h1 class="community-banner-title" id="communityBannerTitle">Comunidad</h1>
+                        <p class="community-banner-desc" id="communityBannerDesc">Descripción de la comunidad</p>
+                        <div class="community-banner-meta" id="communityBannerMeta">• Members • Free</div>
+                     <div class="community-stats" id="communityStats">
+                         <div class="stat-item">
+                             <span class="stat-number" id="totalPosts">0</span>
+                             <span class="stat-label">Posts</span>
+                         </div>
+                         <div class="stat-item">
+                             <span class="stat-number" id="totalComments">0</span>
+                             <span class="stat-label">Comentarios</span>
+                         </div>
+                         <div class="stat-item">
+                             <span class="stat-number" id="totalReactions">0</span>
+                             <span class="stat-label">Reacciones</span>
+                         </div>
+                     </div>
+                     
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <section id="tab-community" class="feed-section">
+            <div class="container">
+                <div class="feed-main">
+                    <div class="composer-card">
+                        <div class="composer-avatar" id="composerAvatar">
+                            <img id="composerAvatarImg" src="" alt="Tu foto de perfil" style="display: none;">
+                            <i class="fas fa-user" id="composerAvatarIcon"></i>
+                        </div>
+                        <div class="composer-content">
+                        <input id="composerInput" class="composer-input" type="text" placeholder="Escribe algo para la comunidad...">
+                            <div class="composer-actions">
+                                <button class="attach-menu-btn" id="attachMenuBtn" title="Agregar adjunto">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Adjuntar</span>
+                                </button>
+                        <button id="publishPostBtn" class="composer-btn" disabled>Publicar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="attachments-preview" id="attachmentsPreview"></div>
+                    <div class="feed-filters" id="feedFilters">
+                        <button class="feed-chip active" data-category="all">Todos</button>
+                        <button class="feed-chip" data-category="general">General</button>
+                        <button class="feed-chip" data-category="ia">IA</button>
+                        <button class="feed-chip" data-category="datos">Datos</button>
+                        <button class="feed-chip" data-category="desarrollo">Desarrollo</button>
+                        <button class="feed-chip" data-category="diseno">Diseño</button>
+                        <button class="feed-chip" data-category="it">IT & Software</button>
+                        <button class="feed-chip" data-category="marketing">Marketing</button>
+                        <button class="feed-chip" data-category="negocios">Negocios</button>
+                    </div>
+                    <div id="postsList" class="posts-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-members" class="members-section" style="display:none">
+            <div class="container">
+                <div class="members-filters">
+                    <button class="members-chip active" data-filter="all">Todos</button>
+                    <button class="members-chip" data-filter="online">En línea</button>
+                    <button class="members-chip" data-filter="admins">Admins</button>
+                </div>
+                <div id="membersList"></div>
+            </div>
+        </section>
+
+        <section id="tab-leagues" class="leagues-section" style="display:none">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Sistema de Ligas</h2>
+                    <p class="section-subtitle">Gana puntos participando y sube de liga</p>
+                </div>
+                
+                <!-- Tu perfil de liga -->
+                <div class="league-profile-card">
+                    <div class="league-profile-header">
+                        <div class="league-profile-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="league-profile-info">
+                            <h3 class="league-profile-name" id="currentUserName">Tu Nombre</h3>
+                            <div class="league-profile-stats">
+                                <span class="league-profile-points" id="currentUserPoints">0 puntos</span>
+                                <span class="league-profile-league" id="currentUserLeague">Oro</span>
+                            </div>
+                        </div>
+                        <div class="league-profile-badge" id="currentUserBadge">
+                            <img src="images/liga-oro.png" alt="Liga Actual" id="currentUserLeagueImage" class="league-badge-img">
+                        </div>
+                    </div>
+                    <div class="league-progress-bar">
+                        <div class="league-progress-fill" id="leagueProgressFill"></div>
+                        <span class="league-progress-text" id="leagueProgressText">0 / 100 puntos para subir</span>
+                    </div>
+                </div>
+
+
+
+                <!-- Información de puntos -->
+                <!-- Layout de dos columnas superiores -->
+                <div class="leagues-top-layout">
+                    <!-- Columna izquierda: Rangos de liga -->
+                    <div class="league-ranges-sidebar">
+                        <h3 class="league-ranges-title">Rangos de Puntos por Liga</h3>
+                        <div class="league-ranges-vertical">
+                            <div class="league-range-card">
+                                <div class="league-range-icon">
+                                    <img src="images/liga-oro.png" alt="Liga Oro" class="league-icon-img">
+                                </div>
+                                <div class="league-range-info">
+                                    <h4>LIGA ORO</h4>
+                                    <p class="league-range-points">0 - 499 puntos</p>
+                                </div>
+                            </div>
+                            <div class="league-range-card">
+                                <div class="league-range-icon">
+                                    <img src="images/liga-platino.png" alt="Liga Platino" class="league-icon-img">
+                                </div>
+                                <div class="league-range-info">
+                                    <h4>LIGA PLATINO</h4>
+                                    <p class="league-range-points">500 - 999 puntos</p>
+                                </div>
+                            </div>
+                            <div class="league-range-card">
+                                <div class="league-range-icon">
+                                    <img src="images/liga-diamante.png" alt="Liga Diamante" class="league-icon-img">
+                                </div>
+                                <div class="league-range-info">
+                                    <h4>LIGA DIAMANTE</h4>
+                                    <p class="league-range-points">1000+ puntos</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna derecha: Puntos por acción en matriz 2x2 -->
+                    <div class="points-sidebar">
+                        <h3 class="points-title">Puntos por Acción</h3>
+                        <div class="points-grid-2x2">
+                            <div class="points-info-card">
+                                <div class="points-info-icon">
+                                    <i class="fas fa-edit"></i>
+                                </div>
+                                <h4>Publicar</h4>
+                                <p>+10 puntos</p>
+                            </div>
+                            <div class="points-info-card">
+                                <div class="points-info-icon">
+                                    <i class="fas fa-comment"></i>
+                                </div>
+                                <h4>Comentar</h4>
+                                <p>+5 puntos</p>
+                            </div>
+                            <div class="points-info-card">
+                                <div class="points-info-icon">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <h4>Reaccionar</h4>
+                                <p>+2 puntos</p>
+                            </div>
+                            <div class="points-info-card">
+                                <div class="points-info-icon">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <h4>Post Popular</h4>
+                                <p>+15 puntos extra</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel de clasificación global a ancho completo -->
+                <div class="leaderboard-full-width">
+                    <div class="leaderboard-container">
+                        <div class="leaderboard-header">
+                            <div class="leaderboard-header-top">
+                                <h3>Clasificación Global</h3>
+                                <div class="leaderboard-stats">
+                                    <span id="totalParticipants">0 participantes</span>
+                                </div>
+                            </div>
+                            <!-- Filtros de liga -->
+                            <div class="leagues-filters">
+                                <button class="league-filter active" data-league="all">Todas las Ligas</button>
+                                <button class="league-filter" data-league="gold">Oro</button>
+                                <button class="league-filter" data-league="platinum">Platino</button>
+                                <button class="league-filter" data-league="diamond">Diamante</button>
+                            </div>
+                        </div>
+                        <div class="leaderboard-table" id="leaderboardTable">
+                            <!-- La tabla se llenará dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-about" class="guidelines-section" style="display:none">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title" id="aboutTitle">Acerca de esta comunidad</h2>
+                    <p class="section-subtitle">Descripción general y recursos.</p>
+                </div>
+                <div class="guidelines-grid">
+                    <div class="guideline-card">
+                        <div class="guideline-icon"><i class="fas fa-play"></i></div>
+                        <h3 class="guideline-title">Comienza aquí</h3>
+                        <p class="guideline-description">Mira el video de introducción y conoce las reglas básicas.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon"><i class="fas fa-bolt"></i></div>
+                        <h3 class="guideline-title">Recursos</h3>
+                        <p class="guideline-description">Plantillas, guías y descuentos para acelerar tu aprendizaje.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon"><i class="fas fa-arrow-trend-up"></i></div>
+                        <h3 class="guideline-title">Mejora</h3>
+                        <p class="guideline-description">Sube de nivel participando y compartiendo aportes de calidad.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <button class="chat-fab" id="openChat">
+        <i class="fas fa-comments"></i>
+        <span class="chat-fab-text">Chat</span>
+        <span class="chat-notification" id="chatNotification" style="display: none;">0</span>
+    </button>
+    
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-head">
+            <div class="chat-head-info">
+                <div class="chat-avatar">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="chat-info">
+                    <strong class="chat-title">Chat en vivo</strong>
+                    <span class="chat-status" id="chatStatus">Conectado</span>
+                </div>
+            </div>
+            <div class="chat-head-actions">
+                <button class="chat-action-btn" id="chatSettings" title="Configuración">
+                    <i class="fas fa-cog"></i>
+                </button>
+                 <button class="chat-action-btn" id="exportData" title="Exportar datos">
+                     <i class="fas fa-download"></i>
+                 </button>
+                <button class="chat-action-btn" id="closeChat" title="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="chat-body" id="chatBody">
+            <div class="chat-welcome" id="chatWelcome">
+                <div class="welcome-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h3>¡Bienvenido al chat!</h3>
+                <p>Conecta con otros miembros de la comunidad</p>
+            </div>
+            <div class="chat-messages" id="chatMessages" style="display: none;"></div>
+            <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span class="typing-text">Alguien está escribiendo...</span>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <div class="chat-input-row">
+                <button class="chat-attach-btn" id="chatAttachBtn" title="Adjuntar archivo">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <button class="chat-emoji-btn" id="chatEmojiBtn" title="Emojis">
+                    <i class="fas fa-smile"></i>
+                </button>
+                <div class="chat-input-wrapper">
+                    <input id="chatInput" class="chat-input" type="text" placeholder="Escribe un mensaje..." maxlength="500">
+                    <div class="chat-input-counter" id="chatInputCounter">0/500</div>
+                </div>
+                <button id="chatSend" class="chat-send" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <div class="chat-attachments" id="chatAttachments"></div>
         </div>
         <div class="pm-section">
             <div class="pm-item" onclick="location.href='../profile.html'"><i class='bx bx-user'></i> Editar perfil</div>
@@ -198,21 +483,1265 @@
 
     <!-- Verification script -->
     <script>
-        console.log('🔍 Verificando dependencias críticas para community-view...');
-
-        // Verify critical dependencies
-        setTimeout(() => {
-            console.log('📊 Estado de dependencias:');
-            console.log('  window.supabase:', window.supabase ? 'Disponible' : 'No disponible');
-            console.log('  window.CommunityDatabase:', typeof window.CommunityDatabase);
-            console.log('  window.CommunityView:', typeof window.CommunityView);
-
-            if (typeof window.CommunityView === 'function') {
-                console.log('✅ CommunityView está disponible');
-            } else {
-                console.error('❌ CommunityView NO está disponible');
+        // Sistema de notificaciones elegante
+        class NotificationSystem {
+            constructor() {
+                this.container = document.getElementById('notificationContainer');
+                if (!this.container) {
+                    this.container = document.createElement('div');
+                    this.container.id = 'notificationContainer';
+                    this.container.className = 'notification-container';
+                    document.body.appendChild(this.container);
+                }
             }
-        }, 1000);
+
+            show(message, type = 'info', duration = 4000) {
+                const notification = document.createElement('div');
+                notification.className = `notification notification-${type}`;
+                
+                const icon = this.getIcon(type);
+                notification.innerHTML = `
+                    <div class="notification-icon">${icon}</div>
+                    <div class="notification-content">
+                        <div class="notification-message">${message}</div>
+                    </div>
+                    <button class="notification-close" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                this.container.appendChild(notification);
+
+                // Animación de entrada
+                setTimeout(() => notification.classList.add('show'), 10);
+
+                // Auto-remover
+                if (duration > 0) {
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                        setTimeout(() => notification.remove(), 300);
+                    }, duration);
+                }
+
+                return notification;
+            }
+
+            success(message, duration = 4000) {
+                return this.show(message, 'success', duration);
+            }
+
+            error(message, duration = 6000) {
+                return this.show(message, 'error', duration);
+            }
+
+            warning(message, duration = 5000) {
+                return this.show(message, 'warning', duration);
+            }
+
+            info(message, duration = 4000) {
+                return this.show(message, 'info', duration);
+            }
+
+            getIcon(type) {
+                const icons = {
+                    success: '<i class="fas fa-check-circle"></i>',
+                    error: '<i class="fas fa-exclamation-circle"></i>',
+                    warning: '<i class="fas fa-exclamation-triangle"></i>',
+                    info: '<i class="fas fa-info-circle"></i>'
+                };
+                return icons[type] || icons.info;
+            }
+        }
+
+        // Instanciar sistema de notificaciones
+        const notifications = new NotificationSystem();
+    </script>
+
+    <script src="../scripts/community-database.js"></script>
+    <script>
+        // Sistema de comunidad con base de datos
+        class CommunitySystem {
+            constructor() {
+                this.db = new CommunityDatabase();
+                this.currentCommunity = null;
+                this.posts = [];
+                this.comments = {};
+                this.reactions = {};
+                this.members = [];
+                this.init();
+            }
+
+            async init() {
+                console.log('🚀 Inicializando sistema de comunidad...');
+                await this.db.initialize();
+                
+                // Obtener comunidad actual desde URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const communitySlug = urlParams.get('community') || 'general';
+                
+                await this.loadCommunity(communitySlug);
+                await this.loadPosts();
+                await this.loadMembers();
+                
+                console.log('✅ Sistema de comunidad inicializado');
+            }
+
+            async loadCommunity(slug) {
+                console.log(`🏘️ Cargando comunidad: ${slug}`);
+                this.currentCommunity = await this.db.getCommunityBySlug(slug);
+                
+                if (this.currentCommunity) {
+                    document.getElementById('communityName').textContent = this.currentCommunity.name;
+                    document.getElementById('communityDescription').textContent = this.currentCommunity.description;
+                    document.getElementById('memberCount').textContent = this.currentCommunity.member_count;
+                }
+            }
+
+            async loadPosts() {
+                if (!this.currentCommunity) return;
+                
+                console.log('📝 Cargando publicaciones...');
+                this.posts = await this.db.getPosts(this.currentCommunity.id);
+                this.renderPosts();
+            }
+
+            async loadMembers() {
+                if (!this.currentCommunity) return;
+                
+                console.log('👥 Cargando miembros...');
+                this.members = await this.db.getCommunityMembers(this.currentCommunity.id);
+                this.renderMembers();
+            }
+
+            async createPost(content, title = null, attachmentUrl = null, attachmentType = null) {
+                if (!this.currentCommunity) return null;
+                
+                console.log('📝 Creando nueva publicación...');
+                const post = await this.db.createPost(
+                    this.currentCommunity.id,
+                    content,
+                    title,
+                    attachmentUrl,
+                    attachmentType
+                );
+                
+                if (post) {
+                    // Agregar puntos al usuario
+                    if (window.pointsSystem) {
+                        await window.pointsSystem.addPoints(null, 'publish');
+                    }
+                    
+                    // Recargar publicaciones
+                    await this.loadPosts();
+                    
+                    // Mostrar notificación
+                    this.showNotification('Publicación creada exitosamente', 'success');
+                } else {
+                    this.showNotification('Error al crear la publicación', 'error');
+                }
+                
+                return post;
+            }
+
+            async createComment(postId, content) {
+                console.log('💬 Creando nuevo comentario...');
+                const comment = await this.db.createComment(postId, content);
+                
+                if (comment) {
+                    // Agregar puntos al usuario
+                    if (window.pointsSystem) {
+                        await window.pointsSystem.addPoints(null, 'comment');
+                    }
+                    
+                    // Recargar comentarios del post
+                    await this.loadComments(postId);
+                    
+                    // Mostrar notificación
+                    this.showNotification('Comentario agregado', 'success');
+                } else {
+                    this.showNotification('Error al agregar comentario', 'error');
+                }
+                
+                return comment;
+            }
+
+            async toggleReaction(postId, reactionType = 'like') {
+                console.log(`👍 Alternando reacción: ${reactionType}`);
+                const success = await this.db.toggleReaction(postId, null, reactionType);
+                
+                if (success) {
+                    // Agregar puntos al usuario
+                    if (window.pointsSystem) {
+                        await window.pointsSystem.addPoints(null, 'react');
+                    }
+                    
+                    // Recargar reacciones del post
+                    await this.loadReactions(postId);
+                    
+                    // Mostrar notificación
+                    this.showNotification('Reacción actualizada', 'success');
+                } else {
+                    this.showNotification('Error al actualizar reacción', 'error');
+                }
+                
+                return success;
+            }
+
+            async loadComments(postId) {
+                console.log(`💬 Cargando comentarios para post ${postId}...`);
+                this.comments[postId] = await this.db.getComments(postId);
+                this.renderComments(postId);
+            }
+
+            async loadReactions(postId) {
+                console.log(`👍 Cargando reacciones para post ${postId}...`);
+                this.reactions[postId] = await this.db.getReactions(postId);
+                this.renderReactions(postId);
+            }
+
+            renderPosts() {
+                const postsContainer = document.getElementById('postsContainer');
+                if (!postsContainer) return;
+                
+                postsContainer.innerHTML = '';
+                
+                this.posts.forEach(post => {
+                    const postElement = this.createPostElement(post);
+                    postsContainer.appendChild(postElement);
+                });
+            }
+
+            createPostElement(post) {
+                const postDiv = document.createElement('div');
+                postDiv.className = 'post';
+                postDiv.dataset.postId = post.id;
+                
+                const userName = post.users?.display_name || post.users?.first_name || post.users?.username || 'Usuario';
+                
+                // Usar la nueva función formatTimestamp para formatear correctamente el tiempo
+                let timestamp;
+                if (post.created_at) {
+                    timestamp = this.db.formatTimestamp(post.created_at);
+                } else if (post.timestamp) {
+                    // Para posts del sistema anterior que usan timestamp en milisegundos
+                    timestamp = this.db.formatTimestamp(post.timestamp);
+                } else {
+                    timestamp = 'Recién publicado';
+                }
+                
+                postDiv.innerHTML = `
+                    <div class="post-header">
+                        <div class="post-user">
+                            <img src="${post.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}" class="user-avatar">
+                            <div class="user-info">
+                                <div class="user-name">${userName}</div>
+                                <div class="post-time">${timestamp}</div>
+                            </div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn" onclick="communitySystem.showPostMenu('${post.id}')">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        ${post.title ? `<h3 class="post-title">${post.title}</h3>` : ''}
+                        <p>${post.content}</p>
+                        ${post.attachment_url ? this.renderAttachment(post) : ''}
+                    </div>
+                    <div class="post-footer">
+                        <div class="post-stats">
+                            <button class="reaction-btn" onclick="communitySystem.toggleReaction('${post.id}', 'like')">
+                                <i class="fas fa-heart"></i>
+                                <span class="reaction-count" id="reaction-count-${post.id}">${post.likes_count || 0}</span>
+                            </button>
+                            <button class="comment-btn" onclick="communitySystem.showComments('${post.id}')">
+                                <i class="fas fa-comment"></i>
+                                <span class="comment-count" id="comment-count-${post.id}">${post.comments_count || 0}</span>
+                            </button>
+                        </div>
+                        <div class="post-actions">
+                            <button class="share-btn" onclick="communitySystem.sharePost('${post.id}')">
+                                <i class="fas fa-share"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="comments-section" id="comments-${post.id}" style="display: none;">
+                        <div class="comment-input">
+                            <textarea placeholder="Escribe un comentario..." id="comment-input-${post.id}"></textarea>
+                            <button onclick="communitySystem.submitComment('${post.id}')">Comentar</button>
+                        </div>
+                        <div class="comments-list" id="comments-list-${post.id}"></div>
+                    </div>
+                `;
+                
+                return postDiv;
+            }
+
+            renderAttachment(post) {
+                if (!post.attachment_url) return '';
+                
+                switch (post.attachment_type) {
+                    case 'image':
+                        return `<img src="${post.attachment_url}" alt="Imagen adjunta" class="post-attachment">`;
+                    case 'video':
+                        return `<video src="${post.attachment_url}" controls class="post-attachment"></video>`;
+                    case 'document':
+                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                            <i class="fas fa-file"></i> Ver documento
+                        </a>`;
+                    case 'link':
+                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                            <i class="fas fa-link"></i> ${post.attachment_url}
+                        </a>`;
+                    default:
+                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                            <i class="fas fa-paperclip"></i> Ver adjunto
+                        </a>`;
+                }
+            }
+
+            renderComments(postId) {
+                const commentsList = document.getElementById(`comments-list-${postId}`);
+                if (!commentsList) return;
+                
+                const comments = this.comments[postId] || [];
+                commentsList.innerHTML = '';
+                
+                comments.forEach(comment => {
+                    const commentElement = this.createCommentElement(comment);
+                    commentsList.appendChild(commentElement);
+                });
+            }
+
+            createCommentElement(comment) {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comment';
+                
+                const userName = comment.users?.display_name || comment.users?.first_name || comment.users?.username || 'Usuario';
+                const timestamp = this.db.formatTimestamp(comment.created_at);
+                
+                commentDiv.innerHTML = `
+                    <div class="comment-header">
+                        <img src="${comment.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}" class="user-avatar small">
+                        <div class="comment-info">
+                            <div class="user-name">${userName}</div>
+                            <div class="comment-time">${timestamp}</div>
+                        </div>
+                    </div>
+                    <div class="comment-content">
+                        <p>${comment.content}</p>
+                    </div>
+                    <div class="comment-actions">
+                        <button class="reaction-btn small" onclick="communitySystem.toggleReaction(null, '${comment.id}', 'like')">
+                            <i class="fas fa-heart"></i>
+                            <span class="reaction-count">${comment.likes_count || 0}</span>
+                        </button>
+                    </div>
+                `;
+                
+                return commentDiv;
+            }
+
+            renderReactions(postId) {
+                const reactions = this.reactions[postId] || [];
+                const reactionCount = reactions.length;
+                
+                const countElement = document.getElementById(`reaction-count-${postId}`);
+                if (countElement) {
+                    countElement.textContent = reactionCount;
+                }
+            }
+
+            renderMembers() {
+                const membersContainer = document.getElementById('membersList');
+                if (!membersContainer) return;
+                
+                membersContainer.innerHTML = '';
+                
+                this.members.forEach(member => {
+                    const memberElement = this.createMemberElement(member);
+                    membersContainer.appendChild(memberElement);
+                });
+            }
+
+            createMemberElement(member) {
+                const memberDiv = document.createElement('div');
+                memberDiv.className = 'member-item';
+                
+                const userName = member.users?.display_name || member.users?.first_name || member.users?.username || 'Usuario';
+                const points = member.users?.points || 0;
+                
+                memberDiv.innerHTML = `
+                    <div class="member-avatar">
+                        <img src="${member.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}">
+                        <div class="online-indicator"></div>
+                    </div>
+                    <div class="member-info">
+                        <div class="member-name">${userName}</div>
+                        <div class="member-points">${points} puntos</div>
+                    </div>
+                `;
+                
+                return memberDiv;
+            }
+
+            async showComments(postId) {
+                const commentsSection = document.getElementById(`comments-${postId}`);
+                if (!commentsSection) return;
+                
+                if (commentsSection.style.display === 'none') {
+                    commentsSection.style.display = 'block';
+                    await this.loadComments(postId);
+                } else {
+                    commentsSection.style.display = 'none';
+                }
+            }
+
+            async submitComment(postId) {
+                const commentInput = document.getElementById(`comment-input-${postId}`);
+                if (!commentInput) return;
+                
+                const content = commentInput.value.trim();
+                if (!content) return;
+                
+                await this.createComment(postId, content);
+                commentInput.value = '';
+            }
+
+            showPostMenu(postId) {
+                // Implementar menú de opciones del post
+                console.log('Mostrando menú del post:', postId);
+            }
+
+            sharePost(postId) {
+                // Implementar compartir post
+                console.log('Compartiendo post:', postId);
+            }
+
+            showNotification(message, type = 'info') {
+                // Implementar sistema de notificaciones
+                console.log(`${type.toUpperCase()}: ${message}`);
+            }
+        }
+
+        // Sistema de puntos mejorado
+        class PointsSystem {
+            constructor() {
+                this.users = [];
+                this.currentUser = null;
+                this.init();
+            }
+
+            async init() {
+                console.log('🎯 Inicializando sistema de puntos...');
+                await this.loadUsers();
+                await this.getCurrentUser();
+                this.updateLeagueDisplay();
+                console.log('✅ Sistema de puntos inicializado');
+            }
+
+            async refreshPointsFromDatabase() {
+                console.log('🔄 Refreshing points from database...');
+                if (this.currentUser && this.currentUser.id) {
+                    try {
+                        const { data: userData, error } = await window.supabase
+                            .from('users')
+                            .select('points')
+                            .eq('id', this.currentUser.id)
+                            .single();
+                        
+                        if (!error && userData) {
+                            console.log('✅ Points refreshed from database:', userData.points);
+                            this.currentUser.points = userData.points || 0;
+                            this.updateLeagueDisplay();
+                            return true;
+                        } else {
+                            console.error('❌ Error refreshing points:', error);
+                        }
+                    } catch (error) {
+                        console.error('❌ Error refreshing points from database:', error);
+                    }
+                }
+                return false;
+            }
+
+            async loadUsers() {
+                console.log('👥 Cargando usuarios...');
+                try {
+                    if (window.supabase) {
+                        console.log('🔗 Intentando cargar usuarios desde Supabase...');
+                        const { data, error } = await window.supabase
+                            .from('users')
+                            .select('id, username, display_name, first_name, points');
+                        
+                        if (!error && data && data.length > 0) {
+                            console.log('✅ Usuarios cargados desde Supabase:', data);
+                            // Formatear usuarios para compatibilidad
+                            this.users = data.map(user => ({
+                                id: user.id,
+                                name: user.username || user.display_name || user.first_name || 'Usuario',
+                                points: user.points || 0,
+                                posts: 0,
+                                comments: 0,
+                                reactions: 0
+                            }));
+                            
+                            // Cargar estadísticas desde localStorage
+                            const stats = JSON.parse(localStorage.getItem('communityUsersStats') || '[]');
+                            this.users.forEach(user => {
+                                const userStats = stats.find(s => s.name === user.name);
+                                if (userStats) {
+                                    user.posts = userStats.posts || 0;
+                                    user.comments = userStats.comments || 0;
+                                    user.reactions = userStats.reactions || 0;
+                                }
+                            });
+                        } else {
+                            console.log('⚠️ No se pudieron cargar usuarios desde Supabase, usando localStorage');
+                            this.loadFromLocalStorage();
+                        }
+                    } else {
+                        console.log('⚠️ Supabase no disponible, usando localStorage');
+                        this.loadFromLocalStorage();
+                    }
+                } catch (error) {
+                    console.error('❌ Error cargando usuarios:', error);
+                    this.loadFromLocalStorage();
+                }
+            }
+
+            loadFromLocalStorage() {
+                console.log('📦 Cargando usuarios desde localStorage...');
+                const users = JSON.parse(localStorage.getItem('communityUsers') || '[]');
+                if (users.length === 0) {
+                    // Los usuarios ahora se cargan solo desde la base de datos
+                    // No hay datos hardcodeados
+                    this.users = [];
+                } else {
+                    this.users = users;
+                }
+                console.log('✅ Usuarios cargados desde localStorage:', this.users);
+            }
+
+            async saveUsers() {
+                console.log('🔄 PointsSystem.saveUsers() called');
+                console.log('Current users:', this.users);
+                localStorage.setItem('communityUsers', JSON.stringify(this.users));
+                console.log('✅ Saved to localStorage');
+                
+                // Guardar estadísticas por separado
+                const stats = this.users.map(user => ({
+                    name: user.name,
+                    posts: user.posts,
+                    comments: user.comments,
+                    reactions: user.reactions
+                }));
+                localStorage.setItem('communityUsersStats', JSON.stringify(stats));
+                console.log('✅ Stats saved to localStorage');
+
+                try {
+                    if (window.supabase) {
+                        console.log('🔗 Supabase client available, attempting to save...');
+                        for (const user of this.users) {
+                            if (user.id) {
+                                console.log(`📝 Updating user ${user.name} (ID: ${user.id}) with ${user.points} points`);
+                                const { data, error } = await window.supabase
+                                    .from('users')
+                                    .update({ points: user.points })
+                                    .eq('id', user.id)
+                                    .select();
+                                if (error) {
+                                    console.error(`❌ Error updating user ${user.name}:`, error);
+                                } else {
+                                    console.log(`✅ Points updated in Supabase for user ${user.name}: ${user.points} points`);
+                                    console.log('Supabase response:', data);
+                                }
+                            } else {
+                                console.log(`⚠️ User ${user.name} has no Supabase ID, skipping database update`);
+                            }
+                        }
+                        // New logic for current user without ID but with localStorage data
+                        if (this.currentUser && !this.currentUser.id) {
+                            console.log('🔄 Attempting to sync current user with Supabase...');
+                            const userData = localStorage.getItem('userData');
+                            const currentUser = localStorage.getItem('currentUser');
+                            let userInfo = null;
+                            if (userData) { try { userInfo = JSON.parse(userData); } catch (e) { console.error('Error parsing userData:', e); } }
+                            else if (currentUser) { try { userInfo = JSON.parse(currentUser); } catch (e) { console.error('Error parsing currentUser:', e); } }
+                            if (userInfo && userInfo.id) {
+                                console.log(`📝 Updating current user in Supabase (ID: ${userInfo.id}) with ${this.currentUser.points} points`);
+                                const { data, error } = await window.supabase
+                                    .from('users')
+                                    .update({ points: this.currentUser.points })
+                                    .eq('id', userInfo.id)
+                                    .select();
+                                if (error) { console.error(`❌ Error updating current user in Supabase:`, error); }
+                                else {
+                                    console.log(`✅ Current user points updated in Supabase: ${this.currentUser.points} points`);
+                                    console.log('Supabase response:', data);
+                                    this.currentUser.id = userInfo.id; // Update local ID
+                                }
+                            }
+                        }
+                    } else {
+                        console.log('⚠️ Supabase client not available');
+                    }
+                } catch (error) {
+                    console.error('❌ Error saving users to Supabase:', error);
+                }
+            }
+
+            async getCurrentUser() {
+                console.log('🔄 PointsSystem.getCurrentUser() called');
+                
+                try {
+                    // Primero intentar obtener usuario autenticado de Supabase
+                    if (window.supabase) {
+                        console.log('🔗 Checking Supabase authentication...');
+                        const { data: { user }, error } = await window.supabase.auth.getUser();
+                        
+                        if (!error && user) {
+                            console.log('✅ Authenticated user found:', user);
+                            
+                            // Obtener datos completos del usuario desde la base de datos
+                            const { data: userData, error: userError } = await window.supabase
+                                .from('users')
+                                .select('id, username, display_name, first_name, email, points')
+                                .eq('id', user.id)
+                                .single();
+                            
+                            if (!userError && userData) {
+                                console.log('✅ User data from database:', userData);
+                                
+                                // Buscar si ya existe en la lista local
+                                let localUser = this.users.find(u => u.id === userData.id);
+                                if (!localUser) {
+                                    localUser = {
+                                        id: userData.id,
+                                        name: userData.username || userData.display_name || userData.first_name || userData.email || 'Usuario',
+                                        points: userData.points || 0,
+                                        posts: 0,
+                                        comments: 0,
+                                        reactions: 0
+                                    };
+                                    this.users.push(localUser);
+                                } else {
+                                    // Actualizar puntos desde la base de datos
+                                    localUser.points = userData.points || 0;
+                                    localUser.name = userData.username || userData.display_name || userData.first_name || userData.email || 'Usuario';
+                                }
+                                
+                                // IMPORTANTE: Asignar al currentUser
+                                this.currentUser = localUser;
+                                console.log('👤 Current user (from database):', this.currentUser);
+                                return this.currentUser;
+                            } else {
+                                console.error('❌ Error getting user data from database:', userError);
+                            }
+                        } else {
+                            console.log('⚠️ No authenticated user found in Supabase');
+                        }
+                    } else {
+                        console.log('⚠️ Supabase client not available');
+                    }
+                } catch (error) {
+                    console.error('❌ Error getting current user from Supabase:', error);
+                }
+                
+                // Fallback: usar datos del localStorage
+                console.log('🔄 Falling back to localStorage...');
+                const userData = localStorage.getItem('userData');
+                const currentUser = localStorage.getItem('currentUser');
+                
+                let userInfo = null;
+                if (userData) {
+                    try { 
+                        userInfo = JSON.parse(userData); 
+                    } catch (e) { 
+                        console.error('Error parsing userData:', e); 
+                    }
+                } else if (currentUser) {
+                    try { 
+                        userInfo = JSON.parse(currentUser); 
+                    } catch (e) { 
+                        console.error('Error parsing currentUser:', e); 
+                    }
+                }
+                
+                if (userInfo && userInfo.id) {
+                    console.log('👤 User info from localStorage:', userInfo);
+                    
+                    // Buscar si ya existe en la lista local
+                    let localUser = this.users.find(u => u.id === userInfo.id);
+                    if (!localUser) {
+                        localUser = {
+                            id: userInfo.id,
+                            name: userInfo.user_metadata?.full_name || userInfo.user_metadata?.name || userInfo.email || 'Usuario',
+                            points: userInfo.user_metadata?.points || 0,
+                            posts: 0,
+                            comments: 0,
+                            reactions: 0
+                        };
+                        this.users.push(localUser);
+                    }
+                    
+                    // IMPORTANTE: Asignar al currentUser
+                    this.currentUser = localUser;
+                    console.log('👤 Current user (from localStorage):', this.currentUser);
+                    return this.currentUser;
+                }
+                
+                // Último fallback: usuario genérico
+                const currentUserName = localStorage.getItem('currentUserName') || 'Tú';
+                let user = this.users.find(u => u.name === currentUserName);
+                if (!user) {
+                    user = { 
+                        id: null, 
+                        name: currentUserName, 
+                        points: 0, 
+                        posts: 0, 
+                        comments: 0, 
+                        reactions: 0 
+                    };
+                    this.users.push(user);
+                }
+                
+                // IMPORTANTE: Asignar al currentUser
+                this.currentUser = user;
+                console.log('👤 Current user (generic fallback):', this.currentUser);
+                return this.currentUser;
+            }
+
+            async addPoints(userName, action, extraPoints = 0) {
+                console.log('🎯 PointsSystem.addPoints called:', { userName, action, extraPoints });
+                let user = this.currentUser;
+                if (!user) {
+                    console.log('⚠️ No current user found, getting current user...');
+                    user = await this.getCurrentUser();
+                    this.currentUser = user;
+                }
+                console.log('👤 User to add points to:', user);
+                if (!user) { console.error('❌ No user found to add points to'); return 0; }
+
+                let pointsToAdd = 0;
+                switch (action) {
+                    case 'publish':
+                        pointsToAdd = 10;
+                        user.posts++;
+                        break;
+                    case 'comment':
+                        pointsToAdd = 5;
+                        user.comments++;
+                        break;
+                    case 'react':
+                        pointsToAdd = 2;
+                        user.reactions++;
+                        break;
+                    case 'popularPost':
+                        pointsToAdd = 15;
+                        break;
+                    default:
+                        pointsToAdd = extraPoints;
+                }
+
+                user.points += pointsToAdd;
+                console.log(`💰 Added ${pointsToAdd} points for ${action}. User now has ${user.points} points`);
+                console.log('💾 Saving users to database...');
+                await this.saveUsers();
+                console.log('✅ Points updated, user now has:', user.points, 'points');
+                this.updateLeagueDisplay();
+                return pointsToAdd;
+            }
+
+            getLeague(points) {
+                if (points >= 1000) return { name: 'Liga Diamante', color: '#B9F2FF', minPoints: 1000, maxPoints: Infinity };
+                if (points >= 500) return { name: 'Liga Platino', color: '#E5E4E2', minPoints: 500, maxPoints: 999 };
+                return { name: 'Liga Oro', color: '#FFD700', minPoints: 0, maxPoints: 499 };
+            }
+
+            getProgressToNextLeague(points) {
+                const currentLeague = this.getLeague(points);
+                const nextLeague = this.getNextLeague(points);
+                if (!nextLeague) return { progress: 100, pointsNeeded: 0 };
+                
+                const pointsInCurrentLeague = points - currentLeague.minPoints;
+                const pointsNeededForNextLeague = nextLeague.minPoints - currentLeague.minPoints;
+                const progress = Math.min(100, (pointsInCurrentLeague / pointsNeededForNextLeague) * 100);
+                
+                return {
+                    progress: Math.round(progress),
+                    pointsNeeded: nextLeague.minPoints - points
+                };
+            }
+
+            getNextLeague(points) {
+                if (points >= 1000) return null; // Ya está en la máxima liga
+                if (points >= 500) return { name: 'Liga Diamante', minPoints: 1000 };
+                return { name: 'Liga Platino', minPoints: 500 };
+            }
+
+            updateLeagueDisplay() {
+                if (!this.currentUser) {
+                    console.log('⚠️ No current user for league display update');
+                    return;
+                }
+                
+                console.log('🏆 Updating league display for user:', this.currentUser);
+                
+                const league = this.getLeague(this.currentUser.points);
+                const progress = this.getProgressToNextLeague(this.currentUser.points);
+                
+                // Actualizar elementos de la interfaz con los IDs correctos
+                const leagueElement = document.getElementById('currentUserLeague');
+                const progressElement = document.getElementById('leagueProgressFill');
+                const pointsElement = document.getElementById('currentUserPoints');
+                const progressTextElement = document.getElementById('leagueProgressText');
+                const leagueImageElement = document.getElementById('currentUserLeagueImage');
+                const userNameElement = document.getElementById('currentUserName');
+                
+                if (leagueElement) {
+                    leagueElement.textContent = league.name;
+                    leagueElement.style.color = league.color;
+                    console.log('✅ League element updated:', league.name);
+                }
+                
+                // Actualizar nombre del usuario
+                if (userNameElement && this.currentUser.name) {
+                    userNameElement.textContent = this.currentUser.name;
+                    console.log('✅ User name updated:', this.currentUser.name);
+                }
+                
+                // Actualizar imagen de la liga
+                if (leagueImageElement) {
+                    let leagueImagePath = 'images/liga-oro.png'; // Default
+                    
+                    if (this.currentUser.points >= 1000) {
+                        leagueImagePath = 'images/liga-diamante.png';
+                    } else if (this.currentUser.points >= 500) {
+                        leagueImagePath = 'images/liga-platino.png';
+                    } else {
+                        leagueImagePath = 'images/liga-oro.png';
+                    }
+                    
+                    leagueImageElement.src = leagueImagePath;
+                    leagueImageElement.alt = `Liga ${league.name}`;
+                    console.log('✅ League image updated:', leagueImagePath);
+                }
+                
+                if (progressElement) {
+                    progressElement.style.width = `${progress.progress}%`;
+                    progressElement.setAttribute('aria-valuenow', progress.progress);
+                    console.log('✅ Progress element updated:', progress.progress + '%');
+                }
+                
+                if (pointsElement) {
+                    pointsElement.textContent = `${this.currentUser.points} puntos`;
+                    console.log('✅ Points element updated:', this.currentUser.points);
+                }
+                
+                if (progressTextElement) {
+                    if (progress.pointsNeeded > 0) {
+                        progressTextElement.textContent = `${progress.pointsNeeded} puntos para subir`;
+                    } else {
+                        progressTextElement.textContent = '¡Liga máxima alcanzada!';
+                    }
+                    console.log('✅ Progress text updated');
+                }
+                
+                console.log('✅ League display update completed');
+            }
+        }
+
+        // Sistema de filtros de liga
+        class LeagueFilterSystem {
+            constructor() {
+                this.currentFilter = 'all';
+                this.allUsers = [];
+                this.init();
+            }
+
+            async init() {
+                console.log('🏆 Inicializando sistema de filtros de liga...');
+                await this.loadAllUsers();
+                this.setupEventListeners();
+                this.updateLeaderboard();
+                console.log('✅ Sistema de filtros de liga inicializado');
+            }
+
+            async loadAllUsers() {
+                console.log('👥 Cargando todos los usuarios para clasificación...');
+                
+                if (!window.supabase) {
+                    console.error('❌ Supabase no está disponible');
+                    return;
+                }
+
+                try {
+                    console.log('🔍 Haciendo consulta a la tabla users...');
+                    
+                    // Consulta directa a la tabla users - igual que para obtener tu información
+                    const { data: users, error } = await window.supabase
+                        .from('users')
+                        .select('id, username, display_name, first_name, email, points')
+                        .order('points', { ascending: false });
+
+                    console.log('📊 Respuesta de Supabase:', { users, error });
+
+                    if (error) {
+                        console.error('❌ Error en consulta Supabase:', error);
+                        return;
+                    }
+
+                    if (users && users.length > 0) {
+                        console.log(`✅ Encontrados ${users.length} usuarios en la base de datos`);
+                        
+                        this.allUsers = users.map(user => {
+                            const userData = {
+                                id: user.id,
+                                name: user.username || user.display_name || user.first_name || user.email || 'Usuario',
+                                points: user.points || 0,
+                                league: this.getUserLeague(user.points || 0)
+                            };
+                            console.log('👤 Usuario procesado:', userData);
+                            return userData;
+                        });
+                        
+                        console.log(`✅ Cargados ${this.allUsers.length} usuarios desde Supabase`);
+                        console.log('📋 Lista completa de usuarios:', this.allUsers);
+                    } else {
+                        console.log('⚠️ No se encontraron usuarios en la base de datos');
+                        this.allUsers = [];
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error cargando usuarios:', error);
+                    this.allUsers = [];
+                }
+                
+                console.log(`📊 Total de usuarios cargados: ${this.allUsers.length}`);
+            }
+
+            getUserLeague(points) {
+                if (points >= 1000) return 'diamond';
+                if (points >= 500) return 'platinum';
+                return 'gold';
+            }
+
+            setupEventListeners() {
+                const filterButtons = document.querySelectorAll('.league-filter');
+                filterButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const league = button.dataset.league;
+                        this.setActiveFilter(league);
+                    });
+                });
+            }
+
+            setActiveFilter(league) {
+                this.currentFilter = league;
+                
+                // Actualizar botones activos
+                document.querySelectorAll('.league-filter').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-league="${league}"]`)?.classList.add('active');
+                
+                this.updateLeaderboard();
+            }
+
+            updateLeaderboard() {
+                console.log('🏆 Actualizando tabla de clasificación...');
+                console.log('📊 Usuarios disponibles:', this.allUsers);
+                console.log('🔍 Filtro actual:', this.currentFilter);
+                
+                const leaderboardTable = document.getElementById('leaderboardTable');
+                const totalParticipants = document.getElementById('totalParticipants');
+                
+                if (!leaderboardTable) {
+                    console.error('❌ No se encontró el elemento leaderboardTable');
+                    return;
+                }
+
+                console.log('🎯 Elemento leaderboardTable encontrado:', leaderboardTable);
+                console.log('📏 Dimensiones del elemento:', {
+                    offsetHeight: leaderboardTable.offsetHeight,
+                    clientHeight: leaderboardTable.clientHeight,
+                    scrollHeight: leaderboardTable.scrollHeight,
+                    innerHTML: leaderboardTable.innerHTML.substring(0, 100) + '...'
+                });
+
+                // Filtrar usuarios según la liga seleccionada
+                let filteredUsers = this.allUsers;
+                if (this.currentFilter !== 'all') {
+                    filteredUsers = this.allUsers.filter(user => user.league === this.currentFilter);
+                }
+
+                console.log('📋 Usuarios filtrados:', filteredUsers);
+
+                // Ordenar por puntos (mayor a menor)
+                filteredUsers.sort((a, b) => b.points - a.points);
+
+                // Actualizar contador de participantes
+                if (totalParticipants) {
+                    totalParticipants.textContent = `${filteredUsers.length} participantes`;
+                    console.log('📊 Contador actualizado:', `${filteredUsers.length} participantes`);
+                }
+
+                // Generar HTML de la tabla
+                if (filteredUsers.length === 0) {
+                    console.log('⚠️ No hay usuarios para mostrar');
+                    leaderboardTable.innerHTML = `
+                        <div class="empty-leaderboard">
+                            <i class="fas fa-trophy"></i>
+                            <p>No hay participantes en esta liga</p>
+                        </div>
+                    `;
+                } else {
+                    console.log('✅ Generando tabla con usuarios...');
+                    const tableHTML = filteredUsers.map((user, index) => {
+                        const position = index + 1;
+                        const medal = position <= 3 ? this.getMedalIcon(position) : '';
+                        const leagueIcon = this.getLeagueIcon(user.league);
+                        
+                        const rowHTML = `
+                            <div class="leaderboard-row">
+                                <div class="leaderboard-position">
+                                    ${medal}${position}
+                                </div>
+                                <div class="leaderboard-user">
+                                    <div class="user-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">${user.name}</div>
+                                        <div class="user-league">
+                                            ${leagueIcon} ${this.getLeagueName(user.league)}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="leaderboard-points">
+                                    ${user.points} puntos
+                                </div>
+                            </div>
+                        `;
+                        console.log(`👤 Fila ${position}: ${user.name} - ${user.points} puntos`);
+                        return rowHTML;
+                    }).join('');
+                    
+                    leaderboardTable.innerHTML = tableHTML;
+                    console.log('✅ Tabla de clasificación actualizada');
+                }
+            }
+
+            getMedalIcon(position) {
+                const medals = ['🥇', '🥈', '🥉'];
+                return position <= 3 ? medals[position - 1] + ' ' : '';
+            }
+
+            getLeagueIcon(league) {
+                const icons = {
+                    'gold': '🥇',
+                    'platinum': '🥈', 
+                    'diamond': '💎'
+                };
+                return icons[league] || '🏆';
+            }
+
+            getLeagueName(league) {
+                const names = {
+                    'gold': 'Oro',
+                    'platinum': 'Platino',
+                    'diamond': 'Diamante'
+                };
+                return names[league] || 'Desconocida';
+            }
+        }
+
+        // Inicializar sistemas
+        window.pointsSystem = new PointsSystem();
+        window.communitySystem = new CommunitySystem();
+        window.leagueFilterSystem = new LeagueFilterSystem();
+
+        // Event listener para el botón de debug - se moverá dentro de DOMContentLoaded
+
+        // Función global para debug manual
+        window.debugLoadUsers = async function() {
+            console.log('🔍 Función debugLoadUsers llamada manualmente...');
+            
+            if (window.leagueFilterSystem) {
+                console.log('✅ LeagueFilterSystem disponible, cargando usuarios...');
+                await window.leagueFilterSystem.loadAllUsers();
+                window.leagueFilterSystem.updateLeaderboard();
+            } else {
+                console.error('❌ LeagueFilterSystem no está disponible');
+            }
+        };
+
+        // Función de prueba para verificar la conexión a Supabase
+        async function testSupabaseConnection() {
+            console.log('🧪 Probando conexión a Supabase...');
+            
+            if (!window.supabase) {
+                console.error('❌ Supabase no está disponible');
+                return false;
+            }
+
+            try {
+                // Hacer una consulta simple para verificar la conexión
+                const { data, error } = await window.supabase
+                    .from('users')
+                    .select('count')
+                    .limit(1);
+
+                if (error) {
+                    console.error('❌ Error en conexión a Supabase:', error);
+                    return false;
+                }
+
+                console.log('✅ Conexión a Supabase exitosa');
+                console.log('📊 Datos de prueba:', data);
+                return true;
+            } catch (error) {
+                console.error('❌ Error probando conexión:', error);
+                return false;
+            }
+        }
+
+        // Sistema de filtros de liga - CLASE DUPLICADA ELIMINADA COMPLETAMENTE
+
+        // Integrar con el sistema existente
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 DOMContentLoaded - Initializing community system...');
+            
+            // Verificar estado de Supabase
+            await checkSupabaseStatus();
+            
+            // Probar conexión a Supabase
+            await testSupabaseConnection();
+            
+            // Sincronizar con Supabase al cargar la página
+            await syncWithSupabase();
+
+
+            
+            // Inicializar sistema de filtros de liga
+            if (window.leagueFilterSystem) {
+                console.log('🏆 Inicializando sistema de filtros de liga...');
+                await window.leagueFilterSystem.loadAllUsers();
+                window.leagueFilterSystem.updateLeaderboard();
+            }
+            
+            // Forzar actualización del display de ligas después de un breve delay
+            setTimeout(async () => {
+                if (window.pointsSystem) {
+                    console.log('🔄 Forcing league display update after page load...');
+                    await window.pointsSystem.getCurrentUser();
+                    await window.pointsSystem.refreshPointsFromDatabase();
+                    window.pointsSystem.updateLeagueDisplay();
+                }
+                
+                // Actualizar también la clasificación global
+                if (window.leagueFilterSystem) {
+                    console.log('🔄 Actualizando clasificación global...');
+                    await window.leagueFilterSystem.loadAllUsers();
+                    window.leagueFilterSystem.updateLeaderboard();
+                }
+            }, 1000); // 1 segundo de delay
+            
+            console.log('✅ Community system initialized');
+            
+            // Actualizar el display de ligas cada 30 segundos para mantener sincronización
+            setInterval(async () => {
+                if (window.pointsSystem) {
+                    await window.pointsSystem.getCurrentUser();
+                    await window.pointsSystem.refreshPointsFromDatabase();
+                    window.pointsSystem.updateLeagueDisplay();
+                }
+                
+                // Actualizar también la clasificación global
+                if (window.leagueFilterSystem) {
+                    await window.leagueFilterSystem.loadAllUsers();
+                    window.leagueFilterSystem.updateLeaderboard();
+                }
+            }, 30000); // 30 segundos
+        });
+
+        // Función para verificar el estado de Supabase
+        async function checkSupabaseStatus() {
+            console.log('🔍 Checking Supabase status...');
+            console.log('window.supabase available:', !!window.supabase);
+
+            if (window.supabase) {
+                console.log('Supabase client details:', {
+                    url: window.supabase.supabaseUrl,
+                    key: window.supabase.supabaseKey ? 'Present' : 'Missing'
+                });
+
+                try {
+                    // Verificar conexión intentando obtener usuarios
+                    const { data: users, error } = await window.supabase
+                        .from('users')
+                        .select('id, username, display_name, first_name, points')
+                        .limit(1);
+
+                    if (error) {
+                        console.error('❌ Supabase connection error:', error);
+                    } else {
+                        console.log('✅ Supabase connection successful');
+                        console.log('Sample users from database:', users);
+                    }
+                } catch (error) {
+                    console.error('❌ Error testing Supabase connection:', error);
+                }
+            } else {
+                console.log('⚠️ Supabase client not initialized');
+            }
+        }
+
+        // Función para sincronizar datos con Supabase
+        async function syncWithSupabase() {
+            try {
+                if (window.supabase) {
+                    console.log('🔄 Syncing with Supabase...');
+
+                    // Obtener usuarios de Supabase
+                    const { data: users, error } = await window.supabase
+                        .from('users')
+                        .select('id, username, display_name, first_name, points')
+                        .not('points', 'is', null);
+
+                    if (!error && users) {
+                        console.log(`📊 Found ${users.length} users in Supabase`);
+
+                        // Actualizar puntos en localStorage
+                        const localUsers = JSON.parse(localStorage.getItem('communityUsers') || '[]');
+                        const updatedUsers = localUsers.map(localUser => {
+                            const supabaseUser = users.find(u =>
+                                u.display_name === localUser.name ||
+                                u.first_name === localUser.name ||
+                                u.username === localUser.name
+                            );
+
+                            if (supabaseUser) {
+                                return {
+                                    ...localUser,
+                                    id: supabaseUser.id,
+                                    points: supabaseUser.points || localUser.points
+                                };
+                            }
+
+                            return localUser;
+                        });
+
+                        localStorage.setItem('communityUsers', JSON.stringify(updatedUsers));
+                        console.log('✅ Data synced with Supabase');
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error syncing with Supabase:', error);
+            }
+        }
     </script>
 
     <!-- Profile and theme scripts -->

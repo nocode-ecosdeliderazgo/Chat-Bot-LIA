@@ -39,7 +39,7 @@ class CommunityPage {
             console.log('[COMMUNITY] 🚀 Iniciando sistema de comunidades...');
 
             // NUEVO: Debug completo de autenticación
-            this.debugUserAuthentication();
+            await this.debugUserAuthentication();
 
             // Verificar que CommunityDatabase esté disponible
             if (typeof CommunityDatabase === 'undefined') {
@@ -61,6 +61,16 @@ class CommunityPage {
                 console.error('[COMMUNITY] ❌ Supabase no disponible - Mostrando error al usuario');
                 this.showSupabaseError();
                 return;
+            }
+
+            // Verificar sesión de Supabase para operaciones protegidas
+            console.log('[COMMUNITY] 🔍 Verificando sesión de Supabase...');
+            this.hasValidSession = await window.hasCommunitySession();
+
+            if (this.hasValidSession) {
+                console.log('[COMMUNITY] ✅ Sesión válida - habilitando funciones protegidas');
+            } else {
+                console.log('[COMMUNITY] ⚠️ Sin sesión - modo solo lectura');
             }
 
             // Continuar con inicialización normal
@@ -88,8 +98,18 @@ class CommunityPage {
     }
 
     // NUEVA función para debug completo de autenticación
-    debugUserAuthentication() {
+    async debugUserAuthentication() {
         console.log('🔍 === DEBUG AUTENTICACIÓN DE USUARIO (COMMUNITY) ===');
+
+        // Usar el nuevo sistema de autenticación
+        if (window.CommunityAuth) {
+            console.log('✅ CommunityAuth disponible - ejecutando debug completo...');
+            const debugResult = await window.CommunityAuth.debugAuthState();
+            console.log('📊 Resultado debug CommunityAuth:', debugResult);
+            return debugResult;
+        } else {
+            console.error('❌ CommunityAuth NO disponible - usando debug legacy...');
+        }
 
         // Verificar localStorage (donde funciona el menú de perfil)
         console.log('📊 LocalStorage:');
@@ -423,7 +443,9 @@ class CommunityPage {
         const slug = record.slug || String(record.id);
         const category = this.getCategoryForCommunity(record);
         const icon = this.getIconForCommunity(record);
-        const banner = record.banner_url || record.cover_image_url || record.hero_image_url || record.image_url || this.defaultBannerForSlug(slug);
+
+        // Priorizar imagen_url de la base de datos, luego otros campos, y finalmente fallback local
+        const thumb = record.imagen_url || record.banner_url || record.cover_image_url || record.hero_image_url || record.image_url || this.defaultBannerForSlug(slug);
         const accessLabel = this.getAccessLabel(record, slug);
 
         return {
@@ -433,7 +455,7 @@ class CommunityPage {
             description: record.description || '',
             category,
             icon,
-            thumb: banner,
+            thumb: thumb,
             memberCount,
             postCount,
             membersLabel: memberCount ? this.formatMemberCount(memberCount) + ' Members' : '0 Members',
@@ -496,7 +518,7 @@ class CommunityPage {
     }
 
     // ===== DISCOVER GRID =====
-    renderDiscover(category = 'all', query = '') {
+    async renderDiscover(category = 'all', query = '') {
         const grid = document.getElementById('discoverGrid');
         if (!grid) return;
 
@@ -522,11 +544,50 @@ class CommunityPage {
             return;
         }
 
-        grid.innerHTML = list.map(c => {
+        // Obtener estados de solicitudes para comunidades invite_only (solo si hay sesión)
+        const hasSession = this.hasValidSession;
+        const communitiesWithRequests = await Promise.all(list.map(async (c) => {
+            let requestStatus = null;
+            if (c.inviteOnly && hasSession) {
+                const lastRequest = await this.getLastRequest(c.id);
+                requestStatus = lastRequest ? lastRequest.status : null;
+            }
+            return { ...c, requestStatus, hasSession };
+        }));
+
+        grid.innerHTML = communitiesWithRequests.map(c => {
             const title = this.escapeHtml(c.title);
             const desc = this.escapeHtml(c.description) || 'Pronto tendrás más detalles.';
             const membersLabel = this.escapeHtml(c.membersLabel || '0 Members');
-            const accessLabel = this.escapeHtml(c.accessLabel || 'Free');
+
+            // Determinar label de acceso dinámico
+            let accessLabel = this.escapeHtml(c.accessLabel || 'Free');
+            let accessClass = '';
+
+            if (c.inviteOnly) {
+                if (!c.hasSession) {
+                    accessLabel = 'Inicia sesión';
+                    accessClass = 'access-status login-required';
+                } else if (c.requestStatus) {
+                    switch (c.requestStatus) {
+                        case 'pending':
+                            accessLabel = 'Pendiente';
+                            accessClass = 'access-status pending';
+                            break;
+                        case 'rejected':
+                            accessLabel = 'Rechazada';
+                            accessClass = 'access-status rejected';
+                            break;
+                        default:
+                            accessLabel = 'Invitación';
+                            accessClass = 'access-status invite-only';
+                    }
+                } else {
+                    accessLabel = 'Invitación';
+                    accessClass = 'access-status invite-only';
+                }
+            }
+
             const cardSlug = this.escapeHtml(c.slug);
             const iconClass = this.escapeHtml(c.icon || 'fas fa-users');
 
@@ -540,7 +601,11 @@ class CommunityPage {
                         <div class="discover-main">
                             <div class="discover-title">${title}</div>
                             <div class="discover-desc">${desc}</div>
-                            <div class="discover-meta"><span>${membersLabel}</span><span class="dot"></span><span>${accessLabel}</span></div>
+                            <div class="discover-meta">
+                                <span>${membersLabel}</span>
+                                <span class="dot"></span>
+                                <span class="${accessClass}">${accessLabel}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -548,11 +613,45 @@ class CommunityPage {
         }).join('');
 
         grid.querySelectorAll('.discover-card').forEach(card => {
+<<<<<<< HEAD
             card.addEventListener('click', () => {
                 const id = card.getAttribute('data-id');
                 const slug = card.getAttribute('data-slug');
                 if (!id || !slug) return;
                 window.location.href = `./community-view.html?id=${encodeURIComponent(id)}&slug=${encodeURIComponent(slug)}`;
+=======
+            card.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const slug = card.getAttribute('data-slug');
+                if (!slug) return;
+
+                // Buscar la comunidad en los datos
+                const community = this.communities.find(c => c.slug === slug);
+                if (!community) {
+                    window.location.href = `./community-view.html?slug=${encodeURIComponent(slug)}`;
+                    return;
+                }
+
+                // Si es invite_only, verificar sesión y membresía
+                if (community.inviteOnly) {
+                    // Verificar sesión primero
+                    if (!(await window.hasCommunitySession())) {
+                        await window.requireCommunitySession();
+                        this.showToast('Inicia sesión para solicitar acceso', 'warning');
+                        return;
+                    }
+
+                    const isMember = await this.isMember(community.id);
+                    if (!isMember) {
+                        // Mostrar modal de solicitud de acceso
+                        await this.openAccessRequestModal(community);
+                        return;
+                    }
+                }
+
+                // Si es miembro o no es invite_only, navegar normalmente
+                window.location.href = `./community-view.html?slug=${encodeURIComponent(slug)}`;
+>>>>>>> 723e38685bfce84cef87bb1c5eb040bf58f66ea8
             });
         });
     }
@@ -662,6 +761,225 @@ class CommunityPage {
             el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
             observer.observe(el);
         });
+    }
+
+    // ===== ACCESS REQUEST FUNCTIONS =====
+
+    async getCurrentUserId() {
+        try {
+            // Usar el sistema robusto de autenticación
+            if (window.CommunityAuth) {
+                return await window.CommunityAuth.getCurrentUserId();
+            }
+
+            console.error('[ACCESS] ❌ CommunityAuth no está disponible');
+            return null;
+        } catch (error) {
+            console.error('[ACCESS] ❌ Error obteniendo userId:', error);
+            return null;
+        }
+    }
+
+    async isMember(communityId) {
+        try {
+            // Verificar sesión de Supabase primero
+            if (!(await window.hasCommunitySession())) {
+                console.warn('[ACCESS] Sin sesión Supabase - no verificando membresía');
+                return false;
+            }
+
+            // Obtener userId usando método robusto
+            const userId = await this.getCurrentUserId();
+            if (!userId) {
+                console.warn('[ACCESS] Usuario no autenticado para verificar membresía');
+                return false;
+            }
+            const { data, error } = await window.supabase
+                .from('community_members')
+                .select('user_id')
+                .eq('community_id', communityId)
+                .eq('user_id', userId)
+                .eq('is_active', true)
+                .maybeSingle();
+
+            if (error && error.code !== 'PGRST116') {
+                console.warn('[ACCESS] Error verificando membresía:', error);
+                return false;
+            }
+
+            return !!data;
+        } catch (error) {
+            console.error('[ACCESS] Error en isMember:', error);
+            return false;
+        }
+    }
+
+    async getLastRequest(communityId) {
+        try {
+            // Verificar sesión de Supabase primero
+            if (!(await window.hasCommunitySession())) {
+                console.warn('[ACCESS] Sin sesión Supabase - no obteniendo solicitudes');
+                return null;
+            }
+
+            // Obtener userId usando método robusto
+            const userId = await this.getCurrentUserId();
+            if (!userId) {
+                console.warn('[ACCESS] Usuario no autenticado para obtener solicitudes');
+                return null;
+            }
+            const { data, error } = await window.supabase
+                .from('community_access_requests')
+                .select('id,status,created_at')
+                .eq('community_id', communityId)
+                .eq('requester_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (error) {
+                console.warn('[ACCESS] Error obteniendo solicitud:', error);
+                return null;
+            }
+
+            return (data && data[0]) || null;
+        } catch (error) {
+            console.error('[ACCESS] Error en getLastRequest:', error);
+            return null;
+        }
+    }
+
+    async requestAccess(communityId) {
+        try {
+            console.log('[ACCESS] 🚀 Solicitando acceso a comunidad:', communityId);
+
+            // Verificar sesión de Supabase primero
+            if (!(await window.hasCommunitySession())) {
+                await window.requireCommunitySession();
+                this.showToast('Inicia sesión para solicitar acceso', 'warning');
+                return;
+            }
+
+            console.log('[ACCESS] 🚀 Solicitando acceso vía RPC...');
+
+            const { error } = await window.executeRPCWithAuth('rpc_request_access', {
+                p_community_id: communityId
+            });
+
+            if (error) {
+                console.error('[ACCESS] ❌ Error en RPC Supabase:', error);
+                throw error;
+            }
+
+            console.log('[ACCESS] ✅ Solicitud creada exitosamente via RPC');
+            this.showToast('Solicitud enviada exitosamente', 'success');
+            return true;
+        } catch (error) {
+            console.error('[ACCESS] ❌ Error solicitando acceso:', error);
+
+            // Manejar errores específicos
+            if (error?.status === 401 || error?.code === '401') {
+                this.showToast('Tu sesión expiró. Inicia sesión e inténtalo de nuevo.', 'error');
+            } else if (error?.code === '42501') {
+                this.showToast('No tienes permisos para realizar esta acción.', 'error');
+            } else {
+                this.showToast('No se pudo enviar la solicitud. Inténtalo más tarde.', 'error');
+            }
+
+            throw error;
+        }
+    }
+
+    async openAccessRequestModal(community) {
+        console.log('[ACCESS] Abriendo modal para comunidad:', community.title);
+
+        // Verificar sesión de Supabase primero
+        if (!(await window.hasCommunitySession())) {
+            await window.requireCommunitySession();
+            this.showToast('Inicia sesión para solicitar acceso', 'warning');
+            return;
+        }
+
+        // Verificar si ya existe una solicitud
+        const lastRequest = await this.getLastRequest(community.id);
+
+        const modalHtml = `
+            <div id="accessRequestModal" class="modal-overlay">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Solicitar acceso a ${this.escapeHtml(community.title)}</h2>
+                        <button class="modal-close" onclick="document.getElementById('accessRequestModal').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        ${lastRequest && lastRequest.status === 'pending' ?
+                            '<p class="request-status pending">Ya tienes una solicitud pendiente para esta comunidad.</p>' :
+                            lastRequest && lastRequest.status === 'rejected' ?
+                                '<p class="request-status rejected">Tu solicitud anterior fue rechazada. Puedes solicitar acceso nuevamente.</p>' :
+                                '<p>¿Te gustaría solicitar acceso a esta comunidad?</p>'
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-secondary" onclick="document.getElementById('accessRequestModal').remove()">
+                            Cancelar
+                        </button>
+                        <button id="sendRequestBtn" class="btn-primary"
+                                ${lastRequest && lastRequest.status === 'pending' ? 'disabled' : ''}>
+                            ${lastRequest && lastRequest.status === 'pending' ? 'Solicitud Pendiente' : 'Enviar Solicitud'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Agregar al DOM
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // Event listener para enviar solicitud
+        const sendBtn = document.getElementById('sendRequestBtn');
+        if (sendBtn && (!lastRequest || lastRequest.status !== 'pending')) {
+            sendBtn.addEventListener('click', async () => {
+                sendBtn.disabled = true;
+                sendBtn.textContent = 'Enviando...';
+
+                try {
+                    await this.requestAccess(community.id);
+                    document.getElementById('accessRequestModal').remove();
+
+                    // Actualizar la UI para mostrar estado pendiente
+                    this.updateCommunityCardStatus(community.slug, 'pending');
+                } catch (error) {
+                    sendBtn.disabled = false;
+                    sendBtn.textContent = 'Enviar Solicitud';
+                }
+            });
+        }
+    }
+
+    updateCommunityCardStatus(slug, status) {
+        const card = document.querySelector(`[data-slug="${slug}"]`);
+        if (!card) return;
+
+        const metaElement = card.querySelector('.discover-meta');
+        if (!metaElement) return;
+
+        const spans = metaElement.querySelectorAll('span');
+        if (spans.length >= 3) {
+            // Actualizar el texto del estado
+            switch (status) {
+                case 'pending':
+                    spans[2].textContent = 'Pendiente';
+                    spans[2].className = 'access-status pending';
+                    break;
+                case 'rejected':
+                    spans[2].textContent = 'Rechazada';
+                    spans[2].className = 'access-status rejected';
+                    break;
+                default:
+                    spans[2].textContent = 'Invitación';
+                    spans[2].className = 'access-status invite-only';
+            }
+        }
     }
 
     // ===== UTILITIES =====
