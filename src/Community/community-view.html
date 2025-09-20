@@ -1355,8 +1355,8 @@
                         return;
                     }
 
-                    // Convertir posts al formato esperado por la UI
-                    posts = dbPosts.map(post => {
+                    // Convertir posts al formato esperado por la UI con datos en vivo
+                    posts = await Promise.all(dbPosts.map(async (post) => {
                         // Calcular tiempo transcurrido
                         const createdDate = new Date(post.created_at);
                         const now = new Date();
@@ -1382,6 +1382,24 @@
                             });
                         }
 
+                        // Cargar comentarios y reacciones en vivo desde la base de datos
+                        let liveCommentCount = 0;
+                        let liveReactionData = { total_reactions: 0, user_reacted: false };
+
+                        if (window.communityDB && window.communityDB.initialized) {
+                            try {
+                                // Cargar conteo de comentarios real
+                                liveCommentCount = await window.communityDB.getCommentCount(post.id);
+
+                                // Cargar estado de reacciones real
+                                liveReactionData = await window.communityDB.getReactions(post.id);
+
+                                console.log(`[LOAD] Post ${post.id}: ${liveCommentCount} comentarios, ${liveReactionData.total_reactions} reacciones`);
+                            } catch (error) {
+                                console.warn(`[LOAD] Error cargando datos en vivo para post ${post.id}:`, error);
+                            }
+                        }
+
                         return {
                             id: post.id,
                             user: post.users ? (post.users.display_name || post.users.username || 'Usuario') : 'Usuario',
@@ -1392,16 +1410,19 @@
                             timestamp: createdDate.getTime(),
                             content: post.content || post.title || '',
                             title: post.title || null,
-                            comments: [],
-                            reactions: {like:0, heart:0, wow:0, laugh:0, sad:0},
+                            comments: [], // Se cargan dinámicamente en el modal
+                            reactions: {like: liveReactionData.total_reactions, heart:0, wow:0, laugh:0, sad:0},
                             attachments: [],
-                            reacted: null,
+                            reacted: liveReactionData.user_reacted ? 'like' : null,
+                            // Datos en vivo
+                            liveCommentCount: liveCommentCount,
+                            liveReactionData: liveReactionData,
                             // Datos adicionales
                             user_id: post.user_id,
                             community_id: post.community_id,
                             created_at: post.created_at
                         };
-                    });
+                    }));
 
                     console.log('✅ Posts convertidos para UI:', posts);
 
@@ -1577,12 +1598,14 @@
             let pendingAttachments = [];
             const composerInput = document.getElementById('composerInput');
             const publishPostBtn = document.getElementById('publishPostBtn');
-            function renderPosts(category='all'){
-                console.log('Renderizando posts para categoría:', category);
-                console.log('Posts disponibles:', posts);
+            async function renderPosts(category='all'){
+                console.log('[POSTS] 🔄 Renderizando posts para categoría:', category);
+                console.log('[POSTS] 📊 Posts disponibles:', posts);
                 const list = document.getElementById('postsList');
                 const filtered = category==='all' ? posts : posts.filter(p=>p.category===category);
-                console.log('Posts filtrados:', filtered);
+                console.log('[POSTS] 📋 Posts filtrados:', filtered);
+
+                // Los posts ya vienen con datos en vivo desde loadPostsFromDatabase
                 list.innerHTML = filtered.map(p=>`
                     <div class="post-card" data-open-post="${p.id}">
                         <div class="post-avatar"><i class="${p.avatar}"></i></div>
@@ -1594,19 +1617,21 @@
                             <div class="post-content">${p.content}</div>
                             ${renderAttachments(p.attachments)}
                             <div class="post-actions">
-                                <span class="post-action" data-action="comment" data-id="${p.id}"><i class="fas fa-comment"></i> Comentar</span>
-                                <span class="post-action shares" data-share="${p.id}"><i class="fas fa-share"></i> Compartir</span>
-                                <span class="react-area">
-                                    <button class="react-btn" data-react-toggle="${p.id}" title="Reaccionar">👍</button>
-                                    <div class="reaction-picker" id="picker-${p.id}">
-                                        <div class="reaction-item" data-react="like" data-id="${p.id}">👍</div>
-                                        <div class="reaction-item" data-react="heart" data-id="${p.id}">❤️</div>
-                                        <div class="reaction-item" data-react="wow" data-id="${p.id}">😮</div>
-                                        <div class="reaction-item" data-react="laugh" data-id="${p.id}">😂</div>
-                                        <div class="reaction-item" data-react="sad" data-id="${p.id}">😢</div>
-                                    </div>
-                                    <span class="reaction-summary">${reactionSummary(p.reactions)}</span>
-                                </span>
+                                <button class="post-action comment-btn" data-action="comment" data-id="${p.id}" data-requires-auth="true">
+                                    <i class="fas fa-comment"></i>
+                                    <span class="action-text">Comentar</span>
+                                    <span class="action-count" id="comment-count-${p.id}">${p.liveCommentCount || 0}</span>
+                                </button>
+                                <button class="post-action reaction-btn ${(p.liveReactionData && p.liveReactionData.user_reacted) ? 'reacted' : ''}"
+                                        data-action="react" data-id="${p.id}" data-requires-auth="true">
+                                    <i class="fas fa-fire"></i>
+                                    <span class="action-text">Reaccionar</span>
+                                    <span class="action-count" id="reaction-count-${p.id}">${(p.liveReactionData && p.liveReactionData.total_reactions) || 0}</span>
+                                </button>
+                                <button class="post-action share-btn" data-action="share" data-id="${p.id}">
+                                    <i class="fas fa-share"></i>
+                                    <span class="action-text">Compartir</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1972,17 +1997,25 @@
                 return icons.join(' ') + ' ' + total;
             }
 
-            // Modal de post
-            function openPostModal(id){
+            // Modal de post con integración Supabase
+            async function openPostModal(id){
+                console.log('[MODAL] 🔄 Abriendo modal para post:', id);
+
                 const modal = document.getElementById('postModal');
                 const body = document.getElementById('modalPostBody');
                 const userEl = document.getElementById('modalPostUser');
                 const post = posts.find(p=>p.id===id);
-                if(!post) return;
-                
-                // Mostrar el título de la publicación (contenido truncado) en lugar del nombre del usuario
+
+                if(!post) {
+                    console.error('[MODAL] ❌ Post no encontrado:', id);
+                    return;
+                }
+
+                // Mostrar el título de la publicación (contenido truncado)
                 const title = post.content.length > 50 ? post.content.substring(0, 50) + '...' : post.content;
                 userEl.textContent = title;
+
+                // Renderizar contenido inicial
                 body.innerHTML = `
                     <div class="post-card">
                         <div class="post-avatar"><i class="${post.avatar}"></i></div>
@@ -1994,36 +2027,482 @@
                             <div class="post-content">${post.content}</div>
                             ${renderAttachments(post.attachments)}
                             <div class="post-modal-actions">
-                                <span class="shares" data-share="${post.id}"><i class="fas fa-share"></i> Compartir</span>
-                                <span>${reactionSummary(post.reactions)}</span>
+                                <button class="modal-reaction-btn" data-post-id="${post.id}">
+                                    <i class="fas fa-fire"></i>
+                                    <span>Reaccionar</span>
+                                    <span class="modal-reaction-count" id="modal-reaction-count-${post.id}">0</span>
+                                </button>
+                                <button class="modal-share-btn" data-share="${post.id}">
+                                    <i class="fas fa-share"></i>
+                                    <span>Compartir</span>
+                                </button>
                             </div>
                             <div id="modalComments" class="comment-list">
-                                ${(post.comments||[]).map(c=>commentTemplate(c)).join('')}
+                                <div class="loading-comments">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <span>Cargando comentarios...</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
-                // comentar desde modal
-                document.getElementById('modalSendComment').onclick = async ()=>{
-                    const input = document.getElementById('modalCommentInput');
-                    const txt = (input.value||'').trim();
-                    if(!txt) return;
-                    post.comments.push({ user:'Tú', time:'ahora', text: txt });
-                     
-                     // Guardar cambios en localStorage
-                     savePosts();
-                     
-                     // Agregar puntos por comentar
-                     if (window.pointsSystem) {
-                         await window.pointsSystem.addPoints(null, 'comment');
-                     }
-                     
-                    input.value='';
-                    document.getElementById('modalComments').innerHTML = (post.comments||[]).map(c=>commentTemplate(c)).join('');
-                };
-                document.getElementById('closePostModal').onclick = ()=> modal.classList.remove('show');
-                modal.classList.add('show');
+
+                // Mostrar modal inmediatamente
+                modal.style.display = 'flex';
+                document.getElementById('modalCommentInput').focus();
+
+                // Cargar comentarios desde Supabase
+                await loadCommentsForModal(post.id);
+
+                // Cargar estado de reacciones
+                await updateModalReactionState(post.id);
+
+                // Setup event handler para comentarios
+                setupModalCommentHandler(post);
+
+                // Setup event handler para reacciones del modal
+                setupModalReactionHandler(post.id);
             }
+
+            // Función para cargar comentarios desde Supabase
+            async function loadCommentsForModal(postId) {
+                try {
+                    console.log('[MODAL] 📋 Cargando comentarios para post:', postId);
+
+                    const commentsContainer = document.getElementById('modalComments');
+                    if (!commentsContainer) return;
+
+                    let comments = [];
+
+                    // Intentar cargar desde Supabase
+                    if (window.communityDB && window.communityDB.initialized) {
+                        try {
+                            comments = await window.communityDB.listComments(postId);
+                            console.log('[MODAL] ✅ Comentarios cargados desde Supabase:', comments.length);
+                        } catch (error) {
+                            console.warn('[MODAL] ⚠️ Error cargando desde Supabase, usando datos locales:', error);
+                            // Fallback a datos locales
+                            const post = posts.find(p => p.id === postId);
+                            comments = post?.comments || [];
+                        }
+                    } else {
+                        console.log('[MODAL] 📝 Usando comentarios locales');
+                        const post = posts.find(p => p.id === postId);
+                        comments = post?.comments || [];
+                    }
+
+                    // Renderizar comentarios
+                    if (comments.length === 0) {
+                        commentsContainer.innerHTML = `
+                            <div class="empty-comments">
+                                <i class="fas fa-comments"></i>
+                                <p>Sé el primero en comentar</p>
+                            </div>
+                        `;
+                    } else {
+                        commentsContainer.innerHTML = comments.map(comment => renderCommentTemplate(comment)).join('');
+                    }
+
+                    // Scroll al último comentario
+                    setTimeout(() => {
+                        commentsContainer.scrollTop = commentsContainer.scrollHeight;
+                    }, 100);
+
+                } catch (error) {
+                    console.error('[MODAL] ❌ Error cargando comentarios:', error);
+                    document.getElementById('modalComments').innerHTML = `
+                        <div class="error-comments">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error cargando comentarios</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // Template para renderizar comentarios de Supabase
+            function renderCommentTemplate(comment) {
+                // Determinar nombre del usuario
+                const userName = comment.profiles?.display_name || comment.user || 'Usuario';
+
+                // Determinar tiempo
+                const timeDisplay = comment.created_at ?
+                    formatRelativeTime(comment.created_at) :
+                    (comment.time || 'ahora');
+
+                // Determinar avatar
+                const avatarImg = comment.profiles?.avatar_url;
+
+                return `
+                    <div class="comment-item">
+                        <div class="comment-avatar">
+                            ${avatarImg ?
+                                `<img src="${avatarImg}" alt="${userName}" class="comment-avatar-img">` :
+                                `<i class="fas fa-user"></i>`
+                            }
+                        </div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <span class="comment-user">${userName}</span>
+                                <span class="comment-time">${timeDisplay}</span>
+                            </div>
+                            <div class="comment-text">${comment.content || comment.text || ''}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Setup handler para envío de comentarios con autenticación
+            function setupModalCommentHandler(post) {
+                const sendBtn = document.getElementById('modalSendComment');
+                const input = document.getElementById('modalCommentInput');
+
+                // Remover listeners previos
+                sendBtn.replaceWith(sendBtn.cloneNode(true));
+                const newSendBtn = document.getElementById('modalSendComment');
+
+                // Handler para botón enviar
+                newSendBtn.onclick = async () => {
+                    await handleSendComment(post.id, input);
+                };
+
+                // Handler para Enter
+                input.onkeypress = async (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        await handleSendComment(post.id, input);
+                    }
+                };
+            }
+
+            // Función para manejar envío de comentarios
+            async function handleSendComment(postId, input) {
+                try {
+                    console.log('[COMMENTS] 💬 Enviando comentario para post:', postId);
+
+                    const content = (input.value || '').trim();
+                    if (!content) {
+                        console.warn('[COMMENTS] ⚠️ Comentario vacío');
+                        return;
+                    }
+
+                    // Verificar autenticación ANTES de comentar
+                    if (!(await window.CommunityAuth.requireSupabaseSession())) {
+                        console.warn('[COMMENTS] ⚠️ Autenticación requerida');
+                        // El sistema de auth ya muestra el toast apropiado
+                        return;
+                    }
+
+                    // Deshabilitar input durante envío
+                    input.disabled = true;
+                    document.getElementById('modalSendComment').disabled = true;
+                    document.getElementById('modalSendComment').textContent = 'Enviando...';
+
+                    let success = false;
+
+                    // Intentar enviar via Supabase
+                    if (window.communityDB && window.communityDB.initialized) {
+                        try {
+                            const result = await window.communityDB.addComment(postId, content);
+                            console.log('[COMMENTS] ✅ Comentario enviado via Supabase:', result);
+
+                            // Actualizar contador en tiempo real
+                            updateCommentCounter(postId, result.commentCount);
+
+                            // Actualizar contadores del banner
+                            await updateBannerCounters();
+
+                            // Recargar posts para obtener datos actualizados
+                            await loadPostsFromDatabase();
+
+                            // Agregar puntos
+                            if (window.communityDB.updateUserPoints) {
+                                const userId = await window.communityDB.getCurrentUserId();
+                                await window.communityDB.updateUserPoints(userId, 5, 'comment');
+                            }
+
+                            success = true;
+                        } catch (error) {
+                            console.error('[COMMENTS] ❌ Error enviando via Supabase:', error);
+                            showToast('Error enviando comentario. Inténtalo de nuevo.', 'error');
+                        }
+                    }
+
+                    // Fallback a datos locales si Supabase falla
+                    if (!success) {
+                        console.log('[COMMENTS] 🔄 Fallback a almacenamiento local');
+                        const post = posts.find(p => p.id === postId);
+                        if (post) {
+                            post.comments = post.comments || [];
+                            post.comments.push({
+                                user: 'Tú',
+                                time: 'ahora',
+                                text: content,
+                                created_at: new Date().toISOString()
+                            });
+                            savePosts();
+                            success = true;
+                        }
+                    }
+
+                    if (success) {
+                        // Limpiar input
+                        input.value = '';
+
+                        // Recargar comentarios
+                        await loadCommentsForModal(postId);
+
+                        showToast('Comentario enviado exitosamente', 'success');
+                    }
+
+                } catch (error) {
+                    console.error('[COMMENTS] ❌ Error manejando comentario:', error);
+                    showToast('Error enviando comentario', 'error');
+                } finally {
+                    // Re-habilitar controles
+                    input.disabled = false;
+                    document.getElementById('modalSendComment').disabled = false;
+                    document.getElementById('modalSendComment').textContent = 'Enviar';
+                    input.focus();
+                }
+            }
+
+            // Setup handler para reacciones del modal
+            function setupModalReactionHandler(postId) {
+                const reactionBtn = document.querySelector('.modal-reaction-btn');
+                if (!reactionBtn) return;
+
+                reactionBtn.onclick = async () => {
+                    await handleToggleReaction(postId);
+                };
+            }
+
+            // Función para manejar toggle de reacciones
+            async function handleToggleReaction(postId) {
+                try {
+                    console.log('[REACTIONS] 🔥 Toggle reacción para post:', postId);
+
+                    // Verificar autenticación ANTES de reaccionar
+                    if (!(await window.CommunityAuth.requireSupabaseSession())) {
+                        console.warn('[REACTIONS] ⚠️ Autenticación requerida');
+                        return;
+                    }
+
+                    // Deshabilitar botón durante procesamiento
+                    const reactionBtns = document.querySelectorAll(`[data-action="react"][data-id="${postId}"], .modal-reaction-btn[data-post-id="${postId}"]`);
+                    reactionBtns.forEach(btn => {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.6';
+                    });
+
+                    let success = false;
+
+                    // Intentar procesar via Supabase
+                    if (window.communityDB && window.communityDB.initialized) {
+                        try {
+                            const result = await window.communityDB.toggleReaction(postId, 'like');
+                            console.log('[REACTIONS] ✅ Reacción procesada via Supabase:', result);
+
+                            // Actualizar contadores y estado visual
+                            updateReactionCounter(postId, result.total_reactions);
+                            updateReactionState(postId, result.reacted);
+
+                            // Actualizar contadores del banner
+                            await updateBannerCounters();
+
+                            // Recargar posts para obtener datos actualizados
+                            await loadPostsFromDatabase();
+
+                            // Agregar puntos solo si reaccionó (no si quitó reacción)
+                            if (result.reacted && window.communityDB.updateUserPoints) {
+                                const userId = await window.communityDB.getCurrentUserId();
+                                await window.communityDB.updateUserPoints(userId, 2, 'reaction');
+                            }
+
+                            success = true;
+                        } catch (error) {
+                            console.error('[REACTIONS] ❌ Error procesando via Supabase:', error);
+                            showToast('Error procesando reacción. Inténtalo de nuevo.', 'error');
+                        }
+                    }
+
+                    // Fallback a datos locales si Supabase falla
+                    if (!success) {
+                        console.log('[REACTIONS] 🔄 Fallback a almacenamiento local con toggle');
+                        const post = posts.find(p => p.id === postId);
+                        if (post) {
+                            // Simular toggle en datos locales
+                            post.reactions = post.reactions || {like: 0};
+                            const isCurrentlyReacted = post.reacted === 'like';
+
+                            if (isCurrentlyReacted) {
+                                // Quitar reacción
+                                post.reactions.like = Math.max(0, (post.reactions.like || 0) - 1);
+                                post.reacted = null;
+                                updateReactionState(postId, false);
+                            } else {
+                                // Agregar reacción
+                                post.reactions.like = (post.reactions.like || 0) + 1;
+                                post.reacted = 'like';
+                                updateReactionState(postId, true);
+                            }
+
+                            savePosts();
+                            updateReactionCounter(postId, post.reactions.like);
+                            success = true;
+                        }
+                    }
+
+                    if (success) {
+                        showToast('Reacción actualizada', 'success');
+                    }
+
+                } catch (error) {
+                    console.error('[REACTIONS] ❌ Error manejando reacción:', error);
+                    showToast('Error procesando reacción', 'error');
+                } finally {
+                    // Re-habilitar botones
+                    const reactionBtns = document.querySelectorAll(`[data-action="react"][data-id="${postId}"], .modal-reaction-btn[data-post-id="${postId}"]`);
+                    reactionBtns.forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                    });
+                }
+            }
+
+            // Función para actualizar contador de comentarios
+            function updateCommentCounter(postId, count) {
+                const counters = document.querySelectorAll(`#comment-count-${postId}`);
+                counters.forEach(counter => {
+                    counter.textContent = count || 0;
+                });
+            }
+
+            // Función para actualizar contador de reacciones
+            function updateReactionCounter(postId, count) {
+                const counters = document.querySelectorAll(`#reaction-count-${postId}, #modal-reaction-count-${postId}`);
+                counters.forEach(counter => {
+                    counter.textContent = count || 0;
+                });
+            }
+
+            // Función para actualizar estado visual de reacción
+            function updateReactionState(postId, reacted) {
+                const buttons = document.querySelectorAll(`[data-action="react"][data-id="${postId}"], .modal-reaction-btn[data-post-id="${postId}"]`);
+                buttons.forEach(btn => {
+                    if (reacted) {
+                        btn.classList.add('reacted');
+                    } else {
+                        btn.classList.remove('reacted');
+                    }
+                });
+            }
+
+            // Función para actualizar estado de reacciones en el modal
+            async function updateModalReactionState(postId) {
+                try {
+                    if (window.communityDB && window.communityDB.initialized) {
+                        const reactionData = await window.communityDB.getReactions(postId);
+                        updateReactionCounter(postId, reactionData.total_reactions);
+                        updateReactionState(postId, reactionData.user_reacted);
+                    }
+                } catch (error) {
+                    console.warn('[MODAL] ⚠️ Error actualizando estado de reacciones:', error);
+                }
+            }
+
+            // Función para actualizar contadores del banner
+            async function updateBannerCounters() {
+                try {
+                    // Esta función actualizaría los contadores #totalComments y #totalReactions
+                    // del banner de la comunidad. Se implementa según la lógica existente.
+                    const totalComments = document.getElementById('totalComments');
+                    const totalReactions = document.getElementById('totalReactions');
+
+                    if (totalComments || totalReactions) {
+                        // TODO: Implementar cálculo real desde Supabase
+                        console.log('[BANNER] TODO: Actualizar contadores del banner');
+                    }
+                } catch (error) {
+                    console.warn('[BANNER] ⚠️ Error actualizando contadores:', error);
+                }
+            }
+
+            // Función para formatear tiempo relativo
+            function formatRelativeTime(dateString) {
+                try {
+                    const date = new Date(dateString);
+                    const now = new Date();
+                    const diffMs = now - date;
+                    const diffMins = Math.floor(diffMs / (1000 * 60));
+                    const diffHours = Math.floor(diffMins / 60);
+                    const diffDays = Math.floor(diffHours / 24);
+
+                    if (diffMins < 1) return 'ahora';
+                    if (diffMins < 60) return `${diffMins} min`;
+                    if (diffHours < 24) return `${diffHours}h`;
+                    if (diffDays < 7) return `${diffDays}d`;
+                    return date.toLocaleDateString();
+                } catch (error) {
+                    return 'ahora';
+                }
+            }
+
+            // Función para mostrar toast notifications (usar la existente si está disponible)
+            function showToast(message, type = 'info') {
+                // Usar el sistema de toast existente si está disponible
+                if (window.showToast) {
+                    window.showToast(message, type);
+                } else if (window.communityPage && window.communityPage.showToast) {
+                    window.communityPage.showToast(message, type);
+                } else {
+                    // Fallback simple
+                    console.log(`[TOAST ${type.toUpperCase()}] ${message}`);
+                    alert(message);
+                }
+            }
+
+            // Setup de event listeners para los botones de acción de posts
+            function setupPostActionListeners() {
+                // Delegar eventos para botones dinámicos
+                document.addEventListener('click', async (e) => {
+                    // Handler para comentarios
+                    if (e.target.closest('.comment-btn') || e.target.closest('[data-action="comment"]')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const btn = e.target.closest('.comment-btn') || e.target.closest('[data-action="comment"]');
+                        const postId = btn.dataset.id;
+
+                        if (postId) {
+                            await openPostModal(postId);
+                        }
+                    }
+
+                    // Handler para reacciones
+                    if (e.target.closest('.reaction-btn') || e.target.closest('[data-action="react"]')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const btn = e.target.closest('.reaction-btn') || e.target.closest('[data-action="react"]');
+                        const postId = btn.dataset.id;
+
+                        if (postId) {
+                            await handleToggleReaction(postId);
+                        }
+                    }
+                });
+            }
+
+            // Cerrar modal
+            document.getElementById('closePostModal').onclick = () => {
+                const modal = document.getElementById('postModal');
+                modal.style.display = 'none';
+            };
+
+            // Inicializar listeners cuando se carga la página
+            document.addEventListener('DOMContentLoaded', () => {
+                setupPostActionListeners();
+            });
             function commentTemplate(c){
                 if(typeof c === 'string') return `<div class='comment-item'><div class='comment-avatar'><i class="fas fa-user"></i></div><div class='comment-bubble'><div class='comment-head'><span class='comment-name'>Usuario</span><span class='comment-time'>ahora</span></div><div>${c}</div></div></div>`;
                 return `<div class='comment-item'><div class='comment-avatar'><i class="fas fa-user"></i></div><div class='comment-bubble'><div class='comment-head'><span class='comment-name'>${c.user||'Usuario'}</span><span class='comment-time'>${c.time||''}</span></div><div>${c.text||c}</div></div></div>`;
@@ -3494,7 +3973,7 @@
     <!-- Community Auth - Sistema robusto de autenticación para comunidades -->
     <script src="community-auth.js"></script>
 
-    <script src="../scripts/community-database.js"></script>
+    <script src="community-database.js"></script>
     <script>
         // Sistema de comunidad con base de datos
         class CommunitySystem {

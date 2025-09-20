@@ -1,138 +1,141 @@
-# Análisis y Solución: Posts Mostrándose en Todas las Comunidades
+Quiero que conectes los comentarios y reacciones de los posts de comunidades a Supabase. El proyecto ya tiene:
 
-## Problema Identificado
+src/Community/community.js con carga de comunidades, stats, listados y utilidades DB (clase CommunityPage). 
 
-Al entrar a diferentes comunidades en el sistema, se muestran los mismos posts en todas las comunidades cuando cada comunidad debería mostrar únicamente sus propios posts/comentarios individuales.
+community
 
-## Archivos Afectados
+src/Community/community-view.html con postsList, botón “Publicar”, modal de post y campo #modalCommentInput para comentar (agrega listeners reales). También existen contadores de Posts/Comentarios/Reacciones en el banner. 
 
-- `src/Community/community.html` - Página principal de comunidades
-- `src/Community/community.css` - Estilos de la comunidad
-- `src/Community/community.js` - Lógica principal de comunidades
-- `src/Community/community-view.html` - Vista detallada de comunidad individual
+community-view
 
-## Análisis del Problema
+src/Community/community-auth.js con CommunityAuth y helpers para obtener userId/sesión de Supabase; úsalo para requerir sesión antes de comentar/reaccionar. 
 
-### 1. **Conflicto de Variables Globales**
-En `community-view.html` hay dos sistemas de posts que se superponen:
+community-auth
 
-**Sistema 1: Mock/LocalStorage (Líneas 1203-1854)**
-```javascript
-let posts = []; // Variable global que se comparte entre todas las comunidades
-```
+src/Community/community-identifier.js para obtener communityId o slug de la comunidad actual. 
 
-**Sistema 2: Base de Datos (Líneas 2950-3100)**
-```javascript
-class CommunitySystem {
-    constructor() {
-        this.posts = []; // Variable de instancia específica por comunidad
-    }
-}
-```
+community-identifier
 
-### 2. **Problema de Inicialización**
-- El sistema mock se ejecuta inmediatamente al cargar la página
-- El sistema de base de datos se inicializa después
-- Ambos sistemas renderizan en el mismo contenedor `#postsList`
+src/Community/community.css ya estiliza banner, contadores y cards; reutiliza estilos y clases existentes al renderizar comentarios debajo de cada post. 
 
-### 3. **Filtrado Incorrecto**
-La función `renderPosts()` en el sistema mock (línea 1341) no filtra por `community_id`:
-```javascript
-function renderPosts(category='all'){
-    const filtered = category==='all' ? posts : posts.filter(p=>p.category===category);
-    // ❌ No filtra por community_id
-}
-```
+community
 
-### 4. **Persistencia Global**
-Los posts se guardan en `localStorage` con clave global `'communityPosts'`, compartiendo datos entre todas las comunidades.
+src/Community/community.html (discover) ya muestra tarjetas; no cambies Discover. 
 
-## Solución Requerida
+community
 
-### 1. **Eliminar Sistema Mock**
-- Remover completamente el sistema de posts mock/localStorage (líneas 1203-1854)
-- Mantener solo el sistema de base de datos que ya filtra correctamente por `community_id`
+Objetivo
 
-### 2. **Corregir Inicialización**
-- Asegurar que `CommunitySystem` se inicialice correctamente
-- Verificar que `currentCommunity` se establezca antes de cargar posts
+Comentar posts y ver el hilo de comentarios.
 
-### 3. **Verificar Filtrado en Base de Datos**
-El método `getPosts()` en `community-database.js` ya filtra correctamente:
-```javascript
-async getPosts(communityId, limit = 50) {
-    const { data, error } = await this.supabase
-        .from('community_posts')
-        .select(`...`)
-        .eq('community_id', communityId) // ✅ Filtra por comunidad
-        .order('created_at', { ascending: false })
-        .limit(limit);
-}
-```
+Reaccionar (like/🔥) con toggle y conteo.
 
-### 4. **Limpieza de Código**
-- Remover variables globales `posts`
-- Eliminar funciones `loadPosts()`, `savePosts()`, `renderPosts()` del sistema mock
-- Limpiar referencias a `localStorage` para posts
+Mantener y actualizar puntos de ligas (+10 publicar, +5 comentar, +2 reaccionar) de manera idéntica a como se hacía antes (si hay utilidades de puntos, reutilízalas; si no, deja un TODO: bien marcado).
 
-## Tareas Específicas
+Respetar RLS: toda escritura debe ir autenticada con supabase.auth, usando los RPC:
 
-1. **En `community-view.html`:**
-   - Eliminar líneas 1203-1854 (sistema mock completo)
-   - Verificar que `CommunitySystem` se inicialice correctamente
-   - Asegurar que `loadCommunity()` se ejecute al cargar la página
+rpc_add_comment(p_post_id uuid, p_content text)
 
-2. **En `community.js`:**
-   - Verificar que la navegación a `community-view.html` pase correctamente el `slug` de la comunidad
-   - Asegurar que el parámetro se lea correctamente en la vista
+rpc_toggle_reaction(p_post_id uuid, p_reaction text default 'like')
 
-3. **En `community-database.js`:**
-   - Verificar que `getPosts()` funcione correctamente (ya parece estar bien)
+Yo ya ejecuté en Supabase el DDL y RPCs necesarios.
 
-4. **En `community.css`:**
-   - No se requieren cambios específicos
+Entregables exactos
 
-## Verificación de la Solución
+CommunityDatabase (si ya existe dentro del bundle, extiéndelo; si no, crea un módulo DB separado y úsalo desde community.js):
 
-Después de implementar los cambios:
+async addComment(postId: string, content: string)
 
-1. **Navegar a diferentes comunidades** y verificar que cada una muestre solo sus posts
-2. **Crear un post en una comunidad** y verificar que no aparezca en otras
-3. **Verificar que los posts se carguen desde la base de datos** y no desde localStorage
-4. **Comprobar que el filtrado por categorías funcione** dentro de cada comunidad
+Llama supabase.rpc('rpc_add_comment', { p_post_id: postId, p_content: content }).
 
-## Código de Referencia
+Devuelve el comentario insertado y actualiza el contador comment_count en el modelo local.
 
-### Sistema Correcto (Mantener)
-```javascript
-class CommunitySystem {
-    async loadPosts() {
-        if (!this.currentCommunity) return;
-        this.posts = await this.db.getPosts(this.currentCommunity.id);
-        this.renderPosts();
-    }
-    
-    renderPosts() {
-        const postsContainer = document.getElementById('postsContainer');
-        this.posts.forEach(post => {
-            const postElement = this.createPostElement(post);
-            postsContainer.appendChild(postElement);
-        });
-    }
-}
-```
+async listComments(postId: string)
 
-### Sistema Problemático (Eliminar)
-```javascript
-let posts = []; // ❌ Variable global compartida
-function renderPosts(category='all'){
-    // ❌ No filtra por community_id
-}
-```
+from('community_comments').select('*').eq('post_id', postId).order('created_at', { ascending: true }).
 
-## Notas Adicionales
+async toggleReaction(postId: string, reaction = 'like')
 
-- El sistema de base de datos ya está implementado correctamente
-- Solo se necesita limpiar el código duplicado/mock
-- La funcionalidad de reacciones, comentarios y compartir debe mantenerse
-- Verificar que no se rompan otras funcionalidades al eliminar el sistema mock
+rpc_toggle_reaction y devuelve { reacted, total_reactions }.
+
+async getReactions(postId: string) (opcional, para hidratar lista inicial).
+
+Asegúrate de inicializar el cliente de Supabase una sola vez usando las <meta name="supabase-url|key"> que ya están en los HTML. (Se usa en los archivos actuales).
+
+UI/DOM en community-view.html + community.js:
+
+En el render de cada post dentro de #postsList, añade:
+
+Botón de reacción (icono 🔥 o ❤️) con contador y estado activo si el usuario ya reaccionó.
+
+Botón/CTA “Comentar” que abre el post modal (#postModal ya existe) precargando el contenido del post en #modalPostBody y enfocando #modalCommentInput. 
+
+community-view
+
+Al abrir el modal, carga listComments(postId) y pinta el hilo (nombre, fecha relativa, contenido).
+
+Enviar comentario: al click de #modalSendComment o Enter en #modalCommentInput, valida no vacío, llama addComment, agrega el comentario al DOM, limpia input, y actualiza:
+
+Contador #totalComments del banner si corresponde a la comunidad visible,
+
+Contador del post en la tarjeta,
+
+Puntos del usuario (+5) usando el mecanismo ya existente para publicar (+10). Si no hay utilidades, deja TODO(points): comentado con la llamada prevista.
+
+Reacción: toggleReaction deberá:
+
+Cambiar estado del botón (activo/inactivo),
+
+Actualizar contador del post (y #totalReactions de la cabecera si aplica),
+
+Sumar puntos (+2) al reaccionar; nada al quitar.
+
+Autenticación
+
+Antes de addComment o toggleReaction, exige sesión: usa CommunityAuth.requireSupabaseSession(); si no hay sesión, dispara el evento community:auth-required (ya gestionado en los módulos actuales) y muestra un toast. 
+
+community-auth
+
+Resiliencia / DX
+
+Maneja errores con logs [COMMENTS] y [REACTIONS] (+ toast de UI).
+
+Deshabilita botones mientras hay petición en curso.
+
+Evita dobles envíos con un inFlight por post.
+
+Accesibilidad/UX
+
+Enter para enviar comentario, Esc para cerrar modal.
+
+Scroll al último comentario tras enviar.
+
+Estado vacío: “Sé el primero en comentar”.
+
+Puntos de integración (para que ubiques hooks existentes)
+
+La página ya renderiza banner y contadores (#totalPosts, #totalComments, #totalReactions) en la cabecera de la comunidad. Actualízalos cuando modifiques datos. 
+
+community-view
+
+CommunityIdentifier provee communityId/slug de la comunidad actual; úsalo si necesitas validar que el post pertenece a la comunidad visible. 
+
+community-identifier
+
+CommunityAuth ya implementa varios métodos de obtención de userId y validación de sesión; no repliques lógica, consúmela. 
+
+community-auth
+
+Aceptación (QA rápido)
+
+Puedo abrir community-view.html?slug=<slug> y:
+
+Publicar un post (ya funciona), luego comentar ese post y ver el comentario al instante y persistente tras recargar.
+
+Reaccionar (toggle) y ver el contador cambiar.
+
+Ver errores manejados si quito RLS o revoco sesión.
+
+RLS: si no estoy en la comunidad privada, no puedo comentar/reaccionar (pruébalo en incógnito).
+
+Los puntos del perfil reflejan +5 / +2
