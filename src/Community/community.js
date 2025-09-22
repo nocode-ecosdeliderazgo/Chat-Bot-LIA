@@ -1143,6 +1143,71 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===== GLOBAL FUNCTIONS =====
 window.communityPage = communityPage;
 
+// ===== GUIDELINES MODAL FUNCTIONALITY =====
+document.addEventListener('DOMContentLoaded', function() {
+    const guidelinesModal = document.getElementById('guidelinesModal');
+    const openGuidelinesBtn = document.getElementById('openGuidelinesBtn');
+    const closeGuidelinesBtn = document.getElementById('closeGuidelinesBtn');
+    const closeGuidelinesBtnFooter = document.getElementById('closeGuidelinesBtnFooter');
+    const modalOverlay = document.querySelector('.guidelines-modal-overlay');
+
+    // Función para abrir el modal
+    function openGuidelinesModal() {
+        if (guidelinesModal) {
+            guidelinesModal.classList.add('show');
+            document.body.style.overflow = 'hidden'; // Prevenir scroll del body
+            
+            // Animar las tarjetas con delay
+            const cards = document.querySelectorAll('.guideline-modal-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        }
+    }
+
+    // Función para cerrar el modal
+    function closeGuidelinesModal() {
+        if (guidelinesModal) {
+            guidelinesModal.classList.remove('show');
+            document.body.style.overflow = ''; // Restaurar scroll del body
+        }
+    }
+
+    // Event listeners
+    if (openGuidelinesBtn) {
+        openGuidelinesBtn.addEventListener('click', openGuidelinesModal);
+    }
+
+    if (closeGuidelinesBtn) {
+        closeGuidelinesBtn.addEventListener('click', closeGuidelinesModal);
+    }
+
+    if (closeGuidelinesBtnFooter) {
+        closeGuidelinesBtnFooter.addEventListener('click', closeGuidelinesModal);
+    }
+
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', closeGuidelinesModal);
+    }
+
+    // Cerrar modal con tecla Escape
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && guidelinesModal && guidelinesModal.classList.contains('show')) {
+            closeGuidelinesModal();
+        }
+    });
+
+    // Prevenir que el clic en el contenido del modal lo cierre
+    if (guidelinesModal) {
+        const modalContent = guidelinesModal.querySelector('.guidelines-modal-content');
+        if (modalContent) {
+            modalContent.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        }
+    }
+});
+
 
 
 
