@@ -99,6 +99,11 @@
 
 # User profile redirects
 [[redirects]]
+  from = "/api/user/profile/*"
+  to   = "/.netlify/functions/user-profile"
+  status = 200
+
+[[redirects]]
   from = "/api/update-avatar"
   to   = "/.netlify/functions/update-avatar"
   status = 200
