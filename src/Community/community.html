@@ -286,74 +286,6 @@
 
         <!-- (Se remueven salas de chat para adoptar flujo tipo Skool) -->
 
-                 <!-- Community Guidelines Section -->
-         <section class="guidelines-section">
-             <div class="container">
-                 <div class="section-header">
-                     <h2 class="section-title">Normas de la Comunidad</h2>
-                     <p class="section-subtitle">Ayúdanos a mantener un ambiente respetuoso y constructivo</p>
-                 </div>
-                                   <div class="guidelines-grid">
-                      <div class="guideline-card">
-                          <div class="guideline-icon">
-                              <img src="../assets/icons/respect.svg" alt="Respeto" class="guideline-svg-icon">
-                          </div>
-                          <h3 class="guideline-title">Sé Respetuoso</h3>
-                          <p class="guideline-description">Trata a todos los miembros con respeto y cortesía. No toleramos el acoso o la discriminación.</p>
-                      </div>
-                      <div class="guideline-card">
-                          <div class="guideline-icon">
-                              <img src="../assets/icons/knowledge.svg" alt="Conocimiento" class="guideline-svg-icon">
-                          </div>
-                          <h3 class="guideline-title">Comparte Conocimiento</h3>
-                          <p class="guideline-description">Contribuye con información útil y constructiva. Ayuda a otros a aprender y crecer.</p>
-                      </div>
-                      <div class="guideline-card">
-                          <div class="guideline-icon">
-                              <img src="../assets/icons/privacy.svg" alt="Privacidad" class="guideline-svg-icon">
-                          </div>
-                          <h3 class="guideline-title">Mantén la Privacidad</h3>
-                          <p class="guideline-description">No compartas información personal de otros miembros sin su consentimiento.</p>
-                      </div>
-                      <div class="guideline-card">
-                          <div class="guideline-icon">
-                              <img src="../assets/icons/report.svg" alt="Reportar" class="guideline-svg-icon">
-                          </div>
-                          <h3 class="guideline-title">Reporta Problemas</h3>
-                          <p class="guideline-description">Si ves contenido inapropiado, repórtalo inmediatamente a los moderadores.</p>
-                      </div>
-                      <div class="guideline-card">
-                          <div class="guideline-icon">
-                              <img src="../assets/icons/communication.svg" alt="Comunicación" class="guideline-svg-icon">
-                          </div>
-                          <h3 class="guideline-title">Comunica con Claridad</h3>
-                          <p class="guideline-description">Expresa tus ideas de manera clara y constructiva. Evita el spam y mensajes irrelevantes.</p>
-                      </div>
-                      <div class="guideline-card">
-                          <div class="guideline-icon">
-                              <img src="../assets/icons/collaboration.svg" alt="Colaboración" class="guideline-svg-icon">
-                          </div>
-                          <h3 class="guideline-title">Fomenta la Colaboración</h3>
-                          <p class="guideline-description">Anima a otros a participar y colaborar. Construye una comunidad inclusiva y acogedora.</p>
-                      </div>
-                      <div class="guideline-card">
-                          <div class="guideline-icon">
-                              <img src="../assets/icons/learn.svg" alt="Aprender" class="guideline-svg-icon">
-                          </div>
-                          <h3 class="guideline-title">Aprende Continuamente</h3>
-                          <p class="guideline-description">Mantén una mente abierta y dispuesta a aprender de otros. Comparte recursos educativos.</p>
-                      </div>
-                      <div class="guideline-card">
-                          <div class="guideline-icon">
-                              <img src="../assets/icons/punctual.svg" alt="Puntualidad" class="guideline-svg-icon">
-                          </div>
-                          <h3 class="guideline-title">Sé Puntual</h3>
-                          <p class="guideline-description">Respeta los horarios de las sesiones y eventos. Valora el tiempo de los demás.</p>
-                      </div>
-                  </div>
-             </div>
-         </section>
-
         <!-- Descubrir (tipo Skool) -->
         <section class="discover-section">
             <div class="container">
@@ -377,6 +309,16 @@
             </div>
         </section>
 
+        <!-- Guidelines Button -->
+        <section class="guidelines-button-section">
+            <div class="container">
+                <button id="openGuidelinesBtn" class="guidelines-button">
+                    <i class='bx bx-info-circle'></i>
+                    <span>Ver Normas de la Comunidad</span>
+                </button>
+            </div>
+        </section>
+
         <!-- (Se elimina feed de comunidad a petición: sólo Descubrir + Normas) -->
     </main>
 
@@ -394,6 +336,89 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <!-- Modal de solicitud de acceso (se inyecta dinámicamente) -->
+
+    <!-- Guidelines Modal -->
+    <div id="guidelinesModal" class="guidelines-modal">
+        <div class="guidelines-modal-overlay"></div>
+        <div class="guidelines-modal-content">
+            <div class="guidelines-modal-header">
+                <h2 class="guidelines-modal-title">
+                    <i class='bx bx-shield-check'></i>
+                    Normas de la Comunidad
+                </h2>
+                <button id="closeGuidelinesBtn" class="guidelines-modal-close">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+            <div class="guidelines-modal-body">
+                <p class="guidelines-modal-subtitle">Ayúdanos a mantener un ambiente respetuoso y constructivo</p>
+                <div class="guidelines-modal-grid">
+                    <div class="guideline-modal-card">
+                        <div class="guideline-modal-icon">
+                            <i class='bx bx-heart'></i>
+                        </div>
+                        <h3 class="guideline-modal-title">Sé Respetuoso</h3>
+                        <p class="guideline-modal-description">Trata a todos los miembros con respeto y cortesía. No toleramos el acoso o la discriminación.</p>
+                    </div>
+                    <div class="guideline-modal-card">
+                        <div class="guideline-modal-icon">
+                            <i class='bx bx-book-open'></i>
+                        </div>
+                        <h3 class="guideline-modal-title">Comparte Conocimiento</h3>
+                        <p class="guideline-modal-description">Contribuye con información útil y constructiva. Ayuda a otros a aprender y crecer.</p>
+                    </div>
+                    <div class="guideline-modal-card">
+                        <div class="guideline-modal-icon">
+                            <i class='bx bx-lock-alt'></i>
+                        </div>
+                        <h3 class="guideline-modal-title">Mantén la Privacidad</h3>
+                        <p class="guideline-modal-description">No compartas información personal de otros miembros sin su consentimiento.</p>
+                    </div>
+                    <div class="guideline-modal-card">
+                        <div class="guideline-modal-icon">
+                            <i class='bx bx-flag'></i>
+                        </div>
+                        <h3 class="guideline-modal-title">Reporta Problemas</h3>
+                        <p class="guideline-modal-description">Si ves contenido inapropiado, repórtalo inmediatamente a los moderadores.</p>
+                    </div>
+                    <div class="guideline-modal-card">
+                        <div class="guideline-modal-icon">
+                            <i class='bx bx-message-dots'></i>
+                        </div>
+                        <h3 class="guideline-modal-title">Comunica con Claridad</h3>
+                        <p class="guideline-modal-description">Expresa tus ideas de manera clara y constructiva. Evita el spam y mensajes irrelevantes.</p>
+                    </div>
+                    <div class="guideline-modal-card">
+                        <div class="guideline-modal-icon">
+                            <i class='bx bx-group'></i>
+                        </div>
+                        <h3 class="guideline-modal-title">Fomenta la Colaboración</h3>
+                        <p class="guideline-modal-description">Anima a otros a participar y colaborar. Construye una comunidad inclusiva y acogedora.</p>
+                    </div>
+                    <div class="guideline-modal-card">
+                        <div class="guideline-modal-icon">
+                            <i class='bx bx-brain'></i>
+                        </div>
+                        <h3 class="guideline-modal-title">Aprende Continuamente</h3>
+                        <p class="guideline-modal-description">Mantén una mente abierta y dispuesta a aprender de otros. Comparte recursos educativos.</p>
+                    </div>
+                    <div class="guideline-modal-card">
+                        <div class="guideline-modal-icon">
+                            <i class='bx bx-time'></i>
+                        </div>
+                        <h3 class="guideline-modal-title">Sé Puntual</h3>
+                        <p class="guideline-modal-description">Respeta los horarios de las sesiones y eventos. Valora el tiempo de los demás.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="guidelines-modal-footer">
+                <button id="closeGuidelinesBtnFooter" class="guidelines-modal-btn">
+                    <i class='bx bx-check'></i>
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script src="../scripts/particles.js"></script>
     <script src="../scripts/main.js"></script>
