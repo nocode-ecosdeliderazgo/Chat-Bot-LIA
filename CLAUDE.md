@@ -485,3 +485,85 @@ Specific redirects are prioritized over wildcards:
 - Community: `/api/community/*`
 - Debugging: `/api/debug-cors`, `/api/video-debug`
 - Wildcard: `/api/*` → `/.netlify/functions/:splat` (lowest priority)
+
+## Community System Architecture
+
+### Core Components
+The community system is built with a modular architecture centered around user-generated content and real-time interactions:
+
+**Database Layer**:
+- `CommunityDatabase` class handles all Supabase operations with error handling and fallbacks
+- Tables: `community_posts`, `community_comments`, `community_reactions`, `community_members`
+- RLS (Row Level Security) policies for data protection and access control
+
+**Frontend Architecture**:
+- `CommunityPage` class (community.js) - Main orchestrator for community features
+- `CommunitySystem` class (community-view.html) - Handles community detail views and interactions
+- Profile modal system with real-time activity data from database queries
+
+**Key Features**:
+- Real-time posting, commenting, and reaction system
+- User profile modals with activity statistics pulled from database
+- League/points system integrated with community actions
+- Member management with role-based permissions
+- Search and filtering capabilities across posts and members
+
+### Profile Modal Data Sources
+The profile modal displays real-time activity data sourced directly from Supabase:
+
+**Activity Metrics**:
+- **Posts**: `SELECT COUNT(*) FROM community_posts WHERE user_id = ?`
+- **Comments**: `SELECT COUNT(*) FROM community_comments WHERE user_id = ?`
+- **Reactions**: `SELECT COUNT(*) FROM community_reactions WHERE user_id = ?`
+
+**Data Updates**: Metrics update automatically when users perform actions (post, comment, react)
+**Function**: `populateUserProfileModal()` in community-view.html handles data retrieval and DOM updates
+
+### Authentication Integration
+The community system uses a hybrid authentication approach:
+- Primary: Supabase Auth for database operations
+- Fallback: LocalStorage user data for basic functionality
+- Session validation through `hasCommunitySession()` function
+- Graceful degradation to read-only mode when authentication fails
+
+## Code Quality & Maintenance Patterns
+
+### Error Handling Pattern
+```javascript
+// Standard error handling with user feedback
+try {
+    const result = await databaseOperation();
+    notifications.success('Operation completed');
+} catch (error) {
+    console.error('Operation failed:', error);
+    notifications.error('User-friendly error message');
+    // Fallback behavior
+}
+```
+
+### Supabase Integration Pattern
+```javascript
+// Proper Supabase client initialization and usage
+const { data, error } = await window.supabase
+    .from('table_name')
+    .select('*')
+    .eq('column', value);
+
+if (error) throw error;
+return data;
+```
+
+### Community Data Loading Pattern
+```javascript
+// Real-time data loading with fallbacks
+async function loadDataFromDatabase() {
+    try {
+        await window.waitForSupabase(); // Wait for client initialization
+        const data = await queryDatabase();
+        updateUI(data);
+    } catch (error) {
+        console.warn('Database failed, using fallback:', error);
+        loadFromLocalStorage();
+    }
+}
+```
