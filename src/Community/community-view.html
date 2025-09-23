@@ -2319,16 +2319,7 @@
                 try {
                     const { data: commentsData, error } = await window.supabase
                         .from('community_comments')
-                        .select(`
-                            *,
-                            users:user_id (
-                                id,
-                                display_name,
-                                first_name,
-                                username,
-                                profile_picture_url
-                            )
-                        `)
+                        .select('*')
                         .eq('post_id', id)
                         .order('created_at', { ascending: true });
 
@@ -2337,13 +2328,34 @@
                         // Usar comentarios locales como fallback
                         comments = post.comments || [];
                     } else {
-                        // Convertir comentarios de BD al formato local
-                        comments = commentsData.map(comment => ({
-                            id: comment.id,
-                            user: comment.users?.display_name || comment.users?.username || 'Usuario',
-                            time: formatTimeAgo(comment.created_at),
-                            text: comment.content,
-                            created_at: comment.created_at
+                        // Convertir comentarios de BD al formato local y obtener nombres de usuario
+                        comments = await Promise.all(commentsData.map(async comment => {
+                            let userName = 'Usuario';
+
+                            // Intentar obtener datos del usuario
+                            if (comment.user_id) {
+                                try {
+                                    const { data: userData } = await window.supabase
+                                        .from('users')
+                                        .select('display_name, first_name, username')
+                                        .eq('id', comment.user_id)
+                                        .single();
+
+                                    if (userData) {
+                                        userName = userData.display_name || userData.first_name || userData.username || 'Usuario';
+                                    }
+                                } catch (userError) {
+                                    console.log('⚠️ No se pudieron obtener datos del usuario para comentario:', userError);
+                                }
+                            }
+
+                            return {
+                                id: comment.id,
+                                user: userName,
+                                time: formatTimeAgo(comment.created_at),
+                                text: comment.content,
+                                created_at: comment.created_at
+                            };
                         }));
                         console.log('✅ Comentarios cargados desde BD:', comments.length);
                     }
@@ -2428,16 +2440,7 @@
                                 user_id: userId,
                                 content: txt
                             })
-                            .select(`
-                                *,
-                                users:user_id (
-                                    id,
-                                    display_name,
-                                    first_name,
-                                    username,
-                                    profile_picture_url
-                                )
-                            `)
+                            .select('*')
                             .single();
 
                         if (error) {
@@ -2463,11 +2466,30 @@
 
                         console.log('✅ [MODAL] Comentario creado:', newComment);
 
+                        // Obtener datos del usuario si es necesario
+                        let userName = currentUser?.name || 'Usuario';
+                        if (currentUser && currentUser.id) {
+                            try {
+                                const { data: userData } = await window.supabase
+                                    .from('users')
+                                    .select('display_name, first_name, username')
+                                    .eq('id', currentUser.id)
+                                    .single();
+
+                                if (userData) {
+                                    userName = userData.display_name || userData.first_name || userData.username || userName;
+                                }
+                            } catch (userError) {
+                                console.log('⚠️ No se pudieron obtener datos adicionales del usuario:', userError);
+                                // Usar el nombre que ya tenemos
+                            }
+                        }
+
                         // Agregar comentario al post local
                         if (!post.comments) post.comments = [];
                         post.comments.push({
                             id: newComment.id,
-                            user: newComment.users?.display_name || newComment.users?.username || currentUser?.name || 'Usuario',
+                            user: userName,
                             time: 'ahora',
                             text: newComment.content,
                             created_at: newComment.created_at
