@@ -7697,16 +7697,13 @@
                 setupEventListeners() {
                     // Cerrar con botón X
                     const closeBtn = document.getElementById('closeProfileModal');
-                    const closeBtn2 = document.getElementById('closeProfileBtn');
 
-                    [closeBtn, closeBtn2].forEach(btn => {
-                        if (btn) {
-                            btn.addEventListener('click', (e) => {
-                                e.preventDefault();
-                                this.close();
-                            });
-                        }
-                    });
+                    if (closeBtn) {
+                        closeBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            this.close();
+                        });
+                    }
 
                     // Cerrar con overlay
                     const overlay = document.getElementById('modalOverlay');
@@ -8110,10 +8107,6 @@
                 </div>
             </div>
 
-            <!-- Footer del Modal -->
-            <div class="profile-footer">
-                <button class="btn-secondary" id="closeProfileBtn">Cerrar</button>
-            </div>
         </div>
     </div>
             
