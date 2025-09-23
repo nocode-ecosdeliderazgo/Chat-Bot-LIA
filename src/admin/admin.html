@@ -48,6 +48,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="#community-requests" class="nav-link" data-section="community-requests">
+                        <i class="fas fa-user-check"></i>
+                        <span>Solicitudes de Comunidad</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="#news" class="nav-link" data-section="news">
                         <i class="fas fa-newspaper"></i>
                         <span>Noticias</span>
@@ -439,6 +445,103 @@
                         <h3>Actividad de Chat</h3>
                         <canvas id="chatChart"></canvas>
                     </div>
+                </div>
+            </div>
+
+            <!-- Community Requests Section -->
+            <div class="content-section" id="communityRequestsContent">
+                <div class="section-header">
+                    <h1 class="section-title">Gestión de Solicitudes de Comunidad</h1>
+                    <p class="section-subtitle">Aprobar o rechazar solicitudes de acceso a comunidades</p>
+                    <button class="btn-primary" id="refreshRequestsBtn">
+                        <i class="fas fa-sync-alt"></i>
+                        Actualizar Lista
+                    </button>
+                </div>
+
+                <!-- Estadísticas -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="pendingRequestsCount">0</h3>
+                            <p class="stat-label">Solicitudes Pendientes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="approvedThisMonthCount">0</h3>
+                            <p class="stat-label">Aprobadas Este Mes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="rejectedThisMonthCount">0</h3>
+                            <p class="stat-label">Rechazadas Este Mes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-stopwatch"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="avgResponseTime">-</h3>
+                            <p class="stat-label">Tiempo Promedio de Respuesta</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <input type="text" placeholder="Buscar por usuario, email o comunidad..." class="filter-input" id="requestSearch">
+                        <select class="filter-select" id="requestStatus">
+                            <option value="">Todos los estados</option>
+                            <option value="pending">Pendientes</option>
+                            <option value="approved">Aprobadas</option>
+                            <option value="rejected">Rechazadas</option>
+                        </select>
+                        <select class="filter-select" id="requestCommunity">
+                            <option value="">Todas las comunidades</option>
+                        </select>
+                        <div class="date-filter">
+                            <label>Desde:</label>
+                            <input type="date" id="dateFrom" class="filter-date">
+                            <label>Hasta:</label>
+                            <input type="date" id="dateTo" class="filter-date">
+                        </div>
+                        <button class="btn-secondary" onclick="adminPanel.clearRequestFilters()">
+                            <i class="fas fa-eraser"></i>
+                            Limpiar Filtros
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabla de Solicitudes -->
+                <div class="requests-table-container">
+                    <table class="requests-table" id="requestsTable">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Comunidad</th>
+                                <th>Estado</th>
+                                <th>Fecha de Solicitud</th>
+                                <th>Nota</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requestsTableBody">
+                            <!-- Requests will be loaded here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

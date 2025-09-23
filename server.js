@@ -36,7 +36,7 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://unpkg.com', 'https://source.zoom.us'],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://unpkg.com', 'https://source.zoom.us', 'https://cdnjs.cloudflare.com'],
             // En desarrollo permitimos inline scripts (onclick) para compatibilidad rápida
             scriptSrc: DEV_MODE ? ["'self'", "'unsafe-inline'", 'https://source.zoom.us', 'https://esm.sh', 'https://unpkg.com', 'https://cdn.jsdelivr.net', 'https://www.youtube.com'] : ["'self'", 'https://source.zoom.us', 'https://esm.sh', 'https://unpkg.com', 'https://cdn.jsdelivr.net', 'https://www.youtube.com'],
             // Permitir carga de módulos ESM externos solo si fuera necesario (actualmente eliminamos supabase-client)
@@ -81,7 +81,7 @@ app.use(helmet({
                 'https://*.supabase.co'
             ],
             mediaSrc: ["'self'", 'blob:', 'data:', 'https:'],
-            fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://unpkg.com', 'data:'],
+            fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://unpkg.com', 'https://cdnjs.cloudflare.com', 'data:'],
             // Permitir que nosotros mostremos iframes de terceros dentro de nuestra propia app
             frameAncestors: ["'self'"],
             objectSrc: ["'none'"]
@@ -2720,6 +2720,324 @@ app.post('/api/admin/auth/logout', (req, res) => {
     } catch (error) {
         console.error('Error en logout:', error);
         res.status(500).json({ error: 'Error cerrando sesión' });
+    }
+});
+
+// ====== ENDPOINTS PARA GESTIÓN DE SOLICITUDES DE COMUNIDAD ======
+
+// Obtener todas las solicitudes de comunidad
+app.get('/api/admin/community-requests', async (req, res) => {
+    try {
+        console.log('📋 Obteniendo solicitudes de comunidad...');
+
+        if (!supabase) {
+            console.warn('⚠️ Supabase no configurado, retornando datos de prueba');
+            // Datos de prueba para desarrollo
+            const mockRequests = [
+                {
+                    id: '1',
+                    community_id: 'comm-1',
+                    requester_id: 'user-1',
+                    status: 'pending',
+                    note: 'Me gustaría unirme para aprender más sobre IA',
+                    created_at: new Date().toISOString(),
+                    reviewed_at: null,
+                    reviewed_by: null,
+                    user_name: 'Juan Pérez',
+                    user_email: 'juan@example.com',
+                    community_name: 'Inteligencia Artificial',
+                    reviewer_name: null
+                },
+                {
+                    id: '2',
+                    community_id: 'comm-2',
+                    requester_id: 'user-2',
+                    status: 'approved',
+                    note: 'Tengo experiencia en machine learning',
+                    created_at: new Date(Date.now() - 86400000).toISOString(),
+                    reviewed_at: new Date().toISOString(),
+                    reviewed_by: 'admin-1',
+                    user_name: 'María González',
+                    user_email: 'maria@example.com',
+                    community_name: 'Machine Learning',
+                    reviewer_name: 'Administrador'
+                },
+                {
+                    id: '3',
+                    community_id: 'comm-1',
+                    requester_id: 'user-3',
+                    status: 'rejected',
+                    note: null,
+                    created_at: new Date(Date.now() - 172800000).toISOString(),
+                    reviewed_at: new Date(Date.now() - 86400000).toISOString(),
+                    reviewed_by: 'admin-1',
+                    user_name: 'Carlos López',
+                    user_email: 'carlos@example.com',
+                    community_name: 'Inteligencia Artificial',
+                    reviewer_name: 'Administrador'
+                }
+            ];
+            return res.json(mockRequests);
+        }
+
+        // Consulta real a Supabase con JOINs para obtener datos completos
+        console.log('🔍 Obteniendo solicitudes con datos de usuarios y comunidades...');
+
+        const { data: requests, error } = await supabase
+            .from('community_access_requests')
+            .select(`
+                *,
+                requester:users!community_access_requests_requester_id_fkey(
+                    first_name,
+                    last_name,
+                    email,
+                    display_name
+                ),
+                community:communities!community_access_requests_community_id_fkey(
+                    name
+                ),
+                reviewer:users!community_access_requests_reviewed_by_fkey(
+                    first_name,
+                    last_name,
+                    display_name
+                )
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('❌ Error obteniendo solicitudes:', error);
+            return res.status(500).json({ error: error.message });
+        }
+
+        console.log(`✅ Consulta básica exitosa. ${requests?.length || 0} registros encontrados`);
+
+        // Si no hay datos, retornar mock
+        if (!requests || requests.length === 0) {
+            console.log('📝 No hay datos reales, retornando datos de prueba');
+            const mockRequests = [
+                {
+                    id: '1',
+                    community_id: 'comm-1',
+                    requester_id: 'user-1',
+                    status: 'pending',
+                    note: 'Me gustaría unirme para aprender más sobre IA',
+                    created_at: new Date().toISOString(),
+                    reviewed_at: null,
+                    reviewed_by: null,
+                    user_name: 'Juan Pérez (Datos de prueba)',
+                    user_email: 'juan@example.com',
+                    community_name: 'Inteligencia Artificial',
+                    reviewer_name: null
+                }
+            ];
+            return res.json(mockRequests);
+        }
+
+        // Procesar datos reales con JOINs
+        console.log('🔄 Procesando datos reales con información completa...');
+        const formattedRequests = requests.map(request => {
+            // Construir nombre completo del usuario solicitante
+            const userName = request.requester?.display_name ||
+                            `${request.requester?.first_name || ''} ${request.requester?.last_name || ''}`.trim() ||
+                            'Usuario sin nombre';
+
+            // Construir nombre completo del revisor
+            const reviewerName = request.reviewer?.display_name ||
+                               `${request.reviewer?.first_name || ''} ${request.reviewer?.last_name || ''}`.trim() ||
+                               null;
+
+            return {
+                id: request.id,
+                community_id: request.community_id,
+                requester_id: request.requester_id,
+                status: request.status,
+                note: request.note,
+                created_at: request.created_at,
+                reviewed_at: request.reviewed_at,
+                reviewed_by: request.reviewed_by,
+                user_name: userName,
+                user_email: request.requester?.email || 'Email no disponible',
+                community_name: request.community?.name || 'Comunidad no disponible',
+                reviewer_name: reviewerName
+            };
+        });
+
+        console.log(`✅ ${formattedRequests.length} solicitudes procesadas con datos reales`);
+        res.json(formattedRequests);
+
+    } catch (error) {
+        console.error('❌ Error en endpoint community-requests:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Aprobar solicitud de comunidad
+app.put('/api/admin/community-requests/:id/approve', async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log(`✅ Aprobando solicitud: ${id}`);
+        console.log(`🔍 User info:`, req.user);
+
+        if (!supabase) {
+            console.warn('⚠️ Supabase no configurado, simulando aprobación');
+            return res.json({
+                success: true,
+                message: 'Solicitud aprobada exitosamente (modo desarrollo)'
+            });
+        }
+
+        // Iniciar transacción
+        console.log(`🔍 Buscando solicitud con ID: ${id}`);
+        const { data: request, error: fetchError } = await supabase
+            .from('community_access_requests')
+            .select('*')
+            .eq('id', id)
+            .eq('status', 'pending')
+            .single();
+
+        console.log(`🔍 Resultado de búsqueda:`, { request, fetchError });
+
+        if (fetchError || !request) {
+            console.error(`❌ Solicitud no encontrada:`, fetchError);
+            return res.status(404).json({
+                error: 'Solicitud no encontrada o ya procesada'
+            });
+        }
+
+        // 1. Aprobar la solicitud
+        console.log(`🔍 Actualizando solicitud ${id} a estado 'approved'`);
+        const { error: updateError } = await supabase
+            .from('community_access_requests')
+            .update({
+                status: 'approved',
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: req.user?.userId || req.user?.id || null // Usar ID del usuario autenticado
+            })
+            .eq('id', id);
+
+        if (updateError) {
+            console.error('❌ Error actualizando solicitud:', updateError);
+            return res.status(500).json({ error: updateError.message });
+        }
+        console.log(`✅ Solicitud ${id} actualizada exitosamente`);
+
+        // 2. Agregar usuario a la comunidad
+        console.log(`🔍 Agregando usuario ${request.requester_id} a comunidad ${request.community_id}`);
+        const { error: memberError } = await supabase
+            .from('community_members')
+            .upsert({
+                community_id: request.community_id,
+                user_id: request.requester_id,
+                role: 'member',
+                is_active: true,
+                joined_at: new Date().toISOString()
+            }, {
+                onConflict: 'community_id,user_id'
+            });
+
+        if (memberError) {
+            console.error('❌ Error agregando miembro:', memberError);
+            // Revertir la aprobación si falla agregar el miembro
+            await supabase
+                .from('community_access_requests')
+                .update({ status: 'pending', reviewed_at: null, reviewed_by: null })
+                .eq('id', id);
+
+            return res.status(500).json({
+                error: 'Error agregando usuario a la comunidad'
+            });
+        }
+        console.log(`✅ Usuario agregado a la comunidad exitosamente`);
+
+        console.log(`✅ Solicitud ${id} aprobada exitosamente`);
+        res.json({
+            success: true,
+            message: 'Solicitud aprobada y usuario agregado a la comunidad'
+        });
+
+    } catch (error) {
+        console.error('❌ Error aprobando solicitud:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Rechazar solicitud de comunidad
+app.put('/api/admin/community-requests/:id/reject', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reason } = req.body;
+        console.log(`❌ Rechazando solicitud: ${id}, Motivo: ${reason || 'Sin motivo'}`);
+
+        if (!supabase) {
+            console.warn('⚠️ Supabase no configurado, simulando rechazo');
+            return res.json({
+                success: true,
+                message: 'Solicitud rechazada exitosamente (modo desarrollo)'
+            });
+        }
+
+        // Actualizar solicitud como rechazada
+        const { error } = await supabase
+            .from('community_access_requests')
+            .update({
+                status: 'rejected',
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: req.user?.userId || req.user?.id || null, // Usar ID del usuario autenticado
+                note: reason ? `${req.body.note || ''} [Motivo del rechazo: ${reason}]` : req.body.note
+            })
+            .eq('id', id)
+            .eq('status', 'pending');
+
+        if (error) {
+            console.error('❌ Error rechazando solicitud:', error);
+            return res.status(500).json({ error: error.message });
+        }
+
+        console.log(`❌ Solicitud ${id} rechazada exitosamente`);
+        res.json({
+            success: true,
+            message: 'Solicitud rechazada exitosamente'
+        });
+
+    } catch (error) {
+        console.error('❌ Error rechazando solicitud:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Obtener lista de comunidades para filtros
+app.get('/api/admin/communities', async (req, res) => {
+    try {
+        console.log('🏘️ Obteniendo lista de comunidades...');
+
+        if (!supabase) {
+            console.warn('⚠️ Supabase no configurado, retornando comunidades de prueba');
+            const mockCommunities = [
+                { id: 'comm-1', name: 'Inteligencia Artificial' },
+                { id: 'comm-2', name: 'Machine Learning' },
+                { id: 'comm-3', name: 'Deep Learning' },
+                { id: 'comm-4', name: 'Data Science' }
+            ];
+            return res.json(mockCommunities);
+        }
+
+        const { data: communities, error } = await supabase
+            .from('communities')
+            .select('id, name')
+            .eq('is_active', true)
+            .order('name');
+
+        if (error) {
+            console.error('❌ Error obteniendo comunidades:', error);
+            return res.status(500).json({ error: error.message });
+        }
+
+        console.log(`✅ ${communities.length} comunidades obtenidas`);
+        res.json(communities);
+
+    } catch (error) {
+        console.error('❌ Error en endpoint communities:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
