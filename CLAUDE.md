@@ -161,6 +161,13 @@ The frontend follows a multi-page application (MPA) pattern with shared componen
 - Interactive multimedia content
 - PDF generation and file management
 
+### Community System
+- User-generated content with questions, answers, and voting
+- Role-based access control with RLS policies
+- Real-time interactions and notifications
+- Comprehensive moderation and user profile management
+- Integration with main authentication system
+
 ### Theme System
 - Dark/light mode with system preference detection
 - CSS custom properties for consistent theming
@@ -372,10 +379,12 @@ const observeElements = () => {
 ## Important Development Notes
 
 ### Recent Development Context
-- Current branch: `gael-deploy` (see git status for deployment-related changes)
+- Current branch: `Rama-Comunidades-Israel` (community development branch)
+- Active development of community features including user interactions, voting systems, and content moderation
 - Community system with RLS policies and diagnostic tools for debugging
-- Enhanced authentication system with hybrid user ID handling
+- Enhanced authentication system with hybrid user ID handling for cross-platform compatibility
 - Comprehensive CSP configuration optimized for YouTube embeds and external integrations
+- Focus on community engagement features and user-generated content management
 
 ### Database Scripts & Operations
 The project includes several utility scripts for database management:
@@ -428,10 +437,12 @@ The Chat-Online module uses a specialized loader architecture:
 
 ### Port Management & Development Scripts
 The project includes specialized port management for cross-platform development:
-- `npm run port:kill` - Kills processes on port 3000
-- `npm run port:kill:3001` - Kills processes on port 3001
+- `npm run port:kill` - Kills processes on port 3000 (requires manual setup of kill script)
+- `npm run port:kill:3001` - Kills processes on port 3001 (requires manual setup of kill script)
 - `npm run dev:force` - Kills port 3000 first, then starts development server
 - `npm run dev:win` - Windows-specific command with environment variable setup
+
+**Note**: Port kill scripts (`scripts/kill-port-3000.cjs`, `scripts/kill-port-3001.cjs`) are referenced in package.json but not present in the repository. These should be created if port management is needed.
 
 ### Content Security Policy (CSP) Configuration
 The application has a comprehensive CSP configured in `netlify.toml` to support:
