@@ -1585,7 +1585,7 @@
 
                         // Cargar reacciones desde la base de datos
                         console.log('👍 Cargando reacciones para post:', post.id);
-                        let reactions = {like:0, heart:0, wow:0, laugh:0, sad:0};
+                        let reactions = {like:0, love:0, wow:0, laugh:0, sad:0, angry:0};
                         let userReacted = null;
 
                         try {
@@ -1603,9 +1603,9 @@
                                 });
 
                                 // Verificar si el usuario actual ya reaccionó
-                                const { data: { session } } = await window.supabase.auth.getSession();
-                                if (session && session.user) {
-                                    const userReaction = reactionsData.find(r => r.user_id === session.user.id);
+                                const userResult = await getCurrentUserForCommunity();
+                                if (userResult.id) {
+                                    const userReaction = reactionsData.find(r => r.user_id === userResult.id);
                                     if (userReaction) {
                                         userReacted = userReaction.reaction_type;
                                     }
@@ -1829,15 +1829,16 @@
                                 <span class="post-action" data-action="comment" data-id="${p.id}"><i class="fas fa-comment"></i> Comentar</span>
                                 <span class="post-action shares" data-share="${p.id}"><i class="fas fa-share"></i> Compartir</span>
                                 <span class="react-area">
-                                    <button class="react-btn ${p.reacted ? 'reacted' : ''}" data-react-toggle="${p.id}" title="${p.reacted ? 'Ya reaccionaste con ' + (p.reacted === 'like' ? '👍' : p.reacted === 'heart' ? '❤️' : p.reacted === 'wow' ? '😮' : p.reacted === 'laugh' ? '😂' : '😢') : 'Reaccionar'}">
-                                        ${p.reacted ? (p.reacted === 'like' ? '👍' : p.reacted === 'heart' ? '❤️' : p.reacted === 'wow' ? '😮' : p.reacted === 'laugh' ? '😂' : '😢') : '👍'}
+                                    <button class="react-btn ${p.reacted ? 'reacted' : ''}" data-react-toggle="${p.id}" title="${p.reacted ? 'Ya reaccionaste con ' + (p.reacted === 'like' ? '👍' : p.reacted === 'love' ? '❤️' : p.reacted === 'wow' ? '😮' : p.reacted === 'laugh' ? '😂' : p.reacted === 'sad' ? '😢' : '😠') : 'Reaccionar'}">
+                                        ${p.reacted ? (p.reacted === 'like' ? '👍' : p.reacted === 'love' ? '❤️' : p.reacted === 'wow' ? '😮' : p.reacted === 'laugh' ? '😂' : p.reacted === 'sad' ? '😢' : p.reacted === 'angry' ? '😠' : '👍') : '👍'}
                                     </button>
                                     <div class="reaction-picker" id="picker-${p.id}">
                                         <div class="reaction-item" data-react="like" data-id="${p.id}">👍</div>
-                                        <div class="reaction-item" data-react="heart" data-id="${p.id}">❤️</div>
+                                        <div class="reaction-item" data-react="love" data-id="${p.id}">❤️</div>
                                         <div class="reaction-item" data-react="wow" data-id="${p.id}">😮</div>
                                         <div class="reaction-item" data-react="laugh" data-id="${p.id}">😂</div>
                                         <div class="reaction-item" data-react="sad" data-id="${p.id}">😢</div>
+                                        <div class="reaction-item" data-react="angry" data-id="${p.id}">😠</div>
                                     </div>
                                     <span class="reaction-summary">${reactionSummary(p.reactions)}</span>
                                 </span>
@@ -1882,7 +1883,7 @@
                         if(post.reacted){
                             // Mostrar notificación en lugar de deshabilitar
                             if (typeof notifications !== 'undefined') {
-                                notifications.info(`Ya reaccionaste con ${post.reacted === 'like' ? '👍' : post.reacted === 'heart' ? '❤️' : post.reacted === 'wow' ? '😮' : post.reacted === 'laugh' ? '😂' : '😢'} a esta publicación`);
+                                notifications.info(`Ya reaccionaste con ${post.reacted === 'like' ? '👍' : post.reacted === 'love' ? '❤️' : post.reacted === 'wow' ? '😮' : post.reacted === 'laugh' ? '😂' : post.reacted === 'sad' ? '😢' : '😠'} a esta publicación`);
                             }
                             return;
                         }
@@ -1902,20 +1903,21 @@
                         try {
                             console.log('👍 [REACTION] Creando reacción en BD...', { postId: id, type });
 
-                            // Obtener usuario actual
-                            const { data: { session } } = await window.supabase.auth.getSession();
-                            if (!session || !session.user) {
-                                notifications.error('Debes estar autenticado para reaccionar');
+                            // Obtener usuario actual de manera consistente
+                            const userResult = await getCurrentUserForCommunity();
+                            if (!userResult.id) {
+                                notifications.error('No se pudo verificar tu identidad. Inténtalo de nuevo.');
                                 return;
                             }
+                            const { user: currentUser, id: userId } = userResult;
 
                             // Verificar si ya reaccionó
                             const { data: existingReaction } = await window.supabase
                                 .from('community_reactions')
                                 .select('*')
                                 .eq('post_id', id)
-                                .eq('user_id', session.user.id)
-                                .single();
+                                .eq('user_id', userId)
+                                .maybeSingle();
 
                             if (existingReaction) {
                                 notifications.warning('Ya reaccionaste a esta publicación');
@@ -1927,7 +1929,7 @@
                                 .from('community_reactions')
                                 .insert({
                                     post_id: id,
-                                    user_id: session.user.id,
+                                    user_id: userId,
                                     reaction_type: type
                                 })
                                 .select()
@@ -2282,7 +2284,8 @@
                 if(total===0) return '';
                 const icons = [];
                 if(r.like) icons.push('👍');
-                if(r.heart) icons.push('❤️');
+                if(r.love) icons.push('❤️');
+                if(r.angry) icons.push('😠');
                 if(r.wow) icons.push('😮');
                 if(r.laugh) icons.push('😂');
                 if(r.sad) icons.push('😢');
@@ -2378,10 +2381,41 @@
                     try {
                         console.log('💬 [MODAL] Creando comentario en BD...');
 
-                        // Obtener usuario actual
-                        const { data: { session } } = await window.supabase.auth.getSession();
-                        if (!session || !session.user) {
-                            notifications.error('Debes estar autenticado para comentar');
+                        // Obtener usuario actual de manera consistente
+                        const userResult = await getCurrentUserForCommunity();
+                        if (!userResult.id) {
+                            notifications.error('No se pudo verificar tu identidad. Inténtalo de nuevo.');
+                            return;
+                        }
+                        const { user: currentUser, id: userId } = userResult;
+
+                        // Obtener community_id del post
+                        let communityId = null;
+
+                        // Intentar obtener desde el post (si viene de BD)
+                        if (post.community_id) {
+                            communityId = post.community_id;
+                        } else {
+                            // Usar el mismo método que el sistema de posts
+                            if (window.communitySystem && window.communitySystem.currentCommunity) {
+                                communityId = window.communitySystem.currentCommunity.id;
+                            } else {
+                                // Fallback usando URL
+                                const urlParams = new URLSearchParams(window.location.search);
+                                const communitySlug = urlParams.get('slug') || 'profesionales';
+                                const communityMap = {
+                                    'profesionales': '7886aa14-35b9-41da-b099-29f11ad3516b',
+                                    'sif-icap': 'aa5a4c4c-ce64-4a12-b1ef-365aa0d320c8',
+                                    'openminder': 'b3b154e1-110e-4aa7-8998-ef208482a159',
+                                    'ecos-de-liderazgo': 'd2dbebb1-5b57-4da7-9fc6-8b40c732b548'
+                                };
+                                communityId = communityMap[communitySlug];
+                            }
+                        }
+
+                        if (!communityId) {
+                            console.error('❌ No se pudo obtener el ID de la comunidad');
+                            notifications.error('Error: No se pudo identificar la comunidad');
                             return;
                         }
 
@@ -2390,7 +2424,8 @@
                             .from('community_comments')
                             .insert({
                                 post_id: post.id,
-                                user_id: session.user.id,
+                                community_id: communityId,
+                                user_id: userId,
                                 content: txt
                             })
                             .select(`
@@ -2408,6 +2443,21 @@
                         if (error) {
                             console.error('❌ [MODAL] Error creando comentario:', error);
                             notifications.error('Error al crear comentario: ' + error.message);
+
+                            // Fallback a localStorage
+                            console.log('⚠️ [MODAL] Usando fallback a localStorage...');
+                            if (!post.comments) post.comments = [];
+                            post.comments.push({
+                                id: Date.now(),
+                                user: currentUser?.name || 'Usuario',
+                                time: 'ahora',
+                                text: txt
+                            });
+                            input.value='';
+                            document.getElementById('modalComments').innerHTML = (post.comments||[]).map(c=>commentTemplate(c)).join('');
+                            savePosts();
+                            updateStats();
+                            notifications.success('Comentario agregado (modo local)');
                             return;
                         }
 
@@ -2417,7 +2467,7 @@
                         if (!post.comments) post.comments = [];
                         post.comments.push({
                             id: newComment.id,
-                            user: newComment.users.display_name || newComment.users.username || 'Usuario',
+                            user: newComment.users?.display_name || newComment.users?.username || currentUser?.name || 'Usuario',
                             time: 'ahora',
                             text: newComment.content,
                             created_at: newComment.created_at
@@ -2726,7 +2776,7 @@
                             timestamp: Date.now(),
                             content:txt,
                             comments:[],
-                            reactions:{like:0, heart:0, wow:0, laugh:0, sad:0},
+                            reactions:{like:0, love:0, wow:0, laugh:0, sad:0, angry:0},
                             attachments: [...pendingAttachments],
                             reacted: null
                         };
@@ -2743,6 +2793,52 @@
                     }
                 });
             }
+            // Función auxiliar para obtener el usuario actual de manera consistente
+            async function getCurrentUserForCommunity() {
+                console.log('🔍 Obteniendo usuario actual para operaciones de comunidad...');
+
+                let currentUser = null;
+                let userId = null;
+
+                // MÉTODO 1: Usar PointsSystem si está disponible (más confiable)
+                if (window.pointsSystem) {
+                    console.log('🎯 Obteniendo usuario desde PointsSystem...');
+                    try {
+                        currentUser = await window.pointsSystem.getCurrentUser();
+                        if (currentUser && currentUser.id) {
+                            userId = currentUser.id;
+                            console.log('✅ Usuario obtenido desde PointsSystem:', currentUser.name);
+                            return { user: currentUser, id: userId };
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ Error con PointsSystem:', error);
+                    }
+                }
+
+                // MÉTODO 2: Fallback a Supabase Auth
+                if (!userId && window.supabase) {
+                    console.log('🔄 Fallback a Supabase Auth...');
+                    try {
+                        const { data: { session } } = await window.supabase.auth.getSession();
+                        if (session && session.user) {
+                            userId = session.user.id;
+                            currentUser = {
+                                id: session.user.id,
+                                name: session.user.user_metadata?.full_name || session.user.email || 'Usuario',
+                                email: session.user.email
+                            };
+                            console.log('✅ Usuario obtenido desde Supabase session');
+                            return { user: currentUser, id: userId };
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ Error con Supabase Auth:', error);
+                    }
+                }
+
+                console.error('❌ No se pudo obtener el usuario con ningún método');
+                return { user: null, id: null };
+            }
+
             // Función para verificar autenticación antes de operaciones de base de datos
             async function checkAuthenticationForPosts() {
                 console.log('🔐 Verificando autenticación para posts...');
@@ -3204,15 +3300,16 @@
                                              <span class="post-action" data-action="comment" data-id="${p.id}"><i class="fas fa-comment"></i> Comentar</span>
                                              <span class="post-action shares" data-share="${p.id}"><i class="fas fa-share"></i> Compartir</span>
                                              <span class="react-area">
-                                                 <button class="react-btn ${p.reacted ? 'reacted' : ''}" data-react-toggle="${p.id}" title="${p.reacted ? 'Ya reaccionaste con ' + (p.reacted === 'like' ? '👍' : p.reacted === 'heart' ? '❤️' : p.reacted === 'wow' ? '😮' : p.reacted === 'laugh' ? '😂' : '😢') : 'Reaccionar'}">
-                                                     ${p.reacted ? (p.reacted === 'like' ? '👍' : p.reacted === 'heart' ? '❤️' : p.reacted === 'wow' ? '😮' : p.reacted === 'laugh' ? '😂' : '😢') : '👍'}
+                                                 <button class="react-btn ${p.reacted ? 'reacted' : ''}" data-react-toggle="${p.id}" title="${p.reacted ? 'Ya reaccionaste con ' + (p.reacted === 'like' ? '👍' : p.reacted === 'love' ? '❤️' : p.reacted === 'wow' ? '😮' : p.reacted === 'laugh' ? '😂' : p.reacted === 'sad' ? '😢' : '😠') : 'Reaccionar'}">
+                                                     ${p.reacted ? (p.reacted === 'like' ? '👍' : p.reacted === 'love' ? '❤️' : p.reacted === 'wow' ? '😮' : p.reacted === 'laugh' ? '😂' : p.reacted === 'sad' ? '😢' : p.reacted === 'angry' ? '😠' : '👍') : '👍'}
                                                  </button>
                                                  <div class="reaction-picker" id="picker-${p.id}">
                                                      <div class="reaction-item" data-react="like" data-id="${p.id}">👍</div>
-                                                     <div class="reaction-item" data-react="heart" data-id="${p.id}">❤️</div>
+                                                     <div class="reaction-item" data-react="love" data-id="${p.id}">❤️</div>
                                                      <div class="reaction-item" data-react="wow" data-id="${p.id}">😮</div>
                                                      <div class="reaction-item" data-react="laugh" data-id="${p.id}">😂</div>
                                                      <div class="reaction-item" data-react="sad" data-id="${p.id}">😢</div>
+                                                     <div class="reaction-item" data-react="angry" data-id="${p.id}">😠</div>
                                                  </div>
                                                  <span class="reaction-summary">${reactionSummary(p.reactions)}</span>
                                              </span>
