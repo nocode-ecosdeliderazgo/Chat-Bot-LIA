@@ -7718,60 +7718,82 @@
             </div>
 
             <!-- Estadísticas del Perfil -->
-            <div class="profile-stats">
-                <div class="stat-card">
-                    <div class="stat-icon">👥</div>
-                    <div class="stat-info">
-                        <span class="stat-label">Miembro desde</span>
-                        <span class="stat-value" id="profileJoinDate">--</span>
+            <div class="profile-section">
+                <h3 class="section-title dante99">Estadísticas</h3>
+                <div class="profile-stats-horizontal">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Miembro desde</span>
+                            <span class="stat-value" id="profileJoinDate">--</span>
+                        </div>
                     </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">⭐</div>
-                    <div class="stat-info">
-                        <span class="stat-label">Puntos</span>
-                        <span class="stat-value" id="profilePoints">0</span>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Puntos</span>
+                            <span class="stat-value" id="profilePoints">0</span>
+                        </div>
                     </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">📊</div>
-                    <div class="stat-info">
-                        <span class="stat-label">Rango</span>
-                        <span class="stat-value" id="profileRank">#--</span>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Rango</span>
+                            <span class="stat-value" id="profileRank">#--</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Información Adicional -->
-            <div class="profile-details">
-                <div class="detail-section">
-                    <h3>Información Personal</h3>
-                    <div class="detail-item">
-                        <span class="detail-label">Email:</span>
-                        <span class="detail-value" id="profileEmail">--</span>
+            <!-- Información Personal -->
+            <div class="profile-section">
+                <h3 class="section-title dante99">Información Personal</h3>
+                <div class="profile-info-horizontal">
+                    <div class="info-card">
+                        <div class="info-icon">📧</div>
+                        <div class="info-content">
+                            <span class="info-label">Email</span>
+                            <span class="info-value" id="profileEmail">--</span>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Ubicación:</span>
-                        <span class="detail-value" id="profileLocation">--</span>
+                    <div class="info-card">
+                        <div class="info-icon">📍</div>
+                        <div class="info-content">
+                            <span class="info-label">Ubicación</span>
+                            <span class="info-value" id="profileLocation">--</span>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Biografía:</span>
-                        <span class="detail-value" id="profileBio">Sin biografía</span>
+                    <div class="info-card">
+                        <div class="info-icon">📝</div>
+                        <div class="info-content">
+                            <span class="info-label">Biografía</span>
+                            <span class="info-value" id="profileBio">Sin biografía</span>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="detail-section">
-                    <h3>Actividad en la Comunidad</h3>
-                    <div class="activity-stats">
-                        <div class="activity-item">
+            <!-- Actividad en la Comunidad -->
+            <div class="profile-section">
+                <h3 class="section-title dante99">Actividad en la Comunidad</h3>
+                <div class="activity-stats-horizontal">
+                    <div class="activity-card">
+                        <div class="activity-icon">📄</div>
+                        <div class="activity-content">
                             <span class="activity-number" id="profilePosts">0</span>
                             <span class="activity-label">Publicaciones</span>
                         </div>
-                        <div class="activity-item">
+                    </div>
+                    <div class="activity-card">
+                        <div class="activity-icon">💬</div>
+                        <div class="activity-content">
                             <span class="activity-number" id="profileComments">0</span>
                             <span class="activity-label">Comentarios</span>
                         </div>
-                        <div class="activity-item">
+                    </div>
+                    <div class="activity-card">
+                        <div class="activity-icon">👍</div>
+                        <div class="activity-content">
                             <span class="activity-number" id="profileReactions">0</span>
                             <span class="activity-label">Reacciones</span>
                         </div>
@@ -7785,76 +7807,7 @@
             </div>
         </div>
     </div>
-            </div>
-
-            <!-- Información Personal -->
-            <div class="profile-section">
-                <h3>Información Personal</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <i class="fas fa-calendar"></i>
-                        <span id="profileJoinDate">Cargando fecha...</span>
-                    </div>
-                    <div class="info-item" id="profileLocationItem" style="display: none;">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span id="profileLocation">Ciudad, País</span>
-                    </div>
-                </div>
-                <div class="bio-section" id="bioSection" style="display: none;">
-                    <h4>Biografía</h4>
-                    <p id="profileBio">Descripción del usuario...</p>
-                </div>
-                <div class="cv-section" id="cvSection" style="display: none;">
-                    <h4>CV/Experiencia</h4>
-                    <p id="profileCV">Información profesional o académica...</p>
-                </div>
-            </div>
-
-            <!-- Estadísticas del Juego -->
-            <div class="profile-section">
-                <h3>Estadísticas</h3>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">🏆</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Liga</span>
-                            <span class="stat-value" id="profileLeagueDisplay">Oro</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">⭐</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Puntos</span>
-                            <span class="stat-value" id="profilePoints">0</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📊</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Ranking</span>
-                            <span class="stat-value" id="profileRanking">Calculando...</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="activity-info">
-                    <div class="info-item">
-                        <i class="fas fa-clock"></i>
-                        <span id="profileLastSeen">Calculando actividad...</span>
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-edit"></i>
-                        <span id="profilePosts">Contando posts...</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Botones de Acción -->
-            <div class="profile-actions">
-                <button class="btn-primary" id="sendMessageBtn">Enviar Mensaje</button>
-                <button class="btn-secondary" id="viewPostsBtn">Ver Posts</button>
-            </div>
-        </div>
-    </div>
+            
 
 </body>
 </html>
