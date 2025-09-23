@@ -2944,8 +2944,8 @@
                         const diffMs = now - joinedDate;
                         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-                        // Simular estado online (en producción esto vendría de websockets o última actividad)
-                        const isOnline = Math.random() > 0.7; // 30% online
+                        // Estado online real se maneja por el sistema de presencia
+                        const isOnline = false; // Se actualiza por presencia real
 
                         return {
                             id: member.id || user?.id,
@@ -2955,7 +2955,7 @@
                             admin: member.role === 'admin' || member.role === 'moderator',
                             location: user?.user_metadata?.location || 'No especificado',
                             joined: member.joined_at || member.created_at,
-                            lastSeen: isOnline ? 'Ahora' : `${Math.floor(Math.random() * 60) + 1} min`,
+                            lastSeen: 'Calculando...',
                             avatar: user?.profile_picture_url || 'fas fa-user',
                             status: isOnline ? 'online' : 'offline',
                             // Datos adicionales
@@ -3053,14 +3053,8 @@
 
                 let data = [...members];
                 
-                // Actualizar estados online dinámicamente
-                data.forEach(member => {
-                    if (!member.online) {
-                        // Simular cambios de estado offline
-                        const lastSeenMinutes = Math.floor(Math.random() * 120); // 0-120 minutos
-                        member.lastSeen = lastSeenMinutes === 0 ? 'Ahora' : `${lastSeenMinutes} min`;
-                    }
-                });
+                // Estados online reales se manejan por el sistema de presencia
+                // Ya no hay simulación de estados aleatorios
                 
                 if(filter==='online') data = data.filter(m=>m.online);
                 if(filter==='admins') data = data.filter(m=>m.admin);
@@ -4392,11 +4386,11 @@
                             name: userName,
                             avatar: user?.profile_picture_url || null,
                             admin: member.role === 'admin' || member.role === 'moderator',
-                            online: Math.random() > 0.6, // Simulación temporal
-                            location: 'En línea',
-                            lastSeen: '2 min',
+                            online: false, // Se calculará con presencia real
+                            location: 'Miembro de la comunidad',
+                            lastSeen: 'Calculando...',
                             joined: member.joined_at || member.created_at || new Date().toISOString(),
-                            points: member.points || Math.floor(Math.random() * 1000)
+                            points: member.points || 0
                         };
                     });
 
@@ -6137,41 +6131,271 @@
             }
         }
 
-        // 🚨 FUNCIÓN PRINCIPAL PARA CARGAR DATOS REALES (EXACTA SEGÚN DOCUMENTO)
+        // 🚨 FUNCIÓN PARA OBTENER ACTIVIDAD REAL DEL USUARIO
+        async function getRealUserActivity(userId) {
+            try {
+                console.log('📊 Obteniendo actividad real para usuario:', userId);
+
+                // Ejecutar todas las consultas en paralelo para mejor rendimiento
+                const [postsResult, commentsResult, reactionsResult] = await Promise.allSettled([
+                    // 1. Contar publicaciones reales desde community_posts
+                    window.supabase
+                        .from('community_posts')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('user_id', userId),
+
+                    // 2. Contar comentarios reales desde community_comments (excluyendo eliminados)
+                    window.supabase
+                        .from('community_comments')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('user_id', userId)
+                        .eq('is_deleted', false),
+
+                    // 3. Contar reacciones reales desde community_reactions
+                    window.supabase
+                        .from('community_reactions')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('user_id', userId)
+                ]);
+
+                // Procesar resultados con manejo de errores
+                const posts = postsResult.status === 'fulfilled' ? (postsResult.value.count || 0) : 0;
+                const comments = commentsResult.status === 'fulfilled' ? (commentsResult.value.count || 0) : 0;
+                const reactions = reactionsResult.status === 'fulfilled' ? (reactionsResult.value.count || 0) : 0;
+
+                const activity = { posts, comments, reactions };
+
+                console.log('📊 Actividad real obtenida:', activity);
+                console.log('📊 Detalles:', {
+                    posts: `${posts} publicaciones`,
+                    comments: `${comments} comentarios`,
+                    reactions: `${reactions} reacciones`
+                });
+
+                return activity;
+
+            } catch (error) {
+                console.error('❌ Error obteniendo actividad real:', error);
+                return { posts: 0, comments: 0, reactions: 0 };
+            }
+        }
+
+        // 🚨 FUNCIÓN PARA OBTENER RANKING REAL DEL USUARIO
+        async function getRealUserRanking(userId) {
+            try {
+                console.log('🏆 Calculando ranking real para usuario:', userId);
+
+                // Obtener todos los usuarios ordenados por puntos (descendente)
+                const { data: allUsers, error } = await window.supabase
+                    .from('users')
+                    .select('id, points')
+                    .not('points', 'is', null) // Excluir usuarios sin puntos
+                    .order('points', { ascending: false });
+
+                if (error) throw error;
+
+                // Encontrar la posición del usuario actual
+                const userIndex = allUsers.findIndex(user => user.id === userId);
+                const userRank = userIndex >= 0 ? userIndex + 1 : 0;
+                const totalUsers = allUsers.length;
+
+                const ranking = {
+                    rank: userRank,
+                    total: totalUsers
+                };
+
+                console.log('🏆 Ranking real calculado:', ranking);
+                console.log('🏆 Usuario en posición:', userRank, 'de', totalUsers, 'usuarios');
+
+                return ranking;
+
+            } catch (error) {
+                console.error('❌ Error calculando ranking real:', error);
+                return { rank: 0, total: 0 };
+            }
+        }
+
+        // 🚨 FUNCIONES HELPER PARA CÁLCULOS REALES
+
+        // Calcular liga real basada en puntos
+        function getRealLeagueFromPoints(points) {
+            if (!points || points < 0) return 'Sin Liga';
+            if (points < 100) return 'Bronce';
+            if (points < 500) return 'Plata';
+            if (points < 1000) return 'Oro';
+            if (points < 2000) return 'Platino';
+            if (points < 5000) return 'Diamante';
+            return 'Maestro';
+        }
+
+        // Calcular tiempo transcurrido real
+        function getRealTimeAgo(timestamp) {
+            if (!timestamp) return 'Nunca visto';
+
+            const now = new Date();
+            const lastSeen = new Date(timestamp);
+            const diffMs = now - lastSeen;
+
+            const minutes = Math.floor(diffMs / (1000 * 60));
+            const hours = Math.floor(diffMs / (1000 * 60 * 60));
+            const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+            if (minutes < 1) return 'Ahora mismo';
+            if (minutes < 60) return `Hace ${minutes} minuto${minutes > 1 ? 's' : ''}`;
+            if (hours < 24) return `Hace ${hours} hora${hours > 1 ? 's' : ''}`;
+            if (days < 30) return `Hace ${days} día${days > 1 ? 's' : ''}`;
+            return `Hace más de un mes`;
+        }
+
+        // Calcular fecha de membresía real
+        function getRealMemberSince(createdAt) {
+            if (!createdAt) return 'Fecha desconocida';
+
+            const date = new Date(createdAt);
+            const now = new Date();
+            const diffTime = now - date;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 1) return 'Hoy';
+            if (diffDays < 30) return `Hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
+            if (diffDays < 365) {
+                const months = Math.floor(diffDays / 30);
+                return `Hace ${months} mes${months > 1 ? 'es' : ''}`;
+            }
+            const years = Math.floor(diffDays / 365);
+            return `Hace ${years} año${years > 1 ? 's' : ''}`;
+        }
+
+        // Función para actualizar UI con datos reales
+        function updateProfileModalWithRealData(data) {
+            const { user, activity, ranking, league, lastSeen, memberSince } = data;
+
+            console.log('🔍 VERIFICACIÓN FINAL - DATOS COMPLETAMENTE REALES:');
+            console.log('  - Usuario ID:', user.id);
+            console.log('  - Puntos desde BD:', user.points);
+            console.log('  - Ranking calculado:', `#${ranking.rank} de ${ranking.total}`);
+            console.log('  - Posts reales:', activity.posts);
+            console.log('  - Comentarios reales:', activity.comments);
+            console.log('  - Reacciones reales:', activity.reactions);
+            console.log('  - Liga calculada:', league);
+
+            // 1. Datos básicos del usuario
+            setText('profileName', user.display_name || user.first_name || user.username || 'Usuario');
+            setText('profileUsername', `@${user.username || 'usuario'}`);
+            setText('profileEmail', user.email || 'No especificado');
+            setText('profileLocation', user.location || 'No especificado');
+            setText('profileBio', user.bio || 'Sin biografía disponible');
+
+            // 2. Estadísticas REALES
+            setText('profilePoints', (user.points || 0).toLocaleString());
+            setText('profileRank', ranking.rank > 0 ? `#${ranking.rank} de ${ranking.total}` : 'Sin ranking');
+            setText('profileJoinDate', memberSince);
+
+            // 3. Actividad REAL en la comunidad
+            setText('profilePosts', activity.posts);
+            setText('profileComments', activity.comments);
+            setText('profileReactions', activity.reactions);
+
+            // 4. Liga real
+            setText('profileLeague', league);
+
+            // 5. Última vez visto real
+            const lastSeenElement = document.getElementById('profileLastSeen');
+            if (lastSeenElement) {
+                lastSeenElement.textContent = lastSeen;
+            }
+
+            // 6. Avatar
+            const avatarImg = document.getElementById('userProfileAvatar');
+            if (avatarImg && user.profile_picture_url) {
+                avatarImg.src = user.profile_picture_url;
+                avatarImg.style.display = 'block';
+            }
+
+            console.log('✅ UI ACTUALIZADA CON DATOS REALES');
+        }
+
+        // Helper para setText
+        function setText(elementId, text) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = text;
+            }
+        }
+
+        // Mostrar error en el perfil
+        function showProfileError(message) {
+            console.error('❌ Error en perfil:', message);
+            // Puedes agregar aquí una notificación visual al usuario
+            if (window.notifications) {
+                window.notifications.error(message);
+            }
+        }
+
+        // 🚨 FUNCIÓN PRINCIPAL PARA CARGAR DATOS REALES (DIRECTA A SUPABASE)
         async function loadRealUserProfile(userId) {
             try {
                 console.log('🔄 Cargando datos REALES del usuario:', userId);
 
-                const response = await fetch(`/api/user/profile/${userId}`);
-                const data = await response.json();
+                // 1. Obtener datos básicos del usuario
+                const { data: user, error: userError } = await window.supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
 
-                console.log('✅ DATOS REALES OBTENIDOS:', data);
+                if (userError) throw userError;
 
-                // Actualizar TODOS los elementos con datos reales
-                updateProfileModal(data);
+                // 2. Obtener actividad real del usuario
+                const activity = await getRealUserActivity(userId);
+                console.log('📊 Actividad real:', activity);
+
+                // 3. Obtener ranking real del usuario
+                const ranking = await getRealUserRanking(userId);
+                console.log('🏆 Ranking real:', ranking);
+
+                // 4. Calcular liga real basada en puntos
+                const realLeague = getRealLeagueFromPoints(user.points);
+                console.log('🎯 Liga real:', realLeague);
+
+                // 5. Calcular tiempo transcurrido real
+                const realLastSeen = getRealTimeAgo(user.last_login_at);
+                console.log('🕐 Última vez visto real:', realLastSeen);
+
+                // 6. Calcular fecha de membresía real
+                const realMemberSince = getRealMemberSince(user.created_at);
+                console.log('📅 Miembro desde real:', realMemberSince);
+
+                // 7. Actualizar UI con datos REALES
+                updateProfileModalWithRealData({
+                    user,
+                    activity,
+                    ranking,
+                    league: realLeague,
+                    lastSeen: realLastSeen,
+                    memberSince: realMemberSince
+                });
+
+                console.log('✅ PERFIL ACTUALIZADO CON DATOS REALES');
 
             } catch (error) {
-                console.error('❌ ERROR AL CARGAR PERFIL:', error);
-                return null;
+                console.error('❌ ERROR AL CARGAR PERFIL REAL:', error);
+                showProfileError('Error al cargar datos del perfil');
             }
         }
 
-        // 🚨 FUNCIÓN PARA ACTUALIZAR EL MODAL CON DATOS REALES (EXACTA SEGÚN DOCUMENTO)
+        // 🚨 FUNCIÓN LEGACY - REDIRIGE A NUEVA IMPLEMENTACIÓN CON DATOS REALES
         function updateProfileModal(data) {
-            const { user, stats } = data;
+            console.log('⚠️ [LEGACY] updateProfileModal llamada - redirigiendo a implementación real');
 
-            // 🚨 LOGS DE VERIFICACIÓN FINAL SEGÚN DOCUMENTO
-            console.log('✅ VERIFICACIÓN FINAL - DATOS COMPLETAMENTE REALES:');
-            console.log('🔍 USUARIO COMPLETO:', user);
-            console.log('📊 ESTADÍSTICAS REALES:', stats);
-            console.log('🎯 PUNTOS DESDE BD:', user.points);
-            console.log('📝 BIO DESDE BD:', user.bio);
-            console.log('💼 CARGO DESDE BD:', user.cargo_rol);
-            console.log('🏆 LIGA CALCULADA REAL:', stats.league);
-            console.log('📊 RANKING CALCULADO REAL:', stats.ranking);
-            console.log('📝 POSTS REALES CONTADOS:', stats.posts_count);
-            console.log('🕐 ÚLTIMA VEZ VISTO CALCULADO:', stats.last_seen);
-            console.log('📅 MIEMBRO DESDE CALCULADO:', stats.member_since);
+            // Esta función legacy ahora redirige a la implementación real
+            if (data && data.user && data.user.id) {
+                console.log('✅ [LEGACY] Redirigiendo a loadRealUserProfile con userId:', data.user.id);
+                loadRealUserProfile(data.user.id);
+            } else {
+                console.error('❌ [LEGACY] Datos inválidos para actualizar perfil:', data);
+                showProfileError('No se pudieron cargar los datos del perfil');
+            }
 
             // 1. ⭐ BIOGRAFÍA (FALTANTE - AGREGAR)
             const bioElement = document.getElementById('profileBio');
@@ -7516,53 +7740,19 @@
                 }
 
                 renderUserData(userData) {
-                    console.log('📝 [MODAL FIX] Renderizando datos:', userData);
+                    console.log('📝 [MODAL FIX] Redirigiendo a loadRealUserProfile para datos reales:', userData);
 
-                    // Información básica
-                    this.setText('profileName', this.getDisplayName(userData));
-                    this.setText('profileUsername', `@${userData.username || 'usuario'}`);
-                    this.setText('profileEmail', userData.email || 'No especificado');
+                    // 🚨 ELIMINAR COMPLETAMENTE DATOS HARDCODEADOS/SIMULADOS
+                    // Esta función ahora usa SOLO datos reales de la base de datos
 
-                    // Campos que pueden no existir en el esquema actual
-                    this.setText('profileLocation', 'No especificado'); // Campo temporal
-                    this.setText('profileBio', 'Sin biografía disponible'); // Campo temporal
-
-                    // Estadísticas (usar datos del miembro cuando estén disponibles)
-                    const points = userData.member_points || userData.points || Math.floor(Math.random() * 500);
-                    this.setText('profilePoints', points.toLocaleString());
-
-                    // Usar joined_at para mostrar cuándo se unió a la comunidad
-                    const joinDate = userData.joined_at || userData.created_at;
-                    this.setText('profileJoinDate', this.formatDate(joinDate));
-                    this.setText('profileRank', '#' + Math.floor(Math.random() * 100 + 1)); // Ranking simulado
-
-                    // Actividad (datos simulados basados en el usuario)
-                    const userId = userData.id;
-                    const hashCode = this.simpleHash(userId);
-                    this.setText('profilePosts', Math.floor(hashCode % 20));
-                    this.setText('profileComments', Math.floor((hashCode * 2) % 50));
-                    this.setText('profileReactions', Math.floor((hashCode * 3) % 100));
-
-                    // Liga basada en puntos
-                    const league = this.calculateLeague(points);
-                    this.setText('profileLeague', league);
-
-                    // Avatar
-                    this.setAvatar(userData.profile_picture_url);
-
-                    // Rol del miembro en la comunidad
-                    const memberRole = userData.member_role || 'member';
-                    this.setRole(memberRole);
-
-                    // Estado online (simulado)
-                    const onlineStatus = document.getElementById('onlineStatus');
-                    if (onlineStatus) {
-                        // Simular estado online basado en el hash del usuario
-                        if (hashCode % 3 === 0) {
-                            onlineStatus.classList.add('online');
-                        } else {
-                            onlineStatus.classList.remove('online');
-                        }
+                    if (userData && userData.id) {
+                        // Usar la nueva función que carga datos reales
+                        console.log('✅ [MODAL FIX] Llamando a loadRealUserProfile con userId:', userData.id);
+                        loadRealUserProfile(userData.id);
+                    } else {
+                        console.error('❌ [MODAL FIX] No se pudo obtener ID de usuario para cargar datos reales');
+                        showProfileError('No se pudo cargar el perfil del usuario');
+                    }
                     }
 
                     // Finalizar carga
@@ -7722,21 +7912,21 @@
                 <h3 class="section-title dante99">Estadísticas</h3>
                 <div class="profile-stats-horizontal">
                     <div class="stat-card">
-                        <div class="stat-icon">👥</div>
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
                         <div class="stat-info">
                             <span class="stat-label">Miembro desde</span>
                             <span class="stat-value" id="profileJoinDate">--</span>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">⭐</div>
+                        <div class="stat-icon"><i class="fas fa-star"></i></div>
                         <div class="stat-info">
                             <span class="stat-label">Puntos</span>
                             <span class="stat-value" id="profilePoints">0</span>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">📊</div>
+                        <div class="stat-icon"><i class="fas fa-chart-bar"></i></div>
                         <div class="stat-info">
                             <span class="stat-label">Rango</span>
                             <span class="stat-value" id="profileRank">#--</span>
@@ -7750,21 +7940,21 @@
                 <h3 class="section-title dante99">Información Personal</h3>
                 <div class="profile-info-horizontal">
                     <div class="info-card">
-                        <div class="info-icon">📧</div>
+                        <div class="info-icon"><i class="fas fa-envelope"></i></div>
                         <div class="info-content">
                             <span class="info-label">Email</span>
                             <span class="info-value" id="profileEmail">--</span>
                         </div>
                     </div>
                     <div class="info-card">
-                        <div class="info-icon">📍</div>
+                        <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
                         <div class="info-content">
                             <span class="info-label">Ubicación</span>
                             <span class="info-value" id="profileLocation">--</span>
                         </div>
                     </div>
                     <div class="info-card">
-                        <div class="info-icon">📝</div>
+                        <div class="info-icon"><i class="fas fa-file-alt"></i></div>
                         <div class="info-content">
                             <span class="info-label">Biografía</span>
                             <span class="info-value" id="profileBio">Sin biografía</span>
@@ -7778,21 +7968,21 @@
                 <h3 class="section-title dante99">Actividad en la Comunidad</h3>
                 <div class="activity-stats-horizontal">
                     <div class="activity-card">
-                        <div class="activity-icon">📄</div>
+                        <div class="activity-icon"><i class="fas fa-file-alt"></i></div>
                         <div class="activity-content">
                             <span class="activity-number" id="profilePosts">0</span>
                             <span class="activity-label">Publicaciones</span>
                         </div>
                     </div>
                     <div class="activity-card">
-                        <div class="activity-icon">💬</div>
+                        <div class="activity-icon"><i class="fas fa-comment"></i></div>
                         <div class="activity-content">
                             <span class="activity-number" id="profileComments">0</span>
                             <span class="activity-label">Comentarios</span>
                         </div>
                     </div>
                     <div class="activity-card">
-                        <div class="activity-icon">👍</div>
+                        <div class="activity-icon"><i class="fas fa-thumbs-up"></i></div>
                         <div class="activity-content">
                             <span class="activity-number" id="profileReactions">0</span>
                             <span class="activity-label">Reacciones</span>

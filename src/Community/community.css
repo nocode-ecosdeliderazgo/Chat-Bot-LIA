@@ -5396,6 +5396,48 @@ body {
     font-weight: 600;
 }
 
+/* Estilos para iconos del modal de perfil */
+.stat-icon i,
+.info-icon i,
+.activity-icon i {
+    font-size: 20px;
+    transition: all 0.3s ease;
+}
+
+/* Colores específicos para cada tipo de icono */
+.stat-icon i {
+    color: #6366f1;
+}
+
+.info-icon i {
+    color: #8b5cf6;
+}
+
+.activity-icon i {
+    color: #06b6d4;
+}
+
+/* Hover effects */
+.stat-card:hover .stat-icon i,
+.info-card:hover .info-icon i,
+.activity-card:hover .activity-icon i {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+/* Colores específicos por categoría */
+.stat-icon .fa-users { color: #8b5cf6; }
+.stat-icon .fa-star { color: #f59e0b; }
+.stat-icon .fa-chart-bar { color: #10b981; }
+
+.info-icon .fa-envelope { color: #3b82f6; }
+.info-icon .fa-map-marker-alt { color: #ef4444; }
+.info-icon .fa-file-alt { color: #f59e0b; }
+
+.activity-icon .fa-file-alt { color: #3b82f6; }
+.activity-icon .fa-comment { color: #8b5cf6; }
+.activity-icon .fa-thumbs-up { color: #10b981; }
+
 /* Modo claro */
 [data-theme="light"] .league-profile-card,
 [data-theme="light"] .leaderboard-container,
@@ -5403,6 +5445,19 @@ body {
     background: rgba(255, 255, 255, 0.95);
     border-color: rgba(0, 0, 0, 0.1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Ajustes para modo claro */
+[data-theme="light"] .stat-icon i,
+[data-theme="light"] .info-icon i,
+[data-theme="light"] .activity-icon i {
+    opacity: 0.8;
+}
+
+[data-theme="light"] .stat-card:hover .stat-icon i,
+[data-theme="light"] .info-card:hover .info-icon i,
+[data-theme="light"] .activity-card:hover .activity-icon i {
+    opacity: 1;
 }
 
 [data-theme="light"] .league-profile-name,
