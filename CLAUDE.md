@@ -380,6 +380,12 @@ const observeElements = () => {
 
 ### Recent Development Context
 - Current branch: `Rama-Comunidades-Israel` (community development branch)
+- **Recent major improvements**:
+  - User profile modal system refactoring with simplified closing mechanism
+  - Real-time user data integration replacing hardcoded profile values
+  - Community voting system fully operational
+  - Comments functionality fixes and improvements
+  - Enhanced community member interaction features
 - Active development of community features including user interactions, voting systems, and content moderation
 - Community system with RLS policies and diagnostic tools for debugging
 - Enhanced authentication system with hybrid user ID handling for cross-platform compatibility
@@ -444,15 +450,24 @@ The project includes specialized port management for cross-platform development:
 
 **Note**: Port kill scripts (`scripts/kill-port-3000.cjs`, `scripts/kill-port-3001.cjs`) are referenced in package.json but not present in the repository. These should be created if port management is needed.
 
-### Content Security Policy (CSP) Configuration
-The application has a comprehensive CSP configured in `netlify.toml` to support:
-- YouTube video embedding (`https://www.youtube.com`, `https://s.ytimg.com`)
-- Supabase integration (`https://*.supabase.co`)
-- Google APIs and authentication (`https://apis.google.com`, `https://accounts.google.com`)
-- External CDNs (`https://esm.sh`, `https://cdn.jsdelivr.net`)
-- WebSocket connections for real-time features (`wss:`, `ws:`)
-- Font loading from Google Fonts
-- Unsafe inline scripts and styles (required for dynamic content)
+### Security Headers Configuration (netlify.toml)
+The application has comprehensive security headers configured in `netlify.toml`:
+
+**Content Security Policy (CSP)**:
+- **Script Sources**: Self, unsafe-inline/eval (for dynamic content), YouTube, Google APIs, CDNs, Supabase
+- **Style Sources**: Self, unsafe-inline, Google Fonts, external CDNs
+- **Frame Sources**: YouTube embedding support (`https://www.youtube.com`, `https://youtube.com`)
+- **Connect Sources**: API domains, YouTube, Google services, Supabase, WebSocket (`wss:`, `ws:`)
+- **Media/Image Sources**: Comprehensive blob, data, and HTTPS support
+
+**Additional Security Headers**:
+- **X-Frame-Options**: `SAMEORIGIN` (allows YouTube embeds)
+- **X-Content-Type-Options**: `nosniff` (prevents MIME sniffing)
+- **X-XSS-Protection**: `1; mode=block` (XSS attack prevention)
+- **Referrer-Policy**: `strict-origin-when-cross-origin` (optimized for YouTube)
+
+**Performance Optimizations**:
+- **Preconnect hints** for YouTube domains (`youtube.com`, `i.ytimg.com`, `s.ytimg.com`)
 
 ### Environment Requirements
 - **Node.js**: 18+ (specified in package.json engines)
@@ -477,11 +492,127 @@ The application supports both local development and production deployment:
 - No persistent connections
 
 ### API Routing Strategy (netlify.toml)
-Specific redirects are prioritized over wildcards:
-- Authentication: `/api/login`, `/api/register`, `/api/auth/issue`
+The netlify.toml file contains comprehensive API routing with specific redirects prioritized over wildcards:
+
+**Core System APIs**:
+- Authentication: `/api/login`, `/api/register`, `/api/auth/issue`, `/api/verify-email`
 - OpenAI: `/api/openai`
-- Courses: `/api/courses/*`, `/api/modules/*`
-- User Progress: `/api/users/*/progress/*`, `/api/users/*/video-progress`
-- Community: `/api/community/*`
-- Debugging: `/api/debug-cors`, `/api/video-debug`
+- User Management: `/api/profile`, `/api/update-profile`, `/api/update-avatar`
+- Session Management: `/api/user/session`, `/api/test-profile`
+
+**Course System APIs**:
+- Courses: `/api/courses/*/full-structure`, `/api/courses/*/current-module/*`
+- Modules: `/api/modules/*/video-data`, `/api/modules/*/videos`
+- Progress: `/api/users/*/progress/*`, `/api/users/*/video-progress`
+- Video Management: `/api/video-debug`, `/api/video-fix`
+
+**Community System APIs**:
+- Community Posts: `/api/community/questions`, `/api/community/questions/*/answers`
+- Voting System: `/api/community/questions/*/vote`, `/api/community/answers/*/vote`
+- General Community: `/api/community/*`
+
+**Analytics & Monitoring**:
+- GenAI Radar: `/api/genai-radar/*`, `/api/adopcion-genai`
+- Grafana: `/grafana/health`, `/grafana/panel/*.png`
+- Debugging: `/api/debug-cors`, `/api/debug-register`
+
+**Infrastructure**:
+- Supabase Config: `/api/supabase-config`
+- Database Setup: `/api/setup-activity-columns`, `/api/setup-otps-table`
 - Wildcard: `/api/*` → `/.netlify/functions/:splat` (lowest priority)
+
+## Community System Architecture
+
+### Core Components
+The community system is built with a modular architecture centered around user-generated content and real-time interactions:
+
+**Database Layer**:
+- `CommunityDatabase` class handles all Supabase operations with error handling and fallbacks
+- Tables: `community_posts`, `community_comments`, `community_reactions`, `community_members`
+- RLS (Row Level Security) policies for data protection and access control
+
+**Frontend Architecture**:
+- `CommunityPage` class (community.js) - Main orchestrator for community features
+- `CommunitySystem` class (community-view.html) - Handles community detail views and interactions
+- Profile modal system with real-time activity data from database queries
+
+**Key Features**:
+- Real-time posting, commenting, and reaction system
+- User profile modals with activity statistics pulled from database
+- League/points system integrated with community actions
+- Member management with role-based permissions
+- Search and filtering capabilities across posts and members
+
+### Profile Modal Data Sources
+The profile modal displays real-time activity data sourced directly from Supabase:
+
+**Activity Metrics**:
+- **Posts**: `SELECT COUNT(*) FROM community_posts WHERE user_id = ?`
+- **Comments**: `SELECT COUNT(*) FROM community_comments WHERE user_id = ?`
+- **Reactions**: `SELECT COUNT(*) FROM community_reactions WHERE user_id = ?`
+
+**Data Updates**: Metrics update automatically when users perform actions (post, comment, react)
+**Function**: `populateUserProfileModal()` in community-view.html handles data retrieval and DOM updates
+
+### Authentication Integration
+The community system uses a hybrid authentication approach:
+- Primary: Supabase Auth for database operations
+- Fallback: LocalStorage user data for basic functionality
+- Session validation through `hasCommunitySession()` function
+- Graceful degradation to read-only mode when authentication fails
+
+## Code Quality & Maintenance Patterns
+
+### Error Handling Pattern
+```javascript
+// Standard error handling with user feedback
+try {
+    const result = await databaseOperation();
+    notifications.success('Operation completed');
+} catch (error) {
+    console.error('Operation failed:', error);
+    notifications.error('User-friendly error message');
+    // Fallback behavior
+}
+```
+
+### Supabase Integration Pattern
+```javascript
+// Proper Supabase client initialization and usage
+const { data, error } = await window.supabase
+    .from('table_name')
+    .select('*')
+    .eq('column', value);
+
+if (error) throw error;
+return data;
+```
+
+### Community Data Loading Pattern
+```javascript
+// Real-time data loading with fallbacks
+async function loadDataFromDatabase() {
+    try {
+        await window.waitForSupabase(); // Wait for client initialization
+        const data = await queryDatabase();
+        updateUI(data);
+    } catch (error) {
+        console.warn('Database failed, using fallback:', error);
+        loadFromLocalStorage();
+    }
+}
+```
+
+## Important Development Guidelines
+
+### File Creation and Modification Philosophy
+- **ALWAYS prefer editing existing files** to creating new ones
+- **NEVER create files unless absolutely necessary** for achieving your goal
+- **NEVER proactively create documentation files** (*.md) or README files unless explicitly requested by the user
+- Focus on "doing what has been asked; nothing more, nothing less"
+
+### Current Development Focus
+- **Community Features**: Active development of user interactions, voting systems, and real-time engagement
+- **Profile System**: Real-time data integration with database-driven user profiles
+- **Video Integration**: YouTube embedding with comprehensive CSP support
+- **Authentication**: Hybrid approach supporting both Supabase and localStorage fallbacks

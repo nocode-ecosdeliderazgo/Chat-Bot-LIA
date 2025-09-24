@@ -948,7 +948,7 @@ async function handleRegister(e) {
         confirm_email: formData.get('confirm_email')?.trim(),
         password: formData.get('password'),
         confirm_password: formData.get('confirm_password'),
-        accept_terms: formData.get('accept_terms') === 'on'
+        accept_terms: formData.get('accept_all_terms') === 'on'
     };
     
     devLog('Parsed userData:', userData);
@@ -1956,18 +1956,16 @@ async function animateError() {
 
 /**
  * Abre la tarjeta informativa de términos y condiciones
- * @param {string} tab - La pestaña a mostrar ('terms' o 'privacy')
+ * @param {string} tab - La pestaña a mostrar ('terms', 'privacy', o 'conduct')
  */
 function openTermsCard(tab = 'terms') {
     const termsCard = document.getElementById('termsCard');
     if (termsCard) {
         termsCard.classList.add('active');
         document.body.style.overflow = 'hidden';
-        
-        // Si se especifica una pestaña, mostrarla
-        if (tab === 'privacy') {
-            showTermsTab('privacy');
-        }
+
+        // Mostrar la pestaña especificada
+        showTermsTab(tab);
     }
 }
 
@@ -2017,9 +2015,11 @@ function showTermsTab(tabName) {
 function acceptTermsAndClose() {
     // Marcar el checkbox único como aceptado
     const acceptAllTermsCheckbox = document.getElementById('acceptAllTerms');
-    
+
     if (acceptAllTermsCheckbox) {
         acceptAllTermsCheckbox.checked = true;
+        // Disparar evento para que se valide el formulario
+        acceptAllTermsCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
     }
     
     // Guardar la aceptación en localStorage
@@ -2747,7 +2747,13 @@ if (document.readyState === 'loading') {
     setupForgotPasswordEventListeners();
 }
 
+// Función específica para abrir la tarjeta desde los enlaces del HTML
+function showTermsCard() {
+    openTermsCard('terms');
+}
+
 // Exportar funciones para uso global
+window.showTermsCard = showTermsCard;
 window.openTermsCard = openTermsCard;
 window.closeTermsCard = closeTermsCard;
 window.showTermsTab = showTermsTab;
