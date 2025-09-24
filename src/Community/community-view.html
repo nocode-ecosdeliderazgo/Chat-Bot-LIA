@@ -6007,7 +6007,60 @@
                 const isInviteOnly = community.visibility === 'invite_only' || community.access_type === 'invite_only';
 
                 if (!isInviteOnly) {
-                    // No es invite_only, no mostrar botones
+                    // Es una comunidad gratuita (Free) - verificar sesión y registrar automáticamente
+                    console.log('🔓 [ACCESS] Comunidad gratuita detectada, verificando sesión...');
+
+                    const hasSession = await window.hasCommunitySession();
+                    if (!hasSession) {
+                        console.log('⚠️ [ACCESS] Sin sesión - usuario no puede unirse automáticamente');
+                        return;
+                    }
+
+                    // Verificar si ya es miembro
+                    const isMemberResult = await isMember(community.id);
+                    if (isMemberResult) {
+                        console.log('✅ [ACCESS] Usuario ya es miembro de la comunidad gratuita');
+                        return;
+                    }
+
+                    // Usuario autenticado no es miembro - unirse automáticamente
+                    console.log('🚀 [ACCESS] Registrando usuario automáticamente en comunidad gratuita...');
+
+                    try {
+                        // Obtener instancia de CommunityDatabase
+                        let db = null;
+                        if (window.communitySystem && window.communitySystem.db) {
+                            db = window.communitySystem.db;
+                        } else if (typeof CommunityDatabase !== 'undefined') {
+                            db = new CommunityDatabase();
+                            await db.initialize();
+                        } else {
+                            console.error('❌ [ACCESS] CommunityDatabase no disponible');
+                            return;
+                        }
+
+                        // Llamar a joinCommunity
+                        const joinSuccess = await db.joinCommunity(community.id);
+
+                        if (joinSuccess) {
+                            console.log('✅ [ACCESS] Usuario registrado automáticamente en comunidad gratuita');
+
+                            // Mostrar notificación de bienvenida
+                            if (typeof notifications !== 'undefined') {
+                                notifications.success(`¡Bienvenido a la comunidad "${community.name}"!`);
+                            }
+
+                            // Recargar miembros si existe el sistema
+                            if (window.communitySystem && typeof window.communitySystem.loadMembers === 'function') {
+                                await window.communitySystem.loadMembers();
+                            }
+                        } else {
+                            console.error('❌ [ACCESS] Error registrando usuario en comunidad gratuita');
+                        }
+                    } catch (error) {
+                        console.error('❌ [ACCESS] Error crítico registrando usuario:', error);
+                    }
+
                     return;
                 }
 
