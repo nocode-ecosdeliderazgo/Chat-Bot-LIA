@@ -5534,6 +5534,62 @@ body {
     .points-info-grid {
         grid-template-columns: 1fr;
     }
+    
+    /* Modal responsive */
+    .profile-card {
+        width: 95%;
+        max-width: none;
+        padding: 24px;
+        margin: 20px;
+    }
+    
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+        align-items: center;
+    }
+    
+    .profile-avatar {
+        align-self: center;
+        margin-top: 0;
+        width: 100px;
+        height: 100px;
+    }
+    
+    .avatar-img,
+    .avatar-fallback {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .profile-avatar .avatar-fallback {
+        font-size: 40px;
+    }
+    
+    .online-status {
+        bottom: 6px;
+        right: 6px;
+        width: 16px;
+        height: 16px;
+    }
+    
+    .profile-name {
+        font-size: 24px;
+    }
+    
+    .profile-stats-horizontal,
+    .profile-info-horizontal,
+    .activity-stats-horizontal {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .stat-card,
+    .info-card,
+    .activity-card {
+        min-width: auto;
+    }
 }
 
 @media (max-width: 480px) {
@@ -5544,6 +5600,60 @@ body {
     
     .leagues-filters {
         padding: 0 var(--spacing-sm);
+    }
+    
+    /* Modal para móviles pequeños */
+    .profile-card {
+        width: 98%;
+        padding: 20px;
+        margin: 10px;
+        border-radius: 20px;
+    }
+    
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .avatar-img,
+    .avatar-fallback {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .profile-avatar .avatar-fallback {
+        font-size: 32px;
+    }
+    
+    .online-status {
+        bottom: 4px;
+        right: 4px;
+        width: 14px;
+        height: 14px;
+    }
+    
+    .profile-name {
+        font-size: 20px;
+    }
+    
+    .profile-username {
+        font-size: 14px;
+    }
+    
+    .profile-section h3 {
+        font-size: 18px;
+    }
+    
+    .stat-card,
+    .info-card,
+    .activity-card {
+        padding: 12px;
+    }
+    
+    .stat-icon,
+    .info-icon,
+    .activity-icon {
+        font-size: 16px;
     }
 }
 
@@ -5592,12 +5702,15 @@ body {
     width: 90%;
     max-height: 90vh;
     margin: auto;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(10, 16, 28, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(68, 229, 255, 0.3);
+    border-radius: 24px;
+    box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(68, 229, 255, 0.1) inset,
+        0 12px 40px rgba(68, 229, 255, 0.08);
     padding: 32px;
     overflow-y: auto;
     transform: scale(0.9);
@@ -5638,11 +5751,17 @@ body {
 /* Header del Perfil */
 .profile-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 24px;
     margin-bottom: 32px;
     padding-bottom: 24px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Asegurar que el avatar esté alineado correctamente */
+.profile-header .profile-avatar {
+    margin-top: 0;
+    flex-shrink: 0;
 }
 
 .profile-avatar {
@@ -5657,6 +5776,51 @@ body {
     border: 3px solid rgba(68, 229, 255, 0.5);
     object-fit: cover;
     box-shadow: 0 4px 20px rgba(68, 229, 255, 0.3);
+    display: block;
+}
+
+/* Avatar fallback cuando no hay imagen */
+.profile-avatar .avatar-fallback {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #44e5ff, #0066CC);
+    border: 3px solid rgba(68, 229, 255, 0.5);
+    box-shadow: 
+        0 4px 20px rgba(68, 229, 255, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 48px;
+    font-weight: 300;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Efecto hover para el avatar fallback */
+.profile-avatar .avatar-fallback:hover {
+    transform: scale(1.05);
+    box-shadow: 
+        0 6px 25px rgba(68, 229, 255, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+}
+
+/* Animación sutil para el icono */
+.profile-avatar .avatar-fallback i {
+    transition: all 0.3s ease;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.profile-avatar .avatar-fallback:hover i {
+    transform: scale(1.1);
+}
+
+/* Cuando hay imagen, ocultar el fallback */
+.profile-avatar.has-image .avatar-fallback {
+    display: none;
 }
 
 .online-status {
@@ -5669,6 +5833,7 @@ body {
     background: #4CAF50;
     border: 3px solid white;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10;
 }
 
 .online-status.pulse {

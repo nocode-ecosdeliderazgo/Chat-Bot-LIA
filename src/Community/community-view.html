@@ -6385,6 +6385,58 @@
             return `Hace ${years} año${years > 1 ? 's' : ''}`;
         }
 
+        // Función mejorada para manejar el avatar
+        function updateProfileAvatar(user) {
+            const avatarContainer = document.getElementById('profileAvatarContainer');
+            const avatarImg = document.getElementById('profileAvatar');
+            const avatarFallback = document.getElementById('profileAvatarFallback');
+            
+            if (!avatarContainer || !avatarImg || !avatarFallback) {
+                console.warn('⚠️ [AVATAR] Elementos del avatar no encontrados');
+                return;
+            }
+            
+            // Limpiar clases anteriores
+            avatarContainer.classList.remove('has-image');
+            
+            // Verificar si el usuario tiene imagen válida
+            const hasValidImage = user.profile_picture_url && 
+                                 user.profile_picture_url.trim() !== '' && 
+                                 user.profile_picture_url !== 'null' &&
+                                 user.profile_picture_url !== 'undefined';
+            
+            if (hasValidImage) {
+                // Usuario tiene imagen
+                avatarImg.src = user.profile_picture_url;
+                avatarImg.style.display = 'block';
+                avatarFallback.style.display = 'none';
+                avatarContainer.classList.add('has-image');
+                
+                // Manejar error de carga de imagen
+                avatarImg.onerror = function() {
+                    console.warn('⚠️ [AVATAR] Error cargando imagen, mostrando fallback');
+                    this.style.display = 'none';
+                    avatarFallback.style.display = 'flex';
+                    avatarContainer.classList.remove('has-image');
+                };
+                
+                // Confirmar que la imagen se cargó correctamente
+                avatarImg.onload = function() {
+                    console.log('✅ [AVATAR] Imagen cargada correctamente');
+                };
+            } else {
+                // Usuario no tiene imagen, mostrar fallback
+                console.log('ℹ️ [AVATAR] Usuario sin imagen, mostrando fallback');
+                avatarImg.style.display = 'none';
+                avatarFallback.style.display = 'flex';
+                avatarContainer.classList.remove('has-image');
+            }
+            
+            // Asegurar que el contenedor del avatar mantenga su tamaño
+            avatarContainer.style.width = '120px';
+            avatarContainer.style.height = '120px';
+        }
+
         // Función para actualizar UI con datos reales
         function updateProfileModalWithRealData(data) {
             const { user, activity, ranking, league, lastSeen, memberSince } = data;
@@ -6404,6 +6456,9 @@
             setText('profileEmail', user.email || 'No especificado');
             setText('profileLocation', user.location || 'No especificado');
             setText('profileBio', user.bio || 'Sin biografía disponible');
+            
+            // 2. Actualizar avatar con función mejorada
+            updateProfileAvatar(user);
 
             // 2. Estadísticas REALES
             setText('profilePoints', (user.points || 0).toLocaleString());
@@ -6597,17 +6652,8 @@
                 usernameElement.textContent = `@${user.username || 'usuario'}`;
             }
 
-            // Foto de perfil
-            const avatarImg = document.getElementById('profileAvatar');
-            if (avatarImg && user.profile_picture_url) {
-                avatarImg.src = user.profile_picture_url;
-                avatarImg.style.display = 'block';
-                avatarImg.onerror = function() {
-                    this.style.display = 'none';
-                };
-            } else if (avatarImg) {
-                avatarImg.style.display = 'none';
-            }
+            // Actualizar avatar con función mejorada
+            updateProfileAvatar(user);
 
             // Mostrar modal
             const modal = document.getElementById('userProfileModal');
@@ -6733,17 +6779,8 @@
                 usernameElement.textContent = `@${userData.username || 'usuario'}`;
             }
 
-            // Foto de perfil
-            const avatarImg = document.getElementById('profileAvatar');
-            if (avatarImg && userData.profile_picture_url) {
-                avatarImg.src = userData.profile_picture_url;
-                avatarImg.style.display = 'block';
-                avatarImg.onerror = function() {
-                    this.style.display = 'none';
-                };
-            } else if (avatarImg) {
-                avatarImg.style.display = 'none';
-            }
+            // Actualizar avatar con función mejorada
+            updateProfileAvatar(userData);
 
             // Estado online
             const onlineStatus = document.getElementById('profileOnlineStatus');
@@ -7008,8 +7045,8 @@
                             <!-- Header skeleton -->
                             <div class="profile-header" style="display: flex; gap: 16px; margin-bottom: 24px;">
                                 <div class="loading-skeleton" style="
-                                    width: 80px;
-                                    height: 80px;
+                                    width: 120px;
+                                    height: 120px;
                                     border-radius: 50%;
                                 "></div>
                                 <div style="flex: 1;">
@@ -7394,16 +7431,8 @@
                 updateElement('profileRole', userData.cargo_rol);
                 updateElement('profileBio', userData.bio);
 
-                // Foto de perfil
-                const avatarImg = document.getElementById('profileAvatar');
-                if (avatarImg) {
-                    if (userData.profile_picture_url) {
-                        avatarImg.src = userData.profile_picture_url;
-                        avatarImg.style.display = 'block';
-                    } else {
-                        avatarImg.style.display = 'none';
-                    }
-                }
+                // Actualizar avatar con función mejorada
+                updateProfileAvatar(userData);
 
                 // 🚨 ELIMINAR LÓGICA HARDCODEADA - USAR DATOS REALES DE LA API
                 // Los datos reales se cargan a través de loadRealUserProfile()
@@ -7869,136 +7898,130 @@
                         console.error('❌ [MODAL FIX] No se pudo obtener ID de usuario para cargar datos reales');
                         showProfileError('No se pudo cargar el perfil del usuario');
                     }
-                    }
 
                     // Finalizar carga
                     this.hideSkeleton();
                 }
 
-                setText(elementId, text) {
-                    const element = document.getElementById(elementId);
-                    if (element) {
-                        element.textContent = text;
-                    } else {
-                        console.warn(`⚠️ [MODAL FIX] Elemento '${elementId}' no encontrado`);
-                    }
-                }
-
-                setAvatar(avatarUrl) {
-                    const avatarImg = document.getElementById('profileAvatar');
-                    if (avatarImg && avatarUrl) {
-                        avatarImg.src = avatarUrl;
-                        avatarImg.style.display = 'block';
-                        avatarImg.onerror = () => {
-                            avatarImg.style.display = 'none';
-                        };
-                    }
-                }
-
-                setRole(role) {
-                    const roleElement = document.getElementById('profileRole');
-                    if (roleElement) {
-                        if (role && role !== 'member') {
-                            roleElement.textContent = role === 'admin' ? 'Admin' : 'Moderador';
-                            roleElement.style.display = 'inline-block';
-                        } else {
-                            roleElement.style.display = 'none';
-                        }
-                    }
-                }
-
-                getDisplayName(userData) {
-                    const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim();
-                    return fullName || userData.display_name || userData.username || 'Usuario';
-                }
-
-                formatDate(dateString) {
-                    if (!dateString) return '--';
-
-                    const date = new Date(dateString);
-                    const now = new Date();
-                    const days = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-
-                    if (days < 1) return 'Hoy';
-                    if (days < 7) return `${days} días`;
-                    if (days < 30) return `${Math.floor(days / 7)} semanas`;
-                    if (days < 365) return `${Math.floor(days / 30)} meses`;
-                    return `${Math.floor(days / 365)} años`;
-                }
-
-                calculateLeague(points) {
-                    if (points >= 1000) return 'Liga Diamante';
-                    if (points >= 500) return 'Liga Platino';
-                    return 'Liga Oro';
-                }
-
-                simpleHash(str) {
-                    let hash = 0;
-                    if (str.length === 0) return hash;
-                    for (let i = 0; i < str.length; i++) {
-                        const char = str.charCodeAt(i);
-                        hash = ((hash << 5) - hash) + char;
-                        hash = hash & hash; // Convert to 32bit integer
-                    }
-                    return Math.abs(hash);
-                }
-
-                showModal() {
-                    this.modal.style.display = 'flex';
-                    this.modal.classList.add('active');
-                }
-
-                showSkeleton() {
-                    this.modal.classList.add('loading');
-                }
-
-                hideSkeleton() {
-                    this.modal.classList.remove('loading');
-                }
-
-                showError(message) {
-                    this.modal.classList.remove('loading');
-
-                    const profileCard = this.modal.querySelector('.profile-card');
-                    if (profileCard) {
-                        profileCard.innerHTML = `
-                            <button class="close-btn" id="closeProfileModal">×</button>
-                            <div style="padding: 40px 20px; text-align: center;">
-                                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #f39c12; margin-bottom: 20px;"></i>
-                                <h3 style="margin-bottom: 10px; color: var(--text-primary);">Error</h3>
-                                <p style="margin-bottom: 20px; color: var(--text-secondary);">${message}</p>
-                                <button class="btn-secondary" onclick="window.profileModalFixed.close()">Cerrar</button>
-                            </div>
-                        `;
-
-                        // Re-configurar listener del botón de cierre
-                        const closeBtn = profileCard.querySelector('#closeProfileModal');
-                        if (closeBtn) {
-                            closeBtn.addEventListener('click', () => this.close());
-                        }
-                    }
-                }
-
-                close() {
-                    console.log('✅ [MODAL FIX] Cerrando modal');
-
-                    this.modal.classList.remove('active', 'loading');
-                    this.modal.style.display = 'none';
-                    this.isOpen = false;
-                    this.currentUserId = null;
+            setText(elementId, text) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.textContent = text;
+                } else {
+                    console.warn(`⚠️ [MODAL FIX] Elemento '${elementId}' no encontrado`);
                 }
             }
 
-            // Instanciar el sistema corregido
-            window.profileModalFixed = new ProfileModalFixed();
+            setAvatar(avatarUrl) {
+                // Crear objeto usuario temporal para usar la función mejorada
+                const tempUser = { profile_picture_url: avatarUrl };
+                updateProfileAvatar(tempUser);
+            }
 
-            // Sobrescribir funciones globales para asegurar compatibilidad
-            window.openUserProfile = (memberId) => window.profileModalFixed.open(memberId);
-            window.closeUserProfile = () => window.profileModalFixed.close();
+            setRole(role) {
+                const roleElement = document.getElementById('profileRole');
+                if (roleElement) {
+                    if (role && role !== 'member') {
+                        roleElement.textContent = role === 'admin' ? 'Admin' : 'Moderador';
+                        roleElement.style.display = 'inline-block';
+                    } else {
+                        roleElement.style.display = 'none';
+                    }
+                }
+            }
 
-            console.log('✅ [MODAL FIX] Sistema del modal de perfil corregido e instalado');
+            getDisplayName(userData) {
+                const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim();
+                return fullName || userData.display_name || userData.username || 'Usuario';
+            }
 
-        })();
+            formatDate(dateString) {
+                if (!dateString) return '--';
+
+                const date = new Date(dateString);
+                const now = new Date();
+                const days = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+                if (days < 1) return 'Hoy';
+                if (days < 7) return `${days} días`;
+                if (days < 30) return `${Math.floor(days / 7)} semanas`;
+                if (days < 365) return `${Math.floor(days / 30)} meses`;
+                return `${Math.floor(days / 365)} años`;
+            }
+
+            calculateLeague(points) {
+                if (points >= 1000) return 'Liga Diamante';
+                if (points >= 500) return 'Liga Platino';
+                return 'Liga Oro';
+            }
+
+            simpleHash(str) {
+                let hash = 0;
+                if (str.length === 0) return hash;
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32bit integer
+                }
+                return Math.abs(hash);
+            }
+
+            showModal() {
+                this.modal.style.display = 'flex';
+                this.modal.classList.add('active');
+            }
+
+            showSkeleton() {
+                this.modal.classList.add('loading');
+            }
+
+            hideSkeleton() {
+                this.modal.classList.remove('loading');
+            }
+
+            showError(message) {
+                this.modal.classList.remove('loading');
+
+                const profileCard = this.modal.querySelector('.profile-card');
+                if (profileCard) {
+                    profileCard.innerHTML = `
+                        <button class="close-btn" id="closeProfileModal">×</button>
+                        <div style="padding: 40px 20px; text-align: center;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #f39c12; margin-bottom: 20px;"></i>
+                            <h3 style="margin-bottom: 10px; color: var(--text-primary);">Error</h3>
+                            <p style="margin-bottom: 20px; color: var(--text-secondary);">${message}</p>
+                            <button class="btn-secondary" onclick="window.profileModalFixed.close()">Cerrar</button>
+                        </div>
+                    `;
+
+                    // Re-configurar listener del botón de cierre
+                    const closeBtn = profileCard.querySelector('#closeProfileModal');
+                    if (closeBtn) {
+                        closeBtn.addEventListener('click', () => this.close());
+                    }
+                }
+            }
+
+            close() {
+                console.log('✅ [MODAL FIX] Cerrando modal');
+
+                this.modal.classList.remove('active', 'loading');
+                this.modal.style.display = 'none';
+                this.isOpen = false;
+                this.currentUserId = null;
+            }
+        }
+
+        // Instanciar el sistema corregido
+        window.profileModalFixed = new ProfileModalFixed();
+
+        // Sobrescribir funciones globales para asegurar compatibilidad
+        window.openUserProfile = (memberId) => window.profileModalFixed.open(memberId);
+        window.closeUserProfile = () => window.profileModalFixed.close();
+
+        console.log('✅ [MODAL FIX] Sistema del modal de perfil corregido e instalado');
+
+    })();
     </script>
 
     <!-- Modal de Perfil de Usuario -->
@@ -8009,8 +8032,11 @@
 
             <!-- Header del Perfil -->
             <div class="profile-header">
-                <div class="profile-avatar">
+                <div class="profile-avatar" id="profileAvatarContainer">
                     <img src="" alt="Usuario" class="avatar-img" id="profileAvatar" style="display: none;">
+                    <div class="avatar-fallback" id="profileAvatarFallback">
+                        <i class="fas fa-user"></i>
+                    </div>
                     <div class="online-status" id="onlineStatus"></div>
                 </div>
                 <div class="profile-info">
