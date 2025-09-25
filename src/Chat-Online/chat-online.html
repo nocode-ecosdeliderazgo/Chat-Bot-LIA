@@ -33,6 +33,9 @@
     <!-- CSS Principal y Neumorphism -->
     <link rel="stylesheet" href="../styles/main.css">
     <link rel="stylesheet" href="chat-online.css">
+    
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         // FUNCIÓN GLOBAL INMEDIATA - DISPONIBLE DESDE EL INICIO
         window.switchTab = function(contentType) {
@@ -4176,6 +4179,16 @@
                 <!-- Video Player Principal -->
                 <div class="main-video-player">
                     <div class="video-container">
+                        <!-- Botones de Navegación -->
+                        <div class="video-navigation">
+                            <button class="nav-btn prev-btn" id="prevVideoBtn" title="Video anterior">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="nav-btn next-btn" id="nextVideoBtn" title="Siguiente video">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        
                         <!-- YouTube Video Embed -->
                         <div class="youtube-player-wrapper">
                             <iframe 
@@ -9146,6 +9159,212 @@ Generado desde Coach LIA IA - ${currentDate}
 
     <!-- Fix Buttons Script - Corrección para botones del panel derecho -->
     <script src="fix-buttons.js"></script>
+
+    <!-- Navegación de Videos Script -->
+    <script>
+        // ===== NAVEGACIÓN ENTRE VIDEOS =====
+        function initializeVideoNavigation() {
+            const prevBtn = document.getElementById('prevVideoBtn');
+            const nextBtn = document.getElementById('nextVideoBtn');
+            
+            if (!prevBtn || !nextBtn) {
+                console.warn('⚠️ Botones de navegación no encontrados');
+                return;
+            }
+
+            // Función para obtener el video actual
+            function getCurrentVideo() {
+                // Buscar el video actual en el panel derecho
+                const currentVideo = document.querySelector('.video-item.current, .video-item.active');
+                if (currentVideo) {
+                    return currentVideo;
+                }
+                
+                // Buscar por el iframe actual
+                const iframe = document.getElementById('youtubePlayer');
+                if (iframe && iframe.src) {
+                    const videoId = extractVideoIdFromUrl(iframe.src);
+                    if (videoId) {
+                        return document.querySelector(`[data-video-id="${videoId}"]`);
+                    }
+                }
+                
+                return null;
+            }
+
+            // Función para extraer ID del video de la URL
+            function extractVideoIdFromUrl(url) {
+                const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/);
+                return match ? match[1] : null;
+            }
+
+            // Función para navegar al video anterior
+            function goToPreviousVideo() {
+                const currentVideo = getCurrentVideo();
+                if (!currentVideo) {
+                    console.warn('⚠️ No se pudo determinar el video actual');
+                    return;
+                }
+
+                const prevVideo = currentVideo.previousElementSibling;
+                if (prevVideo && prevVideo.classList.contains('video-item')) {
+                    console.log('⬅️ Navegando al video anterior');
+                    prevVideo.click();
+                } else {
+                    console.log('ℹ️ No hay video anterior disponible');
+                    showNotification('No hay video anterior disponible', 'info');
+                }
+            }
+
+            // Función para navegar al siguiente video
+            function goToNextVideo() {
+                const currentVideo = getCurrentVideo();
+                if (!currentVideo) {
+                    console.warn('⚠️ No se pudo determinar el video actual');
+                    return;
+                }
+
+                const nextVideo = currentVideo.nextElementSibling;
+                if (nextVideo && nextVideo.classList.contains('video-item')) {
+                    console.log('➡️ Navegando al siguiente video');
+                    nextVideo.click();
+                } else {
+                    console.log('ℹ️ No hay siguiente video disponible');
+                    showNotification('No hay siguiente video disponible', 'info');
+                }
+            }
+
+            // Función para mostrar notificaciones
+            function showNotification(message, type = 'info') {
+                // Crear notificación temporal
+                const notification = document.createElement('div');
+                notification.className = `video-nav-notification ${type}`;
+                notification.textContent = message;
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${type === 'info' ? '#0066CC' : '#ff6b6b'};
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    z-index: 1000;
+                    font-size: 14px;
+                    font-weight: 600;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                    animation: slideInRight 0.3s ease-out;
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Remover después de 3 segundos
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease-out';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+
+            // Event listeners para los botones
+            prevBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                goToPreviousVideo();
+            });
+
+            nextBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                goToNextVideo();
+            });
+
+            // Navegación con teclado
+            document.addEventListener('keydown', (e) => {
+                // Solo activar si no estamos en un input o textarea
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+
+                if (e.key === 'ArrowLeft' && e.ctrlKey) {
+                    e.preventDefault();
+                    goToPreviousVideo();
+                } else if (e.key === 'ArrowRight' && e.ctrlKey) {
+                    e.preventDefault();
+                    goToNextVideo();
+                }
+            });
+
+            console.log('✅ Navegación de videos inicializada');
+        }
+
+        // Función para verificar si FontAwesome está cargado
+        function checkFontAwesome() {
+            const testElement = document.createElement('i');
+            testElement.className = 'fas fa-chevron-left';
+            testElement.style.position = 'absolute';
+            testElement.style.left = '-9999px';
+            document.body.appendChild(testElement);
+            
+            const computedStyle = window.getComputedStyle(testElement);
+            const fontFamily = computedStyle.getPropertyValue('font-family');
+            
+            document.body.removeChild(testElement);
+            
+            // Si FontAwesome está cargado, la fuente debería incluir "Font Awesome"
+            const isLoaded = fontFamily.includes('Font Awesome') || fontFamily.includes('FontAwesome');
+            
+            const prevBtn = document.getElementById('prevVideoBtn');
+            const nextBtn = document.getElementById('nextVideoBtn');
+            
+            if (prevBtn && nextBtn) {
+                if (isLoaded) {
+                    prevBtn.classList.add('fas-loaded');
+                    nextBtn.classList.add('fas-loaded');
+                    console.log('✅ FontAwesome cargado correctamente');
+                } else {
+                    console.log('⚠️ FontAwesome no detectado, usando fallback CSS');
+                }
+            }
+        }
+
+        // Inicializar navegación cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                checkFontAwesome();
+                initializeVideoNavigation();
+            }, 1000);
+        });
+
+        // CSS para animaciones de notificaciones
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 
 </body>
 
