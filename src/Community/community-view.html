@@ -558,6 +558,15 @@
             display: block;
         }
 
+        /* Estilos para imágenes de avatar de comentarios */
+        .comment-avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+        }
+
         .member-avatar-fallback {
             display: flex !important;
             align-items: center;
@@ -2338,17 +2347,19 @@
                         // Convertir comentarios de BD al formato local y obtener nombres de usuario
                         comments = await Promise.all(commentsData.map(async comment => {
                             let userName = 'Usuario';
+                            let userData = null;
 
                             // Intentar obtener datos del usuario
                             if (comment.user_id) {
                                 try {
-                                    const { data: userData } = await window.supabase
+                                    const { data: userDataResponse } = await window.supabase
                                         .from('users')
-                                        .select('display_name, first_name, username')
+                                        .select('display_name, first_name, username, profile_picture_url')
                                         .eq('id', comment.user_id)
                                         .single();
 
-                                    if (userData) {
+                                    if (userDataResponse) {
+                                        userData = userDataResponse;
                                         userName = userData.display_name || userData.first_name || userData.username || 'Usuario';
                                     }
                                 } catch (userError) {
@@ -2361,7 +2372,8 @@
                                 user: userName,
                                 time: formatTimeAgo(comment.created_at),
                                 text: comment.content,
-                                created_at: comment.created_at
+                                created_at: comment.created_at,
+                                avatarUrl: userData?.profile_picture_url || null
                             };
                         }));
                         console.log('✅ Comentarios cargados desde BD:', comments.length);
@@ -2481,15 +2493,17 @@
 
                         // Obtener datos del usuario si es necesario
                         let userName = currentUser?.name || 'Usuario';
+                        let userData = null;
                         if (currentUser && currentUser.id) {
                             try {
-                                const { data: userData } = await window.supabase
+                                const { data: userDataResponse } = await window.supabase
                                     .from('users')
-                                    .select('display_name, first_name, username')
+                                    .select('display_name, first_name, username, profile_picture_url')
                                     .eq('id', currentUser.id)
                                     .single();
 
-                                if (userData) {
+                                if (userDataResponse) {
+                                    userData = userDataResponse;
                                     userName = userData.display_name || userData.first_name || userData.username || userName;
                                 }
                             } catch (userError) {
@@ -2505,7 +2519,8 @@
                             user: userName,
                             time: 'ahora',
                             text: newComment.content,
-                            created_at: newComment.created_at
+                            created_at: newComment.created_at,
+                            avatarUrl: userData?.profile_picture_url || null
                         });
 
                         // Agregar puntos por comentar
@@ -2559,8 +2574,37 @@
             }
 
             function commentTemplate(c){
-                if(typeof c === 'string') return `<div class='comment-item'><div class='comment-avatar'><i class="fas fa-user"></i></div><div class='comment-bubble'><div class='comment-head'><span class='comment-name'>Usuario</span><span class='comment-time'>ahora</span></div><div>${c}</div></div></div>`;
-                return `<div class='comment-item'><div class='comment-avatar'><i class="fas fa-user"></i></div><div class='comment-bubble'><div class='comment-head'><span class='comment-name'>${c.user||'Usuario'}</span><span class='comment-time'>${c.time||''}</span></div><div>${c.text||c}</div></div></div>`;
+                if(typeof c === 'string') {
+                    return `<div class='comment-item'>
+                        <div class='comment-avatar'>
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class='comment-bubble'>
+                            <div class='comment-head'>
+                                <span class='comment-name'>Usuario</span>
+                                <span class='comment-time'>ahora</span>
+                            </div>
+                            <div>${c}</div>
+                        </div>
+                    </div>`;
+                }
+
+                return `<div class='comment-item'>
+                    <div class='comment-avatar'>
+                        ${c.avatarUrl ?
+                            `<img src="${c.avatarUrl}" alt="${c.user}" class="comment-avatar-img" onerror="this.style.display='none';">
+                             <i class="fas fa-user" style="display:none;"></i>` :
+                            `<i class="fas fa-user"></i>`
+                        }
+                    </div>
+                    <div class='comment-bubble'>
+                        <div class='comment-head'>
+                            <span class='comment-name'>${c.user||'Usuario'}</span>
+                            <span class='comment-time'>${c.time||''}</span>
+                        </div>
+                        <div>${c.text||c}</div>
+                    </div>
+                </div>`;
             }
 
             if(composerInput && publishPostBtn){
