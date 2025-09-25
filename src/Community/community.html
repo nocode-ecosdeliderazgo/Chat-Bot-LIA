@@ -164,6 +164,11 @@
             text-decoration: underline;
         }
 
+        .access-status.member {
+            color: #28a745;
+            font-weight: 500;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -190,6 +195,45 @@
             display: flex;
             align-items: center;
             gap: 20px;
+        }
+
+        /* Estilos para botón de unirse a comunidad */
+        .discover-actions {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .join-community-btn {
+            background: linear-gradient(135deg, var(--accent-color), #4a90e2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+            width: 100%;
+            text-align: center;
+        }
+
+        .join-community-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #4a90e2, var(--accent-color));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 123, 255, 0.3);
+        }
+
+        .join-community-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+        }
+
+        .join-community-btn:active:not(:disabled) {
+            transform: translateY(0);
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">

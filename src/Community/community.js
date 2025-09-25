@@ -544,15 +544,23 @@ class CommunityPage {
             return;
         }
 
-        // Obtener estados de solicitudes para comunidades invite_only (solo si hay sesión)
+        // Obtener estados de solicitudes para comunidades invite_only y membresía para comunidades gratuitas
         const hasSession = this.hasValidSession;
         const communitiesWithRequests = await Promise.all(list.map(async (c) => {
             let requestStatus = null;
-            if (c.inviteOnly && hasSession) {
-                const lastRequest = await this.getLastRequest(c.id);
-                requestStatus = lastRequest ? lastRequest.status : null;
+            let isMember = false;
+
+            if (hasSession) {
+                if (c.inviteOnly) {
+                    const lastRequest = await this.getLastRequest(c.id);
+                    requestStatus = lastRequest ? lastRequest.status : null;
+                } else {
+                    // Para comunidades gratuitas, verificar si ya es miembro
+                    isMember = await this.isMember(c.id);
+                }
             }
-            return { ...c, requestStatus, hasSession };
+
+            return { ...c, requestStatus, hasSession, isMember };
         }));
 
         grid.innerHTML = communitiesWithRequests.map(c => {
@@ -560,9 +568,10 @@ class CommunityPage {
             const desc = this.escapeHtml(c.description) || 'Pronto tendrás más detalles.';
             const membersLabel = this.escapeHtml(c.membersLabel || '0 Members');
 
-            // Determinar label de acceso dinámico
+            // Determinar label de acceso dinámico y botón de acción
             let accessLabel = this.escapeHtml(c.accessLabel || 'Free');
             let accessClass = '';
+            let actionButton = '';
 
             if (c.inviteOnly) {
                 if (!c.hasSession) {
@@ -586,6 +595,15 @@ class CommunityPage {
                     accessLabel = 'Invitación';
                     accessClass = 'access-status invite-only';
                 }
+            } else {
+                // Es una comunidad gratuita - agregar botón de unirse si no es miembro
+                if (c.hasSession && !c.isMember) {
+                    actionButton = `<button class="join-community-btn" data-community-id="${c.id}" data-community-name="${this.escapeHtml(c.title)}">Unirse a la comunidad</button>`;
+                } else if (c.hasSession && c.isMember) {
+                    // Si ya es miembro, mostrar estado de miembro
+                    accessLabel = 'Miembro';
+                    accessClass = 'access-status member';
+                }
             }
 
             const cardSlug = this.escapeHtml(c.slug);
@@ -606,6 +624,7 @@ class CommunityPage {
                                 <span class="dot"></span>
                                 <span class="${accessClass}">${accessLabel}</span>
                             </div>
+                            ${actionButton ? `<div class="discover-actions">${actionButton}</div>` : ''}
                         </div>
                     </div>
                 </div>
@@ -614,6 +633,11 @@ class CommunityPage {
 
         grid.querySelectorAll('.discover-card').forEach(card => {
             card.addEventListener('click', async (e) => {
+                // Si se hizo click en el botón de unirse, no procesar el click de la tarjeta
+                if (e.target.closest('.join-community-btn')) {
+                    return;
+                }
+
                 e.preventDefault();
                 const slug = card.getAttribute('data-slug');
                 if (!slug) return;
@@ -644,6 +668,46 @@ class CommunityPage {
 
                 // Si es miembro o no es invite_only, navegar normalmente
                 window.location.href = `./community-view.html?slug=${encodeURIComponent(slug)}`;
+            });
+        });
+
+        // Agregar event listeners para botones de unirse a comunidad
+        grid.querySelectorAll('.join-community-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const communityId = btn.getAttribute('data-community-id');
+                const communityName = btn.getAttribute('data-community-name');
+
+                if (!communityId) return;
+
+                // Verificar sesión primero
+                if (!(await window.hasCommunitySession())) {
+                    await window.requireCommunitySession();
+                    this.showToast('Inicia sesión para unirte a la comunidad', 'warning');
+                    return;
+                }
+
+                // Verificar si ya es miembro
+                const isMember = await this.isMember(communityId);
+                if (isMember) {
+                    this.showToast('Ya eres miembro de esta comunidad', 'info');
+                    return;
+                }
+
+                // Deshabilitar el botón temporalmente
+                btn.disabled = true;
+                const originalText = btn.textContent;
+                btn.textContent = 'Uniéndose...';
+
+                try {
+                    await this.joinCommunity(communityId, communityName);
+                } finally {
+                    // Restaurar el botón
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
             });
         });
     }
@@ -971,6 +1035,112 @@ class CommunityPage {
                     spans[2].textContent = 'Invitación';
                     spans[2].className = 'access-status invite-only';
             }
+        }
+    }
+
+    async joinCommunity(communityId, communityName) {
+        try {
+            console.log('[JOIN] 🚀 Intentando unirse a comunidad:', communityName);
+
+            // Verificar que tenemos acceso a la base de datos
+            if (!this.db) {
+                console.error('[JOIN] ❌ Base de datos no inicializada');
+                this.showToast('Error: Base de datos no disponible', 'error');
+                return;
+            }
+
+            // Obtener el usuario actual
+            const userId = await this.getCurrentUserId();
+            if (!userId) {
+                console.error('[JOIN] ❌ Usuario no autenticado');
+                this.showToast('Error: Usuario no autenticado', 'error');
+                return;
+            }
+
+            console.log('[JOIN] 🔍 Ejecutando joinCommunity con userId:', userId);
+
+            // Actualizar usuario en la instancia de base de datos
+            await this.db.getCurrentUserWithAuthUtils();
+
+            // Ejecutar el JOIN usando la función directamente de CommunityDatabase
+            const joinSuccess = await this.db.joinCommunity(communityId);
+
+            if (joinSuccess) {
+                console.log('[JOIN] ✅ Usuario unido exitosamente a la comunidad');
+
+                // Mostrar notificación de éxito
+                this.showToast(`¡Te has unido exitosamente a ${communityName}!`, 'success');
+
+                // Actualizar contador de miembros y recargar datos
+                await this.updateCommunityMemberCount(communityId);
+
+                // Actualizar la UI para ocultar el botón de unirse
+                this.updateCommunityCardForMember(communityId);
+
+                // Recargar datos de la comunidad para reflejar cambios
+                setTimeout(async () => {
+                    await this.loadCommunityData();
+                }, 1000);
+
+            } else {
+                console.error('[JOIN] ❌ Error uniéndose a la comunidad');
+                this.showToast('No se pudo unir a la comunidad. Inténtalo más tarde.', 'error');
+            }
+
+        } catch (error) {
+            console.error('[JOIN] ❌ Error en joinCommunity:', error);
+
+            if (error?.code === '23505') {
+                // Duplicated key - ya es miembro
+                this.showToast('Ya eres miembro de esta comunidad', 'info');
+            } else {
+                this.showToast('Error al unirse a la comunidad. Inténtalo más tarde.', 'error');
+            }
+        }
+    }
+
+    async updateCommunityMemberCount(communityId) {
+        try {
+            console.log('[COUNT] 📊 Actualizando contador de miembros para comunidad:', communityId);
+
+            // Obtener nuevo conteo usando CommunityDatabase
+            const newCount = await this.db.countCommunityMembers(communityId);
+
+            console.log('[COUNT] 📊 Nuevo conteo de miembros:', newCount);
+
+            // Actualizar el contador en la tarjeta de comunidad
+            const card = document.querySelector(`[data-community-id="${communityId}"]`)?.closest('.discover-card');
+            if (card) {
+                const memberSpan = card.querySelector('.discover-meta span:first-child');
+                if (memberSpan) {
+                    memberSpan.textContent = `${newCount} ${newCount === 1 ? 'Member' : 'Members'}`;
+                    console.log('[COUNT] ✅ Contador actualizado en la UI');
+                }
+            }
+
+            // Actualizar estadísticas globales
+            this.communityStats.totalMembers = this.communities.reduce((sum, c) => {
+                return sum + (c.id === communityId ? newCount : (c.memberCount || 0));
+            }, 0);
+
+            this.updateStats();
+
+        } catch (error) {
+            console.error('[COUNT] ❌ Error actualizando contador:', error);
+        }
+    }
+
+    updateCommunityCardForMember(communityId) {
+        // Encontrar la tarjeta de comunidad
+        const joinButton = document.querySelector(`[data-community-id="${communityId}"]`);
+        if (joinButton) {
+            // Ocultar el botón de unirse
+            const actionsDiv = joinButton.closest('.discover-actions');
+            if (actionsDiv) {
+                actionsDiv.remove();
+            }
+
+            console.log('[UI] ✅ Botón de unirse removido de la UI');
         }
     }
 
