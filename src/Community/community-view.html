@@ -1621,6 +1621,7 @@
                             id: post.id,
                             user: post.users ? (post.users.display_name || post.users.username || 'Usuario') : 'Usuario',
                             avatar: 'fas fa-user',
+                            avatarUrl: post.users?.profile_picture_url || null,
                             category: 'general',
                             minutesAgo: diffMinutes,
                             timeAgo: timeAgo,
@@ -1817,7 +1818,13 @@
                 console.log('Posts filtrados:', filtered);
                 list.innerHTML = filtered.map(p=>`
                     <div class="post-card" data-open-post="${p.id}">
-                        <div class="post-avatar"><i class="${p.avatar}"></i></div>
+                        <div class="post-avatar">
+                            ${p.avatarUrl ?
+                                `<img src="${p.avatarUrl}" alt="${p.user}" class="post-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                 <i class="${p.avatar}" style="display:none;"></i>` :
+                                `<i class="${p.avatar}"></i>`
+                            }
+                        </div>
                         <div class="post-body">
                             <div class="post-header">
                                 <span class="post-name">${p.user}</span>
@@ -2366,7 +2373,13 @@
 
                 body.innerHTML = `
                     <div class="post-card">
-                        <div class="post-avatar"><i class="${post.avatar}"></i></div>
+                        <div class="post-avatar">
+                            ${post.avatarUrl ?
+                                `<img src="${post.avatarUrl}" alt="${post.user}" class="post-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                 <i class="${post.avatar}" style="display:none;"></i>` :
+                                `<i class="${post.avatar}"></i>`
+                            }
+                        </div>
                         <div class="post-body">
                             <div class="post-header">
                                 <span class="post-name">${post.user}</span>
@@ -3304,7 +3317,13 @@
                          if (filteredPosts.length > 0) {
                              list.innerHTML = filteredPosts.map(p => `
                                  <div class="post-card" data-open-post="${p.id}">
-                                     <div class="post-avatar"><i class="${p.avatar}"></i></div>
+                                     <div class="post-avatar">
+                                         ${p.avatarUrl ?
+                                             `<img src="${p.avatarUrl}" alt="${p.user}" class="post-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                              <i class="${p.avatar}" style="display:none;"></i>` :
+                                             `<i class="${p.avatar}"></i>`
+                                         }
+                                     </div>
                                      <div class="post-body">
                                          <div class="post-header">
                                              <span class="post-name">${p.user}</span>
@@ -6007,7 +6026,60 @@
                 const isInviteOnly = community.visibility === 'invite_only' || community.access_type === 'invite_only';
 
                 if (!isInviteOnly) {
-                    // No es invite_only, no mostrar botones
+                    // Es una comunidad gratuita (Free) - verificar sesión y registrar automáticamente
+                    console.log('🔓 [ACCESS] Comunidad gratuita detectada, verificando sesión...');
+
+                    const hasSession = await window.hasCommunitySession();
+                    if (!hasSession) {
+                        console.log('⚠️ [ACCESS] Sin sesión - usuario no puede unirse automáticamente');
+                        return;
+                    }
+
+                    // Verificar si ya es miembro
+                    const isMemberResult = await isMember(community.id);
+                    if (isMemberResult) {
+                        console.log('✅ [ACCESS] Usuario ya es miembro de la comunidad gratuita');
+                        return;
+                    }
+
+                    // Usuario autenticado no es miembro - unirse automáticamente
+                    console.log('🚀 [ACCESS] Registrando usuario automáticamente en comunidad gratuita...');
+
+                    try {
+                        // Obtener instancia de CommunityDatabase
+                        let db = null;
+                        if (window.communitySystem && window.communitySystem.db) {
+                            db = window.communitySystem.db;
+                        } else if (typeof CommunityDatabase !== 'undefined') {
+                            db = new CommunityDatabase();
+                            await db.initialize();
+                        } else {
+                            console.error('❌ [ACCESS] CommunityDatabase no disponible');
+                            return;
+                        }
+
+                        // Llamar a joinCommunity
+                        const joinSuccess = await db.joinCommunity(community.id);
+
+                        if (joinSuccess) {
+                            console.log('✅ [ACCESS] Usuario registrado automáticamente en comunidad gratuita');
+
+                            // Mostrar notificación de bienvenida
+                            if (typeof notifications !== 'undefined') {
+                                notifications.success(`¡Bienvenido a la comunidad "${community.name}"!`);
+                            }
+
+                            // Recargar miembros si existe el sistema
+                            if (window.communitySystem && typeof window.communitySystem.loadMembers === 'function') {
+                                await window.communitySystem.loadMembers();
+                            }
+                        } else {
+                            console.error('❌ [ACCESS] Error registrando usuario en comunidad gratuita');
+                        }
+                    } catch (error) {
+                        console.error('❌ [ACCESS] Error crítico registrando usuario:', error);
+                    }
+
                     return;
                 }
 

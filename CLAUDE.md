@@ -107,16 +107,23 @@ The frontend follows a multi-page application (MPA) pattern with shared componen
 - `src/login/new-auth.html` - Authentication system with OTP verification
 - `src/chat.html` - Main chat interface with OpenAI integration
 - `src/Chat-Online/chat-online.html` - Interactive course chat with video player and LIA assistant
+- `src/ChatGeneral/chat-general.html` - General chat system for non-course conversations
 - `src/courses.html` / `src/cursos.html` - Course catalog and management
 - `src/profile.html` - User profile and progress tracking
 - `src/Community/community.html` - Community features and discussions
 - `src/Notices/notices.html` - Announcements and notifications
+- `src/instructors/instructor-dashboard.html` - Teaching interface and instructor tools
+- `src/apps-directory.html` - Application catalog and directory
 - `src/admin/admin.html` - Administrative dashboard
 
 **Modular Components**:
 - `src/scripts/` - JavaScript modules for animations, theme management, API integration
 - `src/styles/` - CSS modules with responsive design and theme system
 - `src/utils/` - Utility functions for authentication, email services, and data helpers
+- `src/Chat-Online/components/` - Specialized chat components:
+  - `lia-chat.js` - LIA assistant integration
+  - `video-player.js` - Video playback management
+  - `course-viewer.js` - Course content display
 
 ### Backend Architecture
 **Express Server Features**:
@@ -135,10 +142,12 @@ The frontend follows a multi-page application (MPA) pattern with shared componen
 ### Database Integration
 - **Primary**: PostgreSQL with connection pooling
 - **Secondary**: Supabase for real-time features and extended functionality
-- **Key Tables**: 
+- **Key Tables**:
   - `courses`, `course_modules`, `module_videos` - Course structure
   - `actividad_detalle` - Normalized activity content (new)
   - `users`, `user_progress` - User management and progress tracking
+  - `community_posts`, `community_comments`, `community_reactions` - Community system
+  - `analysis_messages` - Dynamic AI statistics messaging system
   - Chat history, OTP verification tables
 
 ## Key Features & Integrations
@@ -150,10 +159,14 @@ The frontend follows a multi-page application (MPA) pattern with shared componen
 - Chat history persistence and user context
 
 ### Authentication System
-- Email-based OTP verification
-- JWT token management
-- Session persistence with Supabase Auth
-- Role-based access control
+- **Hybrid Authentication**: Multi-source authentication system combining:
+  - Supabase Auth for database operations
+  - LocalStorage/SessionStorage for basic functionality
+  - JWT token management with cross-platform sync
+  - Graceful degradation to read-only mode when authentication fails
+- Email-based OTP verification with `src/utils/otp-service.js`
+- Enhanced authentication utilities in `src/utils/auth-utils.js`
+- Role-based access control with RLS policies
 
 ### Course Management
 - Dynamic course data from database
@@ -162,11 +175,15 @@ The frontend follows a multi-page application (MPA) pattern with shared componen
 - PDF generation and file management
 
 ### Community System
+- **Advanced Community Architecture**:
+  - `CommunityDatabase` class (`src/scripts/community-database.js`) for Supabase operations
+  - `CommunityPage` class for main community orchestration
+  - Dedicated API client (`src/Chat-Online/api/community-api.js`)
 - User-generated content with questions, answers, and voting
-- Role-based access control with RLS policies
-- Real-time interactions and notifications
-- Comprehensive moderation and user profile management
-- Integration with main authentication system
+- Real-time profile modals with database-driven activity metrics
+- Role-based access control with RLS policies and hybrid authentication
+- Comprehensive moderation, search, and filtering capabilities
+- League/points system integrated with community actions
 
 ### Theme System
 - Dark/light mode with system preference detection
@@ -257,7 +274,7 @@ tests/
   └── integration/       # Integration tests
 ```
 
-**Note**: Test directory structure is configured but test files may not exist yet. Create test files as needed following Jest conventions.
+**Note**: Jest is fully configured but no formal test files exist yet. The project uses extensive manual testing with HTML files in the root directory (e.g., `test-community-functionality.html`, `test-activity-migration.html`) for integration testing.
 
 ### Running Specific Tests
 ```bash
@@ -369,12 +386,16 @@ const observeElements = () => {
 - `src/scripts/main.js` - Frontend JavaScript entry point
 
 ### Modular Components
-- Authentication: `src/login/`, `src/utils/auth-guard.js`
-- Chat System: `src/chat.html`, `src/Chat-Online/`, AI integration in Netlify Functions
-- Course System: `src/courses.html`, `src/data/course-data.js`, `src/data/course-content-sif-icap.js`
-- Community: `src/Community/`, database schema in `database/community_schema.md`
-- Video Integration: `src/scripts/zoom-video-integration.js`, YouTube progress tracking
-- UI Components: `src/scripts/` (animations, themes, particles, progress managers)
+- **Authentication**: `src/login/`, `src/utils/auth-guard.js`, `src/utils/auth-utils.js`
+- **Chat Systems**:
+  - Course Chat: `src/Chat-Online/` with specialized components
+  - General Chat: `src/ChatGeneral/` for non-course conversations
+  - AI integration through Netlify Functions
+- **Course System**: `src/courses.html`, `src/data/course-data.js`, dynamic database loading
+- **Community**: `src/Community/`, `src/scripts/community-database.js`, API client integration
+- **Content Management**: `src/Notices/` (announcements), `src/instructors/` (teaching tools)
+- **Video Integration**: YouTube tracking, Zoom integration, progress management
+- **UI Framework**: Animations, themes, particles, responsive components in `src/scripts/`
 
 ## Important Development Notes
 
@@ -509,6 +530,7 @@ The netlify.toml file contains comprehensive API routing with specific redirects
 **Community System APIs**:
 - Community Posts: `/api/community/questions`, `/api/community/questions/*/answers`
 - Voting System: `/api/community/questions/*/vote`, `/api/community/answers/*/vote`
+- Public Community: `/api/community-public` (read-only access)
 - General Community: `/api/community/*`
 
 **Analytics & Monitoring**:
@@ -613,6 +635,8 @@ async function loadDataFromDatabase() {
 
 ### Current Development Focus
 - **Community Features**: Active development of user interactions, voting systems, and real-time engagement
-- **Profile System**: Real-time data integration with database-driven user profiles
-- **Video Integration**: YouTube embedding with comprehensive CSP support
-- **Authentication**: Hybrid approach supporting both Supabase and localStorage fallbacks
+- **Profile System**: Real-time data integration with database-driven user profiles and activity metrics
+- **Video Integration**: YouTube embedding with comprehensive CSP support and progress tracking
+- **Authentication**: Hybrid multi-source authentication with graceful fallbacks
+- **Component Architecture**: Modular chat components and enhanced course viewer system
+- **Database Systems**: Dual-mode activity system and analysis messaging integration
