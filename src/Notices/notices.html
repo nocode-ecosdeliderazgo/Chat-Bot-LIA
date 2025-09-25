@@ -14,7 +14,24 @@
     <script src="../utils/auth-guard.js"></script>
 </head>
 <body class="bg-glow-global">
-    <div class="particles-container"></div>
+    <!-- Partículas de fondo estáticas CSS -->
+    <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Contenedor principal con fondo dinámico -->
+    <div class="auth-container">
+        <div class="auth-bg">
+            <div class="bg-glow"></div>
+            <canvas id="bgParticles"></canvas>
+        </div>
 
     <!-- Navigation Bar -->
     <div class="course-tabs">
@@ -252,8 +269,7 @@
             </div>
         </section>
     </main>
-
-
+    </div> <!-- Cierre del auth-container -->
 
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
@@ -369,9 +385,9 @@
     <script src="../scripts/global-theme-setup.js"></script>
     <script src="../scripts/force-theme-init.js"></script>
     <script src="../scripts/theme-manager.js"></script>
-    <script src="../scripts/particles.js"></script>
     <script src="../scripts/main.js"></script>
     <script src="notices.js"></script>
     <script src="../scripts/profile-avatar-manager.js"></script>
+    <script src="../scripts/notices-particles-interactive.js"></script>
 </body>
 </html>

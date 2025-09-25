@@ -1,149 +1,149 @@
-# Prompt para Claude: Implementar Fotos de Perfil en Comentarios del Modal de Posts
+# PROMPT PARA CLAUDE: Implementación de Animaciones de Fondo en notices.html
 
-## Contexto del Problema
+## CONTEXTO
+Necesito implementar las animaciones de fondo del archivo `cursos.css` en la página `notices.html` sin afectar su funcionamiento actual. La página `notices.html` ya tiene la clase `bg-glow-global` y el contenedor `particles-container`, pero necesita las animaciones específicas de fondo.
 
-En el archivo `src/Community/community-view.html`, específicamente en el modal de posts donde los usuarios pueden comentar, actualmente solo aparece un icono genérico de usuario (`fas fa-user`) en lugar de mostrar las fotos de perfil reales de los usuarios que comentan.
+## ANÁLISIS DEL SISTEMA ACTUAL
 
-## Análisis de la Estructura Actual
+### 1. ESTRUCTURA DE FONDO EN CURSOS.CSS
 
-### 1. Modal de Posts (líneas 1139-1150)
-```html
-<div class="post-modal" id="postModal">
-    <div class="post-modal-card">
-        <div class="post-modal-head">
-            <strong id="modalPostUser">Publicación</strong>
-            <button class="chat-send" id="closePostModal">Cerrar</button>
-        </div>
-        <div class="post-modal-body" id="modalPostBody"></div>
-        <div class="post-modal-foot">
-            <input id="modalCommentInput" class="comment-input" type="text" placeholder="Escribe un comentario...">
-            <button id="modalSendComment" class="chat-send">Enviar</button>
-        </div>
-    </div>
-</div>
-```
-
-### 2. Función commentTemplate (líneas 2561-2564)
-**PROBLEMA IDENTIFICADO**: Esta función solo muestra iconos genéricos:
-```javascript
-function commentTemplate(c){
-    if(typeof c === 'string') return `<div class='comment-item'><div class='comment-avatar'><i class="fas fa-user"></i></div><div class='comment-bubble'><div class='comment-head'><span class='comment-name'>Usuario</span><span class='comment-time'>ahora</span></div><div>${c}</div></div></div>`;
-    return `<div class='comment-item'><div class='comment-avatar'><i class="fas fa-user"></i></div><div class='comment-bubble'><div class='comment-head'><span class='comment-name'>${c.user||'Usuario'}</span><span class='comment-time'>${c.time||''}</span></div><div>${c.text||c}</div></div></div>`;
-}
-```
-
-### 3. Carga de Comentarios (líneas 2323-2396)
-Los comentarios se cargan desde la base de datos y se obtienen datos del usuario, pero **NO se incluye la información de avatar**:
-```javascript
-// En la línea 2347-2349, solo se obtienen estos campos:
-.select('display_name, first_name, username')
-// FALTA: profile_picture_url
-```
-
-### 4. Comparación con Posts (líneas 1822-1826)
-Los posts SÍ muestran avatares correctamente:
-```javascript
-${p.avatarUrl ?
-    `<img src="${p.avatarUrl}" alt="${p.user}" class="post-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-     <i class="${p.avatar}" style="display:none;"></i>` :
-    `<i class="${p.avatar}"></i>`
-}
-```
-
-## Solución Requerida
-
-### Paso 1: Modificar la consulta de datos de usuario para comentarios
-En la línea 2347, cambiar:
-```javascript
-.select('display_name, first_name, username')
-```
-Por:
-```javascript
-.select('display_name, first_name, username, profile_picture_url')
-```
-
-### Paso 2: Actualizar la función commentTemplate
-Modificar la función para incluir lógica de avatar similar a la de los posts:
-```javascript
-function commentTemplate(c){
-    if(typeof c === 'string') {
-        return `<div class='comment-item'>
-            <div class='comment-avatar'>
-                <i class="fas fa-user"></i>
-            </div>
-            <div class='comment-bubble'>
-                <div class='comment-head'>
-                    <span class='comment-name'>Usuario</span>
-                    <span class='comment-time'>ahora</span>
-                </div>
-                <div>${c}</div>
-            </div>
-        </div>`;
-    }
-    
-    return `<div class='comment-item'>
-        <div class='comment-avatar'>
-            ${c.avatarUrl ?
-                `<img src="${c.avatarUrl}" alt="${c.user}" class="comment-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                 <i class="fas fa-user" style="display:none;"></i>` :
-                `<i class="fas fa-user"></i>`
-            }
-        </div>
-        <div class='comment-bubble'>
-            <div class='comment-head'>
-                <span class='comment-name'>${c.user||'Usuario'}</span>
-                <span class='comment-time'>${c.time||''}</span>
-            </div>
-            <div>${c.text||c}</div>
-        </div>
-    </div>`;
-}
-```
-
-### Paso 3: Actualizar la construcción del objeto comentario
-En las líneas 2359-2366, agregar el campo avatarUrl:
-```javascript
-return {
-    id: comment.id,
-    user: userName,
-    time: formatTimeAgo(comment.created_at),
-    text: comment.content,
-    created_at: comment.created_at,
-    avatarUrl: userData?.profile_picture_url || null  // NUEVO CAMPO
-};
-```
-
-### Paso 4: Agregar estilos CSS para comment-avatar-img
-Asegurar que existan estilos similares a los de post-avatar-img:
+#### Variables CSS principales:
 ```css
-.comment-avatar-img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    display: block;
+:root {
+  --turq: #44e5ff;
+  --turq-2: #3dd4eb;
+  --bg-1: #06182A;
+  --bg-2: #0B1220;
 }
 ```
 
-## Archivos a Modificar
+#### Gradientes de fondo:
+- **Modo oscuro**: `linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%)`
+- **Modo claro**: `linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%)`
 
-1. **src/Community/community-view.html** - Líneas específicas:
-   - Línea 2347: Consulta de datos de usuario
-   - Líneas 2359-2366: Construcción del objeto comentario
-   - Líneas 2561-2564: Función commentTemplate
-   - Sección CSS: Agregar estilos para .comment-avatar-img
+#### Efectos de partículas:
+- **Modo oscuro**: `mix-blend-mode: normal`
+- **Modo claro**: `mix-blend-mode: multiply`
 
-## Resultado Esperado
+#### Efectos de glow:
+- **Modo oscuro**: `radial-gradient(circle, rgba(68, 229, 255, 0.1) 0%, transparent 70%)`
+- **Modo claro**: `radial-gradient(circle, rgba(68, 229, 255, 0.15) 0%, transparent 70%)`
 
-Después de implementar estos cambios:
-1. Los comentarios en el modal mostrarán las fotos de perfil reales de los usuarios
-2. Si un usuario no tiene foto, se mostrará el icono genérico como fallback
-3. La funcionalidad será consistente con cómo se muestran los avatares en los posts principales
-4. Se mantendrá la compatibilidad con comentarios existentes
+### 2. ESTRUCTURA ACTUAL EN NOTICES.HTML
 
-## Consideraciones Técnicas
+La página ya tiene:
+- `<body class="bg-glow-global">`
+- `<div class="particles-container"></div>`
+- Scripts: `particles.js`, `theme-manager.js`, `global-theme-setup.js`
 
-- Usar el mismo patrón de fallback que ya existe en los posts
-- Mantener la estructura HTML existente para evitar problemas de CSS
-- Asegurar que los estilos sean consistentes con el diseño actual
-- Probar tanto con usuarios que tienen foto como sin foto
+### 3. SCRIPT DE PARTÍCULAS EXISTENTE
+
+El archivo `particles.js` ya está implementado con:
+- Configuración de partículas con color `#44e5ff`
+- Efectos de hover y click
+- Función de respaldo para navegadores sin particles.js
+- Canvas con ID `particles-js`
+
+## TAREAS ESPECÍFICAS
+
+### PASO 1: Análisis de compatibilidad
+1. Verificar que `notices.css` tenga las variables CSS necesarias
+2. Confirmar que el sistema de temas funcione correctamente
+3. Validar que no haya conflictos con estilos existentes
+
+### PASO 2: Implementación de estilos de fondo
+1. **Agregar variables CSS faltantes** en `notices.css`:
+   ```css
+   :root {
+     --turq: #44e5ff;
+     --turq-2: #3dd4eb;
+     --bg-1: #06182A;
+     --bg-2: #0B1220;
+   }
+   ```
+
+2. **Implementar gradientes de fondo**:
+   ```css
+   body.bg-glow-global {
+     background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
+   }
+   
+   [data-theme="light"] body.bg-glow-global {
+     background: linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%);
+   }
+   ```
+
+3. **Agregar efectos de glow**:
+   ```css
+   .bg-glow-global .bg-glow {
+     background: radial-gradient(circle, rgba(68, 229, 255, 0.1) 0%, transparent 70%);
+   }
+   
+   [data-theme="light"] .bg-glow-global .bg-glow {
+     background: radial-gradient(circle, rgba(68, 229, 255, 0.15) 0%, transparent 70%);
+   }
+   ```
+
+### PASO 3: Configuración de partículas
+1. **Verificar que el canvas tenga el ID correcto**:
+   ```html
+   <canvas id="particles-js"></canvas>
+   ```
+
+2. **Ajustar mix-blend-mode**:
+   ```css
+   #bgParticles {
+     mix-blend-mode: normal;
+   }
+   
+   [data-theme="light"] #bgParticles {
+     mix-blend-mode: multiply;
+   }
+   ```
+
+### PASO 4: Transiciones suaves
+1. **Agregar transiciones para cambio de tema**:
+   ```css
+   * {
+     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+   }
+   ```
+
+### PASO 5: Validación y testing
+1. **Verificar funcionamiento en ambos temas** (claro/oscuro)
+2. **Confirmar que las partículas se muestren correctamente**
+3. **Validar que no se rompan estilos existentes**
+4. **Probar responsividad en diferentes tamaños de pantalla**
+
+## RESTRICCIONES IMPORTANTES
+
+1. **NO modificar** la estructura HTML existente de `notices.html`
+2. **NO afectar** el funcionamiento actual de la página
+3. **Mantener** todos los estilos existentes de `notices.css`
+4. **Preservar** la funcionalidad del sistema de temas
+5. **No romper** la navegación ni los componentes existentes
+
+## RESULTADO ESPERADO
+
+Al finalizar, `notices.html` debe tener:
+- Fondo con gradiente animado igual al de `cursos.css`
+- Partículas flotantes con efectos de hover/click
+- Transiciones suaves entre temas claro/oscuro
+- Efectos de glow sutil en el fondo
+- Funcionamiento idéntico al actual, pero con animaciones de fondo
+
+## ARCHIVOS A MODIFICAR
+
+1. `src/Notices/notices.css` - Agregar estilos de fondo y partículas
+2. `src/Notices/notices.html` - Verificar estructura del canvas (si es necesario)
+
+## ARCHIVOS DE REFERENCIA
+
+1. `src/styles/cursos.css` - Estilos de fondo a copiar
+2. `src/scripts/particles.js` - Script de partículas existente
+3. `src/Notices/notices.html` - Página objetivo
+4. `src/Notices/notices.css` - Estilos actuales
+
+---
+
+**IMPORTANTE**: Implementar paso a paso, validando cada cambio antes de continuar con el siguiente.

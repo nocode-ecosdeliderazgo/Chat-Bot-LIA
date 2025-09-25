@@ -203,7 +203,24 @@
     <script src="../utils/auth-guard.js"></script>
 </head>
 <body class="bg-glow-global">
-    <div class="particles-container"></div>
+    <!-- Partículas de fondo estáticas CSS -->
+    <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Contenedor principal con fondo dinámico -->
+    <div class="auth-container">
+        <div class="auth-bg">
+            <div class="bg-glow"></div>
+            <canvas id="bgParticles"></canvas>
+        </div>
 
 
     <!-- Navigation Bar -->
@@ -321,6 +338,7 @@
 
         <!-- (Se elimina feed de comunidad a petición: sólo Descubrir + Normas) -->
     </main>
+    </div> <!-- Cierre del auth-container -->
 
     <!-- (Se elimina modal de chat) -->
 
@@ -469,6 +487,7 @@
     <script src="../scripts/profile-avatar-manager.js"></script>
     <script src="../scripts/force-theme-init.js"></script>
     <script src="../scripts/theme-manager.js"></script>
+    <script src="../scripts/community-particles-interactive.js"></script>
 </body>
 </html>
 
