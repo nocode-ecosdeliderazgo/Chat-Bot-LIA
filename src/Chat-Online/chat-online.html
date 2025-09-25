@@ -3798,24 +3798,24 @@
         /* ===== ESTILOS PARA MENSAJES DE CHAT (SOLO PARA #liaMessages) ===== */
         #liaMessages .message {
             margin-bottom: 1.5rem;
-            padding: 16px;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            padding: 0;
+            background: none;
+            border: none;
+            border-radius: 0;
             transition: all 0.3s ease;
         }
 
         #liaMessages .user-message {
-            background: linear-gradient(135deg, rgba(68, 229, 255, 0.15), rgba(68, 229, 255, 0.08));
-            border: 1px solid rgba(68, 229, 255, 0.2);
+            background: none;
+            border: none;
             margin-left: auto;
             max-width: 85%;
         }
 
         #liaMessages .user-message:hover {
-            background: linear-gradient(135deg, rgba(68, 229, 255, 0.2), rgba(68, 229, 255, 0.1));
-            border-color: rgba(68, 229, 255, 0.3);
-            transform: translateY(-2px);
+            background: none;
+            border: none;
+            transform: none;
         }
 
         #liaMessages .message-text {
@@ -3823,23 +3823,48 @@
             line-height: 1.5;
             color: #ffffff;
             margin-top: 8px;
+            writing-mode: horizontal-tb !important;
+            text-orientation: mixed !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            display: block !important;
+        }
+
+        /* Hacer que los mensajes del chat tengan el mismo diseño que los de arriba */
+        #liaMessages .message-content {
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.08) 0%, rgba(68, 229, 255, 0.03) 100%) !important;
+            border: 1px solid rgba(68, 229, 255, 0.15) !important;
+            border-radius: 16px !important;
+            padding: 0.75rem 1rem !important;
+            backdrop-filter: var(--glass-blur-light) !important;
+            position: relative !important;
+            overflow: hidden !important;
+            flex: 1 !important;
+            transition: all 0.3s ease !important;
+        }
+
+        #liaMessages .user-message .message-content {
+            background: rgba(0, 102, 204, 0.2) !important;
+            border-color: rgba(0, 102, 204, 0.4) !important;
+            margin-left: auto !important;
+            max-width: 80% !important;
         }
 
         /* Avatar circular para usuario (solo en chat) */
         #liaMessages .user-avatar-circle {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--glass-primary, #44e5ff), #0066CC);
+            background: #0066CC;
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 14px;
-            margin-right: 10px;
-            border: 2px solid rgba(68, 229, 255, 0.3);
-            box-shadow: 0 2px 8px rgba(68, 229, 255, 0.2);
+            font-weight: 600;
+            font-size: 16px;
+            margin-right: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         /* Mejorar la estructura de header de pregunta para mensajes de chat */
@@ -3872,16 +3897,16 @@
 
         /* Estilos específicos para mensajes de LIA (solo en chat) */
         #liaMessages .lia-message {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: none;
+            border: none;
             margin-right: auto;
             max-width: 85%;
         }
 
         #liaMessages .lia-message:hover {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
+            background: none;
+            border: none;
+            transform: none;
         }
 
         #liaMessages .lia-message .author-name {
@@ -3890,18 +3915,18 @@
         }
 
         #liaMessages .lia-message .author-avatar {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            margin-right: 10px;
-            border: 2px solid rgba(68, 229, 255, 0.3);
-            box-shadow: 0 2px 8px rgba(68, 229, 255, 0.2);
+            margin-right: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         /* Responsive para mensajes de chat */
         @media (max-width: 768px) {
             #liaMessages .message {
-                padding: 12px;
+                padding: 0;
                 margin-bottom: 1rem;
             }
 
@@ -3910,10 +3935,10 @@
             }
 
             #liaMessages .user-avatar-circle {
-                width: 28px;
-                height: 28px;
-                font-size: 12px;
-                margin-right: 8px;
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+                margin-right: 10px;
             }
 
             #liaMessages .message-text {
@@ -3925,8 +3950,9 @@
             }
 
             #liaMessages .lia-message .author-avatar {
-                width: 28px;
-                height: 28px;
+                width: 32px;
+                height: 32px;
+                margin-right: 10px;
             }
         }
     </style>
@@ -6702,15 +6728,6 @@ INSTRUCCIONES:
                                 userMsg.setAttribute('data-protected', 'true');
 
                                 userMsg.innerHTML = `
-                                    <div class="question-header">
-                                        <div class="question-meta">
-                                            <span class="question-author">
-                                                <div class="user-avatar-circle">${avatarLetter}</div>
-                                                <span class="author-name" data-original-name="${userName}">${userName}</span>
-                                            </span>
-                                            <span class="question-time">ahora</span>
-                                        </div>
-                                    </div>
                                     <div class="message-content">
                                         <div class="message-text">${mensaje}</div>
                                     </div>
@@ -7052,15 +7069,6 @@ INSTRUCCIONES:
                                 liaMsg.className = 'message lia-message';
 
                                 liaMsg.innerHTML = `
-                                    <div class="question-header">
-                                        <div class="question-meta">
-                                            <span class="question-author">
-                                                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="author-avatar">
-                                                <span class="author-name">LIA - Asistente IA</span>
-                                            </span>
-                                            <span class="question-time">ahora</span>
-                                        </div>
-                                    </div>
                                     <div class="message-content">
                                         <div class="message-text">${respuestaLIA}</div>
                                     </div>
@@ -7123,15 +7131,6 @@ INSTRUCCIONES:
                                 liaMsg.className = 'message lia-message';
 
                                 liaMsg.innerHTML = `
-                                    <div class="question-header">
-                                        <div class="question-meta">
-                                            <span class="question-author">
-                                                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="author-avatar">
-                                                <span class="author-name">LIA - Asistente IA</span>
-                                            </span>
-                                            <span class="question-time">ahora</span>
-                                        </div>
-                                    </div>
                                     <div class="message-content">
                                         <div class="message-text">${respuestaFallback}</div>
                                     </div>
