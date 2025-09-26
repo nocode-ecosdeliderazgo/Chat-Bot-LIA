@@ -56,7 +56,8 @@
       "mcp__playwright",
       "Bash(del test-email-config.js)",
       "Bash(del test-forgot-password.js)",
-      "Bash(copy:*)"
+      "Bash(copy:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

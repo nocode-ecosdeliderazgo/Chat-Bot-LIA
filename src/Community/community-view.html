@@ -1626,6 +1626,20 @@
                             console.warn('⚠️ Error cargando reacciones para post', post.id, ':', error);
                         }
 
+                        // Construir attachments si existen
+                        let attachments = [];
+                        if (post.attachment_url && post.attachment_type) {
+                            // Extraer nombre de archivo de la URL para attachments que lo necesiten
+                            const fileName = post.attachment_url.split('/').pop() || 'archivo';
+
+                            attachments.push({
+                                type: post.attachment_type,
+                                src: post.attachment_url,
+                                url: post.attachment_url,
+                                name: fileName
+                            });
+                        }
+
                         return {
                             id: post.id,
                             user: post.users ? (post.users.display_name || post.users.username || 'Usuario') : 'Usuario',
@@ -1639,7 +1653,7 @@
                             title: post.title || null,
                             comments: [],
                             reactions: reactions,
-                            attachments: [],
+                            attachments: attachments,
                             reacted: userReacted,
                             // Datos adicionales
                             user_id: post.user_id,
@@ -2116,7 +2130,16 @@
             }
             
             function getDocumentIcon(filename) {
-                const ext = filename.split('.').pop().toLowerCase();
+                if (!filename || typeof filename !== 'string') {
+                    return 'fas fa-file';
+                }
+
+                const parts = filename.split('.');
+                if (parts.length < 2) {
+                    return 'fas fa-file';
+                }
+
+                const ext = parts.pop().toLowerCase();
                 switch(ext) {
                     case 'pdf': return 'fas fa-file-pdf';
                     case 'doc':
@@ -2126,6 +2149,15 @@
                     case 'ppt':
                     case 'pptx': return 'fas fa-file-powerpoint';
                     case 'txt': return 'fas fa-file-alt';
+                    case 'jpg':
+                    case 'jpeg':
+                    case 'png':
+                    case 'gif':
+                    case 'webp': return 'fas fa-file-image';
+                    case 'mp4':
+                    case 'webm':
+                    case 'avi':
+                    case 'mov': return 'fas fa-file-video';
                     default: return 'fas fa-file';
                 }
             }
