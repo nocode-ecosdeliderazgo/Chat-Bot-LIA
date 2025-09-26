@@ -6770,3 +6770,566 @@ body {
     background: rgba(0, 102, 204, 0.02);
     border-top: 1px solid rgba(0, 102, 204, 0.15);
 }
+
+/* ===== POST DESIGN IMPROVEMENTS ===== */
+/* Estilos para los posts con diseño tipo Facebook/LinkedIn */
+.post {
+    background: var(--gradient-card);
+    border: 1px solid rgba(0, 102, 204, 0.15);
+    border-radius: 16px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 102, 204, 0.1);
+}
+
+.post:hover {
+    border-color: rgba(0, 102, 204, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 102, 204, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Header del post */
+.post-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px 20px;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.1);
+}
+
+.post-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--gradient-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #44e5ff;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(0, 102, 204, 0.2);
+    transition: border-color 0.3s ease;
+}
+
+.user-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+}
+
+.user-avatar i {
+    font-size: 20px;
+    color: #44e5ff;
+    z-index: 2;
+    position: relative;
+}
+
+.user-avatar:hover {
+    border-color: var(--primary-blue);
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 16px;
+}
+
+.post-time {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.post-actions .action-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.post-actions .action-btn:hover {
+    background: rgba(0, 102, 204, 0.1);
+    color: var(--primary-blue);
+}
+
+/* Contenido del post */
+.post-content {
+    padding: 16px 20px;
+}
+
+.post-title {
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    line-height: 1.4;
+}
+
+.post-content p {
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0 0 16px 0;
+}
+
+/* Contenedores de medios centrados */
+.post-media-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 16px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(0, 102, 204, 0.05);
+}
+
+.post-image {
+    max-width: 100%;
+    max-height: 500px;
+    width: auto;
+    height: auto;
+    border-radius: 12px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.post-image:hover {
+    transform: scale(1.02);
+}
+
+.post-video {
+    max-width: 100%;
+    max-height: 400px;
+    width: auto;
+    height: auto;
+    border-radius: 12px;
+}
+
+.post-document-container,
+.post-link-container {
+    display: flex;
+    justify-content: center;
+    margin: 16px 0;
+}
+
+.attachment-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: rgba(0, 102, 204, 0.1);
+    border: 1px solid rgba(0, 102, 204, 0.2);
+    border-radius: 12px;
+    color: var(--primary-blue);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.attachment-link:hover {
+    background: rgba(0, 102, 204, 0.15);
+    border-color: var(--primary-blue);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.2);
+}
+
+/* Footer del post con botones de interacción */
+.post-footer {
+    border-top: 1px solid rgba(0, 102, 204, 0.1);
+    padding: 12px 20px 16px 20px;
+}
+
+.other-reactions {
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.other-reactions-btn {
+    background: rgba(0, 102, 204, 0.1);
+    border: 1px solid rgba(0, 102, 204, 0.2);
+    border-radius: 16px;
+    padding: 4px 12px;
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.other-reactions-btn:hover {
+    background: rgba(0, 102, 204, 0.15);
+    border-color: rgba(0, 102, 204, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Contenedor de reacciones con hover estilo Facebook */
+.reaction-container {
+    position: relative;
+    display: flex;
+    flex: 1;
+    justify-content: center;
+}
+
+.reaction-picker-hover {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    border-radius: 25px;
+    padding: 8px 12px;
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    margin-bottom: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    white-space: nowrap;
+}
+
+.reaction-container:hover .reaction-picker-hover {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-5px);
+}
+
+.reaction-picker-hover .reaction-item {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+}
+
+.reaction-picker-hover .reaction-item:hover {
+    transform: scale(1.3);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Animación de entrada para las reacciones */
+.reaction-picker-hover .reaction-item:nth-child(1) { animation-delay: 0ms; }
+.reaction-picker-hover .reaction-item:nth-child(2) { animation-delay: 50ms; }
+.reaction-picker-hover .reaction-item:nth-child(3) { animation-delay: 100ms; }
+.reaction-picker-hover .reaction-item:nth-child(4) { animation-delay: 150ms; }
+.reaction-picker-hover .reaction-item:nth-child(5) { animation-delay: 200ms; }
+.reaction-picker-hover .reaction-item:nth-child(6) { animation-delay: 250ms; }
+
+.reaction-container:hover .reaction-picker-hover .reaction-item {
+    animation: reactionBounce 0.3s ease forwards;
+}
+
+@keyframes reactionBounce {
+    0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.8);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-5px) scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.post-interactions {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 8px;
+}
+
+.interaction-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 10px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: 500;
+    flex: 1;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    min-width: 0;
+    width: 100%;
+}
+
+.interaction-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 102, 204, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.interaction-btn:hover::before {
+    left: 100%;
+}
+
+.interaction-btn:hover {
+    background: rgba(0, 102, 204, 0.1);
+    color: var(--primary-blue);
+    transform: translateY(-1px);
+}
+
+.interaction-btn i {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+}
+
+.interaction-btn:hover i {
+    transform: scale(1.1);
+}
+
+.btn-text {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reaction-count,
+.comment-count {
+    background: rgba(0, 102, 204, 0.2);
+    color: var(--text-primary);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.interaction-btn:hover .reaction-count,
+.interaction-btn:hover .comment-count {
+    background: rgba(0, 102, 204, 0.3);
+    transform: scale(1.05);
+}
+
+/* Estados activos para botones */
+.interaction-btn.active {
+    background: rgba(0, 102, 204, 0.15);
+    color: var(--primary-blue);
+}
+
+.interaction-btn.active i {
+    color: #ff6b6b;
+}
+
+.interaction-btn.active .reaction-count {
+    background: rgba(255, 107, 107, 0.2);
+    color: #ff6b6b;
+}
+
+/* Sección de comentarios */
+.comments-section {
+    border-top: 1px solid rgba(0, 102, 204, 0.1);
+    padding: 16px 20px;
+    background: rgba(0, 102, 204, 0.02);
+}
+
+.comment-input {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.comment-input textarea {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 102, 204, 0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: var(--text-primary);
+    font-size: 14px;
+    resize: vertical;
+    min-height: 40px;
+    max-height: 120px;
+    transition: all 0.3s ease;
+}
+
+.comment-input textarea:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.comment-input textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.comment-input button {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    align-self: flex-start;
+}
+
+.comment-input button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .post {
+        margin-bottom: 16px;
+        border-radius: 12px;
+    }
+    
+    .post-header {
+        padding: 12px 16px 8px 16px;
+    }
+    
+    .post-content {
+        padding: 12px 16px;
+    }
+    
+    .post-footer {
+        padding: 8px 16px 12px 16px;
+    }
+    
+    .post-interactions {
+        gap: 4px;
+    }
+    
+    .interaction-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+        min-height: 44px;
+    }
+    
+    .btn-text {
+        display: none;
+    }
+    
+    .interaction-btn {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .reaction-container {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .user-name {
+        font-size: 15px;
+    }
+    
+    .post-time {
+        font-size: 12px;
+    }
+}
+
+/* Tema claro */
+[data-theme="light"] .post {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(0, 102, 204, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .post:hover {
+    border-color: rgba(0, 102, 204, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .post-header {
+    border-bottom-color: rgba(0, 102, 204, 0.15);
+}
+
+[data-theme="light"] .post-footer {
+    border-top-color: rgba(0, 102, 204, 0.15);
+}
+
+[data-theme="light"] .comments-section {
+    background: rgba(0, 102, 204, 0.03);
+    border-top-color: rgba(0, 102, 204, 0.15);
+}
+
+[data-theme="light"] .comment-input textarea {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(0, 102, 204, 0.25);
+}
+
+[data-theme="light"] .comment-input textarea:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
+}
+
+/* Tema claro para avatares */
+[data-theme="light"] .user-avatar {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(0, 102, 204, 0.3);
+}
+
+[data-theme="light"] .user-avatar i {
+    color: var(--primary-blue);
+}
+
+/* Tema claro para el picker de reacciones */
+[data-theme="light"] .reaction-picker-hover {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 102, 204, 0.2);
+}
+
+[data-theme="light"] .reaction-picker-hover .reaction-item:hover {
+    background: rgba(0, 102, 204, 0.1);
+}

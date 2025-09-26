@@ -1839,30 +1839,43 @@
                 const list = document.getElementById('postsList');
                 const filtered = category==='all' ? posts : posts.filter(p=>p.category===category);
                 console.log('Posts filtrados:', filtered);
-                list.innerHTML = filtered.map(p=>`
-                    <div class="post-card" data-open-post="${p.id}">
-                        <div class="post-avatar">
-                            ${p.avatarUrl ?
-                                `<img src="${p.avatarUrl}" alt="${p.user}" class="post-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                 <i class="${p.avatar}" style="display:none;"></i>` :
-                                `<i class="${p.avatar}"></i>`
-                            }
-                        </div>
-                        <div class="post-body">
-                            <div class="post-header">
-                                <span class="post-name">${p.user}</span>
-                                <span class="post-meta">• ${p.timeAgo || `${p.minutesAgo} min`} • ${p.category}</span>
+                list.innerHTML = filtered.map(p=>{
+                    console.log('🔍 [AVATAR DEBUG] Post:', p.user, 'avatarUrl:', p.avatarUrl, 'avatar:', p.avatar);
+                    return `
+                    <div class="post" data-open-post="${p.id}">
+                        <div class="post-header">
+                            <div class="post-user">
+                                <div class="user-avatar">
+                                    ${p.avatarUrl ?
+                                        `<img src="${p.avatarUrl}" alt="${p.user}" class="user-avatar-img" onerror="console.log('❌ Error cargando avatar:', this.src); this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                         <i class="${p.avatar}" style="display:none;"></i>` :
+                                        `<i class="${p.avatar}"></i>`
+                                    }
+                                </div>
+                                <div class="user-info">
+                                    <div class="user-name">${p.user}</div>
+                                    <div class="post-time">${p.timeAgo || `${p.minutesAgo} min`} • ${p.category}</div>
+                                </div>
                             </div>
-                            <div class="post-content">${p.content}</div>
-                            ${renderAttachments(p.attachments)}
                             <div class="post-actions">
-                                <span class="post-action" data-action="comment" data-id="${p.id}"><i class="fas fa-comment"></i> Comentar</span>
-                                <span class="post-action shares" data-share="${p.id}"><i class="fas fa-share"></i> Compartir</span>
-                                <span class="react-area">
-                                    <button class="react-btn ${p.reacted ? 'reacted' : ''}" data-react-toggle="${p.id}" title="${p.reacted ? 'Ya reaccionaste con ' + (p.reacted === 'like' ? '👍' : p.reacted === 'love' ? '❤️' : p.reacted === 'wow' ? '😮' : p.reacted === 'laugh' ? '😂' : p.reacted === 'sad' ? '😢' : '😠') : 'Reaccionar'}">
-                                        ${p.reacted ? (p.reacted === 'like' ? '👍' : p.reacted === 'love' ? '❤️' : p.reacted === 'wow' ? '😮' : p.reacted === 'laugh' ? '😂' : p.reacted === 'sad' ? '😢' : p.reacted === 'angry' ? '😠' : '👍') : '👍'}
+                                <button class="action-btn" onclick="showPostMenu('${p.id}')">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <p>${p.content}</p>
+                            ${renderAttachmentsCentered(p.attachments)}
+                        </div>
+                        <div class="post-footer">
+                            <div class="post-interactions">
+                                <div class="reaction-container" data-post-id="${p.id}">
+                                    <button class="interaction-btn like-btn" data-react="like" data-id="${p.id}">
+                                        <i class="fas fa-heart"></i>
+                                        <span class="btn-text">Me gusta</span>
+                                        <span class="reaction-count">${p.reactions?.like || 0}</span>
                                     </button>
-                                    <div class="reaction-picker" id="picker-${p.id}">
+                                    <div class="reaction-picker-hover" id="picker-hover-${p.id}">
                                         <div class="reaction-item" data-react="like" data-id="${p.id}">👍</div>
                                         <div class="reaction-item" data-react="love" data-id="${p.id}">❤️</div>
                                         <div class="reaction-item" data-react="wow" data-id="${p.id}">😮</div>
@@ -1870,18 +1883,35 @@
                                         <div class="reaction-item" data-react="sad" data-id="${p.id}">😢</div>
                                         <div class="reaction-item" data-react="angry" data-id="${p.id}">😠</div>
                                     </div>
-                                    <span class="reaction-summary">${reactionSummary(p.reactions)}</span>
-                                </span>
+                                </div>
+                                <button class="interaction-btn comment-btn" data-action="comment" data-id="${p.id}">
+                                    <i class="fas fa-comment"></i>
+                                    <span class="btn-text">Comentar</span>
+                                    <span class="comment-count">${p.comments ? p.comments.length : 0}</span>
+                                </button>
+                                <button class="interaction-btn share-btn" data-share="${p.id}">
+                                    <i class="fas fa-share"></i>
+                                    <span class="btn-text">Compartir</span>
+                                </button>
                             </div>
                         </div>
+                        <div class="reaction-picker" id="picker-${p.id}" style="display: none;">
+                            <div class="reaction-item" data-react="like" data-id="${p.id}">👍</div>
+                            <div class="reaction-item" data-react="love" data-id="${p.id}">❤️</div>
+                            <div class="reaction-item" data-react="wow" data-id="${p.id}">😮</div>
+                            <div class="reaction-item" data-react="laugh" data-id="${p.id}">😂</div>
+                            <div class="reaction-item" data-react="sad" data-id="${p.id}">😢</div>
+                            <div class="reaction-item" data-react="angry" data-id="${p.id}">😠</div>
+                        </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
                 // abrir modal de post
                 list.querySelectorAll('[data-open-post]').forEach(card=>{
                     card.addEventListener('click', (e)=>{
                         // evitar disparar desde botones internos
                         const target = e.target;
-                        if(target.closest('.react-area') || target.closest('.shares')) return;
+                        if(target.closest('.post-interactions') || target.closest('.post-actions')) return;
                         const id = card.getAttribute('data-open-post');
                         openPostModal(id);
                     });
@@ -1922,6 +1952,49 @@
                         picker.classList.toggle('show');
                     });
                 });
+                // botón de me gusta directo
+                list.querySelectorAll('[data-react="like"]').forEach(btn=>{
+                    btn.addEventListener('click', async ()=>{
+                        const id = btn.getAttribute('data-id');
+                        const post = posts.find(p=>p.id==id || p.id===Number(id));
+                        
+                        if (!post) {
+                            console.error('❌ [LIKE] Post no encontrado para ID:', id);
+                            return;
+                        }
+
+                        // Si ya reaccionó con like, quitar la reacción
+                        if(post.reacted === 'like'){
+                            await removeReaction(id, 'like');
+                        } else {
+                            // Aplicar reacción like
+                            await applyReaction(id, 'like');
+                        }
+                    });
+                });
+
+                // reacciones del picker hover
+                list.querySelectorAll('.reaction-picker-hover .reaction-item').forEach(el=>{
+                    el.addEventListener('click', async ()=>{
+                        const id = el.getAttribute('data-id');
+                        const type = el.getAttribute('data-react');
+                        const post = posts.find(p=>p.id==id || p.id===Number(id));
+                        
+                        if (!post) {
+                            console.error('❌ [REACTION] Post no encontrado para ID:', id);
+                            return;
+                        }
+
+                        // Si ya reaccionó con el mismo tipo, quitar la reacción
+                        if(post.reacted === type){
+                            await removeReaction(id, type);
+                        } else {
+                            // Aplicar nueva reacción
+                            await applyReaction(id, type);
+                        }
+                    });
+                });
+                
                 // aplicar reacción
                 list.querySelectorAll('.reaction-item').forEach(el=>{
                     el.addEventListener('click', async ()=>{
@@ -2492,6 +2565,21 @@
                 }).join('') + `</div>`;
             }
 
+            function renderAttachmentsCentered(att){
+                if(!att || att.length===0) return '';
+                return att.map(a=>{
+                     if(a.type==='image') return `<div class="post-media-container"><img src='${a.src || a.url}' class='post-image' loading='lazy' alt='Imagen adjunta'></div>`;
+                     if(a.type==='video') return `<div class="post-media-container"><video src='${a.src || a.url}' class='post-video' controls loading='lazy'></video></div>`;
+                     if(a.type==='youtube') return `<div class="post-media-container"><iframe width='100%' height='315' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe></div>`;
+                    if(a.type==='pdf') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='fas fa-file-pdf'></i> ${a.name}</a></div>`;
+                    if(a.type==='document') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a></div>`;
+                    if(a.type==='link') return `<div class="post-link-container"><a href='${a.url}' target='_blank' class='attachment-link'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a></div>`;
+                    if(a.type==='location') return `<div class="post-document-container"><div class='attachment-link'><i class='fas fa-map-marker-alt'></i> ${a.text}</div></div>`;
+                    if(a.type==='poll') return `<div class="post-document-container"><div class='attachment-link'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div></div>`;
+                    return '';
+                }).join('');
+            }
+
             // resumen de reacciones
             function reactionSummary(r){
                 if(!r) return '';
@@ -2505,6 +2593,112 @@
                 if(r.laugh) icons.push('😂');
                 if(r.sad) icons.push('😢');
                 return icons.join(' ') + ' ' + total;
+            }
+
+            // resumen de otras reacciones (excluyendo like)
+            function otherReactionsSummary(r){
+                if(!r) return '';
+                const otherReactions = {love: r.love, angry: r.angry, wow: r.wow, laugh: r.laugh, sad: r.sad};
+                const total = Object.values(otherReactions).reduce((a,b)=>a+(b||0),0);
+                if(total===0) return '';
+                const icons = [];
+                if(r.love) icons.push('❤️');
+                if(r.angry) icons.push('😠');
+                if(r.wow) icons.push('😮');
+                if(r.laugh) icons.push('😂');
+                if(r.sad) icons.push('😢');
+                return icons.join(' ') + ' ' + total;
+            }
+
+            // Aplicar reacción
+            async function applyReaction(postId, reactionType) {
+                try {
+                    console.log('👍 [REACTION] Aplicando reacción:', { postId, reactionType });
+                    
+                    const supabaseReady = await window.waitForSupabase();
+                    if (!supabaseReady) {
+                        throw new Error('Supabase no disponible');
+                    }
+
+                    const userResult = await getCurrentUserForCommunity();
+                    if (!userResult.id) {
+                        throw new Error('Usuario no autenticado');
+                    }
+
+                    const { error } = await window.supabase
+                        .from('community_reactions')
+                        .insert({
+                            post_id: postId,
+                            user_id: userResult.id,
+                            reaction_type: reactionType
+                        });
+
+                    if (error) {
+                        throw error;
+                    }
+
+                    // Actualizar el post local
+                    const post = posts.find(p => p.id == postId || p.id === Number(postId));
+                    if (post) {
+                        post.reactions[reactionType] = (post.reactions[reactionType] || 0) + 1;
+                        post.reacted = reactionType;
+                    }
+
+                    // Re-renderizar posts
+                    renderPosts('all');
+                    
+                    console.log('✅ [REACTION] Reacción aplicada exitosamente');
+                } catch (error) {
+                    console.error('❌ [REACTION] Error aplicando reacción:', error);
+                    if (typeof notifications !== 'undefined') {
+                        notifications.error('Error al aplicar reacción');
+                    }
+                }
+            }
+
+            // Remover reacción
+            async function removeReaction(postId, reactionType) {
+                try {
+                    console.log('👍 [REACTION] Removiendo reacción:', { postId, reactionType });
+                    
+                    const supabaseReady = await window.waitForSupabase();
+                    if (!supabaseReady) {
+                        throw new Error('Supabase no disponible');
+                    }
+
+                    const userResult = await getCurrentUserForCommunity();
+                    if (!userResult.id) {
+                        throw new Error('Usuario no autenticado');
+                    }
+
+                    const { error } = await window.supabase
+                        .from('community_reactions')
+                        .delete()
+                        .eq('post_id', postId)
+                        .eq('user_id', userResult.id)
+                        .eq('reaction_type', reactionType);
+
+                    if (error) {
+                        throw error;
+                    }
+
+                    // Actualizar el post local
+                    const post = posts.find(p => p.id == postId || p.id === Number(postId));
+                    if (post) {
+                        post.reactions[reactionType] = Math.max(0, (post.reactions[reactionType] || 0) - 1);
+                        post.reacted = null;
+                    }
+
+                    // Re-renderizar posts
+                    renderPosts('all');
+                    
+                    console.log('✅ [REACTION] Reacción removida exitosamente');
+                } catch (error) {
+                    console.error('❌ [REACTION] Error removiendo reacción:', error);
+                    if (typeof notifications !== 'undefined') {
+                        notifications.error('Error al remover reacción');
+                    }
+                }
             }
 
             // Modal de post
@@ -4936,19 +5130,20 @@
                         ${post.attachment_url ? this.renderAttachment(post) : ''}
                     </div>
                     <div class="post-footer">
-                        <div class="post-stats">
-                            <button class="reaction-btn" onclick="communitySystem.toggleReaction('${post.id}', 'like')">
+                        <div class="post-interactions">
+                            <button class="interaction-btn like-btn" onclick="communitySystem.toggleReaction('${post.id}', 'like')">
                                 <i class="fas fa-heart"></i>
+                                <span class="btn-text">Me gusta</span>
                                 <span class="reaction-count" id="reaction-count-${post.id}">${post.likes_count || 0}</span>
                             </button>
-                            <button class="comment-btn" onclick="communitySystem.showComments('${post.id}')">
+                            <button class="interaction-btn comment-btn" onclick="communitySystem.showComments('${post.id}')">
                                 <i class="fas fa-comment"></i>
+                                <span class="btn-text">Comentar</span>
                                 <span class="comment-count" id="comment-count-${post.id}">${post.comments_count || 0}</span>
                             </button>
-                        </div>
-                        <div class="post-actions">
-                            <button class="share-btn" onclick="communitySystem.sharePost('${post.id}')">
+                            <button class="interaction-btn share-btn" onclick="communitySystem.sharePost('${post.id}')">
                                 <i class="fas fa-share"></i>
+                                <span class="btn-text">Compartir</span>
                             </button>
                         </div>
                     </div>
@@ -4969,21 +5164,31 @@
                 
                 switch (post.attachment_type) {
                     case 'image':
-                        return `<img src="${post.attachment_url}" alt="Imagen adjunta" class="post-attachment">`;
+                        return `<div class="post-media-container">
+                            <img src="${post.attachment_url}" alt="Imagen adjunta" class="post-attachment post-image">
+                        </div>`;
                     case 'video':
-                        return `<video src="${post.attachment_url}" controls class="post-attachment"></video>`;
+                        return `<div class="post-media-container">
+                            <video src="${post.attachment_url}" controls class="post-attachment post-video"></video>
+                        </div>`;
                     case 'document':
-                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
-                            <i class="fas fa-file"></i> Ver documento
-                        </a>`;
+                        return `<div class="post-document-container">
+                            <a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                                <i class="fas fa-file"></i> Ver documento
+                            </a>
+                        </div>`;
                     case 'link':
-                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
-                            <i class="fas fa-link"></i> ${post.attachment_url}
-                        </a>`;
+                        return `<div class="post-link-container">
+                            <a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                                <i class="fas fa-link"></i> ${post.attachment_url}
+                            </a>
+                        </div>`;
                     default:
-                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
-                            <i class="fas fa-paperclip"></i> Ver adjunto
-                        </a>`;
+                        return `<div class="post-document-container">
+                            <a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                                <i class="fas fa-paperclip"></i> Ver adjunto
+                            </a>
+                        </div>`;
                 }
             }
 
