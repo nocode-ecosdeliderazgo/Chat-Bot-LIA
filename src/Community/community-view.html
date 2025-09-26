@@ -1603,6 +1603,10 @@
                                 .select('reaction_type, user_id')
                                 .eq('post_id', post.id);
 
+                            console.log('🔍 [REACTIONS DEBUG] Post ID:', post.id);
+                            console.log('  - Reactions query result:', reactionsData);
+                            console.log('  - Reactions query error:', reactionsError);
+
                             if (!reactionsError && reactionsData) {
                                 // Contar reacciones por tipo
                                 reactionsData.forEach(reaction => {
@@ -1621,9 +1625,64 @@
                                 }
 
                                 console.log('✅ Reacciones cargadas para post', post.id, ':', reactions);
+                                console.log('  - Datos de reacciones:', reactionsData);
+                                console.log('  - Total de likes:', reactions.like);
+                                console.log('  - User reacted:', userReacted);
+                            } else {
+                                console.log('⚠️ No se encontraron reacciones para post', post.id, 'Error:', reactionsError);
+                                console.log('  - Error details:', reactionsError?.message);
+                                console.log('  - Error code:', reactionsError?.code);
                             }
                         } catch (error) {
                             console.warn('⚠️ Error cargando reacciones para post', post.id, ':', error);
+                            console.log('  - Error details:', error.message);
+                            console.log('  - Error stack:', error.stack);
+                        }
+
+                        // Cargar comentarios desde la base de datos
+                        console.log('💬 Cargando comentarios para post:', post.id);
+                        let comments = [];
+                        try {
+                            const { data: commentsData, error: commentsError } = await window.supabase
+                                .from('community_comments')
+                                .select('*')
+                                .eq('post_id', post.id)
+                                .order('created_at', { ascending: true });
+
+                            if (!commentsError && commentsData) {
+                                // Cargar datos de usuarios para los comentarios
+                                const userIds = [...new Set(commentsData.map(c => c.user_id))];
+                                const { data: usersData, error: usersError } = await window.supabase
+                                    .from('users')
+                                    .select('id, display_name, username, profile_picture_url')
+                                    .in('id', userIds);
+
+                                const usersMap = {};
+                                if (!usersError && usersData) {
+                                    usersData.forEach(user => {
+                                        usersMap[user.id] = user;
+                                    });
+                                }
+
+                                comments = commentsData.map(comment => {
+                                    const userData = usersMap[comment.user_id];
+                                    return {
+                                        id: comment.id,
+                                        user: userData?.display_name || userData?.username || 'Usuario',
+                                        content: comment.content,
+                                        created_at: comment.created_at,
+                                        avatarUrl: userData?.profile_picture_url || null
+                                    };
+                                });
+                                
+                                console.log('✅ Comentarios cargados para post', post.id, ':', comments.length, 'comentarios');
+                                console.log('  - Datos de comentarios:', commentsData);
+                                console.log('  - Comentarios mapeados:', comments);
+                            } else {
+                                console.log('⚠️ No se encontraron comentarios para post', post.id, 'Error:', commentsError);
+                            }
+                        } catch (error) {
+                            console.warn('⚠️ Error cargando comentarios para post', post.id, ':', error);
                         }
 
                         // Construir attachments si existen
@@ -1640,7 +1699,7 @@
                             });
                         }
 
-                        return {
+                        const postObject = {
                             id: post.id,
                             user: post.users ? (post.users.display_name || post.users.username || 'Usuario') : 'Usuario',
                             avatar: 'fas fa-user',
@@ -1651,7 +1710,7 @@
                             timestamp: createdDate.getTime(),
                             content: post.content || post.title || '',
                             title: post.title || null,
-                            comments: [],
+                            comments: comments,
                             reactions: reactions,
                             attachments: attachments,
                             reacted: userReacted,
@@ -1660,6 +1719,21 @@
                             community_id: post.community_id,
                             created_at: post.created_at
                         };
+
+                        // Calcular total de reacciones
+                        const totalReactions = Object.values(postObject.reactions).reduce((sum, count) => sum + count, 0);
+                        postObject.totalReactions = totalReactions;
+
+                        // Log de debug para verificar datos
+                        console.log('🔍 [POST OBJECT DEBUG] Post ID:', post.id);
+                        console.log('  - User:', postObject.user);
+                        console.log('  - Reactions:', postObject.reactions);
+                        console.log('  - Total reactions:', totalReactions);
+                        console.log('  - Comments array:', postObject.comments);
+                        console.log('  - Comments length:', postObject.comments?.length || 0);
+                        console.log('  - Like count:', postObject.reactions?.like || 0);
+
+                        return postObject;
                     }));
 
                     console.log('✅ Posts convertidos para UI:', posts);
@@ -1669,6 +1743,13 @@
 
                     // Actualizar estadísticas
                     updateStats();
+
+                    // Forzar actualización de contadores después de cargar
+                    console.log('🔄 [INITIAL LOAD] Forzando actualización de contadores...');
+                    setTimeout(() => {
+                        updateCounters();
+                        console.log('✅ [INITIAL LOAD] Contadores actualizados después de carga inicial');
+                    }, 500);
 
                 } catch (error) {
                     console.error('❌ Error cargando posts desde API:', error);
@@ -1840,27 +1921,32 @@
                 const filtered = category==='all' ? posts : posts.filter(p=>p.category===category);
                 console.log('Posts filtrados:', filtered);
                 list.innerHTML = filtered.map(p=>{
-                    console.log('🔍 [AVATAR DEBUG] Post:', p.user, 'avatarUrl:', p.avatarUrl, 'avatar:', p.avatar);
+                    console.log('🔍 [COUNTER DEBUG] Post:', p.user);
+                    console.log('  - Reactions object:', p.reactions);
+                    console.log('  - Like count:', p.reactions?.like || 0);
+                    console.log('  - Comments array:', p.comments);
+                    console.log('  - Comments length:', p.comments?.length || 0);
+                    console.log('  - Comments count in template:', p.comments ? p.comments.length : 0);
                     return `
                     <div class="post" data-open-post="${p.id}">
                         <div class="post-header">
                             <div class="post-user">
                                 <div class="user-avatar">
-                                    ${p.avatarUrl ?
+                            ${p.avatarUrl ?
                                         `<img src="${p.avatarUrl}" alt="${p.user}" class="user-avatar-img" onerror="console.log('❌ Error cargando avatar:', this.src); this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                         <i class="${p.avatar}" style="display:none;"></i>` :
-                                        `<i class="${p.avatar}"></i>`
-                                    }
-                                </div>
+                                 <i class="${p.avatar}" style="display:none;"></i>` :
+                                `<i class="${p.avatar}"></i>`
+                            }
+                        </div>
                                 <div class="user-info">
                                     <div class="user-name">${p.user}</div>
                                     <div class="post-time">${p.timeAgo || `${p.minutesAgo} min`} • ${p.category}</div>
-                                </div>
+                            </div>
                             </div>
                             <div class="post-actions">
                                 <button class="action-btn" onclick="showPostMenu('${p.id}')">
                                     <i class="fas fa-ellipsis-h"></i>
-                                </button>
+                                    </button>
                             </div>
                         </div>
                         <div class="post-content">
@@ -1870,10 +1956,10 @@
                         <div class="post-footer">
                             <div class="post-interactions">
                                 <div class="reaction-container" data-post-id="${p.id}">
-                                    <button class="interaction-btn like-btn" data-react="like" data-id="${p.id}">
+                                    <button class="interaction-btn like-btn ${p.reacted ? 'reacted' : ''}" data-react="like" data-id="${p.id}">
                                         <i class="fas fa-heart"></i>
-                                        <span class="btn-text">Me gusta</span>
-                                        <span class="reaction-count">${p.reactions?.like || 0}</span>
+                                        <span class="btn-text">${p.reacted ? (p.reacted === 'like' ? 'Me gusta' : p.reacted === 'love' ? 'Me encanta' : p.reacted === 'wow' ? 'Me asombra' : p.reacted === 'laugh' ? 'Me divierte' : p.reacted === 'sad' ? 'Me entristece' : p.reacted === 'angry' ? 'Me enoja' : 'Me gusta') : 'Me gusta'}</span>
+                                        <span class="reaction-count">${p.totalReactions || 0}</span>
                                     </button>
                                     <div class="reaction-picker-hover" id="picker-hover-${p.id}">
                                         <div class="reaction-item" data-react="like" data-id="${p.id}">👍</div>
@@ -1883,7 +1969,7 @@
                                         <div class="reaction-item" data-react="sad" data-id="${p.id}">😢</div>
                                         <div class="reaction-item" data-react="angry" data-id="${p.id}">😠</div>
                                     </div>
-                                </div>
+                            </div>
                                 <button class="interaction-btn comment-btn" data-action="comment" data-id="${p.id}">
                                     <i class="fas fa-comment"></i>
                                     <span class="btn-text">Comentar</span>
@@ -1893,8 +1979,8 @@
                                     <i class="fas fa-share"></i>
                                     <span class="btn-text">Compartir</span>
                                 </button>
-                            </div>
                         </div>
+                    </div>
                         <div class="reaction-picker" id="picker-${p.id}" style="display: none;">
                             <div class="reaction-item" data-react="like" data-id="${p.id}">👍</div>
                             <div class="reaction-item" data-react="love" data-id="${p.id}">❤️</div>
@@ -1960,8 +2046,8 @@
                         
                         if (!post) {
                             console.error('❌ [LIKE] Post no encontrado para ID:', id);
-                            return;
-                        }
+                                return;
+                            }
 
                         // Si ya reaccionó con like, quitar la reacción
                         if(post.reacted === 'like'){
@@ -1982,102 +2068,21 @@
                         
                         if (!post) {
                             console.error('❌ [REACTION] Post no encontrado para ID:', id);
-                            return;
-                        }
+                                return;
+                            }
 
                         // Si ya reaccionó con el mismo tipo, quitar la reacción
                         if(post.reacted === type){
                             await removeReaction(id, type);
-                        } else {
+                            } else {
                             // Aplicar nueva reacción
                             await applyReaction(id, type);
                         }
                     });
                 });
                 
-                // aplicar reacción
-                list.querySelectorAll('.reaction-item').forEach(el=>{
-                    el.addEventListener('click', async ()=>{
-                        const id = el.getAttribute('data-id');
-                        const type = el.getAttribute('data-react');
-                        const post = posts.find(p=>p.id==id || p.id===Number(id));
-                        if(post.reacted){ return; }
-
-                        try {
-                            console.log('👍 [REACTION] Creando reacción en BD...', { postId: id, type });
-
-                            // Obtener usuario actual de manera consistente
-                            const userResult = await getCurrentUserForCommunity();
-                            if (!userResult.id) {
-                                notifications.error('No se pudo verificar tu identidad. Inténtalo de nuevo.');
-                                return;
-                            }
-                            const { user: currentUser, id: userId } = userResult;
-
-                            // Verificar si ya reaccionó
-                            const { data: existingReaction } = await window.supabase
-                                .from('community_reactions')
-                                .select('*')
-                                .eq('post_id', id)
-                                .eq('user_id', userId)
-                                .maybeSingle();
-
-                            if (existingReaction) {
-                                notifications.warning('Ya reaccionaste a esta publicación');
-                                return;
-                            }
-
-                            // Crear reacción en la base de datos
-                            const { data: newReaction, error } = await window.supabase
-                                .from('community_reactions')
-                                .insert({
-                                    post_id: id,
-                                    user_id: userId,
-                                    reaction_type: type
-                                })
-                                .select()
-                                .single();
-
-                            if (error) {
-                                console.error('❌ [REACTION] Error creando reacción:', error);
-                                notifications.error('Error al crear reacción: ' + error.message);
-
-                                // Fallback a localStorage
-                                console.log('⚠️ [REACTION] Usando fallback a localStorage...');
-                                post.reactions[type] = (post.reactions[type]||0) + 1;
-                                post.reacted = type;
-                                savePosts();
-                            } else {
-                                console.log('✅ [REACTION] Reacción creada en BD:', newReaction);
-
-                                // Actualizar el post local
-                                post.reactions[type] = (post.reactions[type]||0) + 1;
-                                post.reacted = type;
-
-                                notifications.success('Reacción agregada correctamente');
-                            }
-
-                            // Agregar puntos por reaccionar
-                            if (window.pointsSystem) {
-                                await window.pointsSystem.addPoints(null, 'react');
-                            }
-
-                            renderPosts(category);
-
-                        } catch (error) {
-                            console.error('❌ [REACTION] Error inesperado:', error);
-
-                            // Fallback a localStorage en caso de error
-                            console.log('⚠️ [REACTION] Usando fallback a localStorage por error...');
-                            post.reactions[type] = (post.reactions[type]||0) + 1;
-                            post.reacted = type;
-                            savePosts();
-                            renderPosts(category);
-
-                            notifications.error('Error inesperado al crear reacción');
-                        }
-                    });
-                });
+                // NOTA: Los event listeners de reacciones ya están manejados por el hover picker arriba
+                // No necesitamos duplicar los event listeners aquí
                 // botón de comentarios
                 list.querySelectorAll('[data-action="comment"]').forEach(el=>{
                     el.addEventListener('click', async ()=>{
@@ -2610,8 +2615,23 @@
                 return icons.join(' ') + ' ' + total;
             }
 
+            // Variable para prevenir duplicaciones
+            const reactionInProgress = new Set();
+
             // Aplicar reacción
             async function applyReaction(postId, reactionType) {
+                // Crear una clave única para esta reacción
+                const reactionKey = `${postId}-${reactionType}`;
+                
+                // Si ya está en progreso, ignorar
+                if (reactionInProgress.has(reactionKey)) {
+                    console.log('⚠️ [REACTION] Reacción ya en progreso, ignorando:', reactionKey);
+                    return;
+                }
+                
+                // Marcar como en progreso
+                reactionInProgress.add(reactionKey);
+                
                 try {
                     console.log('👍 [REACTION] Aplicando reacción:', { postId, reactionType });
                     
@@ -2625,27 +2645,90 @@
                         throw new Error('Usuario no autenticado');
                     }
 
-                    const { error } = await window.supabase
+                    // Verificar si ya existe una reacción del usuario
+                    const { data: existingReaction, error: checkError } = await window.supabase
                         .from('community_reactions')
-                        .insert({
-                            post_id: postId,
-                            user_id: userResult.id,
-                            reaction_type: reactionType
-                        });
+                        .select('*')
+                        .eq('post_id', postId)
+                        .eq('user_id', userResult.id)
+                        .maybeSingle();
 
-                    if (error) {
-                        throw error;
+                    if (checkError) {
+                        throw checkError;
                     }
 
-                    // Actualizar el post local
-                    const post = posts.find(p => p.id == postId || p.id === Number(postId));
-                    if (post) {
-                        post.reactions[reactionType] = (post.reactions[reactionType] || 0) + 1;
-                        post.reacted = reactionType;
+                    if (existingReaction) {
+                        // Si ya existe una reacción, actualizarla
+                        if (existingReaction.reaction_type === reactionType) {
+                            // Si es la misma reacción, quitarla (toggle)
+                            const { error: deleteError } = await window.supabase
+                                .from('community_reactions')
+                                .delete()
+                                .eq('post_id', postId)
+                                .eq('user_id', userResult.id);
+
+                            if (deleteError) {
+                                throw deleteError;
+                            }
+
+                            // Actualizar el post local
+                            const post = posts.find(p => p.id == postId || p.id === Number(postId));
+                            if (post) {
+                                post.reactions[reactionType] = Math.max(0, (post.reactions[reactionType] || 0) - 1);
+                                post.reacted = null;
+                                // Recalcular total de reacciones
+                                post.totalReactions = Object.values(post.reactions).reduce((sum, count) => sum + count, 0);
+                            }
+                        } else {
+                            // Si es una reacción diferente, actualizarla
+                            const { error: updateError } = await window.supabase
+                                .from('community_reactions')
+                                .update({ reaction_type: reactionType })
+                                .eq('post_id', postId)
+                                .eq('user_id', userResult.id);
+
+                            if (updateError) {
+                                throw updateError;
+                            }
+
+                            // Actualizar el post local
+                            const post = posts.find(p => p.id == postId || p.id === Number(postId));
+                            if (post) {
+                                // Restar la reacción anterior
+                                post.reactions[existingReaction.reaction_type] = Math.max(0, (post.reactions[existingReaction.reaction_type] || 0) - 1);
+                                // Sumar la nueva reacción
+                                post.reactions[reactionType] = (post.reactions[reactionType] || 0) + 1;
+                                post.reacted = reactionType;
+                                // Recalcular total de reacciones
+                                post.totalReactions = Object.values(post.reactions).reduce((sum, count) => sum + count, 0);
+                            }
+                        }
+                    } else {
+                        // Si no existe reacción, crear una nueva
+                        const { error: insertError } = await window.supabase
+                            .from('community_reactions')
+                            .insert({
+                                post_id: postId,
+                                user_id: userResult.id,
+                                reaction_type: reactionType
+                            });
+
+                        if (insertError) {
+                            throw insertError;
+                        }
+
+                        // Actualizar el post local
+                        const post = posts.find(p => p.id == postId || p.id === Number(postId));
+                        if (post) {
+                            post.reactions[reactionType] = (post.reactions[reactionType] || 0) + 1;
+                            post.reacted = reactionType;
+                            // Recalcular total de reacciones
+                            post.totalReactions = Object.values(post.reactions).reduce((sum, count) => sum + count, 0);
+                        }
                     }
 
-                    // Re-renderizar posts
-                    renderPosts('all');
+                    // Actualizar contadores en tiempo real
+                    updateReactionCounters(postId);
                     
                     console.log('✅ [REACTION] Reacción aplicada exitosamente');
                 } catch (error) {
@@ -2653,6 +2736,9 @@
                     if (typeof notifications !== 'undefined') {
                         notifications.error('Error al aplicar reacción');
                     }
+                } finally {
+                    // Limpiar el estado de progreso
+                    reactionInProgress.delete(reactionKey);
                 }
             }
 
@@ -2709,6 +2795,9 @@
                 const post = posts.find(p=>p.id==id || p.id===Number(id));
 
                 console.log('💬 [MODAL] Buscando post con ID:', id, 'Encontrado:', !!post);
+
+                // Preservar contadores antes de abrir el modal
+                preserveCountersOnModalOpen(id);
 
                 if(!post) {
                     console.error('❌ [MODAL] Post no encontrado para ID:', id);
@@ -2770,6 +2859,28 @@
                             };
                         }));
                         console.log('✅ Comentarios cargados desde BD:', comments.length);
+                        
+                        // Actualizar el contador en el post principal
+                        const postInMainView = posts.find(p => p.id === id);
+                        if (postInMainView) {
+                            postInMainView.comments = comments;
+                            console.log('🔄 Actualizando contador de comentarios en vista principal:', comments.length);
+                            
+                            // Actualizar el contador en el DOM
+                            const commentCountEl = document.querySelector(`[data-id="${id}"] .comment-count`);
+                            if (commentCountEl) {
+                                commentCountEl.textContent = comments.length;
+                                console.log('✅ Contador de comentarios actualizado en DOM:', comments.length);
+                            }
+                            
+                            // También actualizar el contador de reacciones si es necesario
+                            const reactionCountEl = document.querySelector(`[data-id="${id}"] .reaction-count`);
+                            if (reactionCountEl && postInMainView.reactions) {
+                                const totalReactions = postInMainView.totalReactions || Object.values(postInMainView.reactions || {}).reduce((sum, count) => sum + count, 0);
+                                reactionCountEl.textContent = totalReactions;
+                                console.log('✅ Contador de reacciones actualizado en DOM:', totalReactions);
+                            }
+                        }
                     }
                 } catch (error) {
                     console.warn('⚠️ Error inesperado cargando comentarios:', error);
@@ -3414,6 +3525,131 @@
 
             // Cargar posts al inicializar
             initializePosts();
+
+            // Función de prueba para verificar contadores
+            window.testCounters = function() {
+                console.log('🧪 [TEST] Verificando contadores...');
+                console.log('Posts cargados:', posts.length);
+                posts.forEach((post, index) => {
+                    console.log(`Post ${index + 1}:`, {
+                        id: post.id,
+                        user: post.user,
+                        reactions: post.reactions,
+                        comments: post.comments,
+                        commentsLength: post.comments?.length || 0,
+                        likeCount: post.reactions?.like || 0
+                    });
+                });
+            };
+
+            // Función para forzar actualización de contadores
+            window.updateCounters = function() {
+                console.log('🔄 [UPDATE] Actualizando contadores en el DOM...');
+                posts.forEach(post => {
+                    const reactionCountEl = document.querySelector(`[data-id="${post.id}"] .reaction-count`);
+                    const commentCountEl = document.querySelector(`[data-id="${post.id}"] .comment-count`);
+                    
+                    if (reactionCountEl) {
+                        const totalReactions = post.totalReactions || Object.values(post.reactions || {}).reduce((sum, count) => sum + count, 0);
+                        reactionCountEl.textContent = totalReactions;
+                        console.log(`✅ Actualizado contador de reacciones para post ${post.id}: ${totalReactions}`);
+                    }
+                    
+                    if (commentCountEl) {
+                        const commentCount = post.comments?.length || 0;
+                        commentCountEl.textContent = commentCount;
+                        console.log(`✅ Actualizado contador de comentarios para post ${post.id}: ${commentCount}`);
+                    }
+                });
+            };
+
+            // Función para actualizar contadores después de cerrar modal
+            window.updateCountersAfterModal = function() {
+                console.log('🔄 [MODAL CLOSE] Actualizando contadores después de cerrar modal...');
+                setTimeout(() => {
+                    updateCounters();
+                }, 100);
+            };
+
+    // Función para preservar contadores al abrir modal
+    window.preserveCountersOnModalOpen = function(postId) {
+        console.log('🔄 [MODAL OPEN] Preservando contadores para post:', postId);
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+            // Asegurar que el total de reacciones esté calculado
+            if (!post.totalReactions) {
+                post.totalReactions = Object.values(post.reactions || {}).reduce((sum, count) => sum + count, 0);
+            }
+            console.log('✅ Contadores preservados - Total reacciones:', post.totalReactions, 'Comentarios:', post.comments?.length || 0);
+        }
+    };
+
+    // Función para actualizar contadores en tiempo real
+    window.updateReactionCounters = function(postId) {
+        console.log('🔄 [REALTIME] Actualizando contadores para post:', postId);
+        const post = posts.find(p => p.id === postId);
+        if (!post) {
+            console.error('❌ [REALTIME] Post no encontrado:', postId);
+            return;
+        }
+
+        // Actualizar contador de reacciones
+        const reactionCountEl = document.querySelector(`[data-id="${postId}"] .reaction-count`);
+        if (reactionCountEl) {
+            reactionCountEl.textContent = post.totalReactions || 0;
+            console.log('✅ [REALTIME] Contador de reacciones actualizado:', post.totalReactions);
+        }
+
+        // Actualizar texto del botón según la reacción
+        const btnTextEl = document.querySelector(`[data-id="${postId}"] .btn-text`);
+        if (btnTextEl) {
+            const reactionTexts = {
+                'like': 'Me gusta',
+                'love': 'Me encanta',
+                'wow': 'Me asombra',
+                'laugh': 'Me divierte',
+                'sad': 'Me entristece',
+                'angry': 'Me enoja'
+            };
+            btnTextEl.textContent = post.reacted ? reactionTexts[post.reacted] || 'Me gusta' : 'Me gusta';
+        }
+
+        // Actualizar clase del botón
+        const buttonEl = document.querySelector(`[data-id="${postId}"]`);
+        if (buttonEl) {
+            if (post.reacted) {
+                buttonEl.classList.add('reacted');
+            } else {
+                buttonEl.classList.remove('reacted');
+            }
+        }
+
+        console.log('✅ [REALTIME] Contadores actualizados para post:', postId);
+    };
+
+            // Función de debug específica para verificar datos de posts
+            window.debugPostData = function() {
+                console.log('🔍 [DEBUG] Verificando datos de posts...');
+                console.log('Total de posts:', posts.length);
+                
+                posts.forEach((post, index) => {
+                    console.log(`\n📝 Post ${index + 1} (ID: ${post.id}):`);
+                    console.log('  - User:', post.user);
+                    console.log('  - Reactions object:', post.reactions);
+                    console.log('  - Like count:', post.reactions?.like || 0);
+                    console.log('  - Comments array:', post.comments);
+                    console.log('  - Comments length:', post.comments?.length || 0);
+                    
+                    // Verificar elementos en el DOM
+                    const reactionCountEl = document.querySelector(`[data-id="${post.id}"] .reaction-count`);
+                    const commentCountEl = document.querySelector(`[data-id="${post.id}"] .comment-count`);
+                    
+                    console.log('  - DOM reaction count element:', reactionCountEl);
+                    console.log('  - DOM reaction count text:', reactionCountEl?.textContent);
+                    console.log('  - DOM comment count element:', commentCountEl);
+                    console.log('  - DOM comment count text:', commentCountEl?.textContent);
+                });
+            };
 
             // Variable GLOBAL para almacenar miembros
             window.members = [];
@@ -5174,19 +5410,19 @@
                     case 'document':
                         return `<div class="post-document-container">
                             <a href="${post.attachment_url}" target="_blank" class="attachment-link">
-                                <i class="fas fa-file"></i> Ver documento
+                            <i class="fas fa-file"></i> Ver documento
                             </a>
                         </div>`;
                     case 'link':
                         return `<div class="post-link-container">
                             <a href="${post.attachment_url}" target="_blank" class="attachment-link">
-                                <i class="fas fa-link"></i> ${post.attachment_url}
+                            <i class="fas fa-link"></i> ${post.attachment_url}
                             </a>
                         </div>`;
                     default:
                         return `<div class="post-document-container">
                             <a href="${post.attachment_url}" target="_blank" class="attachment-link">
-                                <i class="fas fa-paperclip"></i> Ver adjunto
+                            <i class="fas fa-paperclip"></i> Ver adjunto
                             </a>
                         </div>`;
                 }

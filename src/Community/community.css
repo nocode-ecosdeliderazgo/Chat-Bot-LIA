@@ -7143,6 +7143,9 @@ body {
     min-width: 20px;
     text-align: center;
     transition: all 0.3s ease;
+    display: inline-block;
+    visibility: visible;
+    opacity: 1;
 }
 
 .interaction-btn:hover .reaction-count,
@@ -7164,6 +7167,26 @@ body {
 .interaction-btn.active .reaction-count {
     background: rgba(255, 107, 107, 0.2);
     color: #ff6b6b;
+}
+
+/* Estado cuando el usuario ha reaccionado */
+.interaction-btn.reacted {
+    background: rgba(0, 102, 204, 0.15);
+    color: var(--primary-blue);
+    border: 1px solid rgba(0, 102, 204, 0.3);
+}
+
+.interaction-btn.reacted:hover {
+    background: rgba(0, 102, 204, 0.25);
+}
+
+.interaction-btn.reacted i {
+    color: var(--primary-blue);
+}
+
+.interaction-btn.reacted .reaction-count {
+    background: rgba(0, 102, 204, 0.2);
+    color: var(--primary-blue);
 }
 
 /* Sección de comentarios */
