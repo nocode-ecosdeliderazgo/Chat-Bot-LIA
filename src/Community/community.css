@@ -1720,6 +1720,42 @@ body {
 .attachments-preview { display:flex; gap:10px; flex-wrap: wrap; margin-top: 8px; }
 .preview-item { position: relative; border:1px solid rgba(255,255,255,.12); border-radius: 10px; overflow: hidden; }
 .preview-thumb { width: 140px; height: 90px; object-fit: cover; display:block; }
+
+/* Estilos específicos para imágenes en posts */
+.attachments-preview img.preview-thumb {
+    width: auto;
+    max-width: 400px;
+    max-height: 300px;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.attachments-preview img.preview-thumb:hover {
+    transform: scale(1.02);
+    cursor: pointer;
+}
+
+/* Para videos en posts */
+.attachments-preview video.preview-thumb {
+    width: auto;
+    max-width: 400px;
+    max-height: 300px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .attachments-preview img.preview-thumb,
+    .attachments-preview video.preview-thumb {
+        max-width: 100%;
+        max-height: 250px;
+    }
+}
 .preview-remove { position:absolute; top:4px; right:4px; background: rgba(0,0,0,.5); border:0; color:#fff; border-radius: 8px; padding:4px 6px; cursor:pointer; }
 .pdf-chip, .document-chip, .link-chip, .youtube-chip, .location-chip, .poll-chip { 
     display: inline-flex; 
