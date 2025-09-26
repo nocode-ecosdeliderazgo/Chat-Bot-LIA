@@ -2140,6 +2140,15 @@
                 preview.appendChild(wrap);
             }
             
+            function addPreviewVideo(src){
+                const preview = document.getElementById('attachmentsPreview');
+                const wrap = document.createElement('div');
+                wrap.className = 'preview-item';
+                wrap.innerHTML = `<video src="${src}" class="preview-thumb" controls muted></video><button class="preview-remove">✕</button>`;
+                wrap.querySelector('.preview-remove').onclick = ()=>{ preview.removeChild(wrap); pendingAttachments = pendingAttachments.filter(a=>a.src!==src); };
+                preview.appendChild(wrap);
+            }
+
             function addPreviewYoutube(embed){
                 const preview = document.getElementById('attachmentsPreview');
                 const wrap = document.createElement('div');
@@ -2241,38 +2250,195 @@
                         break;
                 }
             }
-            document.getElementById('attachImage').addEventListener('change', (e)=>{
-                console.log('Archivo de imagen seleccionado:', e.target.files?.[0]);
+            document.getElementById('attachImage').addEventListener('change', async (e)=>{
+                console.log('Archivo de imagen/video seleccionado:', e.target.files?.[0]);
                 const file = e.target.files?.[0];
                 if(!file) return;
-                                 if(bytesToMB(file.size) > 10){ notifications.warning('Imagen supera 10MB'); return; }
-                console.log('Procesando imagen:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
-                const reader = new FileReader();
-                reader.onload = ()=>{
-                    console.log('Imagen procesada, agregando adjunto');
-                    pendingAttachments.push({ type:'image', src: reader.result }); 
-                    addPreviewImage(reader.result); 
-                };
-                reader.readAsDataURL(file);
+
+                if(bytesToMB(file.size) > 10){
+                    notifications.warning('Archivo supera 10MB');
+                    return;
+                }
+
+                console.log('Procesando archivo:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
+
+                try {
+                    // Mostrar indicador de carga
+                    notifications.info('Subiendo archivo...');
+
+                    // Determinar el tipo de archivo
+                    const isVideo = file.type.startsWith('video/');
+                    const fileType = isVideo ? 'video' : 'image';
+                    const folder = isVideo ? 'videos/' : 'images/';
+
+                    // Subir archivo al bucket de Supabase Storage
+                    const uploadResult = await uploadFileToStorage(file, folder);
+
+                    console.log('Archivo subido exitosamente, agregando adjunto');
+
+                    // Agregar a adjuntos pendientes con la URL del storage
+                    pendingAttachments.push({
+                        type: fileType,
+                        src: uploadResult.url,
+                        url: uploadResult.url,
+                        path: uploadResult.path,
+                        name: file.name
+                    });
+
+                    // Mostrar preview
+                    if (isVideo) {
+                        addPreviewVideo(uploadResult.url);
+                    } else {
+                        addPreviewImage(uploadResult.url);
+                    }
+
+                    notifications.success('Archivo subido correctamente');
+
+                } catch (error) {
+                    console.error('Error subiendo archivo:', error);
+                    notifications.error('Error subiendo archivo. Inténtalo de nuevo.');
+                }
+
                 e.target.value='';
             });
             // Remover esta línea ya que no existe el input attachPdf
             
-            document.getElementById('attachDocument').addEventListener('change', (e)=>{
+            document.getElementById('attachDocument').addEventListener('change', async (e)=>{
                 console.log('Archivo de documento seleccionado:', e.target.files?.[0]);
                 const file = e.target.files?.[0];
                 if(!file) return;
-                                 if(bytesToMB(file.size) > 10){ notifications.warning('Documento supera 10MB'); return; }
+
+                if(bytesToMB(file.size) > 10){
+                    notifications.warning('Documento supera 10MB');
+                    return;
+                }
+
                 console.log('Procesando documento:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
-                const reader = new FileReader();
-                reader.onload = ()=>{
-                    console.log('Documento procesado, agregando adjunto');
-                    pendingAttachments.push({ type:'document', name: file.name, dataUrl: reader.result }); 
-                    addPreviewDocument(file.name); 
-                };
-                reader.readAsDataURL(file);
+
+                try {
+                    // Mostrar indicador de carga
+                    notifications.info('Subiendo documento...');
+
+                    // Subir archivo al bucket de Supabase Storage
+                    const uploadResult = await uploadFileToStorage(file, 'documents/');
+
+                    console.log('Documento subido exitosamente, agregando adjunto');
+
+                    // Agregar a adjuntos pendientes con la URL del storage
+                    pendingAttachments.push({
+                        type: 'document',
+                        name: file.name,
+                        url: uploadResult.url,
+                        dataUrl: uploadResult.url, // Mantener compatibilidad con código existente
+                        path: uploadResult.path
+                    });
+
+                    addPreviewDocument(file.name);
+                    notifications.success('Documento subido correctamente');
+
+                } catch (error) {
+                    console.error('Error subiendo documento:', error);
+                    notifications.error('Error subiendo documento. Inténtalo de nuevo.');
+                }
+
                 e.target.value='';
             });
+
+            // Función para subir archivos a Supabase Storage (MODO PÚBLICO)
+            async function uploadFileToStorage(file, folder = '') {
+                try {
+                    // Verificar que Supabase esté disponible
+                    if (!window.supabase) {
+                        throw new Error('Supabase client no está disponible');
+                    }
+
+                    console.log('🔄 [UPLOAD] Iniciando subida en modo público (sin autenticación requerida)');
+
+                    // MODO PÚBLICO: Verificar autenticación de forma opcional
+                    let userInfo = 'anónimo';
+                    try {
+                        const { data: { session }, error: authError } = await window.supabase.auth.getSession();
+                        if (!authError && session?.user) {
+                            userInfo = session.user.email || session.user.id;
+                            console.log('✅ Usuario autenticado encontrado:', userInfo);
+                        } else {
+                            console.log('ℹ️ Subiendo como usuario anónimo (bucket público)');
+                        }
+                    } catch (authError) {
+                        console.log('ℹ️ Error verificando sesión (continuando en modo público):', authError.message);
+                    }
+
+                    // Generar nombre único para el archivo
+                    const timestamp = Date.now();
+                    const randomId = Math.random().toString(36).substring(2, 15);
+                    const fileExtension = file.name.split('.').pop();
+                    const fileName = `${folder}${timestamp}_${randomId}.${fileExtension}`;
+
+                    console.log(`📤 Subiendo archivo ${file.name} como ${fileName} al bucket community-thinks...`);
+                    console.log(`📊 Tamaño del archivo: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+                    console.log(`👤 Usuario: ${userInfo}`);
+
+                    // Verificar que el bucket existe
+                    try {
+                        const { data: buckets, error: bucketsError } = await window.supabase.storage.listBuckets();
+                        if (bucketsError) {
+                            console.warn('⚠️ Error verificando buckets:', bucketsError);
+                        } else {
+                            const bucket = buckets.find(b => b.name === 'community-thinks');
+                            if (!bucket) {
+                                throw new Error('Bucket community-thinks no encontrado');
+                            }
+                            console.log('✅ Bucket community-thinks verificado');
+                        }
+                    } catch (bucketError) {
+                        console.warn('⚠️ No se pudo verificar bucket, continuando:', bucketError.message);
+                    }
+
+                    // Subir archivo al bucket
+                    const { data, error } = await window.supabase.storage
+                        .from('community-thinks')
+                        .upload(fileName, file, {
+                            cacheControl: '3600',
+                            upsert: false
+                        });
+
+                    if (error) {
+                        console.error('❌ Error subiendo archivo:', error);
+                        console.error('📋 Detalles del error:', {
+                            message: error.message,
+                            statusCode: error.statusCode,
+                            error: error.error
+                        });
+
+                        // Proporcionar mensaje más específico según el error
+                        if (error.message && error.message.includes('row-level security policy')) {
+                            throw new Error('Error de permisos: El bucket no tiene las políticas de seguridad configuradas correctamente. Contacta al administrador.');
+                        } else if (error.message && error.message.includes('not found')) {
+                            throw new Error('Bucket no encontrado: Verifica que el bucket community-thinks existe en Supabase Storage.');
+                        } else {
+                            throw new Error(`Error subiendo archivo: ${error.message}`);
+                        }
+                    }
+
+                    console.log('✅ Archivo subido exitosamente al path:', data.path);
+
+                    // Obtener URL pública del archivo
+                    const { data: urlData } = window.supabase.storage
+                        .from('community-thinks')
+                        .getPublicUrl(fileName);
+
+                    console.log('✅ URL pública generada:', urlData.publicUrl);
+
+                    return {
+                        url: urlData.publicUrl,
+                        path: fileName
+                    };
+
+                } catch (error) {
+                    console.error('❌ Error en uploadFileToStorage:', error);
+                    throw error;
+                }
+            }
 
             function youtubeEmbed(url){
                 const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/);
@@ -2282,10 +2448,11 @@
             function renderAttachments(att){
                 if(!att || att.length===0) return '';
                 return `<div class='attachments-preview'>` + att.map(a=>{
-                     if(a.type==='image') return `<img src='${a.src}' class='preview-thumb' loading='lazy' alt='Imagen adjunta'>`;
+                     if(a.type==='image') return `<img src='${a.src || a.url}' class='preview-thumb' loading='lazy' alt='Imagen adjunta'>`;
+                     if(a.type==='video') return `<video src='${a.src || a.url}' class='preview-thumb' controls loading='lazy' style='max-width: 240px; max-height: 135px;'></video>`;
                      if(a.type==='youtube') return `<iframe width='240' height='135' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe>`;
-                    if(a.type==='pdf') return `<a href='${a.dataUrl}' target='_blank' class='pdf-chip'><i class='fas fa-file-pdf'></i> ${a.name}</a>`;
-                    if(a.type==='document') return `<a href='${a.dataUrl}' target='_blank' class='document-chip'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a>`;
+                    if(a.type==='pdf') return `<a href='${a.dataUrl || a.url}' target='_blank' class='pdf-chip'><i class='fas fa-file-pdf'></i> ${a.name}</a>`;
+                    if(a.type==='document') return `<a href='${a.dataUrl || a.url}' target='_blank' class='document-chip'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a>`;
                     if(a.type==='link') return `<a href='${a.url}' target='_blank' class='link-chip'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a>`;
                     if(a.type==='location') return `<div class='location-chip'><i class='fas fa-map-marker-alt'></i> ${a.text}</div>`;
                     if(a.type==='poll') return `<div class='poll-chip'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div>`;

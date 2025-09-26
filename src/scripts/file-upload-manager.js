@@ -200,36 +200,59 @@ class FileUploadManager {
                 return;
             }
 
+            let imageUrl = null;
+            let uploadMethod = 'unknown';
+
             // Intentar subir a Supabase Storage primero
-            const imageUrl = await this.uploadToStorage(file, 'profile');
+            try {
+                imageUrl = await this.uploadToStorage(file, 'profile');
+                if (imageUrl && imageUrl !== 'DOCX_FALLBACK') {
+                    uploadMethod = 'storage';
+                    console.log('✅ Upload a Storage exitoso:', imageUrl);
+                }
+            } catch (storageError) {
+                console.warn('⚠️ Storage falló, usando base64:', storageError.message);
+            }
             
-            if (imageUrl) {
-                // Si funciona Storage, usar URL de Supabase
+            // Si Storage falló, usar base64
+            if (!imageUrl || imageUrl === 'DOCX_FALLBACK') {
+                console.log('🔄 Convirtiendo a base64 para guardar en BD...');
+                imageUrl = await this.convertToBase64(file);
+                uploadMethod = 'base64';
+            }
+
+            // SIEMPRE intentar guardar en base de datos (ya sea URL de Storage o base64)
+            try {
                 await this.updateUserProfilePicture(imageUrl);
                 this.updateAvatarDisplay(imageUrl);
-                this.showSuccess('Foto de perfil actualizada correctamente');
-            } else {
-                // Si falla Storage, usar base64 como fallback
-                console.log('Storage falló, usando fallback base64');
-                const base64Url = await this.convertToBase64(file);
-                await this.updateUserProfilePictureLocal(base64Url);
-                this.updateAvatarDisplay(base64Url);
-                this.showSuccess('Foto de perfil actualizada (modo local)');
+                
+                if (uploadMethod === 'storage') {
+                    this.showSuccess('✅ Foto de perfil subida a la nube y guardada en BD');
+                } else {
+                    this.showSuccess('✅ Foto de perfil guardada en BD (base64)');
+                }
+                
+                console.log('✅ Avatar actualizado exitosamente en BD:', uploadMethod);
+                
+            } catch (dbError) {
+                console.error('❌ Error actualizando en BD:', dbError);
+                
+                // Si falla la BD, al menos actualizar localStorage
+                try {
+                    const updatedUser = { ...this.currentUser, profile_picture_url: imageUrl };
+                    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                    this.currentUser = updatedUser;
+                    this.updateAvatarDisplay(imageUrl);
+                    this.showError('⚠️ Imagen procesada pero BD falló. Solo guardada localmente.');
+                } catch (localError) {
+                    console.error('❌ Error también en localStorage:', localError);
+                    this.showError('❌ Error completo al procesar la imagen');
+                }
             }
 
         } catch (error) {
-            console.error('Error en handleProfilePictureUpload:', error);
-            
-            // Último fallback: usar base64
-            try {
-                const base64Url = await this.convertToBase64(file);
-                await this.updateUserProfilePictureLocal(base64Url);
-                this.updateAvatarDisplay(base64Url);
-                this.showSuccess('Foto de perfil actualizada (modo local)');
-            } catch (fallbackError) {
-                console.error('Error en fallback:', fallbackError);
-                this.showError('Error al procesar la imagen');
-            }
+            console.error('💥 Error general en handleProfilePictureUpload:', error);
+            this.showError('Error al procesar la imagen: ' + error.message);
         } finally {
             this.hideLoading();
         }
@@ -404,6 +427,11 @@ class FileUploadManager {
                 .upload(fileName, file, {
                     cacheControl: '3600',
                     upsert: true
+                })
+                .catch(uploadError => {
+                    // Capturar errores de red o de cliente antes de la respuesta del servidor
+                    console.error('❌ [UPLOAD] Error de cliente/red durante el upload:', uploadError);
+                    return { data: null, error: uploadError };
                 });
 
             if (error) {
@@ -465,29 +493,6 @@ class FileUploadManager {
         });
     }
 
-    // Actualizar imagen de perfil (versión que incluye tanto BD como localStorage)
-    async updateUserProfilePictureLocal(base64Url) {
-        try {
-            console.log('🖼️ Actualizando avatar (base64) en base de datos...');
-            
-            // Intentar actualizar en base de datos primero
-            try {
-                await this.updateUserProfilePicture(base64Url);
-                console.log('✅ Avatar base64 actualizado en BD y localStorage');
-            } catch (dbError) {
-                console.warn('⚠️ Falló BD, actualizando solo localStorage:', dbError.message);
-                
-                // Si falla BD, al menos actualizar localStorage
-                const updatedUser = { ...this.currentUser, profile_picture_url: base64Url };
-                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-                this.currentUser = updatedUser;
-                console.log('✅ Avatar base64 actualizado solo en localStorage');
-            }
-        } catch (error) {
-            console.error('❌ Error actualizando profile picture local:', error);
-            throw error;
-        }
-    }
 
     // Actualizar curriculum en localStorage (fallback)
     async updateUserCurriculumLocal(fileName) {
@@ -527,7 +532,12 @@ class FileUploadManager {
 
     async updateUserProfilePicture(imageUrl) {
         try {
-            console.log('🖼️ Actualizando avatar en base de datos...');
+            console.log('🖼️ [DB UPDATE] Iniciando actualización de avatar en BD...', {
+                imageType: imageUrl.startsWith('data:') ? 'base64' : 'url',
+                imageSize: imageUrl.length,
+                userId: this.currentUser.id,
+                username: this.currentUser.username
+            });
             
             // Preparar datos para el endpoint
             const updateData = {
@@ -539,21 +549,23 @@ class FileUploadManager {
                 !String(this.currentUser.id).startsWith('dev-') && 
                 !String(this.currentUser.id).includes('test')) {
                 updateData.user_id = this.currentUser.id;
-                console.log('Actualizando avatar por user_id:', this.currentUser.id);
+                console.log('🔍 [DB UPDATE] Actualizando por user_id:', this.currentUser.id);
             } else if (this.currentUser.username) {
                 updateData.username = this.currentUser.username;
-                console.log('Actualizando avatar por username:', this.currentUser.username);
+                console.log('🔍 [DB UPDATE] Actualizando por username:', this.currentUser.username);
             } else if (this.currentUser.email) {
                 updateData.email = this.currentUser.email;
-                console.log('Actualizando avatar por email:', this.currentUser.email);
+                console.log('🔍 [DB UPDATE] Actualizando por email:', this.currentUser.email);
             } else {
-                throw new Error('No se puede identificar al usuario para actualizar avatar');
+                throw new Error('❌ No se puede identificar al usuario para actualizar avatar');
             }
             
             // Detectar URL base según el entorno
             const baseURL = window.location.hostname === 'localhost' 
                 ? 'http://localhost:3000' 
                 : window.location.origin;
+            
+            console.log('🌐 [DB UPDATE] Enviando request a:', `${baseURL}/api/update-avatar`);
             
             // Llamar al endpoint de Netlify
             const response = await fetch(`${baseURL}/api/update-avatar`, {
@@ -564,35 +576,39 @@ class FileUploadManager {
                 body: JSON.stringify(updateData)
             });
             
+            console.log('📡 [DB UPDATE] Response status:', response.status, response.statusText);
+            
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+                const errorMsg = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+                console.error('❌ [DB UPDATE] Error response:', errorData);
+                throw new Error(errorMsg);
             }
             
             const result = await response.json();
-            console.log('✅ Avatar actualizado en base de datos:', result);
+            console.log('✅ [DB UPDATE] Avatar actualizado exitosamente en BD:', {
+                success: result.ok,
+                message: result.message,
+                userId: result.user?.id,
+                username: result.user?.username
+            });
             
             // Actualizar localStorage con los datos más recientes
             const updatedUser = { ...this.currentUser, profile_picture_url: imageUrl };
             localStorage.setItem('currentUser', JSON.stringify(updatedUser));
             this.currentUser = updatedUser;
             
-            console.log('✅ Profile picture URL actualizada en BD y localStorage');
+            console.log('✅ [DB UPDATE] Profile picture URL actualizada en BD y localStorage');
+            return result;
             
         } catch (error) {
-            console.error('❌ Error actualizando avatar en BD:', error);
+            console.error('❌ [DB UPDATE] Error actualizando avatar en BD:', {
+                error: error.message,
+                stack: error.stack?.split('\n')[0],
+                imageType: imageUrl?.startsWith('data:') ? 'base64' : 'url'
+            });
             
-            // Si falla la actualización en BD, al menos actualizar localStorage como fallback
-            try {
-                const updatedUser = { ...this.currentUser, profile_picture_url: imageUrl };
-                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-                this.currentUser = updatedUser;
-                console.log('⚠️ Avatar actualizado solo en localStorage (BD falló)');
-            } catch (localError) {
-                console.error('❌ Error también en localStorage:', localError);
-            }
-            
-            throw error;
+            throw error; // Re-lanzar para que el caller maneje el fallback
         }
     }
 
@@ -691,6 +707,11 @@ class FileUploadManager {
     }
 
     updateAvatarDisplay(imageUrl) {
+        console.log('🖼️ [DISPLAY] Actualizando display del avatar...', {
+            imageType: imageUrl.startsWith('data:') ? 'base64' : 'url',
+            imageLength: imageUrl.length
+        });
+        
         const avatarImage = document.getElementById('avatarImage');
         if (avatarImage) {
             avatarImage.src = imageUrl;
@@ -699,15 +720,23 @@ class FileUploadManager {
             // MARCAR COMO FOTO REAL PROTEGIDA
             avatarImage.setAttribute('data-real-photo', 'true');
             avatarImage.setAttribute('data-protected', 'true');
+            avatarImage.setAttribute('data-last-updated', new Date().toISOString());
             
-            console.log('✅ Avatar marcado como PROTEGIDO contra sobrescritura');
+            console.log('✅ [DISPLAY] Avatar principal actualizado y marcado como PROTEGIDO');
+        } else {
+            console.warn('⚠️ [DISPLAY] Elemento avatarImage no encontrado');
         }
 
         // Actualizar también en el header si existe
         const headerAvatars = document.querySelectorAll('.header-profile img, .pm-avatar img');
-        headerAvatars.forEach(img => {
+        headerAvatars.forEach((img, index) => {
             img.src = imageUrl;
+            console.log(`✅ [DISPLAY] Avatar header ${index + 1} actualizado`);
         });
+        
+        if (headerAvatars.length === 0) {
+            console.log('ℹ️ [DISPLAY] No se encontraron avatares en header');
+        }
     }
 
     updateCurriculumDisplay(fileName, fileUrl) {
@@ -1501,12 +1530,90 @@ class FileUploadManager {
             console.log('ℹ️ [CLEANUP] No se pudieron eliminar archivos anteriores:', error.message);
         }
     }
+    
+    // Función de diagnóstico para debugging
+    diagnoseUploadStatus() {
+        console.log('🔍 [DIAGNÓSTICO] Estado del FileUploadManager:');
+        console.log('================================');
+        
+        console.log('📱 Usuario actual:', {
+            id: this.currentUser?.id,
+            username: this.currentUser?.username,
+            email: this.currentUser?.email,
+            hasProfilePicture: !!this.currentUser?.profile_picture_url,
+            profilePictureType: this.currentUser?.profile_picture_url?.startsWith('data:') ? 'base64' : 'url'
+        });
+        
+        console.log('🔧 Estado Supabase:', {
+            initialized: !!this.supabase,
+            user: this.supabaseUser?.email || 'No autenticado',
+            authStatus: this.supabaseUser ? 'Autenticado' : 'No autenticado'
+        });
+        
+        console.log('🎯 Elementos DOM:', {
+            profilePictureInput: !!document.getElementById('profilePicture'),
+            avatarImage: !!document.getElementById('avatarImage'),
+            curriculumBtn: !!document.getElementById('curriculumBtn'),
+            curriculumInput: !!document.getElementById('curriculum')
+        });
+        
+        console.log('🌐 Configuración entorno:', {
+            hostname: window.location.hostname,
+            baseURL: window.location.hostname === 'localhost' ? 'http://localhost:3000' : window.location.origin,
+            isLocalhost: window.location.hostname === 'localhost'
+        });
+        
+        console.log('================================');
+        console.log('💡 Para probar upload manualmente, usa: window.fileUploadManager.testUpload()');
+    }
+    
+    // Función de test para probar upload manualmente
+    async testUpload() {
+        console.log('🧪 [TEST] Iniciando test de upload...');
+        
+        // Crear un archivo de prueba (imagen 1x1 pixel)
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#FF0000';
+        ctx.fillRect(0, 0, 1, 1);
+        
+        canvas.toBlob(async (blob) => {
+            const testFile = new File([blob], 'test-avatar.png', { type: 'image/png' });
+            console.log('🧪 [TEST] Archivo de prueba creado:', testFile);
+            
+            try {
+                await this.handleProfilePictureUpload(testFile);
+                console.log('✅ [TEST] Upload de prueba completado');
+            } catch (error) {
+                console.error('❌ [TEST] Error en upload de prueba:', error);
+            }
+        }, 'image/png');
+    }
 }
 
 // Función global simplificada para storage público
 window.ensureSupabaseAuth = async function() {
     console.log('ℹ️ [AUTH] Storage público - autenticación no requerida');
     return true;
+};
+
+// Funciones globales de diagnóstico
+window.diagnoseFileUpload = function() {
+    if (window.fileUploadManager) {
+        window.fileUploadManager.diagnoseUploadStatus();
+    } else {
+        console.error('❌ FileUploadManager no está inicializado');
+    }
+};
+
+window.testFileUpload = async function() {
+    if (window.fileUploadManager) {
+        await window.fileUploadManager.testUpload();
+    } else {
+        console.error('❌ FileUploadManager no está inicializado');
+    }
 };
 
 // Inicializar cuando el DOM esté listo
