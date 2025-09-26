@@ -117,7 +117,7 @@ function fixNotesButtons() {
         newBtn.addEventListener('click', function(e) {
             e.preventDefault();
             console.log('➕ [FIX-BUTTONS] Agregar nueva nota');
-            showNotesCreator();
+            openNotebookLMPanel();
         });
         console.log('✅ [FIX-BUTTONS] addNoteBtn arreglado');
     } else {
@@ -936,82 +936,122 @@ function sendMessageToLia() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-function showNotesCreator() {
-    const notesCreator = document.getElementById('notesCreatorSection');
-    const titleInput = document.getElementById('noteTitleInput');
+// Función para abrir el panel de notas estilo NotebookLM
+function openNotebookLMPanel() {
+    console.log('📝 [FIX-BUTTONS] Abriendo panel de notas NotebookLM...');
     
-    if (notesCreator) {
-        notesCreator.style.display = 'block';
-        notesCreator.classList.add('active');
-        console.log('📝 Editor de notas abierto');
+    // Verificar si el sistema de notas NotebookLM está disponible
+    if (typeof initializeNotebookLMNotes === 'function') {
+        console.log('✅ [FIX-BUTTONS] Sistema NotebookLM disponible, abriendo panel...');
         
-        // Enfocar el campo de título
-        setTimeout(() => {
-            if (titleInput) {
-                titleInput.focus();
-            }
-        }, 100);
+        // Buscar el panel de notas overlay
+        const notePanelOverlay = document.getElementById('notePanelOverlay');
+        if (notePanelOverlay) {
+            // Mostrar panel de notas como overlay
+            notePanelOverlay.style.display = 'flex';
+            
+            // Activar animación
+            setTimeout(() => {
+                notePanelOverlay.classList.add('active');
+            }, 10);
+            
+            // Configurar para nueva nota
+            const noteTitleInput = document.getElementById('noteTitleInput');
+            const noteEditor = document.getElementById('noteEditor');
+            const noteDeleteBtn = document.getElementById('noteDeleteBtn');
+            
+            if (noteTitleInput) noteTitleInput.value = 'Nueva nota';
+            if (noteEditor) noteEditor.innerHTML = '';
+            if (noteDeleteBtn) noteDeleteBtn.style.display = 'none';
+            
+            // Enfocar el editor
+            setTimeout(() => {
+                if (noteEditor) {
+                    noteEditor.focus();
+                }
+            }, 300);
+            
+            console.log('✅ [FIX-BUTTONS] Panel de notas NotebookLM abierto');
+        } else {
+            console.error('❌ [FIX-BUTTONS] Panel de notas NotebookLM no encontrado');
+            showNotification('❌ Panel de notas no disponible', 'error');
+        }
     } else {
-        console.error('❌ Editor de notas no encontrado');
+        console.error('❌ [FIX-BUTTONS] Sistema de notas NotebookLM no está disponible');
+        showNotification('❌ Sistema de notas no disponible', 'error');
     }
 }
 
+// Función legacy para compatibilidad (ahora redirige al nuevo sistema)
+function showNotesCreator() {
+    console.log('📝 [FIX-BUTTONS] showNotesCreator() llamada - redirigiendo a NotebookLM...');
+    openNotebookLMPanel();
+}
+
 function hideNotesCreator() {
-    const notesCreator = document.getElementById('notesCreatorSection');
-    const titleInput = document.getElementById('noteTitleInput');
-    const contentEditor = document.getElementById('noteContentEditor');
+    console.log('❌ [FIX-BUTTONS] hideNotesCreator() llamada - cerrando panel NotebookLM...');
     
-    if (notesCreator) {
-        notesCreator.style.display = 'none';
-        notesCreator.classList.remove('active');
-        console.log('❌ Editor de notas cerrado');
+    // Buscar el panel de notas overlay
+    const notePanelOverlay = document.getElementById('notePanelOverlay');
+    if (notePanelOverlay) {
+        // Desactivar animación
+        notePanelOverlay.classList.remove('active');
         
-        // Limpiar campos
-        if (titleInput) titleInput.value = '';
-        if (contentEditor) contentEditor.textContent = '';
+        // Esperar a que termine la animación y ocultar
+        setTimeout(() => {
+            notePanelOverlay.style.display = 'none';
+            console.log('✅ [FIX-BUTTONS] Panel de notas NotebookLM cerrado');
+        }, 300);
+    } else {
+        console.warn('⚠️ [FIX-BUTTONS] Panel de notas NotebookLM no encontrado para cerrar');
     }
 }
 
 function saveCurrentNote() {
-    const titleInput = document.getElementById('noteTitleInput');
-    const contentEditor = document.getElementById('noteContentEditor');
+    console.log('💾 [FIX-BUTTONS] saveCurrentNote() llamada...');
     
-    if (!titleInput || !contentEditor) {
-        console.error('❌ Campos de nota no encontrados');
+    // Buscar elementos del nuevo sistema
+    const titleInput = document.getElementById('noteTitleInput');
+    const noteEditor = document.getElementById('noteEditor');
+    
+    if (!titleInput || !noteEditor) {
+        console.error('❌ [FIX-BUTTONS] Campos de nota no encontrados');
         return;
     }
 
-    const title = titleInput.value.trim();
-    const content = contentEditor.textContent.trim();
+    const title = titleInput.value.trim() || 'Sin título';
+    const content = noteEditor.innerHTML || '';
     
-    if (!title || !content) {
-        alert('Por favor completa el título y contenido de la nota');
+    if (!content) {
+        alert('Por favor agrega contenido a la nota');
         return;
     }
 
     const note = {
-        id: Date.now(),
+        id: Date.now().toString(),
         title: title,
         content: content,
         timestamp: new Date().toISOString(),
-        module: 'Módulo Actual'
+        updatedAt: new Date().toISOString()
     };
 
     // Guardar en localStorage
     const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
-    notes.unshift(note);
+    notes.push(note);
     localStorage.setItem('lia_notes', JSON.stringify(notes));
 
-    console.log('💾 Nota guardada:', note);
-    
-    // Mostrar en la lista
-    displayNoteInList(note);
+    console.log('💾 [FIX-BUTTONS] Nota guardada:', note);
     
     // Cerrar editor
     hideNotesCreator();
     
     // Notificación
     showNotification('✅ Nota guardada correctamente', 'success');
+    
+    // Actualizar lista de notas si existe la función
+    if (typeof updateNotesList === 'function') {
+        updateNotesList();
+    }
 }
 
 function displayNoteInList(note) {
@@ -1570,6 +1610,7 @@ window.exportNoteToPDF = exportNoteToPDF;
 window.showQuestionModal = showQuestionModal;
 window.closeQuestionModalFunc = closeQuestionModalFunc;
 window.submitQuestion = submitQuestion;
+window.openNotebookLMPanel = openNotebookLMPanel;
 
 // Exponer funciones de debugging para troubleshooting
 window.debugCommunitySystem = function() {

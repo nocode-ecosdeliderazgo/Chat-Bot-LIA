@@ -2860,8 +2860,8 @@ body {
 
 .note-title-input input {
     width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(0, 102, 204, 0.2);
+    background: none;
+    border: none;
     border-radius: 8px;
     padding: 0.75rem 1rem;
     color: var(--glass-text-primary);
@@ -2872,8 +2872,8 @@ body {
 
 .note-title-input input:focus {
     outline: none;
-    border-color: var(--glass-primary);
-    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+    border: none;
+    box-shadow: none;
 }
 
 .note-title-input input::placeholder {
@@ -5186,6 +5186,901 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     border: none !important;
 }
 
+/* ===== PANEL DE NOTAS ESTILO NOTEBOOKLM ===== */
+
+/* Panel de notas overlay - Se despliega sobre el panel derecho */
+.note-panel-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+    border: 1px solid rgba(0, 102, 204, 0.3);
+    border-radius: 16px;
+    backdrop-filter: none;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateX(100%);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    visibility: hidden;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.7),
+        0 0 0 1px rgba(0, 102, 204, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.note-panel-overlay.active {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Header del panel de notas */
+.note-panel-header {
+    padding: 20px 20px 0 20px;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.2);
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.1) 0%, rgba(0, 102, 204, 0.05) 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.note-panel-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #0066CC, #44e5ff, #0066CC);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { background-position: 200% 0; }
+    50% { background-position: -200% 0; }
+}
+
+.note-panel-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 12px;
+    margin-top: 4px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.breadcrumb-item {
+    color: rgba(255, 255, 255, 0.7);
+    transition: color 0.3s ease;
+}
+
+.breadcrumb-item.active {
+    color: #44e5ff;
+    font-weight: 600;
+    text-shadow: 0 0 10px rgba(68, 229, 255, 0.3);
+}
+
+.breadcrumb-separator {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: bold;
+}
+
+.close-note-btn {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    padding: 0;
+    border-radius: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-note-btn:hover {
+    background: rgba(255, 107, 107, 0.2);
+    border-color: rgba(255, 107, 107, 0.4);
+    color: #ff6b6b;
+    transform: scale(1.1);
+    box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
+}
+
+.close-note-btn .icon {
+    width: 16px;
+    height: 16px;
+    display: block;
+    margin: 0 auto;
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+/* Contenido del panel de notas */
+.note-panel-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Sección del título de la nota */
+.note-title-section {
+    padding: 4px 24px 8px 24px;
+    border-bottom: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background: none;
+}
+
+.note-title-input {
+    flex: 1;
+    background: none;
+    border: none;
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    padding: 8px 0;
+    outline: none;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-width: 100%;
+}
+
+.note-title-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+}
+
+.note-delete-btn {
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+    color: rgba(255, 107, 107, 0.8);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+}
+
+.note-delete-btn:hover {
+    background: rgba(255, 107, 107, 0.2);
+    border-color: rgba(255, 107, 107, 0.4);
+    color: #ff6b6b;
+    transform: scale(1.1);
+}
+
+.note-delete-btn .icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Toolbar del editor */
+.note-editor-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.2);
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.08) 0%, rgba(0, 102, 204, 0.03) 100%);
+    flex-wrap: wrap;
+    backdrop-filter: blur(10px);
+    position: relative;
+}
+
+.note-editor-toolbar::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 102, 204, 0.3), transparent);
+}
+
+.toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: center;
+}
+
+.toolbar-btn {
+    background: #0066CC;
+    border: 1px solid #0066CC;
+    color: white;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+}
+
+.toolbar-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.toolbar-btn:hover::before {
+    left: 100%;
+}
+
+.toolbar-btn:hover {
+    background: #0052a3;
+    border-color: #0052a3;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 102, 204, 0.4);
+}
+
+.toolbar-btn.active {
+    background: #44e5ff;
+    border-color: #44e5ff;
+    color: #0066CC;
+    box-shadow: 0 4px 20px rgba(68, 229, 255, 0.4);
+}
+
+.toolbar-btn .icon {
+    width: 16px;
+    height: 16px;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+.toolbar-select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-width: 80px;
+}
+
+.toolbar-select:focus {
+    border-color: #44e5ff;
+    background: rgba(0, 102, 204, 0.1);
+    box-shadow: 0 0 0 2px rgba(68, 229, 255, 0.2);
+}
+
+.toolbar-select:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Estilos para las opciones del dropdown del toolbar */
+.toolbar-select option {
+    background: #1a1a1a !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    padding: 8px 12px !important;
+    border: none !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+}
+
+.toolbar-select option:hover {
+    background: rgba(0, 102, 204, 0.2) !important;
+    color: #44e5ff !important;
+}
+
+.toolbar-select option:checked,
+.toolbar-select option:selected {
+    background: #0066CC !important;
+    color: white !important;
+}
+
+/* Contenido del editor */
+.note-editor-content {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.02) 0%, transparent 100%);
+}
+
+.note-editor {
+    min-height: 100%;
+    outline: none;
+    font-size: 16px;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.95);
+    background: transparent;
+    border: none;
+    resize: none;
+    width: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: 0.3px;
+}
+
+.note-editor:empty:before {
+    content: attr(data-placeholder);
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
+    font-size: 18px;
+    font-weight: 300;
+}
+
+.note-editor h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 16px 0;
+    color: var(--text-primary);
+}
+
+.note-editor h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    color: var(--text-primary);
+}
+
+.note-editor h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: var(--text-primary);
+}
+
+.note-editor p {
+    margin: 0 0 12px 0;
+}
+
+.note-editor ul, .note-editor ol {
+    margin: 0 0 12px 0;
+    padding-left: 20px;
+}
+
+.note-editor li {
+    margin: 0 0 4px 0;
+}
+
+.note-editor a {
+    color: #0066CC;
+    text-decoration: underline;
+}
+
+.note-editor strong {
+    font-weight: 600;
+}
+
+.note-editor em {
+    font-style: italic;
+}
+
+.note-editor u {
+    text-decoration: underline;
+}
+
+/* Footer del panel */
+.note-panel-footer {
+    padding: 20px 24px;
+    border-top: 1px solid rgba(0, 102, 204, 0.2);
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.1) 0%, rgba(0, 102, 204, 0.05) 100%);
+    position: relative;
+}
+
+.note-panel-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 102, 204, 0.3), transparent);
+}
+
+.convert-to-source-btn {
+    background: #0066CC;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 24px;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 102, 204, 0.3);
+}
+
+.convert-to-source-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.convert-to-source-btn:hover::before {
+    left: 100%;
+}
+
+.convert-to-source-btn:hover {
+    background: #0052a3;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 102, 204, 0.4);
+}
+
+.convert-to-source-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+}
+
+.convert-to-source-btn .icon {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Estilos para modo claro */
+[data-theme="light"] .note-panel-overlay {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%) !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    backdrop-filter: none !important;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(0, 102, 204, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme="light"] .note-panel-header {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.05) 0%, rgba(0, 102, 204, 0.02) 100%) !important;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.2) !important;
+}
+
+[data-theme="light"] .note-panel-header::before {
+    background: linear-gradient(90deg, #0066CC, #44e5ff, #0066CC) !important;
+}
+
+[data-theme="light"] .breadcrumb-item.active {
+    color: #0066CC !important;
+    text-shadow: 0 0 10px rgba(0, 102, 204, 0.3) !important;
+}
+
+[data-theme="light"] .note-title-input {
+    color: #1a202c !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    text-align: center !important;
+}
+
+[data-theme="light"] .note-title-input::placeholder {
+    color: rgba(26, 32, 44, 0.5) !important;
+}
+
+[data-theme="light"] .note-editor-toolbar {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.03) 0%, rgba(0, 102, 204, 0.01) 100%) !important;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.2) !important;
+}
+
+[data-theme="light"] .toolbar-btn {
+    background: #0066CC !important;
+    border: 1px solid #0066CC !important;
+    color: white !important;
+}
+
+[data-theme="light"] .toolbar-btn:hover {
+    background: #0052a3 !important;
+    border-color: #0052a3 !important;
+    color: white !important;
+}
+
+[data-theme="light"] .toolbar-btn.active {
+    background: #44e5ff !important;
+    border-color: #44e5ff !important;
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .toolbar-select {
+    background: rgba(0, 102, 204, 0.05) !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    color: rgba(26, 32, 44, 0.9) !important;
+}
+
+[data-theme="light"] .toolbar-select option {
+    background: #ffffff !important;
+    color: rgba(26, 32, 44, 0.9) !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+}
+
+[data-theme="light"] .toolbar-select option:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+}
+
+[data-theme="light"] .toolbar-select option:checked,
+[data-theme="light"] .toolbar-select option:selected {
+    background: #0066CC !important;
+    color: white !important;
+}
+
+[data-theme="light"] .note-editor {
+    color: rgba(26, 32, 44, 0.95) !important;
+}
+
+[data-theme="light"] .note-editor:empty:before {
+    color: rgba(26, 32, 44, 0.4) !important;
+}
+
+[data-theme="light"] .note-panel-footer {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.05) 0%, rgba(0, 102, 204, 0.02) 100%) !important;
+    border-top: 1px solid rgba(0, 102, 204, 0.2) !important;
+}
+
+[data-theme="light"] .convert-to-source-btn {
+    background: #0066CC !important;
+    color: white !important;
+}
+
+[data-theme="light"] .convert-to-source-btn:hover {
+    background: #0052a3 !important;
+    color: white !important;
+}
+
+/* ===== MODAL DE ENLACES ===== */
+.link-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.link-modal-overlay.active {
+    opacity: 1;
+}
+
+.link-modal {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+    border: 1px solid rgba(0, 102, 204, 0.3);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.7),
+        0 0 0 1px rgba(0, 102, 204, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.link-modal-overlay.active .link-modal {
+    transform: scale(1);
+}
+
+.link-modal-header {
+    padding: 20px 24px 0 24px;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.1) 0%, rgba(0, 102, 204, 0.05) 100%);
+}
+
+.link-modal-header h3 {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.3px;
+}
+
+.link-modal-close {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+
+.link-modal-close:hover {
+    background: rgba(255, 107, 107, 0.2);
+    border-color: rgba(255, 107, 107, 0.4);
+    color: #ff6b6b;
+    transform: scale(1.1);
+}
+
+.link-modal-close svg {
+    width: 16px;
+    height: 16px;
+}
+
+.link-modal-content {
+    padding: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    letter-spacing: 0.3px;
+}
+
+.form-group input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    font-weight: 400;
+    outline: none;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    border-color: #44e5ff;
+    background: rgba(0, 102, 204, 0.1);
+    box-shadow: 0 0 0 2px rgba(68, 229, 255, 0.2);
+}
+
+.form-group input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.link-modal-footer {
+    padding: 0 24px 24px 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-cancel, .btn-insert {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    outline: none;
+}
+
+.btn-cancel {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+.btn-insert {
+    background: linear-gradient(135deg, #0066CC 0%, #44e5ff 100%);
+    color: white;
+    border: 1px solid #44e5ff;
+}
+
+.btn-insert:hover {
+    background: linear-gradient(135deg, #0052a3 0%, #0066CC 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 102, 204, 0.4);
+}
+
+/* Estilos para modo claro */
+[data-theme="light"] .link-modal {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%) !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(0, 102, 204, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme="light"] .link-modal-header {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.05) 0%, rgba(0, 102, 204, 0.02) 100%) !important;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.2) !important;
+}
+
+[data-theme="light"] .link-modal-header h3 {
+    color: #1a202c !important;
+}
+
+[data-theme="light"] .form-group label {
+    color: rgba(26, 32, 44, 0.9) !important;
+}
+
+[data-theme="light"] .form-group input {
+    background: rgba(0, 102, 204, 0.05) !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    color: rgba(26, 32, 44, 0.9) !important;
+}
+
+[data-theme="light"] .form-group input:focus {
+    border-color: #0066CC !important;
+    background: rgba(0, 102, 204, 0.1) !important;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2) !important;
+}
+
+[data-theme="light"] .form-group input::placeholder {
+    color: rgba(26, 32, 44, 0.4) !important;
+}
+
+[data-theme="light"] .btn-cancel {
+    background: rgba(0, 102, 204, 0.05) !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    color: rgba(26, 32, 44, 0.8) !important;
+}
+
+[data-theme="light"] .btn-cancel:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+    border-color: rgba(0, 102, 204, 0.3) !important;
+    color: #0066CC !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .note-panel-overlay {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .note-editor-toolbar {
+        gap: 8px;
+        padding: 8px 16px;
+    }
+    
+    .toolbar-group {
+        gap: 4px;
+    }
+    
+    .toolbar-btn {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        min-height: 28px;
+        padding: 6px;
+    }
+    
+    .toolbar-btn .icon {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .toolbar-select {
+        height: 28px;
+        padding: 4px 8px;
+        font-size: 12px;
+        min-width: 70px;
+    }
+    
+    .note-editor-content {
+        padding: 16px;
+    }
+    
+    .note-title-section {
+        padding: 0 16px 12px 16px;
+    }
+    
+    .note-panel-footer {
+        padding: 12px 16px;
+    }
+
+    .link-modal {
+        width: 95%;
+        max-width: none;
+        margin: 20px;
+    }
+
+    .link-modal-header {
+        padding: 16px 20px 0 20px;
+    }
+
+    .link-modal-content {
+        padding: 20px;
+    }
+
+    .link-modal-footer {
+        padding: 0 20px 20px 20px;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .btn-cancel, .btn-insert {
+        width: 100%;
+        padding: 12px 20px;
+    }
+}
+
 /* Video title and info with stronger visibility */
 [data-theme="light"] .video-info h3,
 [data-theme="light"] .video-info h4,
@@ -5387,14 +6282,14 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 }
 
 [data-theme="light"] .note-title-input input {
-    background: var(--glass-surface-light) !important;
-    border: var(--glass-border) !important;
+    background: none !important;
+    border: none !important;
     color: #2D3748 !important;
 }
 
 [data-theme="light"] .note-title-input input:focus {
-    border-color: #0066CC !important;
-    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1) !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 [data-theme="light"] .editor-toolbar {
