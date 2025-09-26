@@ -991,7 +991,7 @@ body {
 .community-subnav .subnav-inner { 
     max-width: 1200px; 
     margin: 0 auto; 
-    padding: 16px var(--spacing-lg); 
+    padding: 16px var(--spacing-lg) 16px 120px; 
     display: flex; 
     align-items: center; 
     gap: 20px; 
@@ -3850,11 +3850,11 @@ body {
 .back-btn {
     position: fixed;
     top: 20px;
-    left: 20px;
+    left: 80px;
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 16px;
+    padding: 12px;
     background: rgba(0, 102, 204, 0.1);
     border: 1px solid rgba(0, 102, 204, 0.25);
     color: var(--primary-blue);
