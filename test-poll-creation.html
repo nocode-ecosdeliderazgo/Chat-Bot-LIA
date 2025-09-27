@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Creación de Encuestas</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        .form-group { margin: 15px 0; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Creación de Encuestas</h1>
+
+        <div class="test-section">
+            <h3>Paso 1: Configuración inicial</h3>
+            <button onclick="setupTest()">Configurar Test</button>
+            <div id="setup-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Paso 2: Crear encuesta manual</h3>
+            <div class="form-group">
+                <label>Pregunta:</label>
+                <input type="text" id="test-question" value="¿Cuál es tu framework favorito?" placeholder="Escribe tu pregunta">
+            </div>
+            <div class="form-group">
+                <label>Opciones (separadas por comas):</label>
+                <input type="text" id="test-options" value="React, Vue, Angular, Svelte" placeholder="Opción 1, Opción 2, Opción 3">
+            </div>
+            <button onclick="createTestPoll()">Crear Encuesta de Prueba</button>
+            <div id="creation-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Paso 3: Verificar encuesta creada</h3>
+            <button onclick="verifyPollCreated()">Verificar en Base de Datos</button>
+            <div id="verify-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Paso 4: Probar votación</h3>
+            <button onclick="testVoting()">Votar en la Encuesta</button>
+            <div id="voting-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Paso 5: Debug logs del frontend</h3>
+            <button onclick="simulateFrontendFlow()">Simular Flujo Frontend</button>
+            <div id="frontend-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Logs del proceso:</h3>
+            <div id="logs" style="background: #000; color: #0f0; padding: 10px; border-radius: 4px; min-height: 100px; font-family: monospace;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Supabase
+        const supabaseUrl = 'https://miwbzotcuaywpdbidpwo.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let testPostId = null;
+        let testUserId = null;
+        let testCommunityId = null;
+
+        function log(message) {
+            const logsElement = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logsElement.innerHTML += `[${timestamp}] ${message}\n`;
+            logsElement.scrollTop = logsElement.scrollHeight;
+            console.log(message);
+        }
+
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="test-section ${type}">${message}</div>`;
+        }
+
+        async function setupTest() {
+            log('🚀 Iniciando configuración de test...');
+
+            try {
+                // Verificar sesión
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    testUserId = session.user.id;
+                    log(`✅ Usuario logueado: ${session.user.email} (${testUserId})`);
+                } else {
+                    log('⚠️ No hay sesión activa, usando usuario de prueba');
+                    // Para testing, usar un UUID fijo
+                    testUserId = '00000000-0000-0000-0000-000000000001';
+                }
+
+                // Obtener comunidades
+                const { data: communities, error: commError } = await supabase
+                    .from('communities')
+                    .select('id, name')
+                    .limit(1);
+
+                if (commError) {
+                    log(`❌ Error obteniendo comunidades: ${commError.message}`);
+                    throw commError;
+                }
+
+                if (communities && communities.length > 0) {
+                    testCommunityId = communities[0].id;
+                    log(`✅ Comunidad encontrada: ${communities[0].name} (${testCommunityId})`);
+                } else {
+                    log('❌ No hay comunidades disponibles');
+                    throw new Error('No hay comunidades');
+                }
+
+                // Verificar tabla community_posts
+                const { data: posts, error: postsError } = await supabase
+                    .from('community_posts')
+                    .select('id, attachment_type, attachment_data')
+                    .eq('attachment_type', 'poll')
+                    .limit(1);
+
+                if (postsError) {
+                    log(`❌ Error verificando posts: ${postsError.message}`);
+                } else {
+                    log(`✅ Tabla community_posts accesible, encontradas ${posts.length} encuestas`);
+                }
+
+                showResult('setup-result',
+                    `✅ Configuración completada:<br>
+                    - Usuario: ${testUserId}<br>
+                    - Comunidad: ${testCommunityId}<br>
+                    - Base de datos: Accesible`, 'success');
+
+            } catch (error) {
+                log(`❌ Error en configuración: ${error.message}`);
+                showResult('setup-result', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function createTestPoll() {
+            if (!testUserId || !testCommunityId) {
+                showResult('creation-result', '❌ Primero ejecute la configuración', 'error');
+                return;
+            }
+
+            log('🗳️ Creando encuesta de prueba...');
+
+            try {
+                const question = document.getElementById('test-question').value;
+                const optionsText = document.getElementById('test-options').value;
+                const options = optionsText.split(',').map(opt => opt.trim()).filter(opt => opt);
+
+                log(`📝 Pregunta: ${question}`);
+                log(`📝 Opciones: ${JSON.stringify(options)}`);
+
+                // Crear estructura de votos
+                const votes = {};
+                options.forEach((option, index) => {
+                    votes[index] = [];
+                });
+
+                const pollData = {
+                    question: question,
+                    options: options,
+                    votes: votes
+                };
+
+                log(`📦 Datos de encuesta: ${JSON.stringify(pollData, null, 2)}`);
+
+                // Crear el post
+                const postData = {
+                    community_id: testCommunityId,
+                    user_id: testUserId,
+                    content: `Encuesta de prueba: ${question}`,
+                    attachment_type: 'poll',
+                    attachment_data: pollData
+                };
+
+                log(`🚀 Enviando a base de datos: ${JSON.stringify(postData, null, 2)}`);
+
+                const { data, error } = await supabase
+                    .from('community_posts')
+                    .insert(postData)
+                    .select()
+                    .single();
+
+                if (error) {
+                    log(`❌ Error creando post: ${error.message}`);
+                    log(`📋 Detalles del error: ${JSON.stringify(error, null, 2)}`);
+                    showResult('creation-result', `❌ Error: ${error.message}`, 'error');
+                } else {
+                    testPostId = data.id;
+                    log(`✅ Encuesta creada exitosamente con ID: ${testPostId}`);
+                    log(`📊 Datos guardados: ${JSON.stringify(data, null, 2)}`);
+                    showResult('creation-result',
+                        `✅ Encuesta creada exitosamente!<br>
+                        <strong>ID:</strong> ${testPostId}<br>
+                        <strong>Datos:</strong><br>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+                }
+
+            } catch (error) {
+                log(`❌ Error inesperado: ${error.message}`);
+                showResult('creation-result', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function verifyPollCreated() {
+            if (!testPostId) {
+                showResult('verify-result', '❌ Primero cree una encuesta', 'error');
+                return;
+            }
+
+            log('🔍 Verificando encuesta en base de datos...');
+
+            try {
+                const { data, error } = await supabase
+                    .from('community_posts')
+                    .select('*')
+                    .eq('id', testPostId)
+                    .single();
+
+                if (error) {
+                    log(`❌ Error verificando: ${error.message}`);
+                    showResult('verify-result', `❌ Error: ${error.message}`, 'error');
+                } else {
+                    log(`✅ Encuesta encontrada en base de datos`);
+                    log(`📊 Datos completos: ${JSON.stringify(data, null, 2)}`);
+
+                    // Verificar estructura de datos
+                    const attachmentData = data.attachment_data;
+                    if (attachmentData && attachmentData.question && attachmentData.options && attachmentData.votes) {
+                        log(`✅ Estructura de datos correcta`);
+                        showResult('verify-result',
+                            `✅ Encuesta verificada correctamente!<br>
+                            <strong>Tipo:</strong> ${data.attachment_type}<br>
+                            <strong>Pregunta:</strong> ${attachmentData.question}<br>
+                            <strong>Opciones:</strong> ${attachmentData.options.length}<br>
+                            <strong>Datos completos:</strong><br>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+                    } else {
+                        log(`❌ Estructura de datos incorrecta`);
+                        showResult('verify-result',
+                            `⚠️ Encuesta encontrada pero datos incorrectos:<br>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>`, 'error');
+                    }
+                }
+
+            } catch (error) {
+                log(`❌ Error verificando: ${error.message}`);
+                showResult('verify-result', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testVoting() {
+            if (!testPostId || !testUserId) {
+                showResult('voting-result', '❌ Primero cree y verifique una encuesta', 'error');
+                return;
+            }
+
+            log('🗳️ Probando votación...');
+
+            try {
+                // Probar función cast_poll_vote
+                log(`🔧 Llamando cast_poll_vote(${testPostId}, ${testUserId}, 0)`);
+
+                const { data, error } = await supabase.rpc('cast_poll_vote', {
+                    post_id_param: testPostId,
+                    user_id_param: testUserId,
+                    option_index_param: 0
+                });
+
+                if (error) {
+                    log(`❌ Error votando: ${error.message}`);
+                    showResult('voting-result', `❌ Error votando: ${error.message}`, 'error');
+                } else {
+                    log(`✅ Voto registrado exitosamente`);
+                    log(`📊 Resultado: ${JSON.stringify(data, null, 2)}`);
+
+                    // Obtener resultados
+                    const { data: results, error: resultsError } = await supabase.rpc('get_poll_results', {
+                        post_id_param: testPostId
+                    });
+
+                    if (resultsError) {
+                        log(`⚠️ Error obteniendo resultados: ${resultsError.message}`);
+                    } else {
+                        log(`📈 Resultados: ${JSON.stringify(results, null, 2)}`);
+                    }
+
+                    showResult('voting-result',
+                        `✅ Votación exitosa!<br>
+                        <strong>Votos actualizados:</strong><br>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                        ${results ? `<strong>Resultados:</strong><br><pre>${JSON.stringify(results, null, 2)}</pre>` : ''}`, 'success');
+                }
+
+            } catch (error) {
+                log(`❌ Error inesperado votando: ${error.message}`);
+                showResult('voting-result', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function simulateFrontendFlow() {
+            log('🔄 Simulando flujo completo del frontend...');
+
+            // Simular exactamente lo que hace el frontend
+            const pendingAttachments = [{
+                type: 'poll',
+                question: 'Simulación frontend',
+                options: ['Opción A', 'Opción B', 'Opción C']
+            }];
+
+            log(`📦 pendingAttachments: ${JSON.stringify(pendingAttachments, null, 2)}`);
+
+            // Simular lógica del frontend
+            const firstAttachment = pendingAttachments[0];
+            let attachmentUrl = null;
+            let attachmentType = null;
+            let attachmentData = null;
+
+            if (firstAttachment.type === 'poll') {
+                attachmentType = 'poll';
+                attachmentUrl = null;
+
+                const votes = {};
+                firstAttachment.options.forEach((option, index) => {
+                    votes[index] = [];
+                });
+
+                attachmentData = {
+                    question: firstAttachment.question,
+                    options: firstAttachment.options,
+                    votes: votes
+                };
+            }
+
+            log(`🎯 Datos procesados:`);
+            log(`   attachmentType: ${attachmentType}`);
+            log(`   attachmentUrl: ${attachmentUrl}`);
+            log(`   attachmentData: ${JSON.stringify(attachmentData, null, 2)}`);
+
+            // Simular createPost
+            if (!testCommunityId || !testUserId) {
+                showResult('frontend-result', '❌ Configuración necesaria', 'error');
+                return;
+            }
+
+            try {
+                const postData = {
+                    community_id: testCommunityId,
+                    user_id: testUserId,
+                    content: 'Simulación completa frontend',
+                    title: null,
+                    attachment_url: attachmentUrl,
+                    attachment_type: attachmentType,
+                    attachment_data: attachmentData
+                };
+
+                log(`🚀 Enviando exactamente como frontend: ${JSON.stringify(postData, null, 2)}`);
+
+                const { data, error } = await supabase
+                    .from('community_posts')
+                    .insert(postData)
+                    .select()
+                    .single();
+
+                if (error) {
+                    log(`❌ Error simulación: ${error.message}`);
+                    showResult('frontend-result', `❌ Error: ${error.message}`, 'error');
+                } else {
+                    log(`✅ Simulación exitosa: ${JSON.stringify(data, null, 2)}`);
+                    showResult('frontend-result',
+                        `✅ Simulación frontend exitosa!<br>
+                        <strong>ID:</strong> ${data.id}<br>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+                }
+
+            } catch (error) {
+                log(`❌ Error simulación: ${error.message}`);
+                showResult('frontend-result', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-ejecutar configuración al cargar
+        window.addEventListener('load', setupTest);
+    </script>
+</body>
+</html>

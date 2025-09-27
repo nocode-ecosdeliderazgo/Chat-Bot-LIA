@@ -1738,28 +1738,39 @@
 
                         // Construir attachments si existen
                         let attachments = [];
-                        if (post.attachment_url && post.attachment_type) {
-                            // Extraer nombre de archivo de la URL para attachments que lo necesiten
-                            const fileName = post.attachment_url.split('/').pop() || 'archivo';
+                        if (post.attachment_type) {
+                            if (post.attachment_type === 'poll' && post.attachment_data) {
+                                // Para encuestas, usar datos estructurados
+                                const attachment = {
+                                    type: 'poll',
+                                    question: post.attachment_data.question,
+                                    options: post.attachment_data.options,
+                                    votes: post.attachment_data.votes
+                                };
+                                attachments.push(attachment);
+                            } else if (post.attachment_url) {
+                                // Para otros tipos de attachments
+                                const fileName = post.attachment_url.split('/').pop() || 'archivo';
 
-                            // Detectar si es un video de YouTube por la URL de embed
-                            const isYouTubeEmbed = post.attachment_type === 'video' && 
-                                                 post.attachment_url.includes('youtube.com/embed');
+                                // Detectar si es un video de YouTube por la URL de embed
+                                const isYouTubeEmbed = post.attachment_type === 'video' &&
+                                                     post.attachment_url.includes('youtube.com/embed');
 
-                            const attachment = {
-                                type: post.attachment_type,
-                                src: post.attachment_url,
-                                url: post.attachment_url,
-                                name: fileName
-                            };
+                                const attachment = {
+                                    type: post.attachment_type,
+                                    src: post.attachment_url,
+                                    url: post.attachment_url,
+                                    name: fileName
+                                };
 
-                            // Si es YouTube, agregar propiedades especiales
-                            if (isYouTubeEmbed) {
-                                attachment.isYoutube = true;
-                                attachment.embed = post.attachment_url;
+                                // Si es YouTube, agregar propiedades especiales
+                                if (isYouTubeEmbed) {
+                                    attachment.isYoutube = true;
+                                    attachment.embed = post.attachment_url;
+                                }
+
+                                attachments.push(attachment);
                             }
-
-                            attachments.push(attachment);
                         }
 
 
@@ -2662,7 +2673,7 @@
                     if(a.type==='pdf') return `<a href='${a.dataUrl || a.url}' target='_blank' class='pdf-chip'><i class='fas fa-file-pdf'></i> ${a.name}</a>`;
                     if(a.type==='document') return `<a href='${a.dataUrl || a.url}' target='_blank' class='document-chip'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a>`;
                     if(a.type==='link') return `<a href='${a.url}' target='_blank' class='link-chip'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a>`;
-                    if(a.type==='poll') return `<div class='poll-chip'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div>`;
+                    if(a.type==='poll') return `<div class='poll-chip'><i class='fas fa-poll'></i> ${a.question} (${a.options ? a.options.length : 0} opciones)</div>`;
                     return '';
                 }).join('') + `</div>`;
             }
@@ -2676,7 +2687,15 @@
                     if(a.type==='pdf') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='fas fa-file-pdf'></i> ${a.name}</a></div>`;
                     if(a.type==='document') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a></div>`;
                     if(a.type==='link') return `<div class="post-link-container"><a href='${a.url}' target='_blank' class='attachment-link'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a></div>`;
-                    if(a.type==='poll') return `<div class="post-document-container"><div class='attachment-link'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div></div>`;
+                    if(a.type==='poll') {
+                        // Para encuestas en renderAttachmentsCentered, crear la encuesta interactiva completa
+                        if (typeof communitySystem !== 'undefined' && communitySystem.renderPoll) {
+                            const mockPost = { id: 'preview', attachment_type: 'poll', attachment_data: a };
+                            return communitySystem.renderPoll(mockPost);
+                        } else {
+                            return `<div class="post-document-container"><div class='attachment-link'><i class='fas fa-poll'></i> ${a.question} (${a.options ? a.options.length : 0} opciones)</div></div>`;
+                        }
+                    }
                     return '';
                 }).join('');
             }
@@ -3342,34 +3361,81 @@
                         // Preparar datos para adjuntos
                         let attachmentUrl = null;
                         let attachmentType = null;
+                        let attachmentData = null;
+
+                        console.log('🔍 [DEBUG] pendingAttachments:', pendingAttachments);
 
                         if (pendingAttachments.length > 0) {
                             const firstAttachment = pendingAttachments[0];
-                            // Para videos de YouTube, usar el embed URL
-                            if (firstAttachment.isYoutube && firstAttachment.embed) {
-                                attachmentUrl = firstAttachment.embed;
+                            console.log('🔍 [DEBUG] firstAttachment:', firstAttachment);
+
+                            if (firstAttachment.type === 'poll') {
+                                console.log('🗳️ [DEBUG] Procesando encuesta...');
+                                // Para encuestas, preparar datos estructurados
+                                attachmentType = 'poll';
+                                attachmentUrl = null; // Las encuestas no necesitan URL
+
+                                // Crear estructura de datos para la encuesta
+                                const votes = {};
+                                firstAttachment.options.forEach((option, index) => {
+                                    votes[index] = []; // Array vacío para votos
+                                });
+
+                                attachmentData = {
+                                    question: firstAttachment.question,
+                                    options: firstAttachment.options,
+                                    votes: votes
+                                };
+
+                                console.log('📊 [DEBUG] attachmentData creado:', attachmentData);
                             } else {
-                                attachmentUrl = firstAttachment.url || firstAttachment.src;
+                                console.log('📎 [DEBUG] Procesando otro tipo de adjunto:', firstAttachment.type);
+                                // Para otros tipos de adjuntos
+                                if (firstAttachment.isYoutube && firstAttachment.embed) {
+                                    attachmentUrl = firstAttachment.embed;
+                                } else {
+                                    attachmentUrl = firstAttachment.url || firstAttachment.src;
+                                }
+                                attachmentType = firstAttachment.type;
                             }
-                            attachmentType = firstAttachment.type;
+                        } else {
+                            console.log('⚠️ [DEBUG] No hay pendingAttachments');
                         }
+
+                        console.log('🎯 [DEBUG] Datos finales:', {
+                            attachmentType,
+                            attachmentUrl,
+                            attachmentData
+                        });
 
                         // Crear publicación en la base de datos
                         console.log('🚀 Guardando publicación en base de datos...');
                         let createdPost = null;
 
                         try {
+                            console.log('🚀 [DEBUG] Llamando db.createPost con:', {
+                                communityId,
+                                content: txt,
+                                attachmentUrl,
+                                attachmentType,
+                                attachmentData
+                            });
+
                             createdPost = await db.createPost(
                                 communityId,
                                 txt,
                                 null, // title - no estamos usando títulos por ahora
                                 attachmentUrl,
-                                attachmentType
+                                attachmentType,
+                                attachmentData // Agregar datos estructurados
                             );
+
+                            console.log('✅ [DEBUG] db.createPost resultado:', createdPost);
                         } catch (createError) {
                             console.warn('⚠️ Error con db.createPost, intentando método directo:', createError);
 
                             // Método directo si CommunityDatabase falla
+                            console.log('🔄 [DEBUG] Usando método directo de fallback...');
                             const { data: { session } } = await window.supabase.auth.getSession();
                             if (session && session.user) {
                                 const postData = {
@@ -3378,8 +3444,11 @@
                                     content: txt,
                                     title: null,
                                     attachment_url: attachmentUrl,
-                                    attachment_type: attachmentType
+                                    attachment_type: attachmentType,
+                                    attachment_data: attachmentData
                                 };
+
+                                console.log('📦 [DEBUG] postData directo:', postData);
 
                                 const { data, error } = await window.supabase
                                     .from('community_posts')
@@ -5301,16 +5370,17 @@
                 }
             }
 
-            async createPost(content, title = null, attachmentUrl = null, attachmentType = null) {
+            async createPost(content, title = null, attachmentUrl = null, attachmentType = null, attachmentData = null) {
                 if (!this.currentCommunity) return null;
-                
+
                 console.log('📝 Creando nueva publicación...');
                 const post = await this.db.createPost(
                     this.currentCommunity.id,
                     content,
                     title,
                     attachmentUrl,
-                    attachmentType
+                    attachmentType,
+                    attachmentData
                 );
                 
                 if (post) {
@@ -5468,8 +5538,12 @@
             }
 
             renderAttachment(post) {
+                if (post.attachment_type === 'poll') {
+                    return this.renderPoll(post);
+                }
+
                 if (!post.attachment_url) return '';
-                
+
                 switch (post.attachment_type) {
                     case 'image':
                         return `<div class="post-media-container">
@@ -5497,6 +5571,138 @@
                             <i class="fas fa-paperclip"></i> Ver adjunto
                             </a>
                         </div>`;
+                }
+            }
+
+            renderPoll(post) {
+                if (!post.attachment_data) return '';
+
+                const pollData = post.attachment_data;
+                const question = pollData.question || '';
+                const options = pollData.options || [];
+                const votes = pollData.votes || {};
+
+                // Calcular total de votos
+                let totalVotes = 0;
+                Object.values(votes).forEach(votersList => {
+                    totalVotes += votersList.length;
+                });
+
+                // Obtener usuario actual para verificar si ya votó
+                const currentUserId = this.getCurrentUserId();
+                let userVote = null;
+
+                // Verificar en qué opción votó el usuario actual
+                Object.keys(votes).forEach(optionIndex => {
+                    if (votes[optionIndex].includes(currentUserId)) {
+                        userVote = parseInt(optionIndex);
+                    }
+                });
+
+                return `
+                    <div class="poll-container" data-post-id="${post.id}">
+                        <div class="poll-header">
+                            <i class="fas fa-poll"></i>
+                            <h4 class="poll-question">${question}</h4>
+                        </div>
+                        <div class="poll-options">
+                            ${options.map((option, index) => {
+                                const optionVotes = votes[index] ? votes[index].length : 0;
+                                const percentage = totalVotes > 0 ? Math.round((optionVotes / totalVotes) * 100) : 0;
+                                const isSelected = userVote === index;
+                                const canVote = !userVote && userVote !== 0; // Puede votar si no ha votado antes
+
+                                return `
+                                    <div class="poll-option ${isSelected ? 'selected' : ''} ${canVote ? 'clickable' : ''}"
+                                         data-option-index="${index}"
+                                         ${canVote ? 'onclick="communitySystem.voteInPoll(\'' + post.id + '\', ' + index + ')"' : ''}>
+                                        <div class="poll-option-content">
+                                            <span class="poll-option-text">${option}</span>
+                                            <span class="poll-option-percentage">${percentage}%</span>
+                                        </div>
+                                        <div class="poll-option-bar">
+                                            <div class="poll-option-fill" style="width: ${percentage}%"></div>
+                                        </div>
+                                        <div class="poll-option-votes">${optionVotes} votos</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        <div class="poll-footer">
+                            <span class="poll-total-votes">
+                                <i class="fas fa-users"></i>
+                                ${totalVotes} ${totalVotes === 1 ? 'voto' : 'votos'} en total
+                            </span>
+                            ${userVote !== null ? `
+                                <span class="poll-user-vote">
+                                    <i class="fas fa-check-circle"></i>
+                                    Votaste por: ${options[userVote]}
+                                </span>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            getCurrentUserId() {
+                // Intentar obtener el user ID de diferentes fuentes
+                try {
+                    // Primero intentar desde Supabase session
+                    if (window.supabase && window.currentUser && window.currentUser.id) {
+                        return window.currentUser.id;
+                    }
+
+                    // Fallback a localStorage
+                    const userData = localStorage.getItem('userData');
+                    if (userData) {
+                        const user = JSON.parse(userData);
+                        return user.id || user.user_id;
+                    }
+
+                    return null;
+                } catch (error) {
+                    console.error('Error obteniendo user ID:', error);
+                    return null;
+                }
+            }
+
+            async voteInPoll(postId, optionIndex) {
+                try {
+                    const currentUserId = this.getCurrentUserId();
+                    if (!currentUserId) {
+                        this.showNotification('Debes estar logueado para votar', 'error');
+                        return;
+                    }
+
+                    // Llamar al endpoint para votar
+                    const response = await fetch('/api/community-poll-vote', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            postId: postId,
+                            userId: currentUserId,
+                            optionIndex: optionIndex
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        console.error('Error al votar:', result.error);
+                        this.showNotification(result.error || 'Error al procesar tu voto', 'error');
+                        return;
+                    }
+
+                    this.showNotification('¡Voto registrado exitosamente!', 'success');
+
+                    // Recargar el post para mostrar los resultados actualizados
+                    await this.loadPosts();
+
+                } catch (error) {
+                    console.error('Error votando en encuesta:', error);
+                    this.showNotification('Error al votar en la encuesta', 'error');
                 }
             }
 
