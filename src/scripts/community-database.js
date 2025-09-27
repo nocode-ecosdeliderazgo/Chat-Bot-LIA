@@ -491,7 +491,7 @@ class CommunityDatabase {
         }
     }
 
-    async createPost(communityId, content, title = null, attachmentUrl = null, attachmentType = null) {
+    async createPost(communityId, content, title = null, attachmentUrl = null, attachmentType = null, attachmentData = null) {
         try {
             if (!this.currentUser) {
                 console.error('âŒ No hay usuario actual');
@@ -500,14 +500,26 @@ class CommunityDatabase {
 
             console.log('ðŸ“ Creando nueva publicaciÃ³n...');
             
+            console.log('[DEBUG] Parametros recibidos:', {
+                communityId,
+                content,
+                title,
+                attachmentUrl,
+                attachmentType,
+                attachmentData
+            });
+
             const postData = {
                 community_id: communityId,
                 user_id: this.currentUser.id,
                 content: content,
                 title: title,
                 attachment_url: attachmentUrl,
-                attachment_type: attachmentType
+                attachment_type: attachmentType,
+                attachment_data: attachmentData
             };
+
+            console.log('[DEBUG] postData preparado:', postData);
 
             const { data, error } = await this.supabase
                 .from('community_posts')
