@@ -178,6 +178,11 @@
 
 # Community API redirects (NEW)
 [[redirects]]
+  from = "/api/community-poll-vote"
+  to   = "/.netlify/functions/community-poll-vote"
+  status = 200
+
+[[redirects]]
   from = "/api/community/questions/*/vote"
   to   = "/.netlify/functions/community-vote"
   status = 200

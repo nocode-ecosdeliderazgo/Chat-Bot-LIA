@@ -518,12 +518,14 @@ function getPrompts() {
     return { system, style, tools, safety, useCases, examples, combined };
 }
 
-// Configuración de almacenamiento para audio (Multer)
+// Configuración de almacenamiento (Multer)
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir);
 }
-const storage = multer.diskStorage({
+
+// Storage específico para archivos de audio
+const audioStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, uploadsDir);
     },
@@ -532,8 +534,23 @@ const storage = multer.diskStorage({
         cb(null, `audio_${uuidv4()}${ext}`);
     }
 });
+
+// Storage específico para archivos de perfil (avatares/documentos)
+const profileStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadsDir);
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname) || '.jpg';
+        const isImage = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.mimetype);
+        const prefix = isImage ? 'avatar' : 'profile';
+        cb(null, `${prefix}_${uuidv4()}${ext}`);
+    }
+});
+
+// Multer para archivos de audio
 const upload = multer({
-    storage,
+    storage: audioStorage,
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
     fileFilter: (req, file, cb) => {
         const allowed = ['audio/webm', 'audio/ogg', 'audio/mpeg', 'audio/wav', 'video/webm'];
@@ -544,7 +561,7 @@ const upload = multer({
 
 // Multer para imágenes/documentos del perfil
 const uploadGeneral = multer({
-    storage,
+    storage: profileStorage,
     limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         const allowed = [
