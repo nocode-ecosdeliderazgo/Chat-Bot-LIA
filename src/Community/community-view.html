@@ -1481,6 +1481,90 @@
             });
                          // Feed mock con persistencia
              let posts = [];
+             
+            // Función global para validar URLs de imagen
+            function isValidImageUrl(url) {
+                if (!url || typeof url !== 'string') return false;
+                
+                const cleanUrl = url.trim();
+                if (cleanUrl === '' || cleanUrl === 'null' || cleanUrl === 'undefined') return false;
+                
+                // Verificar que no sea un archivo de audio (incluso con extensión incorrecta)
+                const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac'];
+                const hasAudioExtension = audioExtensions.some(ext => cleanUrl.toLowerCase().includes(ext));
+                if (hasAudioExtension) {
+                    console.warn('⚠️ [AVATAR] URL contiene extensión de audio, rechazando:', cleanUrl);
+                    return false;
+                }
+                
+                // Verificar patrones sospechosos de archivos de audio renombrados
+                const audioPatterns = [
+                    /audio_[a-f0-9-]+\.(jpg|jpeg|png|gif)/i,  // audio_UUID.jpg
+                    /uploads\/audio.*\.(jpg|jpeg|png|gif)/i,   // uploads/audio*.jpg
+                    /_audio[_-].*\.(jpg|jpeg|png|gif)/i       // cualquier_audio_.jpg
+                ];
+                
+                const isSuspiciousAudio = audioPatterns.some(pattern => pattern.test(cleanUrl));
+                if (isSuspiciousAudio) {
+                    console.warn('⚠️ [AVATAR] URL sospechosa de archivo de audio renombrado, rechazando:', cleanUrl);
+                    return false;
+                }
+                
+                // Verificar que sea una URL válida (base64 o http/https)
+                if (cleanUrl.startsWith('data:image/')) return true;
+                if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) return true;
+                if (cleanUrl.startsWith('/') || cleanUrl.startsWith('../')) return true;
+                
+                return false;
+            }
+
+            // Función para limpiar datos corruptos de avatares en la base de datos
+            async function cleanCorruptedAvatars() {
+                try {
+                    if (!window.supabase) return;
+                    
+                    console.log('🧹 Iniciando limpieza de avatares corruptos...');
+                    
+                    // Buscar usuarios con URLs de avatar sospechosas
+                    const { data: users, error } = await window.supabase
+                        .from('users')
+                        .select('id, profile_picture_url')
+                        .not('profile_picture_url', 'is', null);
+                    
+                    if (error) {
+                        console.warn('⚠️ Error obteniendo usuarios para limpieza:', error);
+                        return;
+                    }
+                    
+                    let cleanedCount = 0;
+                    for (const user of users) {
+                        if (!isValidImageUrl(user.profile_picture_url)) {
+                            console.log('🧹 Limpiando avatar corrupto para usuario:', user.id, 'URL:', user.profile_picture_url);
+                            
+                            // Limpiar el avatar corrupto
+                            const { error: updateError } = await window.supabase
+                                .from('users')
+                                .update({ profile_picture_url: null })
+                                .eq('id', user.id);
+                            
+                            if (!updateError) {
+                                cleanedCount++;
+                            } else {
+                                console.warn('⚠️ Error limpiando avatar para usuario:', user.id, updateError);
+                            }
+                        }
+                    }
+                    
+                    if (cleanedCount > 0) {
+                        console.log(`✅ Limpieza completada: ${cleanedCount} avatares corruptos eliminados`);
+                    } else {
+                        console.log('✅ No se encontraron avatares corruptos para limpiar');
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error en limpieza de avatares:', error);
+                }
+            }
 
             // Función para esperar que Supabase esté disponible (GLOBAL)
             window.waitForSupabase = async function waitForSupabase(maxRetries = 10, delay = 1000) {
@@ -1671,7 +1755,7 @@
                                         user: userData?.display_name || userData?.username || 'Usuario',
                                         content: comment.content,
                                         created_at: comment.created_at,
-                                        avatarUrl: userData?.profile_picture_url || null
+                                        avatarUrl: isValidImageUrl(userData?.profile_picture_url) ? userData.profile_picture_url : null
                                     };
                                 });
                                 
@@ -1691,19 +1775,32 @@
                             // Extraer nombre de archivo de la URL para attachments que lo necesiten
                             const fileName = post.attachment_url.split('/').pop() || 'archivo';
 
-                            attachments.push({
+                            // Detectar si es un video de YouTube por la URL de embed
+                            const isYouTubeEmbed = post.attachment_type === 'video' && 
+                                                 post.attachment_url.includes('youtube.com/embed');
+
+                            const attachment = {
                                 type: post.attachment_type,
                                 src: post.attachment_url,
                                 url: post.attachment_url,
                                 name: fileName
-                            });
+                            };
+
+                            // Si es YouTube, agregar propiedades especiales
+                            if (isYouTubeEmbed) {
+                                attachment.isYoutube = true;
+                                attachment.embed = post.attachment_url;
+                            }
+
+                            attachments.push(attachment);
                         }
+
 
                         const postObject = {
                             id: post.id,
                             user: post.users ? (post.users.display_name || post.users.username || 'Usuario') : 'Usuario',
                             avatar: 'fas fa-user',
-                            avatarUrl: post.users?.profile_picture_url || null,
+                            avatarUrl: isValidImageUrl(post.users?.profile_picture_url) ? post.users.profile_picture_url : null,
                             category: 'general',
                             minutesAgo: diffMinutes,
                             timeAgo: timeAgo,
@@ -1880,8 +1977,18 @@
                  console.log('✅ Inicialización de posts completada');
              }
 
-             // Llamar función de inicialización
-             initializePosts();
+            // Llamar función de inicialización
+            initializePosts();
+            
+            // Hacer la función disponible globalmente para uso manual
+            window.cleanCorruptedAvatars = cleanCorruptedAvatars;
+            
+            // Limpiar avatares corruptos después de un breve delay
+            setTimeout(async () => {
+                if (window.supabase) {
+                    await cleanCorruptedAvatars();
+                }
+            }, 3000); // 3 segundos después de cargar
              
              // Función para actualizar estadísticas
              function updateStats() {
@@ -1933,7 +2040,7 @@
                             <div class="post-user">
                                 <div class="user-avatar">
                             ${p.avatarUrl ?
-                                        `<img src="${p.avatarUrl}" alt="${p.user}" class="user-avatar-img" onerror="console.log('❌ Error cargando avatar:', this.src); this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        `<img src="${p.avatarUrl}" alt="${p.user}" class="user-avatar-img" onerror="console.warn('⚠️ Avatar no se pudo cargar, usando fallback'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                  <i class="${p.avatar}" style="display:none;"></i>` :
                                 `<i class="${p.avatar}"></i>`
                             }
@@ -2551,16 +2658,52 @@
             }
 
             function youtubeEmbed(url){
-                const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/);
-                return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+                console.log('🔍 Validando URL de YouTube:', url);
+                
+                // Limpiar URL de espacios y caracteres extraños
+                const cleanUrl = url.trim();
+                
+                // Regex más flexible que soporta múltiples formatos de YouTube
+                const patterns = [
+                    // youtube.com/watch?v= (con o sin www, http/https, con parámetros adicionales)
+                    /(?:https?:\/\/)?(?:www\.)?(?:m\.)?youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]{11})/i,
+                    // youtu.be/ (formato corto)
+                    /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})/i,
+                    // youtube.com/embed/ (formato embed)
+                    /(?:https?:\/\/)?(?:www\.)?(?:m\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/i,
+                    // youtube.com/v/ (formato antiguo)
+                    /(?:https?:\/\/)?(?:www\.)?(?:m\.)?youtube\.com\/v\/([a-zA-Z0-9_-]{11})/i,
+                    // youtube.com/shorts/ (formato shorts)
+                    /(?:https?:\/\/)?(?:www\.)?(?:m\.)?youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/i,
+                    // youtube.com/live/ (formato live/streaming)
+                    /(?:https?:\/\/)?(?:www\.)?(?:m\.)?youtube\.com\/live\/([a-zA-Z0-9_-]{11})/i
+                ];
+                
+                for (let i = 0; i < patterns.length; i++) {
+                    const pattern = patterns[i];
+                    console.log(`🧪 Probando patrón ${i + 1}:`, pattern);
+                    const match = cleanUrl.match(pattern);
+                    console.log('🎯 Resultado del match:', match);
+                    
+                    if (match && match[1]) {
+                        const videoId = match[1];
+                        const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                        console.log('✅ URL válida encontrada. Video ID:', videoId);
+                        console.log('🎬 URL de embed generada:', embedUrl);
+                        return embedUrl;
+                    }
+                }
+                
+                console.log('❌ No se encontró un patrón válido para la URL');
+                return null;
             }
 
             function renderAttachments(att){
                 if(!att || att.length===0) return '';
                 return `<div class='attachments-preview'>` + att.map(a=>{
                      if(a.type==='image') return `<img src='${a.src || a.url}' class='preview-thumb' loading='lazy' alt='Imagen adjunta'>`;
+                     if(a.type==='video' && a.isYoutube) return `<iframe width='240' height='135' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe>`;
                      if(a.type==='video') return `<video src='${a.src || a.url}' class='preview-thumb' controls loading='lazy' style='max-width: 240px; max-height: 135px;'></video>`;
-                     if(a.type==='youtube') return `<iframe width='240' height='135' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe>`;
                     if(a.type==='pdf') return `<a href='${a.dataUrl || a.url}' target='_blank' class='pdf-chip'><i class='fas fa-file-pdf'></i> ${a.name}</a>`;
                     if(a.type==='document') return `<a href='${a.dataUrl || a.url}' target='_blank' class='document-chip'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a>`;
                     if(a.type==='link') return `<a href='${a.url}' target='_blank' class='link-chip'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a>`;
@@ -2574,8 +2717,8 @@
                 if(!att || att.length===0) return '';
                 return att.map(a=>{
                      if(a.type==='image') return `<div class="post-media-container"><img src='${a.src || a.url}' class='post-image' loading='lazy' alt='Imagen adjunta'></div>`;
+                     if(a.type==='video' && a.isYoutube) return `<div class="post-media-container"><iframe width='100%' height='315' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe></div>`;
                      if(a.type==='video') return `<div class="post-media-container"><video src='${a.src || a.url}' class='post-video' controls loading='lazy'></video></div>`;
-                     if(a.type==='youtube') return `<div class="post-media-container"><iframe width='100%' height='315' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe></div>`;
                     if(a.type==='pdf') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='fas fa-file-pdf'></i> ${a.name}</a></div>`;
                     if(a.type==='document') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a></div>`;
                     if(a.type==='link') return `<div class="post-link-container"><a href='${a.url}' target='_blank' class='attachment-link'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a></div>`;
@@ -2855,7 +2998,7 @@
                                 time: formatTimeAgo(comment.created_at),
                                 text: comment.content,
                                 created_at: comment.created_at,
-                                avatarUrl: userData?.profile_picture_url || null
+                                avatarUrl: isValidImageUrl(userData?.profile_picture_url) ? userData.profile_picture_url : null
                             };
                         }));
                         console.log('✅ Comentarios cargados desde BD:', comments.length);
@@ -2891,7 +3034,7 @@
                     <div class="post-card">
                         <div class="post-avatar">
                             ${post.avatarUrl ?
-                                `<img src="${post.avatarUrl}" alt="${post.user}" class="post-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                `<img src="${post.avatarUrl}" alt="${post.user}" class="post-avatar-img" onerror="console.warn('⚠️ Avatar de post no se pudo cargar'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                  <i class="${post.avatar}" style="display:none;"></i>` :
                                 `<i class="${post.avatar}"></i>`
                             }
@@ -3018,13 +3161,13 @@
 
                         // Agregar comentario al post local
                         if (!post.comments) post.comments = [];
-                        post.comments.push({
+                        post.                        comments.push({
                             id: newComment.id,
                             user: userName,
                             time: 'ahora',
                             text: newComment.content,
                             created_at: newComment.created_at,
-                            avatarUrl: userData?.profile_picture_url || null
+                            avatarUrl: isValidImageUrl(userData?.profile_picture_url) ? userData.profile_picture_url : null
                         });
 
                         // Agregar puntos por comentar
@@ -3096,7 +3239,7 @@
                 return `<div class='comment-item'>
                     <div class='comment-avatar'>
                         ${c.avatarUrl ?
-                            `<img src="${c.avatarUrl}" alt="${c.user}" class="comment-avatar-img" onerror="this.style.display='none';">
+                            `<img src="${c.avatarUrl}" alt="${c.user}" class="comment-avatar-img" onerror="console.warn('⚠️ Avatar de comentario no se pudo cargar'); this.style.display='none';">
                              <i class="fas fa-user" style="display:none;"></i>` :
                             `<i class="fas fa-user"></i>`
                         }
@@ -3249,7 +3392,12 @@
 
                         if (pendingAttachments.length > 0) {
                             const firstAttachment = pendingAttachments[0];
-                            attachmentUrl = firstAttachment.url || firstAttachment.src;
+                            // Para videos de YouTube, usar el embed URL
+                            if (firstAttachment.isYoutube && firstAttachment.embed) {
+                                attachmentUrl = firstAttachment.embed;
+                            } else {
+                                attachmentUrl = firstAttachment.url || firstAttachment.src;
+                            }
                             attachmentType = firstAttachment.type;
                         }
 
@@ -3877,7 +4025,7 @@
                 list.innerHTML = data.map(m=>`
                     <div class="member-card" data-user-id="${m.id || m.user_id}" style="cursor: pointer;">
                         <div class="member-avatar">
-                            ${m.avatar && m.avatar !== 'fas fa-user' && m.avatar.startsWith('http') ?
+                            ${isValidImageUrl(m.avatar) ?
                                 `<img src="${m.avatar}" alt="${m.name}" class="member-avatar-img" onerror="this.src='../assets/images/default-avatar.svg'; this.onerror=null;">` :
                                 `<i class="fas fa-user"></i>`
                             }
@@ -3992,7 +4140,7 @@
                                  <div class="post-card" data-open-post="${p.id}">
                                      <div class="post-avatar">
                                          ${p.avatarUrl ?
-                                             `<img src="${p.avatarUrl}" alt="${p.user}" class="post-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                             `<img src="${p.avatarUrl}" alt="${p.user}" class="post-avatar-img" onerror="console.warn('⚠️ Avatar de post filtrado no se pudo cargar'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                               <i class="${p.avatar}" style="display:none;"></i>` :
                                              `<i class="${p.avatar}"></i>`
                                          }
@@ -4597,17 +4745,24 @@
                 if (confirmYoutube) {
                 confirmYoutube.addEventListener('click', () => {
                     const ytUrl = youtubeInput.value.trim();
+                    console.log('🚀 Botón YouTube confirmado. URL ingresada:', ytUrl);
+                    
                     if (ytUrl) {
                         const embed = youtubeEmbed(ytUrl);
+                        console.log('🎥 Resultado de youtubeEmbed:', embed);
+                        
                         if (embed) {
-                            pendingAttachments.push({ type: 'youtube', embed });
+                            console.log('✅ URL válida, agregando adjunto');
+                            pendingAttachments.push({ type: 'video', embed, isYoutube: true });
                             addPreviewYoutube(embed);
                             closeYoutubeModalFunc();
                         } else {
-                                 notifications.error('Enlace de YouTube inválido. Asegúrate de que sea una URL válida de YouTube');
+                            console.log('❌ URL inválida, mostrando error');
+                            notifications.error('Enlace de YouTube inválido. Asegúrate de que sea una URL válida de YouTube');
                         }
-                         } else {
-                             notifications.warning('Por favor ingresa una URL de YouTube');
+                    } else {
+                        console.log('⚠️ URL vacía');
+                        notifications.warning('Por favor ingresa una URL de YouTube');
                     }
                 });
                 }
@@ -5348,7 +5503,7 @@
                 postDiv.innerHTML = `
                     <div class="post-header">
                         <div class="post-user">
-                            <img src="${post.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}" class="user-avatar">
+                            <img src="${isValidImageUrl(post.users?.profile_picture_url) ? post.users.profile_picture_url : '../assets/images/default-avatar.jpg'}" alt="${userName}" class="user-avatar">
                             <div class="user-info">
                                 <div class="user-name">${userName}</div>
                                 <div class="post-time">${timestamp}</div>
@@ -5450,7 +5605,7 @@
                 
                 commentDiv.innerHTML = `
                     <div class="comment-header">
-                        <img src="${comment.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}" class="user-avatar small">
+                        <img src="${isValidImageUrl(comment.users?.profile_picture_url) ? comment.users.profile_picture_url : '../assets/images/default-avatar.jpg'}" alt="${userName}" class="user-avatar small">
                         <div class="comment-info">
                             <div class="user-name">${userName}</div>
                             <div class="comment-time">${timestamp}</div>
@@ -5502,7 +5657,7 @@
                     membersContainer.innerHTML = this.members.map(m => `
                         <div class="member-card" data-user-id="${m.id || m.user_id}" style="cursor: pointer;">
                             <div class="member-avatar">
-                                ${m.avatar && m.avatar.startsWith('http') ?
+                                ${isValidImageUrl(m.avatar) ?
                                     `<img src="${m.avatar}" alt="${m.name}" class="member-avatar-img" onerror="this.src='../assets/images/default-avatar.svg'; this.onerror=null;">` :
                                     `<i class="fas fa-user"></i>`
                                 }
@@ -5543,7 +5698,7 @@
                 
                 memberDiv.innerHTML = `
                     <div class="member-avatar">
-                        <img src="${member.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}">
+                        <img src="${isValidImageUrl(member.users?.profile_picture_url) ? member.users.profile_picture_url : '../assets/images/default-avatar.jpg'}" alt="${userName}">
                         <div class="online-indicator"></div>
                     </div>
                     <div class="member-info">
@@ -7156,10 +7311,7 @@
             avatarContainer.classList.remove('has-image');
             
             // Verificar si el usuario tiene imagen válida
-            const hasValidImage = user.profile_picture_url && 
-                                 user.profile_picture_url.trim() !== '' && 
-                                 user.profile_picture_url !== 'null' &&
-                                 user.profile_picture_url !== 'undefined';
+            const hasValidImage = isValidImageUrl(user.profile_picture_url);
             
             if (hasValidImage) {
                 // Usuario tiene imagen
@@ -7237,7 +7389,7 @@
 
             // 6. Avatar
             const avatarImg = document.getElementById('userProfileAvatar');
-            if (avatarImg && user.profile_picture_url) {
+            if (avatarImg && isValidImageUrl(user.profile_picture_url)) {
                 avatarImg.src = user.profile_picture_url;
                 avatarImg.style.display = 'block';
             }
@@ -8669,6 +8821,12 @@
             }
 
             setAvatar(avatarUrl) {
+                // Validar URL antes de usar
+                if (!isValidImageUrl(avatarUrl)) {
+                    console.warn('⚠️ [AVATAR] URL de avatar inválida, ignorando:', avatarUrl);
+                    return;
+                }
+                
                 // Crear objeto usuario temporal para usar la función mejorada
                 const tempUser = { profile_picture_url: avatarUrl };
                 updateProfileAvatar(tempUser);
