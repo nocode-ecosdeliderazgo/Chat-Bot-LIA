@@ -1,149 +1,95 @@
-# PROMPT PARA CLAUDE: Implementación de Animaciones de Fondo en notices.html
+Quiero que refactorices mi proyecto Comunidad para resolver un bug de UI al votar en encuestas.
 
-## CONTEXTO
-Necesito implementar las animaciones de fondo del archivo `cursos.css` en la página `notices.html` sin afectar su funcionamiento actual. La página `notices.html` ya tiene la clase `bg-glow-global` y el contenedor `particles-container`, pero necesita las animaciones específicas de fondo.
+Contexto del bug
 
-## ANÁLISIS DEL SISTEMA ACTUAL
+El voto sí se guarda en la base de datos y el backend (server.js) responde correctamente.
 
-### 1. ESTRUCTURA DE FONDO EN CURSOS.CSS
+El problema está en el frontend: después de votar, desaparecen todos los posts y el contenedor queda vacío hasta que refresco la página.
 
-#### Variables CSS principales:
-```css
-:root {
-  --turq: #44e5ff;
-  --turq-2: #3dd4eb;
-  --bg-1: #06182A;
-  --bg-2: #0B1220;
+En los logs se ve:
+
+❌ Post no encontrado para actualizar
+
+⚠️ Variable global posts no encontrada - probablemente usando CommunitySystem puro
+
+🎨 [DEBUG] Limpiando postsContainer y re-renderizando 0 posts
+
+Causa raíz (ya identificada)
+
+En el frontend conviven dos sistemas de render:
+
+Uno global, que usa window.posts y la función window.renderPosts('all').
+
+Otro basado en la clase CommunitySystem, que usa this.posts y this.renderPosts().
+
+Después de votar, algunas ramas de voteInPoll llaman a this.renderPosts() con this.posts vacío → limpia el contenedor y deja la lista en 0.
+
+Hay duplicados de voteInPoll en varios archivos (community.js, community-view.html inline script), con implementaciones diferentes: unas actualizan local/global, otras recargan desde DB, otras llaman al render viejo.
+
+Lo que necesitas hacer
+
+Unificar voteInPoll:
+
+Elimina las múltiples versiones.
+
+Conserva una sola implementación, la que después de registrar el voto hace:
+
+if (typeof window.loadPostsFromDatabase === 'function') {
+  await window.loadPostsFromDatabase();   // repuebla window.posts
 }
-```
+if (typeof window.renderPosts === 'function') {
+  window.renderPosts('all');              // re-pinta con window.posts
+} else if (window.communitySystem?.loadPosts) {
+  await window.communitySystem.loadPosts();
+}
 
-#### Gradientes de fondo:
-- **Modo oscuro**: `linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%)`
-- **Modo claro**: `linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%)`
 
-#### Efectos de partículas:
-- **Modo oscuro**: `mix-blend-mode: normal`
-- **Modo claro**: `mix-blend-mode: multiply`
+Esta es la única que garantiza que los posts se repinten bien tras el voto.
 
-#### Efectos de glow:
-- **Modo oscuro**: `radial-gradient(circle, rgba(68, 229, 255, 0.1) 0%, transparent 70%)`
-- **Modo claro**: `radial-gradient(circle, rgba(68, 229, 255, 0.15) 0%, transparent 70%)`
+Borra las ramas que llaman a this.renderPosts() directamente después del voto.
 
-### 2. ESTRUCTURA ACTUAL EN NOTICES.HTML
+Eliminar código muerto/duplicado:
 
-La página ya tiene:
-- `<body class="bg-glow-global">`
-- `<div class="particles-container"></div>`
-- Scripts: `particles.js`, `theme-manager.js`, `global-theme-setup.js`
+Borra las implementaciones redundantes de voteInPoll.
 
-### 3. SCRIPT DE PARTÍCULAS EXISTENTE
+Asegúrate de que cualquier llamada al voto use la función unificada.
 
-El archivo `particles.js` ya está implementado con:
-- Configuración de partículas con color `#44e5ff`
-- Efectos de hover y click
-- Función de respaldo para navegadores sin particles.js
-- Canvas con ID `particles-js`
+Clarificar responsabilidades:
 
-## TAREAS ESPECÍFICAS
+CommunitySystem se mantiene como manejador de datos y utilidades.
 
-### PASO 1: Análisis de compatibilidad
-1. Verificar que `notices.css` tenga las variables CSS necesarias
-2. Confirmar que el sistema de temas funcione correctamente
-3. Validar que no haya conflictos con estilos existentes
+El render principal de comunidad debe ser siempre window.renderPosts('all') con window.posts como fuente de verdad.
 
-### PASO 2: Implementación de estilos de fondo
-1. **Agregar variables CSS faltantes** en `notices.css`:
-   ```css
-   :root {
-     --turq: #44e5ff;
-     --turq-2: #3dd4eb;
-     --bg-1: #06182A;
-     --bg-2: #0B1220;
-   }
-   ```
+Opcional: sincroniza window.communitySystem.posts = [...window.posts] después de cada carga, si quieres mantener ambos en paralelo.
 
-2. **Implementar gradientes de fondo**:
-   ```css
-   body.bg-glow-global {
-     background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
-   }
-   
-   [data-theme="light"] body.bg-glow-global {
-     background: linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%);
-   }
-   ```
+Validar flujo completo:
 
-3. **Agregar efectos de glow**:
-   ```css
-   .bg-glow-global .bg-glow {
-     background: radial-gradient(circle, rgba(68, 229, 255, 0.1) 0%, transparent 70%);
-   }
-   
-   [data-theme="light"] .bg-glow-global .bg-glow {
-     background: radial-gradient(circle, rgba(68, 229, 255, 0.15) 0%, transparent 70%);
-   }
-   ```
+Crear post con encuesta.
 
-### PASO 3: Configuración de partículas
-1. **Verificar que el canvas tenga el ID correcto**:
-   ```html
-   <canvas id="particles-js"></canvas>
-   ```
+Votar → sin refrescar deben verse los resultados actualizados, y el resto de posts deben permanecer en pantalla.
 
-2. **Ajustar mix-blend-mode**:
-   ```css
-   #bgParticles {
-     mix-blend-mode: normal;
-   }
-   
-   [data-theme="light"] #bgParticles {
-     mix-blend-mode: multiply;
-   }
-   ```
+Revisar que no vuelva a aparecer el log “re-renderizando 0 posts”.
 
-### PASO 4: Transiciones suaves
-1. **Agregar transiciones para cambio de tema**:
-   ```css
-   * {
-     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-   }
-   ```
+Archivos involucrados
 
-### PASO 5: Validación y testing
-1. **Verificar funcionamiento en ambos temas** (claro/oscuro)
-2. **Confirmar que las partículas se muestren correctamente**
-3. **Validar que no se rompan estilos existentes**
-4. **Probar responsividad en diferentes tamaños de pantalla**
+community-view.html
 
-## RESTRICCIONES IMPORTANTES
+community.js
 
-1. **NO modificar** la estructura HTML existente de `notices.html`
-2. **NO afectar** el funcionamiento actual de la página
-3. **Mantener** todos los estilos existentes de `notices.css`
-4. **Preservar** la funcionalidad del sistema de temas
-5. **No romper** la navegación ni los componentes existentes
+community-identifier.js
 
-## RESULTADO ESPERADO
+community-auth.js (si tiene lógica de voto)
 
-Al finalizar, `notices.html` debe tener:
-- Fondo con gradiente animado igual al de `cursos.css`
-- Partículas flotantes con efectos de hover/click
-- Transiciones suaves entre temas claro/oscuro
-- Efectos de glow sutil en el fondo
-- Funcionamiento idéntico al actual, pero con animaciones de fondo
+server.js (ya está bien, solo asegúrate de que responde con JSON correcto)
 
-## ARCHIVOS A MODIFICAR
+Entregables
 
-1. `src/Notices/notices.css` - Agregar estilos de fondo y partículas
-2. `src/Notices/notices.html` - Verificar estructura del canvas (si es necesario)
+Un diff limpio con los cambios aplicados.
 
-## ARCHIVOS DE REFERENCIA
+Explicación breve de:
 
-1. `src/styles/cursos.css` - Estilos de fondo a copiar
-2. `src/scripts/particles.js` - Script de partículas existente
-3. `src/Notices/notices.html` - Página objetivo
-4. `src/Notices/notices.css` - Estilos actuales
+Qué se eliminó (duplicados de voteInPoll).
 
----
+Qué se centralizó (render → siempre global).
 
-**IMPORTANTE**: Implementar paso a paso, validando cada cambio antes de continuar con el siguiente.
+Cómo quedó la nueva versión de voteInPoll.

@@ -1547,7 +1547,7 @@
             }
 
             // Función SIMPLIFICADA para cargar posts desde la API
-            async function loadPostsFromDatabase() {
+            window.loadPostsFromDatabase = async function loadPostsFromDatabase() {
                 console.log('🚀 [SIMPLE] Cargando posts desde API...');
                 try {
                     // Obtener community ID desde URL
@@ -1832,6 +1832,13 @@
                     // Fallback a localStorage
                     loadPosts();
                 }
+
+                // Función de sincronización para evitar mezclar estados
+                if (window.communitySystem) {
+                    // Copia superficial segura: el render viejo no espera el shape "users", así que no
+                    // intentes pintar con this.posts; solo mantenlo para consultas.
+                    window.communitySystem.posts = Array.isArray(window.posts) ? [...window.posts] : [];
+                }
             }
              
              // Limpiar posts muy antiguos (más de 30 días)
@@ -1999,7 +2006,7 @@
             let pendingAttachments = [];
             const composerInput = document.getElementById('composerInput');
             const publishPostBtn = document.getElementById('publishPostBtn');
-            function renderPosts(category='all'){
+            window.renderPosts = function renderPosts(category='all'){
                 console.log('Renderizando posts para categoría:', category);
                 console.log('Posts disponibles:', posts);
                 const list = document.getElementById('postsList');
@@ -2698,6 +2705,7 @@
                                 attachment_data: a,
                                 isPreviewMode: isActualPreview
                             };
+                            console.log('🎭 [DEBUG] renderAttachmentsCentered usando CommunitySystem.renderPoll:', { realPostId, isActualPreview });
                             return communitySystem.renderPoll(mockPost);
                         } else {
                             return `<div class="post-document-container"><div class='attachment-link'><i class='fas fa-poll'></i> ${a.question} (${a.options ? a.options.length : 0} opciones)</div></div>`;
@@ -5262,10 +5270,15 @@
 
             async loadPosts() {
                 if (!this.currentCommunity) return;
-                
+
                 console.log('📝 Cargando publicaciones...');
                 this.posts = await this.db.getPosts(this.currentCommunity.id);
                 this.renderPosts();
+
+                // Función de sincronización para evitar mezclar estados
+                if (Array.isArray(this.posts) && this.posts.length > 0) {
+                    window.posts = [...this.posts];
+                }
             }
 
             async loadMembers() {
@@ -5465,15 +5478,25 @@
             }
 
             renderPosts() {
-                const postsContainer = document.getElementById('postsContainer');
-                if (!postsContainer) return;
-                
+                console.log('🎨 [DEBUG] CommunitySystem.renderPosts() ejecutándose...');
+                // Intentar encontrar el contenedor correcto (postsList es el del sistema viejo)
+                let postsContainer = document.getElementById('postsContainer') || document.getElementById('postsList');
+                if (!postsContainer) {
+                    console.error('❌ [DEBUG] Ni postsContainer ni postsList encontrados');
+                    return;
+                }
+
+                console.log('✅ [DEBUG] Usando contenedor:', postsContainer.id);
+
+                console.log('🎨 [DEBUG] Limpiando postsContainer y re-renderizando', this.posts.length, 'posts');
                 postsContainer.innerHTML = '';
-                
+
                 this.posts.forEach(post => {
                     const postElement = this.createPostElement(post);
                     postsContainer.appendChild(postElement);
                 });
+
+                console.log('✅ [DEBUG] CommunitySystem.renderPosts() completado');
             }
 
             createPostElement(post) {
@@ -5584,11 +5607,12 @@
             renderPoll(post) {
                 if (!post.attachment_data) return '';
 
-                console.log('🔍 [DEBUG] renderPoll called with post:', {
+                console.log('🔍 [DEBUG] renderPoll (CommunitySystem) called with post:', {
                     id: post.id,
                     type: typeof post.id,
                     isPreview: post.id === 'preview',
-                    attachment_type: post.attachment_type
+                    attachment_type: post.attachment_type,
+                    system: 'CommunitySystem'
                 });
 
                 const pollData = post.attachment_data;
@@ -5694,6 +5718,41 @@
                 }
             }
 
+
+            // Función auxiliar para validar URLs de imagen (copia de la función global)
+            isValidImageUrl(url) {
+                if (!url || typeof url !== 'string') return false;
+
+                const cleanUrl = url.trim();
+                if (cleanUrl === '' || cleanUrl === 'null' || cleanUrl === 'undefined') return false;
+
+                // Verificar que no sea un archivo de audio (incluso con extensión incorrecta)
+                const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac'];
+                const hasAudioExtension = audioExtensions.some(ext => cleanUrl.toLowerCase().includes(ext));
+                if (hasAudioExtension) {
+                    return false;
+                }
+
+                // Verificar patrones sospechosos de archivos de audio renombrados
+                const audioPatterns = [
+                    /audio_[a-f0-9-]+\.(jpg|jpeg|png|gif)/i,
+                    /uploads\/audio.*\.(jpg|jpeg|png|gif)/i,
+                    /_audio[_-].*\.(jpg|jpeg|png|gif)/i
+                ];
+
+                if (audioPatterns.some(pattern => pattern.test(cleanUrl))) {
+                    return false;
+                }
+
+                // Verificar que sea una URL válida
+                if (cleanUrl.startsWith('data:image/')) return true;
+                if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) return true;
+                if (cleanUrl.startsWith('/') || cleanUrl.startsWith('../')) return true;
+
+                return false;
+            }
+
+
             async voteInPoll(postId, optionIndex) {
                 try {
                     // TEMPORAL: Comentado para permitir testing de polls
@@ -5732,8 +5791,22 @@
 
                         if (response.ok) {
                             const result = await response.json();
+                            console.log('✅ [DEBUG] Voto exitoso con API endpoint:', result);
                             this.showNotification('¡Voto registrado exitosamente!', 'success');
-                            await this.loadPosts();
+
+                            // ✅ Usa explícitamente el renderer global y recarga los datos
+                            if (typeof window.loadPostsFromDatabase === 'function') {
+                                await window.loadPostsFromDatabase();   // repuebla window.posts desde Supabase
+
+                                // Forzar render usando solo el sistema global exitoso
+                                if (typeof window.renderPosts === 'function') {
+                                    window.renderPosts('all');              // re-pinta usando window.posts
+                                } else {
+                                    console.warn('⚠️ window.renderPosts no disponible, pero datos actualizados en window.posts');
+                                }
+                            } else {
+                                console.error('❌ window.loadPostsFromDatabase no disponible');
+                            }
                             return;
                         } else {
                             console.warn('⚠️ Endpoint no disponible, usando fallback directo');
@@ -5772,8 +5845,19 @@
                     console.log('✅ [DEBUG] Voto exitoso con RPC:', data);
                     this.showNotification('¡Voto registrado exitosamente!', 'success');
 
-                    // Recargar el post para mostrar los resultados actualizados
-                    await this.loadPosts();
+                    // ✅ Usa explícitamente el renderer global y recarga los datos
+                    if (typeof window.loadPostsFromDatabase === 'function') {
+                        await window.loadPostsFromDatabase();   // repuebla window.posts desde Supabase
+
+                        // Forzar render usando solo el sistema global exitoso
+                        if (typeof window.renderPosts === 'function') {
+                            window.renderPosts('all');              // re-pinta usando window.posts
+                        } else {
+                            console.warn('⚠️ window.renderPosts no disponible, pero datos actualizados en window.posts');
+                        }
+                    } else {
+                        console.error('❌ window.loadPostsFromDatabase no disponible');
+                    }
 
                 } catch (error) {
                     console.error('❌ Error general votando en encuesta:', error);
