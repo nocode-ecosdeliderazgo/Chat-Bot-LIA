@@ -1,149 +1,151 @@
-# PROMPT PARA CLAUDE: Implementación de Animaciones de Fondo en notices.html
+# PROMPT CLAUDE: Análisis y Solución del Sistema de Noticias
 
-## CONTEXTO
-Necesito implementar las animaciones de fondo del archivo `cursos.css` en la página `notices.html` sin afectar su funcionamiento actual. La página `notices.html` ya tiene la clase `bg-glow-global` y el contenedor `particles-container`, pero necesita las animaciones específicas de fondo.
+## CONTEXTO DEL PROBLEMA
 
-## ANÁLISIS DEL SISTEMA ACTUAL
+El sistema de noticias de Chat-Bot-LIA tiene una noticia en la base de datos que no se muestra en el frontend. Necesitamos analizar y solucionar este problema paso a paso.
 
-### 1. ESTRUCTURA DE FONDO EN CURSOS.CSS
+## ANÁLISIS REALIZADO
 
-#### Variables CSS principales:
-```css
-:root {
-  --turq: #44e5ff;
-  --turq-2: #3dd4eb;
-  --bg-1: #06182A;
-  --bg-2: #0B1220;
+### 1. ESTRUCTURA DE LA BASE DE DATOS
+- **Tabla `news`** existe en la BD con la siguiente estructura:
+```sql
+CREATE TABLE public.news (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  slug text NOT NULL UNIQUE,
+  title text NOT NULL,
+  subtitle text,
+  language text DEFAULT 'es'::text,
+  hero_image_url text,
+  tldr jsonb DEFAULT '[]'::jsonb,
+  intro text,
+  sections jsonb DEFAULT '[]'::jsonb,
+  metrics jsonb DEFAULT '[]'::jsonb,
+  links jsonb DEFAULT '[]'::jsonb,
+  cta jsonb DEFAULT '{}'::jsonb,
+  status text DEFAULT 'published'::text,
+  published_at timestamp with time zone DEFAULT now(),
+  created_by uuid DEFAULT auth.uid(),
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT news_pkey PRIMARY KEY (id)
+);
+```
+
+### 2. PROBLEMA IDENTIFICADO EN EL FRONTEND
+En `src/Notices/notices.js`, línea 311-320:
+```javascript
+loadNewsData() {
+    this.showLoading();
+    
+    // TODO: Implementar carga desde BD
+    // Por ahora, inicializar con arrays vacíos
+    this.allNews = [];
+    this.filteredNews = [];
+    this.renderNews();
+    this.hideLoading();
 }
 ```
 
-#### Gradientes de fondo:
-- **Modo oscuro**: `linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%)`
-- **Modo claro**: `linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%)`
+**PROBLEMA CRÍTICO**: La función `loadNewsData()` está hardcodeada para inicializar arrays vacíos y no conecta con la base de datos.
 
-#### Efectos de partículas:
-- **Modo oscuro**: `mix-blend-mode: normal`
-- **Modo claro**: `mix-blend-mode: multiply`
+### 3. INFRAESTRUCTURA DISPONIBLE
+- **Supabase**: El sistema ya tiene configuración de Supabase funcionando
+- **API Endpoints**: Existe infraestructura de API en `server.js`
+- **Patrones existentes**: Otros módulos (Community, Chat) ya cargan datos desde BD exitosamente
 
-#### Efectos de glow:
-- **Modo oscuro**: `radial-gradient(circle, rgba(68, 229, 255, 0.1) 0%, transparent 70%)`
-- **Modo claro**: `radial-gradient(circle, rgba(68, 229, 255, 0.15) 0%, transparent 70%)`
+### 4. ESTRUCTURA DEL FRONTEND
+- **HTML**: `src/Notices/notices.html` - Estructura completa con modales, filtros, etc.
+- **CSS**: `src/Notices/notices.css` - Estilos completos para todas las vistas
+- **JS**: `src/Notices/notices.js` - Lógica completa pero sin conexión a BD
 
-### 2. ESTRUCTURA ACTUAL EN NOTICES.HTML
+## TAREAS A REALIZAR
 
-La página ya tiene:
-- `<body class="bg-glow-global">`
-- `<div class="particles-container"></div>`
-- Scripts: `particles.js`, `theme-manager.js`, `global-theme-setup.js`
+### PASO 1: Crear API Endpoint para Noticias
+**Archivo**: `server.js`
+**Acción**: Agregar endpoint `/api/news` que:
+- Consulte la tabla `news` de Supabase
+- Filtre por `status = 'published'`
+- Ordene por `published_at DESC`
+- Retorne datos en formato JSON compatible con el frontend
 
-### 3. SCRIPT DE PARTÍCULAS EXISTENTE
+### PASO 2: Implementar Carga de Datos en Frontend
+**Archivo**: `src/Notices/notices.js`
+**Acción**: Reemplazar la función `loadNewsData()` para:
+- Hacer fetch al endpoint `/api/news`
+- Mapear datos de BD al formato esperado por el frontend
+- Manejar errores y estados de carga
+- Implementar fallback si falla la conexión
 
-El archivo `particles.js` ya está implementado con:
-- Configuración de partículas con color `#44e5ff`
-- Efectos de hover y click
-- Función de respaldo para navegadores sin particles.js
-- Canvas con ID `particles-js`
+### PASO 3: Mapeo de Datos
+**Transformación necesaria**:
+```javascript
+// De BD (Supabase) a Frontend
+{
+  id: news.id,
+  title: news.title,
+  excerpt: news.subtitle || news.intro,
+  category: 'tecnologia', // Mapear desde sections o crear campo
+  categoryLabel: 'Tecnología',
+  author: 'Sistema', // O desde created_by
+  date: news.published_at,
+  views: 0, // O desde metrics
+  comments: 0,
+  image: 'fas fa-newspaper', // O desde hero_image_url
+  featured: false, // Lógica para determinar
+  hasDetailedView: true,
+  detailedData: {
+    tldr: news.tldr,
+    suggestedSteps: news.sections?.steps || [],
+    risks: news.sections?.risks || [],
+    resources: news.links || [],
+    whyMatters: news.sections?.whyMatters || [],
+    whatChanged: news.sections?.whatChanged || [],
+    impact: news.sections?.impact || [],
+    cta: news.cta?.text || 'Leer más'
+  }
+}
+```
 
-## TAREAS ESPECÍFICAS
+### PASO 4: Verificar Conexión Supabase
+**Archivo**: `src/Notices/notices.html`
+**Acción**: Asegurar que se incluyan los scripts de Supabase:
+```html
+<script src="../scripts/supabase-client.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+```
 
-### PASO 1: Análisis de compatibilidad
-1. Verificar que `notices.css` tenga las variables CSS necesarias
-2. Confirmar que el sistema de temas funcione correctamente
-3. Validar que no haya conflictos con estilos existentes
-
-### PASO 2: Implementación de estilos de fondo
-1. **Agregar variables CSS faltantes** en `notices.css`:
-   ```css
-   :root {
-     --turq: #44e5ff;
-     --turq-2: #3dd4eb;
-     --bg-1: #06182A;
-     --bg-2: #0B1220;
-   }
-   ```
-
-2. **Implementar gradientes de fondo**:
-   ```css
-   body.bg-glow-global {
-     background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
-   }
-   
-   [data-theme="light"] body.bg-glow-global {
-     background: linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%);
-   }
-   ```
-
-3. **Agregar efectos de glow**:
-   ```css
-   .bg-glow-global .bg-glow {
-     background: radial-gradient(circle, rgba(68, 229, 255, 0.1) 0%, transparent 70%);
-   }
-   
-   [data-theme="light"] .bg-glow-global .bg-glow {
-     background: radial-gradient(circle, rgba(68, 229, 255, 0.15) 0%, transparent 70%);
-   }
-   ```
-
-### PASO 3: Configuración de partículas
-1. **Verificar que el canvas tenga el ID correcto**:
-   ```html
-   <canvas id="particles-js"></canvas>
-   ```
-
-2. **Ajustar mix-blend-mode**:
-   ```css
-   #bgParticles {
-     mix-blend-mode: normal;
-   }
-   
-   [data-theme="light"] #bgParticles {
-     mix-blend-mode: multiply;
-   }
-   ```
-
-### PASO 4: Transiciones suaves
-1. **Agregar transiciones para cambio de tema**:
-   ```css
-   * {
-     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-   }
-   ```
-
-### PASO 5: Validación y testing
-1. **Verificar funcionamiento en ambos temas** (claro/oscuro)
-2. **Confirmar que las partículas se muestren correctamente**
-3. **Validar que no se rompan estilos existentes**
-4. **Probar responsividad en diferentes tamaños de pantalla**
-
-## RESTRICCIONES IMPORTANTES
-
-1. **NO modificar** la estructura HTML existente de `notices.html`
-2. **NO afectar** el funcionamiento actual de la página
-3. **Mantener** todos los estilos existentes de `notices.css`
-4. **Preservar** la funcionalidad del sistema de temas
-5. **No romper** la navegación ni los componentes existentes
-
-## RESULTADO ESPERADO
-
-Al finalizar, `notices.html` debe tener:
-- Fondo con gradiente animado igual al de `cursos.css`
-- Partículas flotantes con efectos de hover/click
-- Transiciones suaves entre temas claro/oscuro
-- Efectos de glow sutil en el fondo
-- Funcionamiento idéntico al actual, pero con animaciones de fondo
+### PASO 5: Testing y Validación
+**Acciones**:
+1. Verificar que la noticia en BD tenga `status = 'published'`
+2. Probar el endpoint `/api/news` directamente
+3. Verificar que el frontend cargue y muestre la noticia
+4. Probar funcionalidades: filtros, búsqueda, modal detallado
 
 ## ARCHIVOS A MODIFICAR
 
-1. `src/Notices/notices.css` - Agregar estilos de fondo y partículas
-2. `src/Notices/notices.html` - Verificar estructura del canvas (si es necesario)
+1. **`server.js`** - Agregar endpoint `/api/news`
+2. **`src/Notices/notices.js`** - Implementar `loadNewsData()` real
+3. **`src/Notices/notices.html`** - Verificar scripts de Supabase (si es necesario)
 
-## ARCHIVOS DE REFERENCIA
+## PATRONES A SEGUIR
 
-1. `src/styles/cursos.css` - Estilos de fondo a copiar
-2. `src/scripts/particles.js` - Script de partículas existente
-3. `src/Notices/notices.html` - Página objetivo
-4. `src/Notices/notices.css` - Estilos actuales
+**Usar como referencia**:
+- `src/Chat-Online/chat-online.js` líneas 4898-4994 (carga desde BD)
+- `src/Community/community-view.html` líneas 1854-1883 (inicialización de datos)
+- `server.js` líneas 2082-2088 (consulta a tabla news)
+
+## RESULTADO ESPERADO
+
+Después de implementar estos cambios:
+1. La noticia existente en la BD se mostrará en el frontend
+2. El sistema estará preparado para agregar más noticias
+3. Todas las funcionalidades (filtros, búsqueda, modal) funcionarán con datos reales
+4. El sistema será escalable para futuras noticias
+
+## PRIORIDAD
+
+**ALTA** - Este es un problema crítico que impide que el sistema de noticias funcione correctamente, a pesar de tener toda la infraestructura y UI implementada.
 
 ---
 
-**IMPORTANTE**: Implementar paso a paso, validando cada cambio antes de continuar con el siguiente.
+**INSTRUCCIONES PARA CLAUDE**: Implementa estos cambios paso a paso, comenzando por el endpoint de API y luego la integración en el frontend. Usa los patrones existentes en el código para mantener consistencia.
