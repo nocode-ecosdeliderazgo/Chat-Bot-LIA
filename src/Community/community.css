@@ -1741,7 +1741,7 @@ body {
     }
 }
 .preview-remove { position:absolute; top:4px; right:4px; background: rgba(0,0,0,.5); border:0; color:#fff; border-radius: 8px; padding:4px 6px; cursor:pointer; }
-.pdf-chip, .document-chip, .link-chip, .youtube-chip, .location-chip, .poll-chip { 
+.pdf-chip, .document-chip, .link-chip, .youtube-chip, .poll-chip { 
     display: inline-flex; 
     align-items: center; 
     gap: 6px; 
@@ -4875,7 +4875,6 @@ body {
 [data-theme="light"] .document-chip,
 [data-theme="light"] .link-chip,
 [data-theme="light"] .youtube-chip,
-[data-theme="light"] .location-chip,
 [data-theme="light"] .poll-chip {
     background: rgba(255, 255, 255, 0.9) !important;
     border: 1px solid rgba(0, 102, 204, 0.2) !important;

@@ -1225,18 +1225,6 @@
                             <p>Vincular video de YouTube</p>
                         </div>
                     </div>
-                    <div class="attach-option" data-type="location">
-                        <div class="attach-option-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                <circle cx="12" cy="10" r="3"></circle>
-                            </svg>
-                        </div>
-                        <div class="attach-option-content">
-                            <h3>Ubicación</h3>
-                            <p>Compartir ubicación</p>
-                        </div>
-                    </div>
                     <div class="attach-option" data-type="poll">
                         <div class="attach-option-icon">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1302,27 +1290,6 @@
         </div>
     </div>
 
-    <!-- Modal para ubicación -->
-    <div class="input-modal" id="locationModal">
-        <div class="input-modal-card">
-            <div class="input-modal-head">
-                <strong>Agregar ubicación</strong>
-                <button class="input-modal-close" id="closeLocationModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="input-modal-body">
-                <div class="input-group">
-                    <label for="locationInput">¿Dónde estás?</label>
-                    <input type="text" id="locationInput" placeholder="Madrid, España" class="input-field">
-                </div>
-                <div class="input-modal-actions">
-                    <button class="input-modal-btn cancel" id="cancelLocation">Cancelar</button>
-                    <button class="input-modal-btn confirm" id="confirmLocation">Agregar</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Modal para encuesta -->
     <div class="input-modal" id="pollModal">
@@ -2375,14 +2342,6 @@
                 preview.appendChild(wrap);
             }
             
-            function addPreviewLocation(location){
-                const preview = document.getElementById('attachmentsPreview');
-                const wrap = document.createElement('div');
-                wrap.className = 'location-chip';
-                wrap.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${location} <button class="preview-remove">✕</button>`;
-                wrap.querySelector('.preview-remove').onclick = ()=>{ preview.removeChild(wrap); pendingAttachments = pendingAttachments.filter(a=>a.text!==location); };
-                preview.appendChild(wrap);
-            }
             
             function addPreviewPoll(question, options){
                 const preview = document.getElementById('attachmentsPreview');
@@ -2456,10 +2415,6 @@
                     case 'youtube':
                         console.log('Abriendo modal de YouTube');
                         document.getElementById('youtubeModal').classList.add('show');
-                        break;
-                    case 'location':
-                        console.log('Abriendo modal de ubicación');
-                        document.getElementById('locationModal').classList.add('show');
                         break;
                     case 'poll':
                         console.log('Abriendo modal de encuesta');
@@ -2707,7 +2662,6 @@
                     if(a.type==='pdf') return `<a href='${a.dataUrl || a.url}' target='_blank' class='pdf-chip'><i class='fas fa-file-pdf'></i> ${a.name}</a>`;
                     if(a.type==='document') return `<a href='${a.dataUrl || a.url}' target='_blank' class='document-chip'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a>`;
                     if(a.type==='link') return `<a href='${a.url}' target='_blank' class='link-chip'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a>`;
-                    if(a.type==='location') return `<div class='location-chip'><i class='fas fa-map-marker-alt'></i> ${a.text}</div>`;
                     if(a.type==='poll') return `<div class='poll-chip'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div>`;
                     return '';
                 }).join('') + `</div>`;
@@ -2722,7 +2676,6 @@
                     if(a.type==='pdf') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='fas fa-file-pdf'></i> ${a.name}</a></div>`;
                     if(a.type==='document') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a></div>`;
                     if(a.type==='link') return `<div class="post-link-container"><a href='${a.url}' target='_blank' class='attachment-link'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a></div>`;
-                    if(a.type==='location') return `<div class="post-document-container"><div class='attachment-link'><i class='fas fa-map-marker-alt'></i> ${a.text}</div></div>`;
                     if(a.type==='poll') return `<div class="post-document-container"><div class='attachment-link'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div></div>`;
                     return '';
                 }).join('');
@@ -4779,42 +4732,6 @@
                 });
                 }
 
-                // Modal de ubicación
-                const locationModal = document.getElementById('locationModal');
-                const locationInput = document.getElementById('locationInput');
-                const confirmLocation = document.getElementById('confirmLocation');
-                const cancelLocation = document.getElementById('cancelLocation');
-                const closeLocationModal = document.getElementById('closeLocationModal');
-
-                function closeLocationModalFunc() {
-                    locationModal.classList.remove('show');
-                    locationInput.value = '';
-                }
-
-                if (confirmLocation) {
-                confirmLocation.addEventListener('click', () => {
-                    const location = locationInput.value.trim();
-                    if (location) {
-                        pendingAttachments.push({ type: 'location', text: location });
-                        addPreviewLocation(location);
-                        closeLocationModalFunc();
-                                                 } else {
-                             notifications.warning('Por favor ingresa una ubicación');
-                    }
-                });
-                }
-
-                if (cancelLocation) {
-                cancelLocation.addEventListener('click', closeLocationModalFunc);
-                }
-                if (closeLocationModal) {
-                closeLocationModal.addEventListener('click', closeLocationModalFunc);
-                }
-                if (locationModal) {
-                locationModal.addEventListener('click', (e) => {
-                    if (e.target === locationModal) closeLocationModalFunc();
-                });
-                }
 
                 // Modal de encuesta
                 const pollModal = document.getElementById('pollModal');
