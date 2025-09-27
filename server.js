@@ -4630,6 +4630,112 @@ app.post('/api/users/:userId/switch-video', async (req, res) => {
 });
 
 // =====================================================
+// ENDPOINT PARA VOTACIÓN EN ENCUESTAS
+// =====================================================
+
+app.post('/api/community-poll-vote', async (req, res) => {
+    console.log('🗳️ [API] Recibiendo votación en encuesta...');
+
+    try {
+        const { postId, userId, optionIndex } = req.body;
+
+        console.log('📊 [API] Datos recibidos:', { postId, userId, optionIndex });
+
+        // Validar datos requeridos
+        if (!postId || !userId || optionIndex === undefined || optionIndex === null) {
+            console.error('❌ [API] Faltan datos requeridos');
+            return res.status(400).json({
+                error: 'Faltan datos requeridos: postId, userId, optionIndex'
+            });
+        }
+
+        // Validar que optionIndex sea un número
+        const optionIndexNum = parseInt(optionIndex);
+        if (isNaN(optionIndexNum) || optionIndexNum < 0) {
+            console.error('❌ [API] optionIndex inválido:', optionIndex);
+            return res.status(400).json({
+                error: 'optionIndex debe ser un número válido >= 0'
+            });
+        }
+
+        if (!supabase) {
+            console.error('❌ [API] Supabase no configurado');
+            return res.status(500).json({
+                error: 'Error de configuración del servidor'
+            });
+        }
+
+        // Verificar que el post existe y es una encuesta
+        console.log('🔍 [API] Verificando post existe y es encuesta...');
+        const { data: post, error: postError } = await supabase
+            .from('community_posts')
+            .select('id, attachment_type, attachment_data')
+            .eq('id', postId)
+            .eq('attachment_type', 'poll')
+            .single();
+
+        if (postError || !post) {
+            console.error('❌ [API] Error verificando post:', postError);
+            return res.status(404).json({
+                error: 'Post no encontrado o no es una encuesta'
+            });
+        }
+
+        // Verificar que optionIndex es válido para esta encuesta
+        const pollData = post.attachment_data;
+        if (!pollData || !pollData.options || optionIndexNum >= pollData.options.length) {
+            console.error('❌ [API] Índice de opción inválido');
+            return res.status(400).json({
+                error: 'Índice de opción inválido'
+            });
+        }
+
+        // Llamar a la función de la base de datos para votar
+        console.log('🗳️ [API] Llamando función cast_poll_vote...');
+        const { data: voteResult, error: voteError } = await supabase
+            .rpc('cast_poll_vote', {
+                post_id_param: postId,
+                user_id_param: userId,
+                option_index_param: optionIndexNum
+            });
+
+        if (voteError) {
+            console.error('❌ [API] Error votando:', voteError);
+            return res.status(500).json({
+                error: 'Error al procesar el voto',
+                details: voteError.message
+            });
+        }
+
+        console.log('✅ [API] Voto registrado exitosamente');
+
+        // Obtener los resultados actualizados de la encuesta
+        const { data: pollResults, error: resultsError } = await supabase
+            .rpc('get_poll_results', {
+                post_id_param: postId
+            });
+
+        if (resultsError) {
+            console.warn('⚠️ [API] Error obteniendo resultados:', resultsError);
+        }
+
+        res.json({
+            success: true,
+            message: 'Voto registrado exitosamente',
+            votes: voteResult,
+            results: pollResults || null
+        });
+
+    } catch (error) {
+        console.error('❌ [API] Error en votación:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+});
+
+// =====================================================
 // FIN ENDPOINTS DE CURSOS
 // =====================================================
 

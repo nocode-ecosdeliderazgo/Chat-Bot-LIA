@@ -1957,6 +1957,20 @@ body {
 .poll-user-vote i {
     color: var(--success-color);
 }
+
+.poll-preview-notice {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-style: italic;
+    opacity: 0.8;
+}
+
+.poll-preview-notice i {
+    color: var(--accent-color);
+}
 .feed-filters { display:flex; gap:8px; flex-wrap:wrap; }
 .feed-chip { 
     background: rgba(0, 102, 204, 0.08); 
@@ -5124,6 +5138,14 @@ body {
 
 [data-theme="light"] .poll-user-vote i {
     color: #38a169 !important;
+}
+
+[data-theme="light"] .poll-preview-notice {
+    color: #718096 !important;
+}
+
+[data-theme="light"] .poll-preview-notice i {
+    color: #0066cc !important;
 }
 
 /* Reaction Picker en modo claro */
