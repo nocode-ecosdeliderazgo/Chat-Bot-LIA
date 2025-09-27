@@ -3798,6 +3798,156 @@
             }
         }
 
+        /* ===== ESTILOS PARA FORMATO MARKDOWN EN RESPUESTAS DE LIA ===== */
+        .lia-main-title {
+            color: #44e5ff;
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin: 1rem 0 0.7rem 0;
+            padding-bottom: 0.4rem;
+            border-bottom: 3px solid rgba(68, 229, 255, 0.4);
+            text-shadow: 0 1px 3px rgba(68, 229, 255, 0.3);
+        }
+
+        .lia-subtitle {
+            color: #0066CC;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0.8rem 0 0.5rem 0;
+            padding-bottom: 0.3rem;
+            border-bottom: 2px solid rgba(0, 102, 204, 0.3);
+        }
+
+        .lia-title {
+            color: #44e5ff;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0.7rem 0 0.4rem 0;
+            padding-bottom: 0.2rem;
+            border-bottom: 1px solid rgba(68, 229, 255, 0.2);
+        }
+
+        .lia-title-h4 {
+            color: #0088DD;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 0.6rem 0 0.3rem 0;
+        }
+
+        .lia-title-h5 {
+            color: #66AAFF;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 0.5rem 0 0.25rem 0;
+        }
+
+        .lia-title-h6 {
+            color: #99CCFF;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin: 0.4rem 0 0.2rem 0;
+        }
+
+        .lia-paragraph {
+            margin: 0.5rem 0;
+            line-height: 1.6;
+            color: #ffffff;
+        }
+
+        .lia-list {
+            margin: 0.5rem 0;
+            padding-left: 1.2rem;
+        }
+
+        .lia-list-item {
+            margin: 0.3rem 0;
+            line-height: 1.5;
+            color: #ffffff;
+        }
+
+        /* Numeración nativa para listas ordenadas */
+        .lia-list ol {
+            list-style-type: decimal;
+            color: #44e5ff;
+        }
+
+        .lia-list ul {
+            list-style-type: disc;
+            color: #44e5ff;
+        }
+
+        .lia-list li::marker {
+            color: #44e5ff;
+        }
+
+        /* Asegurar que las negritas y cursivas se vean bien */
+        .message-text strong {
+            color: #44e5ff;
+            font-weight: 700;
+            font-size: inherit; /* Asegurar tamaño normal */
+        }
+
+        .message-text em {
+            color: #ffffff;
+            font-style: italic;
+            opacity: 0.9;
+            font-size: inherit; /* Asegurar tamaño normal */
+        }
+
+        /* Controlar tamaño de títulos en mensajes para evitar texto excesivamente grande */
+        .message-text .lia-main-title {
+            font-size: 1.1rem !important;
+            line-height: 1.4;
+            font-weight: 700;
+            margin: 0.6rem 0 0.4rem 0;
+        }
+
+        .message-text .lia-subtitle {
+            font-size: 1rem !important;
+            line-height: 1.4;
+            font-weight: 600;
+            margin: 0.5rem 0 0.3rem 0;
+        }
+
+        .message-text .lia-title {
+            font-size: 0.95rem !important;
+            line-height: 1.4;
+            font-weight: 600;
+            margin: 0.4rem 0 0.25rem 0;
+        }
+
+        .message-text .lia-title-h4 {
+            font-size: 0.9rem !important;
+            line-height: 1.4;
+            font-weight: 500;
+            margin: 0.3rem 0 0.2rem 0;
+        }
+
+        .message-text .lia-title-h5 {
+            font-size: 0.85rem !important;
+            line-height: 1.4;
+            font-weight: 500;
+            margin: 0.25rem 0 0.15rem 0;
+        }
+
+        .message-text .lia-title-h6 {
+            font-size: 0.8rem !important;
+            line-height: 1.4;
+            font-weight: 500;
+            margin: 0.2rem 0 0.1rem 0;
+        }
+
+        /* Asegurar tamaño de texto base normal en mensajes */
+        .message-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .message-text .lia-paragraph {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
         /* ===== ESTILOS PARA MENSAJES DE CHAT (SOLO PARA #liaMessages) ===== */
         #liaMessages .message {
             margin-bottom: 1.5rem;
@@ -6930,6 +7080,129 @@ INSTRUCCIONES:
             }
         });
 
+        // Función para convertir Markdown básico a HTML (versión corregida)
+        function markdownToHtml(text) {
+            if (!text) return text;
+
+            // Limpiar texto inicial
+            text = text.trim();
+
+            // Convertir todos los niveles de títulos Markdown (de más específico a menos específico)
+            text = text.replace(/^###### (.+)$/gm, '<h6 class="lia-title-h6">$1</h6>');
+            text = text.replace(/^##### (.+)$/gm, '<h5 class="lia-title-h5">$1</h5>');
+            text = text.replace(/^#### (.+)$/gm, '<h4 class="lia-title-h4">$1</h4>');
+            text = text.replace(/^### (.+)$/gm, '<h3 class="lia-title">$1</h3>');
+            text = text.replace(/^## (.+)$/gm, '<h2 class="lia-subtitle">$1</h2>');
+            text = text.replace(/^# (.+)$/gm, '<h1 class="lia-main-title">$1</h1>');
+
+            // Convertir **texto** a <strong>texto</strong> (mejorado para manejar todos los casos)
+            text = text.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>');
+
+            // Convertir *texto* a <em>texto</em> (evitando conflictos con listas)
+            text = text.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em>$1</em>');
+
+            // Separar listas que están en la misma línea con mejor detección
+            text = text.replace(/(-[^-\n]+?)(\s+-)([A-ZÁÉÍÓÚ])/g, '$1\n-$3');
+            text = text.replace(/(-[A-ZÁÉÍÓÚ][^-\n]*?)(-[A-ZÁÉÍÓÚ])/g, '$1\n$2');
+
+            // Procesar línea por línea para mejor control de listas
+            const lines = text.split('\n');
+            const processedLines = [];
+            let inBulletList = false;
+            let inNumberedList = false;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+
+                // Detectar lista con viñetas
+                const bulletMatch = line.match(/^-\s*(.+)$/);
+                // Detectar lista numerada
+                const numberMatch = line.match(/^\d+\.\s*(.+)$/);
+
+                if (bulletMatch) {
+                    // Cerrar lista numerada si estaba abierta
+                    if (inNumberedList) {
+                        processedLines.push('</ol>');
+                        inNumberedList = false;
+                    }
+
+                    // Abrir lista con viñetas si no está abierta
+                    if (!inBulletList) {
+                        processedLines.push('<ul class="lia-list">');
+                        inBulletList = true;
+                    }
+
+                    processedLines.push(`<li class="lia-list-item">${bulletMatch[1]}</li>`);
+
+                } else if (numberMatch) {
+                    // Cerrar lista con viñetas si estaba abierta
+                    if (inBulletList) {
+                        processedLines.push('</ul>');
+                        inBulletList = false;
+                    }
+
+                    // Abrir lista numerada si no está abierta
+                    if (!inNumberedList) {
+                        processedLines.push('<ol class="lia-list">');
+                        inNumberedList = true;
+                    }
+
+                    processedLines.push(`<li class="lia-list-item">${numberMatch[1]}</li>`);
+
+                } else {
+                    // Cerrar cualquier lista abierta
+                    if (inBulletList) {
+                        processedLines.push('</ul>');
+                        inBulletList = false;
+                    }
+                    if (inNumberedList) {
+                        processedLines.push('</ol>');
+                        inNumberedList = false;
+                    }
+
+                    // Agregar línea normal
+                    if (line) {
+                        processedLines.push(line);
+                    } else {
+                        processedLines.push('');
+                    }
+                }
+            }
+
+            // Cerrar listas al final si quedaron abiertas
+            if (inBulletList) {
+                processedLines.push('</ul>');
+            }
+            if (inNumberedList) {
+                processedLines.push('</ol>');
+            }
+
+            // Reconstruir el texto
+            text = processedLines.join('\n');
+
+            // Convertir párrafos (líneas separadas por doble salto)
+            const paragraphs = text.split(/\n\s*\n/);
+            text = paragraphs.map(paragraph => {
+                paragraph = paragraph.trim();
+                if (!paragraph) return '';
+
+                // No envolver en <p> si ya tiene elementos de bloque
+                if (paragraph.match(/^<(h[1-6]|ul|ol|li)/)) {
+                    return paragraph;
+                }
+
+                // Convertir saltos simples a <br> dentro del párrafo
+                paragraph = paragraph.replace(/\n/g, '<br>');
+                return `<p class="lia-paragraph">${paragraph}</p>`;
+            }).join('');
+
+            // Limpiar espacios extras
+            text = text.replace(/\s+</g, '<');
+            text = text.replace(/>\s+/g, '>');
+
+            return text;
+        }
+
         // Función para manejar el chat con LIA
         async function handleChatWithLIA(mensaje) {
             try {
@@ -7139,8 +7412,11 @@ INSTRUCCIONES:
                                 liaMsg.className = 'message lia-message';
 
                                 liaMsg.innerHTML = `
+                                    <div class="lia-avatar">
+                                        <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+                                    </div>
                                     <div class="message-content">
-                                        <div class="message-text">${respuestaLIA}</div>
+                                        <div class="message-text">${markdownToHtml(respuestaLIA)}</div>
                                     </div>
                                 `;
 
@@ -7201,8 +7477,11 @@ INSTRUCCIONES:
                                 liaMsg.className = 'message lia-message';
 
                                 liaMsg.innerHTML = `
+                                    <div class="lia-avatar">
+                                        <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+                                    </div>
                                     <div class="message-content">
-                                        <div class="message-text">${respuestaFallback}</div>
+                                        <div class="message-text">${markdownToHtml(respuestaFallback)}</div>
                                     </div>
                                 `;
 
