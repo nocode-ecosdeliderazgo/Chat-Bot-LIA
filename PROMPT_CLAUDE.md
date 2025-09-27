@@ -1,151 +1,95 @@
-# PROMPT CLAUDE: Análisis y Solución del Sistema de Noticias
+Quiero que refactorices mi proyecto Comunidad para resolver un bug de UI al votar en encuestas.
 
-## CONTEXTO DEL PROBLEMA
+Contexto del bug
 
-El sistema de noticias de Chat-Bot-LIA tiene una noticia en la base de datos que no se muestra en el frontend. Necesitamos analizar y solucionar este problema paso a paso.
+El voto sí se guarda en la base de datos y el backend (server.js) responde correctamente.
 
-## ANÁLISIS REALIZADO
+El problema está en el frontend: después de votar, desaparecen todos los posts y el contenedor queda vacío hasta que refresco la página.
 
-### 1. ESTRUCTURA DE LA BASE DE DATOS
-- **Tabla `news`** existe en la BD con la siguiente estructura:
-```sql
-CREATE TABLE public.news (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  slug text NOT NULL UNIQUE,
-  title text NOT NULL,
-  subtitle text,
-  language text DEFAULT 'es'::text,
-  hero_image_url text,
-  tldr jsonb DEFAULT '[]'::jsonb,
-  intro text,
-  sections jsonb DEFAULT '[]'::jsonb,
-  metrics jsonb DEFAULT '[]'::jsonb,
-  links jsonb DEFAULT '[]'::jsonb,
-  cta jsonb DEFAULT '{}'::jsonb,
-  status text DEFAULT 'published'::text,
-  published_at timestamp with time zone DEFAULT now(),
-  created_by uuid DEFAULT auth.uid(),
-  created_at timestamp with time zone DEFAULT now(),
-  updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT news_pkey PRIMARY KEY (id)
-);
-```
+En los logs se ve:
 
-### 2. PROBLEMA IDENTIFICADO EN EL FRONTEND
-En `src/Notices/notices.js`, línea 311-320:
-```javascript
-loadNewsData() {
-    this.showLoading();
-    
-    // TODO: Implementar carga desde BD
-    // Por ahora, inicializar con arrays vacíos
-    this.allNews = [];
-    this.filteredNews = [];
-    this.renderNews();
-    this.hideLoading();
+❌ Post no encontrado para actualizar
+
+⚠️ Variable global posts no encontrada - probablemente usando CommunitySystem puro
+
+🎨 [DEBUG] Limpiando postsContainer y re-renderizando 0 posts
+
+Causa raíz (ya identificada)
+
+En el frontend conviven dos sistemas de render:
+
+Uno global, que usa window.posts y la función window.renderPosts('all').
+
+Otro basado en la clase CommunitySystem, que usa this.posts y this.renderPosts().
+
+Después de votar, algunas ramas de voteInPoll llaman a this.renderPosts() con this.posts vacío → limpia el contenedor y deja la lista en 0.
+
+Hay duplicados de voteInPoll en varios archivos (community.js, community-view.html inline script), con implementaciones diferentes: unas actualizan local/global, otras recargan desde DB, otras llaman al render viejo.
+
+Lo que necesitas hacer
+
+Unificar voteInPoll:
+
+Elimina las múltiples versiones.
+
+Conserva una sola implementación, la que después de registrar el voto hace:
+
+if (typeof window.loadPostsFromDatabase === 'function') {
+  await window.loadPostsFromDatabase();   // repuebla window.posts
 }
-```
-
-**PROBLEMA CRÍTICO**: La función `loadNewsData()` está hardcodeada para inicializar arrays vacíos y no conecta con la base de datos.
-
-### 3. INFRAESTRUCTURA DISPONIBLE
-- **Supabase**: El sistema ya tiene configuración de Supabase funcionando
-- **API Endpoints**: Existe infraestructura de API en `server.js`
-- **Patrones existentes**: Otros módulos (Community, Chat) ya cargan datos desde BD exitosamente
-
-### 4. ESTRUCTURA DEL FRONTEND
-- **HTML**: `src/Notices/notices.html` - Estructura completa con modales, filtros, etc.
-- **CSS**: `src/Notices/notices.css` - Estilos completos para todas las vistas
-- **JS**: `src/Notices/notices.js` - Lógica completa pero sin conexión a BD
-
-## TAREAS A REALIZAR
-
-### PASO 1: Crear API Endpoint para Noticias
-**Archivo**: `server.js`
-**Acción**: Agregar endpoint `/api/news` que:
-- Consulte la tabla `news` de Supabase
-- Filtre por `status = 'published'`
-- Ordene por `published_at DESC`
-- Retorne datos en formato JSON compatible con el frontend
-
-### PASO 2: Implementar Carga de Datos en Frontend
-**Archivo**: `src/Notices/notices.js`
-**Acción**: Reemplazar la función `loadNewsData()` para:
-- Hacer fetch al endpoint `/api/news`
-- Mapear datos de BD al formato esperado por el frontend
-- Manejar errores y estados de carga
-- Implementar fallback si falla la conexión
-
-### PASO 3: Mapeo de Datos
-**Transformación necesaria**:
-```javascript
-// De BD (Supabase) a Frontend
-{
-  id: news.id,
-  title: news.title,
-  excerpt: news.subtitle || news.intro,
-  category: 'tecnologia', // Mapear desde sections o crear campo
-  categoryLabel: 'Tecnología',
-  author: 'Sistema', // O desde created_by
-  date: news.published_at,
-  views: 0, // O desde metrics
-  comments: 0,
-  image: 'fas fa-newspaper', // O desde hero_image_url
-  featured: false, // Lógica para determinar
-  hasDetailedView: true,
-  detailedData: {
-    tldr: news.tldr,
-    suggestedSteps: news.sections?.steps || [],
-    risks: news.sections?.risks || [],
-    resources: news.links || [],
-    whyMatters: news.sections?.whyMatters || [],
-    whatChanged: news.sections?.whatChanged || [],
-    impact: news.sections?.impact || [],
-    cta: news.cta?.text || 'Leer más'
-  }
+if (typeof window.renderPosts === 'function') {
+  window.renderPosts('all');              // re-pinta con window.posts
+} else if (window.communitySystem?.loadPosts) {
+  await window.communitySystem.loadPosts();
 }
-```
 
-### PASO 4: Verificar Conexión Supabase
-**Archivo**: `src/Notices/notices.html`
-**Acción**: Asegurar que se incluyan los scripts de Supabase:
-```html
-<script src="../scripts/supabase-client.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-```
 
-### PASO 5: Testing y Validación
-**Acciones**:
-1. Verificar que la noticia en BD tenga `status = 'published'`
-2. Probar el endpoint `/api/news` directamente
-3. Verificar que el frontend cargue y muestre la noticia
-4. Probar funcionalidades: filtros, búsqueda, modal detallado
+Esta es la única que garantiza que los posts se repinten bien tras el voto.
 
-## ARCHIVOS A MODIFICAR
+Borra las ramas que llaman a this.renderPosts() directamente después del voto.
 
-1. **`server.js`** - Agregar endpoint `/api/news`
-2. **`src/Notices/notices.js`** - Implementar `loadNewsData()` real
-3. **`src/Notices/notices.html`** - Verificar scripts de Supabase (si es necesario)
+Eliminar código muerto/duplicado:
 
-## PATRONES A SEGUIR
+Borra las implementaciones redundantes de voteInPoll.
 
-**Usar como referencia**:
-- `src/Chat-Online/chat-online.js` líneas 4898-4994 (carga desde BD)
-- `src/Community/community-view.html` líneas 1854-1883 (inicialización de datos)
-- `server.js` líneas 2082-2088 (consulta a tabla news)
+Asegúrate de que cualquier llamada al voto use la función unificada.
 
-## RESULTADO ESPERADO
+Clarificar responsabilidades:
 
-Después de implementar estos cambios:
-1. La noticia existente en la BD se mostrará en el frontend
-2. El sistema estará preparado para agregar más noticias
-3. Todas las funcionalidades (filtros, búsqueda, modal) funcionarán con datos reales
-4. El sistema será escalable para futuras noticias
+CommunitySystem se mantiene como manejador de datos y utilidades.
 
-## PRIORIDAD
+El render principal de comunidad debe ser siempre window.renderPosts('all') con window.posts como fuente de verdad.
 
-**ALTA** - Este es un problema crítico que impide que el sistema de noticias funcione correctamente, a pesar de tener toda la infraestructura y UI implementada.
+Opcional: sincroniza window.communitySystem.posts = [...window.posts] después de cada carga, si quieres mantener ambos en paralelo.
 
----
+Validar flujo completo:
 
-**INSTRUCCIONES PARA CLAUDE**: Implementa estos cambios paso a paso, comenzando por el endpoint de API y luego la integración en el frontend. Usa los patrones existentes en el código para mantener consistencia.
+Crear post con encuesta.
+
+Votar → sin refrescar deben verse los resultados actualizados, y el resto de posts deben permanecer en pantalla.
+
+Revisar que no vuelva a aparecer el log “re-renderizando 0 posts”.
+
+Archivos involucrados
+
+community-view.html
+
+community.js
+
+community-identifier.js
+
+community-auth.js (si tiene lógica de voto)
+
+server.js (ya está bien, solo asegúrate de que responde con JSON correcto)
+
+Entregables
+
+Un diff limpio con los cambios aplicados.
+
+Explicación breve de:
+
+Qué se eliminó (duplicados de voteInPoll).
+
+Qué se centralizó (render → siempre global).
+
+Cómo quedó la nueva versión de voteInPoll.
