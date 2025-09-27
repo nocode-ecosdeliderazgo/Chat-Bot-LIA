@@ -560,6 +560,7 @@ The community system is built with a modular architecture centered around user-g
 
 **Key Features**:
 - Real-time posting, commenting, and reaction system
+- Interactive polls/surveys with real-time voting and results display
 - User profile modals with activity statistics pulled from database
 - League/points system integrated with community actions
 - Member management with role-based permissions
@@ -582,6 +583,25 @@ The community system uses a hybrid authentication approach:
 - Fallback: LocalStorage user data for basic functionality
 - Session validation through `hasCommunitySession()` function
 - Graceful degradation to read-only mode when authentication fails
+
+### Poll/Survey System
+The community includes a comprehensive polling system with real-time voting:
+
+**Database Structure**:
+- Polls stored in `community_posts` table with `attachment_type = 'poll'`
+- Poll data stored in `attachment_data` JSONB column with structure: `{question, options, votes}`
+- PostgreSQL RPC functions: `cast_poll_vote()`, `get_poll_results()`, `initialize_poll_votes()`
+
+**Frontend Implementation**:
+- Unified rendering system using global functions `window.loadPostsFromDatabase()` and `window.renderPosts()`
+- Real-time UI updates after voting without page refresh
+- Dual API support: Netlify Functions (production) and Express endpoints (development)
+- Error handling with fallback mechanisms for different deployment environments
+
+**Key Functions**:
+- `CommunitySystem.voteInPoll()` - Handles vote submission with automatic UI refresh
+- `CommunitySystem.renderPoll()` - Renders interactive poll components with voting buttons
+- Global scope functions ensure cross-system compatibility and prevent rendering conflicts
 
 ## Code Quality & Maintenance Patterns
 
@@ -635,8 +655,12 @@ async function loadDataFromDatabase() {
 
 ### Current Development Focus
 - **Community Features**: Active development of user interactions, voting systems, and real-time engagement
+  - Poll/survey functionality with real-time voting in `src/Community/community-view.html`
+  - Unified rendering system using `window.loadPostsFromDatabase()` and `window.renderPosts()`
+  - Fixed dual-system rendering conflicts between global and CommunitySystem approaches
 - **Profile System**: Real-time data integration with database-driven user profiles and activity metrics
 - **Video Integration**: YouTube embedding with comprehensive CSP support and progress tracking
 - **Authentication**: Hybrid multi-source authentication with graceful fallbacks
 - **Component Architecture**: Modular chat components and enhanced course viewer system
 - **Database Systems**: Dual-mode activity system and analysis messaging integration
+- **UI Enhancements**: Background animations and particle effects system across pages
