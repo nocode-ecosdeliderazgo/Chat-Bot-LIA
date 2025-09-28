@@ -1313,18 +1313,39 @@ class ChatOnline {
     actualizarContextoLIA() {
         try {
             console.log('🔄 [LIA CONTEXT] Actualizando contexto por cambio de video/módulo...');
-            
-            // Llamar a la función global que actualiza el contexto
+
+            // 1. Limpiar cualquier caché de contexto local
+            this.contextCache = null;
+
+            // 2. Forzar actualización del contexto global si existe la función
             if (typeof window.actualizarContextoVideo === 'function') {
                 window.actualizarContextoVideo();
-                console.log('✅ [LIA CONTEXT] Contexto actualizado exitosamente');
+                console.log('✅ [LIA CONTEXT] Contexto global actualizado');
             } else {
                 console.warn('⚠️ [LIA CONTEXT] Función actualizarContextoVideo no disponible');
             }
-            
-            // También podemos limpiar cualquier caché de contexto local si existe
-            this.contextCache = null;
-            
+
+            // 3. Verificar que el contexto se haya actualizado correctamente
+            setTimeout(() => {
+                const nuevoContexto = typeof window.obtenerContextoCurso === 'function' ?
+                    window.obtenerContextoCurso() :
+                    this.obtenerContextoFallback();
+
+                console.log('🎯 [LIA CONTEXT] Nuevo contexto verificado:', nuevoContexto.substring(0, 150) + '...');
+            }, 500);
+
+            // 4. Notificar a LIA Chat component si existe
+            if (window.LiaChat && window.LiaChat.prototype && window.LiaChat.prototype.updateContext) {
+                console.log('🔄 [LIA CONTEXT] Actualizando LiaChat component...');
+                // Disparar evento personalizado para actualizar LIA Chat
+                const contextUpdateEvent = new CustomEvent('liaContextUpdate', {
+                    detail: { timestamp: new Date().toISOString() }
+                });
+                document.dispatchEvent(contextUpdateEvent);
+            }
+
+            console.log('✅ [LIA CONTEXT] Contexto actualizado completamente');
+
         } catch (error) {
             console.error('❌ [LIA CONTEXT] Error actualizando contexto:', error);
         }
@@ -8056,8 +8077,14 @@ class ChatOnline {
         } else {
             console.log('❌ DEBUG - videoDuration update skipped:', { videoDuration: !!videoDuration, duration, condition: duration !== '00:00' });
         }
-        
+
         console.log(`✅ Video actualizado: ${title}`);
+
+        // ===== ACTUALIZAR CONTEXTO PARA LIA DESPUÉS DEL CAMBIO DE VIDEO =====
+        setTimeout(() => {
+            console.log('[LIA CONTEXT] 🔄 Actualizando contexto después del cambio de video...');
+            this.actualizarContextoLIA();
+        }, 1500); // Delay más largo para asegurar que el contenido se haya actualizado completamente
     }
     
     /**
@@ -9078,12 +9105,59 @@ function selectModule(moduleNumber) {
     }
 }
 
+// ===== FUNCIÓN PARA VERIFICAR CONTEXTO DE LIA =====
+function verificarContextoLIA() {
+    console.log('🔍 === VERIFICANDO CONTEXTO DE LIA ===');
+
+    try {
+        // 1. Verificar función obtenerContextoCurso
+        if (typeof window.obtenerContextoCurso === 'function') {
+            const contexto = window.obtenerContextoCurso();
+            console.log('✅ [CONTEXT] Función obtenerContextoCurso disponible');
+            console.log('📄 [CONTEXT] Contexto actual:', contexto.substring(0, 300) + '...');
+        } else {
+            console.log('❌ [CONTEXT] Función obtenerContextoCurso NO disponible');
+        }
+
+        // 2. Verificar contenido de transcripción
+        const transcriptContent = document.querySelector('[data-content="transcript"]');
+        if (transcriptContent) {
+            const transcriptText = transcriptContent.textContent || transcriptContent.innerText;
+            console.log('📝 [TRANSCRIPT] Contenido de transcripción:', transcriptText.substring(0, 200) + '...');
+        } else {
+            console.log('❌ [TRANSCRIPT] Elemento de transcripción no encontrado');
+        }
+
+        // 3. Verificar título del video actual
+        const videoTitle = document.querySelector('.video-info h3');
+        if (videoTitle) {
+            console.log('🎬 [VIDEO] Título actual:', videoTitle.textContent);
+        } else {
+            console.log('❌ [VIDEO] Título del video no encontrado');
+        }
+
+        // 4. Verificar módulo activo
+        const activeModule = document.querySelector('.module-item.active, .module-item.expanded');
+        if (activeModule) {
+            const moduleTitle = activeModule.querySelector('.module-title');
+            console.log('📚 [MODULE] Módulo activo:', moduleTitle ? moduleTitle.textContent : 'Sin título');
+        } else {
+            console.log('❌ [MODULE] Módulo activo no encontrado');
+        }
+
+        console.log('🔍 === FIN VERIFICACIÓN CONTEXTO ===');
+
+    } catch (error) {
+        console.error('❌ [CONTEXT] Error verificando contexto:', error);
+    }
+}
+
 // Función para ver todos los videos de módulos (desde base de datos)
 async function showModuleVideos() {
     if (window.chatOnline) {
         try {
             console.log('🔍 Obteniendo videos desde base de datos...');
-            
+
             const apiBaseUrl = window.chatOnline.getApiBaseUrl();
             const cacheBuster = new Date().getTime();
             

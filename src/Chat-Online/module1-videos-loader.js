@@ -1053,6 +1053,16 @@ class Module1VideosLoader {
             // Actualizar resumen en el área correcta
             this.updateSummaryContent(video);
 
+            // ===== ACTUALIZAR CONTEXTO PARA LIA DESPUÉS DE ACTUALIZAR INFO DEL VIDEO =====
+            setTimeout(() => {
+                if (window.chatOnline && typeof window.chatOnline.actualizarContextoLIA === 'function') {
+                    console.log('[LIA CONTEXT] 🔄 Actualizando contexto después de actualizar info del video...');
+                    window.chatOnline.actualizarContextoLIA();
+                } else {
+                    console.warn('[LIA CONTEXT] ⚠️ ChatOnline o actualizarContextoLIA no disponible');
+                }
+            }, 2000); // Delay para asegurar que la transcripción y actividades se hayan actualizado
+
         } catch (error) {
             console.error('❌ Error actualizando información del video:', error);
         }
