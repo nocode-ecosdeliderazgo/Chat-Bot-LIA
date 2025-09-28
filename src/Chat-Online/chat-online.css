@@ -2399,6 +2399,7 @@ body {
     flex-direction: column;
     gap: 0; /* Sin separación - pegados como en la segunda foto */
     overflow-y: auto;
+    overflow-x: hidden; /* Prevenir scroll horizontal */
     height: calc(100vh - 80px);
     max-height: calc(100vh - 80px);
     padding-top: 0.5rem;
@@ -2616,7 +2617,7 @@ body {
 }
 
 .lia-message {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
@@ -4323,6 +4324,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 /* ===== MENSAJES DE USUARIO ===== */
 .user-message {
     justify-content: flex-end;
+    margin-bottom: 1.5rem;
 }
 
 .user-content {
@@ -4492,46 +4494,167 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 .notes-list {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.5rem;
+    overflow-x: hidden; /* Prevenir scroll horizontal */
+    padding: 0.25rem 0;
 }
 
 .note-item {
-    background: rgba(255, 255, 255, 0.05);
-    border: var(--glass-border-subtle);
-    border-radius: 10px;
-    padding: 1rem;
-    backdrop-filter: var(--glass-blur-light);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 0.75rem;
+    backdrop-filter: blur(10px);
+    overflow-x: hidden;
+    word-wrap: break-word;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    transform: translateY(0);
+    opacity: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0.5rem;
+    user-select: none; /* Evitar selección de texto al hacer click */
+}
+
+/* Animación de entrada para nuevas notas */
+.note-item.animate-in {
+    animation: noteSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes noteSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateY(-5px) scale(1.02);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Animación de salida para notas eliminadas */
+.note-item.animate-out {
+    animation: noteSlideOut 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes noteSlideOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        max-height: 200px;
+    }
+    50% {
+        opacity: 0.5;
+        transform: translateY(-10px) scale(0.95);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.8);
+        max-height: 0;
+        margin-bottom: 0;
+        padding: 0;
+    }
+}
+
+/* Efecto hover mejorado */
+.note-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(68, 229, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 102, 204, 0.1);
+}
+
+/* Efecto de click para indicar interacción */
+.note-item:active {
+    transform: translateY(0) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* Efecto de brillo sutil */
+.note-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.1) 50%, 
+        transparent 100%);
+    transition: left 0.6s ease;
+    border-radius: 16px;
+    pointer-events: none;
+}
+
+.note-item:hover::before {
+    left: 100%;
 }
 
 .note-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 0.5rem;
+    position: relative;
+    padding-right: 2rem; /* Espacio para el botón de eliminar */
 }
 
 .note-title {
-    color: var(--glass-text-primary);
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+    line-height: 1.2;
+    flex: 1;
+    margin-right: 0.5rem;
+    transition: color 0.3s ease;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
+}
+
+.note-item:hover .note-title {
+    color: #44e5ff;
+    text-shadow: 0 1px 3px rgba(68, 229, 255, 0.3);
 }
 
 .note-title svg {
-    color: var(--glass-primary);
-    width: 12px;
-    height: 12px;
+    color: #44e5ff;
+    width: 14px;
+    height: 14px;
     flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.note-item:hover .note-title svg {
+    color: #ffffff;
+    transform: scale(1.1);
 }
 
 .note-time {
-    color: var(--glass-text-muted);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 400;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 0.15rem 0.3rem;
+    border-radius: 3px;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.15rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.note-item:hover .note-time {
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(0, 102, 204, 0.15);
 }
 
 .note-time svg {
@@ -4541,11 +4664,61 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     flex-shrink: 0;
 }
 
+/* Botón de eliminar nota */
+.note-delete-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 20px;
+    height: 20px;
+    background: rgba(239, 68, 68, 0.8);
+    border: none;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.note-item:hover .note-delete-btn {
+    opacity: 1;
+    background: rgba(239, 68, 68, 1);
+}
+
+.note-delete-btn:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+}
+
+.note-delete-btn svg {
+    width: 10px;
+    height: 10px;
+    color: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.note-delete-btn:hover svg {
+    transform: rotate(90deg);
+}
+
 .note-content p {
-    color: var(--glass-text-secondary);
-    font-size: 0.85rem;
-    line-height: 1.4;
-    margin: 0 0 0.75rem 0;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    line-height: 1.3;
+    margin: 0;
+    transition: all 0.3s ease;
+    max-height: 2.4rem; /* 2 líneas aproximadamente */
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.note-item:hover .note-content p {
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .note-tags {
@@ -5205,6 +5378,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    overflow-x: hidden; /* Prevenir scroll horizontal */
     transform: translateX(100%);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 0;
@@ -5613,6 +5787,46 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     border-top: 1px solid rgba(0, 102, 204, 0.2);
     background: linear-gradient(135deg, rgba(0, 102, 204, 0.1) 0%, rgba(0, 102, 204, 0.05) 100%);
     position: relative;
+}
+
+.note-footer-buttons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+/* Botón de guardar nota */
+.save-note-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.save-note-btn:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+}
+
+.save-note-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.save-note-btn .icon {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.5;
 }
 
 .note-panel-footer::before {
@@ -6053,6 +6267,22 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     
     .note-panel-footer {
         padding: 12px 16px;
+    }
+    
+    .note-footer-buttons {
+        gap: 0.5rem;
+    }
+    
+    .save-note-btn,
+    .convert-to-source-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .save-note-btn .icon,
+    .convert-to-source-btn .icon {
+        width: 14px;
+        height: 14px;
     }
 
     .link-modal {

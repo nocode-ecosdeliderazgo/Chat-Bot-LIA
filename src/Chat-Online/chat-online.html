@@ -4020,6 +4020,18 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
+        /* Avatar con foto del usuario */
+        #liaMessages .user-avatar-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(0, 102, 204, 0.3);
+            margin-right: 12px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
         /* Mejorar la estructura de header de pregunta para mensajes de chat */
         #liaMessages .user-message .question-header {
             margin-bottom: 0;
@@ -4091,6 +4103,12 @@
                 width: 32px;
                 height: 32px;
                 font-size: 14px;
+                margin-right: 10px;
+            }
+            
+            #liaMessages .user-avatar-img {
+                width: 32px;
+                height: 32px;
                 margin-right: 10px;
             }
 
@@ -5001,6 +5019,15 @@ Cargando información...
                 </div>
 
                 <div class="note-panel-footer">
+                    <div class="note-footer-buttons">
+                        <button class="save-note-btn" id="saveNoteBtn">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                <polyline points="17,21 17,13 7,13 7,21"/>
+                                <polyline points="7,3 7,8 15,8"/>
+                            </svg>
+                            Guardar Nota
+                        </button>
                     <button class="convert-to-source-btn" id="convertToSourceBtn">
                         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -5008,6 +5035,7 @@ Cargando información...
                         </svg>
                         Convertir en PDF
                     </button>
+                    </div>
                 </div>
             </div>
             </div>
@@ -6600,15 +6628,35 @@ INSTRUCCIONES:
                 const moduleLabel = shouldShowModule ? rawModule : '';
 
                 return `
-                    <div class="note-item" data-note-id="${note.id}">
+                    <div class="note-item animate-in" data-note-id="${note.id}">
                         <div class="note-header">
-                            <h4>${note.title || 'Sin título'}</h4>
-                            <span class="note-date">${new Date(note.timestamp || note.updatedAt).toLocaleDateString()}</span>
+                            <div class="note-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14,2 14,8 20,8"/>
+                                </svg>
+                                ${note.title || 'Sin título'}
+                            </div>
+                            <div class="note-time">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
+                                </svg>
+                                ${new Date(note.timestamp || note.updatedAt).toLocaleDateString()}
+                            </div>
                         </div>
                         <div class="note-content">
                             <p>${(note.content || '').substring(0, 100)}${(note.content || '').length > 100 ? '...' : ''}</p>
                         </div>
                         ${moduleLabel ? `<div class="note-module"><span>${moduleLabel}</span></div>` : ''}
+                        <button class="note-delete-btn" onclick="deleteNote(${note.id})" title="Eliminar nota">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3,6 5,6 21,6"/>
+                                <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
+                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                <line x1="14" y1="11" x2="14" y2="17"/>
+                            </svg>
+                        </button>
                     </div>
                 `;
             }
@@ -9732,7 +9780,7 @@ Generado desde Coach LIA IA - ${currentDate}
             let isEditing = false;
 
             // Función para abrir el panel de notas
-            function openNotePanel(noteData = null) {
+            window.openNotePanel = function(noteData = null) {
                 console.log('📝 Abriendo panel de notas...', noteData ? 'editando' : 'nueva');
                 
                 // Mostrar panel de notas como overlay
@@ -9792,10 +9840,8 @@ Generado desde Coach LIA IA - ${currentDate}
                 }, 300);
             }
 
-            // Función para guardar la nota actual (solo al cerrar)
+            // Función para guardar la nota actual
             function saveCurrentNote() {
-                if (!currentNote) return;
-
                 const title = noteTitleInput.value.trim();
                 const content = noteEditor.innerHTML.trim();
 
@@ -9806,30 +9852,53 @@ Generado desde Coach LIA IA - ${currentDate}
                 // Si no tiene título ni contenido, no guardar
                 if (!hasTitle && !hasContent) {
                     console.log('📝 Nota vacía, no se guardará');
+                    showNotification('⚠️ La nota está vacía. Agrega contenido antes de guardar.', 'warning');
                     return;
                 }
 
-                // Actualizar datos de la nota
-                currentNote.title = hasTitle ? title : 'Sin título';
-                currentNote.content = content;
-                currentNote.updatedAt = new Date().toISOString();
+                // Crear o actualizar la nota
+                let noteToSave;
+                
+                if (currentNote && isEditing) {
+                    // Actualizar nota existente
+                    noteToSave = {
+                        ...currentNote,
+                        title: hasTitle ? title : 'Sin título',
+                        content: content,
+                        updatedAt: new Date().toISOString()
+                    };
+                } else {
+                    // Crear nueva nota
+                    noteToSave = {
+                        id: Date.now().toString(),
+                        title: hasTitle ? title : 'Sin título',
+                        content: content,
+                        timestamp: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                }
 
                 // Guardar en localStorage
                 const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
                 
-                if (isEditing) {
+                if (currentNote && isEditing) {
                     // Actualizar nota existente
                     const index = notes.findIndex(note => note.id === currentNote.id);
                     if (index !== -1) {
-                        notes[index] = currentNote;
+                        notes[index] = noteToSave;
                     }
                 } else {
                     // Agregar nueva nota
-                    notes.push(currentNote);
+                    notes.push(noteToSave);
+                    currentNote = noteToSave;
+                    isEditing = true;
                 }
                 
                 localStorage.setItem('lia_notes', JSON.stringify(notes));
-                console.log('💾 Nota guardada:', currentNote.title);
+                console.log('💾 Nota guardada:', noteToSave.title);
+                
+                // Mostrar notificación de éxito
+                showNotification('✅ Nota guardada exitosamente', 'success');
                 
                 // Actualizar lista de notas en el panel derecho
                 updateNotesList();
@@ -9837,10 +9906,15 @@ Generado desde Coach LIA IA - ${currentDate}
 
             // Función para actualizar la lista de notas
             function updateNotesList() {
+                console.log('🔄 Actualizando lista de notas...');
                 const notesList = document.getElementById('notesList');
-                if (!notesList) return;
+                if (!notesList) {
+                    console.error('❌ notesList no encontrado');
+                    return;
+                }
 
                 const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+                console.log('📝 Notas encontradas:', notes.length, notes);
                 
                 if (notes.length === 0) {
                     notesList.innerHTML = `
@@ -9848,11 +9922,13 @@ Generado desde Coach LIA IA - ${currentDate}
                             <p>No hay notas aún. ¡Agrega tu primera nota!</p>
                         </div>
                     `;
+                    console.log('📝 Mostrando estado vacío');
                     return;
                 }
 
                 // Ordenar notas por fecha de actualización
                 const sortedNotes = notes.sort((a, b) => new Date(b.updatedAt || b.timestamp) - new Date(a.updatedAt || a.timestamp));
+                console.log('📝 Notas ordenadas:', sortedNotes);
 
                 // Crear HTML de las notas
                 notesList.innerHTML = sortedNotes.map(note => {
@@ -9860,32 +9936,16 @@ Generado desde Coach LIA IA - ${currentDate}
                     const timeAgo = getTimeAgo(date);
                     
                     return `
-                        <div class="note-item" data-note-id="${note.id}">
+                        <div class="note-item animate-in" data-note-id="${note.id}">
                             <div class="note-header">
-                                <div class="note-icon">
+                                <div class="note-title">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                         <polyline points="14,2 14,8 20,8"/>
                                     </svg>
+                                    ${note.title || 'Sin título'}
                                 </div>
-                                <div class="note-title">${note.title || 'Sin título'}</div>
-                                <div class="note-actions">
-                                    <button class="note-action-btn edit-note-btn" title="Editar">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                        </svg>
-                                    </button>
-                                    <button class="note-action-btn delete-note-btn" title="Eliminar">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <polyline points="3,6 5,6 21,6"/>
-                                            <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="note-meta">
-                                <div class="note-date">
+                                <div class="note-time">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <circle cx="12" cy="12" r="10"/>
                                         <polyline points="12,6 12,12 16,14"/>
@@ -9893,51 +9953,60 @@ Generado desde Coach LIA IA - ${currentDate}
                                     ${timeAgo}
                                 </div>
                             </div>
+                            <div class="note-content">
+                                <p>${(note.content || '').substring(0, 100)}${(note.content || '').length > 100 ? '...' : ''}</p>
+                            </div>
+                            <button class="note-delete-btn" onclick="deleteNote(${note.id})" title="Eliminar nota">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3,6 5,6 21,6"/>
+                                    <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
+                                    <line x1="10" y1="11" x2="10" y2="17"/>
+                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                </svg>
+                            </button>
                         </div>
                     `;
                 }).join('');
 
+                console.log('✅ HTML de notas generado, agregando event listeners...');
+
                 // Agregar event listeners a las notas
                 notesList.querySelectorAll('.note-item').forEach(item => {
                     const noteId = item.getAttribute('data-note-id');
-                    const editBtn = item.querySelector('.edit-note-btn');
-                    const deleteBtn = item.querySelector('.delete-note-btn');
+                    const deleteBtn = item.querySelector('.note-delete-btn');
                     
-                    // Click en la nota para editarla
+                    // Click en cualquier parte de la nota para editarla
                     item.addEventListener('click', (e) => {
-                        if (e.target.closest('.note-action-btn')) return;
+                        // Solo evitar el click si se hace click en el botón de eliminar
+                        if (e.target.closest('.note-delete-btn')) {
+                            return;
+                        }
                         
-                        const note = notes.find(n => n.id === noteId);
+                        console.log('📝 Click en nota para editar:', noteId);
+                        const note = sortedNotes.find(n => n.id === noteId);
                         if (note) {
                             openNotePanel(note);
                         }
                     });
                     
-                    // Botón editar
-                    if (editBtn) {
-                        editBtn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            const note = notes.find(n => n.id === noteId);
-                            if (note) {
-                                openNotePanel(note);
-                            }
-                        });
-                    }
-                    
                     // Botón eliminar
                     if (deleteBtn) {
                         deleteBtn.addEventListener('click', (e) => {
                             e.stopPropagation();
+                            e.preventDefault();
+                            console.log('🗑️ Eliminando nota:', noteId);
                             if (confirm('¿Estás seguro de que quieres eliminar esta nota?')) {
                                 deleteNote(noteId);
                             }
                         });
                     }
                 });
+                
+                console.log('✅ Lista de notas actualizada exitosamente');
             }
 
             // Función para eliminar una nota
-            function deleteNote(noteId) {
+            window.deleteNote = function(noteId) {
                 const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
                 const filteredNotes = notes.filter(note => note.id !== noteId);
                 localStorage.setItem('lia_notes', JSON.stringify(filteredNotes));
@@ -10439,6 +10508,15 @@ Generado desde Coach LIA IA - ${currentDate}
                         deleteNote(currentNote.id);
                         closeNotePanel();
                     }
+                });
+            }
+
+            // Botón de guardar nota
+            const saveNoteBtn = document.getElementById('saveNoteBtn');
+            if (saveNoteBtn) {
+                saveNoteBtn.addEventListener('click', () => {
+                    console.log('💾 Guardando nota...');
+                    saveCurrentNote();
                 });
             }
 

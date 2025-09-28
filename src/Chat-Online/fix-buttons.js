@@ -887,15 +887,30 @@ function sendMessageToLia() {
     console.log('💬 Enviando mensaje a LIA:', mensaje);
 
     // Agregar mensaje del usuario
+    // Obtener información del usuario actual
+    const currentUser = obtenerUsuarioActual();
+    const userName = currentUser?.username || localStorage.getItem('userName') || 'Usuario';
+    const userPhoto = currentUser?.profile_picture_url || currentUser?.avatar_url || null;
+    
     const userMessage = document.createElement('div');
     userMessage.className = 'user-message';
+    
+    // Crear avatar con foto del usuario o inicial
+    let avatarHTML;
+    if (userPhoto) {
+        avatarHTML = `<img src="${userPhoto}" alt="${userName}" class="user-avatar-img">`;
+    } else {
+        const avatarLetter = userName.charAt(0).toUpperCase();
+        avatarHTML = `<div class="user-avatar-circle">${avatarLetter}</div>`;
+    }
+    
     userMessage.innerHTML = `
         <div class="message-content">
             <div class="message-text">${mensaje}</div>
             <div class="message-time">ahora</div>
         </div>
         <div class="user-avatar">
-            <span>👤</span>
+            ${avatarHTML}
         </div>
     `;
     
