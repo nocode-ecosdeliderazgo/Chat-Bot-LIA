@@ -111,6 +111,7 @@ class ChatOnline {
         }, 500);
 
         console.log('✅ Chat Online inicializado correctamente');
+        console.log('✅ Método openNoteForEditing disponible:', typeof this.openNoteForEditing);
         
         // Exponer funciones de diagnóstico globalmente
         window.debugNotesButton = () => this.debugNotesButton();
@@ -3355,9 +3356,15 @@ class ChatOnline {
         console.log('🎨 Mostrando creador de notas...');
         
         const notesCreator = document.getElementById('notesCreatorSection');
-        const titleInput = document.getElementById('noteTitleInput');
+        const titleInput = document.getElementById('noteTitleInputCreator');
         const contentEditor = document.getElementById('noteContentEditor');
         const tagsInput = document.getElementById('tagsInput');
+        
+        // Ocultar el editor overlay existente para evitar superposiciones
+        const notePanelOverlay = document.getElementById('notePanelOverlay');
+        if (notePanelOverlay) {
+            notePanelOverlay.style.display = 'none';
+        }
         
         // Verificar que todos los elementos existen
         if (!notesCreator) {
@@ -3406,8 +3413,10 @@ class ChatOnline {
     
     hideNotesCreator() {
         const notesCreator = document.getElementById('notesCreatorSection');
+        if (notesCreator) {
         notesCreator.style.display = 'none';
         notesCreator.classList.remove('active');
+        }
         
         // Limpiar ID de edición
         this.currentEditingNoteId = null;
@@ -3418,7 +3427,7 @@ class ChatOnline {
 
     
     saveNote() {
-        const titleInput = document.getElementById('noteTitleInput');
+        const titleInput = document.getElementById('noteTitleInputCreator');
         const contentEditor = document.getElementById('noteContentEditor');
         
         const title = titleInput.value.trim();
@@ -3982,7 +3991,7 @@ class ChatOnline {
     }
     
     async exportNoteToPDF() {
-        const titleInput = document.getElementById('noteTitleInput');
+        const titleInput = document.getElementById('noteTitleInputCreator');
         const contentEditor = document.getElementById('noteContentEditor');
         
         const title = titleInput.value || 'Nota sin título';
@@ -6396,25 +6405,50 @@ class ChatOnline {
             return;
         }
         
-        // Guardar ID de la nota que se está editando
-        this.currentEditingNoteId = noteId;
+        console.log('📝 Abriendo nota para edición:', note.title);
         
-        // Mostrar el editor
-        this.showNotesCreator();
-        
-        // Llenar los campos con los datos de la nota
+        // Usar la función openNotePanel que configura correctamente las variables (instantáneo)
+        if (typeof window.openNotePanel === 'function') {
+            console.log('🚀 Abriendo modal overlay usando openNotePanel (instantáneo)...');
+            window.openNotePanel(note);
+        } else {
+            console.error('❌ openNotePanel no está disponible');
+            // Fallback: abrir modal directamente (instantáneo)
+            const notePanelOverlay = document.getElementById('notePanelOverlay');
+            if (notePanelOverlay) {
+                console.log('🚀 Abriendo modal overlay como fallback (instantáneo)...');
+                
+                // Mostrar el modal inmediatamente
+                notePanelOverlay.style.display = 'flex';
+                notePanelOverlay.classList.add('active');
+                
+                // Llenar campos inmediatamente
         const titleInput = document.getElementById('noteTitleInput');
-        const contentEditor = document.getElementById('noteContentEditor');
-        const tagsInput = document.getElementById('tagsInput');
-        
-        titleInput.value = note.title;
-        contentEditor.innerHTML = note.content;
-        
-        // Limpiar y agregar las etiquetas
-        this.clearTags();
-        note.tags.forEach(tag => this.addTag(tag));
-        
-        console.log('✅ Nota cargada para edición:', note);
+                const contentEditor = document.getElementById('noteEditor');
+                
+                if (titleInput) titleInput.value = note.title || '';
+                if (contentEditor) contentEditor.innerHTML = note.content || '';
+                
+                // Configurar la variable global para el modal overlay
+                window.currentEditingNote = note;
+                
+                // Enfocar el editor inmediatamente
+                if (contentEditor) contentEditor.focus();
+                
+                console.log('🚀 Modal abierto instantáneamente con datos de la nota:', note.title);
+            }
+        } else {
+            console.error('❌ Modal overlay no encontrado, usando editor interno como fallback');
+            // Fallback al editor interno si el modal no existe
+            this.showNotesCreator();
+            
+            // Llenar los campos con los datos de la nota
+            const titleInput = document.getElementById('noteTitleInputCreator');
+            const contentEditor = document.getElementById('noteContentEditor');
+            
+            if (titleInput) titleInput.value = note.title || '';
+            if (contentEditor) contentEditor.innerHTML = note.content || '';
+        }
     }
     
     getNoteById(noteId) {
@@ -6435,6 +6469,19 @@ class ChatOnline {
         this.loadNotesList();
         
         console.log('🗑️ Nota eliminada:', noteId);
+    }
+    
+    // Función de búsqueda de notas para compatibilidad
+    searchNotes() {
+        console.log('🔍 Activando búsqueda de notas...');
+        
+        // Buscar el botón de búsqueda y hacer clic en él
+        const searchBtn = document.getElementById('searchNotesBtn');
+        if (searchBtn) {
+            searchBtn.click();
+        } else {
+            console.error('❌ Botón de búsqueda no encontrado');
+        }
     }
     
     createNoteHTML(note) {
@@ -8889,12 +8936,17 @@ RESPONDE COMO LIA:
 }
 
 
-// ===== INICIALIZACIÓN =====
-document.addEventListener('DOMContentLoaded', function() {
+// ===== INICIALIZACIÓN INMEDIATA =====
     console.log('🚀 Iniciando Chat Online...');
     
-    // Crear instancia de ChatOnline
+// Crear instancia de ChatOnline inmediatamente
     window.chatOnline = new ChatOnline();
+console.log('✅ Instancia de ChatOnline creada:', !!window.chatOnline);
+console.log('✅ Método openNoteForEditing disponible inmediatamente:', typeof window.chatOnline?.openNoteForEditing);
+
+// ===== INICIALIZACIÓN ADICIONAL DESPUÉS DEL DOM =====
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔗 DOM cargado, configurando elementos adicionales...');
     
     // ===== FUNCIONES GLOBALES YA DEFINIDAS EN HTML =====
     // Las funciones showAnswerModal, voteQuestion y toggleBookmark ya están

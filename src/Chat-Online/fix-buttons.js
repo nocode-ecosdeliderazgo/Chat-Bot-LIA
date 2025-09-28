@@ -959,11 +959,18 @@ function openNotebookLMPanel() {
     if (typeof initializeNotebookLMNotes === 'function') {
         console.log('✅ [FIX-BUTTONS] Sistema NotebookLM disponible, abriendo panel...');
         
-        // Buscar el panel de notas overlay
-        const notePanelOverlay = document.getElementById('notePanelOverlay');
-        if (notePanelOverlay) {
-            // Mostrar panel de notas como overlay
-            notePanelOverlay.style.display = 'flex';
+    // Buscar el panel de notas overlay
+    const notePanelOverlay = document.getElementById('notePanelOverlay');
+    if (notePanelOverlay) {
+        // Verificar si el nuevo editor está activo
+        const notesCreator = document.getElementById('notesCreatorSection');
+        if (notesCreator && notesCreator.style.display !== 'none') {
+            console.log('⚠️ [FIX-BUTTONS] El nuevo editor ya está activo, no abriendo overlay');
+            return;
+        }
+        
+        // Mostrar panel de notas como overlay
+        notePanelOverlay.style.display = 'flex';
             
             // Activar animación
             setTimeout(() => {
@@ -973,11 +980,9 @@ function openNotebookLMPanel() {
             // Configurar para nueva nota
             const noteTitleInput = document.getElementById('noteTitleInput');
             const noteEditor = document.getElementById('noteEditor');
-            const noteDeleteBtn = document.getElementById('noteDeleteBtn');
             
             if (noteTitleInput) noteTitleInput.value = 'Nueva nota';
             if (noteEditor) noteEditor.innerHTML = '';
-            if (noteDeleteBtn) noteDeleteBtn.style.display = 'none';
             
             // Enfocar el editor
             setTimeout(() => {
