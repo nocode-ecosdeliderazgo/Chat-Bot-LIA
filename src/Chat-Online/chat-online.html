@@ -7095,7 +7095,7 @@ INSTRUCCIONES:
             text = text.replace(/^## (.+)$/gm, '<h2 class="lia-subtitle">$1</h2>');
             text = text.replace(/^# (.+)$/gm, '<h1 class="lia-main-title">$1</h1>');
 
-            // Convertir **texto** a <strong>texto</strong> (mejorado para manejar todos los casos)
+            // Convertir **texto** a <strong>texto</strong> (mejorado para preservar espacios)
             text = text.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>');
 
             // Convertir *texto* a <em>texto</em> (evitando conflictos con listas)
@@ -7147,7 +7147,9 @@ INSTRUCCIONES:
                         inNumberedList = true;
                     }
 
-                    processedLines.push(`<li class="lia-list-item">${numberMatch[1]}</li>`);
+                    // Preservar el número original de la lista
+                    const originalNumber = line.match(/^(\d+)\./)[1];
+                    processedLines.push(`<li class="lia-list-item" value="${originalNumber}">${numberMatch[1]}</li>`);
 
                 } else {
                     // Cerrar cualquier lista abierta
@@ -7196,9 +7198,15 @@ INSTRUCCIONES:
                 return `<p class="lia-paragraph">${paragraph}</p>`;
             }).join('');
 
-            // Limpiar espacios extras
+            // Limpiar espacios extras (pero preservar espacios alrededor de strong y em)
             text = text.replace(/\s+</g, '<');
             text = text.replace(/>\s+/g, '>');
+            
+            // Restaurar espacios alrededor de texto en negrita y cursiva
+            text = text.replace(/<strong>/g, ' <strong>');
+            text = text.replace(/<\/strong>/g, '</strong> ');
+            text = text.replace(/<em>/g, ' <em>');
+            text = text.replace(/<\/em>/g, '</em> ');
 
             return text;
         }
