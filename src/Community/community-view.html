@@ -670,6 +670,15 @@
             gap: 6px;
         }
 
+        /* Ocultar elementos específicos solicitados */
+        .members-count .membership-btn,
+        .members-count .members-ship,
+        .member-status-text,
+        .count-info,
+        .members-chip[data-filter="online"] {
+            display: none !important;
+        }
+
         .online-dot {
             color: #4CAF50;
             font-size: 8px;
@@ -3995,7 +4004,7 @@
                                     <i class="fas fa-map-marker-alt"></i>
                                     <span>${m.location}</span>
                             </div>
-                                <div class="member-status-text">
+                                <div class="member-status-text" style="display: none;">
                                     ${m.online ? '<i class="fas fa-circle online-dot"></i>' : '<i class="fas fa-clock"></i>'}
                                     <span>${m.online ? 'En línea' : `Visto ${m.lastSeen}`}</span>
                                 </div>
@@ -4020,7 +4029,7 @@
                     const countElement = document.createElement('div');
                     countElement.className = 'members-count';
                     countElement.innerHTML = `
-                        <div class="count-info">
+                       <div class="count-info">
                             <span class="online-count">${onlineCount} en línea</span>
                             <span class="total-count">• ${totalCount} miembros total</span>
                         </div>
@@ -5591,7 +5600,7 @@
                                         <i class="fas fa-map-marker-alt"></i>
                                         <span>${m.location}</span>
                                     </div>
-                                    <div class="member-status-text">
+                                    <div class="member-status-text" style="display: none;">
                                         ${m.online ? '<i class="fas fa-circle online-dot"></i>' : '<i class="fas fa-clock"></i>'}
                                         <span>${m.online ? 'En línea' : `Visto ${m.lastSeen}`}</span>
                                     </div>
