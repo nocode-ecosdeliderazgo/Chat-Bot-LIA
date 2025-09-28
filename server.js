@@ -1558,36 +1558,32 @@ app.get('/api/prompts', authenticateRequest, (req, res) => {
 // Endpoint para obtener noticias
 app.get('/api/news', async (req, res) => {
     try {
-        if (!pool) {
-            return res.status(500).json({ error: 'Base de datos no configurada' });
+        // Si Supabase no está disponible, devolver datos de prueba
+        if (!supabase) {
+            console.log('🔄 Usando datos de prueba (Supabase no disponible)');
+            const mockNews = getMockNews();
+            return res.json({
+                success: true,
+                news: mockNews,
+                total: mockNews.length,
+                message: 'Noticias de prueba obtenidas exitosamente'
+            });
         }
 
-        // Consultar noticias publicadas ordenadas por fecha
-        const query = `
-            SELECT
-                id,
-                slug,
-                title,
-                subtitle,
-                language,
-                hero_image_url,
-                tldr,
-                intro,
-                sections,
-                metrics,
-                links,
-                cta,
-                status,
-                published_at,
-                created_at,
-                updated_at
-            FROM news
-            WHERE status = 'published'
-            ORDER BY published_at DESC
-        `;
+        // Consultar noticias publicadas ordenadas por fecha desde Supabase
+        const { data: news, error } = await supabase
+            .from('news')
+            .select('*')
+            .eq('status', 'published')
+            .order('published_at', { ascending: false });
 
-        const result = await pool.query(query);
-        const news = result.rows;
+        if (error) {
+            console.error('Error consultando noticias desde Supabase:', error);
+            return res.status(500).json({
+                error: 'Error al consultar noticias',
+                details: error.message
+            });
+        }
 
         // Mapear datos de BD al formato esperado por el frontend
         const mappedNews = news.map(newsItem => ({
@@ -7391,5 +7387,158 @@ app.use((req, res) => {
     console.log(`❌ Ruta no encontrada: ${req.method} ${req.path}`);
     res.status(404).json({ error: 'Ruta no encontrada' });
 });
+
+// Función para generar datos de prueba cuando Supabase no está disponible
+function getMockNews() {
+    return [
+        {
+            id: '1',
+            title: 'Nuevas funcionalidades de IA en Chat-Bot-LIA',
+            subtitle: 'Descubre las últimas mejoras en inteligencia artificial para profesionales',
+            excerpt: 'Chat-Bot-LIA ha implementado nuevas funcionalidades de IA que mejoran significativamente la experiencia del usuario.',
+            category: 'ia',
+            categoryLabel: 'Inteligencia Artificial',
+            author: 'Chat-Bot-LIA',
+            date: new Date().toISOString(),
+            image: 'fas fa-brain',
+            views: 1250,
+            comments: 23,
+            featured: true,
+            hasDetailedView: true,
+            detailedData: {
+                tldr: [
+                    'Nuevas funcionalidades de IA implementadas',
+                    'Mejora en la precisión de respuestas',
+                    'Interfaz más intuitiva'
+                ],
+                suggestedSteps: [
+                    'Explorar las nuevas funciones en el dashboard',
+                    'Probar las mejoras en el chat',
+                    'Revisar la documentación actualizada'
+                ],
+                risks: [
+                    'Posibles cambios en el flujo de trabajo',
+                    'Necesidad de capacitación adicional'
+                ],
+                resources: [
+                    { url: '#', label: 'Documentación de nuevas funciones' },
+                    { url: '#', label: 'Tutorial en video' }
+                ],
+                whyMatters: [
+                    'Mejora la productividad de los usuarios',
+                    'Mantiene la competitividad del sistema'
+                ],
+                whatChanged: [
+                    'Algoritmo de IA actualizado',
+                    'Nueva interfaz de usuario',
+                    'Mejores tiempos de respuesta'
+                ],
+                impact: [
+                    'Aumento del 30% en la satisfacción del usuario',
+                    'Reducción del 25% en el tiempo de respuesta'
+                ],
+                cta: 'Probar nuevas funciones'
+            }
+        },
+        {
+            id: '2',
+            title: 'Actualización del sistema de cursos',
+            subtitle: 'Nuevas mejoras en la plataforma educativa',
+            excerpt: 'Hemos actualizado el sistema de cursos con nuevas funcionalidades y mejoras en la experiencia de aprendizaje.',
+            category: 'educacion',
+            categoryLabel: 'Educación',
+            author: 'Chat-Bot-LIA',
+            date: new Date(Date.now() - 86400000).toISOString(), // Ayer
+            image: 'fas fa-graduation-cap',
+            views: 890,
+            comments: 15,
+            featured: false,
+            hasDetailedView: true,
+            detailedData: {
+                tldr: [
+                    'Sistema de cursos actualizado',
+                    'Nuevas herramientas de evaluación',
+                    'Mejor seguimiento del progreso'
+                ],
+                suggestedSteps: [
+                    'Revisar los cursos actualizados',
+                    'Explorar las nuevas herramientas',
+                    'Actualizar el perfil de aprendizaje'
+                ],
+                risks: [
+                    'Posible necesidad de reconfigurar preferencias',
+                    'Cambios en la interfaz pueden requerir adaptación'
+                ],
+                resources: [
+                    { url: '#', label: 'Guía de nuevos cursos' },
+                    { url: '#', label: 'FAQ actualizada' }
+                ],
+                whyMatters: [
+                    'Mejora la experiencia de aprendizaje',
+                    'Facilita el seguimiento del progreso'
+                ],
+                whatChanged: [
+                    'Nueva interfaz de cursos',
+                    'Sistema de evaluación mejorado',
+                    'Mejor tracking de progreso'
+                ],
+                impact: [
+                    'Aumento del 40% en la retención de estudiantes',
+                    'Mejora del 35% en las calificaciones'
+                ],
+                cta: 'Explorar cursos'
+            }
+        },
+        {
+            id: '3',
+            title: 'Evento: Conferencia de IA 2024',
+            subtitle: 'Únete a la conferencia más importante del año sobre inteligencia artificial',
+            excerpt: 'No te pierdas la conferencia anual de IA donde expertos compartirán las últimas tendencias y avances.',
+            category: 'eventos',
+            categoryLabel: 'Eventos',
+            author: 'Chat-Bot-LIA',
+            date: new Date(Date.now() - 172800000).toISOString(), // Hace 2 días
+            image: 'fas fa-calendar-alt',
+            views: 2100,
+            comments: 45,
+            featured: true,
+            hasDetailedView: true,
+            detailedData: {
+                tldr: [
+                    'Conferencia anual de IA 2024',
+                    'Expertos internacionales',
+                    'Networking y aprendizaje'
+                ],
+                suggestedSteps: [
+                    'Registrarse en el evento',
+                    'Revisar la agenda de ponencias',
+                    'Preparar preguntas para los expertos'
+                ],
+                risks: [
+                    'Cupo limitado',
+                    'Posible cambio de fechas'
+                ],
+                resources: [
+                    { url: '#', label: 'Registro al evento' },
+                    { url: '#', label: 'Agenda completa' }
+                ],
+                whyMatters: [
+                    'Oportunidad de networking',
+                    'Acceso a conocimiento de vanguardia'
+                ],
+                whatChanged: [
+                    'Nuevos ponentes confirmados',
+                    'Agenda actualizada',
+                    'Nuevas modalidades de participación'
+                ],
+                impact: [
+                    'Más de 500 profesionales registrados',
+                    '15 ponentes internacionales'
+                ],
+                cta: 'Registrarse ahora'
+            }
+        }
+    ];
+}
 
 module.exports = app;

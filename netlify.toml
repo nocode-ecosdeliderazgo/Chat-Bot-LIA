@@ -231,6 +231,12 @@
   to   = "/.netlify/functions/video-fix"
   status = 200
 
+# News API redirects (NEW)
+[[redirects]]
+  from = "/api/news"
+  to   = "/.netlify/functions/news"
+  status = 200
+
 # Wildcard redirect (must be last)
 [[redirects]]
   from = "/api/*"
