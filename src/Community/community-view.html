@@ -1722,7 +1722,7 @@
                                         user: userData?.display_name || userData?.username || 'Usuario',
                                         content: comment.content,
                                         created_at: comment.created_at,
-                                        avatarUrl: isValidImageUrl(userData?.profile_picture_url) ? userData.profile_picture_url : null
+                                        avatarUrl: userData?.profile_picture_url || null
                                     };
                                 });
                                 
@@ -1767,7 +1767,7 @@
                             id: post.id,
                             user: post.users ? (post.users.display_name || post.users.username || 'Usuario') : 'Usuario',
                             avatar: 'fas fa-user',
-                            avatarUrl: isValidImageUrl(post.users?.profile_picture_url) ? post.users.profile_picture_url : null,
+                            avatarUrl: post.users?.profile_picture_url || null,
                             category: 'general',
                             minutesAgo: diffMinutes,
                             timeAgo: timeAgo,
@@ -2007,7 +2007,7 @@
                             <div class="post-user">
                                 <div class="user-avatar">
                             ${p.avatarUrl ?
-                                        `<img src="${p.avatarUrl}" alt="${p.user}" class="user-avatar-img" onerror="console.warn('⚠️ Avatar no se pudo cargar, usando fallback'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        `<img src="${p.avatarUrl}" alt="${p.user}" class="user-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                  <i class="${p.avatar}" style="display:none;"></i>` :
                                 `<i class="${p.avatar}"></i>`
                             }
@@ -2951,7 +2951,7 @@
                                 time: formatTimeAgo(comment.created_at),
                                 text: comment.content,
                                 created_at: comment.created_at,
-                                avatarUrl: isValidImageUrl(userData?.profile_picture_url) ? userData.profile_picture_url : null
+                                avatarUrl: userData?.profile_picture_url || null
                             };
                         }));
                         console.log('✅ Comentarios cargados desde BD:', comments.length);
@@ -3120,7 +3120,7 @@
                             time: 'ahora',
                             text: newComment.content,
                             created_at: newComment.created_at,
-                            avatarUrl: isValidImageUrl(userData?.profile_picture_url) ? userData.profile_picture_url : null
+                            avatarUrl: userData?.profile_picture_url || null
                         });
 
                         // Agregar puntos por comentar
@@ -3978,7 +3978,7 @@
                 list.innerHTML = data.map(m=>`
                     <div class="member-card" data-user-id="${m.id || m.user_id}" style="cursor: pointer;">
                         <div class="member-avatar">
-                            ${isValidImageUrl(m.avatar) ?
+                            ${m.avatar && m.avatar !== 'fas fa-user' && (m.avatar.startsWith('http') || m.avatar.startsWith('data:')) ?
                                 `<img src="${m.avatar}" alt="${m.name}" class="member-avatar-img" onerror="this.src='../assets/images/default-avatar.svg'; this.onerror=null;">` :
                                 `<i class="fas fa-user"></i>`
                             }
@@ -7227,8 +7227,11 @@
             // Limpiar clases anteriores
             avatarContainer.classList.remove('has-image');
             
-            // Verificar si el usuario tiene imagen válida
-            const hasValidImage = isValidImageUrl(user.profile_picture_url);
+            // Verificar si el usuario tiene imagen válida (versión menos estricta para perfil)
+            const hasValidImage = user.profile_picture_url && 
+                                 user.profile_picture_url.trim() !== '' && 
+                                 user.profile_picture_url !== 'null' &&
+                                 user.profile_picture_url !== 'undefined';
             
             if (hasValidImage) {
                 // Usuario tiene imagen
@@ -7306,7 +7309,7 @@
 
             // 6. Avatar
             const avatarImg = document.getElementById('userProfileAvatar');
-            if (avatarImg && isValidImageUrl(user.profile_picture_url)) {
+            if (avatarImg && user.profile_picture_url && user.profile_picture_url.trim() !== '') {
                 avatarImg.src = user.profile_picture_url;
                 avatarImg.style.display = 'block';
             }
@@ -8738,9 +8741,9 @@
             }
 
             setAvatar(avatarUrl) {
-                // Validar URL antes de usar
-                if (!isValidImageUrl(avatarUrl)) {
-                    console.warn('⚠️ [AVATAR] URL de avatar inválida, ignorando:', avatarUrl);
+                // Validación menos estricta para mejorar compatibilidad del perfil
+                if (!avatarUrl || avatarUrl.trim() === '' || avatarUrl === 'null') {
+                    console.log('ℹ️ [AVATAR] URL de avatar vacía o nula, usando fallback');
                     return;
                 }
                 
