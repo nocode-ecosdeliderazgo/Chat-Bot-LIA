@@ -344,6 +344,7 @@ app.get('/api/analysis-messages', async (req, res) => {
 });
 
 app.use(express.static('src'));
+app.use(express.static(__dirname)); // Servir archivos desde la raíz también
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Servir prompts para depuración/inspección (protegido por API en endpoints abajo)
 app.use('/prompts', express.static(path.join(__dirname, 'prompts')));
@@ -1551,6 +1552,81 @@ app.get('/api/prompts', authenticateRequest, (req, res) => {
     } catch (error) {
         console.error('Error obteniendo prompts:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Endpoint para obtener noticias
+app.get('/api/news', async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+
+        // Consultar noticias publicadas ordenadas por fecha
+        const query = `
+            SELECT
+                id,
+                slug,
+                title,
+                subtitle,
+                language,
+                hero_image_url,
+                tldr,
+                intro,
+                sections,
+                metrics,
+                links,
+                cta,
+                status,
+                published_at,
+                created_at,
+                updated_at
+            FROM news
+            WHERE status = 'published'
+            ORDER BY published_at DESC
+        `;
+
+        const result = await pool.query(query);
+        const news = result.rows;
+
+        // Mapear datos de BD al formato esperado por el frontend
+        const mappedNews = news.map(newsItem => ({
+            id: newsItem.id,
+            title: newsItem.title,
+            excerpt: newsItem.subtitle || newsItem.intro || '',
+            category: 'tecnologia', // Por defecto
+            categoryLabel: 'Tecnología',
+            author: 'Sistema',
+            date: newsItem.published_at,
+            views: 0,
+            comments: 0,
+            image: newsItem.hero_image_url || 'fas fa-newspaper',
+            featured: false,
+            hasDetailedView: true,
+            detailedData: {
+                tldr: newsItem.tldr || [],
+                suggestedSteps: newsItem.sections?.steps || [],
+                risks: newsItem.sections?.risks || [],
+                resources: newsItem.links || [],
+                whyMatters: newsItem.sections?.whyMatters || [],
+                whatChanged: newsItem.sections?.whatChanged || [],
+                impact: newsItem.sections?.impact || [],
+                cta: newsItem.cta?.text || 'Leer más'
+            }
+        }));
+
+        res.json({
+            success: true,
+            news: mappedNews,
+            total: mappedNews.length
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo noticias:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            message: error.message
+        });
     }
 });
 
