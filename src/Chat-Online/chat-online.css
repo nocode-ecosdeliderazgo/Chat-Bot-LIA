@@ -2869,12 +2869,20 @@ body {
     font-size: 1.1rem;
     font-weight: 600;
     transition: all 0.3s ease;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
 
 .note-title-input input:focus {
-    outline: none;
-    border: none;
-    box-shadow: none;
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
 
 .note-title-input input::placeholder {
@@ -5774,7 +5782,11 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     font-weight: 700;
     color: #ffffff;
     padding: 8px 0;
-    outline: none;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
     letter-spacing: -0.5px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     text-align: center;
@@ -5784,6 +5796,18 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 .note-title-input::placeholder {
     color: rgba(255, 255, 255, 0.5);
     font-weight: 500;
+}
+
+.note-title-input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.note-title-input:active {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
 }
 
 .note-delete-btn {
@@ -6060,8 +6084,9 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 .save-note-btn {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
+    justify-content: center;
+    gap: 0;
+    padding: 0.75rem;
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
     border: none;
@@ -6071,6 +6096,8 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    width: 48px;
+    height: 48px;
 }
 
 .save-note-btn:hover {
@@ -6085,8 +6112,8 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 }
 
 .save-note-btn .icon {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     stroke-width: 2.5;
 }
 
@@ -6536,14 +6563,16 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     
     .save-note-btn,
     .convert-to-source-btn {
-        padding: 0.6rem 1rem;
+        padding: 0.6rem;
         font-size: 0.85rem;
+        width: 44px;
+        height: 44px;
     }
     
     .save-note-btn .icon,
     .convert-to-source-btn .icon {
-        width: 14px;
-        height: 14px;
+        width: 18px;
+        height: 18px;
     }
 
     .link-modal {
