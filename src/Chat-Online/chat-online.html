@@ -9614,6 +9614,10 @@ Generado desde Coach LIA IA - ${currentDate}
                     return;
                 }
 
+                // Opcional: Marcar el video actual como completado también al ir al anterior
+                // (comentado para que solo se marque al ir al siguiente)
+                // markCurrentVideoAsCompleted(currentVideo);
+
                 const prevVideo = currentVideo.previousElementSibling;
                 if (prevVideo && prevVideo.classList.contains('video-item')) {
                     console.log('⬅️ Navegando al video anterior');
@@ -9624,6 +9628,65 @@ Generado desde Coach LIA IA - ${currentDate}
                 }
             }
 
+            // Función para marcar el video actual como completado
+            function markCurrentVideoAsCompleted(videoElement) {
+                try {
+                    console.log('✅ Marcando video como completado automáticamente');
+                    
+                    // Obtener el ID del video
+                    const videoId = videoElement.getAttribute('data-video-id');
+                    if (!videoId) {
+                        console.warn('⚠️ No se pudo obtener el ID del video');
+                        return;
+                    }
+
+                    // Buscar el checkbox del video
+                    const checkbox = videoElement.querySelector('.lesson-checkbox');
+                    if (!checkbox) {
+                        console.warn('⚠️ Checkbox no encontrado para el video:', videoId);
+                        return;
+                    }
+
+                    // Si ya está marcado como completado, no hacer nada
+                    if (checkbox.checked && checkbox.disabled) {
+                        console.log('ℹ️ Video ya está marcado como completado');
+                        return;
+                    }
+
+                    // Marcar como completado
+                    checkbox.checked = true;
+                    checkbox.disabled = true;
+
+                    // Actualizar clases del video-item
+                    videoElement.classList.add('completed');
+                    videoElement.classList.remove('pending', 'active');
+
+                    // Actualizar tooltip
+                    const label = videoElement.querySelector('.lesson-checkbox-label');
+                    if (label) {
+                        label.title = 'Completado';
+                    }
+
+                    // Llamar a la función de completado si existe
+                    if (window.module1VideosLoader && typeof window.module1VideosLoader.markLessonCompleted === 'function') {
+                        window.module1VideosLoader.markLessonCompleted(videoId);
+                    }
+
+                    // Llamar al gestor de progreso si existe
+                    if (window.courseProgressManager && typeof window.courseProgressManager.markVideoCompleted === 'function') {
+                        window.courseProgressManager.markVideoCompleted(videoId);
+                    }
+
+                    console.log('✅ Video marcado como completado:', videoId);
+
+                    // Mostrar notificación de completado
+                    showNotification('Video marcado como completado automáticamente', 'success');
+
+                } catch (error) {
+                    console.error('❌ Error marcando video como completado:', error);
+                }
+            }
+
             // Función para navegar al siguiente video
             function goToNextVideo() {
                 const currentVideo = getCurrentVideo();
@@ -9631,6 +9694,9 @@ Generado desde Coach LIA IA - ${currentDate}
                     console.warn('⚠️ No se pudo determinar el video actual');
                     return;
                 }
+
+                // Marcar el video actual como completado antes de navegar
+                markCurrentVideoAsCompleted(currentVideo);
 
                 const nextVideo = currentVideo.nextElementSibling;
                 if (nextVideo && nextVideo.classList.contains('video-item')) {
@@ -9648,11 +9714,18 @@ Generado desde Coach LIA IA - ${currentDate}
                 const notification = document.createElement('div');
                 notification.className = `video-nav-notification ${type}`;
                 notification.textContent = message;
+                const colors = {
+                    'info': '#0066CC',
+                    'success': '#28a745',
+                    'error': '#ff6b6b',
+                    'warning': '#ffc107'
+                };
+                
                 notification.style.cssText = `
                     position: fixed;
                     top: 20px;
                     right: 20px;
-                    background: ${type === 'info' ? '#0066CC' : '#ff6b6b'};
+                    background: ${colors[type] || colors.info};
                     color: white;
                     padding: 12px 20px;
                     border-radius: 8px;
