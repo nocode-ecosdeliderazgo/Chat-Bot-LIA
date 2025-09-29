@@ -1354,6 +1354,16 @@ body.bg-glow-global .search:focus-within {
         width: min(500px, 96vw);
     }
     
+    .catalog-header {
+        height: 50px;
+    }
+    
+    .catalog-header .header-profile {
+        width: 40px;
+        height: 40px;
+        top: 8px;
+        right: 16px;
+    }
     
     .hero-intro {
         flex-direction: column;
@@ -1363,7 +1373,7 @@ body.bg-glow-global .search:focus-within {
     }
     
     main.container {
-        padding-top: 80px;
+        padding-top: 90px;
         padding-bottom: 40px;
     }
     
@@ -1442,6 +1452,160 @@ body.bg-glow-global .search:focus-within {
     .container {
         padding: 0 16px;
     }
+    
+    .filters-sidebar {
+        width: 100%;
+        right: -100%;
+    }
+    
+    .filters-toggle {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        gap: 6px;
+    }
+    
+    .filters-toggle i {
+        font-size: 14px;
+    }
+    
+    .filters-sidebar {
+        width: 100%;
+        right: -100%;
+        top: 0;
+        height: 100vh;
+        z-index: 1000;
+    }
+    
+    .filters-sidebar.open {
+        right: 0;
+    }
+    
+    .filters-content {
+        padding: 20px;
+        height: 100%;
+        overflow-y: auto;
+    }
+    
+    .filters-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .filters-close {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+}
+
+/* Media query para móviles pequeños */
+@media (max-width: 480px) {
+    .course-tabs {
+        width: 100%;
+        margin: 8px 0;
+        padding: 4px;
+        gap: 2px;
+    }
+    
+    .tab-button {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        gap: 6px;
+    }
+    
+    .tab-button i {
+        font-size: 16px;
+    }
+    
+    .search {
+        margin: 20px auto 15px auto;
+        padding: 10px 14px;
+        border-radius: 16px;
+    }
+    
+    .search input {
+        font-size: 14px;
+    }
+    
+    .catalog-categories {
+        gap: 4px;
+        padding: 10px 0;
+    }
+    
+    .cat-tab {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    
+    .courses-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 12px 0 24px;
+    }
+    
+    .app-header {
+        height: 80px;
+        padding: 12px;
+    }
+    
+    .app-logo {
+        width: 50px;
+        height: 50px;
+        padding: 6px;
+    }
+    
+    .app-title {
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+    }
+    
+    .app-subtitle {
+        font-size: 0.75rem;
+    }
+    
+    .app-description {
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+    
+    .app-tags {
+        gap: 4px;
+    }
+    
+    .app-tag {
+        padding: 3px 8px;
+        font-size: 0.7rem;
+    }
+    
+    .app-footer {
+        padding: 12px;
+    }
+    
+    .app-actions {
+        gap: 8px;
+    }
+    
+    .app-action {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        gap: 6px;
+    }
+    
+    .app-action i {
+        font-size: 14px;
+    }
+    
+    .container {
+        padding: 0 12px;
+    }
+    
+    .hero-intro h1 {
+        font-size: 1.8rem;
+    }
+    
+    .hero-intro p {
+        font-size: 0.9rem;
+    }
 }
 
 /* Media query para tablets y pantallas medianas */
@@ -1449,6 +1613,17 @@ body.bg-glow-global .search:focus-within {
     main.container {
         padding-top: 80px;
         padding-bottom: 40px;
+    }
+    
+    .courses-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+    
+    .app-modal .modal-content {
+        width: 80vw !important;
+        max-width: 80vw !important;
+        min-width: 80vw !important;
     }
 }
 
@@ -2246,14 +2421,29 @@ main.container {
 /* Responsive para móviles */
 @media (max-width: 768px) {
     .modal-content {
-        max-width: 95vw;
+        width: 95vw !important;
+        max-width: 95vw !important;
+        min-width: 95vw !important;
         max-height: 95vh;
         margin: 10px;
     }
 
+    .app-modal .modal-content {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        min-width: 95vw !important;
+    }
+
+    .app-modal .modal-app-card {
+        width: 100% !important;
+        min-height: 90vh !important;
+    }
+
     .app-main-content {
-        grid-template-columns: 1fr;
-        gap: 20px;
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+        margin: 20px 0 !important;
+        padding: 0 20px !important;
     }
 
     .app-main-title {
@@ -2262,21 +2452,21 @@ main.container {
     }
 
     .app-header-graphic {
-        height: 150px;
+        height: 120px;
     }
 
     .brain-icon {
-        font-size: 3rem;
+        font-size: 2.5rem;
     }
 
     .brain-icon .fa-cog {
-        font-size: 1.2rem;
+        font-size: 1rem;
         top: -8px;
         right: -8px;
     }
 
     .gear-icon {
-        font-size: 1.5rem;
+        font-size: 1.2rem;
         bottom: 15px;
         left: 15px;
     }
@@ -2305,6 +2495,25 @@ main.container {
         width: 35px;
         height: 35px;
         font-size: 1rem;
+    }
+
+    .left-column, .right-column {
+        gap: 15px;
+    }
+
+    .section-heading {
+        font-size: 1rem;
+        margin-bottom: 12px;
+    }
+
+    .pricing-plan {
+        padding: 15px;
+    }
+
+    .plan-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
     }
 }
 
