@@ -5210,7 +5210,14 @@ Cargando información...
         async function loadCommunityQuestions() {
             try {
                 console.log('📋 Cargando preguntas de la comunidad...');
-                
+
+                // SOLUCIÓN: Configurar el usuario actual en communityAPI antes de cargar preguntas
+                if (window.communityAPI) {
+                    const currentUser = obtenerUsuarioActual();
+                    window.communityAPI.setCurrentUser(currentUser);
+                    console.log('👤 Usuario configurado en communityAPI para filtros:', currentUser);
+                }
+
                 // Primero intentar usar el API REST directo
                 if (window.communityAPI) {
                     console.log('🌐 Usando CommunityAPI para obtener preguntas...');
@@ -5281,12 +5288,12 @@ Cargando información...
                 const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
 
                 return `
-                    <div class="question-item" data-question-id="${question.id}">
+                    <div class="question-item" data-question-id="${question.id}" data-user-id="${question.user_id || question.users?.id || ''}">
                         <div class="question-content">
                             <div class="question-header">
                                 <h4 class="question-title">${question.title}</h4>
                                 <div class="question-meta">
-                                    <span class="question-author">
+                                    <span class="question-author" data-user-id="${question.user_id || question.users?.id || ''}">
                                         <img src="${userAvatar}" alt="Usuario" class="author-avatar">
                                         ${userName}
                                     </span>
@@ -5375,12 +5382,12 @@ Cargando información...
                 const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
 
                 return `
-                    <div class="question-item" data-question-id="${question.id}">
+                    <div class="question-item" data-question-id="${question.id}" data-user-id="${question.user_id || question.users?.id || ''}">
                         <div class="question-content">
                             <div class="question-header">
                                 <h4 class="question-title">${question.title}</h4>
                                 <div class="question-meta">
-                                    <span class="question-author">
+                                    <span class="question-author" data-user-id="${question.user_id || question.users?.id || ''}">
                                         <img src="${userAvatar}" alt="Usuario" class="author-avatar">
                                         ${userName}
                                     </span>
@@ -8777,6 +8784,13 @@ Generado desde Coach LIA IA - ${currentDate}
 
             // Establecer filtro individual
             setFilter(key, value) {
+                // SOLUCIÓN: Cuando se aplica el filtro 'mine', asegurarse de que el usuario esté configurado
+                if (key === 'type' && value === 'mine' && window.communityAPI) {
+                    const currentUser = obtenerUsuarioActual();
+                    window.communityAPI.setCurrentUser(currentUser);
+                    console.log('👤 Usuario actualizado en communityAPI para filtro "mine":', currentUser);
+                }
+
                 this.state[key] = value;
                 this.saveState();
                 this.applyAllFilters();
@@ -8977,21 +8991,15 @@ Generado desde Coach LIA IA - ${currentDate}
             },
 
             isMyQuestion(question) {
-                // Obtener información de usuario de múltiples fuentes
+                // SOLUCIÓN: Usar obtenerUsuarioActual() que tiene mejor lógica para obtener el usuario
+                const currentUser = obtenerUsuarioActual();
                 const userData = {
-                    userName: localStorage.getItem('userName') ||
-                             localStorage.getItem('currentUser') ||
-                             localStorage.getItem('user_name') ||
-                             localStorage.getItem('userInfo') ||
-                             sessionStorage.getItem('userName') ||
-                             sessionStorage.getItem('user'),
-                    userId: localStorage.getItem('userId') ||
-                           localStorage.getItem('user_id') ||
-                           sessionStorage.getItem('userId'),
-                    email: localStorage.getItem('userEmail') ||
-                          localStorage.getItem('email') ||
-                          sessionStorage.getItem('userEmail')
+                    userName: currentUser?.username || localStorage.getItem('userName'),
+                    userId: currentUser?.id || localStorage.getItem('userId'),
+                    email: currentUser?.email || localStorage.getItem('userEmail')
                 };
+
+                console.log('🔍 [isMyQuestion] Datos de usuario obtenidos:', userData);
 
                 // Buscar elementos de autor en diferentes selectores
                 const authorElement = question.querySelector(
@@ -9073,7 +9081,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     userData,
                     authorUserId,
                     questionClasses: Array.from(question.classList),
-                    authorClasses: Array.from(authorElement.classList)
+                    authorClasses: authorElement ? Array.from(authorElement.classList) : []
                 });
 
                 return false;
