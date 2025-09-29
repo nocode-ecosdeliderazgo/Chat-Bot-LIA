@@ -4159,14 +4159,26 @@
         <!-- Barra de Navegación Superior -->
         <div class="top-navigation">
             <div class="header-course-info">
-                <button class="back-button" id="backButton" title="Regresar">
-                    <div class="back-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                <div class="header-left-controls">
+                    <button class="back-button" id="backButton" title="Regresar">
+                        <div class="back-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 12H5M12 19l-7-7 7-7"/>
+                            </svg>
+                        </div>
+                        <span class="back-label">Regresar</span>
+                    </button>
+
+                    <!-- Botón para abrir panel izquierdo en mobile -->
+                    <button class="mobile-nav-btn mobile-nav-left" id="mobileNavLeft" title="Material del curso">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="9" y1="9" x2="15" y2="9"/>
+                            <line x1="9" y1="13" x2="15" y2="13"/>
+                            <line x1="9" y1="17" x2="15" y2="17"/>
                         </svg>
-                    </div>
-                    <span class="back-label">Regresar</span>
-                </button>
+                    </button>
+                </div>
                 <div class="header-content-group">
                     <h1 class="course-title-header">Introducción a la IA</h1>
                     <div class="course-progress-header clean">
@@ -4178,8 +4190,22 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Botón para abrir panel derecho en mobile -->
+                <div class="header-right-controls">
+                    <button class="mobile-nav-btn mobile-nav-right" id="mobileNavRight" title="Asistente LIA y Notas">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            <line x1="8" y1="10" x2="16" y2="10"/>
+                            <line x1="8" y1="14" x2="14" y2="14"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
+
+        <!-- Overlay para mobile -->
+        <div class="mobile-overlay" id="mobileOverlay"></div>
         <!-- Panel Izquierdo - Material del Curso -->
         <aside class="left-panel neo-panel" id="sidebarLeft">
             <!-- Botón de colapso del panel izquierdo -->
@@ -4452,15 +4478,7 @@ Cargando información...
                             </div>
                         </div>
 
-                        <div class="activity-actions">
-                            <button class="btn-primary activity-btn" onclick="copyActivityToClipboard()">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                                </svg>
-                                Copiar Actividad
-                            </button>
-                        </div>
+                        <!-- APR-267: Botón legacy "copiar actividad" eliminado - reemplazado por botones individuales por prompt -->
                     </div>
 
                     <!-- Contenido de Comunidad -->
@@ -5183,7 +5201,7 @@ Cargando información...
     </script>
     
     <!-- Community API -->
-    <script src="../scripts/community-api.js"></script>
+    <script src="api/community-api.js"></script>
     
     <!-- Supabase Client -->
     <script src="../scripts/supabase-client.js"></script>
@@ -5214,11 +5232,78 @@ Cargando información...
             }
         }
 
+        // Función para cargar módulos de cursos desde la base de datos
+        async function loadCourseModules() {
+            try {
+                console.log('📚 Cargando módulos desde course_modules...');
+
+                // Verificar si tenemos acceso a Supabase
+                if (!window.supabase) {
+                    console.warn('⚠️ Supabase no está disponible, usando módulos por defecto');
+                    return [];
+                }
+
+                const { data: modules, error } = await window.supabase
+                    .from('course_modules')
+                    .select('id, title, module_number, description, course_id')
+                    .order('module_number', { ascending: true });
+
+                if (error) {
+                    console.error('❌ Error obteniendo módulos:', error);
+                    return [];
+                }
+
+                console.log('✅ Módulos obtenidos de la base de datos:', modules);
+                return modules;
+
+            } catch (error) {
+                console.error('❌ Error en loadCourseModules:', error);
+                return [];
+            }
+        }
+
+        // Función para poblar el select de módulos con datos dinámicos
+        async function populateModuleFilter() {
+            try {
+                const modules = await loadCourseModules();
+                const moduleFilter = document.getElementById('moduleFilter');
+
+                if (!moduleFilter) {
+                    console.warn('⚠️ No se encontró el elemento moduleFilter');
+                    return;
+                }
+
+                // Limpiar opciones existentes pero conservar "Todos los Módulos"
+                moduleFilter.innerHTML = '<option value="all">Todos los Módulos</option>';
+
+                // Añadir módulos dinámicos
+                modules.forEach(module => {
+                    const option = document.createElement('option');
+                    option.value = `module-${module.module_number}`;
+                    option.textContent = `Módulo ${module.module_number}: ${module.title}`;
+                    option.setAttribute('data-module-id', module.id);
+                    moduleFilter.appendChild(option);
+                });
+
+                console.log(`✅ Filtro de módulos actualizado con ${modules.length} módulos`);
+
+            } catch (error) {
+                console.error('❌ Error poblando filtro de módulos:', error);
+            }
+        }
+
         // Función para cargar preguntas dinámicamente
         async function loadCommunityQuestions() {
             try {
                 console.log('📋 Cargando preguntas de la comunidad...');
-                
+
+                // SOLUCIÓN: Configurar el usuario actual en communityAPI antes de cargar preguntas
+                if (window.communityAPI) {
+                    const currentUser = obtenerUsuarioActual();
+                    window.communityAPI.setCurrentUser(currentUser);
+                    console.log('👤 Usuario configurado en communityAPI para filtros:', currentUser);
+                }
+
                 // Primero intentar usar el API REST directo
                 if (window.communityAPI) {
                     console.log('🌐 Usando CommunityAPI para obtener preguntas...');
@@ -5283,23 +5368,26 @@ Cargando información...
                 // Datos del usuario desde la API (nested en users object)
                 const userName = question.users?.name || question.users?.display_name || question.display_name || question.first_name || question.username || 'Usuario Anónimo';
                 const userAvatar = question.users?.profile_picture_url || question.users?.avatar_url || question.avatar_url || '../../assets/images/default-avatar.svg';
-                
+
+                // Obtener nombre del módulo (puede venir de diferentes fuentes)
+                const moduleName = question.module_name || question.course_modules?.title || 'General';
+
                 // Tags
                 const tags = Array.isArray(question.tags) ? question.tags : [];
                 const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
 
                 return `
-                    <div class="question-item" data-question-id="${question.id}">
+                    <div class="question-item" data-question-id="${question.id}" data-user-id="${question.user_id || question.users?.id || ''}" data-module-name="${moduleName}">
                         <div class="question-content">
                             <div class="question-header">
                                 <h4 class="question-title">${question.title}</h4>
                                 <div class="question-meta">
-                                    <span class="question-author">
+                                    <span class="question-author" data-user-id="${question.user_id || question.users?.id || ''}">
                                         <img src="${userAvatar}" alt="Usuario" class="author-avatar">
                                         ${userName}
                                     </span>
                                     <span class="question-time">${timeAgo}</span>
-                                    <span class="question-module">General</span>
+                                    <span class="question-module">${moduleName}</span>
                                 </div>
                             </div>
                             <div class="question-preview">
@@ -5383,12 +5471,12 @@ Cargando información...
                 const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
 
                 return `
-                    <div class="question-item" data-question-id="${question.id}">
+                    <div class="question-item" data-question-id="${question.id}" data-user-id="${question.user_id || question.users?.id || ''}" data-module-name="${question.module_name || 'General'}">
                         <div class="question-content">
                             <div class="question-header">
                                 <h4 class="question-title">${question.title}</h4>
                                 <div class="question-meta">
-                                    <span class="question-author">
+                                    <span class="question-author" data-user-id="${question.user_id || question.users?.id || ''}">
                                         <img src="${userAvatar}" alt="Usuario" class="author-avatar">
                                         ${userName}
                                     </span>
@@ -6852,6 +6940,9 @@ INSTRUCCIONES:
 
     <!-- <script src="components/video-player.js"></script> Temporalmente deshabilitado -->
 
+    <!-- VideoNavigationManager - Manejo centralizado de navegación -->
+    <script src="components/video-navigation-manager.js"></script>
+
     <script src="components/lia-chat.js"></script>
 
     <!-- Sistema dinámico V2 ya cargado arriba -->
@@ -8309,7 +8400,8 @@ INSTRUCCIONES:
         // FUNCIONES PARA ACTIVIDADES
         // =====================================================
 
-        function copyActivityToClipboard() {
+        // APR-267: copyActivityToClipboard() eliminada - reemplazada por botones individuales
+        function copyActivityToClipboard_REMOVED() {
             try {
                 const activityContent = document.querySelector('.activity-content');
                 if (!activityContent) {
@@ -8781,6 +8873,13 @@ Generado desde Coach LIA IA - ${currentDate}
 
             // Establecer filtro individual
             setFilter(key, value) {
+                // SOLUCIÓN: Cuando se aplica el filtro 'mine', asegurarse de que el usuario esté configurado
+                if (key === 'type' && value === 'mine' && window.communityAPI) {
+                    const currentUser = obtenerUsuarioActual();
+                    window.communityAPI.setCurrentUser(currentUser);
+                    console.log('👤 Usuario actualizado en communityAPI para filtro "mine":', currentUser);
+                }
+
                 this.state[key] = value;
                 this.saveState();
                 this.applyAllFilters();
@@ -8867,16 +8966,13 @@ Generado desde Coach LIA IA - ${currentDate}
             checkModuleFilter(question) {
                 if (this.state.module === 'all') return true;
 
-                    const moduleIndicators = [
-                    `data-module="${this.state.module}"`,
-                    `module-${this.state.module.split('-')[1]}`,
-                    `Módulo ${this.state.module.split('-')[1]}`
-                ];
+                // SOLUCIÓN: Usar data-module-name que se asigna en el renderizado dinámico
+                const questionModuleName = question.getAttribute('data-module-name') || 'General';
 
-                return moduleIndicators.some(indicator =>
-                        question.outerHTML.includes(indicator) ||
-                        question.textContent.includes(indicator)
-                    );
+                console.log('🔍 [checkModuleFilter] Filtro:', this.state.module, 'Pregunta módulo:', questionModuleName);
+
+                // Si el filtro seleccionado coincide con el módulo de la pregunta
+                return this.state.module === questionModuleName;
             },
 
             checkDateFilter(question) {
@@ -8981,21 +9077,15 @@ Generado desde Coach LIA IA - ${currentDate}
             },
 
             isMyQuestion(question) {
-                // Obtener información de usuario de múltiples fuentes
+                // SOLUCIÓN: Usar obtenerUsuarioActual() que tiene mejor lógica para obtener el usuario
+                const currentUser = obtenerUsuarioActual();
                 const userData = {
-                    userName: localStorage.getItem('userName') ||
-                             localStorage.getItem('currentUser') ||
-                             localStorage.getItem('user_name') ||
-                             localStorage.getItem('userInfo') ||
-                             sessionStorage.getItem('userName') ||
-                             sessionStorage.getItem('user'),
-                    userId: localStorage.getItem('userId') ||
-                           localStorage.getItem('user_id') ||
-                           sessionStorage.getItem('userId'),
-                    email: localStorage.getItem('userEmail') ||
-                          localStorage.getItem('email') ||
-                          sessionStorage.getItem('userEmail')
+                    userName: currentUser?.username || localStorage.getItem('userName'),
+                    userId: currentUser?.id || localStorage.getItem('userId'),
+                    email: currentUser?.email || localStorage.getItem('userEmail')
                 };
+
+                console.log('🔍 [isMyQuestion] Datos de usuario obtenidos:', userData);
 
                 // Buscar elementos de autor en diferentes selectores
                 const authorElement = question.querySelector(
@@ -9077,7 +9167,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     userData,
                     authorUserId,
                     questionClasses: Array.from(question.classList),
-                    authorClasses: Array.from(authorElement.classList)
+                    authorClasses: authorElement ? Array.from(authorElement.classList) : []
                 });
 
                 return false;
@@ -9548,6 +9638,11 @@ Generado desde Coach LIA IA - ${currentDate}
         // Inicializar cuando el DOM esté listo
         document.addEventListener('DOMContentLoaded', function() {
             CommunityFilters.init();
+
+            // Cargar módulos dinámicamente para el filtro
+            setTimeout(() => {
+                populateModuleFilter();
+            }, 2000); // Dar tiempo a que Supabase se inicialice
         });
 
         // Funciones globales para compatibilidad
@@ -9568,72 +9663,36 @@ Generado desde Coach LIA IA - ${currentDate}
     <!-- Fix Buttons Script - Corrección para botones del panel derecho -->
     <script src="fix-buttons.js"></script>
 
-    <!-- Navegación de Videos Script -->
+    <!-- Navegación de Videos Script - Modernizado -->
     <script>
-        // ===== NAVEGACIÓN ENTRE VIDEOS =====
+        // ===== NAVEGACIÓN ENTRE VIDEOS - VERSIÓN SIMPLIFICADA =====
+        // Usa el nuevo VideoNavigationManager para manejo centralizado
         function initializeVideoNavigation() {
-            const prevBtn = document.getElementById('prevVideoBtn');
-            const nextBtn = document.getElementById('nextVideoBtn');
-            
-            if (!prevBtn || !nextBtn) {
-                console.warn('⚠️ Botones de navegación no encontrados');
-                return;
-            }
+            console.log('⚠️ initializeVideoNavigation() legacy llamada - delegando a VideoNavigationManager');
 
-            // Función para obtener el video actual
-            function getCurrentVideo() {
-                // Buscar el video actual en el panel derecho
-                const currentVideo = document.querySelector('.video-item.current, .video-item.active');
-                if (currentVideo) {
-                    return currentVideo;
+            // Verificar que el VideoNavigationManager esté disponible
+            if (window.videoNavigationManager) {
+                // Re-inicializar si es necesario
+                if (!window.videoNavigationManager.getStatus().isInitialized) {
+                    window.videoNavigationManager.reinitializeNavigation();
                 }
-                
-                // Buscar por el iframe actual
-                const iframe = document.getElementById('youtubePlayer');
-                if (iframe && iframe.src) {
-                    const videoId = extractVideoIdFromUrl(iframe.src);
-                    if (videoId) {
-                        return document.querySelector(`[data-video-id="${videoId}"]`);
-                    }
-                }
-                
-                return null;
-            }
+                console.log('✅ VideoNavigationManager activado:', window.videoNavigationManager.getStatus());
+            } else {
+                console.error('❌ VideoNavigationManager no disponible');
+                // Fallback básico
+                const prevBtn = document.getElementById('prevVideoBtn');
+                const nextBtn = document.getElementById('nextVideoBtn');
 
-            // Función para extraer ID del video de la URL
-            function extractVideoIdFromUrl(url) {
-                const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/);
-                return match ? match[1] : null;
-            }
-
-            // Función para navegar al video anterior
-            function goToPreviousVideo() {
-                const currentVideo = getCurrentVideo();
-                if (!currentVideo) {
-                    console.warn('⚠️ No se pudo determinar el video actual');
-                    return;
-                }
-
-                // Opcional: Marcar el video actual como completado también al ir al anterior
-                // (comentado para que solo se marque al ir al siguiente)
-                // markCurrentVideoAsCompleted(currentVideo);
-
-                const prevVideo = currentVideo.previousElementSibling;
-                if (prevVideo && prevVideo.classList.contains('video-item')) {
-                    console.log('⬅️ Navegando al video anterior');
-                    prevVideo.click();
-                } else {
-                    console.log('ℹ️ No hay video anterior disponible');
-                    showNotification('No hay video anterior disponible', 'info');
+                if (prevBtn && nextBtn) {
+                    prevBtn.style.opacity = '0.5';
+                    nextBtn.style.opacity = '0.5';
+                    console.log('⚠️ Botones deshabilitados - VideoNavigationManager requerido');
                 }
             }
 
-            // Función para marcar el video actual como completado
-            function markCurrentVideoAsCompleted(videoElement) {
-                try {
-                    console.log('✅ Marcando video como completado automáticamente');
-                    
-                    // Obtener el ID del video
+
+
+        }
                     const videoId = videoElement.getAttribute('data-video-id');
                     if (!videoId) {
                         console.warn('⚠️ No se pudo obtener el ID del video');
@@ -11016,6 +11075,83 @@ Generado desde Coach LIA IA - ${currentDate}
         // Inicializar sistema de notas cuando el DOM esté listo
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(initializeNotebookLMNotes, 1000);
+        });
+
+        // ===== FUNCIONALIDAD NAVEGACIÓN MOBILE RESPONSIVE =====
+        function initializeMobileNavigation() {
+            const mobileNavLeft = document.getElementById('mobileNavLeft');
+            const mobileNavRight = document.getElementById('mobileNavRight');
+            const leftPanel = document.getElementById('sidebarLeft');
+            const rightPanel = document.getElementById('sidebarRight');
+            const mobileOverlay = document.getElementById('mobileOverlay');
+
+            if (!mobileNavLeft || !mobileNavRight || !leftPanel || !rightPanel || !mobileOverlay) {
+                console.warn('⚠️ Elementos de navegación mobile no encontrados');
+                return;
+            }
+
+            // Función para abrir panel izquierdo
+            function openLeftPanel() {
+                leftPanel.classList.add('mobile-open');
+                rightPanel.classList.remove('mobile-open');
+                mobileOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                console.log('📱 Panel izquierdo abierto');
+            }
+
+            // Función para abrir panel derecho
+            function openRightPanel() {
+                rightPanel.classList.add('mobile-open');
+                leftPanel.classList.remove('mobile-open');
+                mobileOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                console.log('📱 Panel derecho abierto');
+            }
+
+            // Función para cerrar paneles
+            function closePanels() {
+                leftPanel.classList.remove('mobile-open');
+                rightPanel.classList.remove('mobile-open');
+                mobileOverlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
+                console.log('📱 Paneles cerrados');
+            }
+
+            // Event listeners
+            mobileNavLeft.addEventListener('click', openLeftPanel);
+            mobileNavRight.addEventListener('click', openRightPanel);
+            mobileOverlay.addEventListener('click', closePanels);
+
+            // Cerrar con tecla Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && mobileOverlay.classList.contains('active')) {
+                    closePanels();
+                }
+            });
+
+            // Detectar cambio de tamaño de ventana
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 767) {
+                    closePanels();
+                }
+            });
+
+            // Cerrar paneles al tocar fuera en dispositivos táctiles
+            document.addEventListener('touchstart', (e) => {
+                if (mobileOverlay.classList.contains('active')) {
+                    const isClickInsidePanel = leftPanel.contains(e.target) || rightPanel.contains(e.target);
+                    if (!isClickInsidePanel) {
+                        closePanels();
+                    }
+                }
+            });
+
+            console.log('✅ Navegación mobile inicializada');
+        }
+
+        // Inicializar navegación mobile cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initializeMobileNavigation, 500);
         });
     </script>
 

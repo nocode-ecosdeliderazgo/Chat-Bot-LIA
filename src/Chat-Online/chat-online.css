@@ -713,7 +713,7 @@ body {
     background: rgba(10, 15, 25, 0.6);
     backdrop-filter: var(--glass-blur);
     border-right: var(--glass-border-subtle);
-    padding: 1.25rem 1rem 15rem 1rem;
+    padding: 1.25rem 1rem 3rem 1rem; /* APR-266: Reducido padding-bottom excesivo */
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -1227,6 +1227,8 @@ body {
     max-height: calc(100vh - 400px);
     min-height: 300px;
     padding: 0;
+    padding-bottom: 20px; /* APR-266: Evita que el último elemento se corte */
+    scroll-padding-bottom: 20px; /* APR-266: Smooth scroll padding */
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 102, 204, 0.3) transparent;
     position: relative;
@@ -2349,29 +2351,7 @@ body {
     filter: drop-shadow(0 0 4px rgba(0, 102, 204, 0.5));
 }
 
-.activity-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-    flex-wrap: wrap;
-}
-
-.activity-btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.activity-btn .icon-sm {
-    width: 18px;
-    height: 18px;
-}
+/* APR-267: Estilos .activity-actions y .activity-btn eliminados - botón legacy removido */
 
 .summary-content ul {
     margin: 0 0 1.5rem 0;
@@ -5346,24 +5326,641 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     color: var(--glass-success);
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 1200px) {
+/* ===== RESPONSIVE DESIGN MEJORADO ===== */
+/* Extra Large Desktop (>1400px) */
+@media (min-width: 1400px) {
     .layout-3panels {
-        grid-template-columns: 280px 1fr 320px;
+        grid-template-columns: 420px 1fr 400px;
     }
 }
 
-@media (max-width: 992px) {
+/* Large Desktop (1200px - 1399px) */
+@media (max-width: 1399px) and (min-width: 1200px) {
     .layout-3panels {
-        grid-template-columns: 1fr;
-        grid-template-areas: 
-            "nav"
-            "center";
+        grid-template-columns: 380px 1fr 350px;
     }
-    
+}
+
+/* Medium Desktop (992px - 1199px) */
+@media (max-width: 1199px) and (min-width: 992px) {
+    .layout-3panels {
+        grid-template-columns: 300px 1fr 300px;
+    }
+}
+
+/* Tablet Landscape (768px - 991px) - MANTENEMOS DISEÑO ORIGINAL */
+@media (max-width: 991px) and (min-width: 768px) {
+    .layout-3panels {
+        grid-template-columns: 280px 1fr 280px;
+        grid-template-areas: "left center right";
+        gap: 1rem;
+    }
+
     .left-panel,
     .right-panel {
+        position: static;
+        transform: none;
+        width: auto;
+        height: auto;
+        z-index: auto;
+        padding: 1rem 0.75rem;
+    }
+
+    .center-panel {
+        padding: 1.5rem;
+    }
+
+    .mobile-nav-btn {
+        display: none !important;
+    }
+
+    .mobile-overlay {
+        display: none !important;
+    }
+
+    /* Asegurarse que los paneles son visibles en tablet */
+    .left-panel,
+    .right-panel {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+}
+
+/* Mobile Large (481px - 767px) - OPTIMIZADO PARA MÓVILES GRANDES */
+@media (max-width: 767px) and (min-width: 481px) {
+    .layout-3panels {
+        grid-template-columns: 1fr;
+        grid-template-areas: "center";
+        position: relative;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
+
+    .left-panel,
+    .right-panel {
+        position: fixed;
+        top: 0;
+        height: 100vh;
+        z-index: 1001;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .left-panel {
+        left: 0;
+        width: 320px;
+        max-width: 85vw;
+        transform: translateX(-100%);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .right-panel {
+        right: 0;
+        width: 300px;
+        max-width: 82vw;
+        transform: translateX(100%);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .left-panel.mobile-open {
+        transform: translateX(0);
+    }
+
+    .right-panel.mobile-open {
+        transform: translateX(0);
+    }
+
+    .center-panel {
+        grid-area: center;
+        width: 100%;
+        padding: 1.25rem;
+        padding-bottom: 2rem;
+        min-height: calc(100vh - 60px);
+    }
+
+    /* Overlay para cerrar paneles */
+    .mobile-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(2px);
+    }
+
+    .mobile-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .mobile-nav-btn {
+        display: flex;
+    }
+}
+
+/* Mobile Small (≤480px) - OPTIMIZADO PARA MÓVILES PEQUEÑOS */
+@media (max-width: 480px) {
+    .layout-3panels {
+        grid-template-columns: 1fr;
+        grid-template-areas: "center";
+        overflow-x: hidden;
+        min-height: 100vh;
+        width: 100%;
+    }
+
+    .left-panel,
+    .right-panel {
+        position: fixed;
+        top: 0;
+        height: 100vh;
+        z-index: 1001;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        overflow-y: auto;
+    }
+
+    .left-panel {
+        left: 0;
+        width: 280px;
+        max-width: 88vw;
+        transform: translateX(-100%);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .right-panel {
+        right: 0;
+        width: 260px;
+        max-width: 85vw;
+        transform: translateX(100%);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .left-panel.mobile-open {
+        transform: translateX(0);
+    }
+
+    .right-panel.mobile-open {
+        transform: translateX(0);
+    }
+
+    .center-panel {
+        grid-area: center;
+        width: 100%;
+        padding: 1rem;
+        padding-bottom: 2rem;
+        min-height: calc(100vh - 60px);
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+
+    .mobile-nav-btn {
+        display: flex;
+        width: 36px;
+        height: 36px;
+    }
+
+    .mobile-nav-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* Optimizar header para móviles pequeños */
+    .header-content {
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+
+    .header-title {
+        font-size: 0.9rem;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .back-button {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    /* Asegurar que el main container no cause scroll horizontal */
+    .main-container {
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+}
+
+/* ===== NAVEGACIÓN MOBILE ===== */
+.mobile-nav-btn {
+    display: none;
+    background: rgba(0, 102, 204, 0.1);
+    border: 1px solid rgba(0, 102, 204, 0.2);
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    color: var(--glass-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    align-items: center;
+    justify-content: center;
+}
+
+.mobile-nav-btn:hover {
+    background: rgba(0, 102, 204, 0.2);
+    border-color: rgba(0, 102, 204, 0.4);
+    transform: scale(1.05);
+}
+
+.mobile-nav-btn:active {
+    transform: scale(0.95);
+}
+
+.mobile-nav-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.header-left-controls,
+.header-right-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Mostrar botones mobile solo en dispositivos pequeños - ESPECÍFICO PARA MÓVILES ÚNICAMENTE */
+@media (max-width: 767px) and (max-device-width: 767px) {
+    .mobile-nav-btn {
+        display: flex;
+    }
+
+    .header-course-info {
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-content-group {
+        position: static;
+        transform: none;
+    }
+
+    .back-button .back-label {
         display: none;
+    }
+
+    .back-button {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    /* Evitar que se aplique a tablets */
+    .layout-3panels {
+        grid-template-columns: 1fr !important;
+        grid-template-areas: "center" !important;
+    }
+}
+
+/* TABLETS - Asegurar que se mantenga el diseño original */
+@media (min-width: 768px) and (max-width: 991px) and (min-device-width: 768px) {
+    .mobile-nav-btn {
+        display: none !important;
+    }
+
+    .layout-3panels {
+        grid-template-columns: 280px 1fr 280px !important;
+        grid-template-areas: "left center right" !important;
+    }
+
+    .left-panel,
+    .right-panel {
+        position: static !important;
+        transform: none !important;
+        width: auto !important;
+        height: auto !important;
+        z-index: auto !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .mobile-nav-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .mobile-nav-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .back-button {
+        width: 36px;
+        height: 36px;
+    }
+
+    .course-title-header {
+        font-size: 0.85rem;
+    }
+}
+
+/* ===== OPTIMIZACIONES RESPONSIVE PARA COMPONENTES ===== */
+
+/* Video Player Responsive */
+@media (max-width: 991px) {
+    .center-panel {
+        padding: 1.5rem;
+        padding-bottom: 4rem;
+    }
+
+    .video-container {
+        border-radius: 8px;
+    }
+
+    .video-navigation .nav-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 16px;
+    }
+}
+
+/* MÓVILES - Optimizaciones específicas para dispositivos móviles */
+@media (max-width: 767px) and (max-device-width: 767px) {
+    .center-panel {
+        padding: 1rem;
+        padding-bottom: 2rem;
+        gap: 1rem;
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+
+    .main-video-player {
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .video-container {
+        border-radius: 6px;
+        aspect-ratio: 16/9;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .video-navigation .nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    .video-navigation .nav-btn i {
+        font-size: 14px;
+    }
+
+    .video-info h3 {
+        font-size: 1rem;
+    }
+
+    .video-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+
+    .video-stats span {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .center-panel {
+        padding: 0.75rem;
+        padding-bottom: 1.5rem;
+        gap: 0.75rem;
+    }
+
+    .video-container {
+        border-radius: 4px;
+    }
+
+    .video-navigation .nav-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 12px;
+    }
+
+    .video-navigation .nav-btn i {
+        font-size: 12px;
+    }
+
+    .video-info h3 {
+        font-size: 0.9rem;
+    }
+
+    .video-stats span {
+        font-size: 0.75rem;
+    }
+}
+
+/* Tabs y Navegación Responsive */
+@media (max-width: 767px) {
+    .nav-tabs {
+        padding: 0.5rem;
+        gap: 0.25rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .nav-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-tab {
+        min-width: 120px;
+        padding: 0.75rem 1rem;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-tab {
+        min-width: 100px;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Contenido de Transcripción y Actividades Responsive */
+@media (max-width: 767px) {
+    .activity-content {
+        padding: 1rem;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .activity-content h1,
+    .activity-content h2,
+    .activity-content h3 {
+        font-size: 1.1rem;
+        margin: 1rem 0 0.5rem 0;
+    }
+
+    .activity-content h4,
+    .activity-content h5,
+    .activity-content h6 {
+        font-size: 1rem;
+        margin: 0.8rem 0 0.4rem 0;
+    }
+
+    .activity-content ul,
+    .activity-content ol {
+        padding-left: 1.2rem;
+    }
+
+    .copy-prompt-btn {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+        min-width: 80px;
+    }
+}
+
+@media (max-width: 480px) {
+    .activity-content {
+        padding: 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .copy-prompt-btn {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+        min-width: 70px;
+    }
+}
+
+/* ===== MEJORAS DE ACCESIBILIDAD TÁCTIL ===== */
+/* Aumentar área táctil para botones pequeños */
+.video-navigation .nav-btn,
+.collapse-btn,
+.mobile-nav-btn,
+.copy-prompt-btn {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+@media (max-width: 480px) {
+    .video-navigation .nav-btn,
+    .collapse-btn,
+    .mobile-nav-btn,
+    .copy-prompt-btn {
+        min-height: 48px;
+        min-width: 48px;
+    }
+}
+
+/* Espaciado mejorado para elementos táctiles */
+@media (max-width: 767px) {
+    .action-btn {
+        min-height: 44px;
+        min-width: 44px;
+        margin: 0.25rem;
+    }
+
+    .tab-btn {
+        min-height: 48px;
+        padding: 0.75rem 1rem;
+    }
+
+    .note-delete-btn {
+        min-height: 40px;
+        min-width: 40px;
+    }
+}
+
+/* ===== OPTIMIZACIONES FINALES DE RESPONSIVE ===== */
+/* Prevenir zoom en inputs en iOS */
+@media (max-width: 767px) {
+    input[type="text"],
+    input[type="search"],
+    textarea,
+    select {
+        font-size: 16px !important;
+    }
+}
+
+/* Mejorar visibilidad de scrollbars en dispositivos táctiles */
+@media (hover: none) and (pointer: coarse) {
+    .module-videos-list::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .module-videos-list::-webkit-scrollbar-thumb {
+        background: rgba(0, 102, 204, 0.4);
+        border-radius: 4px;
+    }
+}
+
+/* Evitar problemas de overflow en móviles */
+@media (max-width: 767px) {
+    html, body {
+        overflow-x: hidden;
+    }
+
+    .layout-3panels {
+        width: 100vw;
+        max-width: 100vw;
+    }
+
+    .center-panel {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+}
+
+/* Optimización para pantallas muy pequeñas */
+@media (max-width: 360px) {
+    .header-course-info {
+        padding: 0.2rem 0.5rem;
+    }
+
+    .mobile-nav-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .mobile-nav-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .course-title-header {
+        font-size: 0.8rem;
+    }
+
+    .video-navigation .nav-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 10px;
     }
 }
 
@@ -9132,6 +9729,8 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     max-height: 400px;
     overflow-y: auto;
     padding: 0.5rem;
+    padding-bottom: 40px; /* APR-266: Incrementado para evitar que el último video se corte completamente */
+    scroll-padding-bottom: 40px; /* APR-266: Smooth scroll padding mejorado */
 }
 
 .module-videos-list::-webkit-scrollbar {
@@ -9743,6 +10342,13 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 @media (max-width: 768px) {
     .modules-list {
         padding: 0.75rem;
+        padding-bottom: 40px; /* APR-266: Mobile necesita más espacio */
+        scroll-padding-bottom: 40px;
+    }
+
+    .module-videos-list {
+        padding-bottom: 50px; /* APR-266: Mobile scroll fix - incrementado para mejor visualización */
+        scroll-padding-bottom: 50px;
     }
     
     .module-header {
@@ -9783,13 +10389,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 /* ===== SISTEMA DE MÓDULOS EXPANDIBLES ===== */
 
-/* Contenedor principal de módulos */
-.modules-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 0;
-}
+/* Contenedor principal de módulos - NOTA: estilos principales en línea 1219 */
 
 /* Elemento individual del módulo */
 .module-item {
@@ -10331,6 +10931,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 .video-item:last-child {
     border-bottom: none;
+    margin-bottom: 30px; /* APR-266: Incrementado para asegurar mejor visualización del último video */
 }
 
 .video-item:hover { 
@@ -10644,6 +11245,425 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     100% {
         transform: scale(1);
         background: transparent;
+    }
+}
+
+/* ===== OPTIMIZACIONES FINALES PARA RESPONSIVIDAD Y ACCESIBILIDAD ===== */
+
+/* Prevenir zoom en iOS al hacer tap en inputs */
+@media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="search"],
+    textarea,
+    select {
+        font-size: 16px !important;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+}
+
+/* Mejorar scrollbars en dispositivos táctiles */
+@media (hover: none) and (pointer: coarse) {
+    .module-videos-list,
+    .chat-container,
+    .notes-list,
+    .lia-chat-messages {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 102, 204, 0.3) transparent;
+    }
+
+    .module-videos-list::-webkit-scrollbar,
+    .chat-container::-webkit-scrollbar,
+    .notes-list::-webkit-scrollbar,
+    .lia-chat-messages::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .module-videos-list::-webkit-scrollbar-track,
+    .chat-container::-webkit-scrollbar-track,
+    .notes-list::-webkit-scrollbar-track,
+    .lia-chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .module-videos-list::-webkit-scrollbar-thumb,
+    .chat-container::-webkit-scrollbar-thumb,
+    .notes-list::-webkit-scrollbar-thumb,
+    .lia-chat-messages::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 102, 204, 0.3);
+        border-radius: 4px;
+        border: none;
+    }
+}
+
+/* Optimizaciones para pantallas muy pequeñas (menos de 360px) */
+@media (max-width: 360px) {
+    .header-content {
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .header-title {
+        font-size: 1rem;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mobile-nav-btn {
+        min-width: 40px;
+        min-height: 40px;
+        padding: 8px;
+    }
+
+    .mobile-nav-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .left-panel.mobile-open,
+    .right-panel.mobile-open {
+        width: 280px;
+        max-width: 90vw;
+    }
+
+    .chat-input-container {
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+
+    .chat-input {
+        min-height: 40px;
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .send-button {
+        min-width: 40px;
+        min-height: 40px;
+        padding: 8px;
+    }
+}
+
+/* Manejo de overflow para dispositivos móviles - ESPECÍFICO MÓVILES */
+@media (max-width: 767px) and (max-device-width: 767px) {
+    body {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
+    }
+
+    body.mobile-panel-open {
+        overflow: hidden !important;
+        position: fixed !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .main-container {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
+    }
+
+    /* Prevenir scroll horizontal en móviles */
+    .layout-3panels {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
+    }
+
+    /* Asegurar que todos los elementos respeten el ancho del viewport */
+    * {
+        max-width: 100vw;
+        box-sizing: border-box;
+    }
+
+    /* Corregir elementos que podrían causar overflow */
+    .header-content,
+    .video-container,
+    .main-video-player,
+    .center-panel {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+}
+
+/* Mejoras de accesibilidad: tamaños mínimos de touch targets - ESPECÍFICO MÓVILES */
+@media (max-width: 767px) and (max-device-width: 767px) {
+    .video-item,
+    .lia-chat-quick-action,
+    .note-item,
+    .mobile-nav-btn,
+    .collapse-btn,
+    .send-button,
+    .back-button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Asegurar que los enlaces y botones sean fáciles de tocar */
+    a, button, input[type="submit"], input[type="button"] {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        touch-action: manipulation;
+    }
+
+    /* Mejorar el área de toque de los videos */
+    .video-item {
+        padding: 0.75rem;
+        margin: 0.5rem 0;
+        touch-action: manipulation;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .video-item .video-info {
+        pointer-events: none; /* Permite que el click se propague al contenedor padre */
+        width: 100%;
+        overflow: hidden;
+    }
+
+    /* Optimizar chat para móviles */
+    .chat-input-container {
+        padding: 0.75rem;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .chat-input {
+        min-height: 44px;
+        padding: 12px 16px;
+        font-size: 16px; /* Evitar zoom en iOS */
+        width: 100%;
+        flex: 1;
+    }
+
+    .send-button {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 8px;
+        flex-shrink: 0;
+    }
+}
+
+/* Animaciones suaves para transiciones en móvil - ESPECÍFICO MÓVILES */
+@media (max-width: 767px) and (max-device-width: 767px) {
+    .left-panel,
+    .right-panel {
+        will-change: transform;
+    }
+
+    .mobile-overlay {
+        will-change: opacity;
+    }
+
+    /* Reducir animaciones en dispositivos con preferencia por movimiento reducido */
+    @media (prefers-reduced-motion: reduce) {
+        .left-panel,
+        .right-panel,
+        .mobile-overlay {
+            transition: none !important;
+            animation: none !important;
+        }
+    }
+}
+
+/* Optimizaciones finales para rendimiento */
+.layout-3panels,
+.left-panel,
+.right-panel,
+.center-panel {
+    contain: layout style paint;
+}
+
+/* Ensure proper stacking context for mobile panels - ESPECÍFICO MÓVILES */
+@media (max-width: 767px) and (max-device-width: 767px) {
+    .left-panel.mobile-open,
+    .right-panel.mobile-open {
+        isolation: isolate;
+        z-index: 1001;
+    }
+
+    .mobile-overlay.active {
+        isolation: isolate;
+        z-index: 1000;
+    }
+}
+
+/* ===== REGLAS ADICIONALES ESPECÍFICAS PARA CORRECCIÓN MÓVILES ===== */
+
+/* MÓVILES: Corregir problemas específicos de viewport y overflow */
+@media screen and (max-width: 767px) and (max-device-width: 767px) {
+    /* Asegurar viewport correcto */
+    html {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
+    }
+
+    /* Corregir problema de ancho del body */
+    body {
+        min-height: 100vh;
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+        position: relative;
+    }
+
+    /* Layout principal optimizado */
+    .main-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+
+    /* Grid layout móvil */
+    .layout-3panels {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto 1fr !important;
+        grid-template-areas:
+            "nav"
+            "center" !important;
+        min-height: 100vh;
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+
+    /* Header móvil */
+    .header {
+        grid-area: nav;
+        width: 100%;
+        max-width: 100vw;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+    }
+
+    /* Centro móvil */
+    .center-panel {
+        grid-area: center !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+        padding: 1rem !important;
+        margin: 0 !important;
+        flex: 1 !important;
+        min-height: calc(100vh - 60px) !important;
+    }
+
+    /* Paneles laterales móviles */
+    .left-panel,
+    .right-panel {
+        position: fixed !important;
+        top: 0 !important;
+        height: 100vh !important;
+        z-index: 1001 !important;
+        background: var(--glass-bg) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    .left-panel {
+        left: 0 !important;
+        width: 280px !important;
+        max-width: 85vw !important;
+        transform: translateX(-100%) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .right-panel {
+        right: 0 !important;
+        width: 260px !important;
+        max-width: 82vw !important;
+        transform: translateX(100%) !important;
+        border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .left-panel.mobile-open {
+        transform: translateX(0) !important;
+    }
+
+    .right-panel.mobile-open {
+        transform: translateX(0) !important;
+    }
+
+    /* Overlay móvil */
+    .mobile-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(0, 0, 0, 0.5) !important;
+        z-index: 1000 !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        transition: all 0.3s ease !important;
+        backdrop-filter: blur(2px) !important;
+    }
+
+    .mobile-overlay.active {
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    /* Botones de navegación móvil */
+    .mobile-nav-btn {
+        display: flex !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        background: rgba(0, 102, 204, 0.1) !important;
+        border: 1px solid rgba(0, 102, 204, 0.2) !important;
+        border-radius: 8px !important;
+        color: var(--glass-primary) !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        backdrop-filter: blur(10px) !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .mobile-nav-btn:hover,
+    .mobile-nav-btn:active {
+        background: rgba(0, 102, 204, 0.2) !important;
+        border-color: rgba(0, 102, 204, 0.4) !important;
+    }
+
+    /* Prevenir que cualquier elemento cause overflow horizontal */
+    * {
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Corregir elementos específicos que podrían causar problemas */
+    .video-container,
+    .main-video-player,
+    .chat-container,
+    .notes-container,
+    .lia-chat-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
     }
 }
 
