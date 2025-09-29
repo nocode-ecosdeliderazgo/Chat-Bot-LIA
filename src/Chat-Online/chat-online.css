@@ -713,7 +713,7 @@ body {
     background: rgba(10, 15, 25, 0.6);
     backdrop-filter: var(--glass-blur);
     border-right: var(--glass-border-subtle);
-    padding: 1.25rem 1rem 15rem 1rem;
+    padding: 1.25rem 1rem 3rem 1rem; /* APR-266: Reducido padding-bottom excesivo */
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -9112,8 +9112,8 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     max-height: 400px;
     overflow-y: auto;
     padding: 0.5rem;
-    padding-bottom: 20px; /* APR-266: Evita que el último video se corte */
-    scroll-padding-bottom: 20px; /* APR-266: Smooth scroll padding */
+    padding-bottom: 40px; /* APR-266: Incrementado para evitar que el último video se corte completamente */
+    scroll-padding-bottom: 40px; /* APR-266: Smooth scroll padding mejorado */
 }
 
 .module-videos-list::-webkit-scrollbar {
@@ -9730,8 +9730,8 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     }
 
     .module-videos-list {
-        padding-bottom: 30px; /* APR-266: Mobile scroll fix */
-        scroll-padding-bottom: 30px;
+        padding-bottom: 50px; /* APR-266: Mobile scroll fix - incrementado para mejor visualización */
+        scroll-padding-bottom: 50px;
     }
     
     .module-header {
@@ -10314,7 +10314,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 .video-item:last-child {
     border-bottom: none;
-    margin-bottom: 15px; /* APR-266: Asegurar espacio para el último video */
+    margin-bottom: 30px; /* APR-266: Incrementado para asegurar mejor visualización del último video */
 }
 
 .video-item:hover { 
