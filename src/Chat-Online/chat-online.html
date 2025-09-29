@@ -5206,6 +5206,66 @@ Cargando información...
             }
         }
 
+        // Función para cargar módulos de cursos desde la base de datos
+        async function loadCourseModules() {
+            try {
+                console.log('📚 Cargando módulos desde course_modules...');
+
+                // Verificar si tenemos acceso a Supabase
+                if (!window.supabase) {
+                    console.warn('⚠️ Supabase no está disponible, usando módulos por defecto');
+                    return [];
+                }
+
+                const { data: modules, error } = await window.supabase
+                    .from('course_modules')
+                    .select('id, title, module_number, description, course_id')
+                    .order('module_number', { ascending: true });
+
+                if (error) {
+                    console.error('❌ Error obteniendo módulos:', error);
+                    return [];
+                }
+
+                console.log('✅ Módulos obtenidos de la base de datos:', modules);
+                return modules;
+
+            } catch (error) {
+                console.error('❌ Error en loadCourseModules:', error);
+                return [];
+            }
+        }
+
+        // Función para poblar el select de módulos con datos dinámicos
+        async function populateModuleFilter() {
+            try {
+                const modules = await loadCourseModules();
+                const moduleFilter = document.getElementById('moduleFilter');
+
+                if (!moduleFilter) {
+                    console.warn('⚠️ No se encontró el elemento moduleFilter');
+                    return;
+                }
+
+                // Limpiar opciones existentes pero conservar "Todos los Módulos"
+                moduleFilter.innerHTML = '<option value="all">Todos los Módulos</option>';
+
+                // Añadir módulos dinámicos
+                modules.forEach(module => {
+                    const option = document.createElement('option');
+                    option.value = `module-${module.module_number}`;
+                    option.textContent = `Módulo ${module.module_number}: ${module.title}`;
+                    option.setAttribute('data-module-id', module.id);
+                    moduleFilter.appendChild(option);
+                });
+
+                console.log(`✅ Filtro de módulos actualizado con ${modules.length} módulos`);
+
+            } catch (error) {
+                console.error('❌ Error poblando filtro de módulos:', error);
+            }
+        }
+
         // Función para cargar preguntas dinámicamente
         async function loadCommunityQuestions() {
             try {
@@ -5282,13 +5342,16 @@ Cargando información...
                 // Datos del usuario desde la API (nested en users object)
                 const userName = question.users?.name || question.users?.display_name || question.display_name || question.first_name || question.username || 'Usuario Anónimo';
                 const userAvatar = question.users?.profile_picture_url || question.users?.avatar_url || question.avatar_url || '../../assets/images/default-avatar.svg';
-                
+
+                // Obtener nombre del módulo (puede venir de diferentes fuentes)
+                const moduleName = question.module_name || question.course_modules?.title || 'General';
+
                 // Tags
                 const tags = Array.isArray(question.tags) ? question.tags : [];
                 const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
 
                 return `
-                    <div class="question-item" data-question-id="${question.id}" data-user-id="${question.user_id || question.users?.id || ''}">
+                    <div class="question-item" data-question-id="${question.id}" data-user-id="${question.user_id || question.users?.id || ''}" data-module-name="${moduleName}">
                         <div class="question-content">
                             <div class="question-header">
                                 <h4 class="question-title">${question.title}</h4>
@@ -5298,7 +5361,7 @@ Cargando información...
                                         ${userName}
                                     </span>
                                     <span class="question-time">${timeAgo}</span>
-                                    <span class="question-module">General</span>
+                                    <span class="question-module">${moduleName}</span>
                                 </div>
                             </div>
                             <div class="question-preview">
@@ -5382,7 +5445,7 @@ Cargando información...
                 const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
 
                 return `
-                    <div class="question-item" data-question-id="${question.id}" data-user-id="${question.user_id || question.users?.id || ''}">
+                    <div class="question-item" data-question-id="${question.id}" data-user-id="${question.user_id || question.users?.id || ''}" data-module-name="${question.module_name || 'General'}">
                         <div class="question-content">
                             <div class="question-header">
                                 <h4 class="question-title">${question.title}</h4>
@@ -8877,16 +8940,13 @@ Generado desde Coach LIA IA - ${currentDate}
             checkModuleFilter(question) {
                 if (this.state.module === 'all') return true;
 
-                    const moduleIndicators = [
-                    `data-module="${this.state.module}"`,
-                    `module-${this.state.module.split('-')[1]}`,
-                    `Módulo ${this.state.module.split('-')[1]}`
-                ];
+                // SOLUCIÓN: Usar data-module-name que se asigna en el renderizado dinámico
+                const questionModuleName = question.getAttribute('data-module-name') || 'General';
 
-                return moduleIndicators.some(indicator =>
-                        question.outerHTML.includes(indicator) ||
-                        question.textContent.includes(indicator)
-                    );
+                console.log('🔍 [checkModuleFilter] Filtro:', this.state.module, 'Pregunta módulo:', questionModuleName);
+
+                // Si el filtro seleccionado coincide con el módulo de la pregunta
+                return this.state.module === questionModuleName;
             },
 
             checkDateFilter(question) {
@@ -9552,6 +9612,11 @@ Generado desde Coach LIA IA - ${currentDate}
         // Inicializar cuando el DOM esté listo
         document.addEventListener('DOMContentLoaded', function() {
             CommunityFilters.init();
+
+            // Cargar módulos dinámicamente para el filtro
+            setTimeout(() => {
+                populateModuleFilter();
+            }, 2000); // Dar tiempo a que Supabase se inicialice
         });
 
         // Funciones globales para compatibilidad
