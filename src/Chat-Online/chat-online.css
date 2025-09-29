@@ -1227,6 +1227,8 @@ body {
     max-height: calc(100vh - 400px);
     min-height: 300px;
     padding: 0;
+    padding-bottom: 20px; /* APR-266: Evita que el último elemento se corte */
+    scroll-padding-bottom: 20px; /* APR-266: Smooth scroll padding */
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 102, 204, 0.3) transparent;
     position: relative;
@@ -2349,29 +2351,7 @@ body {
     filter: drop-shadow(0 0 4px rgba(0, 102, 204, 0.5));
 }
 
-.activity-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-    flex-wrap: wrap;
-}
-
-.activity-btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.activity-btn .icon-sm {
-    width: 18px;
-    height: 18px;
-}
+/* APR-267: Estilos .activity-actions y .activity-btn eliminados - botón legacy removido */
 
 .summary-content ul {
     margin: 0 0 1.5rem 0;
@@ -9132,6 +9112,8 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     max-height: 400px;
     overflow-y: auto;
     padding: 0.5rem;
+    padding-bottom: 20px; /* APR-266: Evita que el último video se corte */
+    scroll-padding-bottom: 20px; /* APR-266: Smooth scroll padding */
 }
 
 .module-videos-list::-webkit-scrollbar {
@@ -9743,6 +9725,13 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 @media (max-width: 768px) {
     .modules-list {
         padding: 0.75rem;
+        padding-bottom: 40px; /* APR-266: Mobile necesita más espacio */
+        scroll-padding-bottom: 40px;
+    }
+
+    .module-videos-list {
+        padding-bottom: 30px; /* APR-266: Mobile scroll fix */
+        scroll-padding-bottom: 30px;
     }
     
     .module-header {
@@ -9783,13 +9772,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 /* ===== SISTEMA DE MÓDULOS EXPANDIBLES ===== */
 
-/* Contenedor principal de módulos */
-.modules-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 0;
-}
+/* Contenedor principal de módulos - NOTA: estilos principales en línea 1219 */
 
 /* Elemento individual del módulo */
 .module-item {
@@ -10331,6 +10314,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 .video-item:last-child {
     border-bottom: none;
+    margin-bottom: 15px; /* APR-266: Asegurar espacio para el último video */
 }
 
 .video-item:hover { 

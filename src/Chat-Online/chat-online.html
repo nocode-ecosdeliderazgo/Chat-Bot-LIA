@@ -4452,15 +4452,7 @@ Cargando información...
                             </div>
                         </div>
 
-                        <div class="activity-actions">
-                            <button class="btn-primary activity-btn" onclick="copyActivityToClipboard()">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                                </svg>
-                                Copiar Actividad
-                            </button>
-                        </div>
+                        <!-- APR-267: Botón legacy "copiar actividad" eliminado - reemplazado por botones individuales por prompt -->
                     </div>
 
                     <!-- Contenido de Comunidad -->
@@ -5183,7 +5175,7 @@ Cargando información...
     </script>
     
     <!-- Community API -->
-    <script src="../scripts/community-api.js"></script>
+    <script src="api/community-api.js"></script>
     
     <!-- Supabase Client -->
     <script src="../scripts/supabase-client.js"></script>
@@ -6852,6 +6844,9 @@ INSTRUCCIONES:
 
     <!-- <script src="components/video-player.js"></script> Temporalmente deshabilitado -->
 
+    <!-- VideoNavigationManager - Manejo centralizado de navegación -->
+    <script src="components/video-navigation-manager.js"></script>
+
     <script src="components/lia-chat.js"></script>
 
     <!-- Sistema dinámico V2 ya cargado arriba -->
@@ -8309,7 +8304,8 @@ INSTRUCCIONES:
         // FUNCIONES PARA ACTIVIDADES
         // =====================================================
 
-        function copyActivityToClipboard() {
+        // APR-267: copyActivityToClipboard() eliminada - reemplazada por botones individuales
+        function copyActivityToClipboard_REMOVED() {
             try {
                 const activityContent = document.querySelector('.activity-content');
                 if (!activityContent) {
@@ -9568,72 +9564,36 @@ Generado desde Coach LIA IA - ${currentDate}
     <!-- Fix Buttons Script - Corrección para botones del panel derecho -->
     <script src="fix-buttons.js"></script>
 
-    <!-- Navegación de Videos Script -->
+    <!-- Navegación de Videos Script - Modernizado -->
     <script>
-        // ===== NAVEGACIÓN ENTRE VIDEOS =====
+        // ===== NAVEGACIÓN ENTRE VIDEOS - VERSIÓN SIMPLIFICADA =====
+        // Usa el nuevo VideoNavigationManager para manejo centralizado
         function initializeVideoNavigation() {
-            const prevBtn = document.getElementById('prevVideoBtn');
-            const nextBtn = document.getElementById('nextVideoBtn');
-            
-            if (!prevBtn || !nextBtn) {
-                console.warn('⚠️ Botones de navegación no encontrados');
-                return;
-            }
+            console.log('⚠️ initializeVideoNavigation() legacy llamada - delegando a VideoNavigationManager');
 
-            // Función para obtener el video actual
-            function getCurrentVideo() {
-                // Buscar el video actual en el panel derecho
-                const currentVideo = document.querySelector('.video-item.current, .video-item.active');
-                if (currentVideo) {
-                    return currentVideo;
+            // Verificar que el VideoNavigationManager esté disponible
+            if (window.videoNavigationManager) {
+                // Re-inicializar si es necesario
+                if (!window.videoNavigationManager.getStatus().isInitialized) {
+                    window.videoNavigationManager.reinitializeNavigation();
                 }
-                
-                // Buscar por el iframe actual
-                const iframe = document.getElementById('youtubePlayer');
-                if (iframe && iframe.src) {
-                    const videoId = extractVideoIdFromUrl(iframe.src);
-                    if (videoId) {
-                        return document.querySelector(`[data-video-id="${videoId}"]`);
-                    }
-                }
-                
-                return null;
-            }
+                console.log('✅ VideoNavigationManager activado:', window.videoNavigationManager.getStatus());
+            } else {
+                console.error('❌ VideoNavigationManager no disponible');
+                // Fallback básico
+                const prevBtn = document.getElementById('prevVideoBtn');
+                const nextBtn = document.getElementById('nextVideoBtn');
 
-            // Función para extraer ID del video de la URL
-            function extractVideoIdFromUrl(url) {
-                const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/);
-                return match ? match[1] : null;
-            }
-
-            // Función para navegar al video anterior
-            function goToPreviousVideo() {
-                const currentVideo = getCurrentVideo();
-                if (!currentVideo) {
-                    console.warn('⚠️ No se pudo determinar el video actual');
-                    return;
-                }
-
-                // Opcional: Marcar el video actual como completado también al ir al anterior
-                // (comentado para que solo se marque al ir al siguiente)
-                // markCurrentVideoAsCompleted(currentVideo);
-
-                const prevVideo = currentVideo.previousElementSibling;
-                if (prevVideo && prevVideo.classList.contains('video-item')) {
-                    console.log('⬅️ Navegando al video anterior');
-                    prevVideo.click();
-                } else {
-                    console.log('ℹ️ No hay video anterior disponible');
-                    showNotification('No hay video anterior disponible', 'info');
+                if (prevBtn && nextBtn) {
+                    prevBtn.style.opacity = '0.5';
+                    nextBtn.style.opacity = '0.5';
+                    console.log('⚠️ Botones deshabilitados - VideoNavigationManager requerido');
                 }
             }
 
-            // Función para marcar el video actual como completado
-            function markCurrentVideoAsCompleted(videoElement) {
-                try {
-                    console.log('✅ Marcando video como completado automáticamente');
-                    
-                    // Obtener el ID del video
+
+
+        }
                     const videoId = videoElement.getAttribute('data-video-id');
                     if (!videoId) {
                         console.warn('⚠️ No se pudo obtener el ID del video');

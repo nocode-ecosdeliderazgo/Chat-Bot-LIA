@@ -8,6 +8,7 @@ class VideoPlayer {
         this.videoElement = document.getElementById(videoElementId);
         this.videoId = videoElementId;
         this.isInitialized = false;
+        this.isCompleted = false; // Control de estado para prevenir duplicaciones
         this.bookmarks = [];
         this.watchTime = 0;
         this.lastPosition = 0;
@@ -872,18 +873,42 @@ class VideoPlayer {
     }
 
     /**
-     * Marcar como completado
+     * Marcar como completado - Implementación unificada y robusta
      */
     markAsCompleted() {
-        const event = new CustomEvent('videoCompleted', {
-            detail: {
-                videoId: this.videoId,
-                watchTime: this.watchTime,
-                completedAt: new Date()
+        try {
+            // Prevenir múltiples llamadas del mismo video
+            if (this.isCompleted) {
+                console.log('[VIDEO] Video ya marcado como completado, ignorando duplicate call');
+                return;
             }
-        });
-        
-        document.dispatchEvent(event);
+
+            console.log('[VIDEO] Marcando video como completado:', this.videoId);
+            this.isCompleted = true;
+
+            // Emitir evento de completión
+            const event = new CustomEvent('videoCompleted', {
+                detail: {
+                    videoId: this.videoId,
+                    watchTime: this.watchTime,
+                    completedAt: new Date(),
+                    totalDuration: this.videoElement ? this.videoElement.duration : 0,
+                    completionPercentage: 100
+                },
+                bubbles: true
+            });
+
+            // Emitir en window para compatibilidad global
+            window.dispatchEvent(event);
+
+            // También emitir en document para componentes que lo esperan
+            document.dispatchEvent(event);
+
+            console.log('[VIDEO] Evento videoCompleted emitido correctamente');
+
+        } catch (error) {
+            console.error('[VIDEO] Error en markAsCompleted:', error);
+        }
     }
 
     /**
@@ -986,14 +1011,6 @@ class VideoPlayer {
         }
     }
 
-    markAsCompleted() {
-        // Función de seguridad - implementación básica
-        try {
-            console.log('[VIDEO] markAsCompleted called (safe mode)');
-        } catch (error) {
-            console.warn('[VIDEO] Error in markAsCompleted:', error);
-        }
-    }
 
     updateBufferProgress() {
         // Función de seguridad - implementación básica
