@@ -365,5 +365,35 @@
     <script src="scripts/profile-avatar-manager.js"></script>
     <script src="scripts/profile-particles-direct.js"></script>
     <script src="scripts/avatar-fix-simple.js"></script>
+
+    <!-- Script de debugging para verificar campos del formulario -->
+    <script>
+        window.debugFormFields = function() {
+            console.log('🔍 DEBUG: Verificando campos del formulario');
+            const fields = ['username', 'email', 'firstName', 'lastName', 'companyRole', 'phone', 'location', 'bio', 'linkedinUrl', 'githubUrl', 'portfolioUrl'];
+
+            fields.forEach(fieldId => {
+                const element = document.getElementById(fieldId);
+                if (element) {
+                    console.log(`✅ ${fieldId}:`, {
+                        exists: true,
+                        value: element.value,
+                        placeholder: element.placeholder
+                    });
+                } else {
+                    console.error(`❌ ${fieldId}: NO ENCONTRADO en el DOM`);
+                }
+            });
+
+            if (window.profileManager) {
+                console.log('📊 Estado de ProfileManager:', {
+                    currentUser: window.profileManager.currentUser,
+                    profileData: window.profileManager.profileData
+                });
+            }
+        };
+
+        console.log('💡 Usa window.debugFormFields() en la consola para verificar los campos del formulario');
+    </script>
 </body>
 </html>

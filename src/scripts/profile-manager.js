@@ -137,8 +137,16 @@ class ProfileManager {
                 location: data.location || '',
                 linkedin_url: data.linkedin_url || '',
                 github_url: data.github_url || '',
-                portfolio_url: data.portfolio_url || ''
+                portfolio_url: data.portfolio_url || data.website_url || ''
             };
+
+            console.log('✅ profileData cargado:', {
+                first_name: this.profileData.first_name,
+                last_name: this.profileData.last_name,
+                phone: this.profileData.phone,
+                location: this.profileData.location,
+                bio: this.profileData.bio
+            });
 
             console.log('🔄 Actualizando visualización del perfil...');
             this.updateCurrentProfileDisplay();
@@ -206,13 +214,9 @@ class ProfileManager {
             return;
         }
 
-        console.log('📝 Poblando formulario con datos:', {
-            username: this.currentUser.username,
-            email: this.currentUser.email,
-            first_name: this.profileData.first_name,
-            last_name: this.profileData.last_name,
-            phone: this.profileData.phone,
-            location: this.profileData.location
+        console.log('📝 Poblando formulario con datos completos:', {
+            'currentUser': this.currentUser,
+            'profileData': this.profileData
         });
 
         // Información básica
@@ -220,11 +224,22 @@ class ProfileManager {
         this.setFormValue('email', this.currentUser.email);
 
         // Información del perfil - TODOS los campos
+        console.log('📋 Estableciendo firstName:', this.profileData.first_name);
         this.setFormValue('firstName', this.profileData.first_name);
+
+        console.log('📋 Estableciendo lastName:', this.profileData.last_name);
         this.setFormValue('lastName', this.profileData.last_name);
+
+        console.log('📋 Estableciendo companyRole:', this.currentUser.cargo_rol, 'o', this.currentUser.company_role);
         this.setFormValue('companyRole', this.currentUser.cargo_rol || this.currentUser.company_role);
+
+        console.log('📋 Estableciendo phone:', this.profileData.phone);
         this.setFormValue('phone', this.profileData.phone);
+
+        console.log('📋 Estableciendo location:', this.profileData.location);
         this.setFormValue('location', this.profileData.location);
+
+        console.log('📋 Estableciendo bio:', this.profileData.bio);
         this.setFormValue('bio', this.profileData.bio);
 
         // URLs profesionales
@@ -232,7 +247,7 @@ class ProfileManager {
         this.setFormValue('githubUrl', this.profileData.github_url || this.currentUser.github_url || '');
         this.setFormValue('portfolioUrl', this.profileData.portfolio_url || this.currentUser.website_url || '');
 
-        console.log('✅ Formulario poblado correctamente');
+        console.log('✅ Formulario poblado - verificar valores en los elementos del DOM');
     }
 
     setFormValue(fieldId, value) {
