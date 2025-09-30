@@ -201,29 +201,48 @@ class ProfileManager {
     }
 
     populateForm() {
-        if (!this.currentUser || !this.profileData) return;
+        if (!this.currentUser || !this.profileData) {
+            console.error('❌ No hay datos de usuario o perfil para poblar el formulario');
+            return;
+        }
+
+        console.log('📝 Poblando formulario con datos:', {
+            username: this.currentUser.username,
+            email: this.currentUser.email,
+            first_name: this.profileData.first_name,
+            last_name: this.profileData.last_name,
+            phone: this.profileData.phone,
+            location: this.profileData.location
+        });
 
         // Información básica
         this.setFormValue('username', this.currentUser.username);
         this.setFormValue('email', this.currentUser.email);
-        this.setFormValue('typeRol', this.currentUser.type_rol.toLowerCase());
 
-        // Información del perfil
+        // Información del perfil - TODOS los campos
         this.setFormValue('firstName', this.profileData.first_name);
         this.setFormValue('lastName', this.profileData.last_name);
-        this.setFormValue('displayName', this.profileData.display_name);
+        this.setFormValue('companyRole', this.currentUser.cargo_rol || this.currentUser.company_role);
         this.setFormValue('phone', this.profileData.phone);
-        this.setFormValue('bio', this.profileData.bio);
         this.setFormValue('location', this.profileData.location);
-        this.setFormValue('linkedinUrl', this.currentUser.linkedin_url || '');
-        this.setFormValue('githubUrl', this.currentUser.github_url || '');
-        this.setFormValue('portfolioUrl', this.currentUser.website_url || '');
+        this.setFormValue('bio', this.profileData.bio);
+
+        // URLs profesionales
+        this.setFormValue('linkedinUrl', this.profileData.linkedin_url || this.currentUser.linkedin_url || '');
+        this.setFormValue('githubUrl', this.profileData.github_url || this.currentUser.github_url || '');
+        this.setFormValue('portfolioUrl', this.profileData.portfolio_url || this.currentUser.website_url || '');
+
+        console.log('✅ Formulario poblado correctamente');
     }
 
     setFormValue(fieldId, value) {
         const element = document.getElementById(fieldId);
-        if (element && value) {
-            element.value = value;
+        if (element) {
+            // Establecer valor incluso si es vacío, para limpiar campos
+            element.value = value || '';
+            console.log(`✅ Campo ${fieldId} establecido:`, value || '(vacío)');
+        } else {
+            console.warn(`⚠️ Campo ${fieldId} no encontrado en el DOM`);
         }
     }
 
