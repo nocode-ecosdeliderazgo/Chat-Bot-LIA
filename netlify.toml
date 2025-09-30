@@ -3,7 +3,7 @@
   publish = "src"
   command = "npm run build"
   node_version = "18"
-  
+settings.local.json  
 [build.environment]
   NODE_ENV = "production"
 
