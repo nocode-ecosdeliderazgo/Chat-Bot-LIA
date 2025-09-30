@@ -670,6 +670,15 @@
             gap: 6px;
         }
 
+        /* Ocultar elementos específicos solicitados */
+        .members-count .membership-btn,
+        .members-count .members-ship,
+        .member-status-text,
+        .count-info,
+        .members-chip[data-filter="online"] {
+            display: none !important;
+        }
+
         .online-dot {
             color: #4CAF50;
             font-size: 8px;
@@ -2157,18 +2166,6 @@
                             <p>Vincular video de YouTube</p>
                         </div>
                     </div>
-                    <div class="attach-option" data-type="location">
-                        <div class="attach-option-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                <circle cx="12" cy="10" r="3"></circle>
-                            </svg>
-                        </div>
-                        <div class="attach-option-content">
-                            <h3>Ubicación</h3>
-                            <p>Compartir ubicación</p>
-                        </div>
-                    </div>
                     <div class="attach-option" data-type="poll">
                         <div class="attach-option-icon">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2234,27 +2231,6 @@
         </div>
     </div>
 
-    <!-- Modal para ubicación -->
-    <div class="input-modal" id="locationModal">
-        <div class="input-modal-card">
-            <div class="input-modal-head">
-                <strong>Agregar ubicación</strong>
-                <button class="input-modal-close" id="closeLocationModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="input-modal-body">
-                <div class="input-group">
-                    <label for="locationInput">¿Dónde estás?</label>
-                    <input type="text" id="locationInput" placeholder="Madrid, España" class="input-field">
-                </div>
-                <div class="input-modal-actions">
-                    <button class="input-modal-btn cancel" id="cancelLocation">Cancelar</button>
-                    <button class="input-modal-btn confirm" id="confirmLocation">Agregar</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Modal para encuesta -->
     <div class="input-modal" id="pollModal">
@@ -2413,6 +2389,90 @@
             });
                          // Feed mock con persistencia
              let posts = [];
+             
+            // Función global para validar URLs de imagen
+            function isValidImageUrl(url) {
+                if (!url || typeof url !== 'string') return false;
+                
+                const cleanUrl = url.trim();
+                if (cleanUrl === '' || cleanUrl === 'null' || cleanUrl === 'undefined') return false;
+                
+                // Verificar que no sea un archivo de audio (incluso con extensión incorrecta)
+                const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac'];
+                const hasAudioExtension = audioExtensions.some(ext => cleanUrl.toLowerCase().includes(ext));
+                if (hasAudioExtension) {
+                    console.warn('⚠️ [AVATAR] URL contiene extensión de audio, rechazando:', cleanUrl);
+                    return false;
+                }
+                
+                // Verificar patrones sospechosos de archivos de audio renombrados
+                const audioPatterns = [
+                    /audio_[a-f0-9-]+\.(jpg|jpeg|png|gif)/i,  // audio_UUID.jpg
+                    /uploads\/audio.*\.(jpg|jpeg|png|gif)/i,   // uploads/audio*.jpg
+                    /_audio[_-].*\.(jpg|jpeg|png|gif)/i       // cualquier_audio_.jpg
+                ];
+                
+                const isSuspiciousAudio = audioPatterns.some(pattern => pattern.test(cleanUrl));
+                if (isSuspiciousAudio) {
+                    console.warn('⚠️ [AVATAR] URL sospechosa de archivo de audio renombrado, rechazando:', cleanUrl);
+                    return false;
+                }
+                
+                // Verificar que sea una URL válida (base64 o http/https)
+                if (cleanUrl.startsWith('data:image/')) return true;
+                if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) return true;
+                if (cleanUrl.startsWith('/') || cleanUrl.startsWith('../')) return true;
+                
+                return false;
+            }
+
+            // Función para limpiar datos corruptos de avatares en la base de datos
+            async function cleanCorruptedAvatars() {
+                try {
+                    if (!window.supabase) return;
+                    
+                    console.log('🧹 Iniciando limpieza de avatares corruptos...');
+                    
+                    // Buscar usuarios con URLs de avatar sospechosas
+                    const { data: users, error } = await window.supabase
+                        .from('users')
+                        .select('id, profile_picture_url')
+                        .not('profile_picture_url', 'is', null);
+                    
+                    if (error) {
+                        console.warn('⚠️ Error obteniendo usuarios para limpieza:', error);
+                        return;
+                    }
+                    
+                    let cleanedCount = 0;
+                    for (const user of users) {
+                        if (!isValidImageUrl(user.profile_picture_url)) {
+                            console.log('🧹 Limpiando avatar corrupto para usuario:', user.id, 'URL:', user.profile_picture_url);
+                            
+                            // Limpiar el avatar corrupto
+                            const { error: updateError } = await window.supabase
+                                .from('users')
+                                .update({ profile_picture_url: null })
+                                .eq('id', user.id);
+                            
+                            if (!updateError) {
+                                cleanedCount++;
+                            } else {
+                                console.warn('⚠️ Error limpiando avatar para usuario:', user.id, updateError);
+                            }
+                        }
+                    }
+                    
+                    if (cleanedCount > 0) {
+                        console.log(`✅ Limpieza completada: ${cleanedCount} avatares corruptos eliminados`);
+                    } else {
+                        console.log('✅ No se encontraron avatares corruptos para limpiar');
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error en limpieza de avatares:', error);
+                }
+            }
 
             // Función para esperar que Supabase esté disponible (GLOBAL)
             window.waitForSupabase = async function waitForSupabase(maxRetries = 10, delay = 1000) {
@@ -2535,6 +2595,10 @@
                                 .select('reaction_type, user_id')
                                 .eq('post_id', post.id);
 
+                            console.log('🔍 [REACTIONS DEBUG] Post ID:', post.id);
+                            console.log('  - Reactions query result:', reactionsData);
+                            console.log('  - Reactions query error:', reactionsError);
+
                             if (!reactionsError && reactionsData) {
                                 // Contar reacciones por tipo
                                 reactionsData.forEach(reaction => {
@@ -2553,12 +2617,94 @@
                                 }
 
                                 console.log('✅ Reacciones cargadas para post', post.id, ':', reactions);
+                                console.log('  - Datos de reacciones:', reactionsData);
+                                console.log('  - Total de likes:', reactions.like);
+                                console.log('  - User reacted:', userReacted);
+                            } else {
+                                console.log('⚠️ No se encontraron reacciones para post', post.id, 'Error:', reactionsError);
+                                console.log('  - Error details:', reactionsError?.message);
+                                console.log('  - Error code:', reactionsError?.code);
                             }
                         } catch (error) {
                             console.warn('⚠️ Error cargando reacciones para post', post.id, ':', error);
+                            console.log('  - Error details:', error.message);
+                            console.log('  - Error stack:', error.stack);
                         }
 
-                        return {
+                        // Cargar comentarios desde la base de datos
+                        console.log('💬 Cargando comentarios para post:', post.id);
+                        let comments = [];
+                        try {
+                            const { data: commentsData, error: commentsError } = await window.supabase
+                                .from('community_comments')
+                                .select('*')
+                                .eq('post_id', post.id)
+                                .order('created_at', { ascending: true });
+
+                            if (!commentsError && commentsData) {
+                                // Cargar datos de usuarios para los comentarios
+                                const userIds = [...new Set(commentsData.map(c => c.user_id))];
+                                const { data: usersData, error: usersError } = await window.supabase
+                                    .from('users')
+                                    .select('id, display_name, username, profile_picture_url')
+                                    .in('id', userIds);
+
+                                const usersMap = {};
+                                if (!usersError && usersData) {
+                                    usersData.forEach(user => {
+                                        usersMap[user.id] = user;
+                                    });
+                                }
+
+                                comments = commentsData.map(comment => {
+                                    const userData = usersMap[comment.user_id];
+                                    return {
+                                        id: comment.id,
+                                        user: userData?.display_name || userData?.username || 'Usuario',
+                                        content: comment.content,
+                                        created_at: comment.created_at,
+                                        avatarUrl: userData?.profile_picture_url || null
+                                    };
+                                });
+                                
+                                console.log('✅ Comentarios cargados para post', post.id, ':', comments.length, 'comentarios');
+                                console.log('  - Datos de comentarios:', commentsData);
+                                console.log('  - Comentarios mapeados:', comments);
+                            } else {
+                                console.log('⚠️ No se encontraron comentarios para post', post.id, 'Error:', commentsError);
+                            }
+                        } catch (error) {
+                            console.warn('⚠️ Error cargando comentarios para post', post.id, ':', error);
+                        }
+
+                        // Construir attachments si existen
+                        let attachments = [];
+                        if (post.attachment_url && post.attachment_type) {
+                            // Extraer nombre de archivo de la URL para attachments que lo necesiten
+                            const fileName = post.attachment_url.split('/').pop() || 'archivo';
+
+                            // Detectar si es un video de YouTube por la URL de embed
+                            const isYouTubeEmbed = post.attachment_type === 'video' && 
+                                                 post.attachment_url.includes('youtube.com/embed');
+
+                            const attachment = {
+                                type: post.attachment_type,
+                                src: post.attachment_url,
+                                url: post.attachment_url,
+                                name: fileName
+                            };
+
+                            // Si es YouTube, agregar propiedades especiales
+                            if (isYouTubeEmbed) {
+                                attachment.isYoutube = true;
+                                attachment.embed = post.attachment_url;
+                            }
+
+                            attachments.push(attachment);
+                        }
+
+
+                        const postObject = {
                             id: post.id,
                             user: post.users ? (post.users.display_name || post.users.username || 'Usuario') : 'Usuario',
                             avatar: 'fas fa-user',
@@ -2569,15 +2715,30 @@
                             timestamp: createdDate.getTime(),
                             content: post.content || post.title || '',
                             title: post.title || null,
-                            comments: [],
+                            comments: comments,
                             reactions: reactions,
-                            attachments: [],
+                            attachments: attachments,
                             reacted: userReacted,
                             // Datos adicionales
                             user_id: post.user_id,
                             community_id: post.community_id,
                             created_at: post.created_at
                         };
+
+                        // Calcular total de reacciones
+                        const totalReactions = Object.values(postObject.reactions).reduce((sum, count) => sum + count, 0);
+                        postObject.totalReactions = totalReactions;
+
+                        // Log de debug para verificar datos
+                        console.log('🔍 [POST OBJECT DEBUG] Post ID:', post.id);
+                        console.log('  - User:', postObject.user);
+                        console.log('  - Reactions:', postObject.reactions);
+                        console.log('  - Total reactions:', totalReactions);
+                        console.log('  - Comments array:', postObject.comments);
+                        console.log('  - Comments length:', postObject.comments?.length || 0);
+                        console.log('  - Like count:', postObject.reactions?.like || 0);
+
+                        return postObject;
                     }));
 
                     console.log('✅ Posts convertidos para UI:', posts);
@@ -2587,6 +2748,13 @@
 
                     // Actualizar estadísticas
                     updateStats();
+
+                    // Forzar actualización de contadores después de cargar
+                    console.log('🔄 [INITIAL LOAD] Forzando actualización de contadores...');
+                    setTimeout(() => {
+                        updateCounters();
+                        console.log('✅ [INITIAL LOAD] Contadores actualizados después de carga inicial');
+                    }, 500);
 
                 } catch (error) {
                     console.error('❌ Error cargando posts desde API:', error);
@@ -2717,8 +2885,18 @@
                  console.log('✅ Inicialización de posts completada');
              }
 
-             // Llamar función de inicialización
-             initializePosts();
+            // Llamar función de inicialización
+            initializePosts();
+            
+            // Hacer la función disponible globalmente para uso manual
+            window.cleanCorruptedAvatars = cleanCorruptedAvatars;
+            
+            // Limpiar avatares corruptos después de un breve delay
+            setTimeout(async () => {
+                if (window.supabase) {
+                    await cleanCorruptedAvatars();
+                }
+            }, 3000); // 3 segundos después de cargar
              
              // Función para actualizar estadísticas
              function updateStats() {
@@ -2757,30 +2935,48 @@
                 const list = document.getElementById('postsList');
                 const filtered = category==='all' ? posts : posts.filter(p=>p.category===category);
                 console.log('Posts filtrados:', filtered);
-                list.innerHTML = filtered.map(p=>`
-                    <div class="post-card" data-open-post="${p.id}">
-                        <div class="post-avatar">
+                list.innerHTML = filtered.map(p=>{
+                    console.log('🔍 [COUNTER DEBUG] Post:', p.user);
+                    console.log('  - Reactions object:', p.reactions);
+                    console.log('  - Like count:', p.reactions?.like || 0);
+                    console.log('  - Comments array:', p.comments);
+                    console.log('  - Comments length:', p.comments?.length || 0);
+                    console.log('  - Comments count in template:', p.comments ? p.comments.length : 0);
+                    return `
+                    <div class="post" data-open-post="${p.id}">
+                        <div class="post-header">
+                            <div class="post-user">
+                                <div class="user-avatar">
                             ${p.avatarUrl ?
-                                `<img src="${p.avatarUrl}" alt="${p.user}" class="post-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        `<img src="${p.avatarUrl}" alt="${p.user}" class="user-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                  <i class="${p.avatar}" style="display:none;"></i>` :
                                 `<i class="${p.avatar}"></i>`
                             }
                         </div>
-                        <div class="post-body">
-                            <div class="post-header">
-                                <span class="post-name">${p.user}</span>
-                                <span class="post-meta">• ${p.timeAgo || `${p.minutesAgo} min`} • ${p.category}</span>
+                                <div class="user-info">
+                                    <div class="user-name">${p.user}</div>
+                                    <div class="post-time">${p.timeAgo || `${p.minutesAgo} min`} • ${p.category}</div>
                             </div>
-                            <div class="post-content">${p.content}</div>
-                            ${renderAttachments(p.attachments)}
+                            </div>
                             <div class="post-actions">
-                                <span class="post-action" data-action="comment" data-id="${p.id}"><i class="fas fa-comment"></i> Comentar</span>
-                                <span class="post-action shares" data-share="${p.id}"><i class="fas fa-share"></i> Compartir</span>
-                                <span class="react-area">
-                                    <button class="react-btn ${p.reacted ? 'reacted' : ''}" data-react-toggle="${p.id}" title="${p.reacted ? 'Ya reaccionaste con ' + (p.reacted === 'like' ? '👍' : p.reacted === 'love' ? '❤️' : p.reacted === 'wow' ? '😮' : p.reacted === 'laugh' ? '😂' : p.reacted === 'sad' ? '😢' : '😠') : 'Reaccionar'}">
-                                        ${p.reacted ? (p.reacted === 'like' ? '👍' : p.reacted === 'love' ? '❤️' : p.reacted === 'wow' ? '😮' : p.reacted === 'laugh' ? '😂' : p.reacted === 'sad' ? '😢' : p.reacted === 'angry' ? '😠' : '👍') : '👍'}
+                                <button class="action-btn" onclick="showPostMenu('${p.id}')">
+                                    <i class="fas fa-ellipsis-h"></i>
                                     </button>
-                                    <div class="reaction-picker" id="picker-${p.id}">
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <p>${p.content}</p>
+                            ${renderAttachmentsCentered(p.attachments)}
+                        </div>
+                        <div class="post-footer">
+                            <div class="post-interactions">
+                                <div class="reaction-container" data-post-id="${p.id}">
+                                    <button class="interaction-btn like-btn ${p.reacted ? 'reacted' : ''}" data-react="like" data-id="${p.id}">
+                                        <i class="fas fa-heart"></i>
+                                        <span class="btn-text">${p.reacted ? (p.reacted === 'like' ? 'Me gusta' : p.reacted === 'love' ? 'Me encanta' : p.reacted === 'wow' ? 'Me asombra' : p.reacted === 'laugh' ? 'Me divierte' : p.reacted === 'sad' ? 'Me entristece' : p.reacted === 'angry' ? 'Me enoja' : 'Me gusta') : 'Me gusta'}</span>
+                                        <span class="reaction-count">${p.totalReactions || 0}</span>
+                                    </button>
+                                    <div class="reaction-picker-hover" id="picker-hover-${p.id}">
                                         <div class="reaction-item" data-react="like" data-id="${p.id}">👍</div>
                                         <div class="reaction-item" data-react="love" data-id="${p.id}">❤️</div>
                                         <div class="reaction-item" data-react="wow" data-id="${p.id}">😮</div>
@@ -2788,18 +2984,35 @@
                                         <div class="reaction-item" data-react="sad" data-id="${p.id}">😢</div>
                                         <div class="reaction-item" data-react="angry" data-id="${p.id}">😠</div>
                                     </div>
-                                    <span class="reaction-summary">${reactionSummary(p.reactions)}</span>
-                                </span>
                             </div>
+                                <button class="interaction-btn comment-btn" data-action="comment" data-id="${p.id}">
+                                    <i class="fas fa-comment"></i>
+                                    <span class="btn-text">Comentar</span>
+                                    <span class="comment-count">${p.comments ? p.comments.length : 0}</span>
+                                </button>
+                                <button class="interaction-btn share-btn" data-share="${p.id}">
+                                    <i class="fas fa-share"></i>
+                                    <span class="btn-text">Compartir</span>
+                                </button>
                         </div>
                     </div>
-                `).join('');
+                        <div class="reaction-picker" id="picker-${p.id}" style="display: none;">
+                            <div class="reaction-item" data-react="like" data-id="${p.id}">👍</div>
+                            <div class="reaction-item" data-react="love" data-id="${p.id}">❤️</div>
+                            <div class="reaction-item" data-react="wow" data-id="${p.id}">😮</div>
+                            <div class="reaction-item" data-react="laugh" data-id="${p.id}">😂</div>
+                            <div class="reaction-item" data-react="sad" data-id="${p.id}">😢</div>
+                            <div class="reaction-item" data-react="angry" data-id="${p.id}">😠</div>
+                        </div>
+                    </div>
+                `;
+                }).join('');
                 // abrir modal de post
                 list.querySelectorAll('[data-open-post]').forEach(card=>{
                     card.addEventListener('click', (e)=>{
                         // evitar disparar desde botones internos
                         const target = e.target;
-                        if(target.closest('.react-area') || target.closest('.shares')) return;
+                        if(target.closest('.post-interactions') || target.closest('.post-actions')) return;
                         const id = card.getAttribute('data-open-post');
                         openPostModal(id);
                     });
@@ -2840,89 +3053,51 @@
                         picker.classList.toggle('show');
                     });
                 });
-                // aplicar reacción
-                list.querySelectorAll('.reaction-item').forEach(el=>{
+                // botón de me gusta directo
+                list.querySelectorAll('[data-react="like"]').forEach(btn=>{
+                    btn.addEventListener('click', async ()=>{
+                        const id = btn.getAttribute('data-id');
+                        const post = posts.find(p=>p.id==id || p.id===Number(id));
+                        
+                        if (!post) {
+                            console.error('❌ [LIKE] Post no encontrado para ID:', id);
+                                return;
+                            }
+
+                        // Si ya reaccionó con like, quitar la reacción
+                        if(post.reacted === 'like'){
+                            await removeReaction(id, 'like');
+                        } else {
+                            // Aplicar reacción like
+                            await applyReaction(id, 'like');
+                        }
+                    });
+                });
+
+                // reacciones del picker hover
+                list.querySelectorAll('.reaction-picker-hover .reaction-item').forEach(el=>{
                     el.addEventListener('click', async ()=>{
                         const id = el.getAttribute('data-id');
                         const type = el.getAttribute('data-react');
                         const post = posts.find(p=>p.id==id || p.id===Number(id));
-                        if(post.reacted){ return; }
-
-                        try {
-                            console.log('👍 [REACTION] Creando reacción en BD...', { postId: id, type });
-
-                            // Obtener usuario actual de manera consistente
-                            const userResult = await getCurrentUserForCommunity();
-                            if (!userResult.id) {
-                                notifications.error('No se pudo verificar tu identidad. Inténtalo de nuevo.');
-                                return;
-                            }
-                            const { user: currentUser, id: userId } = userResult;
-
-                            // Verificar si ya reaccionó
-                            const { data: existingReaction } = await window.supabase
-                                .from('community_reactions')
-                                .select('*')
-                                .eq('post_id', id)
-                                .eq('user_id', userId)
-                                .maybeSingle();
-
-                            if (existingReaction) {
-                                notifications.warning('Ya reaccionaste a esta publicación');
+                        
+                        if (!post) {
+                            console.error('❌ [REACTION] Post no encontrado para ID:', id);
                                 return;
                             }
 
-                            // Crear reacción en la base de datos
-                            const { data: newReaction, error } = await window.supabase
-                                .from('community_reactions')
-                                .insert({
-                                    post_id: id,
-                                    user_id: userId,
-                                    reaction_type: type
-                                })
-                                .select()
-                                .single();
-
-                            if (error) {
-                                console.error('❌ [REACTION] Error creando reacción:', error);
-                                notifications.error('Error al crear reacción: ' + error.message);
-
-                                // Fallback a localStorage
-                                console.log('⚠️ [REACTION] Usando fallback a localStorage...');
-                                post.reactions[type] = (post.reactions[type]||0) + 1;
-                                post.reacted = type;
-                                savePosts();
+                        // Si ya reaccionó con el mismo tipo, quitar la reacción
+                        if(post.reacted === type){
+                            await removeReaction(id, type);
                             } else {
-                                console.log('✅ [REACTION] Reacción creada en BD:', newReaction);
-
-                                // Actualizar el post local
-                                post.reactions[type] = (post.reactions[type]||0) + 1;
-                                post.reacted = type;
-
-                                notifications.success('Reacción agregada correctamente');
-                            }
-
-                            // Agregar puntos por reaccionar
-                            if (window.pointsSystem) {
-                                await window.pointsSystem.addPoints(null, 'react');
-                            }
-
-                            renderPosts(category);
-
-                        } catch (error) {
-                            console.error('❌ [REACTION] Error inesperado:', error);
-
-                            // Fallback a localStorage en caso de error
-                            console.log('⚠️ [REACTION] Usando fallback a localStorage por error...');
-                            post.reactions[type] = (post.reactions[type]||0) + 1;
-                            post.reacted = type;
-                            savePosts();
-                            renderPosts(category);
-
-                            notifications.error('Error inesperado al crear reacción');
+                            // Aplicar nueva reacción
+                            await applyReaction(id, type);
                         }
                     });
                 });
+                
+                // NOTA: Los event listeners de reacciones ya están manejados por el hover picker arriba
+                // No necesitamos duplicar los event listeners aquí
                 // botón de comentarios
                 list.querySelectorAll('[data-action="comment"]').forEach(el=>{
                     el.addEventListener('click', async ()=>{
@@ -3048,7 +3223,16 @@
             }
             
             function getDocumentIcon(filename) {
-                const ext = filename.split('.').pop().toLowerCase();
+                if (!filename || typeof filename !== 'string') {
+                    return 'fas fa-file';
+                }
+
+                const parts = filename.split('.');
+                if (parts.length < 2) {
+                    return 'fas fa-file';
+                }
+
+                const ext = parts.pop().toLowerCase();
                 switch(ext) {
                     case 'pdf': return 'fas fa-file-pdf';
                     case 'doc':
@@ -3058,6 +3242,15 @@
                     case 'ppt':
                     case 'pptx': return 'fas fa-file-powerpoint';
                     case 'txt': return 'fas fa-file-alt';
+                    case 'jpg':
+                    case 'jpeg':
+                    case 'png':
+                    case 'gif':
+                    case 'webp': return 'fas fa-file-image';
+                    case 'mp4':
+                    case 'webm':
+                    case 'avi':
+                    case 'mov': return 'fas fa-file-video';
                     default: return 'fas fa-file';
                 }
             }
@@ -3072,6 +3265,15 @@
                 preview.appendChild(wrap);
             }
             
+            function addPreviewVideo(src){
+                const preview = document.getElementById('attachmentsPreview');
+                const wrap = document.createElement('div');
+                wrap.className = 'preview-item';
+                wrap.innerHTML = `<video src="${src}" class="preview-thumb" controls muted></video><button class="preview-remove">✕</button>`;
+                wrap.querySelector('.preview-remove').onclick = ()=>{ preview.removeChild(wrap); pendingAttachments = pendingAttachments.filter(a=>a.src!==src); };
+                preview.appendChild(wrap);
+            }
+
             function addPreviewYoutube(embed){
                 const preview = document.getElementById('attachmentsPreview');
                 const wrap = document.createElement('div');
@@ -3081,14 +3283,6 @@
                 preview.appendChild(wrap);
             }
             
-            function addPreviewLocation(location){
-                const preview = document.getElementById('attachmentsPreview');
-                const wrap = document.createElement('div');
-                wrap.className = 'location-chip';
-                wrap.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${location} <button class="preview-remove">✕</button>`;
-                wrap.querySelector('.preview-remove').onclick = ()=>{ preview.removeChild(wrap); pendingAttachments = pendingAttachments.filter(a=>a.text!==location); };
-                preview.appendChild(wrap);
-            }
             
             function addPreviewPoll(question, options){
                 const preview = document.getElementById('attachmentsPreview');
@@ -3163,66 +3357,269 @@
                         console.log('Abriendo modal de YouTube');
                         document.getElementById('youtubeModal').classList.add('show');
                         break;
-                    case 'location':
-                        console.log('Abriendo modal de ubicación');
-                        document.getElementById('locationModal').classList.add('show');
-                        break;
                     case 'poll':
                         console.log('Abriendo modal de encuesta');
                         document.getElementById('pollModal').classList.add('show');
                         break;
                 }
             }
-            document.getElementById('attachImage').addEventListener('change', (e)=>{
-                console.log('Archivo de imagen seleccionado:', e.target.files?.[0]);
+            document.getElementById('attachImage').addEventListener('change', async (e)=>{
+                console.log('Archivo de imagen/video seleccionado:', e.target.files?.[0]);
                 const file = e.target.files?.[0];
                 if(!file) return;
-                                 if(bytesToMB(file.size) > 10){ notifications.warning('Imagen supera 10MB'); return; }
-                console.log('Procesando imagen:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
-                const reader = new FileReader();
-                reader.onload = ()=>{
-                    console.log('Imagen procesada, agregando adjunto');
-                    pendingAttachments.push({ type:'image', src: reader.result }); 
-                    addPreviewImage(reader.result); 
-                };
-                reader.readAsDataURL(file);
+
+                if(bytesToMB(file.size) > 10){
+                    notifications.warning('Archivo supera 10MB');
+                    return;
+                }
+
+                console.log('Procesando archivo:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
+
+                try {
+                    // Mostrar indicador de carga
+                    notifications.info('Subiendo archivo...');
+
+                    // Determinar el tipo de archivo
+                    const isVideo = file.type.startsWith('video/');
+                    const fileType = isVideo ? 'video' : 'image';
+                    const folder = isVideo ? 'videos/' : 'images/';
+
+                    // Subir archivo al bucket de Supabase Storage
+                    const uploadResult = await uploadFileToStorage(file, folder);
+
+                    console.log('Archivo subido exitosamente, agregando adjunto');
+
+                    // Agregar a adjuntos pendientes con la URL del storage
+                    pendingAttachments.push({
+                        type: fileType,
+                        src: uploadResult.url,
+                        url: uploadResult.url,
+                        path: uploadResult.path,
+                        name: file.name
+                    });
+
+                    // Mostrar preview
+                    if (isVideo) {
+                        addPreviewVideo(uploadResult.url);
+                    } else {
+                        addPreviewImage(uploadResult.url);
+                    }
+
+                    notifications.success('Archivo subido correctamente');
+
+                } catch (error) {
+                    console.error('Error subiendo archivo:', error);
+                    notifications.error('Error subiendo archivo. Inténtalo de nuevo.');
+                }
+
                 e.target.value='';
             });
             // Remover esta línea ya que no existe el input attachPdf
             
-            document.getElementById('attachDocument').addEventListener('change', (e)=>{
+            document.getElementById('attachDocument').addEventListener('change', async (e)=>{
                 console.log('Archivo de documento seleccionado:', e.target.files?.[0]);
                 const file = e.target.files?.[0];
                 if(!file) return;
-                                 if(bytesToMB(file.size) > 10){ notifications.warning('Documento supera 10MB'); return; }
+
+                if(bytesToMB(file.size) > 10){
+                    notifications.warning('Documento supera 10MB');
+                    return;
+                }
+
                 console.log('Procesando documento:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
-                const reader = new FileReader();
-                reader.onload = ()=>{
-                    console.log('Documento procesado, agregando adjunto');
-                    pendingAttachments.push({ type:'document', name: file.name, dataUrl: reader.result }); 
-                    addPreviewDocument(file.name); 
-                };
-                reader.readAsDataURL(file);
+
+                try {
+                    // Mostrar indicador de carga
+                    notifications.info('Subiendo documento...');
+
+                    // Subir archivo al bucket de Supabase Storage
+                    const uploadResult = await uploadFileToStorage(file, 'documents/');
+
+                    console.log('Documento subido exitosamente, agregando adjunto');
+
+                    // Agregar a adjuntos pendientes con la URL del storage
+                    pendingAttachments.push({
+                        type: 'document',
+                        name: file.name,
+                        url: uploadResult.url,
+                        dataUrl: uploadResult.url, // Mantener compatibilidad con código existente
+                        path: uploadResult.path
+                    });
+
+                    addPreviewDocument(file.name);
+                    notifications.success('Documento subido correctamente');
+
+                } catch (error) {
+                    console.error('Error subiendo documento:', error);
+                    notifications.error('Error subiendo documento. Inténtalo de nuevo.');
+                }
+
                 e.target.value='';
             });
 
+            // Función para subir archivos a Supabase Storage (MODO PÚBLICO)
+            async function uploadFileToStorage(file, folder = '') {
+                try {
+                    // Verificar que Supabase esté disponible
+                    if (!window.supabase) {
+                        throw new Error('Supabase client no está disponible');
+                    }
+
+                    console.log('🔄 [UPLOAD] Iniciando subida en modo público (sin autenticación requerida)');
+
+                    // MODO PÚBLICO: Verificar autenticación de forma opcional
+                    let userInfo = 'anónimo';
+                    try {
+                        const { data: { session }, error: authError } = await window.supabase.auth.getSession();
+                        if (!authError && session?.user) {
+                            userInfo = session.user.email || session.user.id;
+                            console.log('✅ Usuario autenticado encontrado:', userInfo);
+                        } else {
+                            console.log('ℹ️ Subiendo como usuario anónimo (bucket público)');
+                        }
+                    } catch (authError) {
+                        console.log('ℹ️ Error verificando sesión (continuando en modo público):', authError.message);
+                    }
+
+                    // Generar nombre único para el archivo
+                    const timestamp = Date.now();
+                    const randomId = Math.random().toString(36).substring(2, 15);
+                    const fileExtension = file.name.split('.').pop();
+                    const fileName = `${folder}${timestamp}_${randomId}.${fileExtension}`;
+
+                    console.log(`📤 Subiendo archivo ${file.name} como ${fileName} al bucket community-thinks...`);
+                    console.log(`📊 Tamaño del archivo: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+                    console.log(`👤 Usuario: ${userInfo}`);
+
+                    // Verificar que el bucket existe
+                    try {
+                        const { data: buckets, error: bucketsError } = await window.supabase.storage.listBuckets();
+                        if (bucketsError) {
+                            console.warn('⚠️ Error verificando buckets:', bucketsError);
+                        } else {
+                            const bucket = buckets.find(b => b.name === 'community-thinks');
+                            if (!bucket) {
+                                throw new Error('Bucket community-thinks no encontrado');
+                            }
+                            console.log('✅ Bucket community-thinks verificado');
+                        }
+                    } catch (bucketError) {
+                        console.warn('⚠️ No se pudo verificar bucket, continuando:', bucketError.message);
+                    }
+
+                    // Subir archivo al bucket
+                    const { data, error } = await window.supabase.storage
+                        .from('community-thinks')
+                        .upload(fileName, file, {
+                            cacheControl: '3600',
+                            upsert: false
+                        });
+
+                    if (error) {
+                        console.error('❌ Error subiendo archivo:', error);
+                        console.error('📋 Detalles del error:', {
+                            message: error.message,
+                            statusCode: error.statusCode,
+                            error: error.error
+                        });
+
+                        // Proporcionar mensaje más específico según el error
+                        if (error.message && error.message.includes('row-level security policy')) {
+                            throw new Error('Error de permisos: El bucket no tiene las políticas de seguridad configuradas correctamente. Contacta al administrador.');
+                        } else if (error.message && error.message.includes('not found')) {
+                            throw new Error('Bucket no encontrado: Verifica que el bucket community-thinks existe en Supabase Storage.');
+                        } else {
+                            throw new Error(`Error subiendo archivo: ${error.message}`);
+                        }
+                    }
+
+                    console.log('✅ Archivo subido exitosamente al path:', data.path);
+
+                    // Obtener URL pública del archivo
+                    const { data: urlData } = window.supabase.storage
+                        .from('community-thinks')
+                        .getPublicUrl(fileName);
+
+                    console.log('✅ URL pública generada:', urlData.publicUrl);
+
+                    return {
+                        url: urlData.publicUrl,
+                        path: fileName
+                    };
+
+                } catch (error) {
+                    console.error('❌ Error en uploadFileToStorage:', error);
+                    throw error;
+                }
+            }
+
             function youtubeEmbed(url){
-                const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/);
-                return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+                console.log('🔍 Validando URL de YouTube:', url);
+                
+                // Limpiar URL de espacios y caracteres extraños
+                const cleanUrl = url.trim();
+                
+                // Regex más flexible que soporta múltiples formatos de YouTube
+                const patterns = [
+                    // youtube.com/watch?v= (con o sin www, http/https, con parámetros adicionales)
+                    /(?:https?:\/\/)?(?:www\.)?(?:m\.)?youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]{11})/i,
+                    // youtu.be/ (formato corto)
+                    /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})/i,
+                    // youtube.com/embed/ (formato embed)
+                    /(?:https?:\/\/)?(?:www\.)?(?:m\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/i,
+                    // youtube.com/v/ (formato antiguo)
+                    /(?:https?:\/\/)?(?:www\.)?(?:m\.)?youtube\.com\/v\/([a-zA-Z0-9_-]{11})/i,
+                    // youtube.com/shorts/ (formato shorts)
+                    /(?:https?:\/\/)?(?:www\.)?(?:m\.)?youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/i,
+                    // youtube.com/live/ (formato live/streaming)
+                    /(?:https?:\/\/)?(?:www\.)?(?:m\.)?youtube\.com\/live\/([a-zA-Z0-9_-]{11})/i
+                ];
+                
+                for (let i = 0; i < patterns.length; i++) {
+                    const pattern = patterns[i];
+                    console.log(`🧪 Probando patrón ${i + 1}:`, pattern);
+                    const match = cleanUrl.match(pattern);
+                    console.log('🎯 Resultado del match:', match);
+                    
+                    if (match && match[1]) {
+                        const videoId = match[1];
+                        const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                        console.log('✅ URL válida encontrada. Video ID:', videoId);
+                        console.log('🎬 URL de embed generada:', embedUrl);
+                        return embedUrl;
+                    }
+                }
+                
+                console.log('❌ No se encontró un patrón válido para la URL');
+                return null;
             }
 
             function renderAttachments(att){
                 if(!att || att.length===0) return '';
                 return `<div class='attachments-preview'>` + att.map(a=>{
-                     if(a.type==='image') return `<img src='${a.src}' class='preview-thumb' loading='lazy' alt='Imagen adjunta'>`;
-                     if(a.type==='youtube') return `<iframe width='240' height='135' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe>`;
-                    if(a.type==='pdf') return `<a href='${a.dataUrl}' target='_blank' class='pdf-chip'><i class='fas fa-file-pdf'></i> ${a.name}</a>`;
-                    if(a.type==='document') return `<a href='${a.dataUrl}' target='_blank' class='document-chip'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a>`;
+                     if(a.type==='image') return `<img src='${a.src || a.url}' class='preview-thumb' loading='lazy' alt='Imagen adjunta'>`;
+                     if(a.type==='video' && a.isYoutube) return `<iframe width='240' height='135' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe>`;
+                     if(a.type==='video') return `<video src='${a.src || a.url}' class='preview-thumb' controls loading='lazy' style='max-width: 240px; max-height: 135px;'></video>`;
+                    if(a.type==='pdf') return `<a href='${a.dataUrl || a.url}' target='_blank' class='pdf-chip'><i class='fas fa-file-pdf'></i> ${a.name}</a>`;
+                    if(a.type==='document') return `<a href='${a.dataUrl || a.url}' target='_blank' class='document-chip'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a>`;
                     if(a.type==='link') return `<a href='${a.url}' target='_blank' class='link-chip'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a>`;
-                    if(a.type==='location') return `<div class='location-chip'><i class='fas fa-map-marker-alt'></i> ${a.text}</div>`;
                     if(a.type==='poll') return `<div class='poll-chip'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div>`;
                     return '';
                 }).join('') + `</div>`;
+            }
+
+            function renderAttachmentsCentered(att){
+                if(!att || att.length===0) return '';
+                return att.map(a=>{
+                     if(a.type==='image') return `<div class="post-media-container"><img src='${a.src || a.url}' class='post-image' loading='lazy' alt='Imagen adjunta'></div>`;
+                     if(a.type==='video' && a.isYoutube) return `<div class="post-media-container"><iframe width='100%' height='315' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe></div>`;
+                     if(a.type==='video') return `<div class="post-media-container"><video src='${a.src || a.url}' class='post-video' controls loading='lazy'></video></div>`;
+                    if(a.type==='pdf') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='fas fa-file-pdf'></i> ${a.name}</a></div>`;
+                    if(a.type==='document') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a></div>`;
+                    if(a.type==='link') return `<div class="post-link-container"><a href='${a.url}' target='_blank' class='attachment-link'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a></div>`;
+                    if(a.type==='poll') return `<div class="post-document-container"><div class='attachment-link'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div></div>`;
+                    return '';
+                }).join('');
             }
 
             // resumen de reacciones
@@ -3240,6 +3637,193 @@
                 return icons.join(' ') + ' ' + total;
             }
 
+            // resumen de otras reacciones (excluyendo like)
+            function otherReactionsSummary(r){
+                if(!r) return '';
+                const otherReactions = {love: r.love, angry: r.angry, wow: r.wow, laugh: r.laugh, sad: r.sad};
+                const total = Object.values(otherReactions).reduce((a,b)=>a+(b||0),0);
+                if(total===0) return '';
+                const icons = [];
+                if(r.love) icons.push('❤️');
+                if(r.angry) icons.push('😠');
+                if(r.wow) icons.push('😮');
+                if(r.laugh) icons.push('😂');
+                if(r.sad) icons.push('😢');
+                return icons.join(' ') + ' ' + total;
+            }
+
+            // Variable para prevenir duplicaciones
+            const reactionInProgress = new Set();
+
+            // Aplicar reacción
+            async function applyReaction(postId, reactionType) {
+                // Crear una clave única para esta reacción
+                const reactionKey = `${postId}-${reactionType}`;
+                
+                // Si ya está en progreso, ignorar
+                if (reactionInProgress.has(reactionKey)) {
+                    console.log('⚠️ [REACTION] Reacción ya en progreso, ignorando:', reactionKey);
+                    return;
+                }
+                
+                // Marcar como en progreso
+                reactionInProgress.add(reactionKey);
+                
+                try {
+                    console.log('👍 [REACTION] Aplicando reacción:', { postId, reactionType });
+                    
+                    const supabaseReady = await window.waitForSupabase();
+                    if (!supabaseReady) {
+                        throw new Error('Supabase no disponible');
+                    }
+
+                    const userResult = await getCurrentUserForCommunity();
+                    if (!userResult.id) {
+                        throw new Error('Usuario no autenticado');
+                    }
+
+                    // Verificar si ya existe una reacción del usuario
+                    const { data: existingReaction, error: checkError } = await window.supabase
+                        .from('community_reactions')
+                        .select('*')
+                        .eq('post_id', postId)
+                        .eq('user_id', userResult.id)
+                        .maybeSingle();
+
+                    if (checkError) {
+                        throw checkError;
+                    }
+
+                    if (existingReaction) {
+                        // Si ya existe una reacción, actualizarla
+                        if (existingReaction.reaction_type === reactionType) {
+                            // Si es la misma reacción, quitarla (toggle)
+                            const { error: deleteError } = await window.supabase
+                                .from('community_reactions')
+                                .delete()
+                                .eq('post_id', postId)
+                                .eq('user_id', userResult.id);
+
+                            if (deleteError) {
+                                throw deleteError;
+                            }
+
+                            // Actualizar el post local
+                            const post = posts.find(p => p.id == postId || p.id === Number(postId));
+                            if (post) {
+                                post.reactions[reactionType] = Math.max(0, (post.reactions[reactionType] || 0) - 1);
+                                post.reacted = null;
+                                // Recalcular total de reacciones
+                                post.totalReactions = Object.values(post.reactions).reduce((sum, count) => sum + count, 0);
+                            }
+                        } else {
+                            // Si es una reacción diferente, actualizarla
+                            const { error: updateError } = await window.supabase
+                                .from('community_reactions')
+                                .update({ reaction_type: reactionType })
+                                .eq('post_id', postId)
+                                .eq('user_id', userResult.id);
+
+                            if (updateError) {
+                                throw updateError;
+                            }
+
+                            // Actualizar el post local
+                            const post = posts.find(p => p.id == postId || p.id === Number(postId));
+                            if (post) {
+                                // Restar la reacción anterior
+                                post.reactions[existingReaction.reaction_type] = Math.max(0, (post.reactions[existingReaction.reaction_type] || 0) - 1);
+                                // Sumar la nueva reacción
+                                post.reactions[reactionType] = (post.reactions[reactionType] || 0) + 1;
+                                post.reacted = reactionType;
+                                // Recalcular total de reacciones
+                                post.totalReactions = Object.values(post.reactions).reduce((sum, count) => sum + count, 0);
+                            }
+                        }
+                    } else {
+                        // Si no existe reacción, crear una nueva
+                        const { error: insertError } = await window.supabase
+                            .from('community_reactions')
+                            .insert({
+                                post_id: postId,
+                                user_id: userResult.id,
+                                reaction_type: reactionType
+                            });
+
+                        if (insertError) {
+                            throw insertError;
+                        }
+
+                        // Actualizar el post local
+                        const post = posts.find(p => p.id == postId || p.id === Number(postId));
+                        if (post) {
+                            post.reactions[reactionType] = (post.reactions[reactionType] || 0) + 1;
+                            post.reacted = reactionType;
+                            // Recalcular total de reacciones
+                            post.totalReactions = Object.values(post.reactions).reduce((sum, count) => sum + count, 0);
+                        }
+                    }
+
+                    // Actualizar contadores en tiempo real
+                    updateReactionCounters(postId);
+                    
+                    console.log('✅ [REACTION] Reacción aplicada exitosamente');
+                } catch (error) {
+                    console.error('❌ [REACTION] Error aplicando reacción:', error);
+                    if (typeof notifications !== 'undefined') {
+                        notifications.error('Error al aplicar reacción');
+                    }
+                } finally {
+                    // Limpiar el estado de progreso
+                    reactionInProgress.delete(reactionKey);
+                }
+            }
+
+            // Remover reacción
+            async function removeReaction(postId, reactionType) {
+                try {
+                    console.log('👍 [REACTION] Removiendo reacción:', { postId, reactionType });
+                    
+                    const supabaseReady = await window.waitForSupabase();
+                    if (!supabaseReady) {
+                        throw new Error('Supabase no disponible');
+                    }
+
+                    const userResult = await getCurrentUserForCommunity();
+                    if (!userResult.id) {
+                        throw new Error('Usuario no autenticado');
+                    }
+
+                    const { error } = await window.supabase
+                        .from('community_reactions')
+                        .delete()
+                        .eq('post_id', postId)
+                        .eq('user_id', userResult.id)
+                        .eq('reaction_type', reactionType);
+
+                    if (error) {
+                        throw error;
+                    }
+
+                    // Actualizar el post local
+                    const post = posts.find(p => p.id == postId || p.id === Number(postId));
+                    if (post) {
+                        post.reactions[reactionType] = Math.max(0, (post.reactions[reactionType] || 0) - 1);
+                        post.reacted = null;
+                    }
+
+                    // Re-renderizar posts
+                    renderPosts('all');
+                    
+                    console.log('✅ [REACTION] Reacción removida exitosamente');
+                } catch (error) {
+                    console.error('❌ [REACTION] Error removiendo reacción:', error);
+                    if (typeof notifications !== 'undefined') {
+                        notifications.error('Error al remover reacción');
+                    }
+                }
+            }
+
             // Modal de post
             async function openPostModal(id){
                 const modal = document.getElementById('postModal');
@@ -3248,6 +3832,9 @@
                 const post = posts.find(p=>p.id==id || p.id===Number(id));
 
                 console.log('💬 [MODAL] Buscando post con ID:', id, 'Encontrado:', !!post);
+
+                // Preservar contadores antes de abrir el modal
+                preserveCountersOnModalOpen(id);
 
                 if(!post) {
                     console.error('❌ [MODAL] Post no encontrado para ID:', id);
@@ -3309,6 +3896,28 @@
                             };
                         }));
                         console.log('✅ Comentarios cargados desde BD:', comments.length);
+                        
+                        // Actualizar el contador en el post principal
+                        const postInMainView = posts.find(p => p.id === id);
+                        if (postInMainView) {
+                            postInMainView.comments = comments;
+                            console.log('🔄 Actualizando contador de comentarios en vista principal:', comments.length);
+                            
+                            // Actualizar el contador en el DOM
+                            const commentCountEl = document.querySelector(`[data-id="${id}"] .comment-count`);
+                            if (commentCountEl) {
+                                commentCountEl.textContent = comments.length;
+                                console.log('✅ Contador de comentarios actualizado en DOM:', comments.length);
+                            }
+                            
+                            // También actualizar el contador de reacciones si es necesario
+                            const reactionCountEl = document.querySelector(`[data-id="${id}"] .reaction-count`);
+                            if (reactionCountEl && postInMainView.reactions) {
+                                const totalReactions = postInMainView.totalReactions || Object.values(postInMainView.reactions || {}).reduce((sum, count) => sum + count, 0);
+                                reactionCountEl.textContent = totalReactions;
+                                console.log('✅ Contador de reacciones actualizado en DOM:', totalReactions);
+                            }
+                        }
                     }
                 } catch (error) {
                     console.warn('⚠️ Error inesperado cargando comentarios:', error);
@@ -3319,7 +3928,7 @@
                     <div class="post-card">
                         <div class="post-avatar">
                             ${post.avatarUrl ?
-                                `<img src="${post.avatarUrl}" alt="${post.user}" class="post-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                `<img src="${post.avatarUrl}" alt="${post.user}" class="post-avatar-img" onerror="console.warn('⚠️ Avatar de post no se pudo cargar'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                  <i class="${post.avatar}" style="display:none;"></i>` :
                                 `<i class="${post.avatar}"></i>`
                             }
@@ -3446,7 +4055,7 @@
 
                         // Agregar comentario al post local
                         if (!post.comments) post.comments = [];
-                        post.comments.push({
+                        post.                        comments.push({
                             id: newComment.id,
                             user: userName,
                             time: 'ahora',
@@ -3524,7 +4133,7 @@
                 return `<div class='comment-item'>
                     <div class='comment-avatar'>
                         ${c.avatarUrl ?
-                            `<img src="${c.avatarUrl}" alt="${c.user}" class="comment-avatar-img" onerror="this.style.display='none';">
+                            `<img src="${c.avatarUrl}" alt="${c.user}" class="comment-avatar-img" onerror="console.warn('⚠️ Avatar de comentario no se pudo cargar'); this.style.display='none';">
                              <i class="fas fa-user" style="display:none;"></i>` :
                             `<i class="fas fa-user"></i>`
                         }
@@ -3677,7 +4286,12 @@
 
                         if (pendingAttachments.length > 0) {
                             const firstAttachment = pendingAttachments[0];
-                            attachmentUrl = firstAttachment.url || firstAttachment.src;
+                            // Para videos de YouTube, usar el embed URL
+                            if (firstAttachment.isYoutube && firstAttachment.embed) {
+                                attachmentUrl = firstAttachment.embed;
+                            } else {
+                                attachmentUrl = firstAttachment.url || firstAttachment.src;
+                            }
                             attachmentType = firstAttachment.type;
                         }
 
@@ -3954,6 +4568,131 @@
             // Cargar posts al inicializar
             initializePosts();
 
+            // Función de prueba para verificar contadores
+            window.testCounters = function() {
+                console.log('🧪 [TEST] Verificando contadores...');
+                console.log('Posts cargados:', posts.length);
+                posts.forEach((post, index) => {
+                    console.log(`Post ${index + 1}:`, {
+                        id: post.id,
+                        user: post.user,
+                        reactions: post.reactions,
+                        comments: post.comments,
+                        commentsLength: post.comments?.length || 0,
+                        likeCount: post.reactions?.like || 0
+                    });
+                });
+            };
+
+            // Función para forzar actualización de contadores
+            window.updateCounters = function() {
+                console.log('🔄 [UPDATE] Actualizando contadores en el DOM...');
+                posts.forEach(post => {
+                    const reactionCountEl = document.querySelector(`[data-id="${post.id}"] .reaction-count`);
+                    const commentCountEl = document.querySelector(`[data-id="${post.id}"] .comment-count`);
+                    
+                    if (reactionCountEl) {
+                        const totalReactions = post.totalReactions || Object.values(post.reactions || {}).reduce((sum, count) => sum + count, 0);
+                        reactionCountEl.textContent = totalReactions;
+                        console.log(`✅ Actualizado contador de reacciones para post ${post.id}: ${totalReactions}`);
+                    }
+                    
+                    if (commentCountEl) {
+                        const commentCount = post.comments?.length || 0;
+                        commentCountEl.textContent = commentCount;
+                        console.log(`✅ Actualizado contador de comentarios para post ${post.id}: ${commentCount}`);
+                    }
+                });
+            };
+
+            // Función para actualizar contadores después de cerrar modal
+            window.updateCountersAfterModal = function() {
+                console.log('🔄 [MODAL CLOSE] Actualizando contadores después de cerrar modal...');
+                setTimeout(() => {
+                    updateCounters();
+                }, 100);
+            };
+
+    // Función para preservar contadores al abrir modal
+    window.preserveCountersOnModalOpen = function(postId) {
+        console.log('🔄 [MODAL OPEN] Preservando contadores para post:', postId);
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+            // Asegurar que el total de reacciones esté calculado
+            if (!post.totalReactions) {
+                post.totalReactions = Object.values(post.reactions || {}).reduce((sum, count) => sum + count, 0);
+            }
+            console.log('✅ Contadores preservados - Total reacciones:', post.totalReactions, 'Comentarios:', post.comments?.length || 0);
+        }
+    };
+
+    // Función para actualizar contadores en tiempo real
+    window.updateReactionCounters = function(postId) {
+        console.log('🔄 [REALTIME] Actualizando contadores para post:', postId);
+        const post = posts.find(p => p.id === postId);
+        if (!post) {
+            console.error('❌ [REALTIME] Post no encontrado:', postId);
+            return;
+        }
+
+        // Actualizar contador de reacciones
+        const reactionCountEl = document.querySelector(`[data-id="${postId}"] .reaction-count`);
+        if (reactionCountEl) {
+            reactionCountEl.textContent = post.totalReactions || 0;
+            console.log('✅ [REALTIME] Contador de reacciones actualizado:', post.totalReactions);
+        }
+
+        // Actualizar texto del botón según la reacción
+        const btnTextEl = document.querySelector(`[data-id="${postId}"] .btn-text`);
+        if (btnTextEl) {
+            const reactionTexts = {
+                'like': 'Me gusta',
+                'love': 'Me encanta',
+                'wow': 'Me asombra',
+                'laugh': 'Me divierte',
+                'sad': 'Me entristece',
+                'angry': 'Me enoja'
+            };
+            btnTextEl.textContent = post.reacted ? reactionTexts[post.reacted] || 'Me gusta' : 'Me gusta';
+        }
+
+        // Actualizar clase del botón
+        const buttonEl = document.querySelector(`[data-id="${postId}"]`);
+        if (buttonEl) {
+            if (post.reacted) {
+                buttonEl.classList.add('reacted');
+            } else {
+                buttonEl.classList.remove('reacted');
+            }
+        }
+
+        console.log('✅ [REALTIME] Contadores actualizados para post:', postId);
+    };
+
+            // Función de debug específica para verificar datos de posts
+            window.debugPostData = function() {
+                console.log('🔍 [DEBUG] Verificando datos de posts...');
+                console.log('Total de posts:', posts.length);
+                
+                posts.forEach((post, index) => {
+                    console.log(`\n📝 Post ${index + 1} (ID: ${post.id}):`);
+                    console.log('  - User:', post.user);
+                    console.log('  - Reactions object:', post.reactions);
+                    console.log('  - Like count:', post.reactions?.like || 0);
+                    console.log('  - Comments array:', post.comments);
+                    console.log('  - Comments length:', post.comments?.length || 0);
+                    
+                    // Verificar elementos en el DOM
+                    const reactionCountEl = document.querySelector(`[data-id="${post.id}"] .reaction-count`);
+                    const commentCountEl = document.querySelector(`[data-id="${post.id}"] .comment-count`);
+                    
+                    console.log('  - DOM reaction count element:', reactionCountEl);
+                    console.log('  - DOM reaction count text:', reactionCountEl?.textContent);
+                    console.log('  - DOM comment count element:', commentCountEl);
+                    console.log('  - DOM comment count text:', commentCountEl?.textContent);
+                });
+            };
+
             // Variable GLOBAL para almacenar miembros
             window.members = [];
             var members = window.members; // Referencia local para compatibilidad
@@ -4180,7 +4919,7 @@
                 list.innerHTML = data.map(m=>`
                     <div class="member-card" data-user-id="${m.id || m.user_id}" style="cursor: pointer;">
                         <div class="member-avatar">
-                            ${m.avatar && m.avatar !== 'fas fa-user' && m.avatar.startsWith('http') ?
+                            ${m.avatar && m.avatar !== 'fas fa-user' && (m.avatar.startsWith('http') || m.avatar.startsWith('data:')) ?
                                 `<img src="${m.avatar}" alt="${m.name}" class="member-avatar-img" onerror="this.src='../assets/images/default-avatar.svg'; this.onerror=null;">` :
                                 `<i class="fas fa-user"></i>`
                             }
@@ -4197,7 +4936,7 @@
                                     <i class="fas fa-map-marker-alt"></i>
                                     <span>${m.location}</span>
                             </div>
-                                <div class="member-status-text">
+                                <div class="member-status-text" style="display: none;">
                                     ${m.online ? '<i class="fas fa-circle online-dot"></i>' : '<i class="fas fa-clock"></i>'}
                                     <span>${m.online ? 'En línea' : `Visto ${m.lastSeen}`}</span>
                                 </div>
@@ -4222,7 +4961,7 @@
                     const countElement = document.createElement('div');
                     countElement.className = 'members-count';
                     countElement.innerHTML = `
-                        <div class="count-info">
+                       <div class="count-info">
                             <span class="online-count">${onlineCount} en línea</span>
                             <span class="total-count">• ${totalCount} miembros total</span>
                         </div>
@@ -4295,7 +5034,7 @@
                                  <div class="post-card" data-open-post="${p.id}">
                                      <div class="post-avatar">
                                          ${p.avatarUrl ?
-                                             `<img src="${p.avatarUrl}" alt="${p.user}" class="post-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                             `<img src="${p.avatarUrl}" alt="${p.user}" class="post-avatar-img" onerror="console.warn('⚠️ Avatar de post filtrado no se pudo cargar'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                               <i class="${p.avatar}" style="display:none;"></i>` :
                                              `<i class="${p.avatar}"></i>`
                                          }
@@ -4900,17 +5639,24 @@
                 if (confirmYoutube) {
                 confirmYoutube.addEventListener('click', () => {
                     const ytUrl = youtubeInput.value.trim();
+                    console.log('🚀 Botón YouTube confirmado. URL ingresada:', ytUrl);
+                    
                     if (ytUrl) {
                         const embed = youtubeEmbed(ytUrl);
+                        console.log('🎥 Resultado de youtubeEmbed:', embed);
+                        
                         if (embed) {
-                            pendingAttachments.push({ type: 'youtube', embed });
+                            console.log('✅ URL válida, agregando adjunto');
+                            pendingAttachments.push({ type: 'video', embed, isYoutube: true });
                             addPreviewYoutube(embed);
                             closeYoutubeModalFunc();
                         } else {
-                                 notifications.error('Enlace de YouTube inválido. Asegúrate de que sea una URL válida de YouTube');
+                            console.log('❌ URL inválida, mostrando error');
+                            notifications.error('Enlace de YouTube inválido. Asegúrate de que sea una URL válida de YouTube');
                         }
-                         } else {
-                             notifications.warning('Por favor ingresa una URL de YouTube');
+                    } else {
+                        console.log('⚠️ URL vacía');
+                        notifications.warning('Por favor ingresa una URL de YouTube');
                     }
                 });
                 }
@@ -4927,42 +5673,6 @@
                 });
                 }
 
-                // Modal de ubicación
-                const locationModal = document.getElementById('locationModal');
-                const locationInput = document.getElementById('locationInput');
-                const confirmLocation = document.getElementById('confirmLocation');
-                const cancelLocation = document.getElementById('cancelLocation');
-                const closeLocationModal = document.getElementById('closeLocationModal');
-
-                function closeLocationModalFunc() {
-                    locationModal.classList.remove('show');
-                    locationInput.value = '';
-                }
-
-                if (confirmLocation) {
-                confirmLocation.addEventListener('click', () => {
-                    const location = locationInput.value.trim();
-                    if (location) {
-                        pendingAttachments.push({ type: 'location', text: location });
-                        addPreviewLocation(location);
-                        closeLocationModalFunc();
-                                                 } else {
-                             notifications.warning('Por favor ingresa una ubicación');
-                    }
-                });
-                }
-
-                if (cancelLocation) {
-                cancelLocation.addEventListener('click', closeLocationModalFunc);
-                }
-                if (closeLocationModal) {
-                closeLocationModal.addEventListener('click', closeLocationModalFunc);
-                }
-                if (locationModal) {
-                locationModal.addEventListener('click', (e) => {
-                    if (e.target === locationModal) closeLocationModalFunc();
-                });
-                }
 
                 // Modal de encuesta
                 const pollModal = document.getElementById('pollModal');
@@ -5651,7 +6361,7 @@
                 postDiv.innerHTML = `
                     <div class="post-header">
                         <div class="post-user">
-                            <img src="${post.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}" class="user-avatar">
+                            <img src="${isValidImageUrl(post.users?.profile_picture_url) ? post.users.profile_picture_url : '../assets/images/default-avatar.jpg'}" alt="${userName}" class="user-avatar">
                             <div class="user-info">
                                 <div class="user-name">${userName}</div>
                                 <div class="post-time">${timestamp}</div>
@@ -5669,19 +6379,20 @@
                         ${post.attachment_url ? this.renderAttachment(post) : ''}
                     </div>
                     <div class="post-footer">
-                        <div class="post-stats">
-                            <button class="reaction-btn" onclick="communitySystem.toggleReaction('${post.id}', 'like')">
+                        <div class="post-interactions">
+                            <button class="interaction-btn like-btn" onclick="communitySystem.toggleReaction('${post.id}', 'like')">
                                 <i class="fas fa-heart"></i>
+                                <span class="btn-text">Me gusta</span>
                                 <span class="reaction-count" id="reaction-count-${post.id}">${post.likes_count || 0}</span>
                             </button>
-                            <button class="comment-btn" onclick="communitySystem.showComments('${post.id}')">
+                            <button class="interaction-btn comment-btn" onclick="communitySystem.showComments('${post.id}')">
                                 <i class="fas fa-comment"></i>
+                                <span class="btn-text">Comentar</span>
                                 <span class="comment-count" id="comment-count-${post.id}">${post.comments_count || 0}</span>
                             </button>
-                        </div>
-                        <div class="post-actions">
-                            <button class="share-btn" onclick="communitySystem.sharePost('${post.id}')">
+                            <button class="interaction-btn share-btn" onclick="communitySystem.sharePost('${post.id}')">
                                 <i class="fas fa-share"></i>
+                                <span class="btn-text">Compartir</span>
                             </button>
                         </div>
                     </div>
@@ -5702,21 +6413,31 @@
                 
                 switch (post.attachment_type) {
                     case 'image':
-                        return `<img src="${post.attachment_url}" alt="Imagen adjunta" class="post-attachment">`;
+                        return `<div class="post-media-container">
+                            <img src="${post.attachment_url}" alt="Imagen adjunta" class="post-attachment post-image">
+                        </div>`;
                     case 'video':
-                        return `<video src="${post.attachment_url}" controls class="post-attachment"></video>`;
+                        return `<div class="post-media-container">
+                            <video src="${post.attachment_url}" controls class="post-attachment post-video"></video>
+                        </div>`;
                     case 'document':
-                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                        return `<div class="post-document-container">
+                            <a href="${post.attachment_url}" target="_blank" class="attachment-link">
                             <i class="fas fa-file"></i> Ver documento
-                        </a>`;
+                            </a>
+                        </div>`;
                     case 'link':
-                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                        return `<div class="post-link-container">
+                            <a href="${post.attachment_url}" target="_blank" class="attachment-link">
                             <i class="fas fa-link"></i> ${post.attachment_url}
-                        </a>`;
+                            </a>
+                        </div>`;
                     default:
-                        return `<a href="${post.attachment_url}" target="_blank" class="attachment-link">
+                        return `<div class="post-document-container">
+                            <a href="${post.attachment_url}" target="_blank" class="attachment-link">
                             <i class="fas fa-paperclip"></i> Ver adjunto
-                        </a>`;
+                            </a>
+                        </div>`;
                 }
             }
 
@@ -5742,7 +6463,7 @@
                 
                 commentDiv.innerHTML = `
                     <div class="comment-header">
-                        <img src="${comment.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}" class="user-avatar small">
+                        <img src="${isValidImageUrl(comment.users?.profile_picture_url) ? comment.users.profile_picture_url : '../assets/images/default-avatar.jpg'}" alt="${userName}" class="user-avatar small">
                         <div class="comment-info">
                             <div class="user-name">${userName}</div>
                             <div class="comment-time">${timestamp}</div>
@@ -5794,7 +6515,7 @@
                     membersContainer.innerHTML = this.members.map(m => `
                         <div class="member-card" data-user-id="${m.id || m.user_id}" style="cursor: pointer;">
                             <div class="member-avatar">
-                                ${m.avatar && m.avatar.startsWith('http') ?
+                                ${isValidImageUrl(m.avatar) ?
                                     `<img src="${m.avatar}" alt="${m.name}" class="member-avatar-img" onerror="this.src='../assets/images/default-avatar.svg'; this.onerror=null;">` :
                                     `<i class="fas fa-user"></i>`
                                 }
@@ -5811,7 +6532,7 @@
                                         <i class="fas fa-map-marker-alt"></i>
                                         <span>${m.location}</span>
                                     </div>
-                                    <div class="member-status-text">
+                                    <div class="member-status-text" style="display: none;">
                                         ${m.online ? '<i class="fas fa-circle online-dot"></i>' : '<i class="fas fa-clock"></i>'}
                                         <span>${m.online ? 'En línea' : `Visto ${m.lastSeen}`}</span>
                                     </div>
@@ -5835,7 +6556,7 @@
                 
                 memberDiv.innerHTML = `
                     <div class="member-avatar">
-                        <img src="${member.users?.profile_picture_url || '../assets/images/default-avatar.jpg'}" alt="${userName}">
+                        <img src="${isValidImageUrl(member.users?.profile_picture_url) ? member.users.profile_picture_url : '../assets/images/default-avatar.jpg'}" alt="${userName}">
                         <div class="online-indicator"></div>
                     </div>
                     <div class="member-info">
@@ -7447,7 +8168,7 @@
             // Limpiar clases anteriores
             avatarContainer.classList.remove('has-image');
             
-            // Verificar si el usuario tiene imagen válida
+            // Verificar si el usuario tiene imagen válida (versión menos estricta para perfil)
             const hasValidImage = user.profile_picture_url && 
                                  user.profile_picture_url.trim() !== '' && 
                                  user.profile_picture_url !== 'null' &&
@@ -7529,7 +8250,7 @@
 
             // 6. Avatar
             const avatarImg = document.getElementById('userProfileAvatar');
-            if (avatarImg && user.profile_picture_url) {
+            if (avatarImg && user.profile_picture_url && user.profile_picture_url.trim() !== '') {
                 avatarImg.src = user.profile_picture_url;
                 avatarImg.style.display = 'block';
             }
@@ -8961,6 +9682,12 @@
             }
 
             setAvatar(avatarUrl) {
+                // Validación menos estricta para mejorar compatibilidad del perfil
+                if (!avatarUrl || avatarUrl.trim() === '' || avatarUrl === 'null') {
+                    console.log('ℹ️ [AVATAR] URL de avatar vacía o nula, usando fallback');
+                    return;
+                }
+                
                 // Crear objeto usuario temporal para usar la función mejorada
                 const tempUser = { profile_picture_url: avatarUrl };
                 updateProfileAvatar(tempUser);

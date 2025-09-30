@@ -344,6 +344,7 @@ app.get('/api/analysis-messages', async (req, res) => {
 });
 
 app.use(express.static('src'));
+app.use(express.static(__dirname)); // Servir archivos desde la raíz también
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Servir prompts para depuración/inspección (protegido por API en endpoints abajo)
 app.use('/prompts', express.static(path.join(__dirname, 'prompts')));
@@ -518,12 +519,14 @@ function getPrompts() {
     return { system, style, tools, safety, useCases, examples, combined };
 }
 
-// Configuración de almacenamiento para audio (Multer)
+// Configuración de almacenamiento (Multer)
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir);
 }
-const storage = multer.diskStorage({
+
+// Storage específico para archivos de audio
+const audioStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, uploadsDir);
     },
@@ -532,8 +535,23 @@ const storage = multer.diskStorage({
         cb(null, `audio_${uuidv4()}${ext}`);
     }
 });
+
+// Storage específico para archivos de perfil (avatares/documentos)
+const profileStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadsDir);
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname) || '.jpg';
+        const isImage = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.mimetype);
+        const prefix = isImage ? 'avatar' : 'profile';
+        cb(null, `${prefix}_${uuidv4()}${ext}`);
+    }
+});
+
+// Multer para archivos de audio
 const upload = multer({
-    storage,
+    storage: audioStorage,
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
     fileFilter: (req, file, cb) => {
         const allowed = ['audio/webm', 'audio/ogg', 'audio/mpeg', 'audio/wav', 'video/webm'];
@@ -544,7 +562,7 @@ const upload = multer({
 
 // Multer para imágenes/documentos del perfil
 const uploadGeneral = multer({
-    storage,
+    storage: profileStorage,
     limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         const allowed = [
@@ -1426,6 +1444,106 @@ app.post('/api/update-profile', async (req, res) => {
     }
 });
 
+// Endpoint para actualizar avatar de usuario
+app.post('/api/update-avatar', async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(500).json({ error: 'Base de datos no configurada' });
+        }
+
+        const { user_id, username, email, profile_picture_url } = req.body || {};
+        
+        // Validaciones
+        if (!profile_picture_url) {
+            return res.status(400).json({ error: 'profile_picture_url es requerido' });
+        }
+
+        if (!user_id && !username && !email) {
+            return res.status(400).json({ error: 'Se requiere user_id, username o email para identificar al usuario' });
+        }
+
+        console.log('🖼️ Actualizando avatar:', { 
+            user_id: user_id ? user_id.substring(0, 8) + '...' : null, 
+            username, 
+            email,
+            profile_picture_type: profile_picture_url.startsWith('data:') ? 'base64' : 'url',
+            profile_picture_size: profile_picture_url.length
+        });
+
+        // Verificar que existe la columna profile_picture_url
+        let hasProfilePictureUrl = false;
+        try {
+            const cols = await pool.query(`
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'users' 
+                AND column_name = 'profile_picture_url'
+            `);
+            hasProfilePictureUrl = cols.rows.length > 0;
+        } catch (e) {
+            console.error('Error verificando columna profile_picture_url:', e);
+        }
+
+        if (!hasProfilePictureUrl) {
+            // La columna no existe, necesitamos crearla
+            try {
+                await pool.query(`
+                    ALTER TABLE users 
+                    ADD COLUMN profile_picture_url TEXT
+                `);
+                console.log('✅ Columna profile_picture_url creada');
+            } catch (alterError) {
+                console.error('❌ Error creando columna profile_picture_url:', alterError);
+                return res.status(500).json({ error: 'Error configurando base de datos para avatares' });
+            }
+        }
+
+        // Construir query de actualización usando múltiples identificadores
+        let query, params;
+        if (user_id) {
+            query = 'UPDATE users SET profile_picture_url = $1 WHERE id = $2 RETURNING id, username, email, profile_picture_url';
+            params = [profile_picture_url, user_id];
+        } else if (username) {
+            query = 'UPDATE users SET profile_picture_url = $1 WHERE username = $2 RETURNING id, username, email, profile_picture_url';
+            params = [profile_picture_url, username];
+        } else if (email) {
+            query = 'UPDATE users SET profile_picture_url = $1 WHERE email = $2 RETURNING id, username, email, profile_picture_url';
+            params = [profile_picture_url, email];
+        }
+
+        const result = await pool.query(query, params);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        const updatedUser = result.rows[0];
+        
+        console.log('✅ Avatar actualizado correctamente:', {
+            id: updatedUser.id,
+            username: updatedUser.username,
+            email: updatedUser.email,
+            has_avatar: !!updatedUser.profile_picture_url,
+            avatar_type: updatedUser.profile_picture_url?.startsWith('data:') ? 'base64' : 'url'
+        });
+
+        return res.status(200).json({ 
+            ok: true, 
+            message: 'Foto de perfil actualizada correctamente',
+            user: {
+                id: updatedUser.id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                profile_picture_url: updatedUser.profile_picture_url
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Error actualizando avatar:', error);
+        return res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
+    }
+});
+
 // Endpoint seguro para obtener los prompts actuales
 app.get('/api/prompts', authenticateRequest, (req, res) => {
     try {
@@ -1434,6 +1552,77 @@ app.get('/api/prompts', authenticateRequest, (req, res) => {
     } catch (error) {
         console.error('Error obteniendo prompts:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Endpoint para obtener noticias
+app.get('/api/news', async (req, res) => {
+    try {
+        // Si Supabase no está disponible, devolver datos de prueba
+        if (!supabase) {
+            console.log('🔄 Usando datos de prueba (Supabase no disponible)');
+            const mockNews = getMockNews();
+            return res.json({
+                success: true,
+                news: mockNews,
+                total: mockNews.length,
+                message: 'Noticias de prueba obtenidas exitosamente'
+            });
+        }
+
+        // Consultar noticias publicadas ordenadas por fecha desde Supabase
+        const { data: news, error } = await supabase
+            .from('news')
+            .select('*')
+            .eq('status', 'published')
+            .order('published_at', { ascending: false });
+
+        if (error) {
+            console.error('Error consultando noticias desde Supabase:', error);
+            return res.status(500).json({
+                error: 'Error al consultar noticias',
+                details: error.message
+            });
+        }
+
+        // Mapear datos de BD al formato esperado por el frontend
+        const mappedNews = news.map(newsItem => ({
+            id: newsItem.id,
+            title: newsItem.title,
+            excerpt: newsItem.subtitle || newsItem.intro || '',
+            category: 'tecnologia', // Por defecto
+            categoryLabel: 'Tecnología',
+            author: 'Sistema',
+            date: newsItem.published_at,
+            views: 0,
+            comments: 0,
+            image: newsItem.hero_image_url || 'fas fa-newspaper',
+            featured: false,
+            hasDetailedView: true,
+            detailedData: {
+                tldr: newsItem.tldr || [],
+                suggestedSteps: newsItem.sections?.steps || [],
+                risks: newsItem.sections?.risks || [],
+                resources: newsItem.links || [],
+                whyMatters: newsItem.sections?.whyMatters || [],
+                whatChanged: newsItem.sections?.whatChanged || [],
+                impact: newsItem.sections?.impact || [],
+                cta: newsItem.cta?.text || 'Leer más'
+            }
+        }));
+
+        res.json({
+            success: true,
+            news: mappedNews,
+            total: mappedNews.length
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo noticias:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            message: error.message
+        });
     }
 });
 
@@ -7198,5 +7387,158 @@ app.use((req, res) => {
     console.log(`❌ Ruta no encontrada: ${req.method} ${req.path}`);
     res.status(404).json({ error: 'Ruta no encontrada' });
 });
+
+// Función para generar datos de prueba cuando Supabase no está disponible
+function getMockNews() {
+    return [
+        {
+            id: '1',
+            title: 'Nuevas funcionalidades de IA en Chat-Bot-LIA',
+            subtitle: 'Descubre las últimas mejoras en inteligencia artificial para profesionales',
+            excerpt: 'Chat-Bot-LIA ha implementado nuevas funcionalidades de IA que mejoran significativamente la experiencia del usuario.',
+            category: 'ia',
+            categoryLabel: 'Inteligencia Artificial',
+            author: 'Chat-Bot-LIA',
+            date: new Date().toISOString(),
+            image: 'fas fa-brain',
+            views: 1250,
+            comments: 23,
+            featured: true,
+            hasDetailedView: true,
+            detailedData: {
+                tldr: [
+                    'Nuevas funcionalidades de IA implementadas',
+                    'Mejora en la precisión de respuestas',
+                    'Interfaz más intuitiva'
+                ],
+                suggestedSteps: [
+                    'Explorar las nuevas funciones en el dashboard',
+                    'Probar las mejoras en el chat',
+                    'Revisar la documentación actualizada'
+                ],
+                risks: [
+                    'Posibles cambios en el flujo de trabajo',
+                    'Necesidad de capacitación adicional'
+                ],
+                resources: [
+                    { url: '#', label: 'Documentación de nuevas funciones' },
+                    { url: '#', label: 'Tutorial en video' }
+                ],
+                whyMatters: [
+                    'Mejora la productividad de los usuarios',
+                    'Mantiene la competitividad del sistema'
+                ],
+                whatChanged: [
+                    'Algoritmo de IA actualizado',
+                    'Nueva interfaz de usuario',
+                    'Mejores tiempos de respuesta'
+                ],
+                impact: [
+                    'Aumento del 30% en la satisfacción del usuario',
+                    'Reducción del 25% en el tiempo de respuesta'
+                ],
+                cta: 'Probar nuevas funciones'
+            }
+        },
+        {
+            id: '2',
+            title: 'Actualización del sistema de cursos',
+            subtitle: 'Nuevas mejoras en la plataforma educativa',
+            excerpt: 'Hemos actualizado el sistema de cursos con nuevas funcionalidades y mejoras en la experiencia de aprendizaje.',
+            category: 'educacion',
+            categoryLabel: 'Educación',
+            author: 'Chat-Bot-LIA',
+            date: new Date(Date.now() - 86400000).toISOString(), // Ayer
+            image: 'fas fa-graduation-cap',
+            views: 890,
+            comments: 15,
+            featured: false,
+            hasDetailedView: true,
+            detailedData: {
+                tldr: [
+                    'Sistema de cursos actualizado',
+                    'Nuevas herramientas de evaluación',
+                    'Mejor seguimiento del progreso'
+                ],
+                suggestedSteps: [
+                    'Revisar los cursos actualizados',
+                    'Explorar las nuevas herramientas',
+                    'Actualizar el perfil de aprendizaje'
+                ],
+                risks: [
+                    'Posible necesidad de reconfigurar preferencias',
+                    'Cambios en la interfaz pueden requerir adaptación'
+                ],
+                resources: [
+                    { url: '#', label: 'Guía de nuevos cursos' },
+                    { url: '#', label: 'FAQ actualizada' }
+                ],
+                whyMatters: [
+                    'Mejora la experiencia de aprendizaje',
+                    'Facilita el seguimiento del progreso'
+                ],
+                whatChanged: [
+                    'Nueva interfaz de cursos',
+                    'Sistema de evaluación mejorado',
+                    'Mejor tracking de progreso'
+                ],
+                impact: [
+                    'Aumento del 40% en la retención de estudiantes',
+                    'Mejora del 35% en las calificaciones'
+                ],
+                cta: 'Explorar cursos'
+            }
+        },
+        {
+            id: '3',
+            title: 'Evento: Conferencia de IA 2024',
+            subtitle: 'Únete a la conferencia más importante del año sobre inteligencia artificial',
+            excerpt: 'No te pierdas la conferencia anual de IA donde expertos compartirán las últimas tendencias y avances.',
+            category: 'eventos',
+            categoryLabel: 'Eventos',
+            author: 'Chat-Bot-LIA',
+            date: new Date(Date.now() - 172800000).toISOString(), // Hace 2 días
+            image: 'fas fa-calendar-alt',
+            views: 2100,
+            comments: 45,
+            featured: true,
+            hasDetailedView: true,
+            detailedData: {
+                tldr: [
+                    'Conferencia anual de IA 2024',
+                    'Expertos internacionales',
+                    'Networking y aprendizaje'
+                ],
+                suggestedSteps: [
+                    'Registrarse en el evento',
+                    'Revisar la agenda de ponencias',
+                    'Preparar preguntas para los expertos'
+                ],
+                risks: [
+                    'Cupo limitado',
+                    'Posible cambio de fechas'
+                ],
+                resources: [
+                    { url: '#', label: 'Registro al evento' },
+                    { url: '#', label: 'Agenda completa' }
+                ],
+                whyMatters: [
+                    'Oportunidad de networking',
+                    'Acceso a conocimiento de vanguardia'
+                ],
+                whatChanged: [
+                    'Nuevos ponentes confirmados',
+                    'Agenda actualizada',
+                    'Nuevas modalidades de participación'
+                ],
+                impact: [
+                    'Más de 500 profesionales registrados',
+                    '15 ponentes internacionales'
+                ],
+                cta: 'Registrarse ahora'
+            }
+        }
+    ];
+}
 
 module.exports = app;

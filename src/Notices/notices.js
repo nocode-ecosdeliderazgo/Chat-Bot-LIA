@@ -17,7 +17,6 @@ class NoticesPage {
     init() {
         this.setupEventListeners();
         this.loadNewsData();
-        this.updateStats();
         this.setupAnimations();
         this.fillUserHeader();
         this.setupThemeListener();
@@ -308,14 +307,34 @@ class NoticesPage {
     }
 
     // ===== DATA LOADING =====
-    loadNewsData() {
+    async loadNewsData() {
+        console.log('📡 Loading news data...');
         this.showLoading();
 
-        // TODO: Implementar carga desde BD
-        // Por ahora, inicializar con arrays vacíos
-        this.allNews = [];
-        this.filteredNews = [];
+        try {
+            // Intentar cargar desde API
+            const response = await fetch('/api/news');
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ API Response:', data);
+                this.allNews = data.news || [];
+                this.filteredNews = [...this.allNews];
+                console.log('📰 Loaded news:', this.allNews.length, 'articles');
+            } else {
+                console.warn('Error cargando noticias desde API:', response.status);
+                this.allNews = [];
+                this.filteredNews = [];
+            }
+        } catch (error) {
+            console.error('Error conectando con API de noticias:', error);
+            // Fallback: inicializar con arrays vacíos
+            this.allNews = [];
+            this.filteredNews = [];
+        }
+
         this.renderNews();
+        this.updateStats();
         this.hideLoading();
     }
 
@@ -348,7 +367,7 @@ class NoticesPage {
                     <h3 class="featured-title">${news.title}</h3>
                     <p class="featured-excerpt">${news.excerpt}</p>
                     <div class="featured-actions">
-                        <a href="#" class="read-more" onclick="noticesPage.readNews(${news.id})">
+                        <a href="#" class="read-more" onclick="noticesPage.readNews('${news.id}')">
                             Leer más <i class="fas fa-arrow-right"></i>
                         </a>
                         <div class="featured-stats">
@@ -385,7 +404,7 @@ class NoticesPage {
                     <h3 class="news-title">${news.title}</h3>
                     <p class="news-excerpt">${news.excerpt}</p>
                     <div class="news-actions">
-                        <a href="#" class="read-more-btn" onclick="noticesPage.readNews(${news.id})">
+                        <a href="#" class="read-more-btn" onclick="noticesPage.readNews('${news.id}')">
                             Leer más
                         </a>
                         <div class="news-stats">
@@ -411,7 +430,7 @@ class NoticesPage {
                     <h3 class="news-title">${news.title}</h3>
                     <p class="news-excerpt">${news.excerpt}</p>
                     <div class="news-actions">
-                        <a href="#" class="read-more-btn" onclick="noticesPage.readNews(${news.id})">
+                        <a href="#" class="read-more-btn" onclick="noticesPage.readNews('${news.id}')">
                             Leer más
                         </a>
                         <div class="news-stats">
@@ -678,37 +697,44 @@ class NoticesPage {
     }
 
     readNews(newsId) {
-        // Simulate reading a news article
+        console.log('🗞️ readNews called with ID:', newsId);
         const news = this.allNews.find(n => n.id === newsId);
+        console.log('📰 Found news:', news);
         if (news) {
             // Si la noticia tiene vista detallada, abrir el modal
             if (news.hasDetailedView && news.detailedData) {
+                console.log('✅ Opening detailed modal for:', news.title);
                 this.openDetailedNewsModal(news);
             } else {
+                console.log('⚠️ No detailed view for news:', news.title);
                 this.showToast(`Leyendo: ${news.title}`, 'info');
                 // Here you would typically navigate to a news detail page
                 // or open a modal with the full article
             }
+        } else {
+            console.error('❌ News not found with ID:', newsId);
         }
     }
 
     openDetailedNewsModal(news) {
-        // console.log('🗞️ Abriendo modal detallado para:', news.title);
-        
+        console.log('🗞️ Abriendo modal detallado para:', news.title);
+
         const modal = document.getElementById('newsModal');
         if (!modal) {
-            // console.error('❌ Modal no encontrado');
+            console.error('❌ Modal no encontrado');
             return;
         }
 
+        console.log('📋 Modal found, updating content...');
         // Actualizar el contenido del modal con los datos de la noticia
         this.updateModalContent(news);
-        
+
         // Mostrar el modal
+        console.log('👁️ Making modal visible...');
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        
-        // console.log('✅ Modal detallado abierto exitosamente');
+
+        console.log('✅ Modal detallado abierto exitosamente');
     }
 
     updateModalContent(news) {
@@ -751,14 +777,17 @@ class NoticesPage {
         // Actualizar recursos
         const resourcesList = modal.querySelector('.resources-list');
         if (resourcesList && data.resources) {
-            const resourceLinks = [
-                'https://cursor.com/blog/tab-rl',
-                'https://github.com/search?q=policy+gradient+methods',
-                'https://arxiv.org/search/?query=reinforcement+learning&searchtype=all'
-            ];
-            resourcesList.innerHTML = data.resources.map((resource, index) => 
-                `<li><a href="${resourceLinks[index]}" target="_blank">${resource}</a></li>`
-            ).join('');
+            resourcesList.innerHTML = data.resources.map(resource => {
+                // Si el recurso es un objeto con url y label, usarlo
+                if (typeof resource === 'object' && resource.url && resource.label) {
+                    return `<li><a href="${resource.url}" target="_blank">${resource.label}</a></li>`;
+                }
+                // Si es string (fallback), usar un enlace genérico
+                else if (typeof resource === 'string') {
+                    return `<li><a href="#" target="_blank">${resource}</a></li>`;
+                }
+                return '';
+            }).join('');
         }
 
         // Actualizar "Por qué importa"
