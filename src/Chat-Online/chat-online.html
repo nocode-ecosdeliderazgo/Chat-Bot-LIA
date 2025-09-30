@@ -7428,58 +7428,38 @@ INSTRUCCIONES:
                             // Determinar URL de API según el entorno
 
                             const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                            const isNetlify = window.location.hostname.includes('netlify.app') || window.location.hostname.includes('netlify.com');
+                            const isNetlify = window.location.hostname.includes('netlify.app') ||
+                                             window.location.hostname.includes('netlify.com') ||
+                                             window.location.hostname === 'aprendeyaplica.ai' ||
+                                             window.location.hostname === 'www.aprendeyaplica.ai';
 
                             const currentPort = window.location.port;
 
                             let apiUrl;
 
-
-
                             console.log('[LIA] 🔍 Debugging URL:');
-
                             console.log('[LIA] 🌐 Hostname:', window.location.hostname);
-
                             console.log('[LIA] 🔌 Puerto detectado:', currentPort);
-
                             console.log('[LIA] 🏠 Es localhost:', isLocalhost);
                             console.log('[LIA] 🌐 Es Netlify:', isNetlify);
 
-
-
                             // Lógica mejorada para detección de entorno
-
                             if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
-
                                 apiUrl = '/api/openai';  // Servidor Express local
-
                                 console.log('[LIA] ✅ Usando servidor Express local (puerto 3000)');
-
                             } else if (isLocalhost && currentPort === '8888') {
-
                                 apiUrl = '/.netlify/functions/openai';  // Para Netlify Dev
-
                                 console.log('[LIA] ✅ Usando Netlify Dev local');
-
                             } else if (isNetlify) {
-
                                 apiUrl = '/.netlify/functions/openai';  // Netlify en producción
-
                                 console.log('[LIA] ✅ Usando Netlify Functions en producción');
-
                             } else if (isLocalhost) {
-
                                 apiUrl = '/api/openai';  // Fallback local
-
                                 console.log('[LIA] ✅ Usando fallback local Express');
-
                             } else {
-
                                 // Para otros entornos de producción (Heroku, etc.)
                                 apiUrl = '/api/openai';  // Servidor Express en producción
-
                                 console.log('[LIA] ✅ Usando servidor Express en producción');
-
                             }
 
                             
