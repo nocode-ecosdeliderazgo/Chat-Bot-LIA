@@ -5,8 +5,8 @@ html, body {
 }
 
 body {
-    width: 1280px;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
     font-family: 'Inter', sans-serif;
     background: linear-gradient(160deg, #06182A 0%, #0B1220 100%);
     color: #ffffff;
@@ -135,6 +135,21 @@ body {
     transition: background 0.3s ease, color 0.3s ease;
 }
 
+/* Contenedor principal para centrar todo el contenido */
+.page-wrapper {
+    width: 1280px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* Auth container para compatibilidad con partículas */
+.auth-container {
+    width: 1280px;
+    margin: 0 auto;
+    position: relative;
+    min-height: 100vh;
+}
+
 /* Asegurar transiciones suaves para el cambio de tema */
 .theme-transitioning {
     transition: all 0.3s ease !important;
@@ -159,7 +174,7 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 var(--spacing-md);
+    padding: 0 20px;
 }
 
 /* ===== NAVIGATION BAR ===== */
@@ -186,7 +201,7 @@ body {
 .header-profile { 
     position: fixed !important; 
     top: 12px !important;
-    right: 16px !important; 
+    right: calc(50% - 640px + 20px) !important; /* Centrado respecto al contenedor de 1280px */
     left: auto !important;
     z-index: 1001; 
     width: 56px;
@@ -247,7 +262,7 @@ body {
 .bg-glow-global .header-profile {
     position: fixed !important;
     top: 12px !important;
-    right: 16px !important;
+    right: calc(50% - 640px + 20px) !important; /* Centrado respecto al contenedor de 1280px */
     left: auto !important;
     width: 56px;
     height: 56px;
@@ -258,7 +273,7 @@ body {
 .profile-menu { 
     position: fixed !important; 
     top: 76px !important; 
-    right: 16px !important; 
+    right: calc(50% - 640px + 20px) !important; /* Centrado respecto al contenedor de 1280px */
     left: auto !important;
     width: 260px; 
     background: rgba(10,16,28,.96); 
@@ -1070,6 +1085,10 @@ body[data-theme="light"] .bg-glow-global::before,
 /* ===== MAIN CONTENT ===== */
 .main-content {
     margin-top: 0;
+    width: 100%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* ===== HERO SECTION ===== */
@@ -1080,6 +1099,7 @@ body[data-theme="light"] .bg-glow-global::before,
     position: relative;
     overflow: hidden;
     border-bottom: 1px solid rgba(0, 102, 204, 0.1);
+    width: 100%;
 }
 
 .hero-container {
@@ -1174,6 +1194,7 @@ body[data-theme="light"] .bg-glow-global::before,
 .latest-section,
 .newsletter-section {
     padding: var(--spacing-xxl) 0;
+    width: 100%;
 }
 
 .section-header {
