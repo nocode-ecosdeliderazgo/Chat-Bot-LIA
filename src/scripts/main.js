@@ -3316,8 +3316,8 @@ function getUserAuthHeaders() {
         // // console.log('[AUTH DEBUG] Token completo:', token);
         // // console.log('[AUTH DEBUG] UserId:', userId || 'NO USER ID');
         // console.log('[AUTH DEBUG] Token source:', localStorage.getItem('userToken') ? 'userToken' : 
-                   sessionStorage.getItem('authToken') ? 'authToken(session)' : 
-                   localStorage.getItem('authToken') ? 'authToken(local)' : 'none');
+        //            sessionStorage.getItem('authToken') ? 'authToken(session)' : 
+        //            localStorage.getItem('authToken') ? 'authToken(local)' : 'none');
         
         // Verificar si el token contiene la firma de desarrollo
         if (token) {
@@ -4602,10 +4602,10 @@ function initializeLivestreamChat() {
         
         // Verificar estado del selector después de la conexión
         // console.log('[LIVESTREAM] Estado del selector después de conexión:', {
-            messageType: livestreamChatState.messageType,
-            selectorExists: !!document.getElementById('messageTypeSelector'),
-            buttonsExist: document.querySelectorAll('#messageTypeSelector .type-btn').length
-        });
+        //     messageType: livestreamChatState.messageType,
+        //     selectorExists: !!document.getElementById('messageTypeSelector'),
+        //     buttonsExist: document.querySelectorAll('#messageTypeSelector .type-btn').length
+        // });
     });
 
     livestreamSocket.on('disconnect', () => {
@@ -4783,11 +4783,11 @@ function initializeLivestreamChat() {
             sendBtn.disabled = !hasMessage || !hasType;
             
             // console.log('[LIVESTREAM] Actualizando botón de envío:', {
-                hasMessage,
-                hasType,
-                disabled: sendBtn.disabled,
-                messageType: livestreamChatState.messageType
-            });
+            //     hasMessage,
+            //     hasType,
+            //     disabled: sendBtn.disabled,
+            //     messageType: livestreamChatState.messageType
+            // });
         }
     }
     
@@ -4808,11 +4808,11 @@ function initializeLivestreamChat() {
             // Verificar si el botón está visible
             const style = window.getComputedStyle(liaBtn);
             // console.log('[TEST] Visibilidad del botón:', {
-                display: style.display,
-                visibility: style.visibility,
-                opacity: style.opacity,
-                pointerEvents: style.pointerEvents
-            });
+            //     display: style.display,
+            //     visibility: style.visibility,
+            //     opacity: style.opacity,
+            //     pointerEvents: style.pointerEvents
+            // });
             
             // Intentar hacer click manualmente
             // // console.log('[TEST] Intentando click manual...');
