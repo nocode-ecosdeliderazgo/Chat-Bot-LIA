@@ -20,7 +20,7 @@
     <meta name="twitter:description" content="Aprende los fundamentos de la Inteligencia Artificial con nuestro curso interactivo.">
     <meta name="twitter:image" content="../assets/images/icono.png">
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="../assets/images/icono.png" />
+    <link rel="icon" type="image/png" href="/assets/images/icono.png" />
     
     <!-- Preconnect para YouTube (Performance) -->
     <link rel="preconnect" href="https://www.youtube.com" crossorigin>
@@ -31,8 +31,8 @@
     <link rel="dns-prefetch" href="https://youtube.com">
     
     <!-- CSS Principal y Neumorphism -->
-    <link rel="stylesheet" href="chat-online.css">
-    
+    <link rel="stylesheet" href="/Chat-Online/chat-online.css">
+
     <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -4127,9 +4127,9 @@
         }
     </style>
     <!-- Favicon -->
-    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/assets/favicon.ico" type="image/x-icon">
     <!-- Global theme setup - Configuración global del tema -->
-    <script src="../scripts/global-theme-setup.js"></script>
+    <script src="/scripts/global-theme-setup.js"></script>
 </head>
 <body>
     <!-- Botón de cambio de tema - DESHABILITADO para evitar flash visual -->
@@ -4789,7 +4789,7 @@ Cargando información...
                 <div class="lia-header">
                     <h3>
                         <div class="lia-avatar">
-                            <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+                            <img src="/assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
                                 </div>
                         LIA
                     </h3>
@@ -4813,7 +4813,7 @@ Cargando información...
                     <div class="lia-messages" id="liaMessages">
                         <div class="lia-message">
                             <div class="lia-avatar">
-                                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+                                <img src="/assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
                             </div>
                             <div class="message-content">
                                 <div class="message-text">
@@ -5165,13 +5165,13 @@ Cargando información...
     </main>
 
     <!-- JavaScript -->
-    <script src="../utils/helpers.js"></script>
+    <script src="/utils/helpers.js"></script>
     
     <!-- Netlify Compatibility Layer -->
     <script src="netlify-compatibility.js"></script>
     
     <!-- Dynamic Video Loader -->
-    <script src="../scripts/dynamic-video-loader.js"></script>
+    <script src="/scripts/dynamic-video-loader.js"></script>
     
     <!-- Course Progress Manager V2 - Con fallback robusto -->
     <script>
@@ -5182,7 +5182,7 @@ Cargando información...
                 () => console.error('❌ Error cargando course-progress-manager-v2.js'));
         } else {
             // Fallback si netlify-compatibility no está disponible
-            document.write('<script src="../scripts/course-progress-manager-v2.js" onerror="console.error(\'❌ Error cargando course-progress-manager-v2.js\')"><\/script>');
+            document.write('<script src="/scripts/course-progress-manager-v2.js" onerror="console.error(\'❌ Error cargando course-progress-manager-v2.js\')"><\/script>');
         }
     </script>
     
@@ -5195,18 +5195,18 @@ Cargando información...
                 () => console.error('❌ Error cargando youtube-progress-tracker.js'));
         } else {
             // Fallback si netlify-compatibility no está disponible
-            document.write('<script src="../scripts/youtube-progress-tracker.js" onerror="console.error(\'❌ Error cargando youtube-progress-tracker.js\')"><\/script>');
+            document.write('<script src="/scripts/youtube-progress-tracker.js" onerror="console.error(\'❌ Error cargando youtube-progress-tracker.js\')"><\/script>');
         }
     </script>
     
     <!-- Community API -->
-    <script src="api/community-api.js"></script>
+    <script src="/Chat-Online/api/community-api.js"></script>
     
     <!-- Supabase Client -->
-    <script src="../scripts/supabase-client.js"></script>
+    <script src="/scripts/supabase-client.js"></script>
     
     <!-- Community Database -->
-    <script src="../scripts/community-database.js"></script>
+    <script src="/scripts/community-database.js"></script>
     
     <!-- Community Questions Management -->
     <script>
@@ -6707,7 +6707,7 @@ INSTRUCCIONES:
     </script>
     
     <!-- Chat Online Main Script -->
-    <script src="chat-online.js"></script>
+    <script src="/Chat-Online/chat-online.js"></script>
 
     <!-- SOLUCIÓN DIRECTA PARA CARGAR NOTAS -->
     <script>
@@ -6907,13 +6907,13 @@ INSTRUCCIONES:
     </script>
 
     <!-- Quick Video Fix - Carga videos desde la base de datos -->
-    <!-- <script src="../scripts/quick-video-fix.js"></script> DESHABILITADO - HARDCODES -->
+    <!-- <script src="/scripts/quick-video-fix.js"></script> DESHABILITADO - HARDCODES -->
     
     <!-- Chat Debug Fix - Desbloquea el chat de Lia -->
     <!-- <script src="chat-debug-fix.js"></script> DESHABILITADO - HARDCODES -->
     
     <!-- Script de cambio de tema global -->
-    <script src="../scripts/theme-toggle.js">    </script>
+    <script src="/scripts/theme-toggle.js">    </script>
     
     <!-- Configuración global del usuario y curso -->
     <script>
@@ -6934,15 +6934,15 @@ INSTRUCCIONES:
     </script>
     
     <!-- Sistema de Módulos Expandibles -->
-    <!-- <script src="../scripts/modules-expandable-system.js"></script> DESHABILITADO - HARDCODES -->
-    <script src="components/course-viewer.js"></script>
+    <!-- <script src="/scripts/modules-expandable-system.js"></script> DESHABILITADO - HARDCODES -->
+    <script src="/Chat-Online/components/course-viewer.js"></script>
 
-    <!-- <script src="components/video-player.js"></script> Temporalmente deshabilitado -->
+    <!-- <script src="/Chat-Online/components/video-player.js"></script> Temporalmente deshabilitado -->
 
     <!-- VideoNavigationManager - Manejo centralizado de navegación -->
-    <script src="components/video-navigation-manager.js"></script>
+    <script src="/Chat-Online/components/video-navigation-manager.js"></script>
 
-    <script src="components/lia-chat.js"></script>
+    <script src="/Chat-Online/components/lia-chat.js"></script>
 
     <!-- Sistema dinámico V2 ya cargado arriba -->
     <!-- Inicialización del Sistema Dinámico -->
@@ -7380,7 +7380,7 @@ INSTRUCCIONES:
                     typingIndicator.className = 'lia-message typing-indicator';
                     typingIndicator.innerHTML = [
                         '<div class="lia-avatar">',
-                        '    <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">',
+                        '    <img src="/assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">',
                         '</div>',
                         '<div class="typing-dots-only">',
                         '    <div class="typing-dot"></div>',
@@ -7575,7 +7575,7 @@ INSTRUCCIONES:
 
                                 liaMsg.innerHTML = `
                                     <div class="lia-avatar">
-                                        <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+                                        <img src="/assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
                                     </div>
                                     <div class="message-content">
                                         <div class="message-text">${markdownToHtml(respuestaLIA)}</div>
@@ -7640,7 +7640,7 @@ INSTRUCCIONES:
 
                                 liaMsg.innerHTML = `
                                     <div class="lia-avatar">
-                                        <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+                                        <img src="/assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
                                     </div>
                                     <div class="message-content">
                                         <div class="message-text">${markdownToHtml(respuestaFallback)}</div>
@@ -7879,7 +7879,7 @@ INSTRUCCIONES:
     </script>
 
     <!-- Module 1 Videos Loader -->
-    <script src="module1-videos-loader.js"></script>
+    <script src="/Chat-Online/module1-videos-loader.js"></script>
 
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
