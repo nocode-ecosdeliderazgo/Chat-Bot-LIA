@@ -5,12 +5,27 @@ html, body {
 }
 
 body {
-    width: 1280px;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
+    padding: 0;
     font-family: 'Inter', sans-serif;
     background: linear-gradient(160deg, #06182A 0%, #0B1220 100%);
     color: #ffffff;
     line-height: 1.5;
+}
+
+/* Contenedor principal centrado */
+.page-wrapper {
+    width: 1280px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* Auth container centrado */
+.auth-container {
+    width: 1280px;
+    margin: 0 auto;
+    position: relative;
 }
 
 /* Reglas para diseño NO responsivo - como SAES */
@@ -148,6 +163,9 @@ body {
 .bg-glow-global {
     position: relative;
     background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
 [data-theme="light"] .bg-glow-global {
@@ -159,7 +177,7 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 var(--spacing-md);
+    padding: 0 20px;
 }
 
 /* ===== NAVIGATION BAR ===== */
@@ -176,7 +194,8 @@ body {
     backdrop-filter: blur(20px);
     position: relative;
     margin: 16px auto;
-    width: min(750px, 95vw);
+    width: 750px;
+    max-width: 750px;
     scrollbar-width: none;
     -ms-overflow-style: none;
     min-height: 64px;
@@ -186,7 +205,7 @@ body {
 .header-profile { 
     position: fixed !important; 
     top: 12px !important;
-    right: 16px !important; 
+    right: calc(50% - 640px + 16px) !important; 
     left: auto !important;
     z-index: 1001; 
     width: 56px;
@@ -247,7 +266,7 @@ body {
 .bg-glow-global .header-profile {
     position: fixed !important;
     top: 12px !important;
-    right: 16px !important;
+    right: calc(50% - 640px + 16px) !important;
     left: auto !important;
     width: 56px;
     height: 56px;
@@ -258,7 +277,7 @@ body {
 .profile-menu { 
     position: fixed !important; 
     top: 76px !important; 
-    right: 16px !important; 
+    right: calc(50% - 640px + 16px) !important; 
     left: auto !important;
     width: 260px; 
     background: rgba(10,16,28,.96); 
@@ -1070,6 +1089,9 @@ body[data-theme="light"] .bg-glow-global::before,
 /* ===== MAIN CONTENT ===== */
 .main-content {
     margin-top: 0;
+    width: 1280px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
 /* ===== HERO SECTION ===== */
@@ -1089,7 +1111,7 @@ body[data-theme="light"] .bg-glow-global::before,
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 var(--spacing-md);
+    padding: 0 20px;
     position: relative;
     z-index: 1;
 }
@@ -1225,6 +1247,8 @@ body[data-theme="light"] .bg-glow-global::before,
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: var(--spacing-lg);
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .featured-card {
@@ -1350,6 +1374,8 @@ body[data-theme="light"] .bg-glow-global::before,
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: var(--spacing-lg);
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .category-card {
@@ -1466,6 +1492,8 @@ body[data-theme="light"] .bg-glow-global::before,
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: var(--spacing-lg);
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .news-list {
@@ -1665,6 +1693,9 @@ body[data-theme="light"] .bg-glow-global::before,
     align-items: center;
     position: relative;
     z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
 .newsletter-title {
