@@ -1,6 +1,7 @@
 [build]
   base = "."
   publish = "src"
+  command = "npm run build"
   node_version = "18"
   
 [build.environment]
