@@ -1917,7 +1917,7 @@ function setupEventBusAndUI() {
 
     // ===== Notas minimalistas estilo NotebookLM =====
     const notesStore = (() => {
-        const KEY = 'lia_notes';
+        const KEY = 'lia_notes_v1';
         const read = () => {
             try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (_) { return []; }
         };
@@ -2075,11 +2075,10 @@ function setupEventBusAndUI() {
             }, 1000); // Auto-save después de 1 segundo de inactividad
         };
 
-        // Event listeners para auto-save DESHABILITADO
-        // Solo se guardará cuando el usuario presione el botón "Guardar"
-        // titleEl?.addEventListener('input', autoSave);
-        // contentEl?.addEventListener('input', autoSave);
-        // contentEl?.addEventListener('paste', () => setTimeout(autoSave, 100));
+        // Event listeners para auto-save
+        titleEl?.addEventListener('input', autoSave);
+        contentEl?.addEventListener('input', autoSave);
+        contentEl?.addEventListener('paste', () => setTimeout(autoSave, 100));
         
         // Event listener para manejar cambios en el contenido y aplicar estilos a listas
         contentEl?.addEventListener('input', () => {
@@ -2098,9 +2097,12 @@ function setupEventBusAndUI() {
 
         // Event listeners para botones
         overlay.querySelector('#closeNoteBtn')?.addEventListener('click', () => {
-            // NO guardar automáticamente - solo cerrar
-            // El usuario debe presionar "Guardar" explícitamente
+            // Guardar antes de cerrar
             clearTimeout(autoSaveTimeout);
+            notesStore.update(note.id, { 
+                title: titleEl.value.trim() || 'Sin título', 
+                content: contentEl.innerHTML 
+            });
             overlay.remove();
         });
         
@@ -3315,9 +3317,7 @@ function getUserAuthHeaders() {
         // console.log('[AUTH DEBUG] Token found:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
         // // console.log('[AUTH DEBUG] Token completo:', token);
         // // console.log('[AUTH DEBUG] UserId:', userId || 'NO USER ID');
-        // console.log('[AUTH DEBUG] Token source:', localStorage.getItem('userToken') ? 'userToken' : 
-        //            sessionStorage.getItem('authToken') ? 'authToken(session)' : 
-        //            localStorage.getItem('authToken') ? 'authToken(local)' : 'none');
+        // console.log('[AUTH DEBUG] Token source:', localStorage.getItem('userToken') ? 'userToken' : 'other');
         
         // Verificar si el token contiene la firma de desarrollo
         if (token) {
@@ -4602,10 +4602,10 @@ function initializeLivestreamChat() {
         
         // Verificar estado del selector después de la conexión
         // console.log('[LIVESTREAM] Estado del selector después de conexión:', {
-        //     messageType: livestreamChatState.messageType,
-        //     selectorExists: !!document.getElementById('messageTypeSelector'),
-        //     buttonsExist: document.querySelectorAll('#messageTypeSelector .type-btn').length
-        // });
+            messageType: livestreamChatState.messageType,
+            selectorExists: !!document.getElementById('messageTypeSelector'),
+            buttonsExist: document.querySelectorAll('#messageTypeSelector .type-btn').length
+        });
     });
 
     livestreamSocket.on('disconnect', () => {
@@ -4783,11 +4783,11 @@ function initializeLivestreamChat() {
             sendBtn.disabled = !hasMessage || !hasType;
             
             // console.log('[LIVESTREAM] Actualizando botón de envío:', {
-            //     hasMessage,
-            //     hasType,
-            //     disabled: sendBtn.disabled,
-            //     messageType: livestreamChatState.messageType
-            // });
+                hasMessage,
+                hasType,
+                disabled: sendBtn.disabled,
+                messageType: livestreamChatState.messageType
+            });
         }
     }
     
@@ -4808,11 +4808,11 @@ function initializeLivestreamChat() {
             // Verificar si el botón está visible
             const style = window.getComputedStyle(liaBtn);
             // console.log('[TEST] Visibilidad del botón:', {
-            //     display: style.display,
-            //     visibility: style.visibility,
-            //     opacity: style.opacity,
-            //     pointerEvents: style.pointerEvents
-            // });
+                display: style.display,
+                visibility: style.visibility,
+                opacity: style.opacity,
+                pointerEvents: style.pointerEvents
+            });
             
             // Intentar hacer click manualmente
             // // console.log('[TEST] Intentando click manual...');
