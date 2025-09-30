@@ -7759,27 +7759,35 @@ INSTRUCCIONES:
             }
         }
         function obtenerTokenAuth() {
-
             // Intentar obtener token real
-
             const token = localStorage.getItem('authToken');
 
             if (token) {
-
                 console.log('[LIA] 🔑 Usando token real del localStorage');
-
                 return token;
-
             }
 
-            // Token de desarrollo para testing - más compatible con el servidor
+            // Token de desarrollo válido para el backend (formato JWT con fake signature)
+            const currentUser = obtenerUsuarioActual();
+            const userId = currentUser?.id || 'chat-online-user';
+            const username = currentUser?.username || 'dev-user';
 
-            const devToken = 'dev-token-chat-online-user-' + Date.now();
+            // Crear payload del JWT
+            const payload = btoa(JSON.stringify({
+                sub: userId,
+                username: username,
+                iat: Math.floor(Date.now() / 1000)
+            }));
 
-            console.log('[LIA] 🔧 Usando token de desarrollo:', devToken);
+            // Crear header del JWT
+            const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+
+            // Token de desarrollo con formato JWT válido
+            const devToken = `${header}.${payload}.fake-signature-for-dev-testing-only`;
+
+            console.log('[LIA] 🔧 Usando token de desarrollo JWT válido');
 
             return devToken;
-
         }
 
         // Función para actualizar nombres de usuario en mensajes existentes (solo en chat)

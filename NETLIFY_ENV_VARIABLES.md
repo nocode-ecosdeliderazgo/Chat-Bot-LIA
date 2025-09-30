@@ -17,22 +17,34 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3R
 
 Configura TODAS estas variables en Netlify Dashboard:
 
-### 1. Supabase Configuration
+### 1. Supabase Configuration (CRÍTICO)
 ```bash
 SUPABASE_URL=https://miwbzotcuaywpdbidpwo.supabase.co
 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY
 SUPABASE_SERVICE_ROLE_KEY=<tu-service-role-key>
+SUPABASE_SERVICE_KEY=<tu-service-role-key>  # Alias usado por algunas funciones
+SUPABASE_KEY=<tu-anon-key>  # Fallback usado por algunas funciones
 ```
 
-### 2. OpenAI Configuration
+### 2. OpenAI Configuration (CRÍTICO)
 ```bash
 OPENAI_API_KEY=<tu-api-key-openai>
 ```
 
-### 3. Security Configuration
+### 3. Security Configuration (CRÍTICO)
 ```bash
 JWT_SECRET=<tu-secret-jwt>
 NODE_ENV=production
+```
+
+### 4. CORS Configuration (IMPORTANTE)
+```bash
+ALLOWED_ORIGINS=https://tu-sitio.netlify.app,https://www.aprendeyaplica.ai
+```
+
+### 5. Database Configuration (OPCIONAL - si usas PostgreSQL directo)
+```bash
+DATABASE_URL=postgresql://user:pass@host:port/database
 ```
 
 ---
