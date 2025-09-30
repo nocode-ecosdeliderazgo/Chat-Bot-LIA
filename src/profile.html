@@ -2,11 +2,38 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1280, initial-scale=0.6, maximum-scale=0.6, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Mi Perfil - Lia</title>
-    <!-- Supabase credentials (rellena con tus valores reales o usa variables de entorno en dev server) -->
+    <!-- Supabase credentials - Se cargan dinámicamente desde /api/supabase-config -->
     <meta name="supabase-url" content="">
     <meta name="supabase-key" content="">
+
+    <!-- Script para cargar credenciales de Supabase desde API en Netlify -->
+    <script>
+        // Cargar credenciales de Supabase antes de inicializar la página
+        (async function loadSupabaseCredentials() {
+            try {
+                const response = await fetch('/api/supabase-config');
+                if (response.ok) {
+                    const config = await response.json();
+                    if (config.success && config.url && config.anon_key) {
+                        // Guardar en localStorage para uso de scripts
+                        localStorage.setItem('supabaseUrl', config.url);
+                        localStorage.setItem('supabaseAnonKey', config.anon_key);
+
+                        // Actualizar meta tags
+                        document.querySelector('meta[name="supabase-url"]').content = config.url;
+                        document.querySelector('meta[name="supabase-key"]').content = config.anon_key;
+
+                        console.log('✅ Credenciales de Supabase cargadas desde API');
+                    }
+                }
+            } catch (error) {
+                console.warn('⚠️ No se pudieron cargar credenciales de Supabase desde API:', error);
+                // Continuar con credenciales en localStorage si existen
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/profile.css">
     <!-- Estilos específicos para las partículas -->
@@ -16,9 +43,13 @@
     
     <!-- Auth Guard - Protección de autenticación -->
     <script src="utils/auth-guard.js"></script>
-    
+
     <!-- Global theme setup - Configuración global del tema -->
     <script src="scripts/global-theme-setup.js"></script>
+
+    <!-- Supabase Client - Inicialización del cliente de Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="scripts/supabase-client.js"></script>
 </head>
 <body>
     <!-- Partículas de fondo estáticas CSS -->

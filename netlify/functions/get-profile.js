@@ -34,15 +34,25 @@ async function handleGetProfile(event) {
     console.log('Obteniendo perfil para:', { userId, username, email });
 
     // Construir query según el parámetro disponible
+    // IMPORTANTE: Incluir todos los campos que profile.html espera recibir
+    const selectFields = `
+      id, username, email, first_name, last_name, display_name,
+      company_role, phone, location, bio,
+      linkedin_url, portfolio_url, github_url, website_url,
+      type_rol, cargo_rol,
+      avatar_url, profile_picture_url, curriculum_url,
+      created_at, last_login_at
+    `.replace(/\s+/g, ' ').trim();
+
     let query, params;
     if (userId) {
-      query = 'SELECT id, username, email, first_name, last_name, company_role, phone, location, bio, linkedin_url, portfolio_url, github_url, type_rol, cargo_rol, avatar_url FROM users WHERE id = $1';
+      query = `SELECT ${selectFields} FROM users WHERE id = $1`;
       params = [userId];
     } else if (username) {
-      query = 'SELECT id, username, email, first_name, last_name, company_role, phone, location, bio, linkedin_url, portfolio_url, github_url, type_rol, cargo_rol, avatar_url FROM users WHERE username = $1';
+      query = `SELECT ${selectFields} FROM users WHERE username = $1`;
       params = [username];
     } else if (email) {
-      query = 'SELECT id, username, email, first_name, last_name, company_role, phone, location, bio, linkedin_url, portfolio_url, github_url, type_rol, cargo_rol, avatar_url FROM users WHERE email = $1';
+      query = `SELECT ${selectFields} FROM users WHERE email = $1`;
       params = [email];
     }
 
@@ -53,7 +63,17 @@ async function handleGetProfile(event) {
     }
 
     const user = result.rows[0];
-    console.log('Perfil encontrado para usuario:', user.username);
+
+    // Normalizar campos para compatibilidad
+    // Asegurar que profile_picture_url tiene valor si avatar_url existe
+    if (!user.profile_picture_url && user.avatar_url) {
+      user.profile_picture_url = user.avatar_url;
+    }
+    if (!user.avatar_url && user.profile_picture_url) {
+      user.avatar_url = user.profile_picture_url;
+    }
+
+    console.log('✅ Perfil encontrado para usuario:', user.username, '| Campos:', Object.keys(user).join(', '));
 
     return json(200, { user }, event);
 
@@ -102,11 +122,21 @@ async function handleUpdateProfile(event) {
     let whereClause = id ? `id = $${paramIndex}` : `username = $${paramIndex}`;
     values.push(id || username);
 
+    // IMPORTANTE: Retornar los mismos campos que en GET para consistencia
+    const returningFields = `
+      id, username, email, first_name, last_name, display_name,
+      company_role, phone, location, bio,
+      linkedin_url, portfolio_url, github_url, website_url,
+      type_rol, cargo_rol,
+      avatar_url, profile_picture_url, curriculum_url,
+      created_at, last_login_at
+    `.replace(/\s+/g, ' ').trim();
+
     const query = `
       UPDATE users
       SET ${fields.join(', ')}
       WHERE ${whereClause}
-      RETURNING id, username, email, first_name, last_name, company_role, phone, location, bio, linkedin_url, portfolio_url, github_url, type_rol, cargo_rol, avatar_url
+      RETURNING ${returningFields}
     `;
 
     const result = await pool.query(query, values);

@@ -10,6 +10,11 @@ class ProfileManager {
 
     async init() {
         try {
+            // Esperar a que Supabase esté listo antes de continuar
+            console.log('🔄 ProfileManager: Esperando a que Supabase esté listo...');
+            await this.waitForSupabase();
+            console.log('✅ ProfileManager: Supabase está listo, cargando perfil...');
+
             await this.loadCurrentUser();
             await this.loadProfileData();
             this.populateForm();
@@ -18,8 +23,42 @@ class ProfileManager {
             this.setupAutoSave();
         } catch (error) {
             console.error('Error inicializando ProfileManager:', error);
-            this.showError('Error al cargar el perfil');
+            this.showError('Error al cargar el perfil. Algunos datos pueden no estar disponibles.');
         }
+    }
+
+    // Esperar a que Supabase esté inicializado
+    async waitForSupabase(maxWaitMs = 10000) {
+        const startTime = Date.now();
+
+        while (Date.now() - startTime < maxWaitMs) {
+            // Verificar si Supabase está listo
+            if (window.supabaseInitialized && window.supabase) {
+                console.log('✅ Supabase está inicializado y listo');
+                return true;
+            }
+
+            // Verificar si hay credenciales en localStorage
+            const hasCredentials = localStorage.getItem('supabaseUrl') &&
+                                   localStorage.getItem('supabaseAnonKey');
+
+            if (hasCredentials && !window.supabaseLoading) {
+                console.log('🔄 Credenciales encontradas, intentando inicializar Supabase...');
+                if (typeof initializeSupabaseClient === 'function') {
+                    try {
+                        await initializeSupabaseClient();
+                    } catch (err) {
+                        console.warn('⚠️ Error inicializando Supabase:', err);
+                    }
+                }
+            }
+
+            // Esperar 100ms antes de verificar nuevamente
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        console.warn('⚠️ Timeout esperando a Supabase - continuando sin conexión completa');
+        return false;
     }
 
     async loadCurrentUser() {
@@ -28,10 +67,18 @@ class ProfileManager {
             const raw = localStorage.getItem('currentUser');
             if (!raw) {
                 this.showError('Inicia sesión para ver tu perfil');
-                window.location.href = 'index.html';
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
                 return;
             }
             const sessionUser = JSON.parse(raw);
+
+            console.log('📋 Cargando perfil de usuario:', {
+                id: sessionUser.id,
+                username: sessionUser.username,
+                email: sessionUser.email
+            });
 
             // Obtener perfil desde backend por username o email
             const tryFetch = async () => {
@@ -61,14 +108,22 @@ class ProfileManager {
             };
             const { user: data } = await tryFetch();
 
+            console.log('✅ Datos de perfil obtenidos:', {
+                username: data.username,
+                email: data.email,
+                first_name: data.first_name,
+                last_name: data.last_name,
+                hasProfilePicture: !!data.profile_picture_url
+            });
+
             this.currentUser = {
                 id: data.id,
                 full_name: data.display_name || `${data.first_name || ''} ${data.last_name || ''}`.trim() || data.username,
                 username: data.username,
                 email: data.email,
-                cargo_rol: data.cargo_rol || 'Usuario',
+                cargo_rol: data.cargo_rol || data.company_role || 'Usuario',
                 type_rol: data.type_rol || 'usuario',
-                profile_picture_url: data.profile_picture_url || null,
+                profile_picture_url: data.profile_picture_url || data.avatar_url || null,
                 curriculum_url: data.curriculum_url || null,
                 created_at: data.created_at,
                 last_login_at: data.last_login_at
@@ -79,8 +134,13 @@ class ProfileManager {
                 display_name: data.display_name || '',
                 phone: data.phone || '',
                 bio: data.bio || '',
-                location: data.location || ''
+                location: data.location || '',
+                linkedin_url: data.linkedin_url || '',
+                github_url: data.github_url || '',
+                portfolio_url: data.portfolio_url || ''
             };
+
+            console.log('🔄 Actualizando visualización del perfil...');
             this.updateCurrentProfileDisplay();
         } catch (error) {
             console.error('Error cargando usuario actual:', error);
