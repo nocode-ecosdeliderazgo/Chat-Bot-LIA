@@ -948,7 +948,7 @@ async function handleRegister(e) {
         confirm_email: formData.get('confirm_email')?.trim(),
         password: formData.get('password'),
         confirm_password: formData.get('confirm_password'),
-        accept_terms: formData.get('accept_terms') === 'on'
+        accept_terms: formData.get('accept_all_terms') === 'on'
     };
     
     devLog('Parsed userData:', userData);
@@ -1956,18 +1956,16 @@ async function animateError() {
 
 /**
  * Abre la tarjeta informativa de términos y condiciones
- * @param {string} tab - La pestaña a mostrar ('terms' o 'privacy')
+ * @param {string} tab - La pestaña a mostrar ('terms', 'privacy', o 'conduct')
  */
 function openTermsCard(tab = 'terms') {
     const termsCard = document.getElementById('termsCard');
     if (termsCard) {
         termsCard.classList.add('active');
         document.body.style.overflow = 'hidden';
-        
-        // Si se especifica una pestaña, mostrarla
-        if (tab === 'privacy') {
-            showTermsTab('privacy');
-        }
+
+        // Mostrar la pestaña especificada
+        showTermsTab(tab);
     }
 }
 
@@ -2017,9 +2015,11 @@ function showTermsTab(tabName) {
 function acceptTermsAndClose() {
     // Marcar el checkbox único como aceptado
     const acceptAllTermsCheckbox = document.getElementById('acceptAllTerms');
-    
+
     if (acceptAllTermsCheckbox) {
         acceptAllTermsCheckbox.checked = true;
+        // Disparar evento para que se valide el formulario
+        acceptAllTermsCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
     }
     
     // Guardar la aceptación en localStorage
@@ -2154,13 +2154,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 openTermsCard('privacy');
             });
-        } else if (link.textContent.includes('Olvidaste tu contraseña')) {
+        } else if (link.textContent.includes('Olvidaste tu contraseña') || link.classList.contains('forgot-link')) {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 openForgotPasswordModal();
             });
         }
     });
+
+    // También configurar específicamente el enlace de recuperación por clase
+    const forgotPasswordLink = document.querySelector('.forgot-link');
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            openForgotPasswordModal();
+        });
+    }
     
     // Cerrar tarjeta al hacer clic fuera de ella
     const termsCardOverlay = document.getElementById('termsCard');
@@ -2272,15 +2281,223 @@ function openForgotPasswordModal() {
         document.body.style.overflow = 'hidden';
         console.log('Modal activado con clases:', modal.className);
 
-        // Enfocar el campo de email
+        // Forzar estilos del input para asegurar visibilidad
         const emailInput = document.getElementById('forgotPasswordEmail');
         console.log('Input de email encontrado:', emailInput);
         if (emailInput) {
-            setTimeout(() => emailInput.focus(), 100);
+            // ESTILOS FINALES CORRECTOS
+            emailInput.style.cssText = `
+                display: block !important;
+                width: 100% !important;
+                height: 46px !important;
+                background: rgba(255, 255, 255, 0.1) !important;
+                color: #FFFFFF !important;
+                border: none !important;
+                outline: none !important;
+                font-size: 0.95rem !important;
+                font-family: var(--font-body) !important;
+                padding: 12px 50px 12px 16px !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                caret-color: #FFFFFF !important;
+                line-height: 1.5 !important;
+                z-index: 10000 !important;
+                position: relative !important;
+            `;
+
+            // Forzar estilos del wrapper
+            const inputWrapper = emailInput.closest('.input-wrapper');
+            if (inputWrapper) {
+                inputWrapper.style.cssText = `
+                    position: relative !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    background: rgba(255, 255, 255, 0.08) !important;
+                    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                    border-radius: 25px !important;
+                    min-height: 50px !important;
+                    width: 100% !important;
+                    margin: 10px 0 25px 0 !important;
+                    padding: 0 !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    z-index: 9999 !important;
+                `;
+                console.log('✅ Wrapper encontrado y estilizado:', inputWrapper);
+            } else {
+                console.error('❌ No se encontró el wrapper .input-wrapper');
+            }
+
+            // Forzar estilos del form-group también
+            const formGroup = emailInput.closest('.form-group');
+            if (formGroup) {
+                formGroup.style.cssText = `
+                    display: block !important;
+                    margin-bottom: 20px !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    z-index: 9998 !important;
+                `;
+                console.log('✅ Form-group encontrado y estilizado:', formGroup);
+            }
+
+            // Forzar estilos del contenido del modal
+            const modalContent = emailInput.closest('.forgot-password-content');
+            if (modalContent) {
+                modalContent.style.cssText = `
+                    display: block !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    z-index: 9997 !important;
+                `;
+                console.log('✅ Modal content encontrado y estilizado:', modalContent);
+            }
+
+            // Forzar estilos del icono
+            const inputIcon = emailInput.parentElement.querySelector('.input-icon');
+            if (inputIcon) {
+                inputIcon.style.cssText = `
+                    position: absolute !important;
+                    right: 16px !important;
+                    top: 50% !important;
+                    transform: translateY(-50%) !important;
+                    color: #666666 !important;
+                    width: 20px !important;
+                    height: 20px !important;
+                    z-index: 10001 !important;
+                `;
+            }
+
+            setTimeout(() => {
+                emailInput.focus();
+                emailInput.select(); // Seleccionar el texto si hay alguno
+                
+                // Forzar estilos una vez más después del focus
+                emailInput.style.cssText = `
+                    display: block !important;
+                    width: 100% !important;
+                    height: 46px !important;
+                    background: rgba(255, 255, 255, 0.1) !important;
+                    color: #FFFFFF !important;
+                    border: none !important;
+                    outline: none !important;
+                    font-size: 0.95rem !important;
+                    font-family: var(--font-body) !important;
+                    padding: 12px 50px 12px 16px !important;
+                    margin: 0 !important;
+                    box-sizing: border-box !important;
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                    caret-color: #FFFFFF !important;
+                    line-height: 1.5 !important;
+                    z-index: 10000 !important;
+                    position: relative !important;
+                `;
+                
+                console.log('✅ Estilos aplicados al input:', emailInput.style.cssText);
+                
+                // Verificar si el input es realmente visible
+                const rect = emailInput.getBoundingClientRect();
+                console.log('📏 Dimensiones del input:', {
+                    width: rect.width,
+                    height: rect.height,
+                    top: rect.top,
+                    left: rect.left,
+                    visible: rect.width > 0 && rect.height > 0
+                });
+                
+                // Si no es visible, crear un input de emergencia
+                if (rect.width === 0 || rect.height === 0) {
+                    console.log('🚨 Input no visible, creando input de emergencia...');
+                    createEmergencyInput();
+                }
+            }, 300); // Esperar a que termine la animación
         }
     } else {
         console.error('❌ No se encontró el modal forgotPasswordModal');
     }
+}
+
+/**
+ * Crea un input de emergencia si el original no es visible
+ */
+function createEmergencyInput() {
+    const modal = document.getElementById('forgotPasswordModal');
+    if (!modal) return;
+    
+    // Buscar el contenedor del formulario
+    const form = modal.querySelector('#forgotPasswordForm');
+    if (!form) return;
+    
+    // Crear un nuevo input completamente independiente
+    const emergencyInput = document.createElement('input');
+    emergencyInput.type = 'email';
+    emergencyInput.id = 'emergencyEmailInput';
+    emergencyInput.placeholder = 'tu@email.com';
+    emergencyInput.required = true;
+    
+    // Aplicar estilos ultra agresivos
+    emergencyInput.style.cssText = `
+        display: block !important;
+        width: 100% !important;
+        height: 50px !important;
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        border: 3px solid #FF0000 !important;
+        outline: none !important;
+        font-size: 18px !important;
+        font-family: Arial, sans-serif !important;
+        padding: 15px !important;
+        margin: 20px 0 !important;
+        box-sizing: border-box !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        caret-color: #000000 !important;
+        line-height: 1.5 !important;
+        z-index: 99999 !important;
+        position: relative !important;
+        border-radius: 10px !important;
+    `;
+    
+    // Crear un contenedor para el input de emergencia
+    const emergencyContainer = document.createElement('div');
+    emergencyContainer.style.cssText = `
+        position: relative !important;
+        width: 100% !important;
+        margin: 20px 0 !important;
+        z-index: 99999 !important;
+    `;
+    
+    // Crear label
+    const emergencyLabel = document.createElement('label');
+    emergencyLabel.textContent = 'Correo electrónico (Input de emergencia)';
+    emergencyLabel.style.cssText = `
+        display: block !important;
+        color: #FFFFFF !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        margin-bottom: 10px !important;
+    `;
+    
+    emergencyContainer.appendChild(emergencyLabel);
+    emergencyContainer.appendChild(emergencyInput);
+    
+    // Insertar antes del botón
+    const submitButton = form.querySelector('#forgotPasswordSubmit');
+    if (submitButton) {
+        form.insertBefore(emergencyContainer, submitButton);
+    } else {
+        form.appendChild(emergencyContainer);
+    }
+    
+    // Focus en el input de emergencia
+    setTimeout(() => {
+        emergencyInput.focus();
+    }, 100);
+    
+    console.log('🚨 Input de emergencia creado:', emergencyInput);
 }
 
 /**
@@ -2290,12 +2507,18 @@ function closeForgotPasswordModal() {
     const modal = document.getElementById('forgotPasswordModal');
     if (modal) {
         modal.classList.remove('active');
-        document.body.style.overflow = 'auto';
+        document.body.style.overflow = '';
 
         // Limpiar el formulario
         const form = document.getElementById('forgotPasswordForm');
         if (form) {
             form.reset();
+        }
+
+        // Limpiar cualquier mensaje de error en el input
+        const emailInput = document.getElementById('forgotPasswordEmail');
+        if (emailInput) {
+            emailInput.style.borderColor = '';
         }
 
         // Restaurar estado del botón
@@ -2309,7 +2532,18 @@ function closeForgotPasswordModal() {
 async function handleForgotPassword(e) {
     e.preventDefault();
 
-    const email = document.getElementById('forgotPasswordEmail').value.trim();
+    // Intentar obtener el email del input original o del de emergencia
+    let emailInput = document.getElementById('forgotPasswordEmail');
+    let email = emailInput ? emailInput.value.trim() : '';
+    
+    // Si no hay email del input original, intentar con el de emergencia
+    if (!email) {
+        const emergencyInput = document.getElementById('emergencyEmailInput');
+        if (emergencyInput) {
+            email = emergencyInput.value.trim();
+            console.log('📧 Usando input de emergencia:', email);
+        }
+    }
 
     if (!email) {
         showNotification('Por favor ingresa tu correo electrónico', 'error');
@@ -2450,7 +2684,76 @@ function setForgotPasswordLoadingState(loading) {
     }
 }
 
+/**
+ * Valida el formato del email en el modal de recuperación
+ */
+function validateForgotPasswordEmail(input) {
+    const email = input.value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!email) {
+        input.style.borderColor = '';
+        return false;
+    }
+    
+    if (!emailRegex.test(email)) {
+        input.style.borderColor = '#ef4444';
+        return false;
+    }
+    
+    input.style.borderColor = 'var(--color-primary)';
+    return true;
+}
+
+/**
+ * Configura los event listeners para el modal de recuperación
+ */
+function setupForgotPasswordEventListeners() {
+    // Event listener para cerrar el modal al hacer clic fuera
+    document.addEventListener('click', (e) => {
+        const modal = document.getElementById('forgotPasswordModal');
+        if (modal && e.target === modal) {
+            closeForgotPasswordModal();
+        }
+    });
+
+    // Event listener para cerrar con tecla Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('forgotPasswordModal');
+            if (modal && modal.classList.contains('active')) {
+                closeForgotPasswordModal();
+            }
+        }
+    });
+
+    // Event listener para validación en tiempo real del email
+    const emailInput = document.getElementById('forgotPasswordEmail');
+    if (emailInput) {
+        emailInput.addEventListener('input', function() {
+            validateForgotPasswordEmail(this);
+        });
+
+        emailInput.addEventListener('blur', function() {
+            validateForgotPasswordEmail(this);
+        });
+    }
+}
+
+// Configurar event listeners cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupForgotPasswordEventListeners);
+} else {
+    setupForgotPasswordEventListeners();
+}
+
+// Función específica para abrir la tarjeta desde los enlaces del HTML
+function showTermsCard() {
+    openTermsCard('terms');
+}
+
 // Exportar funciones para uso global
+window.showTermsCard = showTermsCard;
 window.openTermsCard = openTermsCard;
 window.closeTermsCard = closeTermsCard;
 window.showTermsTab = showTermsTab;

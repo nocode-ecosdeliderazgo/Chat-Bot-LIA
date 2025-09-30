@@ -36,7 +36,7 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://unpkg.com', 'https://source.zoom.us'],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://unpkg.com', 'https://source.zoom.us', 'https://cdnjs.cloudflare.com'],
             // En desarrollo permitimos inline scripts (onclick) para compatibilidad rápida
             scriptSrc: DEV_MODE ? ["'self'", "'unsafe-inline'", 'https://source.zoom.us', 'https://esm.sh', 'https://unpkg.com', 'https://cdn.jsdelivr.net', 'https://www.youtube.com'] : ["'self'", 'https://source.zoom.us', 'https://esm.sh', 'https://unpkg.com', 'https://cdn.jsdelivr.net', 'https://www.youtube.com'],
             // Permitir carga de módulos ESM externos solo si fuera necesario (actualmente eliminamos supabase-client)
@@ -81,7 +81,7 @@ app.use(helmet({
                 'https://*.supabase.co'
             ],
             mediaSrc: ["'self'", 'blob:', 'data:', 'https:'],
-            fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://unpkg.com', 'data:'],
+            fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://unpkg.com', 'https://cdnjs.cloudflare.com', 'data:'],
             // Permitir que nosotros mostremos iframes de terceros dentro de nuestra propia app
             frameAncestors: ["'self'"],
             objectSrc: ["'none'"]
@@ -2720,6 +2720,324 @@ app.post('/api/admin/auth/logout', (req, res) => {
     } catch (error) {
         console.error('Error en logout:', error);
         res.status(500).json({ error: 'Error cerrando sesión' });
+    }
+});
+
+// ====== ENDPOINTS PARA GESTIÓN DE SOLICITUDES DE COMUNIDAD ======
+
+// Obtener todas las solicitudes de comunidad
+app.get('/api/admin/community-requests', async (req, res) => {
+    try {
+        console.log('📋 Obteniendo solicitudes de comunidad...');
+
+        if (!supabase) {
+            console.warn('⚠️ Supabase no configurado, retornando datos de prueba');
+            // Datos de prueba para desarrollo
+            const mockRequests = [
+                {
+                    id: '1',
+                    community_id: 'comm-1',
+                    requester_id: 'user-1',
+                    status: 'pending',
+                    note: 'Me gustaría unirme para aprender más sobre IA',
+                    created_at: new Date().toISOString(),
+                    reviewed_at: null,
+                    reviewed_by: null,
+                    user_name: 'Juan Pérez',
+                    user_email: 'juan@example.com',
+                    community_name: 'Inteligencia Artificial',
+                    reviewer_name: null
+                },
+                {
+                    id: '2',
+                    community_id: 'comm-2',
+                    requester_id: 'user-2',
+                    status: 'approved',
+                    note: 'Tengo experiencia en machine learning',
+                    created_at: new Date(Date.now() - 86400000).toISOString(),
+                    reviewed_at: new Date().toISOString(),
+                    reviewed_by: 'admin-1',
+                    user_name: 'María González',
+                    user_email: 'maria@example.com',
+                    community_name: 'Machine Learning',
+                    reviewer_name: 'Administrador'
+                },
+                {
+                    id: '3',
+                    community_id: 'comm-1',
+                    requester_id: 'user-3',
+                    status: 'rejected',
+                    note: null,
+                    created_at: new Date(Date.now() - 172800000).toISOString(),
+                    reviewed_at: new Date(Date.now() - 86400000).toISOString(),
+                    reviewed_by: 'admin-1',
+                    user_name: 'Carlos López',
+                    user_email: 'carlos@example.com',
+                    community_name: 'Inteligencia Artificial',
+                    reviewer_name: 'Administrador'
+                }
+            ];
+            return res.json(mockRequests);
+        }
+
+        // Consulta real a Supabase con JOINs para obtener datos completos
+        console.log('🔍 Obteniendo solicitudes con datos de usuarios y comunidades...');
+
+        const { data: requests, error } = await supabase
+            .from('community_access_requests')
+            .select(`
+                *,
+                requester:users!community_access_requests_requester_id_fkey(
+                    first_name,
+                    last_name,
+                    email,
+                    display_name
+                ),
+                community:communities!community_access_requests_community_id_fkey(
+                    name
+                ),
+                reviewer:users!community_access_requests_reviewed_by_fkey(
+                    first_name,
+                    last_name,
+                    display_name
+                )
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('❌ Error obteniendo solicitudes:', error);
+            return res.status(500).json({ error: error.message });
+        }
+
+        console.log(`✅ Consulta básica exitosa. ${requests?.length || 0} registros encontrados`);
+
+        // Si no hay datos, retornar mock
+        if (!requests || requests.length === 0) {
+            console.log('📝 No hay datos reales, retornando datos de prueba');
+            const mockRequests = [
+                {
+                    id: '1',
+                    community_id: 'comm-1',
+                    requester_id: 'user-1',
+                    status: 'pending',
+                    note: 'Me gustaría unirme para aprender más sobre IA',
+                    created_at: new Date().toISOString(),
+                    reviewed_at: null,
+                    reviewed_by: null,
+                    user_name: 'Juan Pérez (Datos de prueba)',
+                    user_email: 'juan@example.com',
+                    community_name: 'Inteligencia Artificial',
+                    reviewer_name: null
+                }
+            ];
+            return res.json(mockRequests);
+        }
+
+        // Procesar datos reales con JOINs
+        console.log('🔄 Procesando datos reales con información completa...');
+        const formattedRequests = requests.map(request => {
+            // Construir nombre completo del usuario solicitante
+            const userName = request.requester?.display_name ||
+                            `${request.requester?.first_name || ''} ${request.requester?.last_name || ''}`.trim() ||
+                            'Usuario sin nombre';
+
+            // Construir nombre completo del revisor
+            const reviewerName = request.reviewer?.display_name ||
+                               `${request.reviewer?.first_name || ''} ${request.reviewer?.last_name || ''}`.trim() ||
+                               null;
+
+            return {
+                id: request.id,
+                community_id: request.community_id,
+                requester_id: request.requester_id,
+                status: request.status,
+                note: request.note,
+                created_at: request.created_at,
+                reviewed_at: request.reviewed_at,
+                reviewed_by: request.reviewed_by,
+                user_name: userName,
+                user_email: request.requester?.email || 'Email no disponible',
+                community_name: request.community?.name || 'Comunidad no disponible',
+                reviewer_name: reviewerName
+            };
+        });
+
+        console.log(`✅ ${formattedRequests.length} solicitudes procesadas con datos reales`);
+        res.json(formattedRequests);
+
+    } catch (error) {
+        console.error('❌ Error en endpoint community-requests:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Aprobar solicitud de comunidad
+app.put('/api/admin/community-requests/:id/approve', async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log(`✅ Aprobando solicitud: ${id}`);
+        console.log(`🔍 User info:`, req.user);
+
+        if (!supabase) {
+            console.warn('⚠️ Supabase no configurado, simulando aprobación');
+            return res.json({
+                success: true,
+                message: 'Solicitud aprobada exitosamente (modo desarrollo)'
+            });
+        }
+
+        // Iniciar transacción
+        console.log(`🔍 Buscando solicitud con ID: ${id}`);
+        const { data: request, error: fetchError } = await supabase
+            .from('community_access_requests')
+            .select('*')
+            .eq('id', id)
+            .eq('status', 'pending')
+            .single();
+
+        console.log(`🔍 Resultado de búsqueda:`, { request, fetchError });
+
+        if (fetchError || !request) {
+            console.error(`❌ Solicitud no encontrada:`, fetchError);
+            return res.status(404).json({
+                error: 'Solicitud no encontrada o ya procesada'
+            });
+        }
+
+        // 1. Aprobar la solicitud
+        console.log(`🔍 Actualizando solicitud ${id} a estado 'approved'`);
+        const { error: updateError } = await supabase
+            .from('community_access_requests')
+            .update({
+                status: 'approved',
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: req.user?.userId || req.user?.id || null // Usar ID del usuario autenticado
+            })
+            .eq('id', id);
+
+        if (updateError) {
+            console.error('❌ Error actualizando solicitud:', updateError);
+            return res.status(500).json({ error: updateError.message });
+        }
+        console.log(`✅ Solicitud ${id} actualizada exitosamente`);
+
+        // 2. Agregar usuario a la comunidad
+        console.log(`🔍 Agregando usuario ${request.requester_id} a comunidad ${request.community_id}`);
+        const { error: memberError } = await supabase
+            .from('community_members')
+            .upsert({
+                community_id: request.community_id,
+                user_id: request.requester_id,
+                role: 'member',
+                is_active: true,
+                joined_at: new Date().toISOString()
+            }, {
+                onConflict: 'community_id,user_id'
+            });
+
+        if (memberError) {
+            console.error('❌ Error agregando miembro:', memberError);
+            // Revertir la aprobación si falla agregar el miembro
+            await supabase
+                .from('community_access_requests')
+                .update({ status: 'pending', reviewed_at: null, reviewed_by: null })
+                .eq('id', id);
+
+            return res.status(500).json({
+                error: 'Error agregando usuario a la comunidad'
+            });
+        }
+        console.log(`✅ Usuario agregado a la comunidad exitosamente`);
+
+        console.log(`✅ Solicitud ${id} aprobada exitosamente`);
+        res.json({
+            success: true,
+            message: 'Solicitud aprobada y usuario agregado a la comunidad'
+        });
+
+    } catch (error) {
+        console.error('❌ Error aprobando solicitud:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Rechazar solicitud de comunidad
+app.put('/api/admin/community-requests/:id/reject', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reason } = req.body;
+        console.log(`❌ Rechazando solicitud: ${id}, Motivo: ${reason || 'Sin motivo'}`);
+
+        if (!supabase) {
+            console.warn('⚠️ Supabase no configurado, simulando rechazo');
+            return res.json({
+                success: true,
+                message: 'Solicitud rechazada exitosamente (modo desarrollo)'
+            });
+        }
+
+        // Actualizar solicitud como rechazada
+        const { error } = await supabase
+            .from('community_access_requests')
+            .update({
+                status: 'rejected',
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: req.user?.userId || req.user?.id || null, // Usar ID del usuario autenticado
+                note: reason ? `${req.body.note || ''} [Motivo del rechazo: ${reason}]` : req.body.note
+            })
+            .eq('id', id)
+            .eq('status', 'pending');
+
+        if (error) {
+            console.error('❌ Error rechazando solicitud:', error);
+            return res.status(500).json({ error: error.message });
+        }
+
+        console.log(`❌ Solicitud ${id} rechazada exitosamente`);
+        res.json({
+            success: true,
+            message: 'Solicitud rechazada exitosamente'
+        });
+
+    } catch (error) {
+        console.error('❌ Error rechazando solicitud:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Obtener lista de comunidades para filtros
+app.get('/api/admin/communities', async (req, res) => {
+    try {
+        console.log('🏘️ Obteniendo lista de comunidades...');
+
+        if (!supabase) {
+            console.warn('⚠️ Supabase no configurado, retornando comunidades de prueba');
+            const mockCommunities = [
+                { id: 'comm-1', name: 'Inteligencia Artificial' },
+                { id: 'comm-2', name: 'Machine Learning' },
+                { id: 'comm-3', name: 'Deep Learning' },
+                { id: 'comm-4', name: 'Data Science' }
+            ];
+            return res.json(mockCommunities);
+        }
+
+        const { data: communities, error } = await supabase
+            .from('communities')
+            .select('id, name')
+            .eq('is_active', true)
+            .order('name');
+
+        if (error) {
+            console.error('❌ Error obteniendo comunidades:', error);
+            return res.status(500).json({ error: error.message });
+        }
+
+        console.log(`✅ ${communities.length} comunidades obtenidas`);
+        res.json(communities);
+
+    } catch (error) {
+        console.error('❌ Error en endpoint communities:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
@@ -5845,17 +6163,19 @@ app.post('/api/community/questions/:questionId/answers', async (req, res) => {
     try {
         console.log('📝 === INICIO CREACIÓN RESPUESTA (NUEVA RUTA) ===');
         const { questionId } = req.params;
-        const { content, user_id } = req.body;
-        
+        const { content } = req.body;
+        const userId = req.headers['x-user-id'] || req.body.user_id;
+
         console.log('📋 Body recibido:', req.body);
         console.log('📋 Question ID desde params:', questionId);
-        
+        console.log('📋 User ID desde headers/body:', userId);
+
         // Validación de campos requeridos
-        if (!questionId || !content || !user_id) {
+        if (!questionId || !content || !userId) {
             console.log('❌ Faltan campos obligatorios');
             return res.status(400).json({
                 success: false,
-                error: 'Faltan campos obligatorios: questionId (params), content, user_id (body)'
+                error: 'Faltan campos obligatorios: questionId (params), content, user_id (body o header)'
             });
         }
         
@@ -5871,24 +6191,24 @@ app.post('/api/community/questions/:questionId/answers', async (req, res) => {
         console.log('🗃️ Pool de base de datos disponible, procediendo con validaciones...');
         
         // Verificar si el usuario existe o crearlo si es el usuario demo
-        if (user_id === '123e4567-e89b-12d3-a456-426614174000') {
+        if (userId === '123e4567-e89b-12d3-a456-426614174000') {
             console.log('👤 Verificando/creando usuario demo...');
-            const demoUserCheck = await pool.query('SELECT id FROM users WHERE id = $1', [user_id]);
-            
+            const demoUserCheck = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
+
             if (demoUserCheck.rows.length === 0) {
                 console.log('🔧 Creando usuario demo...');
                 await pool.query(`
                     INSERT INTO users (id, username, display_name, email, created_at, updated_at)
                     VALUES ($1, $2, $3, $4, NOW(), NOW())
                     ON CONFLICT (id) DO NOTHING
-                `, [user_id, 'usuario_demo', 'Usuario Demo', 'demo@example.com']);
+                `, [userId, 'usuario_demo', 'Usuario Demo', 'demo@example.com']);
                 console.log('✅ Usuario demo creado');
             }
         } else {
             // Verificar que el usuario real existe
-            const userCheck = await pool.query('SELECT id FROM users WHERE id = $1', [user_id]);
+            const userCheck = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
             if (userCheck.rows.length === 0) {
-                console.log('❌ Usuario no encontrado:', user_id);
+                console.log('❌ Usuario no encontrado:', userId);
                 return res.status(400).json({
                     success: false,
                     error: 'Usuario no encontrado. Por favor inicia sesión nuevamente.'
@@ -5910,11 +6230,11 @@ app.post('/api/community/questions/:questionId/answers', async (req, res) => {
         
         // Crear la respuesta
         const result = await pool.query(`
-            INSERT INTO community_answers 
+            INSERT INTO community_answers
             (question_id, user_id, content, votes_count, created_at, updated_at)
             VALUES ($1, $2, $3, 0, NOW(), NOW())
             RETURNING *
-        `, [questionId, user_id, content.trim()]);
+        `, [questionId, userId, content.trim()]);
         
         console.log('📊 Resultado de INSERT:', {
             rowCount: result.rowCount,
@@ -5931,9 +6251,9 @@ app.post('/api/community/questions/:questionId/answers', async (req, res) => {
         // Obtener datos del usuario para la respuesta
         const userResult = await pool.query(`
             SELECT username, display_name, first_name, profile_picture_url
-            FROM users 
+            FROM users
             WHERE id = $1
-        `, [user_id]);
+        `, [userId]);
         
         const userData = userResult.rows[0] || {};
         console.log('👤 Datos de usuario encontrados:', userData);
@@ -6338,6 +6658,533 @@ app.get('/api/users/:userId/course/:courseId/modules/progress', async (req, res)
         
     } catch (error) {
         console.error('❌ Error obteniendo progreso de módulos:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+});
+
+// =====================================================
+// ENDPOINTS DE COMUNIDAD
+// =====================================================
+
+// Obtener preguntas de la comunidad
+app.get('/api/community/questions', async (req, res) => {
+    try {
+        const { 
+            course_id, 
+            module_id, 
+            filter = 'all', 
+            sort = 'recent', 
+            page = 1, 
+            limit = 20, 
+            search 
+        } = req.query;
+
+        console.log(`📋 Obteniendo preguntas - Filtro: ${filter}, Orden: ${sort}`);
+
+        if (!supabase) {
+            // Datos demo si no hay Supabase configurado
+            const demoQuestions = [
+                {
+                    id: 'demo-1',
+                    user_id: 'user-1',
+                    course_id: course_id || null,
+                    module_id: module_id || null,
+                    title: '¿Cuál es la diferencia entre Machine Learning y Deep Learning?',
+                    content: 'Estoy viendo el curso de IA pero no me queda clara la diferencia entre estos conceptos...',
+                    tags: ['machine-learning', 'deep-learning'],
+                    votes_count: 15,
+                    answers_count: 3,
+                    views_count: 127,
+                    is_answered: true,
+                    is_featured: false,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    author: {
+                        id: 'user-1',
+                        username: 'carlos_estudiante',
+                        display_name: 'Carlos Mendez',
+                        avatar_url: null
+                    }
+                },
+                {
+                    id: 'demo-2',
+                    user_id: 'user-2',
+                    course_id: course_id || null,
+                    module_id: module_id || null,
+                    title: '¿Cómo funciona el procesamiento de lenguaje natural?',
+                    content: 'Me gustaría entender mejor cómo las máquinas pueden entender texto...',
+                    tags: ['nlp', 'procesamiento-lenguaje'],
+                    votes_count: 8,
+                    answers_count: 1,
+                    views_count: 89,
+                    is_answered: false,
+                    is_featured: true,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    author: {
+                        id: 'user-2',
+                        username: 'ana_garcia',
+                        display_name: 'Ana García',
+                        avatar_url: null
+                    }
+                }
+            ];
+
+            return res.json({
+                success: true,
+                data: demoQuestions,
+                pagination: {
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    total: demoQuestions.length,
+                    pages: 1
+                }
+            });
+        }
+
+        // Si hay Supabase configurado, usar la implementación real
+        let query = supabase
+            .from('community_questions')
+            .select(`
+                *,
+                users:user_id (
+                    id,
+                    username,
+                    display_name,
+                    profile_picture_url
+                )
+            `);
+
+        // Aplicar filtros
+        if (course_id) query = query.eq('course_id', course_id);
+        if (module_id) query = query.eq('module_id', module_id);
+        if (search) query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
+
+        // Aplicar filtros específicos
+        switch (filter) {
+            case 'unanswered':
+                query = query.eq('is_answered', false);
+                break;
+            case 'answered':
+                query = query.eq('is_answered', true);
+                break;
+            case 'featured':
+                query = query.eq('is_featured', true);
+                break;
+        }
+
+        // Aplicar ordenamiento
+        switch (sort) {
+            case 'votes':
+                query = query.order('votes_count', { ascending: false });
+                break;
+            case 'answers':
+                query = query.order('answers_count', { ascending: false });
+                break;
+            case 'views':
+                query = query.order('views_count', { ascending: false });
+                break;
+            case 'recent':
+            default:
+                query = query.order('created_at', { ascending: false });
+                break;
+        }
+
+        // Aplicar paginación
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+        query = query.range(offset, offset + parseInt(limit) - 1);
+
+        const { data: questions, error } = await query;
+
+        if (error) {
+            console.error('❌ Error obteniendo preguntas:', error);
+            return res.status(500).json({ 
+                error: 'Error obteniendo preguntas',
+                details: error.message 
+            });
+        }
+
+        // Obtener conteo total para paginación
+        const { count } = await supabase
+            .from('community_questions')
+            .select('*', { count: 'exact', head: true });
+
+        console.log(`✅ ${questions.length} preguntas obtenidas`);
+        res.json({
+            success: true,
+            data: questions,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total: count,
+                pages: Math.ceil(count / parseInt(limit))
+            }
+        });
+
+    } catch (error) {
+        console.error('💥 Error en /api/community/questions:', error);
+        res.status(500).json({ 
+            error: 'Error interno del servidor',
+            details: error.message 
+        });
+    }
+});
+
+// Crear nueva pregunta en la comunidad
+app.post('/api/community/questions', async (req, res) => {
+    try {
+        const { title, content, tags, course_id, module_id, user_id } = req.body;
+
+        console.log(`📝 Creando nueva pregunta: "${title}"`);
+
+        // Validar datos requeridos
+        if (!title || !content || !user_id) {
+            return res.status(400).json({ 
+                error: 'Datos requeridos faltantes',
+                message: 'Título, contenido y usuario son requeridos'
+            });
+        }
+
+        if (!supabase) {
+            // Respuesta demo si no hay Supabase
+            const demoQuestion = {
+                id: `demo-${Date.now()}`,
+                title: title.trim(),
+                content: content.trim(),
+                tags: tags || [],
+                course_id: course_id || null,
+                module_id: module_id || null,
+                user_id: user_id,
+                votes_count: 0,
+                answers_count: 0,
+                views_count: 1,
+                is_answered: false,
+                is_featured: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                author: {
+                    id: user_id,
+                    username: 'usuario_demo',
+                    display_name: 'Usuario Demo',
+                    avatar_url: null
+                }
+            };
+
+            console.log(`✅ Pregunta demo creada: ${demoQuestion.id}`);
+            return res.status(201).json({
+                success: true,
+                data: demoQuestion,
+                message: 'Pregunta creada exitosamente (modo demo)'
+            });
+        }
+
+        // Crear la pregunta en Supabase
+        const { data: question, error } = await supabase
+            .from('community_questions')
+            .insert({
+                title: title.trim(),
+                content: content.trim(),
+                tags: tags || [],
+                course_id: course_id || null,
+                module_id: module_id || null,
+                user_id: user_id
+            })
+            .select(`
+                *,
+                users:user_id (
+                    id,
+                    username,
+                    display_name,
+                    profile_picture_url
+                )
+            `)
+            .single();
+
+        if (error) {
+            console.error('❌ Error creando pregunta:', error);
+            return res.status(500).json({ 
+                error: 'Error creando pregunta',
+                details: error.message 
+            });
+        }
+
+        console.log(`✅ Pregunta creada exitosamente: ${question.id}`);
+        res.status(201).json({
+            success: true,
+            data: question,
+            message: 'Pregunta creada exitosamente'
+        });
+
+    } catch (error) {
+        console.error('💥 Error en POST /api/community/questions:', error);
+        res.status(500).json({ 
+            error: 'Error interno del servidor',
+            details: error.message 
+        });
+    }
+});
+
+// Obtener estadísticas de la comunidad
+app.get('/api/community/stats', async (req, res) => {
+    try {
+        const { course_id, module_id } = req.query;
+
+        console.log('📊 Obteniendo estadísticas de comunidad');
+
+        if (!supabase) {
+            // Estadísticas demo
+            const demoStats = {
+                total_questions: 15,
+                answered_questions: 12,
+                total_answers: 28,
+                total_users: 8,
+                most_active_users: [
+                    {
+                        user_id: 'user-1',
+                        full_name: 'Ana García',
+                        questions_count: 3,
+                        answers_count: 8,
+                        is_instructor: true
+                    },
+                    {
+                        user_id: 'user-2',
+                        full_name: 'Carlos Mendez',
+                        questions_count: 5,
+                        answers_count: 4,
+                        is_instructor: false
+                    }
+                ],
+                popular_tags: [
+                    { tag: 'machine-learning', count: 8 },
+                    { tag: 'deep-learning', count: 5 },
+                    { tag: 'nlp', count: 3 }
+                ]
+            };
+
+            return res.json({
+                success: true,
+                data: demoStats
+            });
+        }
+
+        // Implementación real con Supabase aquí...
+        res.json({
+            success: true,
+            data: {
+                total_questions: 0,
+                answered_questions: 0,
+                total_answers: 0,
+                total_users: 0,
+                most_active_users: [],
+                popular_tags: []
+            }
+        });
+
+    } catch (error) {
+        console.error('💥 Error en /api/community/stats:', error);
+        res.status(500).json({ 
+            error: 'Error interno del servidor',
+            details: error.message 
+        });
+    }
+});
+
+// POST /api/community/questions/:id/vote - Votar en una pregunta específica
+app.post('/api/community/questions/:id/vote', async (req, res) => {
+    try {
+        console.log('🗳️ === VOTO EN PREGUNTA ===');
+        console.log('Question ID:', req.params.id);
+        console.log('Body:', req.body);
+
+        const questionId = req.params.id;
+        const { vote_type } = req.body;
+        const userId = req.headers['x-user-id'] || req.body.user_id;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: 'Usuario no autenticado'
+            });
+        }
+
+        if (!vote_type || !['up', 'down', 'upvote', 'downvote'].includes(vote_type)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Tipo de voto inválido. Usar: up, down, upvote, downvote'
+            });
+        }
+
+        // Normalizar tipo de voto
+        const normalizedVoteType = vote_type === 'upvote' ? 'up' :
+                                 vote_type === 'downvote' ? 'down' : vote_type;
+
+        // Verificar si ya existe un voto del usuario
+        const existingVoteResult = await pool.query(`
+            SELECT * FROM community_votes
+            WHERE user_id = $1 AND target_type = 'question' AND target_id = $2
+        `, [userId, questionId]);
+
+        let voteAction = 'created';
+
+        if (existingVoteResult.rows.length > 0) {
+            const existingVote = existingVoteResult.rows[0];
+
+            if (existingVote.vote_type === normalizedVoteType) {
+                // Eliminar voto si es el mismo tipo
+                await pool.query('DELETE FROM community_votes WHERE id = $1', [existingVote.id]);
+                voteAction = 'removed';
+            } else {
+                // Actualizar tipo de voto
+                await pool.query(
+                    'UPDATE community_votes SET vote_type = $1 WHERE id = $2',
+                    [normalizedVoteType, existingVote.id]
+                );
+                voteAction = 'updated';
+            }
+        } else {
+            // Crear nuevo voto
+            await pool.query(`
+                INSERT INTO community_votes (user_id, target_type, target_id, vote_type, created_at)
+                VALUES ($1, 'question', $2, $3, NOW())
+            `, [userId, questionId, normalizedVoteType]);
+        }
+
+        // Actualizar contador de votos en la pregunta
+        await updateVoteCount('question', questionId);
+
+        // Contar votos actuales
+        const upVotesResult = await pool.query(`
+            SELECT COUNT(*) as count FROM community_votes
+            WHERE target_type = 'question' AND target_id = $1 AND vote_type = 'up'
+        `, [questionId]);
+
+        const downVotesResult = await pool.query(`
+            SELECT COUNT(*) as count FROM community_votes
+            WHERE target_type = 'question' AND target_id = $1 AND vote_type = 'down'
+        `, [questionId]);
+
+        const upCount = parseInt(upVotesResult.rows[0].count);
+        const downCount = parseInt(downVotesResult.rows[0].count);
+        const totalVotes = upCount - downCount;
+
+        res.status(200).json({
+            success: true,
+            data: {
+                action: voteAction,
+                vote_type: normalizedVoteType,
+                total_votes: totalVotes,
+                up_votes: upCount,
+                down_votes: downCount
+            },
+            message: `Voto ${voteAction === 'removed' ? 'eliminado' : voteAction === 'updated' ? 'actualizado' : 'registrado'} exitosamente`
+        });
+
+    } catch (error) {
+        console.error('❌ Error en voto de pregunta:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+});
+
+// POST /api/community/answers/:id/vote - Votar en una respuesta específica
+app.post('/api/community/answers/:id/vote', async (req, res) => {
+    try {
+        console.log('🗳️ === VOTO EN RESPUESTA ===');
+        console.log('Answer ID:', req.params.id);
+        console.log('Body:', req.body);
+
+        const answerId = req.params.id;
+        const { vote_type } = req.body;
+        const userId = req.headers['x-user-id'] || req.body.user_id;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: 'Usuario no autenticado'
+            });
+        }
+
+        if (!vote_type || !['up', 'down', 'upvote', 'downvote'].includes(vote_type)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Tipo de voto inválido. Usar: up, down, upvote, downvote'
+            });
+        }
+
+        // Normalizar tipo de voto
+        const normalizedVoteType = vote_type === 'upvote' ? 'up' :
+                                 vote_type === 'downvote' ? 'down' : vote_type;
+
+        // Verificar si ya existe un voto del usuario
+        const existingVoteResult = await pool.query(`
+            SELECT * FROM community_votes
+            WHERE user_id = $1 AND target_type = 'answer' AND target_id = $2
+        `, [userId, answerId]);
+
+        let voteAction = 'created';
+
+        if (existingVoteResult.rows.length > 0) {
+            const existingVote = existingVoteResult.rows[0];
+
+            if (existingVote.vote_type === normalizedVoteType) {
+                // Eliminar voto si es el mismo tipo
+                await pool.query('DELETE FROM community_votes WHERE id = $1', [existingVote.id]);
+                voteAction = 'removed';
+            } else {
+                // Actualizar tipo de voto
+                await pool.query(
+                    'UPDATE community_votes SET vote_type = $1 WHERE id = $2',
+                    [normalizedVoteType, existingVote.id]
+                );
+                voteAction = 'updated';
+            }
+        } else {
+            // Crear nuevo voto
+            await pool.query(`
+                INSERT INTO community_votes (user_id, target_type, target_id, vote_type, created_at)
+                VALUES ($1, 'answer', $2, $3, NOW())
+            `, [userId, answerId, normalizedVoteType]);
+        }
+
+        // Actualizar contador de votos en la respuesta
+        await updateVoteCount('answer', answerId);
+
+        // Contar votos actuales
+        const upVotesResult = await pool.query(`
+            SELECT COUNT(*) as count FROM community_votes
+            WHERE target_type = 'answer' AND target_id = $1 AND vote_type = 'up'
+        `, [answerId]);
+
+        const downVotesResult = await pool.query(`
+            SELECT COUNT(*) as count FROM community_votes
+            WHERE target_type = 'answer' AND target_id = $1 AND vote_type = 'down'
+        `, [answerId]);
+
+        const upCount = parseInt(upVotesResult.rows[0].count);
+        const downCount = parseInt(downVotesResult.rows[0].count);
+        const totalVotes = upCount - downCount;
+
+        res.status(200).json({
+            success: true,
+            data: {
+                action: voteAction,
+                vote_type: normalizedVoteType,
+                total_votes: totalVotes,
+                up_votes: upCount,
+                down_votes: downCount
+            },
+            message: `Voto ${voteAction === 'removed' ? 'eliminado' : voteAction === 'updated' ? 'actualizado' : 'registrado'} exitosamente`
+        });
+
+    } catch (error) {
+        console.error('❌ Error en voto de respuesta:', error);
         res.status(500).json({
             success: false,
             error: 'Error interno del servidor',

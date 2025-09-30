@@ -1,117 +1,149 @@
-# Prompt para Claude: Eliminación de Noticias Hardcodeadas
+# PROMPT PARA CLAUDE: Implementación de Animaciones de Fondo en notices.html
 
-## Objetivo
-Analizar la página de noticias (`src/Notices/notices.css`, `src/Notices/notices.html`, `src/Notices/notices.js`) para identificar y eliminar TODAS las noticias hardcodeadas, manteniendo intactos los estilos de las ventanas/tarjetas y el funcionamiento de la página.
+## CONTEXTO
+Necesito implementar las animaciones de fondo del archivo `cursos.css` en la página `notices.html` sin afectar su funcionamiento actual. La página `notices.html` ya tiene la clase `bg-glow-global` y el contenedor `particles-container`, pero necesita las animaciones específicas de fondo.
 
-## Análisis de Archivos
+## ANÁLISIS DEL SISTEMA ACTUAL
 
-### 1. Archivo `notices.js` - Noticias Hardcodeadas Identificadas
+### 1. ESTRUCTURA DE FONDO EN CURSOS.CSS
 
-#### A. Función `getMockNewsData()` (líneas 323-561)
-**CONTENIDO A ELIMINAR COMPLETAMENTE:**
-- Array completo de 10 noticias hardcodeadas con IDs del 1 al 10
-- Cada noticia incluye: id, title, excerpt, category, categoryLabel, date, author, views, comments, featured, image, hasDetailedView, detailedData
-- Las noticias tienen datos detallados con: tldr, suggestedSteps, risks, whyMatters, whatChanged, impact, resources, cta
+#### Variables CSS principales:
+```css
+:root {
+  --turq: #44e5ff;
+  --turq-2: #3dd4eb;
+  --bg-1: #06182A;
+  --bg-2: #0B1220;
+}
+```
 
-#### B. Función `loadNewsData()` (líneas 311-321)
-**MODIFICAR:**
-- Eliminar la llamada a `this.getMockNewsData()`
-- Cambiar para cargar desde BD (placeholder para implementación futura)
-- Mantener la estructura de loading y rendering
+#### Gradientes de fondo:
+- **Modo oscuro**: `linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%)`
+- **Modo claro**: `linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%)`
 
-#### C. Datos de muestra `sampleNews` (líneas 1396-1423)
-**CONTENIDO A ELIMINAR COMPLETAMENTE:**
-- Objeto con noticia de muestra hardcodeada
-- Incluye datos detallados de ejemplo
+#### Efectos de partículas:
+- **Modo oscuro**: `mix-blend-mode: normal`
+- **Modo claro**: `mix-blend-mode: multiply`
 
-### 2. Archivo `notices.html` - Contenido Hardcodeado Identificado
+#### Efectos de glow:
+- **Modo oscuro**: `radial-gradient(circle, rgba(68, 229, 255, 0.1) 0%, transparent 70%)`
+- **Modo claro**: `radial-gradient(circle, rgba(68, 229, 255, 0.15) 0%, transparent 70%)`
 
-#### A. Modal de noticias (líneas 270-367)
-**CONTENIDO A ELIMINAR:**
-- Título hardcodeado: "Online RL para Cursor Tab: 28% más aceptación con 21% menos sugerencias"
-- Sección TL;DR hardcodeada con datos específicos
-- Contenido detallado del modal con datos específicos de Cursor
-- Pasos sugeridos, riesgos, recursos, etc. hardcodeados
+### 2. ESTRUCTURA ACTUAL EN NOTICES.HTML
 
-#### B. Estadísticas hardcodeadas (líneas 114-125)
-**MANTENER ESTRUCTURA, ELIMINAR VALORES:**
-- `totalNews`: cambiar de "0" a valor dinámico
-- `totalCategories`: cambiar de "5" a valor dinámico  
-- `totalViews`: cambiar de "0" a valor dinámico
+La página ya tiene:
+- `<body class="bg-glow-global">`
+- `<div class="particles-container"></div>`
+- Scripts: `particles.js`, `theme-manager.js`, `global-theme-setup.js`
 
-### 3. Archivo `notices.css` - Mantener Intacto
-**NO MODIFICAR:** Todos los estilos están correctos y deben mantenerse para el funcionamiento futuro.
+### 3. SCRIPT DE PARTÍCULAS EXISTENTE
 
-## Instrucciones Específicas de Eliminación
+El archivo `particles.js` ya está implementado con:
+- Configuración de partículas con color `#44e5ff`
+- Efectos de hover y click
+- Función de respaldo para navegadores sin particles.js
+- Canvas con ID `particles-js`
 
-### Paso 1: Limpiar `notices.js`
+## TAREAS ESPECÍFICAS
 
-1. **Eliminar función `getMockNewsData()` completa** (líneas 323-561)
-2. **Modificar función `loadNewsData()`** para:
-   ```javascript
-   loadNewsData() {
-       this.showLoading();
-       
-       // TODO: Implementar carga desde BD
-       // Por ahora, inicializar con arrays vacíos
-       this.allNews = [];
-       this.filteredNews = [];
-       this.renderNews();
-       this.hideLoading();
+### PASO 1: Análisis de compatibilidad
+1. Verificar que `notices.css` tenga las variables CSS necesarias
+2. Confirmar que el sistema de temas funcione correctamente
+3. Validar que no haya conflictos con estilos existentes
+
+### PASO 2: Implementación de estilos de fondo
+1. **Agregar variables CSS faltantes** en `notices.css`:
+   ```css
+   :root {
+     --turq: #44e5ff;
+     --turq-2: #3dd4eb;
+     --bg-1: #06182A;
+     --bg-2: #0B1220;
    }
    ```
 
-3. **Eliminar objeto `sampleNews`** (líneas 1396-1423)
-4. **Mantener todas las funciones de rendering** (`renderNews()`, `renderFeaturedNews()`, `renderLatestNews()`) - deben funcionar con arrays vacíos
-5. **Mantener funciones de filtrado y búsqueda** - deben funcionar con arrays vacíos
-6. **Mantener funciones del modal** - deben funcionar sin datos
-
-### Paso 2: Limpiar `notices.html`
-
-1. **Eliminar contenido hardcodeado del modal** (líneas 288-364):
-   - Mantener la estructura HTML del modal
-   - Eliminar el título específico
-   - Eliminar el contenido TL;DR específico
-   - Eliminar el contenido detallado específico
-   - Dejar placeholders vacíos o con texto genérico
-
-2. **Actualizar estadísticas** para mostrar valores dinámicos:
-   ```html
-   <span class="stat-number" id="totalNews">0</span>
-   <span class="stat-number" id="totalCategories">0</span>
-   <span class="stat-number" id="totalViews">0</span>
+2. **Implementar gradientes de fondo**:
+   ```css
+   body.bg-glow-global {
+     background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
+   }
+   
+   [data-theme="light"] body.bg-glow-global {
+     background: linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%);
+   }
    ```
 
-### Paso 3: Verificar Funcionalidad
+3. **Agregar efectos de glow**:
+   ```css
+   .bg-glow-global .bg-glow {
+     background: radial-gradient(circle, rgba(68, 229, 255, 0.1) 0%, transparent 70%);
+   }
+   
+   [data-theme="light"] .bg-glow-global .bg-glow {
+     background: radial-gradient(circle, rgba(68, 229, 255, 0.15) 0%, transparent 70%);
+   }
+   ```
 
-1. **Asegurar que la página cargue sin errores** con arrays vacíos
-2. **Verificar que los filtros funcionen** (aunque no haya noticias)
-3. **Verificar que el modal se abra** (aunque esté vacío)
-4. **Verificar que las categorías se muestren** con contadores en 0
-5. **Verificar que la búsqueda funcione** (aunque no devuelva resultados)
+### PASO 3: Configuración de partículas
+1. **Verificar que el canvas tenga el ID correcto**:
+   ```html
+   <canvas id="particles-js"></canvas>
+   ```
 
-## Resultado Esperado
+2. **Ajustar mix-blend-mode**:
+   ```css
+   #bgParticles {
+     mix-blend-mode: normal;
+   }
+   
+   [data-theme="light"] #bgParticles {
+     mix-blend-mode: multiply;
+   }
+   ```
 
-- Página de noticias completamente funcional pero sin contenido hardcodeado
-- Estilos y funcionalidad intactos
-- Arrays de noticias vacíos listos para cargar desde BD
-- Modal funcional pero sin contenido específico
-- Estadísticas mostrando valores en 0
-- Categorías mostrando "0 noticias" cada una
+### PASO 4: Transiciones suaves
+1. **Agregar transiciones para cambio de tema**:
+   ```css
+   * {
+     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+   }
+   ```
 
-## Notas Importantes
+### PASO 5: Validación y testing
+1. **Verificar funcionamiento en ambos temas** (claro/oscuro)
+2. **Confirmar que las partículas se muestren correctamente**
+3. **Validar que no se rompan estilos existentes**
+4. **Probar responsividad en diferentes tamaños de pantalla**
 
-- **NO eliminar** ninguna función de JavaScript que no sea específicamente de datos hardcodeados
-- **NO modificar** el archivo CSS
-- **Mantener** toda la lógica de UI, filtros, búsqueda, modales, etc.
-- **Preservar** la estructura HTML del modal y las tarjetas
-- **Asegurar** que la página sea completamente funcional sin contenido
+## RESTRICCIONES IMPORTANTES
 
-## Archivos a Modificar
+1. **NO modificar** la estructura HTML existente de `notices.html`
+2. **NO afectar** el funcionamiento actual de la página
+3. **Mantener** todos los estilos existentes de `notices.css`
+4. **Preservar** la funcionalidad del sistema de temas
+5. **No romper** la navegación ni los componentes existentes
 
-1. `src/Notices/notices.js` - Eliminar datos hardcodeados, mantener funcionalidad
-2. `src/Notices/notices.html` - Limpiar contenido específico del modal y estadísticas
+## RESULTADO ESPERADO
 
-## Archivos a NO Modificar
+Al finalizar, `notices.html` debe tener:
+- Fondo con gradiente animado igual al de `cursos.css`
+- Partículas flotantes con efectos de hover/click
+- Transiciones suaves entre temas claro/oscuro
+- Efectos de glow sutil en el fondo
+- Funcionamiento idéntico al actual, pero con animaciones de fondo
 
-1. `src/Notices/notices.css` - Mantener intacto
+## ARCHIVOS A MODIFICAR
+
+1. `src/Notices/notices.css` - Agregar estilos de fondo y partículas
+2. `src/Notices/notices.html` - Verificar estructura del canvas (si es necesario)
+
+## ARCHIVOS DE REFERENCIA
+
+1. `src/styles/cursos.css` - Estilos de fondo a copiar
+2. `src/scripts/particles.js` - Script de partículas existente
+3. `src/Notices/notices.html` - Página objetivo
+4. `src/Notices/notices.css` - Estilos actuales
+
+---
+
+**IMPORTANTE**: Implementar paso a paso, validando cada cambio antes de continuar con el siguiente.

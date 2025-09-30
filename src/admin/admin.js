@@ -4,6 +4,9 @@ class AdminPanel {
     constructor() {
         this.currentSection = 'dashboard';
         this.usersLoadedBefore = false; // Flag to prevent repetitive notifications
+        this.autoRefreshInterval = null; // Para la actualización automática de solicitudes
+        this.autoRefreshSetup = false; // Flag para evitar múltiples auto-refresh
+        this.isLoadingRequests = false; // Flag para evitar múltiples cargas simultáneas
         this.init();
     }
 
@@ -173,6 +176,7 @@ class AdminPanel {
             courses: 'Cursos',
             users: 'Usuarios',
             community: 'Comunidad',
+            'community-requests': 'Solicitudes de Comunidad',
             news: 'Noticias',
             analytics: 'Analíticas',
             settings: 'Configuraciones'
@@ -194,6 +198,9 @@ class AdminPanel {
                 break;
             case 'community':
                 this.loadCommunityData();
+                break;
+            case 'community-requests':
+                await this.loadCommunityRequestsData();
                 break;
             case 'news':
                 this.loadNewsData();
@@ -676,6 +683,14 @@ class AdminPanel {
                 this.showAddNewsModal();
             });
         }
+
+        // Botón actualizar solicitudes
+        const refreshRequestsBtn = document.getElementById('refreshRequestsBtn');
+        if (refreshRequestsBtn) {
+            refreshRequestsBtn.addEventListener('click', () => {
+                this.loadCommunityRequestsData();
+            });
+        }
     }
 
     // ===== FILTROS =====
@@ -708,6 +723,29 @@ class AdminPanel {
         }
         if (userStatus) {
             userStatus.addEventListener('change', () => this.filterUsers());
+        }
+
+        // Filtros de solicitudes de comunidad
+        const requestSearch = document.getElementById('requestSearch');
+        const requestStatus = document.getElementById('requestStatus');
+        const requestCommunity = document.getElementById('requestCommunity');
+        const dateFrom = document.getElementById('dateFrom');
+        const dateTo = document.getElementById('dateTo');
+
+        if (requestSearch) {
+            requestSearch.addEventListener('input', () => this.filterCommunityRequests());
+        }
+        if (requestStatus) {
+            requestStatus.addEventListener('change', () => this.filterCommunityRequests());
+        }
+        if (requestCommunity) {
+            requestCommunity.addEventListener('change', () => this.filterCommunityRequests());
+        }
+        if (dateFrom) {
+            dateFrom.addEventListener('change', () => this.filterCommunityRequests());
+        }
+        if (dateTo) {
+            dateTo.addEventListener('change', () => this.filterCommunityRequests());
         }
     }
 
@@ -1076,6 +1114,595 @@ class AdminPanel {
         this.showToast('Noticia creada exitosamente', 'success');
         this.closeModal();
         this.loadNewsData();
+    }
+
+    // ===== GESTIÓN DE SOLICITUDES DE COMUNIDAD =====
+    
+    // Función auxiliar para validar UUID
+    isValidUUID(uuid) {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        return uuidRegex.test(uuid);
+    }
+
+    async loadCommunityRequestsData() {
+        // Evitar múltiples ejecuciones simultáneas
+        if (this.isLoadingRequests) {
+            console.log('⚠️ Ya se está cargando las solicitudes, saltando...');
+            return;
+        }
+        this.isLoadingRequests = true;
+
+        const requestsTableBody = document.getElementById('requestsTableBody');
+        if (!requestsTableBody) {
+            this.isLoadingRequests = false;
+            return;
+        }
+
+        try {
+            this.showLoading('requestsTableBody');
+
+            const response = await this.makeAuthenticatedRequest('/api/admin/community-requests');
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Error ${response.status}: ${errorText || 'Error obteniendo solicitudes'}`);
+            }
+
+            const requests = await response.json();
+
+            // Cargar comunidades para el filtro
+            await this.loadCommunitiesForFilter();
+
+            // Actualizar estadísticas
+            this.updateRequestsStats(requests);
+
+            if (!Array.isArray(requests) || requests.length === 0) {
+                requestsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="no-data">
+                            <div class="no-data-message">
+                                <i class="fas fa-user-check"></i>
+                                <p>No hay solicitudes de comunidad</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const htmlResult = requests.map(request => {
+                const createdAt = request.created_at ?
+                    new Date(request.created_at).toLocaleString('es-ES') :
+                    'Fecha no disponible';
+
+                const statusBadge = this.getStatusBadge(request.status);
+                const userName = (request.user_name || 'Usuario desconocido').replace(/[<>]/g, '');
+                const userEmail = (request.user_email || 'Email no disponible').replace(/[<>]/g, '');
+                const communityName = (request.community_name || 'Comunidad desconocida').replace(/[<>]/g, '');
+                const note = request.note ? (request.note.length > 50 ? request.note.substring(0, 50) + '...' : request.note) : 'Sin nota';
+
+                return `
+                    <tr data-request-id="${request.id}">
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="user-details">
+                                    <strong>${userName}</strong>
+                                    <br><small>${userEmail}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="community-info">
+                                <i class="fas fa-users"></i>
+                                <span>${communityName}</span>
+                            </div>
+                        </td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <div class="date-info">
+                                <i class="fas fa-calendar"></i>
+                                <span>${createdAt}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="note-cell" title="${request.note || 'Sin nota'}">
+                                ${note}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                ${request.status === 'pending' ? `
+                                    <button class="btn-icon btn-approve" onclick="adminPanel.approveRequest('${request.id}')" title="Aprobar solicitud">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn-icon btn-reject" onclick="adminPanel.rejectRequest('${request.id}')" title="Rechazar solicitud">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                ` : ''}
+                                <button class="btn-icon btn-details" onclick="adminPanel.showRequestDetails('${request.id}')" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            const htmlContent = htmlResult.join('');
+
+            if (requestsTableBody) {
+                requestsTableBody.innerHTML = htmlContent;
+
+                // Asegurar visibilidad de la tabla y contenedores
+                const table = requestsTableBody.closest('table');
+                const tableContainer = table?.parentElement;
+                const section = tableContainer?.closest('.content-section');
+
+                // Forzar visibilidad de todos los elementos
+                if (table) table.style.display = 'table';
+                if (tableContainer) {
+                    tableContainer.style.display = 'block';
+                    tableContainer.style.visibility = 'visible';
+                }
+                if (section && !section.classList.contains('active')) {
+                    section.classList.add('active');
+                }
+
+                // Asegurar que las filas sean visibles
+                const rows = requestsTableBody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    row.style.display = 'table-row';
+                    row.style.visibility = 'visible';
+                });
+            }
+
+            // Verificar si Font Awesome se cargó correctamente
+            const testIcon = document.createElement('i');
+            testIcon.className = 'fas fa-test';
+            testIcon.style.display = 'none';
+            document.body.appendChild(testIcon);
+            const fontLoaded = window.getComputedStyle(testIcon, ':before').fontFamily.includes('Font Awesome');
+            document.body.removeChild(testIcon);
+
+            if (!fontLoaded) {
+                console.warn('⚠️ Font Awesome no se cargó correctamente');
+            }
+
+            this.showToast(`${requests.length} solicitudes cargadas correctamente`, 'success');
+
+            // Configurar auto-refresh solo la primera vez
+            if (!this.autoRefreshSetup) {
+                this.setupAutoRefresh();
+                this.autoRefreshSetup = true;
+            }
+
+            // Liberar flag de carga
+            this.isLoadingRequests = false;
+
+        } catch (error) {
+            this.isLoadingRequests = false;
+            requestsTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="error-state">
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error cargando solicitudes</p>
+                            <small>${error.message}</small>
+                            <button class="btn-retry" onclick="adminPanel.loadCommunityRequestsData()">
+                                <i class="fas fa-retry"></i> Reintentar
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+
+            this.showToast(`Error cargando solicitudes: ${error.message}`, 'error');
+        } finally {
+            this.isLoadingRequests = false;
+        }
+    }
+
+    async loadCommunitiesForFilter() {
+        try {
+            const response = await this.makeAuthenticatedRequest('/api/admin/communities');
+            if (response.ok) {
+                const communities = await response.json();
+                const communitySelect = document.getElementById('requestCommunity');
+                if (communitySelect && Array.isArray(communities)) {
+                    communitySelect.innerHTML = '<option value="">Todas las comunidades</option>' +
+                        communities.map(community =>
+                            `<option value="${community.id}">${community.name}</option>`
+                        ).join('');
+                }
+            }
+        } catch (error) {
+            console.error('Error cargando comunidades para filtro:', error);
+        }
+    }
+
+    updateRequestsStats(requests) {
+        const pendingCount = requests.filter(r => r.status === 'pending').length;
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+
+        const approvedThisMonth = requests.filter(r => {
+            if (r.status !== 'approved' || !r.reviewed_at) return false;
+            const reviewDate = new Date(r.reviewed_at);
+            return reviewDate.getMonth() === currentMonth && reviewDate.getFullYear() === currentYear;
+        }).length;
+
+        const rejectedThisMonth = requests.filter(r => {
+            if (r.status !== 'rejected' || !r.reviewed_at) return false;
+            const reviewDate = new Date(r.reviewed_at);
+            return reviewDate.getMonth() === currentMonth && reviewDate.getFullYear() === currentYear;
+        }).length;
+
+        // Calcular tiempo promedio de respuesta
+        const processedRequests = requests.filter(r => r.reviewed_at && r.created_at);
+        let avgResponseTime = '-';
+        if (processedRequests.length > 0) {
+            const totalTime = processedRequests.reduce((sum, r) => {
+                const created = new Date(r.created_at);
+                const reviewed = new Date(r.reviewed_at);
+                return sum + (reviewed - created);
+            }, 0);
+            const avgHours = Math.round((totalTime / processedRequests.length) / (1000 * 60 * 60));
+            avgResponseTime = `${avgHours}h`;
+        }
+
+        document.getElementById('pendingRequestsCount').textContent = pendingCount;
+        document.getElementById('approvedThisMonthCount').textContent = approvedThisMonth;
+        document.getElementById('rejectedThisMonthCount').textContent = rejectedThisMonth;
+        document.getElementById('avgResponseTime').textContent = avgResponseTime;
+    }
+
+    getStatusBadge(status) {
+        const badges = {
+            pending: '<span class="status-badge pending"><i class="fas fa-clock"></i> Pendiente</span>',
+            approved: '<span class="status-badge approved"><i class="fas fa-check-circle"></i> Aprobada</span>',
+            rejected: '<span class="status-badge rejected"><i class="fas fa-times-circle"></i> Rechazada</span>'
+        };
+        return badges[status] || '<span class="status-badge unknown">Desconocido</span>';
+    }
+
+    setupAutoRefresh() {
+        // Limpiar intervalos previos
+        if (this.autoRefreshInterval) {
+            clearInterval(this.autoRefreshInterval);
+        }
+
+        // Solo configurar auto-refresh si estamos en la sección de solicitudes
+        if (this.currentSection === 'community-requests') {
+            this.autoRefreshInterval = setInterval(() => {
+                if (this.currentSection === 'community-requests') {
+                    this.loadCommunityRequestsData();
+                }
+            }, 30000); // 30 segundos
+        }
+    }
+
+    filterCommunityRequests() {
+        const searchTerm = document.getElementById('requestSearch')?.value.toLowerCase() || '';
+        const selectedStatus = document.getElementById('requestStatus')?.value || '';
+        const selectedCommunity = document.getElementById('requestCommunity')?.value || '';
+        const dateFrom = document.getElementById('dateFrom')?.value || '';
+        const dateTo = document.getElementById('dateTo')?.value || '';
+
+        const requestsTableBody = document.getElementById('requestsTableBody');
+        if (!requestsTableBody) return;
+
+        const rows = requestsTableBody.querySelectorAll('tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            if (row.querySelector('.no-data') || row.querySelector('.error-state')) {
+                return; // Skip empty state rows
+            }
+
+            const cells = row.querySelectorAll('td');
+            if (cells.length < 6) return; // Skip malformed rows
+
+            const userText = cells[0].textContent.toLowerCase();
+            const communityText = cells[1].textContent.toLowerCase();
+            const statusElement = cells[2].querySelector('.status-badge');
+            const dateText = cells[3].textContent;
+
+            // Text search filter
+            const matchesSearch = !searchTerm ||
+                userText.includes(searchTerm) ||
+                communityText.includes(searchTerm);
+
+            // Status filter
+            let matchesStatus = !selectedStatus;
+            if (selectedStatus && statusElement) {
+                if (statusElement.classList.contains(selectedStatus)) {
+                    matchesStatus = true;
+                }
+            }
+
+            // Community filter (implement based on your data structure)
+            const matchesCommunity = !selectedCommunity;
+
+            // Date filter
+            let matchesDate = true;
+            if (dateFrom || dateTo) {
+                // Extract date from the cell (implement based on your date format)
+                // This is a simplified version
+                matchesDate = true; // Implement proper date filtering
+            }
+
+            const shouldShow = matchesSearch && matchesStatus && matchesCommunity && matchesDate;
+
+            if (shouldShow) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Show message if no results
+        if (visibleCount === 0 && rows.length > 0) {
+            const noResultsRow = document.createElement('tr');
+            noResultsRow.innerHTML = `
+                <td colspan="6" class="no-data">
+                    <div class="no-data-message">
+                        <i class="fas fa-search"></i>
+                        <p>No se encontraron solicitudes que coincidan con los filtros</p>
+                        <button class="btn-secondary" onclick="adminPanel.clearRequestFilters()">
+                            Limpiar filtros
+                        </button>
+                    </div>
+                </td>
+            `;
+            noResultsRow.id = 'noRequestResultsRow';
+
+            // Remove previous no results row
+            const existingNoResults = requestsTableBody.querySelector('#noRequestResultsRow');
+            if (existingNoResults) {
+                existingNoResults.remove();
+            }
+
+            if (visibleCount === 0) {
+                requestsTableBody.appendChild(noResultsRow);
+            }
+        } else {
+            // Remove no results row if it exists
+            const existingNoResults = requestsTableBody.querySelector('#noRequestResultsRow');
+            if (existingNoResults) {
+                existingNoResults.remove();
+            }
+        }
+
+        // Persist filters in localStorage
+        localStorage.setItem('communityRequestFilters', JSON.stringify({
+            search: searchTerm,
+            status: selectedStatus,
+            community: selectedCommunity,
+            dateFrom: dateFrom,
+            dateTo: dateTo
+        }));
+    }
+
+    clearRequestFilters() {
+        // Clear all filter inputs
+        const requestSearch = document.getElementById('requestSearch');
+        const requestStatus = document.getElementById('requestStatus');
+        const requestCommunity = document.getElementById('requestCommunity');
+        const dateFrom = document.getElementById('dateFrom');
+        const dateTo = document.getElementById('dateTo');
+
+        if (requestSearch) requestSearch.value = '';
+        if (requestStatus) requestStatus.value = '';
+        if (requestCommunity) requestCommunity.value = '';
+        if (dateFrom) dateFrom.value = '';
+        if (dateTo) dateTo.value = '';
+
+        // Clear localStorage
+        localStorage.removeItem('communityRequestFilters');
+
+        // Reapply filters (which will show all requests)
+        this.filterCommunityRequests();
+
+        this.showToast('Filtros limpiados', 'info');
+    }
+
+    async approveRequest(requestId) {
+        const confirmModal = `
+            <div class="approve-request-form">
+                <div class="confirmation-message">
+                    <i class="fas fa-check-circle" style="color: #00D4AA; font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <h4 style="color: #00D4AA; margin-bottom: 1rem;">✓ Confirmar Aprobación</h4>
+                    <p style="margin-bottom: 1.5rem;">¿Estás seguro de que quieres <strong>aprobar</strong> esta solicitud de acceso a la comunidad?</p>
+                    <div class="warning-box" style="background: rgba(0, 212, 170, 0.05); border-left: 4px solid #00D4AA; padding: 1rem; margin: 1rem 0;">
+                        <p style="color: #00D4AA; font-weight: 600; margin: 0;">El usuario obtendrá acceso inmediato a la comunidad solicitada.</p>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn-secondary" onclick="adminPanel.closeModal()">Cancelar</button>
+                    <button class="btn-primary" onclick="adminPanel.confirmApproveRequest('${requestId}')">⚡ Sí, Aprobar</button>
+                </div>
+            </div>
+        `;
+
+        this.showModal('✓ Aprobar Solicitud de Comunidad', confirmModal);
+    }
+
+    async confirmApproveRequest(requestId) {
+        try {
+            // Validar que el requestId sea válido
+            if (!requestId || requestId === 'admin' || !this.isValidUUID(requestId)) {
+                console.error('❌ ID de solicitud inválido:', requestId);
+                this.showToast('Error: ID de solicitud inválido', 'error');
+                return;
+            }
+
+            const response = await this.makeAuthenticatedRequest(`/api/admin/community-requests/${requestId}/approve`, {
+                method: 'PUT'
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Error aprobando solicitud');
+            }
+
+            this.showToast(result.message || 'Solicitud aprobada exitosamente', 'success');
+            this.closeModal();
+            this.loadCommunityRequestsData();
+
+        } catch (error) {
+            this.showToast(`Error: ${error.message}`, 'error');
+        }
+    }
+
+    async rejectRequest(requestId) {
+        const rejectModal = `
+            <div class="reject-request-form">
+                <div class="warning-message">
+                    <i class="fas fa-times-circle" style="color: #FF4757; font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <h4 style="color: #FF4757; margin-bottom: 1rem;">❌ Rechazar Solicitud</h4>
+                    <p style="margin-bottom: 1.5rem;">¿Estás seguro de que quieres <strong>rechazar</strong> esta solicitud de acceso a la comunidad?</p>
+                </div>
+                <div class="form-group">
+                    <label for="rejectReason">Motivo del rechazo (opcional):</label>
+                    <textarea id="rejectReason" class="form-textarea" placeholder="Explica el motivo del rechazo para que el usuario entienda la decisión..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button class="btn-secondary" onclick="adminPanel.closeModal()">Cancelar</button>
+                    <button class="btn-danger" onclick="adminPanel.confirmRejectRequest('${requestId}')">🚫 Sí, Rechazar</button>
+                </div>
+            </div>
+        `;
+
+        this.showModal('❌ Rechazar Solicitud de Comunidad', rejectModal);
+    }
+
+    async confirmRejectRequest(requestId) {
+        try {
+            // Validar que el requestId sea válido
+            if (!requestId || requestId === 'admin' || !this.isValidUUID(requestId)) {
+                console.error('❌ ID de solicitud inválido:', requestId);
+                this.showToast('Error: ID de solicitud inválido', 'error');
+                return;
+            }
+
+            const reason = document.getElementById('rejectReason')?.value || '';
+
+            const response = await this.makeAuthenticatedRequest(`/api/admin/community-requests/${requestId}/reject`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ reason: reason })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Error rechazando solicitud');
+            }
+
+            this.showToast(result.message || 'Solicitud rechazada exitosamente', 'success');
+            this.closeModal();
+            this.loadCommunityRequestsData();
+
+        } catch (error) {
+            this.showToast(`Error: ${error.message}`, 'error');
+        }
+    }
+
+    async showRequestDetails(requestId) {
+        try {
+            const response = await this.makeAuthenticatedRequest('/api/admin/community-requests');
+            if (!response.ok) throw new Error('Error obteniendo solicitudes');
+
+            const requests = await response.json();
+            const request = requests.find(r => r.id === requestId);
+
+            if (!request) {
+                this.showToast('Solicitud no encontrada', 'error');
+                return;
+            }
+
+            const createdAt = request.created_at ? new Date(request.created_at).toLocaleString('es-ES') : 'No disponible';
+            const reviewedAt = request.reviewed_at ? new Date(request.reviewed_at).toLocaleString('es-ES') : 'No revisada aún';
+            const reviewedBy = request.reviewer_name || 'No asignado';
+
+            const detailsModal = `
+                <div class="request-details">
+                    <div class="detail-section">
+                        <h4><i class="fas fa-user"></i> Información del Usuario</h4>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Nombre completo:</label>
+                                <span>${request.user_name || 'No disponible'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Email:</label>
+                                <span>${request.user_email || 'No disponible'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4><i class="fas fa-users"></i> Información de la Comunidad</h4>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Nombre de la comunidad:</label>
+                                <span>${request.community_name || 'No disponible'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4><i class="fas fa-info-circle"></i> Detalles de la Solicitud</h4>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Estado:</label>
+                                ${this.getStatusBadge(request.status)}
+                            </div>
+                            <div class="detail-item">
+                                <label>Fecha de solicitud:</label>
+                                <span>${createdAt}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Fecha de revisión:</label>
+                                <span>${reviewedAt}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Revisado por:</label>
+                                <span>${reviewedBy}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${request.note ? `
+                        <div class="detail-section">
+                            <h4><i class="fas fa-sticky-note"></i> Nota del Solicitante</h4>
+                            <div class="note-content">
+                                ${request.note}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${request.status === 'pending' ? `
+                        <div class="detail-actions">
+                            <button class="btn-primary" onclick="adminPanel.closeModal(); adminPanel.approveRequest('${requestId}')">⚡ Aprobar Solicitud</button>
+                            <button class="btn-danger" onclick="adminPanel.closeModal(); adminPanel.rejectRequest('${requestId}')">🚫 Rechazar Solicitud</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            this.showModal('📄 Detalles de la Solicitud', detailsModal);
+
+        } catch (error) {
+            this.showToast('Error cargando detalles de la solicitud', 'error');
+        }
     }
 
     // ===== ACCIONES CRUD =====
@@ -1823,6 +2450,337 @@ const additionalStyles = `
         background: linear-gradient(135deg, #c53030 0%, #9b2c2c 100%);
         transform: translateY(-1px);
         box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+    }
+
+    /* Estilos para solicitudes de comunidad */
+    .filters-section {
+        background: rgba(68, 229, 255, 0.03);
+        border: 1px solid rgba(68, 229, 255, 0.1);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .filter-input, .filter-select, .filter-date {
+        background: rgba(68, 229, 255, 0.05);
+        border: 1px solid rgba(68, 229, 255, 0.2);
+        border-radius: 8px;
+        padding: 0.75rem;
+        color: white;
+        font-size: 0.9rem;
+        min-width: 200px;
+    }
+
+    .filter-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .date-filter {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .date-filter label {
+        font-weight: 500;
+        min-width: auto;
+    }
+
+    .filter-date {
+        min-width: 150px;
+    }
+
+    .requests-table-container {
+        background: rgba(68, 229, 255, 0.03);
+        border: 1px solid rgba(68, 229, 255, 0.1);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .requests-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: transparent;
+    }
+
+    .requests-table thead {
+        background: rgba(68, 229, 255, 0.1);
+    }
+
+    .requests-table th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #44E5FF;
+        border-bottom: 1px solid rgba(68, 229, 255, 0.2);
+        font-size: 0.9rem;
+    }
+
+    .requests-table td {
+        padding: 1rem;
+        border-bottom: 1px solid rgba(68, 229, 255, 0.1);
+        vertical-align: top;
+    }
+
+    .requests-table tbody tr:hover {
+        background: rgba(68, 229, 255, 0.05);
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        background: rgba(68, 229, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #44E5FF;
+    }
+
+    .user-details strong {
+        color: white;
+        font-size: 0.95rem;
+    }
+
+    .user-details small {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.8rem;
+    }
+
+    .community-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .community-info i {
+        color: #44E5FF;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .status-badge.pending {
+        background: rgba(255, 184, 0, 0.2);
+        color: #FFB800;
+        border: 1px solid rgba(255, 184, 0, 0.3);
+    }
+
+    .status-badge.approved {
+        background: rgba(0, 212, 170, 0.2);
+        color: #00D4AA;
+        border: 1px solid rgba(0, 212, 170, 0.3);
+    }
+
+    .status-badge.rejected {
+        background: rgba(255, 71, 87, 0.2);
+        color: #FF4757;
+        border: 1px solid rgba(255, 71, 87, 0.3);
+    }
+
+    .date-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+    }
+
+    .date-info i {
+        color: #44E5FF;
+    }
+
+    .note-cell {
+        max-width: 200px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+        line-height: 1.4;
+        cursor: help;
+    }
+
+    .btn-approve {
+        background: rgba(0, 212, 170, 0.1) !important;
+        border: 1px solid rgba(0, 212, 170, 0.2) !important;
+        color: #00D4AA !important;
+    }
+
+    .btn-approve:hover {
+        background: rgba(0, 212, 170, 0.2) !important;
+        border-color: #00D4AA !important;
+        transform: translateY(-1px);
+    }
+
+    .btn-reject {
+        background: rgba(255, 71, 87, 0.1) !important;
+        border: 1px solid rgba(255, 71, 87, 0.2) !important;
+        color: #FF4757 !important;
+    }
+
+    .btn-reject:hover {
+        background: rgba(255, 71, 87, 0.2) !important;
+        border-color: #FF4757 !important;
+        transform: translateY(-1px);
+    }
+
+    .btn-details {
+        background: rgba(68, 229, 255, 0.1) !important;
+        border: 1px solid rgba(68, 229, 255, 0.2) !important;
+        color: #44E5FF !important;
+    }
+
+    .btn-details:hover {
+        background: rgba(68, 229, 255, 0.2) !important;
+        border-color: #44E5FF !important;
+        transform: translateY(-1px);
+    }
+
+    /* Modal styles for request details */
+    .request-details {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .detail-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: rgba(68, 229, 255, 0.03);
+        border: 1px solid rgba(68, 229, 255, 0.1);
+        border-radius: 12px;
+    }
+
+    .detail-section h4 {
+        color: #44E5FF;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .detail-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: 1fr;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        background: rgba(68, 229, 255, 0.05);
+        border-radius: 8px;
+        border-left: 3px solid rgba(68, 229, 255, 0.3);
+    }
+
+    .detail-item label {
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.8);
+        min-width: 150px;
+    }
+
+    .detail-item span {
+        color: white;
+        text-align: right;
+        flex: 1;
+    }
+
+    .note-content {
+        background: rgba(68, 229, 255, 0.05);
+        border: 1px solid rgba(68, 229, 255, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.5;
+        font-style: italic;
+    }
+
+    .detail-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(68, 229, 255, 0.1);
+    }
+
+    /* Form styles for approve/reject modals */
+    .approve-request-form, .reject-request-form {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .confirmation-message, .warning-message {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .warning-box {
+        text-align: left;
+        margin: 1rem 0;
+    }
+
+    @media (max-width: 768px) {
+        .filter-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-input, .filter-select, .filter-date {
+            min-width: auto;
+            width: 100%;
+        }
+
+        .date-filter {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.5rem;
+        }
+
+        .requests-table-container {
+            overflow-x: auto;
+        }
+
+        .requests-table {
+            min-width: 800px;
+        }
+
+        .detail-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .detail-item span {
+            text-align: left;
+        }
+
+        .detail-actions {
+            flex-direction: column;
+        }
     }
 `;
 
