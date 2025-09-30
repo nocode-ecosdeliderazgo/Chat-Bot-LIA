@@ -1376,6 +1376,7 @@ input.is-disabled {
 [data-theme="light"] .stat-item:hover {
     background: rgba(0, 102, 204, 0.05) !important;
     border-color: rgba(0, 102, 204, 0.3) !important;
+    border: 1px solid rgba(0, 102, 204, 0.3) !important;
 }
 
 [data-theme="light"] .stat-icon {
