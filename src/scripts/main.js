@@ -1917,7 +1917,7 @@ function setupEventBusAndUI() {
 
     // ===== Notas minimalistas estilo NotebookLM =====
     const notesStore = (() => {
-        const KEY = 'lia_notes_v1';
+        const KEY = 'lia_notes';
         const read = () => {
             try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (_) { return []; }
         };
@@ -2075,10 +2075,11 @@ function setupEventBusAndUI() {
             }, 1000); // Auto-save después de 1 segundo de inactividad
         };
 
-        // Event listeners para auto-save
-        titleEl?.addEventListener('input', autoSave);
-        contentEl?.addEventListener('input', autoSave);
-        contentEl?.addEventListener('paste', () => setTimeout(autoSave, 100));
+        // Event listeners para auto-save DESHABILITADO
+        // Solo se guardará cuando el usuario presione el botón "Guardar"
+        // titleEl?.addEventListener('input', autoSave);
+        // contentEl?.addEventListener('input', autoSave);
+        // contentEl?.addEventListener('paste', () => setTimeout(autoSave, 100));
         
         // Event listener para manejar cambios en el contenido y aplicar estilos a listas
         contentEl?.addEventListener('input', () => {
@@ -2097,12 +2098,9 @@ function setupEventBusAndUI() {
 
         // Event listeners para botones
         overlay.querySelector('#closeNoteBtn')?.addEventListener('click', () => {
-            // Guardar antes de cerrar
+            // NO guardar automáticamente - solo cerrar
+            // El usuario debe presionar "Guardar" explícitamente
             clearTimeout(autoSaveTimeout);
-            notesStore.update(note.id, { 
-                title: titleEl.value.trim() || 'Sin título', 
-                content: contentEl.innerHTML 
-            });
             overlay.remove();
         });
         

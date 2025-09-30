@@ -33,6 +33,9 @@
     <!-- CSS Principal y Neumorphism -->
     <link rel="stylesheet" href="../styles/main.css">
     <link rel="stylesheet" href="chat-online.css">
+    
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         // FUNCIÓN GLOBAL INMEDIATA - DISPONIBLE DESDE EL INICIO
         window.switchTab = function(contentType) {
@@ -3795,27 +3798,177 @@
             }
         }
 
+        /* ===== ESTILOS PARA FORMATO MARKDOWN EN RESPUESTAS DE LIA ===== */
+        .lia-main-title {
+            color: #44e5ff;
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin: 1rem 0 0.7rem 0;
+            padding-bottom: 0.4rem;
+            border-bottom: 3px solid rgba(68, 229, 255, 0.4);
+            text-shadow: 0 1px 3px rgba(68, 229, 255, 0.3);
+        }
+
+        .lia-subtitle {
+            color: #0066CC;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0.8rem 0 0.5rem 0;
+            padding-bottom: 0.3rem;
+            border-bottom: 2px solid rgba(0, 102, 204, 0.3);
+        }
+
+        .lia-title {
+            color: #44e5ff;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0.7rem 0 0.4rem 0;
+            padding-bottom: 0.2rem;
+            border-bottom: 1px solid rgba(68, 229, 255, 0.2);
+        }
+
+        .lia-title-h4 {
+            color: #0088DD;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 0.6rem 0 0.3rem 0;
+        }
+
+        .lia-title-h5 {
+            color: #66AAFF;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 0.5rem 0 0.25rem 0;
+        }
+
+        .lia-title-h6 {
+            color: #99CCFF;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin: 0.4rem 0 0.2rem 0;
+        }
+
+        .lia-paragraph {
+            margin: 0.5rem 0;
+            line-height: 1.6;
+            color: #ffffff;
+        }
+
+        .lia-list {
+            margin: 0.5rem 0;
+            padding-left: 1.2rem;
+        }
+
+        .lia-list-item {
+            margin: 0.3rem 0;
+            line-height: 1.5;
+            color: #ffffff;
+        }
+
+        /* Numeración nativa para listas ordenadas */
+        .lia-list ol {
+            list-style-type: decimal;
+            color: #44e5ff;
+        }
+
+        .lia-list ul {
+            list-style-type: disc;
+            color: #44e5ff;
+        }
+
+        .lia-list li::marker {
+            color: #44e5ff;
+        }
+
+        /* Asegurar que las negritas y cursivas se vean bien */
+        .message-text strong {
+            color: #44e5ff;
+            font-weight: 700;
+            font-size: inherit; /* Asegurar tamaño normal */
+        }
+
+        .message-text em {
+            color: #ffffff;
+            font-style: italic;
+            opacity: 0.9;
+            font-size: inherit; /* Asegurar tamaño normal */
+        }
+
+        /* Controlar tamaño de títulos en mensajes para evitar texto excesivamente grande */
+        .message-text .lia-main-title {
+            font-size: 1.1rem !important;
+            line-height: 1.4;
+            font-weight: 700;
+            margin: 0.6rem 0 0.4rem 0;
+        }
+
+        .message-text .lia-subtitle {
+            font-size: 1rem !important;
+            line-height: 1.4;
+            font-weight: 600;
+            margin: 0.5rem 0 0.3rem 0;
+        }
+
+        .message-text .lia-title {
+            font-size: 0.95rem !important;
+            line-height: 1.4;
+            font-weight: 600;
+            margin: 0.4rem 0 0.25rem 0;
+        }
+
+        .message-text .lia-title-h4 {
+            font-size: 0.9rem !important;
+            line-height: 1.4;
+            font-weight: 500;
+            margin: 0.3rem 0 0.2rem 0;
+        }
+
+        .message-text .lia-title-h5 {
+            font-size: 0.85rem !important;
+            line-height: 1.4;
+            font-weight: 500;
+            margin: 0.25rem 0 0.15rem 0;
+        }
+
+        .message-text .lia-title-h6 {
+            font-size: 0.8rem !important;
+            line-height: 1.4;
+            font-weight: 500;
+            margin: 0.2rem 0 0.1rem 0;
+        }
+
+        /* Asegurar tamaño de texto base normal en mensajes */
+        .message-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .message-text .lia-paragraph {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
         /* ===== ESTILOS PARA MENSAJES DE CHAT (SOLO PARA #liaMessages) ===== */
         #liaMessages .message {
             margin-bottom: 1.5rem;
-            padding: 16px;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            padding: 0;
+            background: none;
+            border: none;
+            border-radius: 0;
             transition: all 0.3s ease;
         }
 
         #liaMessages .user-message {
-            background: linear-gradient(135deg, rgba(68, 229, 255, 0.15), rgba(68, 229, 255, 0.08));
-            border: 1px solid rgba(68, 229, 255, 0.2);
+            background: none;
+            border: none;
             margin-left: auto;
             max-width: 85%;
         }
 
         #liaMessages .user-message:hover {
-            background: linear-gradient(135deg, rgba(68, 229, 255, 0.2), rgba(68, 229, 255, 0.1));
-            border-color: rgba(68, 229, 255, 0.3);
-            transform: translateY(-2px);
+            background: none;
+            border: none;
+            transform: none;
         }
 
         #liaMessages .message-text {
@@ -3823,23 +3976,60 @@
             line-height: 1.5;
             color: #ffffff;
             margin-top: 8px;
+            writing-mode: horizontal-tb !important;
+            text-orientation: mixed !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            display: block !important;
+        }
+
+        /* Hacer que los mensajes del chat tengan el mismo diseño que los de arriba */
+        #liaMessages .message-content {
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.08) 0%, rgba(68, 229, 255, 0.03) 100%) !important;
+            border: 1px solid rgba(68, 229, 255, 0.15) !important;
+            border-radius: 16px !important;
+            padding: 0.75rem 1rem !important;
+            backdrop-filter: var(--glass-blur-light) !important;
+            position: relative !important;
+            overflow: hidden !important;
+            flex: 1 !important;
+            transition: all 0.3s ease !important;
+        }
+
+        #liaMessages .user-message .message-content {
+            background: rgba(0, 102, 204, 0.2) !important;
+            border-color: rgba(0, 102, 204, 0.4) !important;
+            margin-left: auto !important;
+            max-width: 80% !important;
         }
 
         /* Avatar circular para usuario (solo en chat) */
         #liaMessages .user-avatar-circle {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--glass-primary, #44e5ff), #0066CC);
+            background: #0066CC;
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 14px;
-            margin-right: 10px;
-            border: 2px solid rgba(68, 229, 255, 0.3);
-            box-shadow: 0 2px 8px rgba(68, 229, 255, 0.2);
+            font-weight: 600;
+            font-size: 16px;
+            margin-right: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Avatar con foto del usuario */
+        #liaMessages .user-avatar-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(0, 102, 204, 0.3);
+            margin-right: 12px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         /* Mejorar la estructura de header de pregunta para mensajes de chat */
@@ -3872,16 +4062,16 @@
 
         /* Estilos específicos para mensajes de LIA (solo en chat) */
         #liaMessages .lia-message {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: none;
+            border: none;
             margin-right: auto;
             max-width: 85%;
         }
 
         #liaMessages .lia-message:hover {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
+            background: none;
+            border: none;
+            transform: none;
         }
 
         #liaMessages .lia-message .author-name {
@@ -3890,18 +4080,18 @@
         }
 
         #liaMessages .lia-message .author-avatar {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            margin-right: 10px;
-            border: 2px solid rgba(68, 229, 255, 0.3);
-            box-shadow: 0 2px 8px rgba(68, 229, 255, 0.2);
+            margin-right: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         /* Responsive para mensajes de chat */
         @media (max-width: 768px) {
             #liaMessages .message {
-                padding: 12px;
+                padding: 0;
                 margin-bottom: 1rem;
             }
 
@@ -3910,10 +4100,16 @@
             }
 
             #liaMessages .user-avatar-circle {
-                width: 28px;
-                height: 28px;
-                font-size: 12px;
-                margin-right: 8px;
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+                margin-right: 10px;
+            }
+            
+            #liaMessages .user-avatar-img {
+                width: 32px;
+                height: 32px;
+                margin-right: 10px;
             }
 
             #liaMessages .message-text {
@@ -3925,8 +4121,9 @@
             }
 
             #liaMessages .lia-message .author-avatar {
-                width: 28px;
-                height: 28px;
+                width: 32px;
+                height: 32px;
+                margin-right: 10px;
             }
         }
     </style>
@@ -3962,14 +4159,26 @@
         <!-- Barra de Navegación Superior -->
         <div class="top-navigation">
             <div class="header-course-info">
-                <button class="back-button" id="backButton" title="Regresar">
-                    <div class="back-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                <div class="header-left-controls">
+                    <button class="back-button" id="backButton" title="Regresar">
+                        <div class="back-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 12H5M12 19l-7-7 7-7"/>
+                            </svg>
+                        </div>
+                        <span class="back-label">Regresar</span>
+                    </button>
+
+                    <!-- Botón para abrir panel izquierdo en mobile -->
+                    <button class="mobile-nav-btn mobile-nav-left" id="mobileNavLeft" title="Material del curso">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="9" y1="9" x2="15" y2="9"/>
+                            <line x1="9" y1="13" x2="15" y2="13"/>
+                            <line x1="9" y1="17" x2="15" y2="17"/>
                         </svg>
-                    </div>
-                    <span class="back-label">Regresar</span>
-                </button>
+                    </button>
+                </div>
                 <div class="header-content-group">
                     <h1 class="course-title-header">Introducción a la IA</h1>
                     <div class="course-progress-header clean">
@@ -3981,8 +4190,22 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Botón para abrir panel derecho en mobile -->
+                <div class="header-right-controls">
+                    <button class="mobile-nav-btn mobile-nav-right" id="mobileNavRight" title="Asistente LIA y Notas">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            <line x1="8" y1="10" x2="16" y2="10"/>
+                            <line x1="8" y1="14" x2="14" y2="14"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
+
+        <!-- Overlay para mobile -->
+        <div class="mobile-overlay" id="mobileOverlay"></div>
         <!-- Panel Izquierdo - Material del Curso -->
         <aside class="left-panel neo-panel" id="sidebarLeft">
             <!-- Botón de colapso del panel izquierdo -->
@@ -3994,118 +4217,6 @@
                 </span>
             </button>
             
-            <!-- Área de Creación de Notas -->
-            <div class="notes-creator-section" id="notesCreatorSection" style="display: none;">
-                <div class="notes-creator-header">
-                    <h3>
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                        </svg>
-                        Nueva Nota
-                    </h3>
-                    <div class="notes-creator-actions">
-                        <button class="action-btn" id="saveNoteBtn" title="Guardar Nota">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                                <polyline points="17,21 17,13 7,13 7,21"/>
-                                <polyline points="7,3 7,8 15,8"/>
-                            </svg>
-                        </button>
-                        <button class="action-btn" id="exportPdfBtn" title="Exportar a PDF">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14,2 14,8 20,8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                                <polyline points="10,9 9,9 8,9"/>
-                                <path d="M12 18l-2-2 2-2"/>
-                            </svg>
-                        </button>
-                        <button class="action-btn" id="cancelNoteBtn" title="Cancelar">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="18" y1="6" x2="6" y2="18"/>
-                                <line x1="6" y1="6" x2="18" y2="18"/>
-                            </svg>
-                </button>
-                    </div>
-            </div>
-
-                <div class="notes-creator-content">
-                    <!-- Título de la nota -->
-                    <div class="note-title-input">
-                        <input type="text" id="noteTitleInput" placeholder="Título de la nota..." maxlength="100">
-                    </div>
-
-                    <!-- Barra de herramientas del editor -->
-                    <div class="editor-toolbar">
-                        <button class="toolbar-btn" id="boldBtn" title="Negrita">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
-                                <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
-                            </svg>
-                        </button>
-                        <button class="toolbar-btn" id="italicBtn" title="Cursiva">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="19" y1="4" x2="10" y2="4"/>
-                                <line x1="14" y1="20" x2="5" y2="20"/>
-                                <line x1="15" y1="4" x2="9" y2="20"/>
-                            </svg>
-                        </button>
-                        <button class="toolbar-btn" id="underlineBtn" title="Subrayado">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/>
-                                <line x1="4" y1="21" x2="20" y2="21"/>
-                            </svg>
-                        </button>
-                        <div class="toolbar-separator"></div>
-                        <button class="toolbar-btn" id="linkBtn" title="Enlace">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                            </svg>
-                        </button>
-                        <div class="toolbar-separator"></div>
-                        <!-- Selector de tamaño de fuente -->
-                        <div class="font-size-selector">
-                            <button class="toolbar-btn" id="fontSizeBtn" title="Tamaño de fuente">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M4 7V4h16v3"/>
-                                    <path d="M9 20h6"/>
-                                    <path d="M12 4v16"/>
-                                </svg>
-                                <span class="font-size-text">14</span>
-                            </button>
-                            <div class="font-size-dropdown" id="fontSizeDropdown">
-                                <button class="font-size-option" data-size="10">10</button>
-                                <button class="font-size-option" data-size="12">12</button>
-                                <button class="font-size-option" data-size="14">14</button>
-                                <button class="font-size-option" data-size="16">16</button>
-                                <button class="font-size-option" data-size="18">18</button>
-                                <button class="font-size-option" data-size="20">20</button>
-                                <button class="font-size-option" data-size="24">24</button>
-                                <button class="font-size-option" data-size="28">28</button>
-                                <button class="font-size-option" data-size="32">32</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Editor de contenido -->
-                    <div class="note-content-editor">
-                        <div class="editor-content" id="noteContentEditor" contenteditable="true" placeholder="Escribe el contenido de tu nota aquí..."></div>
-                    </div>
-
-                    <!-- Etiquetas -->
-                    <div class="note-tags-section">
-                        <div class="tags-input-container">
-                            <input type="text" id="tagsInput" placeholder="Agregar etiquetas (presiona Enter para agregar)" maxlength="20">
-                            <div class="tags-list" id="tagsList"></div>
-                        </div>
-                    </div>
-
-
-                </div>
-            </div>
 
             <!-- Material del Curso -->
             <div class="course-materials-section" style="margin-top: 2rem;">
@@ -4150,6 +4261,16 @@
                 <!-- Video Player Principal -->
                 <div class="main-video-player">
                     <div class="video-container">
+                        <!-- Botones de Navegación -->
+                        <div class="video-navigation">
+                            <button class="nav-btn prev-btn" id="prevVideoBtn" title="Video anterior">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="nav-btn next-btn" id="nextVideoBtn" title="Siguiente video">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        
                         <!-- YouTube Video Embed -->
                         <div class="youtube-player-wrapper">
                             <iframe 
@@ -4357,15 +4478,7 @@ Cargando información...
                             </div>
                         </div>
 
-                        <div class="activity-actions">
-                            <button class="btn-primary activity-btn" onclick="copyActivityToClipboard()">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                                </svg>
-                                Copiar Actividad
-                            </button>
-                        </div>
+                        <!-- APR-267: Botón legacy "copiar actividad" eliminado - reemplazado por botones individuales por prompt -->
                     </div>
 
                     <!-- Contenido de Comunidad -->
@@ -4785,6 +4898,26 @@ Cargando información...
                     </div>
                 </div>
                 
+                <!-- Campo de búsqueda de notas -->
+                <div class="notes-search-container" id="notesSearchContainer" style="display: none;">
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <input type="text" id="notesSearchInput" placeholder="Buscar en notas..." autocomplete="off">
+                        <button class="clear-search-btn" id="clearSearchBtn" title="Limpiar búsqueda">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="search-results-info" id="searchResultsInfo" style="display: none;">
+                        <span id="searchResultsCount"></span>
+                    </div>
+                </div>
+                
                 <!-- Lista de Notas (sin notas plantilla) -->
                 <div class="notes-list" id="notesList">
                     <!-- Las notas se cargarán dinámicamente aquí -->
@@ -4794,6 +4927,241 @@ Cargando información...
                 </div>
             </div>
 
+            <!-- Editor de Notas (Sección que busca el JavaScript) -->
+            <div class="notes-creator-section" id="notesCreatorSection" style="display: none;">
+                <div class="notes-creator-header">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10,9 9,9 8,9"/>
+                        </svg>
+                        Editor de Notas
+                    </h3>
+                    <div class="notes-creator-actions">
+                        <button class="action-btn" id="saveNoteBtn" title="Guardar Nota">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                <polyline points="17,21 17,13 7,13 7,21"/>
+                                <polyline points="7,3 7,8 15,8"/>
+                            </svg>
+                        </button>
+                        <button class="action-btn" id="cancelNoteBtn" title="Cancelar">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="notes-creator-content">
+                    <!-- Input de título -->
+                    <div class="note-title-input">
+                        <input type="text" id="noteTitleInputCreator" placeholder="Título de la nota" value="">
+                    </div>
+                    
+                    <!-- Editor de contenido -->
+                    <div class="note-content-editor">
+                        <div id="noteContentEditor" contenteditable="true" placeholder="Escribe tu nota aquí...">
+                        </div>
+                    </div>
+                    
+                    <!-- Input de etiquetas -->
+                    <div class="note-tags-input">
+                        <input type="text" id="tagsInput" placeholder="Etiquetas (separadas por comas)">
+                        <div class="tags-container" id="tagsContainer">
+                            <!-- Las etiquetas se mostrarán aquí -->
+                        </div>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="note-actions">
+                        <button class="btn-secondary" id="exportPdfBtn">
+                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                            </svg>
+                            CONVERTIR EN PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Notas Estilo NotebookLM (Overlay en Panel Derecho) -->
+            <div class="note-panel-overlay" id="notePanelOverlay">
+            <div class="note-panel-header">
+                <div class="note-panel-breadcrumb">
+                    <span class="breadcrumb-item">Studio</span>
+                    <span class="breadcrumb-separator">></span>
+                    <span class="breadcrumb-item active">Nota</span>
+                </div>
+                <button class="close-note-btn" id="closeNoteBtn" title="Cerrar nota">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="note-panel-content">
+                <div class="note-title-section">
+                    <input type="text" class="note-title-input" id="noteTitleInput" placeholder="Nueva nota" value="Nueva nota">
+                </div>
+
+                <div class="note-editor-toolbar">
+                    <div class="toolbar-group">
+                        <button class="toolbar-btn" id="undoBtn" title="Deshacer">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 7v6h6"/>
+                                <path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+                            </svg>
+                        </button>
+                        <button class="toolbar-btn" id="redoBtn" title="Rehacer">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 7v6h-6"/>
+                                <path d="M3 17a9 9 0 019-9 9 9 0 016 2.3L21 13"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <select class="toolbar-select" id="textStyleSelect">
+                            <option value="normal">Normal</option>
+                            <option value="h1">Título 1</option>
+                            <option value="h2">Título 2</option>
+                            <option value="h3">Título 3</option>
+                        </select>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <button class="toolbar-btn" id="boldBtn" title="Negrita">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                            </svg>
+                        </button>
+                        <button class="toolbar-btn" id="italicBtn" title="Cursiva">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="19" y1="4" x2="10" y2="4"/>
+                                <line x1="14" y1="20" x2="5" y2="20"/>
+                                <line x1="15" y1="4" x2="9" y2="20"/>
+                            </svg>
+                        </button>
+                        <button class="toolbar-btn" id="underlineBtn" title="Subrayado">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/>
+                                <line x1="4" y1="21" x2="20" y2="21"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <button class="toolbar-btn" id="linkBtn" title="Insertar enlace">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <button class="toolbar-btn" id="bulletListBtn" title="Lista con viñetas">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6"/>
+                                <line x1="8" y1="12" x2="21" y2="12"/>
+                                <line x1="8" y1="18" x2="21" y2="18"/>
+                                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                <line x1="3" y1="18" x2="3.01" y2="18"/>
+                            </svg>
+                        </button>
+                        <button class="toolbar-btn" id="numberListBtn" title="Lista numerada">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6"/>
+                                <line x1="8" y1="12" x2="21" y2="12"/>
+                                <line x1="8" y1="18" x2="21" y2="18"/>
+                                <path d="M3 6h1v4"/>
+                                <path d="M3 10h2"/>
+                                <path d="M4 18h1v4"/>
+                                <path d="M3 18h2"/>
+                                <path d="M4 14h1v-2"/>
+                                <path d="M3 14h2"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <button class="toolbar-btn" id="clearFormatBtn" title="Limpiar formato">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 7V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10,9 9,9 8,9"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="note-editor-content">
+                    <div class="note-editor" id="noteEditor" contenteditable="true" data-placeholder="Comienza a escribir tu nota aquí...">
+                    </div>
+                </div>
+
+                <div class="note-panel-footer">
+                    <div class="note-footer-buttons">
+                        <button class="save-note-btn" id="saveNoteBtnOverlay" title="Guardar Nota">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                <polyline points="17,21 17,13 7,13 7,21"/>
+                                <polyline points="7,3 7,8 15,8"/>
+                            </svg>
+                        </button>
+                    <button class="convert-to-source-btn" id="convertToSourceBtn">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                        </svg>
+                        Convertir en PDF
+                    </button>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- Modal para insertar enlaces -->
+            <div class="link-modal-overlay" id="linkModalOverlay">
+                <div class="link-modal">
+                    <div class="link-modal-header">
+                        <h3>Insertar Enlace</h3>
+                        <button class="link-modal-close" id="linkModalClose">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="link-modal-content">
+                        <div class="form-group">
+                            <label for="linkUrl">URL del enlace:</label>
+                            <input type="url" id="linkUrl" placeholder="https://ejemplo.com" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="linkText">Texto del enlace (opcional):</label>
+                            <input type="text" id="linkText" placeholder="Texto que se mostrará" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="link-modal-footer">
+                        <button class="btn-cancel" id="linkModalCancel">Cancelar</button>
+                        <button class="btn-insert" id="linkModalInsert">Insertar Enlace</button>
+                    </div>
+                </div>
+            </div>
         </aside>
     </main>
 
@@ -4833,7 +5201,7 @@ Cargando información...
     </script>
     
     <!-- Community API -->
-    <script src="../scripts/community-api.js"></script>
+    <script src="api/community-api.js"></script>
     
     <!-- Supabase Client -->
     <script src="../scripts/supabase-client.js"></script>
@@ -4864,11 +5232,78 @@ Cargando información...
             }
         }
 
+        // Función para cargar módulos de cursos desde la base de datos
+        async function loadCourseModules() {
+            try {
+                console.log('📚 Cargando módulos desde course_modules...');
+
+                // Verificar si tenemos acceso a Supabase
+                if (!window.supabase) {
+                    console.warn('⚠️ Supabase no está disponible, usando módulos por defecto');
+                    return [];
+                }
+
+                const { data: modules, error } = await window.supabase
+                    .from('course_modules')
+                    .select('id, title, module_number, description, course_id')
+                    .order('module_number', { ascending: true });
+
+                if (error) {
+                    console.error('❌ Error obteniendo módulos:', error);
+                    return [];
+                }
+
+                console.log('✅ Módulos obtenidos de la base de datos:', modules);
+                return modules;
+
+            } catch (error) {
+                console.error('❌ Error en loadCourseModules:', error);
+                return [];
+            }
+        }
+
+        // Función para poblar el select de módulos con datos dinámicos
+        async function populateModuleFilter() {
+            try {
+                const modules = await loadCourseModules();
+                const moduleFilter = document.getElementById('moduleFilter');
+
+                if (!moduleFilter) {
+                    console.warn('⚠️ No se encontró el elemento moduleFilter');
+                    return;
+                }
+
+                // Limpiar opciones existentes pero conservar "Todos los Módulos"
+                moduleFilter.innerHTML = '<option value="all">Todos los Módulos</option>';
+
+                // Añadir módulos dinámicos
+                modules.forEach(module => {
+                    const option = document.createElement('option');
+                    option.value = `module-${module.module_number}`;
+                    option.textContent = `Módulo ${module.module_number}: ${module.title}`;
+                    option.setAttribute('data-module-id', module.id);
+                    moduleFilter.appendChild(option);
+                });
+
+                console.log(`✅ Filtro de módulos actualizado con ${modules.length} módulos`);
+
+            } catch (error) {
+                console.error('❌ Error poblando filtro de módulos:', error);
+            }
+        }
+
         // Función para cargar preguntas dinámicamente
         async function loadCommunityQuestions() {
             try {
                 console.log('📋 Cargando preguntas de la comunidad...');
-                
+
+                // SOLUCIÓN: Configurar el usuario actual en communityAPI antes de cargar preguntas
+                if (window.communityAPI) {
+                    const currentUser = obtenerUsuarioActual();
+                    window.communityAPI.setCurrentUser(currentUser);
+                    console.log('👤 Usuario configurado en communityAPI para filtros:', currentUser);
+                }
+
                 // Primero intentar usar el API REST directo
                 if (window.communityAPI) {
                     console.log('🌐 Usando CommunityAPI para obtener preguntas...');
@@ -4933,23 +5368,26 @@ Cargando información...
                 // Datos del usuario desde la API (nested en users object)
                 const userName = question.users?.name || question.users?.display_name || question.display_name || question.first_name || question.username || 'Usuario Anónimo';
                 const userAvatar = question.users?.profile_picture_url || question.users?.avatar_url || question.avatar_url || '../../assets/images/default-avatar.svg';
-                
+
+                // Obtener nombre del módulo (puede venir de diferentes fuentes)
+                const moduleName = question.module_name || question.course_modules?.title || 'General';
+
                 // Tags
                 const tags = Array.isArray(question.tags) ? question.tags : [];
                 const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
 
                 return `
-                    <div class="question-item" data-question-id="${question.id}">
+                    <div class="question-item" data-question-id="${question.id}" data-user-id="${question.user_id || question.users?.id || ''}" data-module-name="${moduleName}">
                         <div class="question-content">
                             <div class="question-header">
                                 <h4 class="question-title">${question.title}</h4>
                                 <div class="question-meta">
-                                    <span class="question-author">
+                                    <span class="question-author" data-user-id="${question.user_id || question.users?.id || ''}">
                                         <img src="${userAvatar}" alt="Usuario" class="author-avatar">
                                         ${userName}
                                     </span>
                                     <span class="question-time">${timeAgo}</span>
-                                    <span class="question-module">General</span>
+                                    <span class="question-module">${moduleName}</span>
                                 </div>
                             </div>
                             <div class="question-preview">
@@ -5033,12 +5471,12 @@ Cargando información...
                 const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
 
                 return `
-                    <div class="question-item" data-question-id="${question.id}">
+                    <div class="question-item" data-question-id="${question.id}" data-user-id="${question.user_id || question.users?.id || ''}" data-module-name="${question.module_name || 'General'}">
                         <div class="question-content">
                             <div class="question-header">
                                 <h4 class="question-title">${question.title}</h4>
                                 <div class="question-meta">
-                                    <span class="question-author">
+                                    <span class="question-author" data-user-id="${question.user_id || question.users?.id || ''}">
                                         <img src="${userAvatar}" alt="Usuario" class="author-avatar">
                                         ${userName}
                                     </span>
@@ -6346,47 +6784,7 @@ INSTRUCCIONES:
             // Ordenar notas por fecha de actualización (más recientes primero)
             const sortedNotes = notes.sort((a, b) => new Date(b.updatedAt || b.timestamp) - new Date(a.updatedAt || a.timestamp));
 
-            // Función simple para crear HTML de nota
-            function createSimpleNoteHTML(note) {
-                const rawModule = note && typeof note.module === 'string' ? note.module.trim() : '';
-                const normalizedModule = rawModule.normalize ? rawModule.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : rawModule;
-                const shouldShowModule = normalizedModule && normalizedModule.toLowerCase() !== 'sin modulo';
-                const moduleLabel = shouldShowModule ? rawModule : '';
 
-                return `
-                    <div class="note-item" data-note-id="${note.id}">
-                        <div class="note-header">
-                            <h4>${note.title || 'Sin título'}</h4>
-                            <span class="note-date">${new Date(note.timestamp || note.updatedAt).toLocaleDateString()}</span>
-                        </div>
-                        <div class="note-content">
-                            <p>${(note.content || '').substring(0, 100)}${(note.content || '').length > 100 ? '...' : ''}</p>
-                        </div>
-                        ${moduleLabel ? `<div class="note-module"><span>${moduleLabel}</span></div>` : ''}
-                    </div>
-                `;
-            }
-
-            function attachNoteClickListeners(container, notes) {
-                if (!container || !Array.isArray(notes)) {
-                    return;
-                }
-
-                const noteItems = container.querySelectorAll('.note-item');
-                noteItems.forEach((item) => {
-                    item.addEventListener('click', () => {
-                        const datasetId = item.getAttribute('data-note-id');
-                        const noteData = notes.find((n) => String(n.id) === datasetId);
-                        const idToUse = noteData ? noteData.id : datasetId;
-
-                        if (window.chatOnline && typeof window.chatOnline.openNoteForEditing === 'function') {
-                            window.chatOnline.openNoteForEditing(idToUse);
-                        } else {
-                            console.warn('[NOTES] Editor de notas no disponible aun');
-                        }
-                    });
-                });
-            }
 
 
             notesList.innerHTML = sortedNotes.map(note => createSimpleNoteHTML(note)).join('');
@@ -6541,6 +6939,9 @@ INSTRUCCIONES:
     <script src="components/course-viewer.js"></script>
 
     <!-- <script src="components/video-player.js"></script> Temporalmente deshabilitado -->
+
+    <!-- VideoNavigationManager - Manejo centralizado de navegación -->
+    <script src="components/video-navigation-manager.js"></script>
 
     <script src="components/lia-chat.js"></script>
 
@@ -6702,15 +7103,6 @@ INSTRUCCIONES:
                                 userMsg.setAttribute('data-protected', 'true');
 
                                 userMsg.innerHTML = `
-                                    <div class="question-header">
-                                        <div class="question-meta">
-                                            <span class="question-author">
-                                                <div class="user-avatar-circle">${avatarLetter}</div>
-                                                <span class="author-name" data-original-name="${userName}">${userName}</span>
-                                            </span>
-                                            <span class="question-time">ahora</span>
-                                        </div>
-                                    </div>
                                     <div class="message-content">
                                         <div class="message-text">${mensaje}</div>
                                     </div>
@@ -6842,6 +7234,137 @@ INSTRUCCIONES:
                 }, 500);
             }
         });
+
+        // Función para convertir Markdown básico a HTML (versión corregida)
+        function markdownToHtml(text) {
+            if (!text) return text;
+
+            // Limpiar texto inicial
+            text = text.trim();
+
+            // Convertir todos los niveles de títulos Markdown (de más específico a menos específico)
+            text = text.replace(/^###### (.+)$/gm, '<h6 class="lia-title-h6">$1</h6>');
+            text = text.replace(/^##### (.+)$/gm, '<h5 class="lia-title-h5">$1</h5>');
+            text = text.replace(/^#### (.+)$/gm, '<h4 class="lia-title-h4">$1</h4>');
+            text = text.replace(/^### (.+)$/gm, '<h3 class="lia-title">$1</h3>');
+            text = text.replace(/^## (.+)$/gm, '<h2 class="lia-subtitle">$1</h2>');
+            text = text.replace(/^# (.+)$/gm, '<h1 class="lia-main-title">$1</h1>');
+
+            // Convertir **texto** a <strong>texto</strong> (mejorado para preservar espacios)
+            text = text.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>');
+
+            // Convertir *texto* a <em>texto</em> (evitando conflictos con listas)
+            text = text.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em>$1</em>');
+
+            // Separar listas que están en la misma línea con mejor detección
+            text = text.replace(/(-[^-\n]+?)(\s+-)([A-ZÁÉÍÓÚ])/g, '$1\n-$3');
+            text = text.replace(/(-[A-ZÁÉÍÓÚ][^-\n]*?)(-[A-ZÁÉÍÓÚ])/g, '$1\n$2');
+
+            // Procesar línea por línea para mejor control de listas
+            const lines = text.split('\n');
+            const processedLines = [];
+            let inBulletList = false;
+            let inNumberedList = false;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+
+                // Detectar lista con viñetas
+                const bulletMatch = line.match(/^-\s*(.+)$/);
+                // Detectar lista numerada
+                const numberMatch = line.match(/^\d+\.\s*(.+)$/);
+
+                if (bulletMatch) {
+                    // Cerrar lista numerada si estaba abierta
+                    if (inNumberedList) {
+                        processedLines.push('</ol>');
+                        inNumberedList = false;
+                    }
+
+                    // Abrir lista con viñetas si no está abierta
+                    if (!inBulletList) {
+                        processedLines.push('<ul class="lia-list">');
+                        inBulletList = true;
+                    }
+
+                    processedLines.push(`<li class="lia-list-item">${bulletMatch[1]}</li>`);
+
+                } else if (numberMatch) {
+                    // Cerrar lista con viñetas si estaba abierta
+                    if (inBulletList) {
+                        processedLines.push('</ul>');
+                        inBulletList = false;
+                    }
+
+                    // Abrir lista numerada si no está abierta
+                    if (!inNumberedList) {
+                        processedLines.push('<ol class="lia-list">');
+                        inNumberedList = true;
+                    }
+
+                    // Preservar el número original de la lista
+                    const originalNumber = line.match(/^(\d+)\./)[1];
+                    processedLines.push(`<li class="lia-list-item" value="${originalNumber}">${numberMatch[1]}</li>`);
+
+                } else {
+                    // Cerrar cualquier lista abierta
+                    if (inBulletList) {
+                        processedLines.push('</ul>');
+                        inBulletList = false;
+                    }
+                    if (inNumberedList) {
+                        processedLines.push('</ol>');
+                        inNumberedList = false;
+                    }
+
+                    // Agregar línea normal
+                    if (line) {
+                        processedLines.push(line);
+                    } else {
+                        processedLines.push('');
+                    }
+                }
+            }
+
+            // Cerrar listas al final si quedaron abiertas
+            if (inBulletList) {
+                processedLines.push('</ul>');
+            }
+            if (inNumberedList) {
+                processedLines.push('</ol>');
+            }
+
+            // Reconstruir el texto
+            text = processedLines.join('\n');
+
+            // Convertir párrafos (líneas separadas por doble salto)
+            const paragraphs = text.split(/\n\s*\n/);
+            text = paragraphs.map(paragraph => {
+                paragraph = paragraph.trim();
+                if (!paragraph) return '';
+
+                // No envolver en <p> si ya tiene elementos de bloque
+                if (paragraph.match(/^<(h[1-6]|ul|ol|li)/)) {
+                    return paragraph;
+                }
+
+                // Convertir saltos simples a <br> dentro del párrafo
+                paragraph = paragraph.replace(/\n/g, '<br>');
+                return `<p class="lia-paragraph">${paragraph}</p>`;
+            }).join('');
+
+            // Limpiar espacios extras (pero preservar espacios alrededor de strong y em)
+            text = text.replace(/\s+</g, '<');
+            text = text.replace(/>\s+/g, '>');
+            
+            // Restaurar espacios alrededor de texto en negrita y cursiva
+            text = text.replace(/<strong>/g, ' <strong>');
+            text = text.replace(/<\/strong>/g, '</strong> ');
+            text = text.replace(/<em>/g, ' <em>');
+            text = text.replace(/<\/em>/g, '</em> ');
+
+            return text;
+        }
 
         // Función para manejar el chat con LIA
         async function handleChatWithLIA(mensaje) {
@@ -7052,17 +7575,11 @@ INSTRUCCIONES:
                                 liaMsg.className = 'message lia-message';
 
                                 liaMsg.innerHTML = `
-                                    <div class="question-header">
-                                        <div class="question-meta">
-                                            <span class="question-author">
-                                                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="author-avatar">
-                                                <span class="author-name">LIA - Asistente IA</span>
-                                            </span>
-                                            <span class="question-time">ahora</span>
-                                        </div>
+                                    <div class="lia-avatar">
+                                        <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
                                     </div>
                                     <div class="message-content">
-                                        <div class="message-text">${respuestaLIA}</div>
+                                        <div class="message-text">${markdownToHtml(respuestaLIA)}</div>
                                     </div>
                                 `;
 
@@ -7123,17 +7640,11 @@ INSTRUCCIONES:
                                 liaMsg.className = 'message lia-message';
 
                                 liaMsg.innerHTML = `
-                                    <div class="question-header">
-                                        <div class="question-meta">
-                                            <span class="question-author">
-                                                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="author-avatar">
-                                                <span class="author-name">LIA - Asistente IA</span>
-                                            </span>
-                                            <span class="question-time">ahora</span>
-                                        </div>
+                                    <div class="lia-avatar">
+                                        <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
                                     </div>
                                     <div class="message-content">
-                                        <div class="message-text">${respuestaFallback}</div>
+                                        <div class="message-text">${markdownToHtml(respuestaFallback)}</div>
                                     </div>
                                 `;
 
@@ -7889,7 +8400,8 @@ INSTRUCCIONES:
         // FUNCIONES PARA ACTIVIDADES
         // =====================================================
 
-        function copyActivityToClipboard() {
+        // APR-267: copyActivityToClipboard() eliminada - reemplazada por botones individuales
+        function copyActivityToClipboard_REMOVED() {
             try {
                 const activityContent = document.querySelector('.activity-content');
                 if (!activityContent) {
@@ -8361,6 +8873,13 @@ Generado desde Coach LIA IA - ${currentDate}
 
             // Establecer filtro individual
             setFilter(key, value) {
+                // SOLUCIÓN: Cuando se aplica el filtro 'mine', asegurarse de que el usuario esté configurado
+                if (key === 'type' && value === 'mine' && window.communityAPI) {
+                    const currentUser = obtenerUsuarioActual();
+                    window.communityAPI.setCurrentUser(currentUser);
+                    console.log('👤 Usuario actualizado en communityAPI para filtro "mine":', currentUser);
+                }
+
                 this.state[key] = value;
                 this.saveState();
                 this.applyAllFilters();
@@ -8447,16 +8966,13 @@ Generado desde Coach LIA IA - ${currentDate}
             checkModuleFilter(question) {
                 if (this.state.module === 'all') return true;
 
-                    const moduleIndicators = [
-                    `data-module="${this.state.module}"`,
-                    `module-${this.state.module.split('-')[1]}`,
-                    `Módulo ${this.state.module.split('-')[1]}`
-                ];
+                // SOLUCIÓN: Usar data-module-name que se asigna en el renderizado dinámico
+                const questionModuleName = question.getAttribute('data-module-name') || 'General';
 
-                return moduleIndicators.some(indicator =>
-                        question.outerHTML.includes(indicator) ||
-                        question.textContent.includes(indicator)
-                    );
+                console.log('🔍 [checkModuleFilter] Filtro:', this.state.module, 'Pregunta módulo:', questionModuleName);
+
+                // Si el filtro seleccionado coincide con el módulo de la pregunta
+                return this.state.module === questionModuleName;
             },
 
             checkDateFilter(question) {
@@ -8561,21 +9077,15 @@ Generado desde Coach LIA IA - ${currentDate}
             },
 
             isMyQuestion(question) {
-                // Obtener información de usuario de múltiples fuentes
+                // SOLUCIÓN: Usar obtenerUsuarioActual() que tiene mejor lógica para obtener el usuario
+                const currentUser = obtenerUsuarioActual();
                 const userData = {
-                    userName: localStorage.getItem('userName') ||
-                             localStorage.getItem('currentUser') ||
-                             localStorage.getItem('user_name') ||
-                             localStorage.getItem('userInfo') ||
-                             sessionStorage.getItem('userName') ||
-                             sessionStorage.getItem('user'),
-                    userId: localStorage.getItem('userId') ||
-                           localStorage.getItem('user_id') ||
-                           sessionStorage.getItem('userId'),
-                    email: localStorage.getItem('userEmail') ||
-                          localStorage.getItem('email') ||
-                          sessionStorage.getItem('userEmail')
+                    userName: currentUser?.username || localStorage.getItem('userName'),
+                    userId: currentUser?.id || localStorage.getItem('userId'),
+                    email: currentUser?.email || localStorage.getItem('userEmail')
                 };
+
+                console.log('🔍 [isMyQuestion] Datos de usuario obtenidos:', userData);
 
                 // Buscar elementos de autor en diferentes selectores
                 const authorElement = question.querySelector(
@@ -8657,7 +9167,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     userData,
                     authorUserId,
                     questionClasses: Array.from(question.classList),
-                    authorClasses: Array.from(authorElement.classList)
+                    authorClasses: authorElement ? Array.from(authorElement.classList) : []
                 });
 
                 return false;
@@ -9128,6 +9638,11 @@ Generado desde Coach LIA IA - ${currentDate}
         // Inicializar cuando el DOM esté listo
         document.addEventListener('DOMContentLoaded', function() {
             CommunityFilters.init();
+
+            // Cargar módulos dinámicamente para el filtro
+            setTimeout(() => {
+                populateModuleFilter();
+            }, 2000); // Dar tiempo a que Supabase se inicialice
         });
 
         // Funciones globales para compatibilidad
@@ -9147,6 +9662,1498 @@ Generado desde Coach LIA IA - ${currentDate}
 
     <!-- Fix Buttons Script - Corrección para botones del panel derecho -->
     <script src="fix-buttons.js"></script>
+
+    <!-- Navegación de Videos Script - Modernizado -->
+    <script>
+        // ===== NAVEGACIÓN ENTRE VIDEOS - VERSIÓN SIMPLIFICADA =====
+        // Usa el nuevo VideoNavigationManager para manejo centralizado
+        function initializeVideoNavigation() {
+            console.log('⚠️ initializeVideoNavigation() legacy llamada - delegando a VideoNavigationManager');
+
+            // Verificar que el VideoNavigationManager esté disponible
+            if (window.videoNavigationManager) {
+                // Re-inicializar si es necesario
+                if (!window.videoNavigationManager.getStatus().isInitialized) {
+                    window.videoNavigationManager.reinitializeNavigation();
+                }
+                console.log('✅ VideoNavigationManager activado:', window.videoNavigationManager.getStatus());
+            } else {
+                console.error('❌ VideoNavigationManager no disponible');
+                // Fallback básico
+                const prevBtn = document.getElementById('prevVideoBtn');
+                const nextBtn = document.getElementById('nextVideoBtn');
+
+                if (prevBtn && nextBtn) {
+                    prevBtn.style.opacity = '0.5';
+                    nextBtn.style.opacity = '0.5';
+                    console.log('⚠️ Botones deshabilitados - VideoNavigationManager requerido');
+                }
+            }
+
+
+
+        }
+                    const videoId = videoElement.getAttribute('data-video-id');
+                    if (!videoId) {
+                        console.warn('⚠️ No se pudo obtener el ID del video');
+                        return;
+                    }
+
+                    // Buscar el checkbox del video
+                    const checkbox = videoElement.querySelector('.lesson-checkbox');
+                    if (!checkbox) {
+                        console.warn('⚠️ Checkbox no encontrado para el video:', videoId);
+                        return;
+                    }
+
+                    // Si ya está marcado como completado, no hacer nada
+                    if (checkbox.checked && checkbox.disabled) {
+                        console.log('ℹ️ Video ya está marcado como completado');
+                        return;
+                    }
+
+                    // Marcar como completado
+                    checkbox.checked = true;
+                    checkbox.disabled = true;
+
+                    // Actualizar clases del video-item
+                    videoElement.classList.add('completed');
+                    videoElement.classList.remove('pending', 'active');
+
+                    // Actualizar tooltip
+                    const label = videoElement.querySelector('.lesson-checkbox-label');
+                    if (label) {
+                        label.title = 'Completado';
+                    }
+
+                    // Llamar a la función de completado si existe
+                    if (window.module1VideosLoader && typeof window.module1VideosLoader.markLessonCompleted === 'function') {
+                        window.module1VideosLoader.markLessonCompleted(videoId);
+                    }
+
+                    // Llamar al gestor de progreso si existe
+                    if (window.courseProgressManager && typeof window.courseProgressManager.markVideoCompleted === 'function') {
+                        window.courseProgressManager.markVideoCompleted(videoId);
+                    }
+
+                    console.log('✅ Video marcado como completado:', videoId);
+
+                    // Mostrar notificación de completado
+                    showNotification('Video marcado como completado automáticamente', 'success');
+
+                } catch (error) {
+                    console.error('❌ Error marcando video como completado:', error);
+                }
+            }
+
+            // Función para navegar al siguiente video
+            function goToNextVideo() {
+                const currentVideo = getCurrentVideo();
+                if (!currentVideo) {
+                    console.warn('⚠️ No se pudo determinar el video actual');
+                    return;
+                }
+
+                // Marcar el video actual como completado antes de navegar
+                markCurrentVideoAsCompleted(currentVideo);
+
+                const nextVideo = currentVideo.nextElementSibling;
+                if (nextVideo && nextVideo.classList.contains('video-item')) {
+                    console.log('➡️ Navegando al siguiente video');
+                    nextVideo.click();
+                } else {
+                    console.log('ℹ️ No hay siguiente video disponible');
+                    showNotification('No hay siguiente video disponible', 'info');
+                }
+            }
+
+            // Función para mostrar notificaciones
+            function showNotification(message, type = 'info') {
+                // Crear notificación temporal
+                const notification = document.createElement('div');
+                notification.className = `video-nav-notification ${type}`;
+                notification.textContent = message;
+                const colors = {
+                    'info': '#0066CC',
+                    'success': '#28a745',
+                    'error': '#ff6b6b',
+                    'warning': '#ffc107'
+                };
+                
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${colors[type] || colors.info};
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    z-index: 1000;
+                    font-size: 14px;
+                    font-weight: 600;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                    animation: slideInRight 0.3s ease-out;
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Remover después de 3 segundos
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease-out';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+
+            // Event listeners para los botones
+            prevBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                goToPreviousVideo();
+            });
+
+            nextBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                goToNextVideo();
+            });
+
+            // Navegación con teclado
+            document.addEventListener('keydown', (e) => {
+                // Solo activar si no estamos en un input o textarea
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+
+                if (e.key === 'ArrowLeft' && e.ctrlKey) {
+                    e.preventDefault();
+                    goToPreviousVideo();
+                } else if (e.key === 'ArrowRight' && e.ctrlKey) {
+                    e.preventDefault();
+                    goToNextVideo();
+                }
+            });
+
+            console.log('✅ Navegación de videos inicializada');
+        }
+
+        // Función para verificar si FontAwesome está cargado
+        function checkFontAwesome() {
+            const testElement = document.createElement('i');
+            testElement.className = 'fas fa-chevron-left';
+            testElement.style.position = 'absolute';
+            testElement.style.left = '-9999px';
+            document.body.appendChild(testElement);
+            
+            const computedStyle = window.getComputedStyle(testElement);
+            const fontFamily = computedStyle.getPropertyValue('font-family');
+            
+            document.body.removeChild(testElement);
+            
+            // Si FontAwesome está cargado, la fuente debería incluir "Font Awesome"
+            const isLoaded = fontFamily.includes('Font Awesome') || fontFamily.includes('FontAwesome');
+            
+            const prevBtn = document.getElementById('prevVideoBtn');
+            const nextBtn = document.getElementById('nextVideoBtn');
+            
+            if (prevBtn && nextBtn) {
+                if (isLoaded) {
+                    prevBtn.classList.add('fas-loaded');
+                    nextBtn.classList.add('fas-loaded');
+                    console.log('✅ FontAwesome cargado correctamente');
+                } else {
+                    console.log('⚠️ FontAwesome no detectado, usando fallback CSS');
+                }
+            }
+        }
+
+        // Inicializar navegación cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                checkFontAwesome();
+                initializeVideoNavigation();
+            }, 1000);
+        });
+
+        // CSS para animaciones de notificaciones
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+
+    <!-- Sistema de Notas Estilo NotebookLM -->
+    <script>
+        // ===== SISTEMA DE NOTAS ESTILO NOTEBOOKLM =====
+        function initializeNotebookLMNotes() {
+            const addNoteBtn = document.getElementById('addNoteBtn');
+            const closeNoteBtn = document.getElementById('closeNoteBtn');
+            const notePanelOverlay = document.getElementById('notePanelOverlay');
+            const rightPanel = document.getElementById('sidebarRight');
+            const noteTitleInput = document.getElementById('noteTitleInput');
+            const noteEditor = document.getElementById('noteEditor');
+            const convertToSourceBtn = document.getElementById('convertToSourceBtn');
+
+            if (!addNoteBtn || !closeNoteBtn || !notePanelOverlay || !rightPanel) {
+                console.warn('⚠️ Elementos del sistema de notas no encontrados');
+                return;
+            }
+
+            let currentNote = null;
+            let isEditing = false;
+
+            // Función para abrir el panel de notas
+            window.openNotePanel = function(noteData = null) {
+                console.log('📝 Abriendo panel de notas...', noteData ? 'editando' : 'nueva');
+                
+                // Verificar si el nuevo editor está activo
+                const notesCreator = document.getElementById('notesCreatorSection');
+                if (notesCreator && notesCreator.style.display !== 'none') {
+                    console.log('⚠️ El nuevo editor ya está activo, no abriendo overlay');
+                    return;
+                }
+                
+                // Mostrar panel de notas como overlay
+                notePanelOverlay.style.display = 'flex';
+                
+                // Activar animación
+                setTimeout(() => {
+                    notePanelOverlay.classList.add('active');
+                }, 10);
+                
+                // Configurar editor
+                if (noteData || window.currentEditingNote) {
+                    // Editar nota existente
+                    const noteToEdit = noteData || window.currentEditingNote;
+                    currentNote = noteToEdit;
+                    isEditing = true;
+                    noteTitleInput.value = noteToEdit.title || 'Sin título';
+                    noteEditor.innerHTML = noteToEdit.content || '';
+                    console.log('📝 Editando nota existente:', noteToEdit.title);
+                } else {
+                    // Nueva nota
+                    currentNote = {
+                        id: Date.now().toString(),
+                        title: 'Nueva nota',
+                        content: '',
+                        timestamp: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    isEditing = false;
+                    noteTitleInput.value = 'Nueva nota';
+                    noteEditor.innerHTML = '';
+                    console.log('📝 Creando nueva nota');
+                }
+                
+                // Enfocar el editor
+                setTimeout(() => {
+                    noteEditor.focus();
+                }, 300);
+            }
+
+            // Función para cerrar el panel de notas
+            function closeNotePanel() {
+                console.log('📝 Cerrando panel de notas...');
+                
+                // NO guardar automáticamente - solo cerrar
+                // El usuario debe presionar "Guardar" explícitamente
+                
+                // Desactivar animación
+                notePanelOverlay.classList.remove('active');
+                
+                // Esperar a que termine la animación y ocultar
+                setTimeout(() => {
+                    notePanelOverlay.style.display = 'none';
+                    
+                    // Limpiar editor
+                    currentNote = null;
+                    window.currentEditingNote = null;
+                    isEditing = false;
+                }, 300);
+            }
+
+            // Función para guardar la nota actual
+            function saveCurrentNote() {
+                const title = noteTitleInput.value.trim();
+                const content = noteEditor.innerHTML.trim();
+
+                console.log('💾 [GUARDAR] Iniciando proceso de guardado...');
+                console.log('💾 [GUARDAR] currentNote:', currentNote);
+                console.log('💾 [GUARDAR] isEditing:', isEditing);
+                console.log('💾 [GUARDAR] window.currentEditingNote:', window.currentEditingNote);
+
+                // Validar si la nota tiene contenido para guardar
+                const hasTitle = title && title !== '';
+                const hasContent = content && content !== '' && content !== '<br>' && content !== '<div><br></div>';
+
+                // Si no tiene título ni contenido, no guardar
+                if (!hasTitle && !hasContent) {
+                    console.log('📝 Nota vacía, no se guardará');
+                    showNotification('⚠️ La nota está vacía. Agrega contenido antes de guardar.', 'warning');
+                    return;
+                }
+
+                // Crear o actualizar la nota
+                let noteToSave;
+                
+                if (currentNote && isEditing) {
+                    // Actualizar nota existente
+                    console.log('✅ [GUARDAR] Actualizando nota existente:', currentNote.id);
+                    noteToSave = {
+                        ...currentNote,
+                        title: hasTitle ? title : 'Sin título',
+                        content: content,
+                        updatedAt: new Date().toISOString()
+                    };
+                } else {
+                    // Crear nueva nota
+                    console.log('🆕 [GUARDAR] Creando nueva nota');
+                    noteToSave = {
+                        id: Date.now().toString(),
+                        title: hasTitle ? title : 'Sin título',
+                        content: content,
+                        timestamp: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                }
+
+                // Guardar en localStorage
+                const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+                
+                if (currentNote && isEditing) {
+                    // Actualizar nota existente
+                    console.log('💾 [GUARDAR] Buscando nota existente para actualizar...');
+                    const index = notes.findIndex(note => note.id === currentNote.id);
+                    if (index !== -1) {
+                        console.log('✅ [GUARDAR] Nota encontrada en índice:', index, 'actualizándola...');
+                        notes[index] = noteToSave;
+                    } else {
+                        console.error('❌ [GUARDAR] No se encontró la nota para actualizar');
+                    }
+                } else {
+                    // Agregar nueva nota
+                    console.log('🆕 [GUARDAR] Agregando nueva nota a la lista...');
+                    notes.push(noteToSave);
+                    currentNote = noteToSave;
+                    isEditing = true;
+                }
+                
+                localStorage.setItem('lia_notes', JSON.stringify(notes));
+                console.log('💾 [GUARDAR] Nota guardada exitosamente:', noteToSave.title);
+                
+                // Mostrar notificación de éxito
+                showNotification('✅ Nota guardada exitosamente', 'success');
+                
+                // Actualizar lista de notas en el panel derecho
+                updateNotesList();
+            }
+
+            // Función para actualizar la lista de notas
+            function updateNotesList() {
+                console.log('🔄 Actualizando lista de notas...');
+                
+                // Usar la función showAllNotes que ya maneja todo correctamente
+                showAllNotes();
+                
+                console.log('✅ Lista de notas actualizada');
+            }
+
+            // Función para eliminar una nota
+            window.deleteNote = function(noteId) {
+                const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+                const filteredNotes = notes.filter(note => note.id !== noteId);
+                localStorage.setItem('lia_notes', JSON.stringify(filteredNotes));
+                updateNotesList();
+                console.log('🗑️ Nota eliminada:', noteId);
+            }
+
+            // ===== SISTEMA DE BÚSQUEDA DE NOTAS =====
+            let searchTimeout;
+            let allNotes = []; // Almacenar todas las notas para búsqueda
+            
+            // Función para agregar event listeners a las notas
+            function attachNoteClickListeners(container, notes) {
+                if (!container || !Array.isArray(notes)) {
+                    console.error('❌ attachNoteClickListeners: container o notes no válidos');
+                    return;
+                }
+
+                console.log('🔗 Agregando event listeners a', notes.length, 'notas');
+                const noteItems = container.querySelectorAll('.note-item');
+                noteItems.forEach((item) => {
+                    item.addEventListener('click', () => {
+                        const datasetId = item.getAttribute('data-note-id');
+                        const noteData = notes.find((n) => String(n.id) === datasetId);
+                        const idToUse = noteData ? noteData.id : datasetId;
+                        
+                        console.log('🖱️ [NOTES] Click en nota:', { datasetId, noteData: !!noteData, idToUse });
+
+                        // Función para intentar abrir la nota con reintentos
+                        function tryOpenNote(noteId, retries = 0) {
+                            console.log(`🚀 [NOTES] Abriendo nota ${noteId} instantáneamente...`);
+                            
+                            // Verificar si chatOnline está disponible inmediatamente
+                            if (window.chatOnline && typeof window.chatOnline.openNoteForEditing === 'function') {
+                                console.log('✅ [NOTES] chatOnline disponible, abriendo nota inmediatamente');
+                                try {
+                                    window.chatOnline.openNoteForEditing(noteId);
+                                    return; // Salir inmediatamente si funciona
+                                } catch (error) {
+                                    console.error('❌ [NOTES] Error al abrir nota:', error);
+                                    openNoteFallback(noteId);
+                                    return;
+                                }
+                            }
+                            
+                            // Solo si chatOnline no está disponible, intentar rápidamente (máximo 3 intentos)
+                            if (retries < 3) {
+                                console.log(`⏳ [NOTES] chatOnline no disponible, reintentando rápidamente... (${retries + 1}/3)`);
+                                setTimeout(() => tryOpenNote(noteId, retries + 1), 50); // Solo 50ms de espera
+                            } else {
+                                console.error('❌ [NOTES] chatOnline no disponible después de 3 intentos, usando fallback');
+                                openNoteFallback(noteId);
+                            }
+                        }
+                        
+                        // Función de fallback para abrir nota manualmente
+                        function openNoteFallback(noteId) {
+                            console.log('🚀 [NOTES] Abriendo nota usando fallback instantáneo...');
+                            
+                            // Buscar la nota en localStorage (optimizado)
+                            const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+                            const note = notes.find(n => String(n.id) === String(noteId));
+                            
+                            if (!note) {
+                                console.error('❌ [NOTES] Nota no encontrada:', noteId);
+                                alert('No se pudo encontrar la nota. Por favor, recarga la página e intenta nuevamente.');
+                                return;
+                            }
+                            
+                            // Usar openNotePanel si está disponible (más rápido)
+                            if (typeof window.openNotePanel === 'function') {
+                                console.log('✅ [NOTES] Abriendo modal usando openNotePanel (instantáneo)');
+                                window.openNotePanel(note);
+                                return;
+                            }
+                            
+                            // Fallback directo sin delays
+                            console.log('✅ [NOTES] Abriendo modal overlay directamente (instantáneo)');
+                            const notePanelOverlay = document.getElementById('notePanelOverlay');
+                            if (notePanelOverlay) {
+                                // Mostrar el modal inmediatamente
+                                notePanelOverlay.style.display = 'flex';
+                                notePanelOverlay.classList.add('active');
+                                
+                                // Llenar campos inmediatamente
+                                const titleInput = document.getElementById('noteTitleInput');
+                                const contentEditor = document.getElementById('noteEditor');
+                                
+                                if (titleInput) titleInput.value = note.title || '';
+                                if (contentEditor) contentEditor.innerHTML = note.content || '';
+                                
+                                // Configurar la variable global para el modal overlay
+                                window.currentEditingNote = note;
+                                
+                                // Enfocar el editor inmediatamente
+                                if (contentEditor) contentEditor.focus();
+                                
+                                console.log('✅ [NOTES] Modal abierto instantáneamente con datos de la nota:', note.title);
+                            } else {
+                                console.error('❌ [NOTES] Modal overlay no encontrado');
+                                alert('El editor de notas no está disponible. Por favor, recarga la página e intenta nuevamente.');
+                            }
+                        }
+                        
+                        tryOpenNote(idToUse);
+                    });
+                });
+                
+                console.log('✅ Event listeners agregados correctamente');
+            }
+            
+            // Función simple para crear HTML de nota con highlighting opcional
+            function createSimpleNoteHTML(note, searchTerm = '') {
+                const rawModule = note && typeof note.module === 'string' ? note.module.trim() : '';
+                const normalizedModule = rawModule.normalize ? rawModule.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : rawModule;
+                const shouldShowModule = normalizedModule && normalizedModule.toLowerCase() !== 'sin modulo';
+                const moduleLabel = shouldShowModule ? rawModule : '';
+                
+                // Aplicar highlighting si hay término de búsqueda
+                let title = note.title || 'Sin título';
+                let content = (note.content || '').substring(0, 100) + ((note.content || '').length > 100 ? '...' : '');
+                
+                if (searchTerm) {
+                    const highlightClass = 'search-highlight';
+                    const regex = new RegExp(`(${searchTerm})`, 'gi');
+                    
+                    title = title.replace(regex, `<span class="${highlightClass}">$1</span>`);
+                    content = content.replace(regex, `<span class="${highlightClass}">$1</span>`);
+                }
+
+                return `
+                    <div class="note-item animate-in" data-note-id="${note.id}">
+                        <div class="note-header">
+                            <div class="note-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14,2 14,8 20,8"/>
+                                </svg>
+                                ${title}
+                            </div>
+                            <div class="note-time">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
+                                </svg>
+                                ${new Date(note.timestamp || note.updatedAt).toLocaleDateString()}
+                            </div>
+                        </div>
+                        <div class="note-content">
+                            <p>${content}</p>
+                        </div>
+                        ${moduleLabel ? `<div class="note-module"><span>${moduleLabel}</span></div>` : ''}
+                        <button class="note-delete-btn" onclick="deleteNote(${note.id})" title="Eliminar nota">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3,6 5,6 21,6"/>
+                                <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
+                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                <line x1="14" y1="11" x2="14" y2="17"/>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+            }
+            
+            // Función para mostrar/ocultar el campo de búsqueda
+            function toggleSearchNotes() {
+                const searchContainer = document.getElementById('notesSearchContainer');
+                const searchBtn = document.getElementById('searchNotesBtn');
+                const notesSection = document.querySelector('.notes-section');
+                
+                if (!searchContainer) {
+                    console.error('❌ Campo de búsqueda no encontrado');
+                    return;
+                }
+                
+                const isVisible = searchContainer.style.display !== 'none';
+                
+                if (isVisible) {
+                    // Ocultar búsqueda
+                    console.log('🔍 Ocultando búsqueda de notas...');
+                    searchContainer.style.display = 'none';
+                    notesSection.classList.remove('search-active');
+                    searchBtn.classList.remove('active');
+                    
+                    // Limpiar búsqueda
+                    const searchInput = document.getElementById('notesSearchInput');
+                    if (searchInput) {
+                        searchInput.value = '';
+                    }
+                    
+                    // Mostrar todas las notas inmediatamente
+                    showAllNotes();
+                    
+                    console.log('✅ Búsqueda de notas ocultada y notas restauradas');
+                } else {
+                    // Mostrar búsqueda
+                    console.log('🔍 Activando búsqueda de notas...');
+                    searchContainer.style.display = 'block';
+                    notesSection.classList.add('search-active');
+                    searchBtn.classList.add('active');
+                    
+                    // Asegurar que se muestren todas las notas al activar búsqueda
+                    showAllNotes();
+                    
+                    // Enfocar el input
+                    setTimeout(() => {
+                        const searchInput = document.getElementById('notesSearchInput');
+                        if (searchInput) {
+                            searchInput.focus();
+                            searchInput.value = ''; // Limpiar cualquier valor previo
+                        }
+                    }, 100);
+                    
+                    console.log('✅ Búsqueda de notas activada');
+                }
+            }
+            
+            // Función para buscar notas
+            function searchNotes(query) {
+                console.log('🔍 Ejecutando búsqueda:', query);
+                
+                // Siempre limpiar mensajes de resultados anteriores
+                hideSearchResultsInfo();
+                
+                if (!query || query.trim() === '') {
+                    console.log('🔍 Query vacío, mostrando todas las notas');
+                    showAllNotes();
+                    return;
+                }
+                
+                const notesList = document.getElementById('notesList');
+                if (!notesList) {
+                    console.error('❌ notesList no encontrado para búsqueda');
+                    return;
+                }
+                
+                // Obtener todas las notas
+                const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+                console.log('📝 Total de notas en localStorage:', notes.length);
+                
+                // Filtrar notas que coincidan con la búsqueda
+                const filteredNotes = notes.filter(note => {
+                    const title = (note.title || '').toLowerCase();
+                    const content = (note.content || '').toLowerCase();
+                    const searchTerm = query.toLowerCase().trim();
+                    
+                    const titleMatch = title.includes(searchTerm);
+                    const contentMatch = content.includes(searchTerm);
+                    
+                    console.log(`📝 Nota "${note.title}": título=${titleMatch}, contenido=${contentMatch}`);
+                    
+                    return titleMatch || contentMatch;
+                });
+                
+                console.log(`🔍 Notas filtradas: ${filteredNotes.length} de ${notes.length}`);
+                
+                // Mostrar resultados
+                if (filteredNotes.length === 0) {
+                    console.log('🔍 No se encontraron resultados');
+                    notesList.innerHTML = `
+                        <div class="no-search-results">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.35-4.35"/>
+                            </svg>
+                            <p>No se encontraron notas con "${query}"</p>
+                        </div>
+                    `;
+                } else {
+                    console.log('🔍 Mostrando resultados encontrados');
+                    // Ordenar por fecha de actualización
+                    const sortedNotes = filteredNotes.sort((a, b) => {
+                        const dateA = new Date(a.updatedAt || a.timestamp || 0);
+                        const dateB = new Date(b.updatedAt || b.timestamp || 0);
+                        return dateB - dateA;
+                    });
+                    
+                    notesList.innerHTML = sortedNotes.map(note => createSimpleNoteHTML(note, query)).join('');
+                    attachNoteClickListeners(notesList, sortedNotes);
+                }
+                
+                // Siempre mostrar información de resultados actualizada
+                updateSearchResultsInfo(filteredNotes.length, query);
+                
+                console.log(`✅ Búsqueda completada: "${query}" - ${filteredNotes.length} resultados`);
+            }
+            
+            // Función para mostrar todas las notas
+            function showAllNotes() {
+                console.log('🔄 Mostrando todas las notas...');
+                const notesList = document.getElementById('notesList');
+                if (!notesList) {
+                    console.error('❌ notesList no encontrado');
+                    return;
+                }
+                
+                const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+                console.log('📝 Notas encontradas en localStorage:', notes.length);
+                
+                if (notes.length === 0) {
+                    console.log('📝 No hay notas, mostrando estado vacío');
+                    notesList.innerHTML = `
+                        <div class="empty-notes">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                            <p>No hay notas aún. ¡Agrega tu primera nota!</p>
+                        </div>
+                    `;
+                } else {
+                    console.log('📝 Mostrando', notes.length, 'notas');
+                    // Ordenar por fecha de actualización
+                    const sortedNotes = notes.sort((a, b) => {
+                        const dateA = new Date(a.updatedAt || a.timestamp || 0);
+                        const dateB = new Date(b.updatedAt || b.timestamp || 0);
+                        return dateB - dateA;
+                    });
+                    
+                    notesList.innerHTML = sortedNotes.map(note => createSimpleNoteHTML(note)).join('');
+                    attachNoteClickListeners(notesList, sortedNotes);
+                    console.log('✅ Todas las notas mostradas correctamente');
+                }
+                
+                // Ocultar información de resultados
+                hideSearchResultsInfo();
+            }
+            
+            // Función para actualizar información de resultados de búsqueda
+            function updateSearchResultsInfo(count, query) {
+                console.log('📊 Actualizando info de resultados:', count, 'para:', query);
+                
+                const resultsInfo = document.getElementById('searchResultsInfo');
+                const resultsCount = document.getElementById('searchResultsCount');
+                
+                if (resultsInfo && resultsCount) {
+                    // Siempre actualizar el texto con la búsqueda actual
+                    resultsCount.textContent = `${count} resultado${count !== 1 ? 's' : ''} para "${query}"`;
+                    resultsInfo.style.display = 'block';
+                    resultsInfo.classList.add('show');
+                    
+                    console.log('✅ Info de resultados actualizada:', resultsCount.textContent);
+                } else {
+                    console.error('❌ Elementos de info de resultados no encontrados');
+                }
+            }
+            
+            // Función para ocultar información de resultados
+            function hideSearchResultsInfo() {
+                const resultsInfo = document.getElementById('searchResultsInfo');
+                const resultsCount = document.getElementById('searchResultsCount');
+                
+                if (resultsInfo) {
+                    resultsInfo.style.display = 'none';
+                    resultsInfo.classList.remove('show');
+                }
+                
+                // Limpiar también el texto del contador
+                if (resultsCount) {
+                    resultsCount.textContent = '';
+                }
+                
+                console.log('🧹 Info de resultados ocultada y limpiada');
+            }
+            
+            // Función para limpiar búsqueda
+            function clearSearch() {
+                console.log('🧹 Limpiando búsqueda...');
+                const searchInput = document.getElementById('notesSearchInput');
+                if (searchInput) {
+                    searchInput.value = '';
+                    showAllNotes();
+                    searchInput.focus();
+                    console.log('✅ Búsqueda limpiada correctamente');
+                } else {
+                    console.error('❌ Campo de búsqueda no encontrado para limpiar');
+                }
+            }
+            
+            // Exponer funciones globalmente para compatibilidad
+            window.searchNotes = toggleSearchNotes;
+            window.toggleSearchNotes = toggleSearchNotes;
+            
+            // Función para obtener tiempo transcurrido
+            function getTimeAgo(date) {
+                const now = new Date();
+                const diffInSeconds = Math.floor((now - date) / 1000);
+                
+                if (diffInSeconds < 60) return 'Hace 1 min';
+                if (diffInSeconds < 3600) return `Hace ${Math.floor(diffInSeconds / 60)} min`;
+                if (diffInSeconds < 86400) return `Hace ${Math.floor(diffInSeconds / 3600)} h`;
+                if (diffInSeconds < 2592000) return `Hace ${Math.floor(diffInSeconds / 86400)} d`;
+                return date.toLocaleDateString();
+            }
+
+            // Función para mostrar el modal de enlaces
+            function showLinkDialog() {
+                const modal = document.getElementById('linkModalOverlay');
+                const urlInput = document.getElementById('linkUrl');
+                const textInput = document.getElementById('linkText');
+                const noteEditor = document.getElementById('noteEditor');
+                
+                if (!modal || !urlInput || !textInput || !noteEditor) {
+                    console.error('❌ Elementos del modal de enlaces no encontrados');
+                    return;
+                }
+
+                // Asegurar que el editor tenga foco primero
+                noteEditor.focus();
+
+                // Obtener texto seleccionado
+                const selectedText = window.getSelection().toString();
+                if (selectedText) {
+                    textInput.value = selectedText;
+                }
+
+                // Limpiar campos
+                urlInput.value = '';
+                if (!selectedText) {
+                    textInput.value = '';
+                }
+
+                // Mostrar modal
+                modal.style.display = 'flex';
+                setTimeout(() => {
+                    modal.classList.add('active');
+                    urlInput.focus();
+                }, 10);
+            }
+
+            // Función para cerrar el modal de enlaces
+            function closeLinkDialog() {
+                const modal = document.getElementById('linkModalOverlay');
+                const urlInput = document.getElementById('linkUrl');
+                const textInput = document.getElementById('linkText');
+                
+                if (modal) {
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                        if (urlInput) urlInput.value = '';
+                        if (textInput) textInput.value = '';
+                    }, 300);
+                }
+            }
+
+            // Función para insertar enlace
+            function insertLink() {
+                const urlInput = document.getElementById('linkUrl');
+                const textInput = document.getElementById('linkText');
+                const noteEditor = document.getElementById('noteEditor');
+                
+                if (!urlInput || !textInput || !noteEditor) {
+                    console.error('❌ Elementos necesarios no encontrados');
+                    return;
+                }
+
+                const url = urlInput.value.trim();
+                const text = textInput.value.trim();
+
+                if (!url) {
+                    showNotification('⚠️ Por favor ingresa una URL válida', 'warning');
+                    urlInput.focus();
+                    return;
+                }
+
+                // Validar URL
+                try {
+                    new URL(url);
+                } catch {
+                    showNotification('⚠️ Por favor ingresa una URL válida (ej: https://ejemplo.com)', 'warning');
+                    urlInput.focus();
+                    return;
+                }
+
+                // Asegurar que el editor tenga foco
+                noteEditor.focus();
+
+                // Obtener texto seleccionado
+                const selection = window.getSelection();
+                const selectedText = selection.toString();
+
+                console.log('🔗 Insertando enlace:', { url, text, selectedText });
+
+                try {
+                    // Crear elemento de enlace
+                    const linkElement = document.createElement('a');
+                    linkElement.href = url;
+                    linkElement.target = '_blank';
+                    linkElement.rel = 'noopener noreferrer';
+                    
+                    if (text) {
+                        // Si hay texto personalizado
+                        linkElement.textContent = text;
+                    } else if (selectedText) {
+                        // Si hay texto seleccionado
+                        linkElement.textContent = selectedText;
+                    } else {
+                        // Si no hay texto, usar la URL
+                        linkElement.textContent = url;
+                    }
+
+                    // Intentar diferentes métodos de inserción
+                    let inserted = false;
+
+                    // Método 1: insertHTML
+                    if (document.queryCommandSupported('insertHTML') && !inserted) {
+                        try {
+                            const linkHtml = linkElement.outerHTML;
+                            document.execCommand('insertHTML', false, linkHtml);
+                            inserted = true;
+                            console.log('✅ Enlace insertado con insertHTML');
+                        } catch (e) {
+                            console.log('⚠️ insertHTML falló:', e);
+                        }
+                    }
+
+                    // Método 2: createLink (solo si hay texto seleccionado)
+                    if (selectedText && document.queryCommandSupported('createLink') && !inserted) {
+                        try {
+                            document.execCommand('createLink', false, url);
+                            inserted = true;
+                            console.log('✅ Enlace insertado con createLink');
+                        } catch (e) {
+                            console.log('⚠️ createLink falló:', e);
+                        }
+                    }
+
+                    // Método 3: Inserción manual
+                    if (!inserted) {
+                        try {
+                            let range;
+                            if (selection.rangeCount > 0) {
+                                range = selection.getRangeAt(0);
+                            } else {
+                                // Crear rango al final del editor
+                                range = document.createRange();
+                                range.selectNodeContents(noteEditor);
+                                range.collapse(false);
+                            }
+                            
+                            if (selectedText) {
+                                range.surroundContents(linkElement);
+                            } else {
+                                range.deleteContents();
+                                range.insertNode(linkElement);
+                            }
+                            inserted = true;
+                            console.log('✅ Enlace insertado manualmente');
+                        } catch (e) {
+                            console.log('⚠️ Inserción manual falló:', e);
+                        }
+                    }
+
+                    // Método 4: Fallback final - insertar al final
+                    if (!inserted) {
+                        try {
+                            noteEditor.appendChild(linkElement);
+                            noteEditor.appendChild(document.createElement('br'));
+                            inserted = true;
+                            console.log('✅ Enlace insertado al final como fallback');
+                        } catch (e) {
+                            console.log('❌ Todos los métodos fallaron:', e);
+                        }
+                    }
+
+                    // Limpiar selección
+                    selection.removeAllRanges();
+                    
+                    // Volver a enfocar el editor
+                    noteEditor.focus();
+
+                    closeLinkDialog();
+                    updateToolbarState();
+                    showNotification('✅ Enlace insertado correctamente', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Error al insertar enlace:', error);
+                    showNotification('❌ Error al insertar enlace', 'error');
+                }
+            }
+
+            // Función para convertir nota a PDF
+            function convertNoteToPDF() {
+                const title = noteTitleInput.value.trim() || 'Nota sin título';
+                const content = noteEditor.innerHTML || 'Sin contenido';
+
+                if (!content || content === 'Sin contenido') {
+                    showNotification('⚠️ No hay contenido para convertir a PDF', 'warning');
+                    return;
+                }
+
+                console.log('📄 Generando PDF...', { title, content });
+
+                // Crear HTML para el PDF
+                const htmlContent = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>${title}</title>
+                        <style>
+                            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+                            
+                            * {
+                                margin: 0;
+                                padding: 0;
+                                box-sizing: border-box;
+                            }
+                            
+                            body {
+                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                                line-height: 1.6;
+                                color: #2d3748;
+                                background: #ffffff;
+                                padding: 40px;
+                                max-width: 800px;
+                                margin: 0 auto;
+                            }
+                            
+                            .header {
+                                text-align: center;
+                                margin-bottom: 40px;
+                                padding-bottom: 20px;
+                                border-bottom: 3px solid #0066CC;
+                            }
+                            
+                            .header h1 {
+                                font-size: 32px;
+                                font-weight: 700;
+                                color: #0066CC;
+                                margin-bottom: 10px;
+                                letter-spacing: -0.5px;
+                            }
+                            
+                            .header .date {
+                                color: #718096;
+                                font-size: 14px;
+                                font-weight: 500;
+                            }
+                            
+                            .content {
+                                font-size: 16px;
+                                line-height: 1.7;
+                                color: #2d3748;
+                            }
+                            
+                            .content h1, .content h2, .content h3 {
+                                color: #0066CC;
+                                margin: 24px 0 16px 0;
+                                font-weight: 600;
+                            }
+                            
+                            .content h1 { font-size: 24px; }
+                            .content h2 { font-size: 20px; }
+                            .content h3 { font-size: 18px; }
+                            
+                            .content p {
+                                margin-bottom: 16px;
+                            }
+                            
+                            .content ul, .content ol {
+                                margin: 16px 0;
+                                padding-left: 24px;
+                            }
+                            
+                            .content li {
+                                margin-bottom: 8px;
+                            }
+                            
+                            .content strong {
+                                font-weight: 600;
+                                color: #2d3748;
+                            }
+                            
+                            .content em {
+                                font-style: italic;
+                                color: #4a5568;
+                            }
+                            
+                            .content a {
+                                color: #0066CC;
+                                text-decoration: none;
+                            }
+                            
+                            .content a:hover {
+                                text-decoration: underline;
+                            }
+                            
+                            .footer {
+                                margin-top: 60px;
+                                padding-top: 20px;
+                                border-top: 1px solid #e2e8f0;
+                                text-align: center;
+                                color: #718096;
+                                font-size: 12px;
+                            }
+                            
+                            .footer .logo {
+                                color: #0066CC;
+                                font-weight: 600;
+                                font-size: 14px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>${title}</h1>
+                            <div class="date">Generado el ${new Date().toLocaleDateString('es-ES', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}</div>
+                        </div>
+                        
+                        <div class="content">
+                            ${content}
+                        </div>
+                        
+                        <div class="footer">
+                            <div class="logo">Coach LIA IA</div>
+                            <div>Plataforma de aprendizaje con Inteligencia Artificial</div>
+                        </div>
+                    </body>
+                    </html>
+                `;
+
+                // Crear y descargar el archivo
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                console.log('✅ PDF generado exitosamente');
+                showNotification('✅ Nota convertida a PDF exitosamente', 'success');
+            }
+
+            // Función global para actualizar el estado del toolbar
+            function updateToolbarState() {
+                const boldBtn = document.getElementById('boldBtn');
+                const italicBtn = document.getElementById('italicBtn');
+                const underlineBtn = document.getElementById('underlineBtn');
+                
+                if (boldBtn) boldBtn.classList.toggle('active', document.queryCommandState('bold'));
+                if (italicBtn) italicBtn.classList.toggle('active', document.queryCommandState('italic'));
+                if (underlineBtn) underlineBtn.classList.toggle('active', document.queryCommandState('underline'));
+            }
+
+            // Función para inicializar el editor de texto
+            function initializeTextEditor() {
+                if (!noteEditor) return;
+
+                // Toolbar buttons
+                const undoBtn = document.getElementById('undoBtn');
+                const redoBtn = document.getElementById('redoBtn');
+                const boldBtn = document.getElementById('boldBtn');
+                const italicBtn = document.getElementById('italicBtn');
+                const underlineBtn = document.getElementById('underlineBtn');
+                const linkBtn = document.getElementById('linkBtn');
+                const bulletListBtn = document.getElementById('bulletListBtn');
+                const numberListBtn = document.getElementById('numberListBtn');
+                const clearFormatBtn = document.getElementById('clearFormatBtn');
+                const textStyleSelect = document.getElementById('textStyleSelect');
+
+                // Undo
+                if (undoBtn) {
+                    undoBtn.addEventListener('click', () => {
+                        document.execCommand('undo');
+                        updateToolbarState();
+                    });
+                }
+
+                // Redo
+                if (redoBtn) {
+                    redoBtn.addEventListener('click', () => {
+                        document.execCommand('redo');
+                        updateToolbarState();
+                    });
+                }
+
+                // Bold
+                if (boldBtn) {
+                    boldBtn.addEventListener('click', () => {
+                        document.execCommand('bold');
+                        updateToolbarState();
+                    });
+                }
+
+                // Italic
+                if (italicBtn) {
+                    italicBtn.addEventListener('click', () => {
+                        document.execCommand('italic');
+                        updateToolbarState();
+                    });
+                }
+
+                // Underline
+                if (underlineBtn) {
+                    underlineBtn.addEventListener('click', () => {
+                        document.execCommand('underline');
+                        updateToolbarState();
+                    });
+                }
+
+                // Link
+                if (linkBtn) {
+                    linkBtn.addEventListener('click', () => {
+                        showLinkDialog();
+                    });
+                }
+
+                // Bullet list
+                if (bulletListBtn) {
+                    bulletListBtn.addEventListener('click', () => {
+                        document.execCommand('insertUnorderedList');
+                        updateToolbarState();
+                    });
+                }
+
+                // Number list
+                if (numberListBtn) {
+                    numberListBtn.addEventListener('click', () => {
+                        document.execCommand('insertOrderedList');
+                        updateToolbarState();
+                    });
+                }
+
+                // Clear format
+                if (clearFormatBtn) {
+                    clearFormatBtn.addEventListener('click', () => {
+                        document.execCommand('removeFormat');
+                        updateToolbarState();
+                    });
+                }
+
+                // Text style
+                if (textStyleSelect) {
+                    textStyleSelect.addEventListener('change', (e) => {
+                        const value = e.target.value;
+                        if (value === 'normal') {
+                            document.execCommand('formatBlock', false, 'div');
+                        } else {
+                            document.execCommand('formatBlock', false, value);
+                        }
+                        updateToolbarState();
+                    });
+                }
+
+                // Los event listeners de input se removieron para evitar guardado continuo
+                // Ahora solo se guarda al cerrar la nota
+
+                // Actualizar estado del toolbar cuando se selecciona texto
+                noteEditor.addEventListener('mouseup', updateToolbarState);
+                noteEditor.addEventListener('keyup', updateToolbarState);
+                noteEditor.addEventListener('selectionchange', updateToolbarState);
+            }
+
+            // Event listeners
+            addNoteBtn.addEventListener('click', () => {
+                openNotePanel();
+            });
+
+            closeNoteBtn.addEventListener('click', closeNotePanel);
+            
+            // ===== EVENT LISTENERS DE BÚSQUEDA =====
+            const searchNotesBtn = document.getElementById('searchNotesBtn');
+            const notesSearchInput = document.getElementById('notesSearchInput');
+            const clearSearchBtn = document.getElementById('clearSearchBtn');
+            
+            // Botón de búsqueda
+            if (searchNotesBtn) {
+                searchNotesBtn.addEventListener('click', toggleSearchNotes);
+                console.log('✅ Event listener de búsqueda configurado');
+            }
+            
+            // Input de búsqueda con debounce
+            if (notesSearchInput) {
+                notesSearchInput.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        searchNotes(e.target.value);
+                    }, 300); // 300ms de debounce
+                });
+                
+                // Buscar al presionar Enter
+                notesSearchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        clearTimeout(searchTimeout);
+                        searchNotes(e.target.value);
+                    }
+                });
+            }
+            
+            // Botón de limpiar búsqueda
+            if (clearSearchBtn) {
+                clearSearchBtn.addEventListener('click', clearSearch);
+            }
+
+            // Botón de guardar nota del modal overlay
+            const saveNoteBtnOverlay = document.getElementById('saveNoteBtnOverlay');
+            if (saveNoteBtnOverlay) {
+                saveNoteBtnOverlay.addEventListener('click', () => {
+                    console.log('💾 Guardando nota desde modal overlay...');
+                    saveCurrentNote();
+                });
+            }
+
+            if (convertToSourceBtn) {
+                convertToSourceBtn.addEventListener('click', () => {
+                    console.log('📄 Convertir en PDF...');
+                    convertNoteToPDF();
+                });
+            }
+
+            // Event listeners para el modal de enlaces
+            const linkModalOverlay = document.getElementById('linkModalOverlay');
+            const linkModalClose = document.getElementById('linkModalClose');
+            const linkModalCancel = document.getElementById('linkModalCancel');
+            const linkModalInsert = document.getElementById('linkModalInsert');
+            const linkUrl = document.getElementById('linkUrl');
+            const linkText = document.getElementById('linkText');
+
+            if (linkModalClose) {
+                linkModalClose.addEventListener('click', closeLinkDialog);
+            }
+
+            if (linkModalCancel) {
+                linkModalCancel.addEventListener('click', closeLinkDialog);
+            }
+
+            if (linkModalInsert) {
+                linkModalInsert.addEventListener('click', insertLink);
+            }
+
+            if (linkModalOverlay) {
+                linkModalOverlay.addEventListener('click', (e) => {
+                    if (e.target === linkModalOverlay) {
+                        closeLinkDialog();
+                    }
+                });
+            }
+
+            // Enter para insertar enlace
+            if (linkUrl) {
+                linkUrl.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        insertLink();
+                    }
+                });
+            }
+
+            if (linkText) {
+                linkText.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        insertLink();
+                    }
+                });
+            }
+
+            // Cerrar panel con Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (notePanelOverlay.classList.contains('active')) {
+                        closeNotePanel();
+                    } else if (linkModalOverlay && linkModalOverlay.style.display === 'flex') {
+                        closeLinkDialog();
+                    }
+                }
+            });
+
+            // Inicializar editor
+            initializeTextEditor();
+
+            // Cargar notas iniciales
+            updateNotesList();
+
+            console.log('✅ Sistema de notas NotebookLM inicializado');
+        }
+
+        // Inicializar sistema de notas cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initializeNotebookLMNotes, 1000);
+        });
+
+        // ===== FUNCIONALIDAD NAVEGACIÓN MOBILE RESPONSIVE =====
+        function initializeMobileNavigation() {
+            const mobileNavLeft = document.getElementById('mobileNavLeft');
+            const mobileNavRight = document.getElementById('mobileNavRight');
+            const leftPanel = document.getElementById('sidebarLeft');
+            const rightPanel = document.getElementById('sidebarRight');
+            const mobileOverlay = document.getElementById('mobileOverlay');
+
+            if (!mobileNavLeft || !mobileNavRight || !leftPanel || !rightPanel || !mobileOverlay) {
+                console.warn('⚠️ Elementos de navegación mobile no encontrados');
+                return;
+            }
+
+            // Función para abrir panel izquierdo
+            function openLeftPanel() {
+                leftPanel.classList.add('mobile-open');
+                rightPanel.classList.remove('mobile-open');
+                mobileOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                console.log('📱 Panel izquierdo abierto');
+            }
+
+            // Función para abrir panel derecho
+            function openRightPanel() {
+                rightPanel.classList.add('mobile-open');
+                leftPanel.classList.remove('mobile-open');
+                mobileOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                console.log('📱 Panel derecho abierto');
+            }
+
+            // Función para cerrar paneles
+            function closePanels() {
+                leftPanel.classList.remove('mobile-open');
+                rightPanel.classList.remove('mobile-open');
+                mobileOverlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
+                console.log('📱 Paneles cerrados');
+            }
+
+            // Event listeners
+            mobileNavLeft.addEventListener('click', openLeftPanel);
+            mobileNavRight.addEventListener('click', openRightPanel);
+            mobileOverlay.addEventListener('click', closePanels);
+
+            // Cerrar con tecla Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && mobileOverlay.classList.contains('active')) {
+                    closePanels();
+                }
+            });
+
+            // Detectar cambio de tamaño de ventana
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 767) {
+                    closePanels();
+                }
+            });
+
+            // Cerrar paneles al tocar fuera en dispositivos táctiles
+            document.addEventListener('touchstart', (e) => {
+                if (mobileOverlay.classList.contains('active')) {
+                    const isClickInsidePanel = leftPanel.contains(e.target) || rightPanel.contains(e.target);
+                    if (!isClickInsidePanel) {
+                        closePanels();
+                    }
+                }
+            });
+
+            console.log('✅ Navegación mobile inicializada');
+        }
+
+        // Inicializar navegación mobile cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initializeMobileNavigation, 500);
+        });
+    </script>
 
 </body>
 
