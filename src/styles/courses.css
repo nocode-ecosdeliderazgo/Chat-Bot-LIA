@@ -105,18 +105,28 @@ html, body.courses-page {
 }
 
 /* ===== Header fijo con navbar (para Mis Cursos) ===== */
-.catalog-header {
-    position: fixed;
-    top: 0;
-    left: 50%;
+.catalog-header { 
+    position: fixed; 
+    top: 0; 
+    left: 50%; 
     transform: translateX(-50%);
     width: 1280px;
-    z-index: 1000;
-    background: transparent;
-    backdrop-filter: none;
-    border-bottom: 0;
+    z-index: 1000; 
+    background: transparent; 
+    backdrop-filter: none; 
+    border-bottom: 0; 
 }
-.catalog-header .container { display:flex; align-items:center; justify-content:center; gap:12px; padding: 10px 16px; min-height: 60px; position: relative; }
+.catalog-header .container { 
+    display:flex; 
+    align-items:center; 
+    justify-content:center; 
+    gap:12px; 
+    padding: 10px 16px; 
+    min-height: 60px; 
+    position: relative;
+    max-width: 1280px;
+    margin: 0 auto;
+}
 .catalog-header .course-tabs { margin: 0; width: min(750px, 95vw); background: rgba(20,30,45,0.95); border: 1px solid rgba(68,229,255,0.15); box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(68,229,255,0.1) inset; backdrop-filter: blur(20px); border-radius: 20px; }
 .catalog-header .header-profile {
     position: fixed;
@@ -151,16 +161,17 @@ html, body.courses-page {
 .courses-main {
     max-width: 1280px;
     width: 100%;
-    margin: 0 auto !important;
-    padding: 70px 20px 0 20px; /* espacio para header fijo y padding lateral */
+    margin: 0 auto;
+    padding: 70px 20px 20px 20px; /* espacio para header fijo y padding lateral */
 }
 
 .courses-container {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    max-width: 100%;
-    margin: 0 auto !important;
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
 }
 
 /* ===== PESTAÑAS DE NAVEGACIÓN ===== */
@@ -351,6 +362,8 @@ html, body.courses-page {
     overflow: hidden;
     backdrop-filter: blur(20px);
     transition: all 0.3s ease;
+    max-width: 1200px;
+    margin: 0 auto 20px auto;
 }
 
 /* ===== BARRA DE BÚSQUEDA ===== */
@@ -358,8 +371,7 @@ html, body.courses-page {
     margin: 24px auto !important;
     position: relative;
     max-width: 600px;
-    padding: 0 16px;
-    width: 100%;
+    padding: 0;
 }
 
 .search-wrapper {
@@ -848,6 +860,8 @@ html, body.courses-page {
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    max-width: 1200px;
+    margin: 0 auto 20px auto;
 }
 
 .reminder-icon {
@@ -1000,9 +1014,8 @@ html, body.courses-page {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 24px;
-    margin: 20px auto 0 auto !important;
-    max-width: 1280px;
-    width: 100%;
+    margin: 20px auto 0 auto;
+    max-width: 1200px;
 }
 
 .course-card {
