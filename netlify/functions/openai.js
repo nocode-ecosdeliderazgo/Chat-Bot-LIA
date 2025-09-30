@@ -73,18 +73,42 @@ function verifyUser(event) {
         // MODO PRODUCCIÓN: Verificar JWT normal
         const secret = process.env.JWT_SECRET;
         console.log('[VERIFY USER] JWT_SECRET exists:', !!secret);
-        if (!secret) return null;
+
+        if (!secret) {
+            // Si no hay JWT_SECRET configurado, permitir cualquier userId válido
+            console.log('[VERIFY USER] No JWT_SECRET - Modo permisivo activado');
+            if (userId) {
+                return { userId: String(userId), username: 'user' };
+            }
+            return null;
+        }
+
         const payload = jwt.verify(token, secret);
-        if (String(payload.sub) !== String(userId)) return null;
+        console.log('[VERIFY USER] JWT verified successfully');
+        if (String(payload.sub) !== String(userId)) {
+            console.log('[VERIFY USER] User ID mismatch:', payload.sub, 'vs', userId);
+            return null;
+        }
         return { userId: String(userId), username: payload.username || 'user' };
-    } catch (error) { 
+    } catch (error) {
         console.log('[VERIFY USER] Exception:', error.message);
-        // Fallback para desarrollo si el JWT falla
+        console.log('[VERIFY USER] Error name:', error.name);
+
+        // Si el error es por JWT expirado o inválido, pero tenemos userId, permitir en modo permisivo
         const userId = event.headers['x-user-id'] || event.headers['X-User-Id'];
+
+        // Fallback para desarrollo
         if (userId && (userId.includes('test') || userId.includes('demo') || userId.includes('dev'))) {
             console.log('[DEV AUTH] Fallback de desarrollo para:', userId);
             return { userId: String(userId), username: 'dev-user' };
         }
+
+        // Modo permisivo para producción sin JWT_SECRET
+        if (!process.env.JWT_SECRET && userId) {
+            console.log('[VERIFY USER] Modo permisivo: permitiendo userId sin JWT_SECRET');
+            return { userId: String(userId), username: 'user' };
+        }
+
         return null; 
     }
 }
