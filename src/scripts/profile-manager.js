@@ -86,27 +86,69 @@ class ProfileManager {
                 if (sessionUser.id && !String(sessionUser.id).startsWith('dev-')) attempts.push(`userId=${encodeURIComponent(sessionUser.id)}`);
                 if (sessionUser.username) attempts.push(`username=${encodeURIComponent(sessionUser.username)}`);
                 if (sessionUser.email) attempts.push(`email=${encodeURIComponent(sessionUser.email)}`);
+
                 for (const q of attempts) {
                     try {
+                        console.log(`🔄 Intentando obtener perfil: /api/profile?${q}`);
                         const r = await fetch(`/api/profile?${q}`);
-                        if (r.ok) return r.json();
-                    } catch(_) {}
+                        if (r.ok) {
+                            const result = await r.json();
+                            console.log('✅ Perfil obtenido exitosamente desde API');
+                            return result;
+                        } else {
+                            console.warn(`⚠️ API retornó ${r.status} para ${q}`);
+                        }
+                    } catch(err) {
+                        console.warn(`⚠️ Error en fetch para ${q}:`, err);
+                    }
                 }
-                // Fallback: construir perfil básico desde localStorage si backend falla
+
+                // Fallback: construir perfil completo desde localStorage si backend falla
+                console.warn('⚠️ API no disponible, usando datos de localStorage como fallback');
+
+                // Intentar obtener datos adicionales de localStorage
+                const storedProfile = localStorage.getItem('user_profile_local');
+                let profileFromStorage = null;
+                if (storedProfile) {
+                    try {
+                        const profiles = JSON.parse(storedProfile);
+                        profileFromStorage = profiles[sessionUser.username] || profiles[sessionUser.email];
+                    } catch(e) {
+                        console.warn('Error parseando profile local:', e);
+                    }
+                }
+
                 return {
                     user: {
                         id: sessionUser.id || null,
                         username: sessionUser.username || 'usuario',
                         email: sessionUser.email || '',
-                        display_name: sessionUser.display_name || sessionUser.username || '',
-                        first_name: '',
-                        last_name: '',
-                        cargo_rol: 'Usuario',
-                        type_rol: 'usuario'
+                        display_name: sessionUser.display_name || sessionUser.name || sessionUser.username || '',
+                        first_name: sessionUser.first_name || profileFromStorage?.first_name || '',
+                        last_name: sessionUser.last_name || profileFromStorage?.last_name || '',
+                        phone: sessionUser.phone || profileFromStorage?.phone || '',
+                        location: sessionUser.location || profileFromStorage?.location || '',
+                        bio: sessionUser.bio || profileFromStorage?.bio || '',
+                        cargo_rol: sessionUser.cargo_rol || sessionUser.company_role || profileFromStorage?.cargo_rol || 'Usuario',
+                        company_role: sessionUser.company_role || profileFromStorage?.company_role || '',
+                        type_rol: sessionUser.type_rol || profileFromStorage?.type_rol || 'usuario',
+                        profile_picture_url: sessionUser.profile_picture_url || sessionUser.avatar_url || null,
+                        avatar_url: sessionUser.avatar_url || sessionUser.profile_picture_url || null,
+                        linkedin_url: sessionUser.linkedin_url || profileFromStorage?.linkedin_url || '',
+                        github_url: sessionUser.github_url || profileFromStorage?.github_url || '',
+                        portfolio_url: sessionUser.portfolio_url || sessionUser.website_url || profileFromStorage?.portfolio_url || '',
+                        website_url: sessionUser.website_url || profileFromStorage?.website_url || '',
+                        created_at: sessionUser.created_at || new Date().toISOString(),
+                        last_login_at: sessionUser.last_login_at || new Date().toISOString()
                     }
                 };
             };
             const { user: data } = await tryFetch();
+
+            // Verificar si se usó fallback y mostrar warning
+            if (!data.created_at || data.created_at === new Date().toISOString().split('T')[0]) {
+                this.showWarning('Trabajando en modo offline. Los datos se cargan desde el almacenamiento local.');
+            }
 
             console.log('✅ Datos de perfil obtenidos:', {
                 username: data.username,
@@ -823,6 +865,10 @@ class ProfileManager {
         this.showNotification(message, 'error');
     }
 
+    showWarning(message) {
+        this.showNotification(message, 'warning');
+    }
+
     showNotification(message, type) {
         // Crear notificación temporal
         const notification = document.createElement('div');
@@ -830,6 +876,12 @@ class ProfileManager {
         notification.textContent = message;
         
         // Estilos de la notificación
+        const backgrounds = {
+            success: '#10B981',
+            error: '#EF4444',
+            warning: '#F59E0B'
+        };
+
         Object.assign(notification.style, {
             position: 'fixed',
             top: '20px',
@@ -841,7 +893,7 @@ class ProfileManager {
             zIndex: '10000',
             transform: 'translateX(100%)',
             transition: 'transform 0.3s ease',
-            background: type === 'success' ? '#10B981' : '#EF4444'
+            background: backgrounds[type] || '#6B7280'
         });
 
         document.body.appendChild(notification);
