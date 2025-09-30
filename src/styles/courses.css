@@ -129,7 +129,7 @@ html, body.courses-page {
     max-width: 100%;
     width: 100%;
     margin: 0;
-    padding: 90px 0 0 0; /* espacio para header fijo */
+    padding: 70px 0 0 0; /* espacio para header fijo */
 }
 
 .courses-container {
@@ -144,14 +144,14 @@ html, body.courses-page {
     background: rgba(255, 255, 255, 0.04);
     backdrop-filter: blur(10px);
     border-radius: 20px;
-    padding: 12px;
+    padding: 9px;
     gap: 8px;
     overflow-x: auto;
     border: 1px solid rgba(0, 102, 204, 0.18);
     box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(20px);
     position: relative;
-    margin: 20px auto;
+    margin: 16px auto;
     width: min(750px, 95vw);
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -210,7 +210,7 @@ html, body.courses-page {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 16px 18px;
+    padding: 12px 14px;
     background: rgba(0, 102, 204, 0.03);
     border: 1px solid rgba(0, 102, 204, 0.08);
     border-radius: 16px;
@@ -318,7 +318,7 @@ html, body.courses-page {
     background: rgba(20, 30, 45, 0.95);
     border: 1px solid rgba(68, 229, 255, 0.2);
     border-radius: 24px;
-    padding: 32px;
+    padding: 24px;
     box-shadow: 
         0 20px 60px rgba(0, 0, 0, 0.4),
         0 0 0 1px rgba(68, 229, 255, 0.1) inset;
@@ -330,10 +330,10 @@ html, body.courses-page {
 
 /* ===== BARRA DE BÚSQUEDA ===== */
 .search-container {
-    margin: 32px auto;
+    margin: 24px auto;
     position: relative;
     max-width: 600px;
-    padding: 0 20px;
+    padding: 0 16px;
 }
 
 .search-wrapper {
@@ -344,7 +344,7 @@ html, body.courses-page {
         rgba(68, 229, 255, 0.05) 100%);
     border: 2px solid rgba(68, 229, 255, 0.2);
     border-radius: 24px;
-    padding: 20px 24px;
+    padding: 16px 20px;
     box-shadow: 
         0 8px 32px rgba(68, 229, 255, 0.15);
     backdrop-filter: blur(15px);
@@ -667,7 +667,7 @@ html, body.courses-page {
     align-items: center;
     justify-content: space-between;
     gap: 40px;
-    margin-bottom: 24px;
+    margin-bottom: 18px;
     position: relative;
 }
 
@@ -1718,7 +1718,7 @@ html, body.courses-page {
 
 /* Toggle de notificaciones */
 .notification-toggle {
-    margin-bottom: 24px;
+    margin-bottom: 18px;
 }
 
 .notification-toggle label {

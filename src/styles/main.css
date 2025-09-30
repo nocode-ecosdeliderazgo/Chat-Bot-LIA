@@ -33,30 +33,63 @@
     --body-weight: 400;              /* Regular */
     --body-weight-medium: 500;       /* Medium */
     
-    /* Jerarquía tipográfica sugerida */
-    --font-size-h1: 32px;           /* H1 28-32px */
-    --font-size-h2: 24px;           /* H2 22-24px */
-    --font-size-base: 16px;         /* cuerpo 14-16px */
+    /* Jerarquía tipográfica fija - NO responsiva */
+    --font-size-h1: 32px;           /* H1 fijo */
+    --font-size-h2: 24px;           /* H2 fijo */
+    --font-size-base: 16px;         /* cuerpo fijo */
     --font-size-sm: 14px;
     --font-size-lg: 18px;
-    --line-height: 1.5;             /* interlineado 1.5 */
+    --line-height: 1.5;             /* interlineado fijo */
 
     /* Tokens de diseño según PROMPT_CLAUDE.md */
     --radius-md: 12px;              /* radios 12-16px */
     --radius-lg: 16px;
     --shadow-sm: 0 2px 8px rgba(0,0,0,.12);  /* sombra sutil */
     
-    /* Espaciado sugerido */
+    /* Espaciado fijo - NO responsivo */
     --spacing-xs: 8px;
     --spacing-sm: 12px;
     --spacing-md: 16px;
     --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-xxl: 48px;
     
     /* Bordes para fondos oscuros */
     --border-light: 1px solid rgba(255,255,255,.08);
 
     /* Conservado para compatibilidad */
     --pink-brain: #ff69b4;
+}
+
+/* Reglas para diseño NO responsivo - como SAES */
+img, video, iframe {
+    max-width: none !important;
+}
+
+/* Asegurar que todos los elementos mantengan su tamaño fijo */
+* {
+    max-width: none !important;
+}
+
+/* Forzar scroll horizontal cuando sea necesario */
+html {
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+/* Asegurar que el contenido no se comprima */
+.main-container,
+.hero-section,
+.features-section,
+.stats-section,
+.testimonials-section,
+.cta-section {
+    min-width: 1280px;
+}
+
+html, body {
+    min-width: 1280px;
+    overflow-x: auto;
 }
 
 body {
@@ -69,7 +102,8 @@ body {
     color: var(--text-on-dark);
     background: linear-gradient(160deg, var(--color-bg-1) 0%, var(--color-bg-2) 100%);
     position: relative;
-    overflow-x: hidden;
+    width: 1280px;
+    margin: 0 auto;
 }
 
 /* Fondo con glow para todas las páginas */
@@ -693,25 +727,7 @@ body.left-collapsed .sidebar-left { border-right: 1px solid rgba(68,229,255,0.15
     backdrop-filter: blur(20px);
 }
 
-@media (max-width: 1100px) {
-    .layout-notebook .layout-3panels { grid-template-columns: var(--left-col,64px) 1fr var(--right-col, 64px); gap: 1px; }
-    .sidebar-left { padding: 2px; }
-    .studio-right { padding: 2px; }
-    .sidebar-header h3 { display: none; }
-    .tool-btn { font-size: 0; padding: 6px; }
-}
-
-@media (max-width: 860px) {
-    .layout-notebook .layout-3panels { grid-template-columns: 1fr; height: auto; gap: 1px; }
-    .sidebar-left { order: 1; }
-    .chat-main { order: 2; }
-    .studio-right { order: 3; }
-    /* En móvil, laterales colapsados por defecto con rail de iconos */
-    :root { --left-col: 64px; --right-col: 64px; }
-    .studio-rail { display:flex; flex-direction: column; align-items:center; }
-    .studio-cards { display:none; }
-    body.layout-notebook { padding: 0px; }
-}
+/* Media queries eliminadas para diseño NO responsivo */
 
 /* Ajuste del ancho del chat según colapso de paneles */
 body.left-collapsed.right-collapsed { --chat-max: 820px; }
@@ -729,8 +745,7 @@ body:not(.left-collapsed):not(.right-collapsed) { --chat-max: 520px; }
 }
 
 .container {
-    width: 100%;
-    max-width: 1100px;
+    width: 1240px;
     margin: 0 auto;
     padding: 0 20px;
 }
@@ -884,18 +899,7 @@ body:not(.left-collapsed):not(.right-collapsed) { --chat-max: 520px; }
 
 .footer { border-top: 1px solid rgba(68, 229, 255, 0.15); padding: 18px 0; color: var(--text-muted); }
 
-@media (max-width: 900px) {
-    .hero-grid { grid-template-columns: 1fr; }
-    .courses-grid { grid-template-columns: 1fr 1fr; }
-    .features .features-grid { grid-template-columns: 1fr 1fr; }
-    .how-grid { grid-template-columns: 1fr; }
-    .nav-links { display: none; }
-    .nav-toggle { display: inline-block; }
-}
-
-@media (max-width: 560px) {
-    .courses-grid { grid-template-columns: 1fr; }
-}
+/* Media queries eliminadas para diseño NO responsivo */
 
 /* Contenedor principal del chat */
 .telegram-container {
@@ -982,11 +986,7 @@ body:not(.left-collapsed):not(.right-collapsed) { --chat-max: 520px; }
 .glossary-main { width: 100%; padding: var(--spacing-sm) var(--spacing-sm); background: transparent; border: 1.5px solid var(--color-primary); border-radius: var(--radius-md); color: var(--color-primary); font-weight: 700; cursor: pointer; font-family: var(--font-body); }
 .glossary-main:hover { background: var(--color-primary); color: var(--color-bg-1); }
 
-/* Responsive: ocupar pantalla completa en móvil */
-@media (max-width: 480px) {
-  .telegram-container.shift-left { transform: translateX(-20px) scale(0.98); }
-  .glossary-panel { right: 8px; width: calc(100% - 16px); }
-}
+/* Media queries eliminadas para diseño NO responsivo */
 
 /* Animación simple: fade + scale del contenedor */
 .chat-open-start { opacity: 0; transform: scale(0.96); }
@@ -1504,32 +1504,7 @@ body:not(.left-collapsed):not(.right-collapsed) { --chat-max: 520px; }
     animation-delay: -0.16s;
 }
 
-/* Responsive design */
-@media (max-width: 480px) {
-    body:not(.landing) {
-        padding: 10px;
-    }
-    
-    .telegram-container {
-        height: 100vh;
-        max-width: 100%;
-        border-radius: 0;
-    }
-    
-    .chat-header {
-        border-radius: 0;
-    }
-
-    /* Ajuste de animación en móvil para evitar saltos */
-    .chat-open-enter { transform: translateY(10px) scale(0.97); }
-    .chat-open-enter-active { animation-duration: 0.55s; }
-}
-
-@media (max-height: 700px) {
-    .telegram-container {
-        height: 100vh;
-    }
-}
+/* Media queries eliminadas para diseño NO responsivo */
 
 /* Scrollbar personalizado */
 .chat-messages::-webkit-scrollbar {
@@ -1682,17 +1657,7 @@ body:not(.left-collapsed):not(.right-collapsed) { --chat-max: 520px; }
     opacity: 0.7;
 }
 
-/* Responsive para botones */
-@media (max-width: 480px) {
-    .keyboard-row {
-        flex-direction: column;
-    }
-    
-    .keyboard-button {
-        font-size: 13px;
-        padding: 8px 10px;
-    }
-} 
+/* Media queries eliminadas para diseño NO responsivo */ 
 
 /* ====== Grabación estilo WhatsApp ====== */
 .recording-overlay {
@@ -2049,9 +2014,7 @@ a:focus-visible,
 .session-item .module-title { font-size: 12.5px; opacity: .95; }
 .session-item::after { content: '›'; opacity: .65; }
 
-@media (max-width: 560px) {
-  .session-menu { left: 8px; width: calc(100% - 16px); bottom: 70px; }
-}
+/* Media queries eliminadas para diseño NO responsivo */
 
 /* Reproductor en panel izquierdo */
 .left-video-player { display:none; aspect-ratio: 16/9; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid rgba(68,229,255,0.18); background: #000; }
@@ -2104,9 +2067,7 @@ a:focus-visible,
 
 /* Hacer que el primer párrafo después del perfil fluya a la derecha de la foto */
 .teacher-profile + .teacher-section { margin-top: 8px; margin-left: calc(140px + 16px); }
-@media (max-width: 720px) {
-  .teacher-profile + .teacher-section { margin-left: 0; }
-}
+/* Media queries eliminadas para diseño NO responsivo */
 
 /* ===== Chat del Livestream en Tiempo Real ===== */
 /* Placeholder bonito para livestream sin player */
@@ -2401,17 +2362,4 @@ a:focus-visible,
   background: rgba(68,229,255,0.5);
 }
 
-/* Responsive para pantallas pequeñas */
-@media (max-width: 768px) {
-  .livestream-chat-container {
-    height: 280px;
-  }
-  
-  .livestream-chat-header h5 {
-    font-size: 13px;
-  }
-  
-  .users-count {
-    font-size: 10px;
-  }
-}
+/* Media queries eliminadas para diseño NO responsivo */

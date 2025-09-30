@@ -6444,7 +6444,7 @@ class ChatOnline {
                 notePanelOverlay.classList.add('active');
                 
                 // Llenar campos inmediatamente
-                const titleInput = document.getElementById('noteTitleInput');
+        const titleInput = document.getElementById('noteTitleInput');
                 const contentEditor = document.getElementById('noteEditor');
                 
                 if (titleInput) titleInput.value = note.title || '';
@@ -6457,7 +6457,8 @@ class ChatOnline {
                 if (contentEditor) contentEditor.focus();
                 
                 console.log('🚀 Modal abierto instantáneamente con datos de la nota:', note.title);
-            } else {
+            }
+        } else {
             console.error('❌ Modal overlay no encontrado, usando editor interno como fallback');
             // Fallback al editor interno si el modal no existe
             this.showNotesCreator();
@@ -6468,7 +6469,6 @@ class ChatOnline {
             
             if (titleInput) titleInput.value = note.title || '';
             if (contentEditor) contentEditor.innerHTML = note.content || '';
-            }
         }
     }
     
@@ -8960,26 +8960,6 @@ RESPONDE COMO LIA:
             console.error('[LIA] ❌ Error exportando conversación:', error);
         }
     }
-
-    // Obtener API base URL con detección de entorno
-    getApiBaseUrl() {
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const currentPort = window.location.port;
-        const isNetlify = window.location.hostname.includes('netlify') || 
-                          window.location.hostname.includes('app') ||
-                          window.location.hostname === 'aprendeyaplica.ai' ||
-                          window.location.protocol === 'https:' && !isLocalhost;
-        
-        if (isLocalhost && currentPort === '8888') {
-            return '/.netlify/functions';
-        } else if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
-            return '/api';
-        } else if (isNetlify) {
-            return '/.netlify/functions';
-        } else {
-            return '/api';
-        }
-    }
 }
 
 
@@ -9566,6 +9546,27 @@ async function getFirstVideoIdFromDatabase(moduleNumber) {
             return null;
         }
     }
+
+    // Obtener API base URL con detección de entorno
+    getApiBaseUrl() {
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const currentPort = window.location.port;
+        const isNetlify = window.location.hostname.includes('netlify') || 
+                          window.location.hostname.includes('app') ||
+                          window.location.hostname === 'aprendeyaplica.ai' ||
+                          window.location.protocol === 'https:' && !isLocalhost;
+        
+        if (isLocalhost && currentPort === '8888') {
+            return '/.netlify/functions';
+        } else if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
+            return '/api';
+        } else if (isNetlify) {
+            return '/.netlify/functions';
+        } else {
+            return '/api';
+        }
+    }
+}
 
 console.log('✅ Funciones del sistema simple de módulos definidas');
 

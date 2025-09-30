@@ -117,24 +117,7 @@
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-    .modal-content {
-        margin: 20px;
-        max-width: none;
-    }
-    
-    .modal-header {
-        padding: 20px 20px 16px 20px;
-    }
-    
-    .modal-body {
-        padding: 16px 20px;
-    }
-    
-    .modal-footer {
-        padding: 16px 20px 20px 20px;
-    }
-}
+/* Media queries eliminadas para diseño NO responsivo */
 
 /* ===== CSS VARIABLES (estilo cursos/login) ===== */
 :root {
@@ -177,13 +160,13 @@
     --font-primary: 'Montserrat', sans-serif;
     --font-secondary: 'Inter', sans-serif;
     
-    /* Spacing */
-    --spacing-xs: 8px;
-    --spacing-sm: 16px;
-    --spacing-md: 24px;
-    --spacing-lg: 32px;
-    --spacing-xl: 48px;
-    --spacing-xxl: 64px;
+    /* Spacing reducido para diseño compacto */
+    --spacing-xs: 6px;
+    --spacing-sm: 12px;
+    --spacing-md: 18px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-xxl: 40px;
     
     /* Border Radius */
     --border-radius-sm: 8px;
@@ -537,7 +520,7 @@ body {
 .hero-section {
     background: rgba(255, 255, 255, 0.02);
     backdrop-filter: blur(5px);
-    padding: var(--spacing-xxl) 0;
+    padding: var(--spacing-xl) 0;
     position: relative;
     overflow: hidden;
     border-bottom: 1px solid rgba(0, 102, 204, 0.1);
@@ -546,7 +529,7 @@ body {
 .hero-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-xxl);
+    gap: var(--spacing-lg);
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
@@ -652,7 +635,7 @@ body {
 }
 
 /* ===== DISCOVER (tipo Skool) ===== */
-.discover-section { padding: var(--spacing-xxl) 0; }
+.discover-section { padding: var(--spacing-xl) 0; }
 .discover-search { 
     display: flex; 
     align-items: center; 
@@ -823,7 +806,7 @@ body {
 /* ===== COMMUNITY BANNER ===== */
 .community-banner {
     position: relative;
-    min-height: 280px;
+    min-height: 200px;
     margin-bottom: 0;
     border-radius: 16px;
     overflow: visible;
@@ -945,37 +928,7 @@ body {
 
 
 
-/* Responsive banner */
-@media (max-width: 768px) {
-    .community-banner {
-        min-height: 200px;
-        margin-bottom: var(--spacing-md);
-    }
-    
-    .community-banner-content {
-        flex-direction: column;
-        text-align: center;
-        gap: var(--spacing-sm);
-    }
-    
-    .community-banner-icon {
-        width: 50px;
-        height: 50px;
-        font-size: 20px;
-    }
-    
-    .community-banner-title {
-        font-size: 24px;
-    }
-    
-    .community-banner-desc {
-        font-size: 14px;
-    }
-    
-    .community-banner-overlay {
-        padding: var(--spacing-md);
-    }
-}
+/* Media queries eliminadas para diseño NO responsivo */
 
 /* ===== SUB NAV (Community / Members / About) ===== */
 .community-subnav { 
@@ -1085,7 +1038,7 @@ body {
 }
 
 /* ===== MEMBERS LIST ===== */
-.members-section { padding: var(--spacing-xxl) 0; }
+.members-section { padding: var(--spacing-xl) 0; }
 .members-filters { 
     display: flex; 
     gap: 12px; 
@@ -1414,56 +1367,7 @@ body {
     border: 1px solid rgba(255, 165, 0, 0.3) !important;
 }
 
-/* Responsive design para pantallas pequeñas */
-@media (max-width: 768px) {
-    .member-meta {
-        gap: 6px;
-    }
-    
-    .member-location, .member-status-text, .member-joined {
-        padding: 8px 12px;
-    font-size: 0.75rem;
-        gap: 8px;
-    }
-    
-    .member-location i, .member-status-text i, .member-joined i {
-        width: 18px;
-        height: 18px;
-        font-size: 0.9rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .member-card {
-        padding: 16px;
-        gap: 12px;
-    }
-    
-    .member-avatar {
-        width: 48px;
-        height: 48px;
-    }
-    
-    .member-name {
-        font-size: 15px;
-    }
-    
-    .member-meta {
-        gap: 4px;
-    }
-    
-    .member-location, .member-status-text, .member-joined {
-        padding: 6px 10px;
-        font-size: 0.7rem;
-        gap: 6px;
-    }
-    
-    .member-location i, .member-status-text i, .member-joined i {
-        width: 16px;
-        height: 16px;
-        font-size: 0.8rem;
-    }
-}
+/* Media queries eliminadas para diseño NO responsivo */
 
 .online-dot {
     color: #22C55E;
@@ -1514,7 +1418,7 @@ body {
 }
 
 /* ===== FEED (para community-view) ===== */
-.feed-section { padding: 16px 0; }
+.feed-section { padding: 12px 0; }
 .feed-main { display:flex; flex-direction: column; gap: var(--spacing-lg); }
 .composer-card { 
     display: flex; 
@@ -3291,7 +3195,7 @@ body {
 
 /* ===== GUIDELINES SECTION ===== */
 .guidelines-section {
-    padding: var(--spacing-xxl) 0;
+    padding: var(--spacing-xl) 0;
     background: rgba(68, 229, 255, 0.02);
 }
 
