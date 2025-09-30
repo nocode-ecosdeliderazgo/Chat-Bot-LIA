@@ -1,8 +1,144 @@
-# 🚀 Guía de Despliegue en Netlify
+# 🚀 Guía Completa de Deployment en Netlify
 
-Esta guía te ayudará a desplegar la aplicación completa (frontend + backend) en Netlify desde la rama `Deploy-produccion`.
+## ⚠️ **PROBLEMA IDENTIFICADO**
 
-## 📋 Prerrequisitos
+Tu aplicación funciona perfectamente en **localhost** pero falla en **Netlify** debido a:
+
+1. ❌ **Variables de entorno faltantes** (especialmente `SUPABASE_ANON_KEY`)
+2. ✅ Rutas absolutas correctas (ya implementadas)
+3. ✅ netlify.toml configurado correctamente
+
+---
+
+## 📋 **PASO 1: Configurar Variables de Entorno en Netlify**
+
+### Variables CRÍTICAS (sin estas, la app NO funcionará)
+
+Ve a tu dashboard de Netlify:
+1. Abre tu sitio en Netlify Dashboard
+2. Ve a **Site settings** → **Environment variables**
+3. Click en **"Add a variable"** o **"Edit variables"**
+
+### Lista Completa de Variables Requeridas
+
+```bash
+# ========================================
+# 🔴 CRÍTICO - SUPABASE (Sin esto, comunidades y base de datos fallan)
+# ========================================
+SUPABASE_URL=https://miwbzotcuaywpdbidpwo.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY
+SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key_aqui
+
+# ========================================
+# 🔴 CRÍTICO - OPENAI (Sin esto, el chat de LIA no funciona)
+# ========================================
+OPENAI_API_KEY=sk-proj-tu_key_aqui
+CHATBOT_MODEL=gpt-4o-mini
+CHATBOT_MAX_TOKENS=1000
+CHATBOT_TEMPERATURE=0.7
+CHATBOT_NAME=LIA
+
+# ========================================
+# 🟠 IMPORTANTE - SEGURIDAD Y JWT
+# ========================================
+JWT_SECRET=tu-jwt-secret-key-muy-seguro-y-largo
+USER_JWT_SECRET=tu-user-jwt-secret-key-muy-seguro-y-largo
+API_SECRET_KEY=tu-api-secret-key-muy-seguro-y-largo
+SESSION_SECRET=tu-session-secret-muy-seguro
+
+# ========================================
+# 🟠 IMPORTANTE - CONFIGURACIÓN DEL SERVIDOR
+# ========================================
+NODE_ENV=production
+FRONTEND_URL=https://tu-sitio.netlify.app
+ALLOWED_ORIGINS=https://tu-sitio.netlify.app,https://www.aprendeyaplica.ai
+
+# ========================================
+# 🟡 OPCIONAL - BASE DE DATOS DIRECTA
+# ========================================
+DATABASE_URL=postgresql://user:pass@host:port/database
+
+# ========================================
+# 🟡 OPCIONAL - EMAIL (Para verificación OTP)
+# ========================================
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=tu-email@gmail.com
+SMTP_PASS=tu-app-password
+
+# ========================================
+# 🟢 OPCIONAL - GOOGLE OAUTH
+# ========================================
+GOOGLE_CLIENT_ID=tu-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=tu-client-secret
+
+# ========================================
+# 🟢 OPCIONAL - OTRAS CONFIGURACIONES
+# ========================================
+AUDIO_ENABLED=true
+AUDIO_VOLUME=0.7
+GEMINI_API_KEY=AI...
+```
+
+---
+
+## 🔍 **PASO 2: Verificar Funciones que Necesitan Variables**
+
+### Funciones que REQUIEREN `SUPABASE_ANON_KEY`:
+- ✅ `netlify/functions/community-public.js` (línea 47)
+- ✅ `netlify/functions/news.js` (línea 5)
+- ✅ `netlify/functions/supabase-config.js` (línea 39)
+
+### Funciones que REQUIEREN `SUPABASE_SERVICE_ROLE_KEY`:
+- ✅ Todas las funciones de comunidad, progreso, cursos y usuarios
+
+### Funciones que REQUIEREN `OPENAI_API_KEY`:
+- ✅ `netlify/functions/openai.js` (Chat de LIA)
+
+---
+
+## 📊 **PASO 3: Testing Post-Deployment**
+
+### 1. Test de Comunidades (API Pública)
+Abre la consola del navegador (F12) en tu sitio de Netlify y ejecuta:
+
+```javascript
+fetch('https://tu-sitio.netlify.app/api/community-public?limit=5')
+  .then(r => r.json())
+  .then(data => console.log('✅ Respuesta:', data))
+  .catch(error => console.error('❌ Error:', error));
+```
+
+**Resultado esperado**: Array de comunidades
+**Error común**: `"Configuration missing"` → Variables no configuradas
+
+### 2. Test de Chat LIA (OpenAI)
+```javascript
+fetch('https://tu-sitio.netlify.app/api/openai', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer test-token',
+    'X-User-Id': 'test-user'
+  },
+  body: JSON.stringify({ prompt: 'Hola', context: 'test' })
+})
+.then(r => r.json())
+.then(data => console.log('✅ Respuesta:', data))
+.catch(error => console.error('❌ Error:', error));
+```
+
+### 3. Test de Assets (CSS, JS, Imágenes)
+Abre el **Network tab** (F12) y verifica:
+```
+✅ /Community/community.css → Status 200
+✅ /assets/images/icono.png → Status 200
+✅ /scripts/main.js → Status 200
+```
+
+---
+
+## 📋 **Prerrequisitos (Original)
 
 - Cuenta en Netlify
 - Cuenta en Supabase (para la base de datos)
