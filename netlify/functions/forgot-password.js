@@ -1,6 +1,7 @@
 // Netlify Function para recuperación de contraseña
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
+const emailService = require('../../src/utils/email-service');
 
 // Configuración de CORS
 const cors = {
@@ -127,13 +128,35 @@ exports.handler = async (event, context) => {
                     message: 'Se ha enviado un enlace de recuperación a tu correo electrónico'
                 }, event);
             } else {
-                console.warn('Error Supabase reset password:', resetError.message);
+                // Detectar si el error es porque Email logins está deshabilitado
+                const isEmailLoginsDisabled = resetError.message && (
+                    resetError.message.includes('Email logins are disabled') ||
+                    resetError.message.includes('Email login is disabled') ||
+                    resetError.message.includes('email provider is disabled')
+                );
+
+                if (isEmailLoginsDisabled) {
+                    console.log('ℹ️ Supabase Email Provider no habilitado, usando sistema de tokens propio...');
+                } else {
+                    console.warn('Error Supabase reset password:', resetError.message);
+                }
             }
         } catch (supabaseError) {
-            console.warn('Error con Supabase Auth:', supabaseError.message);
+            // Solo registrar como advertencia si no es el error esperado
+            const isExpectedError = supabaseError.message && (
+                supabaseError.message.includes('Email logins are disabled') ||
+                supabaseError.message.includes('Email login is disabled') ||
+                supabaseError.message.includes('email provider is disabled')
+            );
+
+            if (isExpectedError) {
+                console.log('ℹ️ Supabase Email Provider no configurado, usando sistema de tokens propio...');
+            } else {
+                console.warn('Error con Supabase Auth:', supabaseError.message);
+            }
         }
 
-        // Generar token de recuperación como respaldo
+        // Generar token de recuperación
         const resetToken = crypto.randomBytes(32).toString('hex');
         const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hora
 
@@ -171,15 +194,51 @@ exports.handler = async (event, context) => {
             console.warn('Error con tokens de recuperación:', tokenError.message);
         }
 
-        // En modo desarrollo, log del token
-        if (process.env.NODE_ENV !== 'production') {
-            console.log(`🔐 Token de recuperación para ${email}: ${resetToken}`);
-        }
+        // 🚨 ENVIAR EMAIL REAL CON EL TOKEN
+        try {
+            if (emailService.isConfigured()) {
+                console.log(`📧 Intentando enviar email de recuperación a ${email}...`);
 
-        recordAttempt(clientIP);
-        return json(200, {
-            message: 'Se ha enviado un enlace de recuperación a tu correo electrónico'
-        }, event);
+                await emailService.sendPasswordResetEmail(
+                    email,
+                    resetToken,
+                    userData.username || email.split('@')[0]
+                );
+
+                console.log(`✅ Email de recuperación enviado exitosamente a ${email}`);
+                recordAttempt(clientIP);
+                return json(200, {
+                    message: 'Se ha enviado un enlace de recuperación a tu correo electrónico'
+                }, event);
+            } else {
+                console.error('⚠️ Servicio de email no configurado - Verifica variables SMTP_*');
+
+                // En modo desarrollo, log del token
+                if (process.env.NODE_ENV !== 'production') {
+                    console.log(`🔐 [DEV MODE] Token de recuperación para ${email}: ${resetToken}`);
+                    console.log(`🔗 [DEV MODE] URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/src/login/new-auth.html?token=${resetToken}`);
+                }
+
+                recordAttempt(clientIP);
+                return json(200, {
+                    message: 'Se ha enviado un enlace de recuperación a tu correo electrónico'
+                }, event);
+            }
+        } catch (emailError) {
+            console.error('❌ Error enviando email de recuperación:', emailError);
+
+            // En modo desarrollo, mostrar el token
+            if (process.env.NODE_ENV !== 'production') {
+                console.log(`🔐 [DEV MODE] Token de recuperación para ${email}: ${resetToken}`);
+                console.log(`🔗 [DEV MODE] URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/src/login/new-auth.html?token=${resetToken}`);
+            }
+
+            // No revelar el error al usuario por seguridad
+            recordAttempt(clientIP);
+            return json(200, {
+                message: 'Se ha enviado un enlace de recuperación a tu correo electrónico'
+            }, event);
+        }
 
     } catch (error) {
         console.error('Error en forgot-password:', error);
