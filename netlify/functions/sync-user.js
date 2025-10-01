@@ -28,40 +28,75 @@ exports.handler = async (event) => {
 
     console.log('🔄 Sincronizando usuario:', { id, username, email });
 
-    // Insertar o actualizar usuario en PostgreSQL
+    // Primero, verificar qué columnas existen en la tabla
+    let availableColumns = ['id', 'username', 'email', 'created_at'];
+    try {
+      const columnsCheck = await pool.query(`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'users'
+      `);
+      availableColumns = columnsCheck.rows.map(row => row.column_name);
+      console.log('📊 Columnas disponibles en tabla users:', availableColumns.join(', '));
+    } catch (err) {
+      console.warn('⚠️ No se pudo verificar columnas, usando básicas:', err.message);
+    }
+
+    // Construir query dinámicamente basado en columnas disponibles
+    const columnsToInsert = ['id', 'username', 'email'];
+    const valuesToInsert = [id, username, email];
+    let paramIndex = 4;
+
+    // Agregar columnas opcionales si existen
+    const optionalColumns = {
+      'first_name': first_name || '',
+      'last_name': last_name || '',
+      'display_name': display_name || username,
+      'cargo_rol': cargo_rol || 'Usuario',
+      'company_role': cargo_rol || 'Usuario',
+      'type_rol': type_rol || 'usuario',
+      'avatar_url': avatar_url,
+      'profile_picture_url': avatar_url
+    };
+
+    const updateFields = ['username = EXCLUDED.username', 'email = EXCLUDED.email'];
+
+    for (const [col, val] of Object.entries(optionalColumns)) {
+      if (availableColumns.includes(col)) {
+        columnsToInsert.push(col);
+        valuesToInsert.push(val);
+        updateFields.push(`${col} = COALESCE(EXCLUDED.${col}, users.${col})`);
+      }
+    }
+
+    // Agregar created_at y last_login_at si existen
+    if (availableColumns.includes('created_at')) {
+      columnsToInsert.push('created_at');
+    }
+    if (availableColumns.includes('last_login_at')) {
+      columnsToInsert.push('last_login_at');
+      updateFields.push('last_login_at = NOW()');
+    }
+
+    const placeholders = valuesToInsert.map((_, i) => `$${i + 1}`);
+    if (availableColumns.includes('created_at')) {
+      placeholders.push('NOW()');
+    }
+    if (availableColumns.includes('last_login_at')) {
+      placeholders.push('NOW()');
+    }
+
     const query = `
-      INSERT INTO users (
-        id, username, email, first_name, last_name, display_name,
-        cargo_rol, type_rol, avatar_url, created_at, last_login_at
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()
-      )
-      ON CONFLICT (id) DO UPDATE SET
-        username = EXCLUDED.username,
-        email = EXCLUDED.email,
-        first_name = COALESCE(EXCLUDED.first_name, users.first_name),
-        last_name = COALESCE(EXCLUDED.last_name, users.last_name),
-        display_name = COALESCE(EXCLUDED.display_name, users.display_name),
-        cargo_rol = COALESCE(EXCLUDED.cargo_rol, users.cargo_rol),
-        type_rol = COALESCE(EXCLUDED.type_rol, users.type_rol),
-        avatar_url = COALESCE(EXCLUDED.avatar_url, users.avatar_url),
-        last_login_at = NOW()
-      RETURNING id, username, email, first_name, last_name, created_at
+      INSERT INTO users (${columnsToInsert.join(', ')})
+      VALUES (${placeholders.join(', ')})
+      ON CONFLICT (id) DO UPDATE SET ${updateFields.join(', ')}
+      RETURNING id, username, email${availableColumns.includes('first_name') ? ', first_name' : ''}${availableColumns.includes('last_name') ? ', last_name' : ''}${availableColumns.includes('created_at') ? ', created_at' : ''}
     `;
 
-    const values = [
-      id,
-      username,
-      email,
-      first_name || '',
-      last_name || '',
-      display_name || username,
-      cargo_rol || 'Usuario',
-      type_rol || 'usuario',
-      avatar_url || null
-    ];
+    console.log('📝 Query a ejecutar:', query);
+    console.log('📝 Valores:', valuesToInsert);
 
-    const result = await pool.query(query, values);
+    const result = await pool.query(query, valuesToInsert);
     const user = result.rows[0];
 
     console.log('✅ Usuario sincronizado:', user.username);
