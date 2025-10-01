@@ -205,7 +205,7 @@ body {
 .header-profile { 
     position: fixed !important; 
     top: 12px !important;
-    right: calc(50% - 640px + 16px) !important; 
+    right: 16px !important; 
     left: auto !important;
     z-index: 1001; 
     width: 56px;
@@ -266,7 +266,7 @@ body {
 .bg-glow-global .header-profile {
     position: fixed !important;
     top: 12px !important;
-    right: calc(50% - 640px + 16px) !important;
+    right: 16px !important;
     left: auto !important;
     width: 56px;
     height: 56px;
@@ -277,7 +277,7 @@ body {
 .profile-menu { 
     position: fixed !important; 
     top: 76px !important; 
-    right: calc(50% - 640px + 16px) !important; 
+    right: 16px !important; 
     left: auto !important;
     width: 260px; 
     background: rgba(10,16,28,.96); 
