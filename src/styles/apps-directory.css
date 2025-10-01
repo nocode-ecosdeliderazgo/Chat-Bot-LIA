@@ -1973,30 +1973,32 @@ main.container {
     pointer-events: auto;
 }
 
-/* Estilos específicos para que el modal se vea como en test-modal.html */
+/* Estilos específicos para que el modal se vea correctamente con viewport 0.6 */
 .app-modal {
     background: rgba(0, 0, 0, 0.8) !important;
     backdrop-filter: blur(10px) !important;
 }
 
 .app-modal .modal-content {
-    width: 60vw !important;
-    max-width: 60vw !important;
-    min-width: 800px !important;
+    width: 75vw !important;
+    max-width: 75vw !important;
+    min-width: 75vw !important;
+    max-height: 90vh !important;
 }
 
 .app-modal .modal-app-card {
     width: 100% !important;
-    min-height: 80vh !important;
+    min-height: 85vh !important;
     display: flex !important;
     flex-direction: column !important;
+    box-sizing: border-box !important;
 }
 
-/* Asegurar que el layout de dos columnas funcione correctamente */
+/* Layout de dos columnas optimizado para el nuevo viewport */
 .app-main-content {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 30px !important;
+    gap: 20px !important;
     flex: 1 !important;
 }
 
@@ -2012,8 +2014,8 @@ main.container {
 
 .modal-content {
     position: relative;
-    width: 60vw; /* 60% del ancho de la pantalla como solicitado */
-    max-width: 60vw;
+    width: 75vw; /* 75% del ancho de la pantalla para mejor proporción */
+    max-width: 75vw;
     max-height: 90vh;
     overflow-y: auto;
     z-index: 1;
@@ -2126,29 +2128,32 @@ main.container {
     to { transform: rotate(360deg); }
 }
 
-/* Título Principal - Más elegante */
+/* Título Principal - Optimizado para evitar cortes */
 .app-main-title {
     font-family: var(--font-heading);
-    font-size: 2.2rem;
+    font-size: 1.6rem;
     font-weight: 800;
     background: linear-gradient(135deg, #44e5ff, #0066CC);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin: 25px 25px 0 25px;
+    margin: 15px 15px 0 15px;
     line-height: 1.2;
     text-align: center;
+    padding: 0 10px;
+    box-sizing: border-box;
 }
 
-/* TL;DR Section - Más atractiva */
+/* TL;DR Section - Optimizada para evitar cortes */
 .tldr-section {
     background: linear-gradient(135deg, rgba(68, 229, 255, 0.08), rgba(0, 102, 204, 0.12));
     border: 1px solid rgba(68, 229, 255, 0.3);
     border-left: 4px solid #44e5ff;
-    padding: 20px 25px;
+    padding: 15px 15px;
     border-radius: 12px;
-    margin: 20px 25px;
+    margin: 15px 15px;
     box-shadow: 0 4px 15px rgba(68, 229, 255, 0.1);
+    box-sizing: border-box;
 }
 
 .tldr-heading {
@@ -2194,19 +2199,23 @@ main.container {
     text-shadow: 0 0 5px rgba(0, 102, 204, 0.5);
 }
 
-/* Layout de dos columnas - Mejorado */
+/* Layout de dos columnas - Optimizado para evitar cortes */
 .app-main-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 25px;
-    margin: 25px 0;
-    padding: 0 25px;
+    gap: 15px;
+    margin: 20px 0;
+    padding: 0 15px;
+    box-sizing: border-box;
 }
 
 .left-column, .right-column {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
+    min-width: 0;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .section-heading {
@@ -2345,15 +2354,18 @@ main.container {
     text-shadow: 0 0 5px rgba(0, 102, 204, 0.5);
 }
 
-/* CTA Section */
+/* CTA Section - Optimizada para evitar cortes */
 .cta-section {
-    padding: 20px;
+    padding: 15px 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0;
     background: transparent;
     border: none;
+    box-sizing: border-box;
+    margin: 0;
+    width: 100%;
 }
 
 .cta-label {
@@ -2364,21 +2376,24 @@ main.container {
     background: linear-gradient(135deg, #0066CC, #004499);
     color: white;
     border: none;
-    padding: 20px 60px;
+    padding: 15px 20px;
     border-radius: 15px;
-    font-size: 1.2rem;
+    font-size: 0.9rem;
     font-weight: 700;
-    flex: 1;
+    width: calc(100% - 40px); /* Subtract the padding from cta-section */
+    max-width: calc(100% - 40px);
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
     font-family: var(--font-heading);
     text-align: center;
-    max-width: 500px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     position: relative;
     overflow: hidden;
+    box-sizing: border-box;
+    margin: 0 auto;
+    display: block;
 }
 
 .cta-button::before {
@@ -2402,9 +2417,44 @@ main.container {
     background: linear-gradient(135deg, #0052A3, #003366);
 }
 
-/* Modal Detailed Content */
+/* Regla específica para el botón CTA en el modal */
+.app-modal .cta-button {
+    width: calc(100% - 40px) !important;
+    max-width: calc(100% - 40px) !important;
+    padding: 15px 20px !important;
+    font-size: 0.9rem !important;
+    letter-spacing: 0.5px !important;
+    margin: 0 auto !important;
+    display: block !important;
+    text-align: center !important;
+    position: static !important;
+    box-sizing: border-box !important;
+}
+
+/* Regla específica para la sección CTA en el modal */
+.app-modal .cta-section {
+    padding: 15px 20px !important;
+    margin: 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    text-align: center !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+}
+
+/* Regla ultra específica para el botón de ancho completo */
+.modal-app-card .cta-section .cta-button {
+    width: 100% !important;
+    margin: 0 !important;
+    position: static !important;
+}
+
+/* Modal Detailed Content - Optimizado para evitar cortes */
 .modal-detailed-content {
-    padding: 20px;
+    padding: 15px;
+    box-sizing: border-box;
 }
 
 .modal-detailed-content p {
