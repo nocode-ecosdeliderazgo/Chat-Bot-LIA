@@ -895,22 +895,22 @@ body.bg-glow-global .tab-button.active i {
 
 /* Botón Perfil dentro del header */
 .header-profile { 
-    position: absolute; 
-    top: 50%;
-    right: 16px; 
-    transform: translateY(-50%);
+    position: fixed !important; 
+    top: 12px !important;
+    right: 16px !important; 
+    left: auto !important;
+    transform: none;
     z-index: 1001; 
-    width: 36px; 
-    height: 36px; 
+    width: 56px; 
+    height: 56px; 
     border-radius: 50%; 
     overflow: hidden; 
-    border: 2px solid rgba(68,229,255,.4); 
+    border: 2px solid rgba(68,229,255,.35); 
     padding: 0; 
-    background: none;
+    background: rgba(7,17,36,.4);
     cursor: pointer;
     display: block;
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    position: relative;
 }
 
 /* Efecto de relleno deslizante para header-profile */
@@ -957,7 +957,11 @@ body.bg-glow-global .tab-button.active i {
 }
 
 /* Mejora específica para el directorio: avatar más grande con aro azul */
-.bg-glow-global .catalog-header .header-profile {
+.bg-glow-global .header-profile {
+    position: fixed !important;
+    top: 12px !important;
+    right: 16px !important;
+    left: auto !important;
     width: 56px;
     height: 56px;
     border: 2px solid rgba(68,229,255,.55);
@@ -967,13 +971,14 @@ body.bg-glow-global .tab-button.active i {
 
 /* Dropdown del avatar */
 .profile-menu { 
-    position: fixed; 
-    top: 58px; 
-    right: 16px; 
-    width: 240px; 
+    position: fixed !important; 
+    top: 76px !important; 
+    right: 16px !important; 
+    left: auto !important;
+    width: 260px; 
     background: rgba(10,16,28,.96); 
     border: 1px solid rgba(68,229,255,.18); 
-    border-radius: 12px; 
+    border-radius: 14px; 
     box-shadow: 0 18px 46px rgba(0,0,0,.45); 
     backdrop-filter: blur(10px); 
     display: none; 
