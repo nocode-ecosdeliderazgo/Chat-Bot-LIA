@@ -1,14 +1,14 @@
-/* ===== DISEÑO FIJO NO RESPONSIVO ===== */
+/* ===== DISEÑO NO RESPONSIVO - COMO SAES DEL IPN ===== */
+/* Este archivo mantiene solo las reglas base sin media queries */
 
-/* ===== ESTILOS BASE ===== */
+/* ===== ESTILOS BASE SIN RESPONSIVIDAD ===== */
 .container {
-    width: 1280px;
-    max-width: 1280px;
+    width: 1240px;
     margin: 0 auto;
     padding: 0 20px;
 }
 
-/* ===== NAVEGACIÓN ===== */
+/* ===== NAVEGACIÓN FIJA ===== */
 .hero-nav {
     padding: var(--spacing-md) var(--spacing-sm);
     display: flex;
@@ -27,17 +27,20 @@
 
 .nav-actions .btn-primary,
 .nav-actions .btn-secondary {
-    padding: 8px 16px;
+    padding: 12px 24px;
     font-size: 14px;
     white-space: nowrap;
     min-width: fit-content;
 }
 
-/* ===== HERO SECTION ===== */
+/* ===== HERO FIJO ===== */
 .hero-content {
     padding: var(--spacing-xl) var(--spacing-sm);
     gap: var(--spacing-lg);
-    text-align: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    text-align: left;
 }
 
 .hero-text {
@@ -49,28 +52,81 @@
 }
 
 .hero-actions {
-    flex-direction: column;
-    gap: var(--spacing-sm);
+    flex-direction: row;
+    gap: var(--spacing-md);
 }
 
 .hero-actions .btn-large {
-    width: 100%;
-    justify-content: center;
+    width: auto;
 }
 
-/* ===== CARACTERÍSTICAS ===== */
+/* ===== CARACTERÍSTICAS FIJAS ===== */
 .features-grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-xl);
 }
 
-/* ===== ESTADÍSTICAS ===== */
+/* ===== ESTADÍSTICAS FIJAS ===== */
 .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: var(--spacing-lg);
 }
 
-/* ===== IMÁGENES Y VIDEOS ===== */
-img, video {
-    max-width: none !important;
+/* ===== TESTIMONIOS FIJOS ===== */
+.testimonials-carousel {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* ===== ICONOS FIJOS ===== */
+.feature-icon .icon {
+    width: 42px;
+    height: 42px;
+}
+
+.rocket-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-icon {
+    width: 18px;
+    height: 18px;
+}
+
+/* ===== UTILIDADES PARA DISEÑO FIJO ===== */
+.mobile-only,
+.tablet-only,
+.desktop-only {
+    display: block;
+}
+
+/* ===== AJUSTES PARA IMPRESIÓN ===== */
+@media print {
+    .hero-background,
+    .particles-container,
+    .floating,
+    .pulse,
+    .animated-gradient {
+        display: none !important;
+    }
+    
+    .hero-section,
+    .features-section,
+    .stats-section,
+    .testimonials-section {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .hero-nav {
+        position: static;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        border: 1px solid black;
+        background: white;
+        color: black;
+    }
 }

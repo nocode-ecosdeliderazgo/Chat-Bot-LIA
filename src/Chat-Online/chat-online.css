@@ -1,3 +1,34 @@
+/* ===== REGLAS BASE PARA DISEÑO NO RESPONSIVO ===== */
+html, body {
+    min-width: 1280px;
+    overflow-x: auto;
+}
+
+body {
+    width: 1280px;
+    margin: 0 auto;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(160deg, #0a0f19 0%, #1a2332 100%);
+    color: #ffffff;
+    line-height: 1.5;
+}
+
+/* Reglas para diseño NO responsivo - como SAES */
+img, video, iframe {
+    max-width: none !important;
+}
+
+/* Asegurar que todos los elementos mantengan su tamaño fijo */
+* {
+    max-width: none !important;
+}
+
+/* Forzar scroll horizontal cuando sea necesario */
+html {
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
 /* ===== CHAT ONLINE - GLASSMORPHISM STYLES ===== */
 
 /* ===== DISEÑO FIJO NO RESPONSIVO ===== */
@@ -20,11 +51,11 @@ img, video {
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 2rem;
+    padding: 1.5rem;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    margin: 1rem 0;
+    margin: 0.75rem 0;
     color: var(--glass-text-secondary);
 }
 
@@ -34,11 +65,11 @@ img, video {
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 2rem;
+    padding: 1.5rem;
     background: rgba(239, 68, 68, 0.1);
     border-radius: 12px;
     border: 1px solid rgba(239, 68, 68, 0.3);
-    margin: 1rem 0;
+    margin: 0.75rem 0;
     color: var(--error-color, #ef4444);
 }
 
@@ -48,11 +79,11 @@ img, video {
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 2rem;
+    padding: 1.5rem;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    margin: 1rem 0;
+    margin: 0.75rem 0;
     color: var(--glass-text-secondary);
 }
 
@@ -557,7 +588,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 2rem;
+    padding: 0.75rem 1.5rem;
     background: rgba(10, 15, 25, 0.8);
     backdrop-filter: var(--glass-blur);
     border-bottom: var(--glass-border-subtle);
@@ -1271,7 +1302,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding: 16px 20px;
+    padding: 12px 16px;
     margin-bottom: 0;
     border-radius: 0;
     background: transparent;
@@ -1602,7 +1633,7 @@ body {
 .center-panel {
     grid-area: center;
     background: rgba(10, 15, 25, 0.4);
-    padding: 2rem;
+    padding: 1.5rem;
     padding-bottom: 6rem;
     display: flex;
     flex-direction: column;
@@ -1644,7 +1675,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
+    padding: 0 16px;
     pointer-events: none;
     z-index: 10;
 }
@@ -1744,7 +1775,20 @@ body {
 }
 
 /* Responsive para botones de navegación */
-
+@media (max-width: 768px) {
+    .video-navigation {
+        padding: 0 12px;
+    }
+    
+    .nav-btn {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .nav-btn i {
+        font-size: 16px;
+    }
+}
 
 .video-container video {
     width: 100%;
@@ -1777,7 +1821,7 @@ body {
     transform: translate(-50%, -50%);
     text-align: center;
     color: var(--glass-text-secondary);
-    padding: 2rem;
+    padding: 1.5rem;
 }
 
 .video-fallback a {
@@ -2141,7 +2185,7 @@ body {
     background: linear-gradient(135deg, rgba(68, 229, 255, 0.08) 0%, rgba(0, 102, 204, 0.05) 100%);
     border: 1px solid rgba(68, 229, 255, 0.2);
     border-radius: 16px;
-    padding: 2rem;
+    padding: 1.5rem;
     margin-top: 1.5rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px);
@@ -2279,7 +2323,7 @@ body {
     border: 1px solid rgba(68, 229, 255, 0.3);
     border-radius: 12px;
     padding: 1.5rem;
-    margin: 1rem 0;
+    margin: 0.75rem 0;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -3576,7 +3620,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
     border: 1px solid rgba(68, 229, 255, 0.15);
     border-radius: 16px;
-    padding: 2rem;
+    padding: 1.5rem;
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     cursor: pointer;
     position: relative;
@@ -3870,7 +3914,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     background: var(--glass-surface);
     border: 1px solid rgba(0, 102, 204, 0.2);
     border-radius: 16px;
-    padding: 2rem;
+    padding: 1.5rem;
     width: 100%;
     max-width: 600px;
     max-height: 80vh;
@@ -4168,7 +4212,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 1.5rem;
     text-align: center;
     color: var(--glass-text-secondary);
 }
@@ -4330,7 +4374,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 1.5rem;
     text-align: center;
     color: var(--glass-text-secondary);
 }
@@ -5134,7 +5178,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 1.5rem;
     color: var(--glass-error);
     text-align: center;
 }
@@ -5643,7 +5687,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 /* Header del panel de notas */
 .note-panel-header {
-    padding: 20px 20px 0 20px;
+    padding: 16px 16px 0 16px;
     border-bottom: 1px solid rgba(0, 102, 204, 0.2);
     background: linear-gradient(135deg, rgba(0, 102, 204, 0.1) 0%, rgba(0, 102, 204, 0.05) 100%);
     position: relative;
@@ -5742,7 +5786,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 /* Sección del título de la nota */
 .note-title-section {
-    padding: 4px 24px 8px 24px;
+    padding: 3px 18px 6px 18px;
     border-bottom: none;
     display: flex;
     align-items: center;
@@ -5758,7 +5802,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     font-size: 24px;
     font-weight: 700;
     color: #ffffff;
-    padding: 8px 0;
+    padding: 6px 0;
     outline: none !important;
     box-shadow: none !important;
     -webkit-appearance: none;
@@ -5792,7 +5836,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     border: 1px solid rgba(255, 107, 107, 0.2);
     color: rgba(255, 107, 107, 0.8);
     cursor: pointer;
-    padding: 8px;
+    padding: 6px;
     border-radius: 8px;
     transition: all 0.3s ease;
     display: flex;
@@ -5824,7 +5868,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 16px 20px;
+    padding: 12px 16px;
     border-bottom: 1px solid rgba(0, 102, 204, 0.2);
     background: linear-gradient(135deg, rgba(0, 102, 204, 0.08) 0%, rgba(0, 102, 204, 0.03) 100%);
     flex-wrap: wrap;
@@ -5854,7 +5898,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     border: 1px solid #0066CC;
     color: white;
     cursor: pointer;
-    padding: 8px;
+    padding: 6px;
     border-radius: 8px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
@@ -5995,7 +6039,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 .note-editor h1 {
     font-size: 24px;
     font-weight: 700;
-    margin: 0 0 16px 0;
+    margin: 0 0 12px 0;
     color: var(--text-primary);
 }
 
@@ -6045,7 +6089,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 /* Footer del panel */
 .note-panel-footer {
-    padding: 20px 24px;
+    padding: 16px 20px;
     border-top: 1px solid rgba(0, 102, 204, 0.2);
     background: linear-gradient(135deg, rgba(0, 102, 204, 0.1) 0%, rgba(0, 102, 204, 0.05) 100%);
     position: relative;
@@ -6108,7 +6152,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     background: #0066CC;
     border: none;
     border-radius: 12px;
-    padding: 16px 24px;
+    padding: 12px 18px;
     color: white;
     font-size: 16px;
     font-weight: 700;
@@ -6305,7 +6349,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 }
 
 .link-modal-header {
-    padding: 20px 24px 0 24px;
+    padding: 16px 20px 0 20px;
     border-bottom: 1px solid rgba(0, 102, 204, 0.2);
     display: flex;
     align-items: center;
@@ -6326,7 +6370,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: rgba(255, 255, 255, 0.8);
     cursor: pointer;
-    padding: 8px;
+    padding: 6px;
     border-radius: 8px;
     transition: all 0.3s ease;
     display: flex;
@@ -6353,7 +6397,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .form-group:last-child {
@@ -6487,7 +6531,96 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 }
 
 /* Responsive */
+@media (max-width: 768px) {
+    .note-panel-overlay {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .note-editor-toolbar {
+        gap: 8px;
+        padding: 8px 16px;
+    }
+    
+    .toolbar-group {
+        gap: 4px;
+    }
+    
+    .toolbar-btn {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        min-height: 28px;
+        padding: 6px;
+    }
+    
+    .toolbar-btn .icon {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .toolbar-select {
+        height: 28px;
+        padding: 4px 8px;
+        font-size: 12px;
+        min-width: 70px;
+    }
+    
+    .note-editor-content {
+        padding: 16px;
+    }
+    
+    .note-title-section {
+        padding: 0 16px 12px 16px;
+    }
+    
+    .note-panel-footer {
+        padding: 12px 16px;
+    }
+    
+    .note-footer-buttons {
+        gap: 0.5rem;
+    }
+    
+    .save-note-btn,
+    .convert-to-source-btn {
+        padding: 0.6rem;
+        font-size: 0.85rem;
+        width: 44px;
+        height: 44px;
+    }
+    
+    .save-note-btn .icon,
+    .convert-to-source-btn .icon {
+        width: 18px;
+        height: 18px;
+    }
 
+    .link-modal {
+        width: 95%;
+        max-width: none;
+        margin: 16px;
+    }
+
+    .link-modal-header {
+        padding: 16px 20px 0 20px;
+    }
+
+    .link-modal-content {
+        padding: 20px;
+    }
+
+    .link-modal-footer {
+        padding: 0 20px 20px 20px;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .btn-cancel, .btn-insert {
+        width: 100%;
+        padding: 12px 20px;
+    }
+}
 
 /* Video title and info with stronger visibility */
 [data-theme="light"] .video-info h3,
@@ -7498,7 +7631,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 /* ===== ESTILOS PARA MATERIALES ===== */
 .materials-content {
-    padding: 2rem;
+    padding: 1.5rem;
     animation: fadeIn 0.5s ease-out;
 }
 
@@ -7833,7 +7966,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 /* ===== ESTILOS PARA QUIZ ===== */
 .quiz-content {
-    padding: 2rem;
+    padding: 1.5rem;
     animation: fadeIn 0.5s ease-out;
 }
 
@@ -7903,7 +8036,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     background: var(--glass-surface);
     border: var(--glass-border);
     border-radius: 16px;
-    padding: 2rem;
+    padding: 1.5rem;
     backdrop-filter: var(--glass-blur);
     margin-bottom: 2rem;
 }
@@ -8423,7 +8556,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     border: var(--glass-border);
     border-left: 4px solid #ef4444;
     border-radius: 16px;
-    padding: 2rem;
+    padding: 1.5rem;
     backdrop-filter: var(--glass-blur);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     animation: fadeInScale 0.4s ease-out;
@@ -8535,7 +8668,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 /* ===== PANTALLA DE RESULTADOS ===== */
 .quiz-results {
-    padding: 2rem;
+    padding: 1.5rem;
     padding-bottom: 4rem;
     animation: fadeIn 0.5s ease-out;
 }
@@ -8646,7 +8779,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     justify-content: center;
     margin-top: 2rem;
     margin-bottom: 2rem;
-    padding: 2rem;
+    padding: 1.5rem;
     border-top: var(--glass-border);
 }
 
@@ -9088,7 +9221,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
-    padding: 2rem;
+    padding: 1.5rem;
     color: var(--glass-text-secondary);
     font-size: 0.9rem;
 }
@@ -9801,7 +9934,7 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 1.5rem;
     gap: 1rem;
     color: var(--glass-text-secondary);
 }
@@ -10207,13 +10340,118 @@ select.module-filter::-webkit-scrollbar-thumb:hover,
 
 
 /* Optimizaciones para pantallas muy pequeñas (menos de 360px) */
+@media (max-width: 360px) {
+    .header-content {
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
 
+    .header-title {
+        font-size: 1rem;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mobile-nav-btn {
+        min-width: 40px;
+        min-height: 40px;
+        padding: 6px;
+    }
+
+    .mobile-nav-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .left-panel.mobile-open,
+    .right-panel.mobile-open {
+        width: 280px;
+        max-width: 90vw;
+    }
+
+    .chat-input-container {
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+
+    .chat-input {
+        min-height: 40px;
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .send-button {
+        min-width: 40px;
+        min-height: 40px;
+        padding: 6px;
+    }
+}
 
 /* Manejo de overflow para dispositivos móviles - ESPECÍFICO MÓVILES */
 
 
 /* Mejoras de accesibilidad: tamaños mínimos de touch targets - ESPECÍFICO MÓVILES */
+@media (max-width: 767px) and (max-device-width: 767px) {
+    .video-item,
+    .lia-chat-quick-action,
+    .note-item,
+    .mobile-nav-btn,
+    .collapse-btn,
+    .send-button,
+    .back-button {
+        min-height: 44px;
+        min-width: 44px;
+    }
 
+    /* Asegurar que los enlaces y botones sean fáciles de tocar */
+    a, button, input[type="submit"], input[type="button"] {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        touch-action: manipulation;
+    }
+
+    /* Mejorar el área de toque de los videos */
+    .video-item {
+        padding: 0.75rem;
+        margin: 0.5rem 0;
+        touch-action: manipulation;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .video-item .video-info {
+        pointer-events: none; /* Permite que el click se propague al contenedor padre */
+        width: 100%;
+        overflow: hidden;
+    }
+
+    /* Optimizar chat para móviles */
+    .chat-input-container {
+        padding: 0.75rem;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .chat-input {
+        min-height: 44px;
+        padding: 12px 16px;
+        font-size: 16px; /* Evitar zoom en iOS */
+        width: 100%;
+        flex: 1;
+    }
+
+    .send-button {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 6px;
+        flex-shrink: 0;
+    }
+}
 
 /* Animaciones suaves para transiciones en móvil - ESPECÍFICO MÓVILES */
 @media (max-width: 767px) and (max-device-width: 767px) {
