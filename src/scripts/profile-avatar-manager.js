@@ -109,13 +109,13 @@ class ProfileAvatarManager {
             const profilePictureUrl = currentUser.profile_picture_url;
             // Determinar la ruta por defecto basada en la ubicación actual
             const currentPath = window.location.pathname;
-            let defaultAvatarUrl = 'assets/images/icono.png';
-            
+            let defaultAvatarUrl = '/assets/images/default-avatar.svg';
+
             // Ajustar ruta según la ubicación de la página
             if (currentPath.includes('/Community/') || currentPath.includes('/Notices/') || currentPath.includes('/q/')) {
-                defaultAvatarUrl = '../assets/images/icono.png';
+                defaultAvatarUrl = '../assets/images/default-avatar.svg';
             } else if (currentPath.includes('/src/')) {
-                defaultAvatarUrl = 'assets/images/icono.png';
+                defaultAvatarUrl = 'assets/images/default-avatar.svg';
             }
 
             // console.log('Datos del usuario:', {
@@ -129,11 +129,12 @@ class ProfileAvatarManager {
             // Buscar todos los elementos de avatar en la página
             const avatarSelectors = [
                 '#avatarImage',                  // profile.html - PRIORIDAD ALTA
+                '#headerProfileImg',             // Header avatar (Community, Notices)
+                '#menuProfileImg',               // Menu avatar (Community, Notices)
                 '.header-profile img',           // cursos.html, courses.html
                 '.profile-menu .pm-avatar img',  // Menú de perfil
                 '.catalog-header .header-profile img', // Header de catálogo
                 '.pm-avatar img',                // Otros avatares
-                '.header-profile img',           // Community, Notices, form.html
                 '.quiz-header .header-profile img' // Quiz form
             ];
 
