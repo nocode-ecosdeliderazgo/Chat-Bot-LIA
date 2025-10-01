@@ -1984,6 +1984,228 @@
             }
         }
 
+        /* ===== ESTILOS PARA BOTONES DE NAVEGACIÓN SUPERPUESTOS (ESTILO UDEMY) ===== */
+        
+        /* Contenedor del video con posicionamiento relativo */
+        .video-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* Overlay de navegación - invisible por defecto */
+        .video-navigation-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Mostrar botones al hacer hover sobre el video */
+        .video-container:hover .video-navigation-overlay,
+        .video-navigation-overlay:hover {
+            opacity: 1;
+        }
+
+        /* Botones de navegación superpuestos */
+        .video-nav-btn-overlay {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            background: rgba(0, 0, 0, 0.75);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            pointer-events: auto;
+        }
+
+        /* Efecto de brillo animado */
+        .video-nav-btn-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .video-nav-btn-overlay:hover::before {
+            opacity: 1;
+        }
+
+        /* Estados hover y active */
+        .video-nav-btn-overlay:hover:not(:disabled) {
+            background: linear-gradient(135deg, #0066CC, #0052A3);
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: scale(1.15);
+            box-shadow: 0 6px 30px rgba(0, 102, 204, 0.6);
+        }
+
+        .video-nav-btn-overlay:active:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 102, 204, 0.5);
+        }
+
+        /* Estado deshabilitado */
+        .video-nav-btn-overlay:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: none;
+            pointer-events: none;
+        }
+
+        /* Iconos de navegación */
+        .video-nav-btn-overlay .nav-icon {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .video-nav-btn-overlay:hover:not(:disabled) .nav-icon {
+            transform: scale(1.2);
+        }
+
+        /* Animaciones específicas por botón */
+        .prev-video-btn-overlay:hover:not(:disabled) .nav-icon {
+            transform: translateX(-3px) scale(1.2);
+        }
+
+        .next-video-btn-overlay:hover:not(:disabled) .nav-icon {
+            transform: translateX(3px) scale(1.2);
+        }
+
+        /* Efecto especial para el botón siguiente */
+        .next-video-btn-overlay {
+            background: rgba(0, 102, 204, 0.85);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .next-video-btn-overlay:hover:not(:disabled) {
+            background: linear-gradient(135deg, #0066CC, #0052A3);
+            border-color: #ffffff;
+            box-shadow: 0 6px 35px rgba(0, 102, 204, 0.7);
+        }
+
+        /* Tooltip mejorado con título del video */
+        .video-nav-btn-overlay::after {
+            content: attr(data-video-title);
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: #ffffff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .prev-video-btn-overlay::after {
+            right: calc(100% + 12px);
+        }
+
+        .next-video-btn-overlay::after {
+            left: calc(100% + 12px);
+        }
+
+        .video-nav-btn-overlay:hover:not(:disabled)::after {
+            opacity: 1;
+        }
+
+        /* Animación de pulsación sutil para indicar interactividad */
+        @keyframes pulseButton {
+            0%, 100% {
+                box-shadow: 0 4px 20px rgba(0, 102, 204, 0.4);
+            }
+            50% {
+                box-shadow: 0 4px 30px rgba(0, 102, 204, 0.6);
+            }
+        }
+
+        .next-video-btn-overlay:not(:disabled) {
+            animation: pulseButton 3s ease-in-out infinite;
+        }
+
+        /* Responsive para botones superpuestos */
+        @media (max-width: 768px) {
+            .video-navigation-overlay {
+                padding: 0 0.5rem;
+            }
+
+            .video-nav-btn-overlay {
+                width: 48px;
+                height: 48px;
+            }
+
+            .video-nav-btn-overlay .nav-icon {
+                width: 20px;
+                height: 20px;
+            }
+
+            /* Ocultar tooltips en mobile para evitar overflow */
+            .video-nav-btn-overlay::after {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .video-nav-btn-overlay {
+                width: 44px;
+                height: 44px;
+            }
+
+            .video-nav-btn-overlay .nav-icon {
+                width: 18px;
+                height: 18px;
+            }
+        }
+
+        /* Hacer los botones siempre visibles en dispositivos táctiles */
+        @media (hover: none) and (pointer: coarse) {
+            .video-navigation-overlay {
+                opacity: 0.8;
+            }
+
+            .video-container:hover .video-navigation-overlay,
+            .video-navigation-overlay:hover {
+                opacity: 1;
+            }
+        }
+
         /* ===== ESTILOS PARA LOS VIDEOS DEL MÓDULO 1 ===== */
         .module-videos-section {
             margin-top: 1rem;
@@ -3962,6 +4184,10 @@
             border: none;
             margin-left: auto;
             max-width: 85%;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            flex-direction: row; /* Avatar a la izquierda del mensaje, mensaje a la derecha */
         }
 
         #liaMessages .user-message:hover {
@@ -3998,14 +4224,15 @@
         #liaMessages .user-message .message-content {
             background: rgba(0, 102, 204, 0.2) !important;
             border-color: rgba(0, 102, 204, 0.4) !important;
-            margin-left: auto !important;
+            margin-left: auto !important; /* Cambiado de margin-right a margin-left para alinear a la derecha */
             max-width: 80% !important;
+            flex: 1; /* Permitir que el contenido ocupe el espacio disponible */
         }
 
         /* Avatar circular para usuario (solo en chat) */
         #liaMessages .user-avatar-circle {
-            width: 40px;
-            height: 40px;
+            width: 28px; /* Cambiado a 28px para igualar el tamaño de LIA */
+            height: 28px; /* Cambiado a 28px para igualar el tamaño de LIA */
             border-radius: 50%;
             background: #0066CC;
             color: white;
@@ -4013,10 +4240,11 @@
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            font-size: 16px;
-            margin-right: 12px;
+            font-size: 14px; /* Reducido el tamaño de la fuente proporcionalmente */
+            margin-right: 12px; /* Cambiado de margin-left a margin-right para avatar a la izquierda del mensaje */
             border: 2px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0; /* Evitar que se comprima */
         }
 
         /* Avatar con foto del usuario */
@@ -4065,6 +4293,7 @@
             border: none;
             margin-right: auto;
             max-width: 85%;
+            position: relative; /* Necesario para posicionar los botones de acción */
         }
 
         #liaMessages .lia-message:hover {
@@ -4087,6 +4316,75 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
+        /* Botones de acción para mensajes de LIA */
+        #liaMessages .lia-message .message-actions {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--glass-bg-primary);
+            border: var(--glass-border-subtle);
+            border-radius: 8px;
+            padding: 4px;
+            display: none;
+            gap: 4px;
+            box-shadow: var(--glass-shadow-small);
+            backdrop-filter: var(--glass-blur);
+            z-index: 10;
+        }
+
+        #liaMessages .lia-message:hover .message-actions {
+            display: flex;
+        }
+
+        #liaMessages .lia-message .message-action-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--glass-text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        #liaMessages .lia-message .message-action-btn:hover {
+            background: rgba(0, 102, 204, 0.1);
+            color: #0066CC;
+            transform: scale(1.1);
+        }
+
+        #liaMessages .lia-message .message-action-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Tooltip para botones */
+        #liaMessages .lia-message .message-action-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 1000;
+        }
+
+        #liaMessages .lia-message .message-action-btn:hover::after {
+            opacity: 1;
+        }
+
         /* Responsive para mensajes de chat */
         @media (max-width: 768px) {
             #liaMessages .message {
@@ -4099,10 +4397,10 @@
             }
 
             #liaMessages .user-avatar-circle {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
-                margin-right: 10px;
+                width: 28px; /* Cambiado a 28px para igualar el tamaño de LIA */
+                height: 28px; /* Cambiado a 28px para igualar el tamaño de LIA */
+                font-size: 12px; /* Reducido proporcionalmente */
+                margin-right: 10px; /* Cambiado de margin-left a margin-right */
             }
             
             #liaMessages .user-avatar-img {
@@ -4123,6 +4421,23 @@
                 width: 32px;
                 height: 32px;
                 margin-right: 10px;
+            }
+
+            /* Botones de acción responsivos */
+            #liaMessages .lia-message .message-actions {
+                top: -6px;
+                right: -6px;
+                padding: 2px;
+            }
+
+            #liaMessages .lia-message .message-action-btn {
+                width: 24px;
+                height: 24px;
+            }
+
+            #liaMessages .lia-message .message-action-btn svg {
+                width: 14px;
+                height: 14px;
             }
         }
     </style>
@@ -4260,15 +4575,6 @@
                 <!-- Video Player Principal -->
                 <div class="main-video-player">
                     <div class="video-container">
-                        <!-- Botones de Navegación -->
-                        <div class="video-navigation">
-                            <button class="nav-btn prev-btn" id="prevVideoBtn" title="Video anterior">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <button class="nav-btn next-btn" id="nextVideoBtn" title="Siguiente video">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
                         
                         <!-- YouTube Video Embed -->
                         <div class="youtube-player-wrapper">
@@ -4285,6 +4591,21 @@
                                 referrerpolicy="strict-origin-when-cross-origin">
                             </iframe>
                         </div>
+
+                        <!-- Botones de Navegación Superpuestos (Estilo Udemy) -->
+                        <div class="video-navigation-overlay">
+                            <button class="video-nav-btn-overlay prev-video-btn-overlay" id="prevVideoBtn" title="Video Anterior" disabled>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="15,18 9,12 15,6"/>
+                                </svg>
+                            </button>
+                            <button class="video-nav-btn-overlay next-video-btn-overlay" id="nextVideoBtn" title="Siguiente Video" disabled>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="9,18 15,12 9,6"/>
+                                </svg>
+                            </button>
+                        </div>
+
                         <!-- Fallback para navegadores antiguos -->
                         <noscript>
                             <div class="video-fallback">
@@ -7102,6 +7423,7 @@ INSTRUCCIONES:
                                 userMsg.setAttribute('data-protected', 'true');
 
                                 userMsg.innerHTML = `
+                                    <div class="user-avatar-circle">${avatarLetter}</div>
                                     <div class="message-content">
                                         <div class="message-text">${mensaje}</div>
                                     </div>
@@ -7559,6 +7881,20 @@ INSTRUCCIONES:
                                     </div>
                                     <div class="message-content">
                                         <div class="message-text">${markdownToHtml(respuestaLIA)}</div>
+                                        <div class="message-actions">
+                                            <button class="message-action-btn" onclick="copyLiaMessage(this.closest('.lia-message'))" data-tooltip="Copiar mensaje">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                                </svg>
+                                            </button>
+                                            <button class="message-action-btn" onclick="createNoteFromLiaMessage(this.closest('.lia-message'))" data-tooltip="Crear nota">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 `;
 
@@ -7624,6 +7960,20 @@ INSTRUCCIONES:
                                     </div>
                                     <div class="message-content">
                                         <div class="message-text">${markdownToHtml(respuestaFallback)}</div>
+                                        <div class="message-actions">
+                                            <button class="message-action-btn" onclick="copyLiaMessage(this.closest('.lia-message'))" data-tooltip="Copiar mensaje">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                                </svg>
+                                            </button>
+                                            <button class="message-action-btn" onclick="createNoteFromLiaMessage(this.closest('.lia-message'))" data-tooltip="Crear nota">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 `;
 
@@ -9652,179 +10002,53 @@ Generado desde Coach LIA IA - ${currentDate}
 
     <!-- Navegación de Videos Script - Modernizado -->
     <script>
-        // ===== NAVEGACIÓN ENTRE VIDEOS - VERSIÓN SIMPLIFICADA =====
-        // Usa el nuevo VideoNavigationManager para manejo centralizado
-        function initializeVideoNavigation() {
-            console.log('⚠️ initializeVideoNavigation() legacy llamada - delegando a VideoNavigationManager');
-
-            // Verificar que el VideoNavigationManager esté disponible
-            if (window.videoNavigationManager) {
-                // Re-inicializar si es necesario
-                if (!window.videoNavigationManager.getStatus().isInitialized) {
-                    window.videoNavigationManager.reinitializeNavigation();
-                }
-                console.log('✅ VideoNavigationManager activado:', window.videoNavigationManager.getStatus());
-            } else {
-                console.error('❌ VideoNavigationManager no disponible');
-                // Fallback básico
-                const prevBtn = document.getElementById('prevVideoBtn');
-                const nextBtn = document.getElementById('nextVideoBtn');
-
-                if (prevBtn && nextBtn) {
-                    prevBtn.style.opacity = '0.5';
-                    nextBtn.style.opacity = '0.5';
-                    console.log('⚠️ Botones deshabilitados - VideoNavigationManager requerido');
-                }
-            }
-
-
-
+        console.log('🚀 SCRIPT DE NAVEGACIÓN CARGADO - Iniciando...');
+        console.log('🔍 Verificando que el script se ejecuta correctamente...');
+        
+        // Verificar que podemos acceder a los elementos básicos
+        try {
+            console.log('🔍 document disponible:', !!document);
+            console.log('🔍 window disponible:', !!window);
+            console.log('🔍 getElementById disponible:', typeof document.getElementById);
+        } catch (error) {
+            console.error('❌ Error verificando elementos básicos:', error);
         }
-                    const videoId = videoElement.getAttribute('data-video-id');
-                    if (!videoId) {
-                        console.warn('⚠️ No se pudo obtener el ID del video');
-                        return;
-                    }
+        
+        // ===== NAVEGACIÓN DE VIDEOS =====
+        // FUNCIONALIDAD REMOVIDA COMPLETAMENTE
+        
 
-                    // Buscar el checkbox del video
-                    const checkbox = videoElement.querySelector('.lesson-checkbox');
-                    if (!checkbox) {
-                        console.warn('⚠️ Checkbox no encontrado para el video:', videoId);
-                        return;
-                    }
 
-                    // Si ya está marcado como completado, no hacer nada
-                    if (checkbox.checked && checkbox.disabled) {
-                        console.log('ℹ️ Video ya está marcado como completado');
-                        return;
-                    }
-
-                    // Marcar como completado
-                    checkbox.checked = true;
-                    checkbox.disabled = true;
-
-                    // Actualizar clases del video-item
-                    videoElement.classList.add('completed');
-                    videoElement.classList.remove('pending', 'active');
-
-                    // Actualizar tooltip
-                    const label = videoElement.querySelector('.lesson-checkbox-label');
-                    if (label) {
-                        label.title = 'Completado';
-                    }
-
-                    // Llamar a la función de completado si existe
-                    if (window.module1VideosLoader && typeof window.module1VideosLoader.markLessonCompleted === 'function') {
-                        window.module1VideosLoader.markLessonCompleted(videoId);
-                    }
-
-                    // Llamar al gestor de progreso si existe
-                    if (window.courseProgressManager && typeof window.courseProgressManager.markVideoCompleted === 'function') {
-                        window.courseProgressManager.markVideoCompleted(videoId);
-                    }
-
-                    console.log('✅ Video marcado como completado:', videoId);
-
-                    // Mostrar notificación de completado
-                    showNotification('Video marcado como completado automáticamente', 'success');
-
-                } catch (error) {
-                    console.error('❌ Error marcando video como completado:', error);
+        // Función simple de notificación
+        function showNotification(message, type = 'info') {
+            console.log(`📢 Notificación [${type}]: ${message}`);
+            
+            // Crear notificación visual simple
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#0066CC'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                font-size: 14px;
+                font-weight: 600;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                max-width: 300px;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Remover después de 3 segundos
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
                 }
-            }
-
-            // Función para navegar al siguiente video
-            function goToNextVideo() {
-                const currentVideo = getCurrentVideo();
-                if (!currentVideo) {
-                    console.warn('⚠️ No se pudo determinar el video actual');
-                    return;
-                }
-
-                // Marcar el video actual como completado antes de navegar
-                markCurrentVideoAsCompleted(currentVideo);
-
-                const nextVideo = currentVideo.nextElementSibling;
-                if (nextVideo && nextVideo.classList.contains('video-item')) {
-                    console.log('➡️ Navegando al siguiente video');
-                    nextVideo.click();
-                } else {
-                    console.log('ℹ️ No hay siguiente video disponible');
-                    showNotification('No hay siguiente video disponible', 'info');
-                }
-            }
-
-            // Función para mostrar notificaciones
-            function showNotification(message, type = 'info') {
-                // Crear notificación temporal
-                const notification = document.createElement('div');
-                notification.className = `video-nav-notification ${type}`;
-                notification.textContent = message;
-                const colors = {
-                    'info': '#0066CC',
-                    'success': '#28a745',
-                    'error': '#ff6b6b',
-                    'warning': '#ffc107'
-                };
-                
-                notification.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: ${colors[type] || colors.info};
-                    color: white;
-                    padding: 12px 20px;
-                    border-radius: 8px;
-                    z-index: 1000;
-                    font-size: 14px;
-                    font-weight: 600;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                    animation: slideInRight 0.3s ease-out;
-                `;
-                
-                document.body.appendChild(notification);
-                
-                // Remover después de 3 segundos
-                setTimeout(() => {
-                    notification.style.animation = 'slideOutRight 0.3s ease-out';
-                    setTimeout(() => {
-                        if (notification.parentNode) {
-                            notification.parentNode.removeChild(notification);
-                        }
-                    }, 300);
-                }, 3000);
-            }
-
-            // Event listeners para los botones
-            prevBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                goToPreviousVideo();
-            });
-
-            nextBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                goToNextVideo();
-            });
-
-            // Navegación con teclado
-            document.addEventListener('keydown', (e) => {
-                // Solo activar si no estamos en un input o textarea
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-                    return;
-                }
-
-                if (e.key === 'ArrowLeft' && e.ctrlKey) {
-                    e.preventDefault();
-                    goToPreviousVideo();
-                } else if (e.key === 'ArrowRight' && e.ctrlKey) {
-                    e.preventDefault();
-                    goToNextVideo();
-                }
-            });
-
-            console.log('✅ Navegación de videos inicializada');
+            }, 3000);
         }
 
         // Función para verificar si FontAwesome está cargado
@@ -9843,27 +10067,57 @@ Generado desde Coach LIA IA - ${currentDate}
             // Si FontAwesome está cargado, la fuente debería incluir "Font Awesome"
             const isLoaded = fontFamily.includes('Font Awesome') || fontFamily.includes('FontAwesome');
             
-            const prevBtn = document.getElementById('prevVideoBtn');
-            const nextBtn = document.getElementById('nextVideoBtn');
-            
-            if (prevBtn && nextBtn) {
+            // Botones de navegación removidos
                 if (isLoaded) {
-                    prevBtn.classList.add('fas-loaded');
-                    nextBtn.classList.add('fas-loaded');
                     console.log('✅ FontAwesome cargado correctamente');
                 } else {
                     console.log('⚠️ FontAwesome no detectado, usando fallback CSS');
                 }
-            }
+            
         }
 
         // Inicializar navegación cuando el DOM esté listo
+        console.log('📋 Configurando event listener para DOMContentLoaded...');
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('📋 DOM cargado, iniciando inicialización de navegación...');
             setTimeout(() => {
+                console.log('⏰ Ejecutando inicialización después de timeout...');
                 checkFontAwesome();
-                initializeVideoNavigation();
+                // Función de navegación removida
             }, 1000);
         });
+
+        // También intentar ejecutar inmediatamente si el DOM ya está listo
+        console.log('📋 Estado del DOM:', document.readyState);
+        if (document.readyState === 'loading') {
+            console.log('📋 DOM aún cargando, esperando...');
+        } else {
+            console.log('📋 DOM ya está listo, ejecutando inmediatamente...');
+            setTimeout(() => {
+                console.log('⏰ Ejecutando inicialización inmediata...');
+                checkFontAwesome();
+                // Función de navegación removida
+            }, 500);
+        }
+
+        // También intentar inicializar después de que se carguen los videos
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.video-item')) {
+                console.log('🎬 Video clickeado, verificando navegación...');
+                setTimeout(() => {
+                    // Re-inicializar navegación después de click en video
+                    // Función de navegación removida
+                }, 500);
+            }
+        });
+
+        // Inicializar también cuando se cargue el módulo de videos
+        if (window.module1VideosLoader) {
+            console.log('📹 Module1VideosLoader detectado, configurando navegación...');
+            setTimeout(() => {
+                // Función de navegación removida
+            }, 2000);
+        }
 
         // CSS para animaciones de notificaciones
         const style = document.createElement('style');
@@ -9891,6 +10145,264 @@ Generado desde Coach LIA IA - ${currentDate}
             }
         `;
         document.head.appendChild(style);
+    </script>
+
+    <!-- ===== SISTEMA DE NAVEGACIÓN DE VIDEOS ESTILO UDEMY ===== -->
+    <script>
+        // =====================================================
+        // NAVEGACIÓN DE VIDEOS - ESTILO UDEMY
+        // =====================================================
+        
+        class VideoNavigationSystem {
+            constructor() {
+                this.prevBtn = null;
+                this.nextBtn = null;
+                this.currentVideoIndex = -1;
+                this.totalVideos = 0;
+                this.videosArray = [];
+                
+                console.log('🎬 Sistema de navegación de videos inicializado');
+            }
+            
+            init() {
+                try {
+                    // Obtener referencias a los botones
+                    this.prevBtn = document.getElementById('prevVideoBtn');
+                    this.nextBtn = document.getElementById('nextVideoBtn');
+                    
+                    if (!this.prevBtn || !this.nextBtn) {
+                        console.error('❌ Botones de navegación no encontrados');
+                        return;
+                    }
+                    
+                    // Configurar event listeners
+                    this.prevBtn.addEventListener('click', () => this.navigateToPrevious());
+                    this.nextBtn.addEventListener('click', () => this.navigateToNext());
+                    
+                    // Agregar soporte para teclas de teclado (opcional pero útil)
+                    document.addEventListener('keydown', (e) => {
+                        // Evitar interferir con inputs
+                        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                        
+                        // Alt + flecha izquierda = video anterior
+                        if (e.altKey && e.key === 'ArrowLeft') {
+                            e.preventDefault();
+                            this.navigateToPrevious();
+                        }
+                        // Alt + flecha derecha = video siguiente
+                        else if (e.altKey && e.key === 'ArrowRight') {
+                            e.preventDefault();
+                            this.navigateToNext();
+                        }
+                    });
+                    
+                    // Actualizar estado inicial después de un delay
+                    setTimeout(() => this.updateNavigationState(), 1000);
+                    
+                    // Escuchar cambios de video
+                    this.setupVideoChangeListener();
+                    
+                    console.log('✅ Sistema de navegación configurado');
+                    console.log('💡 Atajos de teclado: Alt + ← (anterior) | Alt + → (siguiente)');
+                    
+                } catch (error) {
+                    console.error('❌ Error inicializando navegación:', error);
+                }
+            }
+            
+            setupVideoChangeListener() {
+                // Escuchar cuando cambie el video activo
+                const observer = new MutationObserver(() => {
+                    this.updateNavigationState();
+                });
+                
+                // Observar cambios en la lista de videos
+                const videosList = document.getElementById('module1VideosList');
+                if (videosList) {
+                    observer.observe(videosList, {
+                        attributes: true,
+                        attributeFilter: ['class'],
+                        subtree: true
+                    });
+                }
+            }
+            
+            updateNavigationState() {
+                try {
+                    // Obtener array de videos desde module1VideosLoader
+                    if (window.module1VideosLoader && window.module1VideosLoader.videos) {
+                        this.videosArray = window.module1VideosLoader.videos;
+                        this.totalVideos = this.videosArray.length;
+                        
+                        // Encontrar índice del video actual
+                        const currentVideoId = window.module1VideosLoader.currentVideoId;
+                        this.currentVideoIndex = this.videosArray.findIndex(v => v.id === currentVideoId);
+                        
+                        console.log(`📊 Estado de navegación: Video ${this.currentVideoIndex + 1}/${this.totalVideos}`);
+                        
+                    } else {
+                        console.warn('⚠️ module1VideosLoader no disponible');
+                        return;
+                    }
+                    
+                    // Actualizar tooltips con títulos de videos
+                    if (this.currentVideoIndex > 0 && this.videosArray[this.currentVideoIndex - 1]) {
+                        const prevVideo = this.videosArray[this.currentVideoIndex - 1];
+                        this.prevBtn.setAttribute('data-video-title', prevVideo.video_title);
+                    } else {
+                        this.prevBtn.removeAttribute('data-video-title');
+                    }
+                    
+                    if (this.currentVideoIndex < this.totalVideos - 1 && this.videosArray[this.currentVideoIndex + 1]) {
+                        const nextVideo = this.videosArray[this.currentVideoIndex + 1];
+                        this.nextBtn.setAttribute('data-video-title', nextVideo.video_title);
+                    } else {
+                        this.nextBtn.removeAttribute('data-video-title');
+                    }
+                    
+                    // Habilitar/deshabilitar botones
+                    this.prevBtn.disabled = this.currentVideoIndex <= 0;
+                    this.nextBtn.disabled = this.currentVideoIndex >= this.totalVideos - 1;
+                    
+                    // Actualizar tooltips de los botones
+                    if (this.currentVideoIndex <= 0) {
+                        this.prevBtn.title = 'No hay video anterior';
+                    } else {
+                        this.prevBtn.title = `Video Anterior: ${this.videosArray[this.currentVideoIndex - 1]?.video_title || ''}`;
+                    }
+                    
+                    if (this.currentVideoIndex >= this.totalVideos - 1) {
+                        this.nextBtn.title = 'No hay más videos';
+                    } else {
+                        this.nextBtn.title = `Siguiente Video: ${this.videosArray[this.currentVideoIndex + 1]?.video_title || ''}`;
+                    }
+                    
+                    console.log(`🎯 Navegación actualizada - Anterior: ${!this.prevBtn.disabled}, Siguiente: ${!this.nextBtn.disabled}`);
+                    
+                } catch (error) {
+                    console.error('❌ Error actualizando estado de navegación:', error);
+                }
+            }
+            
+            navigateToPrevious() {
+                try {
+                    if (this.currentVideoIndex <= 0) {
+                        console.log('⚠️ Ya estás en el primer video');
+                        return;
+                    }
+                    
+                    const prevVideo = this.videosArray[this.currentVideoIndex - 1];
+                    if (!prevVideo) {
+                        console.error('❌ Video anterior no encontrado');
+                        return;
+                    }
+                    
+                    console.log('⏮️ Navegando al video anterior:', prevVideo.video_title);
+                    
+                    // Llamar a selectVideo del loader
+                    if (window.module1VideosLoader) {
+                        window.module1VideosLoader.selectVideo(prevVideo);
+                        
+                        // Hacer scroll al video en la lista
+                        this.scrollToVideoInList(prevVideo.id);
+                        
+                        // Actualizar estado de navegación
+                        setTimeout(() => this.updateNavigationState(), 500);
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error navegando al video anterior:', error);
+                }
+            }
+            
+            navigateToNext() {
+                try {
+                    if (this.currentVideoIndex >= this.totalVideos - 1) {
+                        console.log('⚠️ Ya estás en el último video');
+                        return;
+                    }
+                    
+                    const nextVideo = this.videosArray[this.currentVideoIndex + 1];
+                    if (!nextVideo) {
+                        console.error('❌ Video siguiente no encontrado');
+                        return;
+                    }
+                    
+                    console.log('⏭️ Navegando al siguiente video:', nextVideo.video_title);
+                    
+                    // Llamar a selectVideo del loader
+                    if (window.module1VideosLoader) {
+                        window.module1VideosLoader.selectVideo(nextVideo);
+                        
+                        // Hacer scroll al video en la lista
+                        this.scrollToVideoInList(nextVideo.id);
+                        
+                        // Actualizar estado de navegación
+                        setTimeout(() => this.updateNavigationState(), 500);
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error navegando al siguiente video:', error);
+                }
+            }
+            
+            scrollToVideoInList(videoId) {
+                try {
+                    const videoElement = document.querySelector(`[data-video-id="${videoId}"]`);
+                    if (videoElement) {
+                        videoElement.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'nearest',
+                            inline: 'nearest'
+                        });
+                        
+                        // Efecto visual de highlight
+                        videoElement.style.transition = 'all 0.3s ease';
+                        videoElement.style.transform = 'scale(1.02)';
+                        setTimeout(() => {
+                            videoElement.style.transform = 'scale(1)';
+                        }, 300);
+                    }
+                } catch (error) {
+                    console.error('❌ Error haciendo scroll al video:', error);
+                }
+            }
+            
+            showNavigationNotification(message, type = 'info') {
+                // Usar el sistema de notificaciones existente si está disponible
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification(message, type, 2000);
+                } else {
+                    console.log(`📢 ${message}`);
+                }
+            }
+        }
+        
+        // Inicializar sistema de navegación
+        let videoNavSystem = null;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Inicializando sistema de navegación de videos...');
+            
+            // Esperar a que module1VideosLoader esté listo
+            const initNavigation = () => {
+                if (window.module1VideosLoader && window.module1VideosLoader.videos) {
+                    videoNavSystem = new VideoNavigationSystem();
+                    videoNavSystem.init();
+                    console.log('✅ Sistema de navegación inicializado correctamente');
+                } else {
+                    console.log('⏳ Esperando a que module1VideosLoader esté listo...');
+                    setTimeout(initNavigation, 500);
+                }
+            };
+            
+            setTimeout(initNavigation, 1500);
+        });
+        
+        // Exponer globalmente para debugging
+        window.videoNavSystem = videoNavSystem;
+        
+        console.log('✅ Script de navegación de videos cargado');
     </script>
 
     <!-- Sistema de Notas Estilo NotebookLM -->
@@ -10063,19 +10575,128 @@ Generado desde Coach LIA IA - ${currentDate}
             function updateNotesList() {
                 console.log('🔄 Actualizando lista de notas...');
                 
+                // Verificar el estado actual del localStorage antes de actualizar
+                const currentNotes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+                console.log('📝 Estado actual del localStorage:', currentNotes.length, 'notas');
+                
                 // Usar la función showAllNotes que ya maneja todo correctamente
                 showAllNotes();
                 
                 console.log('✅ Lista de notas actualizada');
             }
 
+            // ===== FUNCIONES PARA BOTONES DE MENSAJES DE LIA =====
+            
+            // Función para copiar mensaje de LIA al portapapeles
+            window.copyLiaMessage = function(messageElement) {
+                try {
+                    const messageText = messageElement.querySelector('.message-text');
+                    if (!messageText) {
+                        console.error('❌ No se encontró el texto del mensaje');
+                        showNotification('Error: No se pudo copiar el mensaje', 'error');
+                        return;
+                    }
+                    
+                    // Extraer solo el texto, sin HTML
+                    const textContent = messageText.innerText || messageText.textContent || '';
+                    
+                    if (!textContent.trim()) {
+                        console.error('❌ El mensaje está vacío');
+                        showNotification('No hay contenido para copiar', 'warning');
+                        return;
+                    }
+                    
+                    // Copiar al portapapeles
+                    navigator.clipboard.writeText(textContent).then(() => {
+                        console.log('✅ Mensaje de LIA copiado al portapapeles');
+                        showNotification('¡Mensaje copiado al portapapeles!', 'success');
+                    }).catch(err => {
+                        console.error('❌ Error copiando mensaje:', err);
+                        showNotification('Error al copiar el mensaje', 'error');
+                    });
+                    
+                } catch (error) {
+                    console.error('❌ Error en copyLiaMessage:', error);
+                    showNotification('Error al copiar el mensaje', 'error');
+                }
+            };
+            
+            // Función para crear nota desde mensaje de LIA
+            window.createNoteFromLiaMessage = function(messageElement) {
+                try {
+                    const messageText = messageElement.querySelector('.message-text');
+                    if (!messageText) {
+                        console.error('❌ No se encontró el texto del mensaje');
+                        showNotification('Error: No se pudo crear la nota', 'error');
+                        return;
+                    }
+                    
+                    // Extraer el contenido HTML del mensaje
+                    const messageContent = messageText.innerHTML;
+                    
+                    if (!messageContent.trim()) {
+                        console.error('❌ El mensaje está vacío');
+                        showNotification('No hay contenido para crear la nota', 'warning');
+                        return;
+                    }
+                    
+                    // Crear un título automático basado en las primeras palabras
+                    const textContent = messageText.innerText || messageText.textContent || '';
+                    const words = textContent.split(' ').slice(0, 5);
+                    const autoTitle = words.join(' ') + (textContent.split(' ').length > 5 ? '...' : '');
+                    
+                    // Crear la nueva nota
+                    const newNote = {
+                        id: Date.now(),
+                        title: autoTitle,
+                        content: messageContent,
+                        timestamp: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        module: 'Chat con LIA',
+                        tags: ['LIA', 'Chat']
+                    };
+                    
+                    // Guardar en localStorage
+                    const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+                    notes.push(newNote);
+                    localStorage.setItem('lia_notes', JSON.stringify(notes));
+                    
+                    // Actualizar la lista de notas
+                    updateNotesList();
+                    
+                    console.log('✅ Nota creada desde mensaje de LIA:', newNote.id);
+                    showNotification('¡Nota creada exitosamente!', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Error en createNoteFromLiaMessage:', error);
+                    showNotification('Error al crear la nota', 'error');
+                }
+            };
+
             // Función para eliminar una nota
             window.deleteNote = function(noteId) {
+                console.log('🗑️ Iniciando eliminación de nota:', noteId, 'tipo:', typeof noteId);
+                
                 const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
-                const filteredNotes = notes.filter(note => note.id !== noteId);
+                console.log('📝 Notas antes de eliminar:', notes.length, notes.map(n => ({id: n.id, tipo: typeof n.id})));
+                
+                // Convertir noteId a string para comparación más robusta
+                const noteIdStr = String(noteId);
+                const filteredNotes = notes.filter(note => String(note.id) !== noteIdStr);
+                
+                console.log('📝 Notas después de filtrar:', filteredNotes.length, 'eliminadas:', notes.length - filteredNotes.length);
+                
+                if (filteredNotes.length === notes.length) {
+                    console.error('❌ No se encontró la nota para eliminar con ID:', noteId);
+                    return;
+                }
+                
                 localStorage.setItem('lia_notes', JSON.stringify(filteredNotes));
+                console.log('💾 Notas guardadas en localStorage:', filteredNotes.length);
+                
+                // Actualizar la lista inmediatamente
                 updateNotesList();
-                console.log('🗑️ Nota eliminada:', noteId);
+                console.log('🗑️ Nota eliminada exitosamente:', noteId);
             }
 
             // ===== SISTEMA DE BÚSQUEDA DE NOTAS =====
@@ -10092,7 +10713,12 @@ Generado desde Coach LIA IA - ${currentDate}
                 console.log('🔗 Agregando event listeners a', notes.length, 'notas');
                 const noteItems = container.querySelectorAll('.note-item');
                 noteItems.forEach((item) => {
-                    item.addEventListener('click', () => {
+                    item.addEventListener('click', (event) => {
+                        // Verificar si el clic fue en el botón de eliminar
+                        if (event.target.closest('.note-delete-btn')) {
+                            console.log('🚫 Clic en botón de eliminar detectado, evitando apertura del modal');
+                            return; // No hacer nada, dejar que el onclick del botón maneje la eliminación
+                        }
                         const datasetId = item.getAttribute('data-note-id');
                         const noteData = notes.find((n) => String(n.id) === datasetId);
                         const idToUse = noteData ? noteData.id : datasetId;
