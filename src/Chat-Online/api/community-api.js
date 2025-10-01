@@ -102,7 +102,15 @@ class CommunityAPI {
             }
         };
 
-        const finalOptions = { ...defaultOptions, ...options };
+        // Merge headers correctamente para no sobrescribir los personalizados
+        const finalOptions = {
+            ...defaultOptions,
+            ...options,
+            headers: {
+                ...defaultOptions.headers,
+                ...(options.headers || {})
+            }
+        };
 
         try {
             console.log(`🌐 API Request: ${finalOptions.method || 'GET'} ${url}`);
@@ -237,17 +245,32 @@ class CommunityAPI {
      * Votar en una pregunta, respuesta o comentario
      */
     async vote(targetType, targetId, voteType) {
+        // Usar endpoints específicos para compatibilidad con Netlify y local
+        let endpoint;
+        if (targetType === 'question') {
+            endpoint = `/questions/${targetId}/vote`;
+        } else if (targetType === 'answer') {
+            endpoint = `/answers/${targetId}/vote`;
+        } else {
+            throw new Error(`Tipo de objetivo no soportado: ${targetType}`);
+        }
+
         const data = {
-            user_id: this.currentUser?.id || 'demo-user',
-            target_type: targetType,
-            target_id: targetId,
             vote_type: voteType
         };
 
-        return await this.makeRequest('/votes', {
+        // Configurar headers con user_id
+        const options = {
             method: 'POST',
-            body: JSON.stringify(data)
-        });
+            body: JSON.stringify(data),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.getAuthToken()}`,
+                'X-User-Id': this.currentUser?.id || 'demo-user'
+            }
+        };
+
+        return await this.makeRequest(endpoint, options);
     }
 
     /**
