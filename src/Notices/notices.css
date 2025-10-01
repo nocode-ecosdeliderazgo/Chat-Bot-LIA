@@ -2423,8 +2423,8 @@ body[data-theme="light"] .bg-glow-global::before,
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
+    background: transparent;
+    backdrop-filter: none;
 }
 
 .modal-content {
@@ -2459,7 +2459,7 @@ body[data-theme="light"] .bg-glow-global::before,
 }
 
 .modal-news-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(10, 16, 28, 0.75);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(0, 102, 204, 0.2);
     border-radius: 20px;

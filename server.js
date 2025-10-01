@@ -1585,31 +1585,63 @@ app.get('/api/news', async (req, res) => {
             });
         }
 
+        // Utilidad para parseo seguro (por si las columnas están como texto)
+        const safeParse = (value, fallback) => {
+            if (value == null) return fallback;
+            if (typeof value === 'object') return value;
+            try { return JSON.parse(value); } catch (_) { return fallback; }
+        };
+
         // Mapear datos de BD al formato esperado por el frontend
-        const mappedNews = news.map(newsItem => ({
-            id: newsItem.id,
-            title: newsItem.title,
-            excerpt: newsItem.subtitle || newsItem.intro || '',
-            category: 'tecnologia', // Por defecto
-            categoryLabel: 'Tecnología',
-            author: 'Sistema',
-            date: newsItem.published_at,
-            views: 0,
-            comments: 0,
-            image: newsItem.hero_image_url || 'fas fa-newspaper',
-            featured: false,
-            hasDetailedView: true,
-            detailedData: {
-                tldr: newsItem.tldr || [],
-                suggestedSteps: newsItem.sections?.steps || [],
-                risks: newsItem.sections?.risks || [],
-                resources: newsItem.links || [],
-                whyMatters: newsItem.sections?.whyMatters || [],
-                whatChanged: newsItem.sections?.whatChanged || [],
-                impact: newsItem.sections?.impact || [],
-                cta: newsItem.cta?.text || 'Leer más'
-            }
-        }));
+        const mappedNews = news.map(raw => {
+            const tldr = safeParse(raw.tldr, Array.isArray(raw.tldr) ? raw.tldr : []);
+            const sections = safeParse(raw.sections, Array.isArray(raw.sections) ? raw.sections : []);
+            const links = safeParse(raw.links, Array.isArray(raw.links) ? raw.links : []);
+            const cta = safeParse(raw.cta, raw.cta);
+
+            // Extraer secciones por "kind" del arreglo
+            const getItems = (kind) => {
+                // Forma A: arreglo de objetos con { kind, items }
+                if (Array.isArray(sections)) {
+                    const found = sections.find(s => s.kind === kind);
+                    if (found && Array.isArray(found.items)) return found.items;
+                }
+                // Forma B: objeto con claves directas { steps:[], risks:[], ... }
+                if (sections && typeof sections === 'object') {
+                    const byKey = sections[kind];
+                    if (Array.isArray(byKey)) return byKey;
+                }
+                return [];
+            };
+
+            // El frontend usa un icono para "image"; si tenemos URL, mantener un icono por defecto
+            const imageIcon = 'fas fa-newspaper';
+
+            return {
+                id: raw.id,
+                title: raw.title,
+                excerpt: raw.subtitle || raw.intro || '',
+                category: 'tecnologia',
+                categoryLabel: 'Tecnología',
+                author: 'Sistema',
+                date: raw.published_at,
+                views: 0,
+                comments: 0,
+                image: imageIcon,
+                featured: false,
+                hasDetailedView: true,
+                detailedData: {
+                    tldr: Array.isArray(tldr) ? tldr : [],
+                    suggestedSteps: getItems('steps'),
+                    risks: getItems('risks'),
+                    resources: Array.isArray(links) ? links.map(l => ({ url: l.url, label: l.label || l.name })) : [],
+                    whyMatters: getItems('why'),
+                    whatChanged: getItems('whats_new'),
+                    impact: getItems('impact'),
+                    cta: (cta && (cta.label || cta.text)) ? (cta.label || cta.text) : 'Leer más'
+                }
+            };
+        });
 
         res.json({
             success: true,
