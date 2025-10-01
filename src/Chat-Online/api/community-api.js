@@ -106,18 +106,30 @@ class CommunityAPI {
 
         try {
             console.log(`🌐 API Request: ${finalOptions.method || 'GET'} ${url}`);
+            console.log('📋 Request headers:', finalOptions.headers);
+            console.log('📦 Request body:', finalOptions.body ? JSON.parse(finalOptions.body) : 'No body');
+
             const response = await fetch(url, finalOptions);
+
+            console.log(`📥 Response status: ${response.status} ${response.statusText}`);
+            console.log('📋 Response headers:', Object.fromEntries(response.headers.entries()));
+
             const data = await response.json();
+            console.log('📦 Response data:', data);
 
             if (!response.ok) {
-                throw new Error(data.error || `HTTP ${response.status}: ${data.details || ''}`);
+                const errorMessage = data.error || `HTTP ${response.status}: ${data.details || response.statusText}`;
+                console.error('❌ Request failed:', errorMessage);
+                throw new Error(errorMessage);
             }
 
             // Mapear respuesta para compatibilidad
             const mappedData = this.mapResponse(data);
+            console.log('✅ Mapped data:', mappedData);
             return mappedData;
         } catch (error) {
             console.error(`❌ API Error: ${error.message}`);
+            console.error('Stack:', error.stack);
             throw error;
         }
     }
