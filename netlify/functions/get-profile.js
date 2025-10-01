@@ -37,52 +37,55 @@ async function handleGetProfile(event) {
 
     console.log('🔍 Obteniendo perfil para:', { userId, username, email });
 
-    // Primero, intentar con todos los campos
-    // Si falla, intentar con campos básicos
-    let selectFields = `
-      id, username, email, first_name, last_name, display_name,
-      company_role, phone, location, bio,
-      linkedin_url, portfolio_url, github_url, website_url,
-      type_rol, cargo_rol,
-      avatar_url, profile_picture_url, curriculum_url,
-      created_at, last_login_at
-    `.replace(/\s+/g, ' ').trim();
+    // Determinar WHERE clause y valor
+    const where = userId ? 'id = $1' : (username ? 'LOWER(username) = LOWER($1)' : 'LOWER(email) = LOWER($1)');
+    const value = userId || username || email;
 
-    let query, params;
-    if (userId) {
-      query = `SELECT ${selectFields} FROM users WHERE id = $1`;
-      params = [userId];
-    } else if (username) {
-      query = `SELECT ${selectFields} FROM users WHERE username = $1`;
-      params = [username];
-    } else if (email) {
-      query = `SELECT ${selectFields} FROM users WHERE email = $1`;
-      params = [email];
-    }
+    // Detectar esquema que contiene la tabla users
+    const tblInfo = await pool.query(`
+      SELECT schemaname FROM pg_catalog.pg_tables
+      WHERE tablename = 'users'
+      ORDER BY (schemaname = 'public') DESC
+      LIMIT 1
+    `);
+    const schema = tblInfo.rows?.[0]?.schemaname || 'public';
+    const qualified = `${schema}.users`;
 
-    let result;
-    try {
-      console.log('🔄 Ejecutando query con todos los campos...');
-      result = await pool.query(query, params);
-    } catch (queryError) {
-      console.warn('⚠️ Query con todos los campos falló, intentando con campos básicos:', queryError.message);
+    console.log('📊 Usando esquema:', schema);
 
-      // Intentar con campos básicos que seguramente existen
-      selectFields = 'id, username, email, first_name, last_name, created_at';
+    // Detectar columnas existentes
+    const colsRes = await pool.query(`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_schema = $1 AND table_name = 'users'
+    `, [schema]);
 
-      if (userId) {
-        query = `SELECT ${selectFields} FROM users WHERE id = $1`;
-        params = [userId];
-      } else if (username) {
-        query = `SELECT ${selectFields} FROM users WHERE username = $1`;
-        params = [username];
-      } else if (email) {
-        query = `SELECT ${selectFields} FROM users WHERE email = $1`;
-        params = [email];
-      }
+    const cols = new Set(colsRes.rows.map(r => r.column_name));
+    console.log('📊 Columnas disponibles:', Array.from(cols).join(', '));
 
-      result = await pool.query(query, params);
-    }
+    // Columnas deseadas (intentar obtener todas)
+    const want = [
+      'id', 'username', 'email', 'display_name', 'first_name', 'last_name',
+      'cargo_rol', 'company_role', 'type_rol', 'phone', 'bio', 'location',
+      'profile_picture_url', 'avatar_url', 'curriculum_url',
+      'linkedin_url', 'github_url', 'website_url', 'portfolio_url',
+      'created_at', 'updated_at', 'last_login_at'
+    ];
+
+    // Seleccionar solo las que existen
+    const selected = want.filter(c => cols.has(c));
+
+    // Asegurar que id, username, email estén incluidos
+    if (!selected.includes('id') && cols.has('id')) selected.unshift('id');
+    if (!selected.includes('username') && cols.has('username')) selected.unshift('username');
+    if (!selected.includes('email') && cols.has('email')) selected.unshift('email');
+
+    console.log('📝 Columnas seleccionadas:', selected.join(', '));
+
+    // Construir y ejecutar query
+    const query = `SELECT ${selected.join(', ')} FROM ${qualified} WHERE ${where} LIMIT 1`;
+    console.log('🔄 Ejecutando query...');
+
+    const result = await pool.query(query, [String(value)]);
 
     if (result.rows.length === 0) {
       console.warn('⚠️ Usuario no encontrado en la base de datos');
