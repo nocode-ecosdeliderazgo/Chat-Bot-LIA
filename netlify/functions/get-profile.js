@@ -23,19 +23,23 @@ exports.handler = async (event) => {
 
 async function handleGetProfile(event) {
   try {
-    if (!process.env.DATABASE_URL) return json(500, { error: 'Base de datos no configurada' }, event);
+    if (!process.env.DATABASE_URL) {
+      console.error('❌ DATABASE_URL no está configurada');
+      return json(500, { error: 'Base de datos no configurada' }, event);
+    }
 
     const { userId, username, email } = event.queryStringParameters || {};
 
     if (!userId && !username && !email) {
+      console.error('❌ No se proporcionó userId, username o email');
       return json(400, { error: 'Se requiere userId, username o email' }, event);
     }
 
-    console.log('Obteniendo perfil para:', { userId, username, email });
+    console.log('🔍 Obteniendo perfil para:', { userId, username, email });
 
-    // Construir query según el parámetro disponible
-    // IMPORTANTE: Incluir todos los campos que profile.html espera recibir
-    const selectFields = `
+    // Primero, intentar con todos los campos
+    // Si falla, intentar con campos básicos
+    let selectFields = `
       id, username, email, first_name, last_name, display_name,
       company_role, phone, location, bio,
       linkedin_url, portfolio_url, github_url, website_url,
@@ -56,9 +60,32 @@ async function handleGetProfile(event) {
       params = [email];
     }
 
-    const result = await pool.query(query, params);
+    let result;
+    try {
+      console.log('🔄 Ejecutando query con todos los campos...');
+      result = await pool.query(query, params);
+    } catch (queryError) {
+      console.warn('⚠️ Query con todos los campos falló, intentando con campos básicos:', queryError.message);
+
+      // Intentar con campos básicos que seguramente existen
+      selectFields = 'id, username, email, first_name, last_name, created_at';
+
+      if (userId) {
+        query = `SELECT ${selectFields} FROM users WHERE id = $1`;
+        params = [userId];
+      } else if (username) {
+        query = `SELECT ${selectFields} FROM users WHERE username = $1`;
+        params = [username];
+      } else if (email) {
+        query = `SELECT ${selectFields} FROM users WHERE email = $1`;
+        params = [email];
+      }
+
+      result = await pool.query(query, params);
+    }
 
     if (result.rows.length === 0) {
+      console.warn('⚠️ Usuario no encontrado en la base de datos');
       return json(404, { error: 'Usuario no encontrado' }, event);
     }
 
@@ -78,9 +105,29 @@ async function handleGetProfile(event) {
     return json(200, { user }, event);
 
   } catch (error) {
-    console.error('Error en GET /api/profile:', error);
-    return json(500, {
-      error: 'Error obteniendo perfil',
+    console.error('❌ Error en GET /api/profile:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack?.split('\n')[0]
+    });
+
+    // Determinar el tipo de error
+    let statusCode = 500;
+    let errorMessage = 'Error obteniendo perfil';
+
+    if (error.code === 'ECONNREFUSED') {
+      errorMessage = 'No se pudo conectar a la base de datos';
+    } else if (error.code === '42P01') {
+      errorMessage = 'Tabla de usuarios no encontrada en la base de datos';
+      console.error('💡 Verifica que la tabla "users" existe en la base de datos');
+    } else if (error.code === '42703') {
+      errorMessage = 'Columna no encontrada en la tabla de usuarios';
+      console.error('💡 Verifica que las columnas existen en la tabla "users"');
+    }
+
+    return json(statusCode, {
+      error: errorMessage,
+      code: error.code,
       details: process.env.NODE_ENV !== 'production' ? String(error.message || error) : undefined
     }, event);
   }
