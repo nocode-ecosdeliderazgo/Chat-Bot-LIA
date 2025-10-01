@@ -830,17 +830,11 @@ class NoticesPage {
 
     // ===== LOADING STATES =====
     showLoading() {
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        if (loadingOverlay) {
-            loadingOverlay.classList.add('active');
-        }
+        // Loading overlay removido - no hacer nada
     }
 
     hideLoading() {
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        if (loadingOverlay) {
-            loadingOverlay.classList.remove('active');
-        }
+        // Loading overlay removido - no hacer nada
     }
 
     // ===== TOAST NOTIFICATIONS =====
