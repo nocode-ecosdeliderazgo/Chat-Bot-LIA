@@ -201,7 +201,7 @@ class VideoNavigationManager {
                 this.navigateToVideo(this.currentVideoIndex);
             } else {
                 console.log('[NAV] Ya estás en el primer video');
-                window.showNotification?.('Ya estás en el primer video', 'info', 2000);
+                // Notificación removida para experiencia más limpia
             }
 
         } catch (error) {
@@ -221,7 +221,7 @@ class VideoNavigationManager {
                 this.navigateToVideo(this.currentVideoIndex);
             } else {
                 console.log('[NAV] Ya estás en el último video');
-                window.showNotification?.('Has completado todos los videos de este módulo', 'success', 3000);
+                // Notificación removida para experiencia más limpia
             }
 
         } catch (error) {
