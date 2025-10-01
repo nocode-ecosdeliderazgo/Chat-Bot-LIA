@@ -95,6 +95,17 @@ class ProfileManager {
                             const result = await r.json();
                             console.log('✅ Perfil obtenido exitosamente desde API');
                             return result;
+                        } else if (r.status === 404 && attempts.indexOf(q) === 0) {
+                            // Si el primer intento retorna 404, intentar sincronizar usuario
+                            console.log('⚠️ Usuario no encontrado, intentando sincronizar...');
+                            await this.syncUserToDatabase(sessionUser);
+                            // Reintentar después de sincronizar
+                            const retry = await fetch(`/api/profile?${q}`);
+                            if (retry.ok) {
+                                const result = await retry.json();
+                                console.log('✅ Perfil obtenido exitosamente después de sincronizar');
+                                return result;
+                            }
                         } else {
                             console.warn(`⚠️ API retornó ${r.status} para ${q}`);
                         }
@@ -195,6 +206,42 @@ class ProfileManager {
         } catch (error) {
             console.error('Error cargando usuario actual:', error);
             throw error;
+        }
+    }
+
+    async syncUserToDatabase(userData) {
+        try {
+            console.log('🔄 Sincronizando usuario a la base de datos...');
+
+            const response = await fetch('/api/sync-user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id: userData.id,
+                    username: userData.username,
+                    email: userData.email,
+                    first_name: userData.first_name || '',
+                    last_name: userData.last_name || '',
+                    display_name: userData.display_name || userData.name || userData.username,
+                    cargo_rol: userData.cargo_rol || userData.company_role || 'Usuario',
+                    type_rol: userData.type_rol || 'usuario',
+                    avatar_url: userData.profile_picture_url || userData.avatar_url || null
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('✅ Usuario sincronizado correctamente:', result);
+                return true;
+            } else {
+                console.warn('⚠️ Error sincronizando usuario:', await response.text());
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ Error en syncUserToDatabase:', error);
+            return false;
         }
     }
 

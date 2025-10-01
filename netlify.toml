@@ -37,6 +37,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/sync-user"
+  to   = "/.netlify/functions/sync-user"
+  status = 200
+
+[[redirects]]
   from = "/api/login"
   to   = "/.netlify/functions/login"
   status = 200
