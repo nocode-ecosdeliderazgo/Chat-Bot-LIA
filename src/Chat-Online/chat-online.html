@@ -10063,6 +10063,10 @@ Generado desde Coach LIA IA - ${currentDate}
             function updateNotesList() {
                 console.log('🔄 Actualizando lista de notas...');
                 
+                // Verificar el estado actual del localStorage antes de actualizar
+                const currentNotes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+                console.log('📝 Estado actual del localStorage:', currentNotes.length, 'notas');
+                
                 // Usar la función showAllNotes que ya maneja todo correctamente
                 showAllNotes();
                 
@@ -10071,11 +10075,28 @@ Generado desde Coach LIA IA - ${currentDate}
 
             // Función para eliminar una nota
             window.deleteNote = function(noteId) {
+                console.log('🗑️ Iniciando eliminación de nota:', noteId, 'tipo:', typeof noteId);
+                
                 const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
-                const filteredNotes = notes.filter(note => note.id !== noteId);
+                console.log('📝 Notas antes de eliminar:', notes.length, notes.map(n => ({id: n.id, tipo: typeof n.id})));
+                
+                // Convertir noteId a string para comparación más robusta
+                const noteIdStr = String(noteId);
+                const filteredNotes = notes.filter(note => String(note.id) !== noteIdStr);
+                
+                console.log('📝 Notas después de filtrar:', filteredNotes.length, 'eliminadas:', notes.length - filteredNotes.length);
+                
+                if (filteredNotes.length === notes.length) {
+                    console.error('❌ No se encontró la nota para eliminar con ID:', noteId);
+                    return;
+                }
+                
                 localStorage.setItem('lia_notes', JSON.stringify(filteredNotes));
+                console.log('💾 Notas guardadas en localStorage:', filteredNotes.length);
+                
+                // Actualizar la lista inmediatamente
                 updateNotesList();
-                console.log('🗑️ Nota eliminada:', noteId);
+                console.log('🗑️ Nota eliminada exitosamente:', noteId);
             }
 
             // ===== SISTEMA DE BÚSQUEDA DE NOTAS =====
@@ -10092,7 +10113,12 @@ Generado desde Coach LIA IA - ${currentDate}
                 console.log('🔗 Agregando event listeners a', notes.length, 'notas');
                 const noteItems = container.querySelectorAll('.note-item');
                 noteItems.forEach((item) => {
-                    item.addEventListener('click', () => {
+                    item.addEventListener('click', (event) => {
+                        // Verificar si el clic fue en el botón de eliminar
+                        if (event.target.closest('.note-delete-btn')) {
+                            console.log('🚫 Clic en botón de eliminar detectado, evitando apertura del modal');
+                            return; // No hacer nada, dejar que el onclick del botón maneje la eliminación
+                        }
                         const datasetId = item.getAttribute('data-note-id');
                         const noteData = notes.find((n) => String(n.id) === datasetId);
                         const idToUse = noteData ? noteData.id : datasetId;
