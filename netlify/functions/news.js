@@ -103,31 +103,45 @@ exports.handler = async (event, context) => {
         console.log('✅ Noticias obtenidas:', data?.length || 0);
 
         // Transformar los datos para que coincidan con el formato esperado por el frontend
-        const transformedNews = (data || []).map(news => ({
-            id: news.id,
-            title: news.title,
-            subtitle: news.subtitle,
-            excerpt: news.subtitle || news.title, // Usar subtitle como excerpt
-            category: news.language || 'general',
-            categoryLabel: getCategoryLabel(news.language || 'general'),
-            author: 'Chat-Bot-LIA', // Autor por defecto
-            date: news.published_at || news.created_at,
-            image: getCategoryIcon(news.language || 'general'),
-            views: news.metrics?.views || Math.floor(Math.random() * 1000),
-            comments: news.metrics?.comments || Math.floor(Math.random() * 50),
-            featured: false, // Por ahora no hay campo featured
-            hasDetailedView: true,
-            detailedData: {
-                tldr: news.tldr || [],
-                suggestedSteps: news.sections?.suggestedSteps || [],
-                risks: news.sections?.risks || [],
-                resources: news.links || [],
-                whyMatters: news.sections?.whyMatters || [],
-                whatChanged: news.sections?.whatChanged || [],
-                impact: news.sections?.impact || [],
-                cta: news.cta?.text || 'Leer más'
-            }
-        }));
+        const transformedNews = (data || []).map(news => {
+            // Extraer secciones del array
+            const sections = news.sections || [];
+            const getSectionItems = (kind) => {
+                const section = sections.find(s => s.kind === kind);
+                return section?.items || [];
+            };
+
+            return {
+                id: news.id,
+                title: news.title,
+                subtitle: news.subtitle,
+                excerpt: news.intro || news.subtitle || news.title,
+                category: news.language || 'general',
+                categoryLabel: getCategoryLabel(news.language || 'general'),
+                author: 'Chat-Bot-LIA',
+                date: news.published_at || news.created_at,
+                image: getCategoryIcon(news.language || 'general'),
+                views: news.metrics && Array.isArray(news.metrics) ? 
+                    (news.metrics.find(m => m.name === 'views')?.value || Math.floor(Math.random() * 1000)) : 
+                    Math.floor(Math.random() * 1000),
+                comments: Math.floor(Math.random() * 50),
+                featured: false,
+                hasDetailedView: true,
+                detailedData: {
+                    tldr: news.tldr || [],
+                    suggestedSteps: getSectionItems('steps'),
+                    risks: getSectionItems('risks'),
+                    resources: Array.isArray(news.links) ? news.links.map(link => ({
+                        url: link.url || '#',
+                        label: link.label || 'Recurso'
+                    })) : [],
+                    whyMatters: getSectionItems('why'),
+                    whatChanged: getSectionItems('whats_new'),
+                    impact: getSectionItems('impact'),
+                    cta: news.cta?.label || 'Leer más'
+                }
+            };
+        });
 
         return {
             statusCode: 200,
