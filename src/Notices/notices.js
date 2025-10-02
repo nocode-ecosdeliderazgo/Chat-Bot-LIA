@@ -312,8 +312,14 @@ class NoticesPage {
         this.showLoading();
 
         try {
+            // Determinar URL de API según el entorno
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const apiUrl = isLocalhost ? '/api/news' : '/.netlify/functions/news';
+            
+            console.log('🎯 API URL:', apiUrl);
+            
             // Intentar cargar desde API
-            const response = await fetch('/api/news');
+            const response = await fetch(apiUrl);
 
             if (response.ok) {
                 const data = await response.json();
@@ -323,6 +329,8 @@ class NoticesPage {
                 console.log('📰 Loaded news:', this.allNews.length, 'articles');
             } else {
                 console.warn('Error cargando noticias desde API:', response.status);
+                const errorText = await response.text();
+                console.error('Error details:', errorText);
                 this.allNews = [];
                 this.filteredNews = [];
             }
