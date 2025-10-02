@@ -135,20 +135,54 @@ exports.handler = async (event) => {
         const { prompt, context } = JSON.parse(event.body || '{}');
         if (!prompt) return json(400, { error: 'Prompt requerido' }, event);
 
+        // Función para estimar tokens (aproximadamente 1 token = 4 caracteres)
+        const estimateTokens = (text) => Math.ceil(text.length / 4);
+        
+        // Función para truncar texto manteniendo coherencia
+        const truncateText = (text, maxTokens) => {
+            const maxChars = maxTokens * 4;
+            if (text.length <= maxChars) return text;
+            return text.substring(0, maxChars) + '\n[... contenido truncado por límite de tokens ...]';
+        };
+
         const { combined, examples } = getPrompts();
 
+        // Limitar el prompt del usuario a un máximo razonable (60,000 tokens = 240,000 caracteres)
+        const maxUserPromptTokens = 60000;
+        const truncatedPrompt = truncateText(prompt, maxUserPromptTokens);
+        
+        // Limitar el contexto del sistema a 20,000 tokens
+        const maxSystemTokens = 20000;
         let systemContent = combined || 'Eres un asistente educativo especializado en IA.';
+        systemContent = truncateText(systemContent, maxSystemTokens);
+        
+        // Limitar el contexto adicional a 15,000 tokens
         if (context && String(context).trim()) {
-            systemContent += `\n\nContexto adicional de la base de datos:\n${context}`;
+            const maxContextTokens = 15000;
+            const truncatedContext = truncateText(String(context), maxContextTokens);
+            systemContent += `\n\nContexto adicional de la base de datos:\n${truncatedContext}`;
         }
 
         const messages = [
             { role: 'system', content: systemContent }
         ];
+        
+        // Limitar ejemplos a 5,000 tokens
         if (examples && examples.trim()) {
-            messages.push({ role: 'system', content: `Ejemplos de estilo y formato:\n\n${examples.substring(0, 4000)}` });
+            const truncatedExamples = truncateText(examples, 5000);
+            messages.push({ role: 'system', content: `Ejemplos de estilo y formato:\n\n${truncatedExamples}` });
         }
-        messages.push({ role: 'user', content: prompt });
+        
+        messages.push({ role: 'user', content: truncatedPrompt });
+        
+        // Log de seguridad: mostrar estimación de tokens
+        const totalEstimatedTokens = messages.reduce((sum, msg) => sum + estimateTokens(msg.content), 0);
+        console.log(`[OPENAI] Tokens estimados: ${totalEstimatedTokens} (límite de entrada: ~100000)`);
+        
+        // Verificación de seguridad adicional
+        if (totalEstimatedTokens > 100000) {
+            console.warn(`[OPENAI] ⚠️ Advertencia: Tokens estimados (${totalEstimatedTokens}) cerca del límite`);
+        }
 
         const body = {
             model: process.env.CHATBOT_MODEL || 'gpt-4o-mini',
