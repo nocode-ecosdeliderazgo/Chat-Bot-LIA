@@ -102,22 +102,42 @@ class CommunityAPI {
             }
         };
 
-        const finalOptions = { ...defaultOptions, ...options };
+        // Merge headers correctamente para no sobrescribir los personalizados
+        const finalOptions = {
+            ...defaultOptions,
+            ...options,
+            headers: {
+                ...defaultOptions.headers,
+                ...(options.headers || {})
+            }
+        };
 
         try {
             console.log(`🌐 API Request: ${finalOptions.method || 'GET'} ${url}`);
+            console.log('📋 Request headers:', finalOptions.headers);
+            console.log('📦 Request body:', finalOptions.body ? JSON.parse(finalOptions.body) : 'No body');
+
             const response = await fetch(url, finalOptions);
+
+            console.log(`📥 Response status: ${response.status} ${response.statusText}`);
+            console.log('📋 Response headers:', Object.fromEntries(response.headers.entries()));
+
             const data = await response.json();
+            console.log('📦 Response data:', data);
 
             if (!response.ok) {
-                throw new Error(data.error || `HTTP ${response.status}: ${data.details || ''}`);
+                const errorMessage = data.error || `HTTP ${response.status}: ${data.details || response.statusText}`;
+                console.error('❌ Request failed:', errorMessage);
+                throw new Error(errorMessage);
             }
 
             // Mapear respuesta para compatibilidad
             const mappedData = this.mapResponse(data);
+            console.log('✅ Mapped data:', mappedData);
             return mappedData;
         } catch (error) {
             console.error(`❌ API Error: ${error.message}`);
+            console.error('Stack:', error.stack);
             throw error;
         }
     }
@@ -225,17 +245,32 @@ class CommunityAPI {
      * Votar en una pregunta, respuesta o comentario
      */
     async vote(targetType, targetId, voteType) {
+        // Usar endpoints específicos para compatibilidad con Netlify y local
+        let endpoint;
+        if (targetType === 'question') {
+            endpoint = `/questions/${targetId}/vote`;
+        } else if (targetType === 'answer') {
+            endpoint = `/answers/${targetId}/vote`;
+        } else {
+            throw new Error(`Tipo de objetivo no soportado: ${targetType}`);
+        }
+
         const data = {
-            user_id: this.currentUser?.id || 'demo-user',
-            target_type: targetType,
-            target_id: targetId,
             vote_type: voteType
         };
 
-        return await this.makeRequest('/votes', {
+        // Configurar headers con user_id
+        const options = {
             method: 'POST',
-            body: JSON.stringify(data)
-        });
+            body: JSON.stringify(data),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.getAuthToken()}`,
+                'X-User-Id': this.currentUser?.id || 'demo-user'
+            }
+        };
+
+        return await this.makeRequest(endpoint, options);
     }
 
     /**

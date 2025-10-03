@@ -266,6 +266,209 @@ El equipo de Aprende y Aplica IA
 
 
     /**
+     * Envía email de recuperación de contraseña
+     * @param {string} to - Email del destinatario
+     * @param {string} resetToken - Token de recuperación
+     * @param {string} username - Nombre del usuario
+     * @returns {Promise<Object>} Resultado del envío
+     */
+    async sendPasswordResetEmail(to, resetToken, username) {
+        if (!this.transporter) {
+            throw new Error('Servicio de email no configurado');
+        }
+
+        const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/src/login/new-auth.html?token=${resetToken}`;
+        const subject = 'Recuperación de Contraseña - Aprende y Aplica IA';
+        const htmlContent = this.generatePasswordResetEmailHTML(resetUrl, resetToken, username);
+
+        try {
+            const info = await this.transporter.sendMail({
+                from: `"Aprende y Aplica IA" <${process.env.SMTP_USER}>`,
+                to: to,
+                subject: subject,
+                html: htmlContent,
+                text: this.generatePasswordResetEmailText(resetUrl, resetToken, username)
+            });
+
+            console.log('📧 Email de recuperación enviado:', {
+                to: to,
+                messageId: info.messageId,
+                timestamp: new Date().toISOString()
+            });
+
+            return {
+                success: true,
+                messageId: info.messageId,
+                timestamp: new Date().toISOString()
+            };
+        } catch (error) {
+            console.error('❌ Error enviando email de recuperación:', error);
+            throw new Error('Error enviando email de recuperación');
+        }
+    }
+
+    /**
+     * Genera el HTML del email de recuperación de contraseña
+     * @param {string} resetUrl - URL de recuperación
+     * @param {string} resetToken - Token de recuperación
+     * @param {string} username - Nombre del usuario
+     * @returns {string} HTML del email
+     */
+    generatePasswordResetEmailHTML(resetUrl, resetToken, username) {
+        return `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Recuperación de Contraseña</title>
+            <style>
+                body {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                    max-width: 600px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    background-color: #f4f4f4;
+                }
+                .container {
+                    background-color: #ffffff;
+                    padding: 40px;
+                    border-radius: 10px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                }
+                .header {
+                    text-align: center;
+                    margin-bottom: 30px;
+                }
+                .logo {
+                    color: #44E5FF;
+                    font-size: 24px;
+                    font-weight: bold;
+                    margin-bottom: 10px;
+                }
+                .button {
+                    display: inline-block;
+                    background: linear-gradient(135deg, #44E5FF, #0077A6);
+                    color: white !important;
+                    padding: 15px 35px;
+                    text-decoration: none;
+                    border-radius: 25px;
+                    margin: 20px 0;
+                    font-weight: bold;
+                    font-size: 16px;
+                }
+                .token-code {
+                    background: #f8f9fa;
+                    border: 2px dashed #44E5FF;
+                    padding: 15px;
+                    border-radius: 8px;
+                    text-align: center;
+                    font-family: 'Courier New', monospace;
+                    font-size: 14px;
+                    margin: 20px 0;
+                    word-break: break-all;
+                    color: #0077A6;
+                }
+                .warning {
+                    background-color: #fff3cd;
+                    border: 1px solid #ffeaa7;
+                    border-radius: 5px;
+                    padding: 15px;
+                    margin: 20px 0;
+                    color: #856404;
+                }
+                .footer {
+                    text-align: center;
+                    margin-top: 30px;
+                    padding-top: 20px;
+                    border-top: 1px solid #eee;
+                    color: #666;
+                    font-size: 14px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">🔐 Aprende y Aplica IA</div>
+                    <h1>Recuperación de Contraseña</h1>
+                </div>
+
+                <p>Hola <strong>${username}</strong>,</p>
+
+                <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>Aprende y Aplica IA</strong>.</p>
+
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${resetUrl}" class="button">
+                        🔓 Restablecer mi contraseña
+                    </a>
+                </div>
+
+                <p style="text-align: center; color: #666; font-size: 14px;">
+                    O copia y pega este enlace en tu navegador:
+                </p>
+
+                <div class="token-code">
+                    ${resetUrl}
+                </div>
+
+                <div class="warning">
+                    <strong>⚠️ Importante:</strong>
+                    <ul>
+                        <li>Este enlace expira en <strong>1 hora</strong></li>
+                        <li>Solo puedes usar este enlace una vez</li>
+                        <li>Si no solicitaste este cambio, ignora este email</li>
+                        <li>Tu contraseña actual permanece segura hasta que la cambies</li>
+                    </ul>
+                </div>
+
+                <p style="margin-top: 30px;">Si no solicitaste restablecer tu contraseña, puedes ignorar este correo. Tu cuenta permanece segura.</p>
+
+                <div class="footer">
+                    <p>Este es un email automático, por favor no respondas a este mensaje.</p>
+                    <p>Si tienes problemas con el enlace, contacta a nuestro equipo de soporte.</p>
+                    <p>&copy; 2024 Aprende y Aplica IA. Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        `;
+    }
+
+    /**
+     * Genera la versión de texto plano del email de recuperación
+     * @param {string} resetUrl - URL de recuperación
+     * @param {string} resetToken - Token de recuperación
+     * @param {string} username - Nombre del usuario
+     * @returns {string} Texto plano del email
+     */
+    generatePasswordResetEmailText(resetUrl, resetToken, username) {
+        return `
+Recuperación de Contraseña - Aprende y Aplica IA
+
+Hola ${username},
+
+Recibimos una solicitud para restablecer la contraseña de tu cuenta en Aprende y Aplica IA.
+
+Para restablecer tu contraseña, haz clic en el siguiente enlace:
+${resetUrl}
+
+IMPORTANTE:
+- Este enlace expira en 1 hora
+- Solo puedes usar este enlace una vez
+- Si no solicitaste este cambio, ignora este email
+- Tu contraseña actual permanece segura hasta que la cambies
+
+Si tienes problemas con el enlace, contacta a nuestro equipo de soporte.
+
+Saludos,
+El equipo de Aprende y Aplica IA
+        `;
+    }
+
+    /**
      * Verifica la configuración del servicio de email
      * @returns {boolean} True si está configurado correctamente
      */

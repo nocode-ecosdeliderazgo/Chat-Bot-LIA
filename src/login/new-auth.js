@@ -2594,20 +2594,44 @@ async function handleForgotPassword(e) {
                         closeForgotPasswordModal();
                         return;
                     } else {
-                        console.error('❌ Error de Supabase:', error);
+                        // Detectar si el error es porque Email logins está deshabilitado
+                        const isEmailLoginsDisabled = error.message && (
+                            error.message.includes('Email logins are disabled') ||
+                            error.message.includes('Email login is disabled') ||
+                            error.message.includes('email provider is disabled')
+                        );
 
-                        // Mostrar error específico si es útil para el usuario
-                        if (error.message.includes('email') || error.message.includes('SMTP')) {
-                            showNotification('Error: El servicio de email no está configurado. Contacta al administrador.', 'error');
-                            return;
+                        if (isEmailLoginsDisabled) {
+                            // Este es un caso esperado - Email provider no está habilitado en Supabase
+                            // Continuar silenciosamente con el servidor propio
+                            console.log('ℹ️ Supabase Email Provider no habilitado, usando servidor propio...');
+                        } else {
+                            // Otros errores se registran como errores reales
+                            console.error('❌ Error de Supabase:', error);
+
+                            // Mostrar error específico si es útil para el usuario
+                            if (error.message.includes('SMTP') || error.message.includes('mail server')) {
+                                showNotification('Error: El servicio de email no está configurado. Contacta al administrador.', 'error');
+                                return;
+                            }
                         }
                     }
                 }
             } catch (supabaseError) {
-                console.error('❌ Excepción de Supabase:', supabaseError);
-            }
+                // Solo registrar como error si no es el error esperado de Email logins disabled
+                const isExpectedError = supabaseError.message && (
+                    supabaseError.message.includes('Email logins are disabled') ||
+                    supabaseError.message.includes('Email login is disabled') ||
+                    supabaseError.message.includes('email provider is disabled')
+                );
 
-            console.log('⚠️ Supabase no funcionó, continuando con servidor propio...');
+                if (isExpectedError) {
+                    console.log('ℹ️ Supabase Email Provider no configurado, usando servidor propio...');
+                } else {
+                    console.error('❌ Excepción de Supabase:', supabaseError);
+                    console.log('⚠️ Supabase no funcionó, continuando con servidor propio...');
+                }
+            }
         } else {
             console.log('ℹ️ Supabase no está disponible o no está habilitado');
         }

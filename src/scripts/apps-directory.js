@@ -431,12 +431,19 @@ class AppsDirectory {
         };
 
         if (closeBtn) {
-        closeBtn.addEventListener('click', closeModal);
+            closeBtn.addEventListener('click', closeModal);
         }
         
         if (backdrop) {
             backdrop.addEventListener('click', closeModal);
         }
+        
+        // También cerrar al hacer clic fuera del contenido del modal
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
         
         // Close on escape key
         const handleEscape = (e) => {

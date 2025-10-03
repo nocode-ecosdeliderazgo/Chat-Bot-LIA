@@ -351,6 +351,7 @@ class ChatOnline {
             });
         });
     }
+
     
     goBack() {
         // Redirigir a la página de cursos

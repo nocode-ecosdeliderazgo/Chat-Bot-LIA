@@ -33,10 +33,12 @@ exports.handler = async (event, context) => {
 
     try {
         const { httpMethod, path, body, headers } = event;
-        const userId = headers['x-user-id'] || null;
+        // Buscar user_id en headers (case-insensitive)
+        const userId = headers['x-user-id'] || headers['X-User-Id'] || null;
 
         console.log(`🌐 Community Vote API: ${httpMethod} ${path}`);
         console.log('👤 User ID:', userId);
+        console.log('📋 Headers recibidos:', headers);
 
         if (httpMethod !== 'POST') {
             return {
@@ -51,12 +53,13 @@ exports.handler = async (event, context) => {
         }
 
         if (!userId) {
+            console.log('⚠️ Usuario no autenticado - Headers:', JSON.stringify(headers));
             return {
                 statusCode: 401,
                 headers: corsHeaders,
                 body: JSON.stringify({
                     success: false,
-                    error: 'Usuario no autenticado',
+                    error: 'Usuario no autenticado. Header X-User-Id requerido.',
                     data: null
                 })
             };

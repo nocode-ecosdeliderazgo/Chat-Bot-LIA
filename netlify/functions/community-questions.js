@@ -22,8 +22,11 @@ const corsHeaders = {
 };
 
 exports.handler = async (event, context) => {
+    console.log('🚀 community-questions function invoked');
+
     // Manejar preflight OPTIONS
     if (event.httpMethod === 'OPTIONS') {
+        console.log('✅ Responding to OPTIONS preflight request');
         return {
             statusCode: 200,
             headers: corsHeaders,
@@ -37,10 +40,28 @@ exports.handler = async (event, context) => {
 
         console.log(`🌐 Community Questions API: ${httpMethod} ${path}`);
         console.log('👤 User ID:', userId);
+        console.log('📋 Query Parameters:', queryStringParameters);
+
+        // Verificar configuración de Supabase
+        if (!supabaseUrl || !supabaseServiceKey) {
+            console.error('❌ CRITICAL: Supabase credentials missing');
+            return {
+                statusCode: 500,
+                headers: corsHeaders,
+                body: JSON.stringify({
+                    success: false,
+                    error: 'Supabase configuration error',
+                    data: null
+                })
+            };
+        }
+
+        console.log('✅ Supabase client configured');
 
         // GET /questions - Obtener preguntas
         if (httpMethod === 'GET') {
             const filters = queryStringParameters || {};
+            console.log('📊 Building query with filters:', filters);
 
             let query = supabase
                 .from('community_questions')
@@ -82,10 +103,16 @@ exports.handler = async (event, context) => {
             const offset = parseInt(filters.offset) || 0;
             query = query.range(offset, offset + limit - 1);
 
+            console.log('🔍 Executing Supabase query...');
             const { data, error } = await query;
 
             if (error) {
-                console.error('❌ Error obteniendo preguntas:', error);
+                console.error('❌ Supabase query error:', {
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code
+                });
                 return {
                     statusCode: 500,
                     headers: corsHeaders,
@@ -96,6 +123,13 @@ exports.handler = async (event, context) => {
                     })
                 };
             }
+
+            console.log(`✅ Query successful - Found ${data?.length || 0} questions`);
+            console.log('📦 Sample data:', data?.[0] ? {
+                id: data[0].id,
+                title: data[0].title?.substring(0, 50),
+                hasUser: !!data[0].users
+            } : 'No questions');
 
             return {
                 statusCode: 200,

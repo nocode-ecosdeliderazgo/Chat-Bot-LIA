@@ -916,10 +916,32 @@ app.post('/api/forgot-password', forgotPasswordLimiter, async (req, res) => {
                         message: 'Se ha enviado un enlace de recuperación a tu correo electrónico'
                     });
                 } else {
-                    console.warn('Error Supabase reset password:', error.message);
+                    // Detectar si el error es porque Email logins está deshabilitado
+                    const isEmailLoginsDisabled = error.message && (
+                        error.message.includes('Email logins are disabled') ||
+                        error.message.includes('Email login is disabled') ||
+                        error.message.includes('email provider is disabled')
+                    );
+
+                    if (isEmailLoginsDisabled) {
+                        console.log('ℹ️ Supabase Email Provider no habilitado, usando sistema de tokens propio...');
+                    } else {
+                        console.warn('Error Supabase reset password:', error.message);
+                    }
                 }
             } catch (supabaseError) {
-                console.warn('Error con Supabase:', supabaseError.message);
+                // Solo registrar como advertencia si no es el error esperado
+                const isExpectedError = supabaseError.message && (
+                    supabaseError.message.includes('Email logins are disabled') ||
+                    supabaseError.message.includes('Email login is disabled') ||
+                    supabaseError.message.includes('email provider is disabled')
+                );
+
+                if (isExpectedError) {
+                    console.log('ℹ️ Supabase Email Provider no configurado, usando sistema de tokens propio...');
+                } else {
+                    console.warn('Error con Supabase:', supabaseError.message);
+                }
             }
         }
 
@@ -951,18 +973,58 @@ app.post('/api/forgot-password', forgotPasswordLimiter, async (req, res) => {
             // Continuar sin fallar para no revelar información
         }
 
-        // En modo desarrollo, mostrar el token en la consola
-        if (DEV_MODE) {
-            console.log(`🔐 Token de recuperación para ${email}: ${resetToken}`);
-            console.log(`🔗 URL de recuperación: ${req.protocol}://${req.get('host')}/src/login/reset-password.html?token=${resetToken}`);
+        // 🚨 ENVIAR EMAIL REAL CON EL TOKEN
+        try {
+            if (emailService.isConfigured()) {
+                console.log(`📧 Intentando enviar email de recuperación a ${email}...`);
+
+                // Obtener username del usuario
+                let username = email.split('@')[0];
+                try {
+                    const userResult = await pool.query(
+                        'SELECT username, full_name FROM users WHERE email = $1',
+                        [email.toLowerCase()]
+                    );
+                    if (userResult.rows.length > 0) {
+                        username = userResult.rows[0].full_name || userResult.rows[0].username || username;
+                    }
+                } catch (err) {
+                    console.warn('No se pudo obtener username:', err.message);
+                }
+
+                await emailService.sendPasswordResetEmail(email, resetToken, username);
+
+                console.log(`✅ Email de recuperación enviado exitosamente a ${email}`);
+                res.status(200).json({
+                    message: 'Se ha enviado un enlace de recuperación a tu correo electrónico'
+                });
+            } else {
+                console.error('⚠️ Servicio de email no configurado - Verifica variables SMTP_*');
+
+                // En modo desarrollo, mostrar el token en la consola
+                if (DEV_MODE) {
+                    console.log(`🔐 [DEV MODE] Token de recuperación para ${email}: ${resetToken}`);
+                    console.log(`🔗 [DEV MODE] URL: ${req.protocol}://${req.get('host')}/src/login/new-auth.html?token=${resetToken}`);
+                }
+
+                res.status(200).json({
+                    message: 'Se ha enviado un enlace de recuperación a tu correo electrónico'
+                });
+            }
+        } catch (emailError) {
+            console.error('❌ Error enviando email de recuperación:', emailError);
+
+            // En modo desarrollo, mostrar el token
+            if (DEV_MODE) {
+                console.log(`🔐 [DEV MODE] Token de recuperación para ${email}: ${resetToken}`);
+                console.log(`🔗 [DEV MODE] URL: ${req.protocol}://${req.get('host')}/src/login/new-auth.html?token=${resetToken}`);
+            }
+
+            // No revelar el error al usuario por seguridad
+            res.status(200).json({
+                message: 'Se ha enviado un enlace de recuperación a tu correo electrónico'
+            });
         }
-
-        // TODO: Implementar envío de email real con nodemailer
-        // Por ahora solo simulamos el envío exitoso
-
-        res.status(200).json({
-            message: 'Se ha enviado un enlace de recuperación a tu correo electrónico'
-        });
 
     } catch (error) {
         console.error('Error en forgot-password:', error);
@@ -1585,31 +1647,63 @@ app.get('/api/news', async (req, res) => {
             });
         }
 
+        // Utilidad para parseo seguro (por si las columnas están como texto)
+        const safeParse = (value, fallback) => {
+            if (value == null) return fallback;
+            if (typeof value === 'object') return value;
+            try { return JSON.parse(value); } catch (_) { return fallback; }
+        };
+
         // Mapear datos de BD al formato esperado por el frontend
-        const mappedNews = news.map(newsItem => ({
-            id: newsItem.id,
-            title: newsItem.title,
-            excerpt: newsItem.subtitle || newsItem.intro || '',
-            category: 'tecnologia', // Por defecto
-            categoryLabel: 'Tecnología',
-            author: 'Sistema',
-            date: newsItem.published_at,
-            views: 0,
-            comments: 0,
-            image: newsItem.hero_image_url || 'fas fa-newspaper',
-            featured: false,
-            hasDetailedView: true,
-            detailedData: {
-                tldr: newsItem.tldr || [],
-                suggestedSteps: newsItem.sections?.steps || [],
-                risks: newsItem.sections?.risks || [],
-                resources: newsItem.links || [],
-                whyMatters: newsItem.sections?.whyMatters || [],
-                whatChanged: newsItem.sections?.whatChanged || [],
-                impact: newsItem.sections?.impact || [],
-                cta: newsItem.cta?.text || 'Leer más'
-            }
-        }));
+        const mappedNews = news.map(raw => {
+            const tldr = safeParse(raw.tldr, Array.isArray(raw.tldr) ? raw.tldr : []);
+            const sections = safeParse(raw.sections, Array.isArray(raw.sections) ? raw.sections : []);
+            const links = safeParse(raw.links, Array.isArray(raw.links) ? raw.links : []);
+            const cta = safeParse(raw.cta, raw.cta);
+
+            // Extraer secciones por "kind" del arreglo
+            const getItems = (kind) => {
+                // Forma A: arreglo de objetos con { kind, items }
+                if (Array.isArray(sections)) {
+                    const found = sections.find(s => s.kind === kind);
+                    if (found && Array.isArray(found.items)) return found.items;
+                }
+                // Forma B: objeto con claves directas { steps:[], risks:[], ... }
+                if (sections && typeof sections === 'object') {
+                    const byKey = sections[kind];
+                    if (Array.isArray(byKey)) return byKey;
+                }
+                return [];
+            };
+
+            // El frontend usa un icono para "image"; si tenemos URL, mantener un icono por defecto
+            const imageIcon = 'fas fa-newspaper';
+
+            return {
+                id: raw.id,
+                title: raw.title,
+                excerpt: raw.subtitle || raw.intro || '',
+                category: 'tecnologia',
+                categoryLabel: 'Tecnología',
+                author: 'Sistema',
+                date: raw.published_at,
+                views: 0,
+                comments: 0,
+                image: imageIcon,
+                featured: false,
+                hasDetailedView: true,
+                detailedData: {
+                    tldr: Array.isArray(tldr) ? tldr : [],
+                    suggestedSteps: getItems('steps'),
+                    risks: getItems('risks'),
+                    resources: Array.isArray(links) ? links.map(l => ({ url: l.url, label: l.label || l.name })) : [],
+                    whyMatters: getItems('why'),
+                    whatChanged: getItems('whats_new'),
+                    impact: getItems('impact'),
+                    cta: (cta && (cta.label || cta.text)) ? (cta.label || cta.text) : 'Leer más'
+                }
+            };
+        });
 
         res.json({
             success: true,

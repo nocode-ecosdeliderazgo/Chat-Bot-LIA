@@ -55,6 +55,39 @@
     box-sizing: border-box;
 }
 
+/* ===== SOBRESCRITURA DE ESTILOS GLOBALES PARA LA PÁGINA DE PERFIL ===== */
+/* Estos estilos corrigen el problema de ancho limitado causado por main.css */
+body.body-profile-page {
+    /* Sobrescribir completamente el ancho fijo de 1280px de main.css */
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+}
+
+html:has(body.body-profile-page) {
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Asegurar que todos los contenedores principales no tengan límites de ancho */
+body.body-profile-page .main-container,
+body.body-profile-page .hero-section,
+body.body-profile-page .features-section,
+body.body-profile-page .stats-section,
+body.body-profile-page .testimonials-section,
+body.body-profile-page .cta-section,
+body.body-profile-page .auth-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: auto !important;
+    margin: 0 !important;
+}
+
 body {
     font-family: var(--font-secondary);
     background:
@@ -65,14 +98,16 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
     transition: background 0.3s ease, color 0.3s ease;
-    width: 100%;
-    max-width: 100vw;
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: auto !important;
     box-sizing: border-box;
 }
 
 html {
     overflow-x: hidden;
-    width: 100%;
+    width: 100% !important;
+    min-width: auto !important;
     box-sizing: border-box;
 }
 
@@ -458,9 +493,9 @@ html {
 /* Contenedor principal de la página */
 .content-wrapper {
     width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 24px;
+    max-width: 100%;
+    margin: 0;
+    padding: 24px 16px;
     display: grid;
     grid-template-columns: 340px 1fr;
     gap: 24px;

@@ -312,8 +312,14 @@ class NoticesPage {
         this.showLoading();
 
         try {
+            // Determinar URL de API según el entorno
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const apiUrl = isLocalhost ? '/api/news' : '/.netlify/functions/news';
+            
+            console.log('🎯 API URL:', apiUrl);
+            
             // Intentar cargar desde API
-            const response = await fetch('/api/news');
+            const response = await fetch(apiUrl);
 
             if (response.ok) {
                 const data = await response.json();
@@ -323,6 +329,8 @@ class NoticesPage {
                 console.log('📰 Loaded news:', this.allNews.length, 'articles');
             } else {
                 console.warn('Error cargando noticias desde API:', response.status);
+                const errorText = await response.text();
+                console.error('Error details:', errorText);
                 this.allNews = [];
                 this.filteredNews = [];
             }
@@ -830,17 +838,11 @@ class NoticesPage {
 
     // ===== LOADING STATES =====
     showLoading() {
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        if (loadingOverlay) {
-            loadingOverlay.classList.add('active');
-        }
+        // Loading overlay removido - no hacer nada
     }
 
     hideLoading() {
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        if (loadingOverlay) {
-            loadingOverlay.classList.remove('active');
-        }
+        // Loading overlay removido - no hacer nada
     }
 
     // ===== TOAST NOTIFICATIONS =====
@@ -1217,10 +1219,30 @@ function closeNewsModal() {
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('newsModal');
     const backdrop = modal?.querySelector('.modal-backdrop');
+    const modalContent = modal?.querySelector('.modal-content');
 
     // Cerrar modal al hacer clic en el backdrop
     if (backdrop) {
         backdrop.addEventListener('click', closeNewsModal);
+    }
+
+    // Cerrar modal al hacer clic fuera de la tarjeta (área de modal no cubierta)
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            // si el clic fue exactamente en el backdrop o fuera de .modal-content
+            if (e.target === modal || e.target.classList.contains('modal-backdrop')) {
+                closeNewsModal();
+            } else if (modalContent && !modalContent.contains(e.target)) {
+                closeNewsModal();
+            }
+        });
+    }
+
+    // Evitar que los clics dentro del contenido cierren el modal
+    if (modalContent) {
+        modalContent.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
     }
 
     // Cerrar modal con ESC

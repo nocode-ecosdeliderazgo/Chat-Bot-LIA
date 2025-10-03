@@ -287,11 +287,11 @@
         </button>
     </div>
     <button class="header-profile">
-        <img src="/assets/images/icono.png" alt="Perfil" />
+        <img id="headerProfileImg" src="/assets/images/default-avatar.svg" alt="Perfil" onerror="this.onerror=null; this.src='/assets/images/default-avatar.svg';" />
     </button>
     <div id="profileMenu" class="profile-menu">
         <div class="pm-header">
-            <div class="pm-avatar"><img src="/assets/images/icono.png" alt="Perfil"/></div>
+            <div class="pm-avatar"><img id="menuProfileImg" src="/assets/images/default-avatar.svg" alt="Perfil" onerror="this.onerror=null; this.src='/assets/images/default-avatar.svg';"/></div>
             <div>
                 <div class="pm-name" id="pmName">Usuario</div>
                 <div class="pm-email" id="pmEmail">user@example.com</div>
@@ -527,8 +527,8 @@
     }, 1000);
     </script>
 
-    <script src="/Community/community.js"></script>
     <script src="/scripts/profile-avatar-manager.js"></script>
+    <script src="/Community/community.js"></script>
     <script src="/scripts/force-theme-init.js"></script>
     <script src="/scripts/theme-manager.js"></script>
     <script src="/scripts/community-particles-interactive.js"></script>

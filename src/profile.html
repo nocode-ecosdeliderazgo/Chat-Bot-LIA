@@ -11,8 +11,10 @@
     <!-- Script para cargar credenciales de Supabase desde API en Netlify -->
     <script>
         // Cargar credenciales de Supabase antes de inicializar la página
-        (async function loadSupabaseCredentials() {
+        window.supabaseCredentialsLoaded = false;
+        window.supabaseCredentialsPromise = (async function loadSupabaseCredentials() {
             try {
+                console.log('🔄 Cargando credenciales de Supabase desde API...');
                 const response = await fetch('/api/supabase-config');
                 if (response.ok) {
                     const config = await response.json();
@@ -25,12 +27,31 @@
                         document.querySelector('meta[name="supabase-url"]').content = config.url;
                         document.querySelector('meta[name="supabase-key"]').content = config.anon_key;
 
+                        // Guardar también como variables globales
+                        window.SUPABASE_URL = config.url;
+                        window.SUPABASE_ANON_KEY = config.anon_key;
+
+                        window.supabaseCredentialsLoaded = true;
                         console.log('✅ Credenciales de Supabase cargadas desde API');
+                        return true;
+                    } else {
+                        console.warn('⚠️ Respuesta de API incompleta:', config);
+                        return false;
                     }
+                } else {
+                    console.warn('⚠️ Error HTTP al cargar credenciales:', response.status);
+                    return false;
                 }
             } catch (error) {
-                console.warn('⚠️ No se pudieron cargar credenciales de Supabase desde API:', error);
-                // Continuar con credenciales en localStorage si existen
+                console.error('❌ Error cargando credenciales de Supabase desde API:', error);
+                // Verificar si hay credenciales en localStorage como fallback
+                const hasLocalCredentials = localStorage.getItem('supabaseUrl') && localStorage.getItem('supabaseAnonKey');
+                if (hasLocalCredentials) {
+                    console.log('✅ Usando credenciales de localStorage como fallback');
+                    window.supabaseCredentialsLoaded = true;
+                    return true;
+                }
+                return false;
             }
         })();
     </script>
@@ -54,7 +75,7 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="scripts/supabase-client.js"></script>
 </head>
-<body>
+<body class="body-profile-page">
     <!-- Partículas de fondo estáticas CSS -->
     <div class="particles-container">
         <div class="particle"></div>
