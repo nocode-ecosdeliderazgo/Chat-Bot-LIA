@@ -10,6 +10,17 @@ class ProfileManager {
 
     async init() {
         try {
+            // Esperar a que las credenciales de Supabase se carguen primero
+            console.log('🔄 ProfileManager: Esperando credenciales de Supabase...');
+            if (window.supabaseCredentialsPromise) {
+                const credentialsLoaded = await window.supabaseCredentialsPromise;
+                if (credentialsLoaded) {
+                    console.log('✅ ProfileManager: Credenciales de Supabase cargadas');
+                } else {
+                    console.warn('⚠️ ProfileManager: Credenciales de Supabase no se cargaron completamente, continuando...');
+                }
+            }
+
             // Esperar a que Supabase esté listo antes de continuar
             console.log('🔄 ProfileManager: Esperando a que Supabase esté listo...');
             await this.waitForSupabase();
@@ -22,7 +33,7 @@ class ProfileManager {
             this.setupEventListeners();
             this.setupAutoSave();
         } catch (error) {
-            console.error('Error inicializando ProfileManager:', error);
+            console.error('❌ Error inicializando ProfileManager:', error);
             this.showError('Error al cargar el perfil. Algunos datos pueden no estar disponibles.');
         }
     }
@@ -87,13 +98,26 @@ class ProfileManager {
                 if (sessionUser.username) attempts.push(`username=${encodeURIComponent(sessionUser.username)}`);
                 if (sessionUser.email) attempts.push(`email=${encodeURIComponent(sessionUser.email)}`);
 
+                console.log('🔍 Intentos de obtención de perfil:', attempts.length);
+
                 for (const q of attempts) {
                     try {
-                        console.log(`🔄 Intentando obtener perfil: /api/profile?${q}`);
+                        console.log(`🔄 Intento ${attempts.indexOf(q) + 1}/${attempts.length}: /api/profile?${q}`);
                         const r = await fetch(`/api/profile?${q}`);
+                        console.log(`📡 Respuesta del servidor: ${r.status} ${r.statusText}`);
+                        
                         if (r.ok) {
                             const result = await r.json();
                             console.log('✅ Perfil obtenido exitosamente desde API');
+                            console.log('📊 Datos recibidos:', {
+                                hasUser: !!result.user,
+                                username: result.user?.username,
+                                email: result.user?.email,
+                                first_name: result.user?.first_name,
+                                last_name: result.user?.last_name,
+                                phone: result.user?.phone,
+                                location: result.user?.location
+                            });
                             return result;
                         } else if (r.status === 404 && attempts.indexOf(q) === 0) {
                             // Si el primer intento retorna 404, intentar sincronizar usuario
@@ -107,10 +131,11 @@ class ProfileManager {
                                 return result;
                             }
                         } else {
-                            console.warn(`⚠️ API retornó ${r.status} para ${q}`);
+                            const errorText = await r.text();
+                            console.warn(`⚠️ API retornó ${r.status} para ${q}:`, errorText);
                         }
                     } catch(err) {
-                        console.warn(`⚠️ Error en fetch para ${q}:`, err);
+                        console.error(`❌ Error en fetch para ${q}:`, err);
                     }
                 }
 
