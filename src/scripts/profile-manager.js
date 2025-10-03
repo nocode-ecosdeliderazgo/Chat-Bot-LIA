@@ -165,8 +165,7 @@ class ProfileManager {
                         phone: sessionUser.phone || profileFromStorage?.phone || '',
                         location: sessionUser.location || profileFromStorage?.location || '',
                         bio: sessionUser.bio || profileFromStorage?.bio || '',
-                        cargo_rol: sessionUser.cargo_rol || sessionUser.company_role || profileFromStorage?.cargo_rol || 'Usuario',
-                        company_role: sessionUser.company_role || profileFromStorage?.company_role || '',
+                        cargo_rol: sessionUser.cargo_rol || profileFromStorage?.cargo_rol || 'Usuario',
                         type_rol: sessionUser.type_rol || profileFromStorage?.type_rol || 'usuario',
                         profile_picture_url: sessionUser.profile_picture_url || sessionUser.avatar_url || null,
                         avatar_url: sessionUser.avatar_url || sessionUser.profile_picture_url || null,
@@ -199,12 +198,15 @@ class ProfileManager {
                 full_name: data.display_name || `${data.first_name || ''} ${data.last_name || ''}`.trim() || data.username,
                 username: data.username,
                 email: data.email,
-                cargo_rol: data.cargo_rol || data.company_role || 'Usuario',
+                cargo_rol: data.cargo_rol || 'Usuario',
                 type_rol: data.type_rol || 'usuario',
                 profile_picture_url: data.profile_picture_url || data.avatar_url || null,
                 curriculum_url: data.curriculum_url || null,
                 created_at: data.created_at,
-                last_login_at: data.last_login_at
+                last_login_at: data.last_login_at,
+                linkedin_url: data.linkedin_url || '',
+                github_url: data.github_url || '',
+                website_url: data.website_url || data.portfolio_url || ''
             };
             this.profileData = {
                 first_name: data.first_name || '',
@@ -279,12 +281,11 @@ class ProfileManager {
         const fullNameElement = document.getElementById('currentFullName');
         const emailElement = document.getElementById('currentEmail');
         const cargoRolElement = document.getElementById('currentCargoRol');
-        const typeRolElement = document.getElementById('currentTypeRol');
 
+        // currentCargoRol en el HTML muestra el "badge" que debe ser type_rol
         if (fullNameElement) fullNameElement.textContent = this.currentUser.full_name;
         if (emailElement) emailElement.textContent = this.currentUser.email;
-        if (cargoRolElement) cargoRolElement.textContent = this.currentUser.cargo_rol;
-        if (typeRolElement) typeRolElement.textContent = this.currentUser.type_rol;
+        if (cargoRolElement) cargoRolElement.textContent = this.currentUser.type_rol || 'Usuario';
 
         // Actualizar avatar si existe
         if (this.currentUser.profile_picture_url) {
@@ -299,6 +300,13 @@ class ProfileManager {
             this.updateCurriculumDisplay('Curriculum cargado', this.currentUser.curriculum_url);
         }
 
+        console.log('✅ Visualización de perfil actualizada:', {
+            fullName: fullNameElement?.textContent,
+            email: emailElement?.textContent,
+            typeRol: cargoRolElement?.textContent,
+            avatar: this.currentUser.profile_picture_url
+        });
+
         // Mostrar panel de administración si el usuario es administrador
         this.updateAdminPanel();
     }
@@ -307,17 +315,16 @@ class ProfileManager {
         const adminPanel = document.getElementById('adminPanel');
         if (!adminPanel) return;
 
-        // Verificar si el usuario es administrador
+        // Verificar si el usuario es administrador (basado en type_rol)
         const isAdmin = this.currentUser && 
-            (this.currentUser.cargo_rol === 'Administrador' || 
-             this.currentUser.cargo_rol === 'administrador' ||
-             this.currentUser.type_rol === 'administrador');
+            (this.currentUser.type_rol === 'administrador' ||
+             this.currentUser.type_rol === 'admin');
 
         if (isAdmin) {
-            console.log('Usuario es administrador, mostrando panel de administración');
+            console.log('✅ Usuario es administrador, mostrando panel de administración');
             adminPanel.style.display = 'block';
         } else {
-            console.log('Usuario no es administrador, ocultando panel de administración');
+            console.log('ℹ️ Usuario no es administrador, ocultando panel de administración');
             adminPanel.style.display = 'none';
         }
     }
@@ -344,8 +351,8 @@ class ProfileManager {
         console.log('📋 Estableciendo lastName:', this.profileData.last_name);
         this.setFormValue('lastName', this.profileData.last_name);
 
-        console.log('📋 Estableciendo companyRole:', this.currentUser.cargo_rol, 'o', this.currentUser.company_role);
-        this.setFormValue('companyRole', this.currentUser.cargo_rol || this.currentUser.company_role);
+        console.log('📋 Estableciendo companyRole (type_rol):', this.currentUser.type_rol);
+        this.setFormValue('companyRole', this.currentUser.type_rol || '');
 
         console.log('📋 Estableciendo phone:', this.profileData.phone);
         this.setFormValue('phone', this.profileData.phone);
@@ -821,6 +828,7 @@ class ProfileManager {
             phone: formData.get('phone'),
             bio: formData.get('bio'),
             location: formData.get('location'),
+            type_rol: document.getElementById('companyRole')?.value || null,
             linkedin_url: document.getElementById('linkedinUrl')?.value || null,
             github_url: document.getElementById('githubUrl')?.value || null,
             website_url: document.getElementById('portfolioUrl')?.value || null
@@ -905,6 +913,7 @@ class ProfileManager {
         
         this.currentUser.email = user.email || updates.email;
         this.currentUser.username = user.username || updates.username;
+        this.currentUser.type_rol = user.type_rol || updates.type_rol;
         if (user.profile_picture_url) this.currentUser.profile_picture_url = user.profile_picture_url;
         if (user.curriculum_url) this.currentUser.curriculum_url = user.curriculum_url;
         this.currentUser.full_name = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || updates.display_name;

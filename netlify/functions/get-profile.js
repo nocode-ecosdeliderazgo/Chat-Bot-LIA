@@ -125,7 +125,7 @@ async function handleUpdateProfile(event) {
     }
 
     const body = JSON.parse(event.body || '{}');
-    const { id, username, email, first_name, last_name, company_role, phone, location, bio, linkedin_url, portfolio_url, github_url } = body;
+    const { id, username, email, first_name, last_name, company_role, type_rol, phone, location, bio, linkedin_url, portfolio_url, github_url, website_url } = body;
 
     if (!id && !username) {
       return json(400, { error: 'Se requiere id o username para actualizar' }, event);
@@ -139,12 +139,14 @@ async function handleUpdateProfile(event) {
     if (first_name) updates.first_name = first_name;
     if (last_name) updates.last_name = last_name;
     if (company_role) updates.company_role = company_role;
+    if (type_rol) updates.type_rol = type_rol;
     if (phone) updates.phone = phone;
     if (location) updates.location = location;
     if (bio) updates.bio = bio;
     if (linkedin_url) updates.linkedin_url = linkedin_url;
     if (portfolio_url) updates.portfolio_url = portfolio_url;
     if (github_url) updates.github_url = github_url;
+    if (website_url) updates.website_url = website_url;
 
     if (Object.keys(updates).length === 0) {
       return json(400, { error: 'No hay campos para actualizar' }, event);
