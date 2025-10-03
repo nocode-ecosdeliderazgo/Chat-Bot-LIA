@@ -187,6 +187,66 @@
         [data-theme="light"] .radar-info {
             border-top-color: rgba(0, 0, 0, 0.1);
         }
+        
+        /* Estilos para la explicación del radar */
+        .radar-explanation {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .radar-explanation h4 i {
+            font-size: 1.3rem;
+        }
+        
+        .radar-explanation h5 i {
+            font-size: 1.1rem;
+        }
+        
+        /* Tema claro para la explicación del radar */
+        [data-theme="light"] .radar-explanation h4 {
+            color: #0077a6;
+        }
+        
+        [data-theme="light"] .radar-explanation h5 {
+            color: #0077a6;
+        }
+        
+        [data-theme="light"] .radar-explanation p {
+            color: #555;
+        }
+        
+        [data-theme="light"] .radar-explanation > div > div {
+            background: rgba(0, 0, 0, 0.03);
+            border-left-color: #0077a6;
+        }
+        
+        [data-theme="light"] .radar-explanation > div:last-child {
+            background: rgba(0, 119, 166, 0.1);
+            border-color: rgba(0, 119, 166, 0.3);
+        }
+        
+        [data-theme="light"] .radar-explanation > div:last-child p {
+            color: #333;
+        }
+        
+        [data-theme="light"] .radar-explanation > div:last-child i {
+            color: #0077a6;
+        }
+        
+        /* Responsive para explicación del radar */
+        @media (max-width: 768px) {
+            .radar-explanation h4 {
+                font-size: 1.1rem;
+            }
+            
+            .radar-explanation > div:first-of-type {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .radar-explanation > div > div {
+                padding: 1rem;
+            }
+        }
 
         /* Estilos para la sección de adopción */
         .adoption-section {
@@ -643,6 +703,72 @@
                             <div id="debugInfo" style="margin-top: 16px; font-size: 12px; color: #666;">
                                 <div id="userIdInfo"></div>
                                 <div id="connectionStatus"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Explicación de las dimensiones del radar -->
+                        <div class="radar-explanation" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                            <h4 style="color: #44e5ff; font-family: 'Montserrat', sans-serif; font-size: 1.2rem; font-weight: 600; margin-bottom: 1.5rem; text-align: center;">
+                                <i class='bx bx-info-circle'></i> ¿Qué significa cada dimensión?
+                            </h4>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                                <!-- Conocimiento -->
+                                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1.2rem; border-left: 4px solid #44e5ff;">
+                                    <h5 style="color: #44e5ff; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class='bx bx-brain'></i> Conocimiento
+                                    </h5>
+                                    <p style="color: #ccc; font-size: 0.9rem; line-height: 1.5; margin: 0;">
+                                        Mide tu comprensión teórica sobre IA, conceptos fundamentales y terminología. Evalúa qué tanto sabes sobre las herramientas y tecnologías de IA.
+                                    </p>
+                                </div>
+                                
+                                <!-- Aplicación -->
+                                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1.2rem; border-left: 4px solid #44e5ff;">
+                                    <h5 style="color: #44e5ff; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class='bx bx-rocket'></i> Aplicación
+                                    </h5>
+                                    <p style="color: #ccc; font-size: 0.9rem; line-height: 1.5; margin: 0;">
+                                        Evalúa tu capacidad para implementar IA en casos de uso reales y resolver problemas específicos de tu área profesional.
+                                    </p>
+                                </div>
+                                
+                                <!-- Productividad -->
+                                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1.2rem; border-left: 4px solid #44e5ff;">
+                                    <h5 style="color: #44e5ff; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class='bx bx-trending-up'></i> Productividad
+                                    </h5>
+                                    <p style="color: #ccc; font-size: 0.9rem; line-height: 1.5; margin: 0;">
+                                        Mide cómo utilizas la IA para optimizar tu trabajo diario, automatizar tareas y mejorar tu eficiencia personal.
+                                    </p>
+                                </div>
+                                
+                                <!-- Estrategia -->
+                                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1.2rem; border-left: 4px solid #44e5ff;">
+                                    <h5 style="color: #44e5ff; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class='bx bx-chess'></i> Estrategia
+                                    </h5>
+                                    <p style="color: #ccc; font-size: 0.9rem; line-height: 1.5; margin: 0;">
+                                        Evalúa tu visión sobre el impacto estratégico de la IA en tu organización y cómo planificar su adopción a largo plazo.
+                                    </p>
+                                </div>
+                                
+                                <!-- Inversión -->
+                                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1.2rem; border-left: 4px solid #44e5ff;">
+                                    <h5 style="color: #44e5ff; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class='bx bx-dollar-circle'></i> Inversión
+                                    </h5>
+                                    <p style="color: #ccc; font-size: 0.9rem; line-height: 1.5; margin: 0;">
+                                        Mide tu disposición y capacidad para invertir tiempo, recursos y presupuesto en herramientas y formación en IA.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(68, 229, 255, 0.1); border-radius: 12px; border: 1px solid rgba(68, 229, 255, 0.3);">
+                                <p style="color: #fff; font-size: 0.9rem; line-height: 1.6; margin: 0; text-align: center;">
+                                    <i class='bx bx-info-circle' style="color: #44e5ff;"></i>
+                                    <strong>Puntuación:</strong> Cada dimensión se evalúa en una escala de 0 a 100, donde 0 representa conocimiento/uso mínimo y 100 representa dominio/uso avanzado.
+                                </p>
                             </div>
                         </div>
                     </div>
