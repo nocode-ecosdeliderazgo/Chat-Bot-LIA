@@ -185,7 +185,7 @@ async function fetchCredentialsFromAPI() {
     try {
         // console.log('📡 Obteniendo credenciales desde /api/supabase-config...');
         
-        const response = await fetch('/api/supabase-config');
+        const response = await fetch('/.netlify/functions/supabase-config');
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }

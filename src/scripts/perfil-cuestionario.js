@@ -66,7 +66,7 @@ class ProfileQuestionnaire {
                     else if (cu.username) params.set('username', cu.username);
                     else if (cu.email) params.set('email', cu.email);
                     if ([...params.keys()].length) {
-                        const resp = await fetch(`/api/profile?${params.toString()}`);
+                        const resp = await fetch(`/.netlify/functions/get-profile?${params.toString()}`);
                         if (resp.ok) {
                             const json = await resp.json();
                             const typeRol = (json?.user?.type_rol || '').trim();
@@ -290,7 +290,7 @@ class ProfileQuestionnaire {
                     else if (u?.email) params.set('email', u.email);
                     if ([...params.keys()].length) {
                         try {
-                            const resp = await fetch(`/api/profile?${params.toString()}`);
+                            const resp = await fetch(`/.netlify/functions/get-profile?${params.toString()}`);
                             if (resp.ok) {
                                 const json = await resp.json();
                                 email = json?.user?.email || '';
@@ -502,7 +502,7 @@ class ProfileQuestionnaire {
 
             console.log('[PersistRole Backend] Actualizando type_rol a:', roleToSave);
 
-            const response = await fetch('/api/update-profile', {
+            const response = await fetch('/.netlify/functions/update-profile', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -579,7 +579,7 @@ class ProfileQuestionnaire {
 
         try {
             // Intentar guardar usando el servidor backend primero
-            const response = await fetch('/api/save-responses', {
+            const response = await fetch('/.netlify/functions/save-responses', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

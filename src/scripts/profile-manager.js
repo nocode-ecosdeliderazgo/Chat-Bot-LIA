@@ -89,8 +89,9 @@ class ProfileManager {
 
                 for (const q of attempts) {
                     try {
-                        console.log(`🔄 Intentando obtener perfil: /api/profile?${q}`);
-                        const r = await fetch(`/api/profile?${q}`);
+                        const apiUrl = window.apiUrl ? window.apiUrl('get-profile') : `/.netlify/functions/get-profile`;
+                        console.log(`🔄 Intentando obtener perfil: ${apiUrl}?${q}`);
+                        const r = await fetch(`${apiUrl}?${q}`);
                         if (r.ok) {
                             const result = await r.json();
                             console.log('✅ Perfil obtenido exitosamente desde API');
@@ -100,7 +101,8 @@ class ProfileManager {
                             console.log('⚠️ Usuario no encontrado, intentando sincronizar...');
                             await this.syncUserToDatabase(sessionUser);
                             // Reintentar después de sincronizar
-                            const retry = await fetch(`/api/profile?${q}`);
+                            const retryUrl = window.apiUrl ? window.apiUrl('get-profile') : `/.netlify/functions/get-profile`;
+                            const retry = await fetch(`${retryUrl}?${q}`);
                             if (retry.ok) {
                                 const result = await retry.json();
                                 console.log('✅ Perfil obtenido exitosamente después de sincronizar');
@@ -213,7 +215,8 @@ class ProfileManager {
         try {
             console.log('🔄 Sincronizando usuario a la base de datos...');
 
-            const response = await fetch('/api/sync-user', {
+                            const syncUrl = window.apiUrl ? window.apiUrl('sync-user') : '/.netlify/functions/sync-user';
+                            const response = await fetch(syncUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -585,7 +588,8 @@ class ProfileManager {
     async uploadToServer(file) {
         const form = new FormData();
         form.append('file', file);
-        const resp = await fetch('/api/profile/upload', { method: 'POST', body: form });
+        const uploadUrl = window.apiUrl ? window.apiUrl('profile-upload') : '/.netlify/functions/profile-upload';
+        const resp = await fetch(uploadUrl, { method: 'POST', body: form });
         if (!resp.ok) throw new Error('Upload failed');
         const { url } = await resp.json();
         return url;
@@ -595,7 +599,8 @@ class ProfileManager {
         const body = { ...updates };
         if (this.currentUser?.id) body.id = this.currentUser.id; else body.username = this.currentUser.username;
         try {
-            const resp = await fetch('/api/profile', {
+            const profileUrl = window.apiUrl ? window.apiUrl('get-profile') : '/.netlify/functions/get-profile';
+            const resp = await fetch(profileUrl, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
