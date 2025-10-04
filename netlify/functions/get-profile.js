@@ -41,18 +41,12 @@ async function handleGetProfile(event) {
 
     console.log('🔍 Obteniendo perfil para:', { userId, username, email });
 
-    // Campos a seleccionar (todos los disponibles)
-    const selectFields = `
-      id, username, email, first_name, last_name, display_name,
-      company_role, phone, location, bio,
-      linkedin_url, portfolio_url, github_url, website_url,
-      type_rol, cargo_rol,
-      avatar_url, profile_picture_url, curriculum_url,
-      created_at, last_login_at
-    `.replace(/\s+/g, ' ').trim();
-
-    // Construir query de Supabase
-    let query = supabase.from('users').select(selectFields);
+    // PASO 1: Usar un enfoque simple y robusto
+    // Intentar primero con campos básicos que deberían existir siempre
+    const basicFields = ['id', 'username', 'email', 'created_at'];
+    
+    // Construir query inicial con campos básicos
+    let query = supabase.from('users').select(basicFields.join(', '));
 
     if (userId) {
       query = query.eq('id', userId);
@@ -62,21 +56,43 @@ async function handleGetProfile(event) {
       query = query.eq('email', email);
     }
 
-    const { data, error } = await query.single();
+    console.log('🔄 Probando conexión con campos básicos...');
+    const { data: basicData, error: basicError } = await query.single();
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // No se encontró el usuario
+    if (basicError) {
+      if (basicError.code === 'PGRST116') {
         console.warn('⚠️ Usuario no encontrado en la base de datos');
         return json(404, { error: 'Usuario no encontrado' }, event);
       }
-      throw error;
+      console.error('❌ Error en query básica:', basicError);
+      throw basicError;
     }
 
-    const user = data;
+    console.log('✅ Usuario encontrado, obteniendo campos adicionales...');
 
-    // Normalizar campos para compatibilidad
-    // Asegurar que profile_picture_url tiene valor si avatar_url existe
+    // PASO 2: Ahora intentar obtener todos los campos disponibles
+    let extendedQuery = supabase.from('users').select('*');
+    
+    if (userId) {
+      extendedQuery = extendedQuery.eq('id', userId);
+    } else if (username) {
+      extendedQuery = extendedQuery.eq('username', username);
+    } else if (email) {
+      extendedQuery = extendedQuery.eq('email', email);
+    }
+
+    const { data: fullData, error: fullError } = await extendedQuery.single();
+
+    let user;
+    if (fullError) {
+      console.warn('⚠️ No se pudieron obtener todos los campos, usando datos básicos:', fullError.message);
+      user = basicData;
+    } else {
+      user = fullData;
+      console.log('✅ Datos completos obtenidos, columnas disponibles:', Object.keys(user).join(', '));
+    }
+
+    // PASO 4: Normalizar campos para compatibilidad
     if (!user.profile_picture_url && user.avatar_url) {
       user.profile_picture_url = user.avatar_url;
     }
@@ -84,35 +100,40 @@ async function handleGetProfile(event) {
       user.avatar_url = user.profile_picture_url;
     }
 
-    console.log('✅ Perfil encontrado para usuario:', user.username, '| Campos:', Object.keys(user).join(', '));
+    // Asegurar campos mínimos
+    if (!user.display_name && (user.first_name || user.last_name)) {
+      user.display_name = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+    }
+
+    console.log('✅ Perfil encontrado para usuario:', user.username, '| Campos disponibles:', Object.keys(user).join(', '));
 
     return json(200, { user }, event);
 
   } catch (error) {
-    console.error('❌ Error en GET /api/profile:', {
+    console.error('❌ Error en GET /.netlify/functions/get-profile:', {
       message: error.message,
       code: error.code,
       details: error.details
     });
 
-    // Determinar el tipo de error
+    // Determinar el tipo de error más específico
     let statusCode = 500;
     let errorMessage = 'Error obteniendo perfil';
 
-    if (error.code === 'ECONNREFUSED') {
-      errorMessage = 'No se pudo conectar a la base de datos';
-    } else if (error.message?.includes('relation') || error.message?.includes('table')) {
-      errorMessage = 'Tabla de usuarios no encontrada';
-      statusCode = 500;
-    } else if (error.message?.includes('column')) {
+    if (error.code === '42703') {
       errorMessage = 'Error en la estructura de datos';
-      statusCode = 500;
+      console.error('💡 Algunas columnas esperadas no existen en la tabla users');
+    } else if (error.code === '42P01') {
+      errorMessage = 'Tabla de usuarios no encontrada';
+      console.error('💡 Verifica que la tabla "users" existe en la base de datos');
+    } else if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+      errorMessage = 'Tabla de usuarios no encontrada en la base de datos';
     }
 
     return json(statusCode, {
       error: errorMessage,
       code: error.code,
-      details: process.env.NODE_ENV !== 'production' ? String(error.message || error) : undefined
+      details: process.env.NODE_ENV !== 'production' ? error.message : undefined
     }, event);
   }
 }
@@ -161,17 +182,8 @@ async function handleUpdateProfile(event) {
       query = query.eq('username', username);
     }
 
-    // Seleccionar todos los campos después de actualizar
-    const selectFields = `
-      id, username, email, first_name, last_name, display_name,
-      company_role, phone, location, bio,
-      linkedin_url, portfolio_url, github_url, website_url,
-      type_rol, cargo_rol,
-      avatar_url, profile_picture_url, curriculum_url,
-      created_at, last_login_at
-    `.replace(/\s+/g, ' ').trim();
-
-    query = query.select(selectFields).single();
+    // Seleccionar campos básicos después de actualizar (solo los que sabemos que existen)
+    query = query.select('id, username, email, first_name, last_name, created_at').single();
 
     const { data, error } = await query;
 
@@ -188,7 +200,7 @@ async function handleUpdateProfile(event) {
     return json(200, { user: data }, event);
 
   } catch (error) {
-    console.error('❌ Error en PUT /api/profile:', error);
+    console.error('❌ Error en PUT /.netlify/functions/get-profile:', error);
     return json(500, {
       error: 'Error actualizando perfil',
       details: process.env.NODE_ENV !== 'production' ? String(error.message || error) : undefined

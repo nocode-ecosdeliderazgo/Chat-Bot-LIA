@@ -15,7 +15,7 @@
         window.supabaseCredentialsPromise = (async function loadSupabaseCredentials() {
             try {
                 console.log('🔄 Cargando credenciales de Supabase desde API...');
-                const response = await fetch('/api/supabase-config');
+                const response = await fetch('/.netlify/functions/supabase-config');
                 if (response.ok) {
                     const config = await response.json();
                     if (config.success && config.url && config.anon_key) {

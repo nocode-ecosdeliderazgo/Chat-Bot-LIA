@@ -20,31 +20,45 @@ class FileUploadManager {
 
     async initializeSupabase() {
         try {
-            // Obtener credenciales de Supabase desde meta tags o localStorage
-            const supabaseUrl = document.querySelector('meta[name="supabase-url"]')?.content || 
-                               localStorage.getItem('supabaseUrl');
-            const supabaseKey = document.querySelector('meta[name="supabase-key"]')?.content || 
-                               localStorage.getItem('supabaseAnonKey');
-
-            if (!supabaseUrl || !supabaseKey) {
-                throw new Error('Credenciales de Supabase no encontradas');
+            // Verificar si ya hay un cliente de Supabase global válido
+            if (window.supabase && typeof window.supabase.from === 'function') {
+                console.log('✅ Usando cliente de Supabase global existente');
+                this.supabase = window.supabase;
+                await this.verifySupabaseAuth();
+                return;
             }
 
-            // Importar Supabase dinámicamente
-            if (typeof window.supabase === 'undefined') {
+            // Obtener credenciales de Supabase desde meta tags o localStorage
+            const supabaseUrl = document.querySelector('meta[name="supabase-url"]')?.content || 
+                               localStorage.getItem('supabaseUrl') ||
+                               window.SUPABASE_URL;
+            const supabaseKey = document.querySelector('meta[name="supabase-key"]')?.content || 
+                               localStorage.getItem('supabaseAnonKey') ||
+                               window.SUPABASE_ANON_KEY;
+
+            if (!supabaseUrl || !supabaseKey) {
+                console.warn('⚠️ Credenciales de Supabase no encontradas, FileUploadManager funcionará en modo limitado');
+                return;
+            }
+
+            // Importar Supabase dinámicamente si no está disponible
+            if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') {
+                console.log('🔄 Importando Supabase dinámicamente...');
                 const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
                 this.supabase = createClient(supabaseUrl, supabaseKey);
             } else {
-                this.supabase = window.supabase;
+                // Crear cliente usando el createClient global
+                this.supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
             }
 
-            console.log('Supabase inicializado correctamente');
+            console.log('✅ Supabase inicializado correctamente en FileUploadManager');
             
             // Verificar autenticación del usuario en Supabase
             await this.verifySupabaseAuth();
         } catch (error) {
-            console.error('Error inicializando Supabase:', error);
-            throw error;
+            console.error('❌ Error inicializando Supabase en FileUploadManager:', error);
+            // No lanzar error para que FileUploadManager pueda funcionar en modo limitado
+            console.warn('⚠️ FileUploadManager funcionará sin Supabase Storage');
         }
     }
 

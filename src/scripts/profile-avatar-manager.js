@@ -19,9 +19,9 @@ class ProfileAvatarManager {
             this.isLoadingFromSupabase = true;
             console.log('🔍 Intentando cargar avatar desde Supabase...');
 
-            // Verificar que Supabase esté disponible
-            if (!window.supabase) {
-                console.warn('⚠️ Supabase no está disponible, usando localStorage');
+            // Verificar que Supabase esté disponible y sea válido
+            if (!window.supabase || typeof window.supabase.from !== 'function') {
+                console.warn('⚠️ Supabase no está disponible o no es válido, usando localStorage');
                 return null;
             }
 
