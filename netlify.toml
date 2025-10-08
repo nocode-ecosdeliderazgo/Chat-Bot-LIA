@@ -1,0 +1,280 @@
+[build]
+  base = "."
+  publish = "src"
+  command = "npm run build"
+  node_version = "18"
+
+[build.environment]
+  NODE_ENV = "production"
+
+[functions]
+  directory = "netlify/functions"
+
+# Specific API redirects (higher priority than wildcards)
+[[redirects]]
+  from = "/api/user/session"
+  to   = "/.netlify/functions/get-user-session"
+  status = 200
+
+[[redirects]]
+  from = "/api/test-profile"
+  to   = "/.netlify/functions/test-profile"
+  status = 200
+
+[[redirects]]
+  from = "/api/profile/upload"
+  to   = "/.netlify/functions/profile-upload"
+  status = 200
+
+[[redirects]]
+  from = "/api/update-profile"
+  to   = "/.netlify/functions/update-profile"
+  status = 200
+
+[[redirects]]
+  from = "/api/profile"
+  to   = "/.netlify/functions/get-profile"
+  status = 200
+
+[[redirects]]
+  from = "/api/sync-user"
+  to   = "/.netlify/functions/sync-user"
+  status = 200
+
+[[redirects]]
+  from = "/api/login"
+  to   = "/.netlify/functions/login"
+  status = 200
+
+[[redirects]]
+  from = "/api/auth/issue"
+  to   = "/.netlify/functions/auth-issue"
+  status = 200
+
+[[redirects]]
+  from = "/api/register"
+  to   = "/.netlify/functions/register-with-email"
+  status = 200
+
+[[redirects]]
+  from = "/api/debug-cors"
+  to   = "/.netlify/functions/debug-cors"
+  status = 200
+
+[[redirects]]
+  from = "/api/verify-email"
+  to   = "/.netlify/functions/verify-email"
+  status = 200
+
+[[redirects]]
+  from = "/api/setup-otps-table"
+  to   = "/.netlify/functions/setup-otps-table"
+  status = 200
+
+[[redirects]]
+  from = "/api/debug-register"
+  to   = "/.netlify/functions/debug-register"
+  status = 200
+
+[[redirects]]
+  from = "/api/openai"
+  to   = "/.netlify/functions/openai"
+  status = 200
+
+# Grafana redirects
+[[redirects]]
+  from = "/grafana/health"
+  to   = "/.netlify/functions/grafana-health"
+  status = 200
+
+[[redirects]]
+  from = "/grafana/panel/*.png"
+  to   = "/.netlify/functions/grafana-panel"
+  status = 200
+
+# API Statistics redirects
+[[redirects]]
+  from = "/api/genai-radar/*"
+  to   = "/.netlify/functions/genai-radar"
+  status = 200
+
+[[redirects]]
+  from = "/api/adopcion-genai"
+  to   = "/.netlify/functions/adopcion-genai"
+  status = 200
+
+# User profile redirects
+[[redirects]]
+  from = "/api/user/profile/*"
+  to   = "/.netlify/functions/user-profile"
+  status = 200
+
+[[redirects]]
+  from = "/api/update-avatar"
+  to   = "/.netlify/functions/update-avatar"
+  status = 200
+
+# Course Progress API redirects (Legacy - mantener para compatibilidad)
+[[redirects]]
+  from = "/api/course-progress"
+  to   = "/.netlify/functions/get-course-progress"
+  status = 200
+
+[[redirects]]
+  from = "/api/module-progress"
+  to   = "/.netlify/functions/update-module-progress"
+  status = 200
+
+[[redirects]]
+  from = "/api/video-progress"
+  to   = "/.netlify/functions/update-video-progress"
+  status = 200
+
+# Dynamic Course System API redirects (NEW - rutas corregidas)
+[[redirects]]
+  from = "/api/courses/*/full-structure"
+  to   = "/.netlify/functions/course-data"
+  status = 200
+
+[[redirects]]
+  from = "/api/courses/*/current-module/*"
+  to   = "/.netlify/functions/course-data"
+  status = 200
+
+[[redirects]]
+  from = "/api/modules/*/video-data"
+  to   = "/.netlify/functions/course-data"
+  status = 200
+
+[[redirects]]
+  from = "/api/modules/*/videos"
+  to   = "/.netlify/functions/course-data"
+  status = 200
+
+[[redirects]]
+  from = "/api/users/*/progress/*"
+  to   = "/.netlify/functions/user-progress"
+  status = 200
+
+[[redirects]]
+  from = "/api/users/*/video-progress"
+  to   = "/.netlify/functions/user-progress"
+  status = 200
+
+[[redirects]]
+  from = "/api/users/*/switch-module"
+  to   = "/.netlify/functions/user-progress"
+  status = 200
+
+[[redirects]]
+  from = "/api/users/*/switch-video"
+  to   = "/.netlify/functions/user-progress"
+  status = 200
+
+# Module 1 Videos API redirects (NEW)
+[[redirects]]
+  from = "/api/courses/module1-videos"
+  to   = "/.netlify/functions/courses"
+  status = 200
+
+[[redirects]]
+  from = "/api/courses/module1-info"
+  to   = "/.netlify/functions/courses"
+  status = 200
+
+# Community API redirects (NEW)
+[[redirects]]
+  from = "/api/community-public"
+  to   = "/.netlify/functions/community-public"
+  status = 200
+
+[[redirects]]
+  from = "/api/community-poll-vote"
+  to   = "/.netlify/functions/community-poll-vote"
+  status = 200
+
+[[redirects]]
+  from = "/api/community/questions/*/vote"
+  to   = "/.netlify/functions/community-vote"
+  status = 200
+
+[[redirects]]
+  from = "/api/community/answers/*/vote"
+  to   = "/.netlify/functions/community-vote"
+  status = 200
+
+[[redirects]]
+  from = "/api/community/questions/*/answers"
+  to   = "/.netlify/functions/community-answers"
+  status = 200
+
+[[redirects]]
+  from = "/api/community/questions"
+  to   = "/.netlify/functions/community-questions"
+  status = 200
+
+[[redirects]]
+  from = "/api/community/*"
+  to   = "/.netlify/functions/community"
+  status = 200
+
+# Supabase Configuration API redirects (NEW)
+[[redirects]]
+  from = "/api/supabase-config"
+  to   = "/.netlify/functions/supabase-config"
+  status = 200
+
+# Setup Activity Columns API redirects (NEW)
+[[redirects]]
+  from = "/api/setup-activity-columns"
+  to   = "/.netlify/functions/setup-activity-columns"
+  status = 200
+
+# Video Debug API redirects (NEW)
+[[redirects]]
+  from = "/api/video-debug"
+  to   = "/.netlify/functions/video-debug"
+  status = 200
+
+# Video Fix API redirects (NEW)
+[[redirects]]
+  from = "/api/video-fix"
+  to   = "/.netlify/functions/video-fix"
+  status = 200
+
+# News API redirects (NEW)
+[[redirects]]
+  from = "/api/news"
+  to   = "/.netlify/functions/news"
+  status = 200
+
+# Wildcard redirect (must be last)
+[[redirects]]
+  from = "/api/*"
+  to   = "/.netlify/functions/:splat"
+  status = 200
+
+# =====================================================
+# HEADERS DE SEGURIDAD PARA YOUTUBE VIDEOS
+# =====================================================
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Content Security Policy optimizado para YouTube, Supabase, BoxIcons y FontAwesome
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://www.gstatic.com https://apis.google.com https://esm.sh https://cdn.jsdelivr.net https://unpkg.com https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://unpkg.com https://cdnjs.cloudflare.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; frame-src 'self' https://www.youtube.com https://youtube.com; connect-src 'self' https://aprendeyaplica.ai https://www.aprendeyaplica.ai https://www.youtube.com https://youtubei.googleapis.com https://www.google.com https://accounts.google.com https://apis.google.com https://*.supabase.co wss: ws:; object-src 'none'; base-uri 'self'"
+    
+    # X-Frame-Options para permitir YouTube embeds
+    X-Frame-Options = "SAMEORIGIN"
+    
+    # Referrer Policy para YouTube
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # Otras medidas de seguridad
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    
+    # Preconnect hints para YouTube (performance)
+    Link = "<https://www.youtube.com>; rel=preconnect, <https://i.ytimg.com>; rel=preconnect, <https://s.ytimg.com>; rel=preconnect"
+
+

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Términos y Privacidad</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Variables CSS del proyecto principal */
+        :root {
+            --color-primary: #44E5FF;
+            --color-bg-dark: #0A0A0A;
+            --color-bg-light: #F2F2F2;
+            --color-contrast: #FFFFFF;
+            --color-accent: #0077A6;
+            --color-secondary: #0077A6;
+            --color-bg-1: #0A0A0A;
+            --color-bg-2: #0A0A0A;
+            --color-surface: #0A0A0A;
+            --text-on-dark: #FFFFFF;
+            --text-muted: #F2F2F2;
+            --glass: rgba(10, 10, 10, 0.6);
+            --glass-strong: rgba(10, 10, 10, 0.8);
+            --font-heading: 'Montserrat', Arial, Helvetica, sans-serif;
+            --font-body: 'Inter', Arial, Helvetica, sans-serif;
+            --heading-weight: 800;
+            --body-weight: 400;
+            --body-weight-medium: 500;
+            --font-size-h1: 32px;
+            --font-size-h2: 24px;
+            --font-size-base: 16px;
+            --font-size-sm: 14px;
+            --font-size-lg: 18px;
+            --line-height: 1.5;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,.12);
+            --spacing-xs: 8px;
+            --spacing-sm: 12px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --border-light: 1px solid rgba(255,255,255,.08);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-container {
+            background: var(--glass-strong);
+            border-radius: var(--radius-lg);
+            max-width: 90%;
+            max-height: 90%;
+            width: 800px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(68, 229, 255, 0.2);
+            transform: scale(0.7);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: var(--border-light);
+            backdrop-filter: blur(20px);
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            color: var(--color-bg-dark);
+            padding: calc(var(--spacing-lg) * 1.5) var(--spacing-lg);
+            position: relative;
+            text-align: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-family: var(--font-heading);
+            font-weight: var(--heading-weight);
+            font-size: var(--font-size-h2);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            background: rgba(10, 10, 10, 0.3);
+            border: none;
+            color: var(--color-bg-dark);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: bold;
+        }
+
+        .modal-close:hover {
+            background: rgba(10, 10, 10, 0.5);
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        .modal-body {
+            padding: 0;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-tabs {
+            display: flex;
+            background: var(--glass);
+            border-bottom: var(--border-light);
+        }
+
+        .modal-tab {
+            flex: 1;
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: var(--font-size-base);
+            font-weight: var(--body-weight-medium);
+            color: var(--text-muted);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(68, 229, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .modal-tab:hover::before {
+            left: 100%;
+        }
+
+        .modal-tab.active {
+            background: var(--glass-strong);
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+            font-weight: var(--body-weight-medium);
+        }
+
+        .modal-tab:hover:not(.active) {
+            background: rgba(68, 229, 255, 0.1);
+            color: var(--color-primary);
+        }
+
+        .modal-content {
+            display: none;
+            padding: calc(var(--spacing-lg) * 1.5);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-section {
+            background: var(--glass);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            border: var(--border-light);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(68, 229, 255, 0.05), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .modal-section:hover::before {
+            left: 100%;
+        }
+
+        .modal-section:hover {
+            transform: translateY(-2px);
+            border-color: rgba(68, 229, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(68, 229, 255, 0.1);
+        }
+
+        .modal-section h4 {
+            font-family: var(--font-heading);
+            font-weight: var(--heading-weight);
+            font-size: var(--font-size-lg);
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .modal-section h4::before {
+            content: '';
+            width: 3px;
+            height: 20px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            border-radius: 2px;
+        }
+
+        .modal-section p {
+            color: var(--text-on-dark);
+            margin-bottom: var(--spacing-sm);
+            font-size: var(--font-size-base);
+            line-height: 1.6;
+        }
+
+        .modal-section ul {
+            margin-left: var(--spacing-lg);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .modal-section li {
+            color: var(--text-on-dark);
+            margin-bottom: var(--spacing-xs);
+            position: relative;
+            padding-left: var(--spacing-md);
+            font-size: var(--font-size-sm);
+        }
+
+        .modal-section li::before {
+            content: '•';
+            color: var(--color-primary);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .modal-footer {
+            padding: var(--spacing-lg);
+            background: var(--glass);
+            border-top: var(--border-light);
+            text-align: center;
+        }
+
+        .modal-btn {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            color: var(--color-bg-dark);
+            border: none;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-weight: var(--body-weight-medium);
+            margin: 0 var(--spacing-sm);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: var(--font-size-base);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(68, 229, 255, 0.3);
+        }
+
+        .modal-btn.secondary {
+            background: var(--glass-strong);
+            color: var(--text-muted);
+            border: 1px solid var(--border-light);
+        }
+
+        .modal-btn.secondary:hover {
+            background: rgba(68, 229, 255, 0.1);
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .contact-highlight {
+            background: linear-gradient(135deg, rgba(0, 119, 166, 0.1), rgba(68, 229, 255, 0.05));
+            border: 1px solid rgba(0, 119, 166, 0.3);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            margin: var(--spacing-lg) 0;
+            position: relative;
+        }
+
+        .contact-highlight::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
+        }
+
+        .contact-highlight h5 {
+            font-family: var(--font-heading);
+            font-weight: var(--heading-weight);
+            color: var(--color-accent);
+            margin-bottom: var(--spacing-sm);
+            font-size: var(--font-size-base);
+        }
+
+        .contact-highlight p {
+            color: var(--text-on-dark);
+            margin-bottom: var(--spacing-xs);
+            font-size: var(--font-size-sm);
+        }
+
+        /* Scrollbar personalizada */
+        .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-body::-webkit-scrollbar-track {
+            background: var(--glass);
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            border-radius: 4px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
+        }
+
+        @media (max-width: 768px) {
+            .modal-container {
+                width: 95%;
+                max-height: 95%;
+            }
+
+            .modal-header {
+                padding: var(--spacing-lg);
+            }
+
+            .modal-header h2 {
+                font-size: var(--font-size-lg);
+            }
+
+            .modal-tabs {
+                flex-direction: column;
+            }
+
+            .modal-tab {
+                border-bottom: var(--border-light);
+                border-right: none;
+            }
+
+            .modal-content {
+                padding: var(--spacing-lg);
+            }
+
+            .modal-footer {
+                padding: var(--spacing-lg);
+            }
+
+            .modal-btn {
+                display: block;
+                width: 100%;
+                margin: var(--spacing-xs) 0;
+            }
+        }
+
+        /* Animaciones adicionales */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-section {
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .modal-section:nth-child(1) { animation-delay: 0.1s; }
+        .modal-section:nth-child(2) { animation-delay: 0.2s; }
+        .modal-section:nth-child(3) { animation-delay: 0.3s; }
+        .modal-section:nth-child(4) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <!-- Modal Overlay -->
+    <div id="termsModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>📋 Términos y Política de Privacidad</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="modal-tabs">
+                    <button class="modal-tab active" onclick="showModalTab('terms')">📜 Términos</button>
+                    <button class="modal-tab" onclick="showModalTab('privacy')">🔒 Privacidad</button>
+                </div>
+
+                <!-- Términos y Condiciones -->
+                <div id="modalTerms" class="modal-content active">
+                    <div class="modal-section">
+                        <h4>1. Aceptación de Términos</h4>
+                        <p>Al usar "Aprende y Aplica IA", aceptas estos términos. Si no estás de acuerdo, no uses nuestros servicios.</p>
+                    </div>
+
+                    <div class="modal-section">
+                        <h4>2. Servicios Ofrecidos</h4>
+                        <ul>
+                            <li>Cursos de IA y machine learning</li>
+                            <li>Contenido educativo interactivo</li>
+                            <li>Evaluaciones y certificaciones</li>
+                            <li>Comunidad de aprendizaje</li>
+                        </ul>
+                    </div>
+
+                    <div class="modal-section">
+                        <h4>3. Uso Aceptable</h4>
+                        <p>Usa la plataforma solo para fines educativos legales. Está prohibido:</p>
+                        <ul>
+                            <li>Actividades ilegales</li>
+                            <li>Contenido ofensivo</li>
+                            <li>Acceso no autorizado</li>
+                            <li>Interferir con la plataforma</li>
+                        </ul>
+                    </div>
+
+                    <div class="modal-section">
+                        <h4>4. Propiedad Intelectual</h4>
+                        <p>Todo el contenido es propiedad de Aprende y Aplica IA. Puedes acceder para uso personal, pero no redistribuir sin autorización.</p>
+                    </div>
+
+                    <div class="contact-highlight">
+                        <h5>📞 Contacto Legal</h5>
+                        <p><strong>Email:</strong> legal@aprendeyaaplica.com</p>
+                        <p><strong>Teléfono:</strong> +1 (555) 123-4567</p>
+                    </div>
+                </div>
+
+                <!-- Política de Privacidad -->
+                <div id="modalPrivacy" class="modal-content">
+                    <div class="modal-section">
+                        <h4>1. Información Recopilada</h4>
+                        <ul>
+                            <li>Datos personales (nombre, email)</li>
+                            <li>Información de cuenta</li>
+                            <li>Datos de uso y progreso</li>
+                            <li>Información técnica</li>
+                        </ul>
+                    </div>
+
+                    <div class="modal-section">
+                        <h4>2. Uso de Información</h4>
+                        <ul>
+                            <li>Proporcionar servicios educativos</li>
+                            <li>Personalizar experiencia</li>
+                            <li>Comunicaciones sobre cursos</li>
+                            <li>Mejoras de la plataforma</li>
+                        </ul>
+                    </div>
+
+                    <div class="modal-section">
+                        <h4>3. Protección de Datos</h4>
+                        <p>Implementamos medidas de seguridad para proteger tu información:</p>
+                        <ul>
+                            <li>Encriptación de datos</li>
+                            <li>Acceso restringido</li>
+                            <li>Monitoreo de seguridad</li>
+                        </ul>
+                    </div>
+
+                    <div class="modal-section">
+                        <h4>4. Tus Derechos</h4>
+                        <ul>
+                            <li>Acceder a tus datos</li>
+                            <li>Corregir información</li>
+                            <li>Solicitar eliminación</li>
+                            <li>Retirar consentimiento</li>
+                        </ul>
+                    </div>
+
+                    <div class="contact-highlight">
+                        <h5>🔒 Oficial de Privacidad</h5>
+                        <p><strong>Email:</strong> privacy@aprendeyaaplica.com</p>
+                        <p><strong>Dirección:</strong> Calle Principal 123, Ciudad, País</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="modal-btn" onclick="acceptTerms()">✅ Aceptar Términos</button>
+                <button class="modal-btn secondary" onclick="closeModal()">❌ Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Funciones del modal
+        function openModal() {
+            document.getElementById('termsModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('termsModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function showModalTab(tabName) {
+            // Ocultar todos los contenidos
+            const contents = document.querySelectorAll('.modal-content');
+            contents.forEach(content => {
+                content.classList.remove('active');
+                content.style.animation = 'none';
+            });
+
+            // Remover clase active de todos los tabs
+            const tabs = document.querySelectorAll('.modal-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Mostrar contenido seleccionado
+            const selectedContent = document.getElementById('modal' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+            selectedContent.classList.add('active');
+            selectedContent.style.animation = 'slideIn 0.3s ease';
+
+            // Agregar clase active al tab clickeado
+            event.target.classList.add('active');
+        }
+
+        function acceptTerms() {
+            // Aquí puedes agregar lógica para guardar la aceptación
+            localStorage.setItem('termsAccepted', 'true');
+            localStorage.setItem('termsAcceptedDate', new Date().toISOString());
+            
+            // Mostrar mensaje de confirmación
+            alert('¡Gracias por aceptar nuestros términos y condiciones!');
+            
+            closeModal();
+        }
+
+        // Cerrar modal al hacer clic fuera de él
+        document.getElementById('termsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Cerrar modal con ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Verificar si ya se aceptaron los términos
+        function checkTermsAcceptance() {
+            const accepted = localStorage.getItem('termsAccepted');
+            if (!accepted) {
+                // Mostrar modal automáticamente si no se han aceptado
+                setTimeout(openModal, 2000);
+            }
+        }
+
+        // Exportar funciones para uso global
+        window.openTermsModal = openModal;
+        window.closeTermsModal = closeModal;
+        window.checkTermsAcceptance = checkTermsAcceptance;
+    </script>
+</body>
+</html>

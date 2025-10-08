@@ -1,0 +1,207 @@
+// netlify/functions/get-profile.js
+const { Pool } = require('pg');
+const { createCorsResponse } = require('./cors-utils');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
+
+const json = (status, data, event = null) => createCorsResponse(status, data, event);
+
+exports.handler = async (event) => {
+  if (event.httpMethod === 'OPTIONS') return json(200, { ok: true }, event);
+
+  if (event.httpMethod === 'GET') {
+    return await handleGetProfile(event);
+  } else if (event.httpMethod === 'PUT') {
+    return await handleUpdateProfile(event);
+  } else {
+    return json(405, { error: 'Method Not Allowed' }, event);
+  }
+};
+
+async function handleGetProfile(event) {
+  try {
+    if (!process.env.DATABASE_URL) {
+      console.error('❌ DATABASE_URL no está configurada');
+      return json(500, { error: 'Base de datos no configurada' }, event);
+    }
+
+    const { userId, username, email } = event.queryStringParameters || {};
+
+    if (!userId && !username && !email) {
+      console.error('❌ No se proporcionó userId, username o email');
+      return json(400, { error: 'Se requiere userId, username o email' }, event);
+    }
+
+    console.log('🔍 Obteniendo perfil para:', { userId, username, email });
+
+    // Primero, intentar con todos los campos
+    // Si falla, intentar con campos básicos
+    let selectFields = `
+      id, username, email, first_name, last_name, display_name,
+      company_role, phone, location, bio,
+      linkedin_url, portfolio_url, github_url, website_url,
+      type_rol, cargo_rol,
+      avatar_url, profile_picture_url, curriculum_url,
+      created_at, last_login_at
+    `.replace(/\s+/g, ' ').trim();
+
+    let query, params;
+    if (userId) {
+      query = `SELECT ${selectFields} FROM users WHERE id = $1`;
+      params = [userId];
+    } else if (username) {
+      query = `SELECT ${selectFields} FROM users WHERE username = $1`;
+      params = [username];
+    } else if (email) {
+      query = `SELECT ${selectFields} FROM users WHERE email = $1`;
+      params = [email];
+    }
+
+    let result;
+    try {
+      console.log('🔄 Ejecutando query con todos los campos...');
+      result = await pool.query(query, params);
+    } catch (queryError) {
+      console.warn('⚠️ Query con todos los campos falló, intentando con campos básicos:', queryError.message);
+
+      // Intentar con campos básicos que seguramente existen
+      selectFields = 'id, username, email, first_name, last_name, created_at';
+
+      if (userId) {
+        query = `SELECT ${selectFields} FROM users WHERE id = $1`;
+        params = [userId];
+      } else if (username) {
+        query = `SELECT ${selectFields} FROM users WHERE username = $1`;
+        params = [username];
+      } else if (email) {
+        query = `SELECT ${selectFields} FROM users WHERE email = $1`;
+        params = [email];
+      }
+
+      result = await pool.query(query, params);
+    }
+
+    if (result.rows.length === 0) {
+      console.warn('⚠️ Usuario no encontrado en la base de datos');
+      return json(404, { error: 'Usuario no encontrado' }, event);
+    }
+
+    const user = result.rows[0];
+
+    // Normalizar campos para compatibilidad
+    // Asegurar que profile_picture_url tiene valor si avatar_url existe
+    if (!user.profile_picture_url && user.avatar_url) {
+      user.profile_picture_url = user.avatar_url;
+    }
+    if (!user.avatar_url && user.profile_picture_url) {
+      user.avatar_url = user.profile_picture_url;
+    }
+
+    console.log('✅ Perfil encontrado para usuario:', user.username, '| Campos:', Object.keys(user).join(', '));
+
+    return json(200, { user }, event);
+
+  } catch (error) {
+    console.error('❌ Error en GET /api/profile:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack?.split('\n')[0]
+    });
+
+    // Determinar el tipo de error
+    let statusCode = 500;
+    let errorMessage = 'Error obteniendo perfil';
+
+    if (error.code === 'ECONNREFUSED') {
+      errorMessage = 'No se pudo conectar a la base de datos';
+    } else if (error.code === '42P01') {
+      errorMessage = 'Tabla de usuarios no encontrada en la base de datos';
+      console.error('💡 Verifica que la tabla "users" existe en la base de datos');
+    } else if (error.code === '42703') {
+      errorMessage = 'Columna no encontrada en la tabla de usuarios';
+      console.error('💡 Verifica que las columnas existen en la tabla "users"');
+    }
+
+    return json(statusCode, {
+      error: errorMessage,
+      code: error.code,
+      details: process.env.NODE_ENV !== 'production' ? String(error.message || error) : undefined
+    }, event);
+  }
+}
+
+async function handleUpdateProfile(event) {
+  try {
+    if (!process.env.DATABASE_URL) return json(500, { error: 'Base de datos no configurada' }, event);
+
+    const body = JSON.parse(event.body || '{}');
+    const { id, username, email, first_name, last_name, company_role, phone, location, bio, linkedin_url, portfolio_url, github_url } = body;
+
+    if (!id && !username) {
+      return json(400, { error: 'Se requiere id o username para actualizar' }, event);
+    }
+
+    console.log('Actualizando perfil para:', { id, username });
+
+    // Construir query de actualización
+    const fields = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (email) { fields.push(`email = $${paramIndex++}`); values.push(email); }
+    if (first_name) { fields.push(`first_name = $${paramIndex++}`); values.push(first_name); }
+    if (last_name) { fields.push(`last_name = $${paramIndex++}`); values.push(last_name); }
+    if (company_role) { fields.push(`company_role = $${paramIndex++}`); values.push(company_role); }
+    if (phone) { fields.push(`phone = $${paramIndex++}`); values.push(phone); }
+    if (location) { fields.push(`location = $${paramIndex++}`); values.push(location); }
+    if (bio) { fields.push(`bio = $${paramIndex++}`); values.push(bio); }
+    if (linkedin_url) { fields.push(`linkedin_url = $${paramIndex++}`); values.push(linkedin_url); }
+    if (portfolio_url) { fields.push(`portfolio_url = $${paramIndex++}`); values.push(portfolio_url); }
+    if (github_url) { fields.push(`github_url = $${paramIndex++}`); values.push(github_url); }
+
+    if (fields.length === 0) {
+      return json(400, { error: 'No hay campos para actualizar' }, event);
+    }
+
+    let whereClause = id ? `id = $${paramIndex}` : `username = $${paramIndex}`;
+    values.push(id || username);
+
+    // IMPORTANTE: Retornar los mismos campos que en GET para consistencia
+    const returningFields = `
+      id, username, email, first_name, last_name, display_name,
+      company_role, phone, location, bio,
+      linkedin_url, portfolio_url, github_url, website_url,
+      type_rol, cargo_rol,
+      avatar_url, profile_picture_url, curriculum_url,
+      created_at, last_login_at
+    `.replace(/\s+/g, ' ').trim();
+
+    const query = `
+      UPDATE users
+      SET ${fields.join(', ')}
+      WHERE ${whereClause}
+      RETURNING ${returningFields}
+    `;
+
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return json(404, { error: 'Usuario no encontrado' }, event);
+    }
+
+    const user = result.rows[0];
+    console.log('Perfil actualizado para usuario:', user.username);
+
+    return json(200, { user }, event);
+
+  } catch (error) {
+    console.error('Error en PUT /api/profile:', error);
+    return json(500, {
+      error: 'Error actualizando perfil',
+      details: process.env.NODE_ENV !== 'production' ? String(error.message || error) : undefined
+    }, event);
+  }
+}

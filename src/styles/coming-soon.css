@@ -1,0 +1,314 @@
+/* Estilos específicos para coming-soon */
+body { min-height: 100vh; }
+.coming-wrapper {
+	position: relative;
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 80px 20px;
+}
+.coming-card {
+	width: 100%;
+	max-width: 860px;
+	padding: 48px;
+	border-radius: 20px;
+	background: rgba(255,255,255,0.06);
+	border: 1px solid rgba(68,229,255,0.18);
+	backdrop-filter: blur(14px);
+	box-shadow: 0 18px 48px rgba(0,0,0,0.35), 0 0 0 1px rgba(68,229,255,0.08) inset;
+	text-align: center;
+	animation: fadeInUp 0.6s ease forwards;
+}
+.coming-icon {
+	width: 84px; height: 84px;
+	margin: 0 auto 16px auto;
+	display: grid; place-items: center;
+	border-radius: 50%;
+	background: radial-gradient(circle at 30% 30%, rgba(68,229,255,0.25), rgba(0,119,166,0.15));
+	border: 1px solid rgba(68,229,255,0.25);
+	box-shadow: 0 0 28px rgba(68,229,255,0.25);
+}
+.coming-icon i { font-size: 40px; color: #44e5ff; filter: drop-shadow(0 0 16px rgba(68,229,255,.45)); }
+.coming-icon i.rocket { animation: rocketFloat 3s ease-in-out infinite, rocketGlow 2.8s ease-in-out infinite; }
+.coming-title {
+	font-family: var(--font-heading, Montserrat);
+	font-weight: 800;
+	font-size: 2.2rem;
+	margin: 6px 0 10px 0;
+	background: linear-gradient(135deg, var(--color-primary, #44e5ff), var(--color-accent, #3dd4eb));
+	-webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+	text-shadow: 0 0 28px rgba(68,229,255,0.25);
+}
+.coming-subtitle { color: var(--text-muted, #9fb1bf); font-size: 1.1rem; margin-bottom: 28px; }
+.coming-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-primary, .btn-secondary { 
+    border-radius: 12px; 
+    padding: 12px 18px; 
+    font-weight: 700; 
+    cursor: pointer; 
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary { 
+    background: transparent;
+    color: #44e5ff;
+    border: 2px solid #44e5ff;
+    box-shadow: 0 10px 26px rgba(68,229,255,.25);
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #44e5ff, #22c55e);
+    transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.btn-primary:hover::before {
+    left: 0;
+}
+
+.btn-primary:hover { 
+    color: #001018;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(68,229,255,.35);
+}
+
+.btn-secondary { 
+    background: transparent;
+    color: #fff; 
+    border: 2px solid rgba(68,229,255,0.25);
+}
+
+.btn-secondary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.1);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.btn-secondary:hover::before {
+    left: 0;
+}
+
+.btn-secondary:hover { 
+    border-color: rgba(68,229,255,0.4);
+    transform: translateY(-2px);
+}
+
+/* Efecto de clic para todos los botones */
+.btn-primary:active,
+.btn-secondary:active {
+    transform: translateY(-1px) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* Efecto de focus para accesibilidad */
+.btn-primary:focus,
+.btn-secondary:focus {
+    outline: none;
+    box-shadow: 
+        0 0 0 3px rgba(68, 229, 255, 0.3),
+        0 8px 25px rgba(68, 229, 255, 0.4);
+}
+.particles-container { position: fixed; inset: 0; z-index: -1; }
+
+@keyframes rocketFloat {
+	0%, 100% { transform: translateY(0) rotate(-2deg); }
+	50% { transform: translateY(-8px) rotate(2deg); }
+}
+@keyframes rocketGlow {
+	0%, 100% { filter: drop-shadow(0 0 12px rgba(68,229,255,.45)); }
+	50% { filter: drop-shadow(0 0 22px rgba(68,229,255,.85)); }
+}
+
+@media (max-width: 600px) {
+	.coming-card { padding: 32px; }
+	.coming-title { font-size: 1.8rem; }
+}
+
+/* ===== ESTILOS PARA MODO CLARO ===== */
+
+/* Fondo del body en modo claro */
+[data-theme="light"] body {
+    background: linear-gradient(160deg, #E8F2F8 0%, #D1E7DD 100%) !important;
+}
+
+[data-theme="light"] .bg-glow-global {
+    background: linear-gradient(160deg, #E8F2F8 0%, #D1E7DD 100%) !important;
+}
+
+/* Contenedor principal en modo claro */
+[data-theme="light"] .coming-wrapper {
+    background: linear-gradient(160deg, #E8F2F8 0%, #D1E7DD 100%) !important;
+}
+
+/* Tarjeta principal en modo claro */
+[data-theme="light"] .coming-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 102, 204, 0.1) inset !important;
+    backdrop-filter: blur(14px) !important;
+}
+
+/* Icono en modo claro */
+[data-theme="light"] .coming-icon {
+    background: radial-gradient(circle at 30% 30%, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.1)) !important;
+    border: 1px solid rgba(0, 102, 204, 0.25) !important;
+    box-shadow: 0 0 28px rgba(0, 102, 204, 0.2) !important;
+}
+
+[data-theme="light"] .coming-icon i {
+    color: #0066CC !important;
+    filter: drop-shadow(0 0 16px rgba(0, 102, 204, 0.3)) !important;
+}
+
+/* Título en modo claro */
+[data-theme="light"] .coming-title {
+    background: linear-gradient(135deg, #0066CC, #0052A3) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    text-shadow: 0 0 28px rgba(0, 102, 204, 0.2) !important;
+}
+
+/* Subtítulo en modo claro */
+[data-theme="light"] .coming-subtitle {
+    color: #4A5568 !important;
+}
+
+/* Botón primario en modo claro */
+[data-theme="light"] .btn-primary {
+    background: transparent !important;
+    color: #0066CC !important;
+    border: 2px solid #0066CC !important;
+    box-shadow: 0 10px 26px rgba(0, 102, 204, 0.2) !important;
+}
+
+[data-theme="light"] .btn-primary::before {
+    background: linear-gradient(135deg, #0066CC, #22c55e) !important;
+}
+
+[data-theme="light"] .btn-primary:hover {
+    color: #FFFFFF !important;
+    border-color: transparent !important;
+    box-shadow: 0 12px 30px rgba(0, 102, 204, 0.3) !important;
+}
+
+/* Botón secundario en modo claro */
+[data-theme="light"] .btn-secondary {
+    background: transparent !important;
+    color: #2D3748 !important;
+    border: 2px solid rgba(0, 102, 204, 0.25) !important;
+}
+
+[data-theme="light"] .btn-secondary::before {
+    background: rgba(0, 102, 204, 0.1) !important;
+}
+
+[data-theme="light"] .btn-secondary:hover {
+    border-color: rgba(0, 102, 204, 0.4) !important;
+    color: #0066CC !important;
+}
+
+/* Focus states en modo claro */
+[data-theme="light"] .btn-primary:focus,
+[data-theme="light"] .btn-secondary:focus {
+    box-shadow: 
+        0 0 0 3px rgba(0, 102, 204, 0.3),
+        0 8px 25px rgba(0, 102, 204, 0.3) !important;
+}
+
+/* Partículas en modo claro */
+[data-theme="light"] .particles-container {
+    opacity: 0.3 !important;
+}
+
+/* Transiciones suaves */
+[data-theme="light"] *,
+[data-theme="dark"] * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ===== BOTÓN DE CAMBIO DE TEMA ===== */
+
+.theme-toggle-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(68, 229, 255, 0.1);
+    border: 1px solid rgba(68, 229, 255, 0.25);
+    color: #44e5ff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(68, 229, 255, 0.2);
+    border-color: #44e5ff;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(68, 229, 255, 0.3);
+}
+
+.theme-toggle-btn:active {
+    transform: scale(0.95);
+}
+
+.theme-toggle-btn svg {
+    position: absolute;
+    transition: all 0.3s ease;
+}
+
+.theme-icon-sun {
+    opacity: 1;
+    transform: rotate(0deg);
+}
+
+.theme-icon-moon {
+    opacity: 0;
+    transform: rotate(-90deg);
+}
+
+[data-theme="light"] .theme-toggle-btn {
+    background: rgba(0, 102, 204, 0.1);
+    border: 1px solid rgba(0, 102, 204, 0.25);
+    color: #0066CC;
+}
+
+[data-theme="light"] .theme-toggle-btn:hover {
+    background: rgba(0, 102, 204, 0.2);
+    border-color: #0066CC;
+    box-shadow: 0 0 20px rgba(0, 102, 204, 0.3);
+}
+
+[data-theme="light"] .theme-icon-sun {
+    opacity: 0;
+    transform: rotate(90deg);
+}
+
+[data-theme="light"] .theme-icon-moon {
+    opacity: 1;
+    transform: rotate(0deg);
+}
+

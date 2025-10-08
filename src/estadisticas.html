@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Estadísticas de tu cuestionario - Aprende y Aplica IA">
+    <title>Mis Estadísticas - Aprende y Aplica IA</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/images/icono.png" />
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/estadisticas.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+    <!-- Navbar reutilizado -->
+    <link rel="stylesheet" href="styles/courses.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Boxicons para iconos -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <!-- Chart.js para radar chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Supabase config -->
+    <meta name="supabase-url" content="https://miwbzotcuaywpdbidpwo.supabase.co">
+    <meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY">
+
+    <!-- Global theme setup - Configuración global del tema -->
+    <script src="scripts/global-theme-setup.js"></script>
+    
+    <!-- Estilos específicos para radar chart -->
+    <style>
+        /* Contenedor principal del radar */
+        .radar-section {
+            margin: 2rem 0;
+        }
+        
+        .radar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .radar-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .radar-header h3 {
+            color: #44e5ff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .radar-header p {
+            color: #888;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .radar-chart-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            margin: 2rem 0;
+        }
+        
+        #radarChart {
+            max-width: 100%;
+            height: 600px;
+        }
+        
+        .radar-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 600px;
+            background: rgba(68, 229, 255, 0.1);
+            border-radius: 16px;
+            border: 2px dashed #44e5ff;
+        }
+        
+        .placeholder-content {
+            text-align: center;
+            max-width: 300px;
+        }
+        
+        .radar-info {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #44e5ff, #0077a6);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #44e5ff;
+            padding: 0.5rem 1rem;
+            border: 1px solid #44e5ff;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(68, 229, 255, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .radar-card {
+                padding: 1.5rem;
+                margin: 0 1rem;
+            }
+            
+            .radar-chart-container {
+                height: 400px;
+            }
+            
+            #radarChart {
+                height: 400px;
+            }
+            
+            .radar-placeholder {
+                height: 400px;
+            }
+            
+            .radar-header h3 {
+                font-size: 1.25rem;
+            }
+            
+            .radar-header p {
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Tema claro */
+        [data-theme="light"] .radar-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="light"] .radar-header h3 {
+            color: #0077a6;
+        }
+        
+        [data-theme="light"] .radar-header p {
+            color: #666;
+        }
+        
+        [data-theme="light"] .radar-placeholder {
+            background: rgba(0, 119, 166, 0.1);
+            border-color: #0077a6;
+        }
+        
+        [data-theme="light"] .radar-info {
+            border-top-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilos para la sección de adopción */
+        .adoption-section {
+            margin: 2rem 0;
+        }
+        
+                 .adoption-container {
+             max-width: 1400px;
+             margin: 0 auto;
+         }
+        
+        .adoption-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .adoption-header h3 {
+            color: #44e5ff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .adoption-header p {
+            color: #888;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+                 .adoption-chart-container {
+             position: relative;
+             width: 100%;
+             height: 700px;
+             margin: 2rem 0;
+         }
+        
+                 #adoptionChart {
+             max-width: 100%;
+             height: 700px;
+         }
+        
+                 .adoption-placeholder {
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             height: 700px;
+             background: rgba(68, 229, 255, 0.1);
+             border-radius: 16px;
+             border: 2px dashed #44e5ff;
+         }
+        
+        .adoption-info {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+                 /* Responsive para adopción */
+         @media (max-width: 768px) {
+             .adoption-card {
+                 padding: 1.5rem;
+                 margin: 0 1rem;
+             }
+             
+             .adoption-chart-container {
+                 height: 500px;
+             }
+             
+             #adoptionChart {
+                 height: 500px;
+             }
+             
+             .adoption-placeholder {
+                 height: 500px;
+             }
+            
+            .adoption-header h3 {
+                font-size: 1.25rem;
+            }
+            
+            .adoption-header p {
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Tema claro para adopción */
+        [data-theme="light"] .adoption-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="light"] .adoption-header h3 {
+            color: #0077a6;
+        }
+        
+        [data-theme="light"] .adoption-header p {
+            color: #666;
+        }
+        
+        [data-theme="light"] .adoption-placeholder {
+            background: rgba(0, 119, 166, 0.1);
+            border-color: #0077a6;
+        }
+        
+        [data-theme="light"] .adoption-info {
+            border-top-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilos para la sección de análisis personalizado */
+        .analysis-section {
+            margin: 2rem 0;
+        }
+
+        .analysis-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .analysis-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .analysis-header h3 {
+            color: #44e5ff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .analysis-header p {
+            color: #888;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .analysis-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .analysis-block {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .analysis-block h4 {
+            color: #44e5ff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .analysis-block p {
+            color: #fff;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .analysis-block ul {
+            color: #fff;
+            line-height: 1.6;
+            padding-left: 1.5rem;
+        }
+
+        .analysis-block li {
+            margin-bottom: 0.5rem;
+        }
+
+        .score-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(68, 229, 255, 0.2);
+            border: 1px solid #44e5ff;
+            border-radius: 20px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 0.25rem 0.25rem 0.25rem 0;
+        }
+
+        .score-high {
+            background: rgba(40, 167, 69, 0.2);
+            border-color: #28a745;
+            color: #28a745;
+        }
+
+        .score-medium {
+            background: rgba(255, 193, 7, 0.2);
+            border-color: #ffc107;
+            color: #ffc107;
+        }
+
+        .score-low {
+            background: rgba(220, 53, 69, 0.2);
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .recommendations-section {
+            background: rgba(68, 229, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(68, 229, 255, 0.3);
+        }
+
+        .recommendations-section h4 {
+            color: #44e5ff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recommendation-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #44e5ff;
+        }
+
+        .recommendation-item h5 {
+            color: #fff;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .recommendation-item p {
+            color: #ccc;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .loading-analysis {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: #888;
+        }
+
+        .loading-analysis i {
+            font-size: 2rem;
+            margin-right: 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive para análisis */
+        @media (max-width: 768px) {
+            .analysis-content {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .analysis-card {
+                padding: 1.5rem;
+                margin: 0 1rem;
+            }
+
+            .analysis-header h3 {
+                font-size: 1.25rem;
+            }
+
+            .analysis-header p {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Tema claro para análisis */
+        [data-theme="light"] .analysis-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .analysis-header h3 {
+            color: #0077a6;
+        }
+
+        [data-theme="light"] .analysis-header p {
+            color: #666;
+        }
+
+        [data-theme="light"] .analysis-block {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .analysis-block h4 {
+            color: #0077a6;
+        }
+
+        [data-theme="light"] .analysis-block p,
+        [data-theme="light"] .analysis-block ul,
+        [data-theme="light"] .analysis-block li {
+            color: #333;
+        }
+
+        [data-theme="light"] .recommendations-section {
+            background: rgba(0, 119, 166, 0.1);
+            border-color: rgba(0, 119, 166, 0.3);
+        }
+
+        [data-theme="light"] .recommendations-section h4 {
+            color: #0077a6;
+        }
+
+        [data-theme="light"] .recommendation-item {
+            background: rgba(0, 0, 0, 0.03);
+            border-left-color: #0077a6;
+        }
+
+        [data-theme="light"] .recommendation-item h5 {
+            color: #333;
+        }
+
+        [data-theme="light"] .recommendation-item p {
+            color: #666;
+        }
+    </style>
+</head>
+<body class="bg-glow-global">
+    <!-- Botón de cambio de tema -->
+    <button class="theme-toggle-btn" title="Cambiar tema">
+        <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <!-- Fondo avanzado como en new-auth -->
+    <div class="auth-bg">
+        <div class="bg-glow"></div>
+        <canvas id="bgParticles"></canvas>
+    </div>
+    
+    <!-- Partículas flotantes mejoradas -->
+    <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Header simple con navbar por defecto (sin perfil) -->
+    <header class="catalog-header">
+        <div class="container">
+            <div class="course-tabs">
+                <button class="tab-button" onclick="location.href='cursos.html'">
+                    <i class='bx bx-collection'></i>
+                    Talleres
+                </button>
+                <button class="tab-button" onclick="location.href='Community/community.html'">
+                    <i class='bx bx-group'></i>
+                    Comunidad
+                </button>
+                <button class="tab-button" onclick="location.href='Notices/notices.html'">
+                    <i class='bx bx-news'></i>
+                    Noticias
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="stats-main" style="padding-top: 90px;">
+        <div class="container">
+            <!-- Header de la página -->
+            <section class="stats-header-section animate-on-scroll">
+                <div class="stats-header-content">
+                    <div class="stats-header-text">
+                        <h1>Mis Estadísticas</h1>
+                        <p>Mis resultados</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contenedor para Radar Chart -->
+            <section class="radar-section animate-on-scroll">
+                <div class="radar-container">
+                    <!-- Panel principal - Radar Chart -->
+                    <div class="radar-card glass-card">
+                        <div class="radar-header">
+                            <h3><i class='bx bx-bullseye'></i> Radar de Competencias en IA</h3>
+                            <p>Visualización de tus fortalezas por área funcional basada en tu cuestionario</p>
+                        </div>
+                        <div class="radar-chart-container">
+                            <canvas id="radarChart" width="400" height="400"></canvas>
+                            <div id="radarPlaceholder" class="radar-placeholder" style="display: none;">
+                                <div class="placeholder-content">
+                                    <i class='bx bx-radar' style="font-size: 48px; color: #44e5ff; margin-bottom: 16px;"></i>
+                                    <h4 style="color: #44e5ff; margin: 0 0 8px 0;">Sin datos aún</h4>
+                                    <p style="color: #888; margin: 0 0 8px 0; text-align: center;">Completa tu cuestionario para ver tu radar de competencias</p>
+                                    <button onclick="goToQuestionnaire()" class="btn-primary" style="margin-top: 16px;">
+                                        Completar Cuestionario
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="radar-info" style="display: none;">
+                            <p id="sessionInfo" style="color: #888; font-size: 14px; margin: 0;"></p>
+                            <!-- Información de debugging -->
+                            <div id="debugInfo" style="margin-top: 16px; font-size: 12px; color: #666;">
+                                <div id="userIdInfo"></div>
+                                <div id="connectionStatus"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Nueva sección de análisis personalizado -->
+            <section class="analysis-section animate-on-scroll">
+                <div class="analysis-container">
+                    <div class="analysis-card glass-card">
+                        <div class="analysis-header">
+                            <h3><i class='bx bx-brain'></i> Análisis Personalizado de tus Resultados</h3>
+                            <p>Explicación detallada de tu rendimiento basada en tus respuestas específicas</p>
+                        </div>
+
+                        <!-- Contenido principal del análisis -->
+                        <div id="analysisContent" class="analysis-content">
+                            <!-- Loader inicial -->
+                            <div class="loading-analysis">
+                                <i class='bx bx-loader-alt'></i>
+                                <span>Analizando tus respuestas...</span>
+                            </div>
+                        </div>
+
+                        <!-- Sección de recomendaciones -->
+                        <div id="recommendationsSection" class="recommendations-section" style="display: none;">
+                            <h4><i class='bx bx-lightbulb'></i> Recomendaciones Personalizadas</h4>
+                            <div id="recommendationsContent">
+                                <!-- Las recomendaciones se cargarán dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Nueva sección para gráfica de adopción GenAI por países -->
+            <section class="adoption-section animate-on-scroll">
+                <div class="adoption-container">
+                    <div class="adoption-card glass-card">
+                        <div class="adoption-header">
+                            <h3><i class='bx bx-globe'></i> Adopción de GenAI en Países Hispanoparlantes</h3>
+                            <p>Índice de Adopción e Implementación de IA (AIPI) por país</p>
+                        </div>
+                                                 <div class="adoption-chart-container">
+                             <canvas id="adoptionChart" width="1200" height="700"></canvas>
+                            <div id="adoptionPlaceholder" class="adoption-placeholder" style="display: none;">
+                                <div class="placeholder-content">
+                                    <i class='bx bx-globe' style="font-size: 48px; color: #44e5ff; margin-bottom: 16px;"></i>
+                                    <h4 style="color: #44e5ff; margin: 0 0 8px 0;">Cargando datos...</h4>
+                                    <p style="color: #888; margin: 0 0 8px 0; text-align: center;">Obteniendo estadísticas de adopción de GenAI</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="adoption-info">
+                            <p id="adoptionInfo" style="color: #888; font-size: 14px; margin: 0;">Datos actualizados de adopción de Inteligencia Artificial Generativa</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="scripts/supabase-client.js"></script>
+    <script src="scripts/particles.js"></script>
+    <script src="scripts/estadisticas.js"></script>
+    
+    <!-- Script de partículas de fondo (como new-auth) -->
+    <script>
+        // Sistema de partículas del canvas (como new-auth)
+        const canvas = document.getElementById('bgParticles');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            function createParticle() {
+                return {
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 3 + 1,
+                    speedX: (Math.random() - 0.5) * 0.5,
+                    speedY: (Math.random() - 0.5) * 0.5,
+                    opacity: Math.random() * 0.5 + 0.2,
+                    color: Math.random() > 0.5 ? '#44E5FF' : '#0077A6'
+                };
+            }
+            
+            function initParticles() {
+                particles = [];
+                for (let i = 0; i < 50; i++) {
+                    particles.push(createParticle());
+                }
+            }
+            
+            function updateParticles() {
+                particles.forEach(particle => {
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+                    
+                    if (particle.x < 0 || particle.x > canvas.width) particle.speedX *= -1;
+                    if (particle.y < 0 || particle.y > canvas.height) particle.speedY *= -1;
+                    
+                    particle.opacity += (Math.random() - 0.5) * 0.01;
+                    particle.opacity = Math.max(0.1, Math.min(0.7, particle.opacity));
+                });
+            }
+            
+            function drawParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach(particle => {
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fillStyle = particle.color;
+                    ctx.globalAlpha = particle.opacity;
+                    ctx.fill();
+                    
+                    // Agregar glow
+                    ctx.shadowColor = particle.color;
+                    ctx.shadowBlur = 10;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                });
+            }
+            
+            function connectParticles() {
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 120) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = '#44E5FF';
+                            ctx.globalAlpha = (120 - distance) / 120 * 0.2;
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+            
+            function animate() {
+                updateParticles();
+                drawParticles();
+                connectParticles();
+                requestAnimationFrame(animate);
+            }
+            
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                initParticles();
+            });
+            
+            resizeCanvas();
+            initParticles();
+            animate();
+        }
+    </script>
+    
+    <script>
+        // Variables globales para el radar chart
+        let radarChart = null;
+        let currentUserData = null;
+        
+        // Inicializar la página de estadísticas
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🎯 Inicializando página de estadísticas con radar chart...');
+            
+            // Mostrar botones de prueba si estamos en localhost
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                const testButtons = document.getElementById('testButtons');
+                if (testButtons) {
+                    testButtons.style.display = 'block';
+                    console.log('🧪 Botones de testing habilitados (modo desarrollo)');
+                }
+            }
+            
+            // Obtener información del usuario logueado
+            await loadUserRadarData();
+            
+            // Cargar datos de adopción de GenAI por países
+            await loadAdoptionData();
+        });
+        
+        // Función para obtener el userId del usuario actual
+        function getCurrentUserId() {
+            // Método 1: Desde localStorage
+            const userData = localStorage.getItem('userData');
+            if (userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    if (user.id) {
+                        console.log('✅ UserId encontrado en userData:', user.id);
+                        return user.id;
+                    }
+                } catch (e) {
+                    console.warn('Error parsing userData from localStorage:', e);
+                }
+            }
+            
+            // Método 2: Desde token JWT decodificado (sin verificar firma)
+            const token = localStorage.getItem('userToken') || localStorage.getItem('authToken');
+            if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    if (payload.sub) {
+                        console.log('✅ UserId encontrado en token JWT:', payload.sub);
+                        return payload.sub;
+                    }
+                } catch (e) {
+                    console.warn('Error decoding token:', e);
+                }
+            }
+            
+            // Método 3: Verificar si hay un userId específico en la URL (para testing)
+            const urlParams = new URLSearchParams(window.location.search);
+            const testUserId = urlParams.get('userId');
+            if (testUserId) {
+                console.log('✅ UserId encontrado en URL params:', testUserId);
+                return testUserId;
+            }
+            
+            // Método 4: Usuario específico mencionado en el issue Linear
+            console.warn('⚠️ No se encontró userId, usando userId del issue Linear');
+            return '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0';
+        }
+        
+        // Cargar datos del radar del usuario
+        async function loadUserRadarData() {
+            try {
+                const userId = getCurrentUserId();
+                console.log('👤 Cargando datos para userId:', userId);
+                
+                // Mostrar información del usuario en la página
+                const sessionInfo = document.getElementById('sessionInfo');
+                if (sessionInfo) {
+                    sessionInfo.innerHTML = `Debugging: userId = ${userId}`;
+                }
+                
+                // Detectar automáticamente la URL base según el entorno
+                const baseURL = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:3000' 
+                    : 'https://aprendeyaplica.ai';
+                console.log(`🔗 Haciendo fetch a: ${baseURL}/api/genai-radar/${userId}`);
+                
+                const response = await fetch(`${baseURL}/api/genai-radar/${userId}`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // En development mode, no se requiere API key
+                    }
+                });
+                
+                console.log('📡 Response status:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    console.error('❌ Error en response:', response.status, response.statusText);
+                    const errorText = await response.text();
+                    console.error('❌ Error details:', errorText);
+                    showRadarPlaceholder();
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('📊 Datos del radar recibidos:', data);
+                console.log('📊 DataSource:', data.dataSource);
+                console.log('📊 HasData:', data.hasData);
+                
+                currentUserData = data;
+                
+                if (data.hasData && (data.conocimiento > 0 || data.aplicacion > 0 || data.productividad > 0 || data.estrategia > 0 || data.inversion > 0)) {
+                    console.log('✅ Datos válidos encontrados, creando radar chart');
+                    createRadarChart(data);
+                    showSessionInfo(data.session_id);
+                } else {
+                    console.log('📭 Usuario sin datos de cuestionario');
+                    console.log('📊 Valores de dimensiones:', {
+                        conocimiento: data.conocimiento,
+                        aplicacion: data.aplicacion,
+                        productividad: data.productividad,
+                        estrategia: data.estrategia,
+                        inversion: data.inversion
+                    });
+                    showRadarPlaceholder();
+                }
+                
+            } catch (error) {
+                console.error('💥 Error cargando datos del radar:', error);
+                console.error('💥 Error stack:', error.stack);
+                showRadarPlaceholder();
+            }
+        }
+        
+        // Crear el radar chart con Chart.js
+        function createRadarChart(data) {
+            const canvas = document.getElementById('radarChart');
+            if (!canvas) {
+                console.error('❌ Canvas radarChart no encontrado');
+                return;
+            }
+            
+            // Destruir chart existente si existe
+            if (radarChart) {
+                radarChart.destroy();
+            }
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Configuración del dataset
+            const radarData = {
+                labels: ['Conocimiento', 'Aplicación', 'Productividad', 'Estrategia', 'Inversión'],
+                datasets: [{
+                    label: 'Competencias en IA',
+                    data: [
+                        data.conocimiento || 0,
+                        data.aplicacion || 0,
+                        data.productividad || 0,
+                        data.estrategia || 0,
+                        data.inversion || 0
+                    ],
+                    backgroundColor: 'rgba(68, 229, 255, 0.2)',
+                    borderColor: '#44E5FF',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#44E5FF',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            };
+            
+            // Configuración del chart
+            const config = {
+                type: 'radar',
+                data: radarData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#fff',
+                                font: {
+                                    family: 'Inter, sans-serif',
+                                    size: 14
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                color: '#888',
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            angleLines: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            pointLabels: {
+                                color: '#fff',
+                                font: {
+                                    family: 'Inter, sans-serif',
+                                    size: 14,
+                                    weight: '500'
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            
+            // Crear el chart
+            radarChart = new Chart(ctx, config);
+            
+            // Ocultar placeholder y mostrar chart
+            document.getElementById('radarPlaceholder').style.display = 'none';
+            canvas.style.display = 'block';
+            
+            console.log('✅ Radar chart creado exitosamente');
+        }
+        
+        // Mostrar placeholder cuando no hay datos
+        function showRadarPlaceholder() {
+            const canvas = document.getElementById('radarChart');
+            const placeholder = document.getElementById('radarPlaceholder');
+            
+            if (canvas) canvas.style.display = 'none';
+            if (placeholder) placeholder.style.display = 'flex';
+            
+            console.log('📋 Mostrando placeholder para radar chart');
+        }
+        
+        // Mostrar información de la sesión
+        function showSessionInfo(sessionId) {
+            const sessionInfo = document.getElementById('sessionInfo');
+            if (sessionInfo && sessionId) {
+                // Mostrar solo los primeros 8 caracteres del session_id
+                const shortSessionId = sessionId.toString().substring(0, 8);
+                sessionInfo.textContent = `Última sesión: ${shortSessionId}...`;
+                sessionInfo.style.display = 'block';
+            }
+        }
+
+        // Variables globales para la gráfica de adopción
+        let adoptionChart = null;
+        
+        // Cargar datos de adopción de GenAI por países
+        async function loadAdoptionData() {
+            try {
+                console.log('🌍 Cargando datos de adopción de GenAI por países...');
+                
+                // Mostrar placeholder de carga
+                showAdoptionPlaceholder('Cargando datos...');
+                
+                // Detectar automáticamente la URL base según el entorno
+                const baseURL = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:3000' 
+                    : 'https://aprendeyaplica.ai';
+                const response = await fetch(`${baseURL}/api/adopcion-genai`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📡 Response status adopción:', response.status);
+                
+                if (!response.ok) {
+                    console.error('❌ Error obteniendo datos de adopción:', response.status, response.statusText);
+                    showAdoptionPlaceholder('Error al cargar datos');
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('📊 Datos de adopción recibidos:', data);
+                
+                if (data && data.length > 0) {
+                    console.log('✅ Datos válidos de adopción encontrados, creando gráfica');
+                    createAdoptionChart(data);
+                } else {
+                    console.log('📭 No hay datos de adopción disponibles');
+                    showAdoptionPlaceholder('No hay datos disponibles');
+                }
+                
+            } catch (error) {
+                console.error('💥 Error cargando datos de adopción:', error);
+                showAdoptionPlaceholder('Error de conexión');
+            }
+        }
+        
+        // Crear gráfica de barras horizontal para adopción de GenAI
+        function createAdoptionChart(data) {
+            const canvas = document.getElementById('adoptionChart');
+            if (!canvas) {
+                console.error('❌ Canvas adoptionChart no encontrado');
+                return;
+            }
+            
+            // Destruir chart existente si existe
+            if (adoptionChart) {
+                adoptionChart.destroy();
+            }
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Preparar datos para la gráfica - filtrar países sin datos
+            const validData = data.filter(item => item.indice_aipi !== null && item.indice_aipi !== undefined);
+            const countries = validData.map(item => item.pais);
+            const scores = validData.map(item => parseFloat(item.indice_aipi));
+            
+            // Crear gradientes de colores
+            const gradients = scores.map((score, index) => {
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+                const intensity = Math.min(score / 100, 1);
+                gradient.addColorStop(0, `rgba(68, 229, 255, ${0.3 + intensity * 0.4})`);
+                gradient.addColorStop(1, `rgba(0, 119, 166, ${0.3 + intensity * 0.4})`);
+                return gradient;
+            });
+            
+            // Configuración del dataset
+            const chartData = {
+                labels: countries,
+                datasets: [{
+                    label: 'Índice AIPI',
+                    data: scores,
+                    backgroundColor: gradients,
+                    borderColor: '#44E5FF',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                                         barThickness: 35,
+                     maxBarThickness: 40,
+                    // Efectos adicionales
+                    hoverBackgroundColor: '#44E5FF',
+                    hoverBorderColor: '#0077A6',
+                    hoverBorderWidth: 3
+                }]
+            };
+            
+            // Configuración del chart
+            const config = {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#44E5FF',
+                            borderWidth: 2,
+                            cornerRadius: 12,
+                            displayColors: false,
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(context) {
+                                    return `Índice AIPI: ${context.parsed.x.toFixed(2)}`;
+                                }
+                            },
+                            // Configuración para evitar que se corte
+                            position: 'nearest',
+                            mode: 'index',
+                            intersect: false,
+                            // Asegurar que el tooltip tenga suficiente espacio
+                            xAlign: 'center',
+                            yAlign: 'center'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: Math.max(...scores) * 1.1,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#888',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                                                 y: {
+                             grid: {
+                                 display: false
+                             },
+                             ticks: {
+                                 color: '#fff',
+                                 font: {
+                                     size: 14,
+                                     weight: '500'
+                                 },
+                                 callback: function(value, index) {
+                                     const country = this.getLabelForValue(value);
+                                     const score = scores[index];
+                                     return `${country}  ${score.toFixed(2)}`;
+                                 }
+                             }
+                         }
+                    },
+                                         animation: {
+                         duration: 2500,
+                         easing: 'easeOutQuart'
+                     },
+                    // Efectos de hover mejorados
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                                         // Configuración adicional para tooltips
+                     layout: {
+                         padding: {
+                             top: 30,
+                             bottom: 30,
+                             left: 40,
+                             right: 40
+                         }
+                     }
+                }
+            };
+            
+            // Crear el chart
+            adoptionChart = new Chart(ctx, config);
+            
+            // Ocultar placeholder y mostrar chart
+            document.getElementById('adoptionPlaceholder').style.display = 'none';
+            canvas.style.display = 'block';
+            
+            // Actualizar información
+            updateAdoptionInfo(data);
+            
+            console.log('✅ Gráfica de adopción creada exitosamente');
+        }
+        
+        // Mostrar placeholder para la gráfica de adopción
+        function showAdoptionPlaceholder(message) {
+            const canvas = document.getElementById('adoptionChart');
+            const placeholder = document.getElementById('adoptionPlaceholder');
+            
+            if (canvas) canvas.style.display = 'none';
+            if (placeholder) {
+                const content = placeholder.querySelector('.placeholder-content');
+                if (content) {
+                    content.innerHTML = `
+                        <i class='bx bx-globe' style="font-size: 48px; color: #44e5ff; margin-bottom: 16px;"></i>
+                        <h4 style="color: #44e5ff; margin: 0 0 8px 0;">${message}</h4>
+                        <p style="color: #888; margin: 0 0 8px 0; text-align: center;">Estadísticas de adopción de GenAI en países hispanoparlantes</p>
+                    `;
+                }
+                placeholder.style.display = 'flex';
+            }
+            
+            console.log('📋 Mostrando placeholder para gráfica de adopción:', message);
+        }
+        
+        // Actualizar información de la gráfica de adopción
+        function updateAdoptionInfo(data) {
+            const adoptionInfo = document.getElementById('adoptionInfo');
+            if (adoptionInfo && data && data.length > 0) {
+                // Filtrar datos válidos
+                const validData = data.filter(item => item.indice_aipi !== null && item.indice_aipi !== undefined);
+                const totalCountries = validData.length;
+                const totalAnalyzed = data.length;
+                
+                if (validData.length > 0) {
+                    const avgScore = (validData.reduce((sum, item) => sum + parseFloat(item.indice_aipi), 0) / totalCountries).toFixed(2);
+                    const maxScore = Math.max(...validData.map(item => parseFloat(item.indice_aipi))).toFixed(2);
+                    const topCountry = validData.find(item => parseFloat(item.indice_aipi) === Math.max(...validData.map(item => parseFloat(item.indice_aipi))));
+                    
+                    adoptionInfo.innerHTML = `
+                        <strong>${totalCountries} países con datos</strong> (de ${totalAnalyzed} analizados) | 
+                        Promedio: <strong>${avgScore}</strong> | 
+                        Máximo: <strong>${maxScore}</strong> (${topCountry.pais}) | 
+                        Fuente: ${validData[0].fuente || 'Datos actualizados'}
+                    `;
+                } else {
+                    adoptionInfo.innerHTML = `
+                        <strong>${totalAnalyzed} países analizados</strong> | 
+                        <span style="color: #ff6b6b;">No hay datos de adopción disponibles</span>
+                    `;
+                }
+            }
+        }
+        
+        // Funciones de utilidad para manejo de errores de red
+        function handleNetworkError() {
+            console.error('🌐 Error de red detectado');
+            const placeholder = document.getElementById('radarPlaceholder');
+            if (placeholder) {
+                const content = placeholder.querySelector('.placeholder-content');
+                if (content) {
+                    content.innerHTML = `
+                        <i class='bx bx-wifi-off' style="font-size: 48px; color: #ff6b6b; margin-bottom: 16px;"></i>
+                        <h4 style="color: #ff6b6b; margin: 0 0 8px 0;">Error de conexión</h4>
+                        <p style="color: #888; margin: 0 0 8px 0; text-align: center;">No se pudo cargar tu radar de competencias</p>
+                        <button onclick="location.reload()" class="btn-primary" style="margin-top: 16px;">
+                            Reintentar
+                        </button>
+                    `;
+                }
+                placeholder.style.display = 'flex';
+            }
+        }
+        
+        // ======= FUNCIONES DE NAVEGACIÓN =======
+        
+        // Función para ir al cuestionario evitando la redirección automática
+        function goToQuestionnaire() {
+            console.log('📝 Navegando al cuestionario...');
+            
+            // Usar parámetro force para evitar la redirección automática
+            window.location.href = 'perfil-cuestionario.html?force=true';
+        }
+        
+        // ======= FUNCIONES DE TESTING PARA DESARROLLO =======
+        
+        // Test con usuario que tiene datos
+        async function testUserWithData() {
+            console.log('🧪 Testing usuario con datos...');
+            
+            // Simular datos de prueba
+            const testData = {
+                session_id: 'test-session-123',
+                user_id: 'test-user',
+                conocimiento: 75,
+                aplicacion: 80,
+                productividad: 65,
+                estrategia: 70,
+                inversion: 85,
+                hasData: true,
+                dataSource: 'test'
+            };
+            
+            currentUserData = testData;
+            createRadarChart(testData);
+            showSessionInfo(testData.session_id);
+            
+            console.log('✅ Test completado - usuario con datos');
+        }
+        
+        // Test con usuario sin datos
+        async function testUserWithoutData() {
+            console.log('🧪 Testing usuario sin datos...');
+            
+            // Simular usuario sin datos
+            const testData = {
+                session_id: null,
+                user_id: 'user-without-data',
+                conocimiento: 0,
+                aplicacion: 0,
+                productividad: 0,
+                estrategia: 0,
+                inversion: 0,
+                hasData: false,
+                dataSource: 'test'
+            };
+            
+            currentUserData = testData;
+            showRadarPlaceholder();
+            
+            console.log('✅ Test completado - usuario sin datos');
+        }
+        
+        // Test de carga desde el backend real
+        async function testBackendConnection() {
+            console.log('🧪 Testing conexión al backend...');
+            
+            try {
+                const response = await fetch('/api/radar/user/test-user', {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Backend response:', data);
+                    
+                    currentUserData = data;
+                    
+                    if (data.hasData) {
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                    } else {
+                        showRadarPlaceholder();
+                    }
+                } else {
+                    console.error('❌ Backend error:', response.status);
+                    handleNetworkError();
+                }
+                
+            } catch (error) {
+                console.error('💥 Error testing backend:', error);
+                handleNetworkError();
+            }
+        }
+        
+        // ======= FUNCIONES DE SETUP DE BASE DE DATOS =======
+        
+        // Crear las vistas de radar en la base de datos
+        async function createRadarViews() {
+            console.log('🔧 Creando vistas de radar...');
+            
+            try {
+                const response = await fetch('/api/radar/create-views', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Vistas creadas:', data);
+                    alert(`✅ Vistas creadas exitosamente:\n${data.views.join(', ')}`);
+                } else {
+                    const error = await response.json();
+                    console.error('❌ Error creando vistas:', error);
+                    alert(`❌ Error creando vistas: ${error.error}`);
+                }
+                
+            } catch (error) {
+                console.error('💥 Error:', error);
+                alert(`💥 Error de conexión: ${error.message}`);
+            }
+        }
+        
+        // Crear datos de prueba en la base de datos
+        async function createTestData() {
+            console.log('🔧 Creando datos de prueba...');
+            
+            try {
+                const response = await fetch('/api/radar/create-test-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Datos de prueba creados:', data);
+                    alert(`✅ Datos de prueba creados exitosamente!\nUsuario: ${data.testUserId}\nSesión: ${data.sessionId}`);
+                } else {
+                    const error = await response.json();
+                    console.error('❌ Error creando datos:', error);
+                    alert(`❌ Error creando datos: ${error.error}`);
+                }
+                
+            } catch (error) {
+                console.error('💥 Error:', error);
+                alert(`💥 Error de conexión: ${error.message}`);
+            }
+        }
+        
+        // Test con el backend real usando datos de la base de datos
+        async function testRealBackend() {
+            console.log('🔍 Testing backend con datos reales...');
+            
+            try {
+                // Probar con el usuario de prueba que debería tener datos reales
+                const response = await fetch('/api/radar/user/test-user-uuid', {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Backend real response:', data);
+                    
+                    if (data.hasData && data.dataSource === 'database') {
+                        currentUserData = data;
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                        alert('✅ ¡Datos reales cargados desde la base de datos!');
+                    } else if (data.hasData && data.dataSource === 'test') {
+                        currentUserData = data;
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                        alert('⚠️ Cargando datos de prueba (vistas no existen aún)');
+                    } else {
+                        showRadarPlaceholder();
+                        alert('📭 No hay datos en la base de datos para este usuario');
+                    }
+                } else {
+                    console.error('❌ Backend error:', response.status);
+                    alert(`❌ Error del backend: ${response.status}`);
+                    handleNetworkError();
+                }
+                
+            } catch (error) {
+                console.error('💥 Error testing real backend:', error);
+                alert(`💥 Error: ${error.message}`);
+                handleNetworkError();
+            }
+        }
+        
+        // Test con el usuario específico del issue Linear
+        async function testLinearIssueUser() {
+            console.log('🔍 Testing usuario del issue Linear...');
+            
+            try {
+                const userId = '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0';
+                const response = await fetch(`/api/radar/user/${userId}`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Linear issue user response:', data);
+                    
+                    if (data.hasData && data.dataSource === 'database') {
+                        currentUserData = data;
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                        alert('✅ ¡Usuario del issue Linear tiene datos en la base de datos!');
+                    } else if (data.hasData && data.dataSource === 'test') {
+                        currentUserData = data;
+                        createRadarChart(data);
+                        showSessionInfo(data.session_id);
+                        alert('⚠️ Usuario del issue Linear cargando datos de prueba');
+                    } else {
+                        showRadarPlaceholder();
+                        alert('📭 Usuario del issue Linear no tiene datos en la base de datos');
+                    }
+                } else {
+                    console.error('❌ Backend error:', response.status);
+                    alert(`❌ Error del backend: ${response.status}`);
+                    handleNetworkError();
+                }
+                
+            } catch (error) {
+                console.error('💥 Error testing Linear issue user:', error);
+                alert(`💥 Error: ${error.message}`);
+                handleNetworkError();
+            }
+        }
+        
+        // Test del endpoint de debug
+        async function testDebugEndpoint() {
+            console.log('🔍 Testing endpoint de debug...');
+            
+            try {
+                const userId = getCurrentUserId();
+                const response = await fetch(`/api/radar/debug/${userId}`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Debug endpoint response:', data);
+                    
+                    // Mostrar información detallada
+                    let debugInfo = `🔍 Debug Info para ${userId}:\n\n`;
+                    debugInfo += `👤 Usuario existe: ${data.userExists}\n`;
+                    debugInfo += `📝 Sesiones: ${data.sessionsCount}\n`;
+                    debugInfo += `💬 Respuestas: ${data.responsesCount}\n`;
+                    debugInfo += `👁️ Vista existe: ${data.viewExists}\n`;
+                    debugInfo += `✅ Sesiones completadas: ${data.hasCompletedSessions}\n`;
+                    
+                    if (data.radarData) {
+                        debugInfo += `\n📊 Datos de radar:\n`;
+                        debugInfo += `- Conocimiento: ${data.radarData.conocimiento}\n`;
+                        debugInfo += `- Aplicación: ${data.radarData.aplicacion}\n`;
+                        debugInfo += `- Productividad: ${data.radarData.productividad}\n`;
+                        debugInfo += `- Estrategia: ${data.radarData.estrategia}\n`;
+                        debugInfo += `- Inversión: ${data.radarData.inversion}\n`;
+                    }
+                    
+                    alert(debugInfo);
+                } else {
+                    console.error('❌ Debug endpoint error:', response.status);
+                    alert(`❌ Error del debug endpoint: ${response.status}`);
+                }
+                
+            } catch (error) {
+                console.error('💥 Error testing debug endpoint:', error);
+                alert(`💥 Error: ${error.message}`);
+            }
+        }
+    </script>
+    <script src="scripts/theme-toggle.js"></script>
+    
+    <!-- Script de prueba para el botón de tema -->
+    <script>
+        // Función simple para cambiar tema
+        function toggleTheme() {
+            console.log('🔄 Cambiando tema...');
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            // Aplicar el nuevo tema
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            console.log('✅ Tema cambiado a:', newTheme);
+        }
+        
+        // Hacer la función disponible globalmente
+        window.toggleTheme = toggleTheme;
+        
+        // Inicializar tema al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Aplicar tema guardado o usar dark por defecto
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            console.log('🎨 Tema inicial aplicado:', savedTheme);
+            
+            // Agregar evento de click al botón
+            const themeBtn = document.querySelector('.theme-toggle-btn');
+            if (themeBtn) {
+                // Remover onclick del HTML y usar addEventListener
+                themeBtn.removeAttribute('onclick');
+                themeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🖱️ Botón de tema clickeado');
+                    toggleTheme();
+                });
+                console.log('✅ Evento de click agregado al botón de tema');
+            } else {
+                console.error('❌ No se encontró el botón de tema');
+            }
+        });
+        
+        // Script adicional de prueba
+        console.log('🔧 Script de tema cargado');
+        
+        // Verificar que el botón existe
+        setTimeout(() => {
+            const btn = document.querySelector('.theme-toggle-btn');
+            if (btn) {
+                console.log('✅ Botón encontrado:', btn);
+                console.log('✅ Función toggleTheme disponible:', typeof toggleTheme);
+            } else {
+                console.error('❌ Botón no encontrado');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

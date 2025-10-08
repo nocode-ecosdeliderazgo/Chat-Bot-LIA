@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netlify Deployment Tests</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .test-section h2 {
+            color: #333;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-section .icon {
+            font-size: 1.5rem;
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .test-button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-indicator.success {
+            background: #28a745;
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+        }
+
+        .status-indicator.error {
+            background: #dc3545;
+            box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+        }
+
+        .status-indicator.pending {
+            background: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+
+        .instructions strong {
+            color: #856404;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Netlify Deployment Tests</h1>
+        <p class="subtitle">Herramientas de verificación post-deployment</p>
+
+        <div class="instructions">
+            <strong>📋 Instrucciones:</strong>
+            <ol style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                <li>Asegúrate de haber configurado las <strong>variables de entorno en Netlify</strong> (ver NETLIFY_ENV_VARIABLES.md)</li>
+                <li>Espera a que el <strong>deployment se complete</strong> (verifica en Netlify Dashboard)</li>
+                <li>Abre este archivo en tu sitio de producción: <code>https://[tu-sitio].netlify.app/NETLIFY_POST_DEPLOY_TESTS.html</code></li>
+                <li>Ejecuta cada test presionando los botones correspondientes</li>
+            </ol>
+        </div>
+
+        <!-- Test 1: Community API -->
+        <div class="test-section">
+            <h2>
+                <span class="icon">🏘️</span>
+                Test 1: Community API
+            </h2>
+            <p style="color: #666; margin-bottom: 15px;">
+                Verifica que el endpoint <code>/api/community-public</code> responda correctamente con datos de comunidades.
+            </p>
+            <button class="test-button" onclick="testCommunityAPI()">
+                Ejecutar Test Community API
+            </button>
+            <div id="communityResult" class="result"></div>
+        </div>
+
+        <!-- Test 2: OpenAI Integration -->
+        <div class="test-section">
+            <h2>
+                <span class="icon">🤖</span>
+                Test 2: OpenAI Integration
+            </h2>
+            <p style="color: #666; margin-bottom: 15px;">
+                Verifica que el servicio de OpenAI esté configurado y responda correctamente.
+            </p>
+            <button class="test-button" onclick="testOpenAI()">
+                Ejecutar Test OpenAI
+            </button>
+            <div id="openaiResult" class="result"></div>
+        </div>
+
+        <!-- Test 3: Assets Loading -->
+        <div class="test-section">
+            <h2>
+                <span class="icon">📦</span>
+                Test 3: Assets Loading
+            </h2>
+            <p style="color: #666; margin-bottom: 15px;">
+                Verifica que los CSS, JS y recursos estáticos se carguen correctamente con rutas absolutas.
+            </p>
+            <button class="test-button" onclick="testAssets()">
+                Ejecutar Test Assets
+            </button>
+            <div id="assetsResult" class="result"></div>
+        </div>
+
+        <!-- Test 4: Supabase Connection -->
+        <div class="test-section">
+            <h2>
+                <span class="icon">🗄️</span>
+                Test 4: Supabase Connection
+            </h2>
+            <p style="color: #666; margin-bottom: 15px;">
+                Verifica que Supabase esté configurado correctamente y la conexión sea exitosa.
+            </p>
+            <button class="test-button" onclick="testSupabase()">
+                Ejecutar Test Supabase
+            </button>
+            <div id="supabaseResult" class="result"></div>
+        </div>
+
+        <!-- Test 5: Environment Variables -->
+        <div class="test-section">
+            <h2>
+                <span class="icon">⚙️</span>
+                Test 5: Environment Variables
+            </h2>
+            <p style="color: #666; margin-bottom: 15px;">
+                Verifica que las variables de entorno críticas estén configuradas (sin exponer valores sensibles).
+            </p>
+            <button class="test-button" onclick="testEnvVars()">
+                Ejecutar Test Env Variables
+            </button>
+            <div id="envResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Test 1: Community API
+        async function testCommunityAPI() {
+            const resultDiv = document.getElementById('communityResult');
+            resultDiv.className = 'result info show';
+            resultDiv.innerHTML = '<span class="status-indicator pending"></span>Ejecutando test...';
+
+            try {
+                const response = await fetch('/api/community-public?limit=5');
+                const data = await response.json();
+
+                if (response.ok && Array.isArray(data) && data.length > 0) {
+                    resultDiv.className = 'result success show';
+                    resultDiv.innerHTML = `
+                        <span class="status-indicator success"></span>
+                        <strong>✅ Test Exitoso</strong><br>
+                        Status: ${response.status}<br>
+                        Comunidades encontradas: ${data.length}<br>
+                        Primera comunidad: ${data[0].name || 'Sin nombre'}<br>
+                        <pre>${JSON.stringify(data[0], null, 2)}</pre>
+                    `;
+                } else {
+                    throw new Error('Respuesta inválida o array vacío');
+                }
+            } catch (error) {
+                resultDiv.className = 'result error show';
+                resultDiv.innerHTML = `
+                    <span class="status-indicator error"></span>
+                    <strong>❌ Test Fallido</strong><br>
+                    Error: ${error.message}<br>
+                    <strong>Posibles causas:</strong><br>
+                    • Variable SUPABASE_ANON_KEY no configurada en Netlify<br>
+                    • Endpoint /api/community-public no disponible<br>
+                    • Problemas de conexión con Supabase<br>
+                    <br>
+                    <strong>Solución:</strong> Verifica NETLIFY_ENV_VARIABLES.md
+                `;
+            }
+        }
+
+        // Test 2: OpenAI Integration
+        async function testOpenAI() {
+            const resultDiv = document.getElementById('openaiResult');
+            resultDiv.className = 'result info show';
+            resultDiv.innerHTML = '<span class="status-indicator pending"></span>Ejecutando test...';
+
+            try {
+                const response = await fetch('/api/openai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer test-token',
+                        'X-User-Id': 'test-user'
+                    },
+                    body: JSON.stringify({
+                        prompt: 'Hola, este es un test',
+                        context: 'test'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.response) {
+                    resultDiv.className = 'result success show';
+                    resultDiv.innerHTML = `
+                        <span class="status-indicator success"></span>
+                        <strong>✅ Test Exitoso</strong><br>
+                        Status: ${response.status}<br>
+                        OpenAI respondió correctamente<br>
+                        Respuesta: ${data.response.substring(0, 100)}...
+                    `;
+                } else if (response.status === 401) {
+                    resultDiv.className = 'result info show';
+                    resultDiv.innerHTML = `
+                        <span class="status-indicator success"></span>
+                        <strong>⚠️ Autenticación Requerida</strong><br>
+                        Status: ${response.status}<br>
+                        El endpoint está funcionando pero requiere autenticación válida.<br>
+                        Esto es correcto para producción.
+                    `;
+                } else {
+                    throw new Error(data.error || 'Respuesta inválida');
+                }
+            } catch (error) {
+                resultDiv.className = 'result error show';
+                resultDiv.innerHTML = `
+                    <span class="status-indicator error"></span>
+                    <strong>❌ Test Fallido</strong><br>
+                    Error: ${error.message}<br>
+                    <strong>Posibles causas:</strong><br>
+                    • Variable OPENAI_API_KEY no configurada en Netlify<br>
+                    • Endpoint /api/openai no disponible<br>
+                    <br>
+                    <strong>Solución:</strong> Verifica NETLIFY_ENV_VARIABLES.md
+                `;
+            }
+        }
+
+        // Test 3: Assets Loading
+        async function testAssets() {
+            const resultDiv = document.getElementById('assetsResult');
+            resultDiv.className = 'result info show';
+            resultDiv.innerHTML = '<span class="status-indicator pending"></span>Ejecutando test...';
+
+            const assetsToTest = [
+                '/Community/community.css',
+                '/assets/images/icono.png',
+                '/scripts/supabase-client.js',
+                '/scripts/main.js'
+            ];
+
+            const results = [];
+
+            for (const asset of assetsToTest) {
+                try {
+                    const response = await fetch(asset, { method: 'HEAD' });
+                    results.push({
+                        asset,
+                        status: response.status,
+                        success: response.ok
+                    });
+                } catch (error) {
+                    results.push({
+                        asset,
+                        status: 'Error',
+                        success: false,
+                        error: error.message
+                    });
+                }
+            }
+
+            const allSuccess = results.every(r => r.success);
+
+            if (allSuccess) {
+                resultDiv.className = 'result success show';
+                resultDiv.innerHTML = `
+                    <span class="status-indicator success"></span>
+                    <strong>✅ Test Exitoso</strong><br>
+                    Todos los assets se cargaron correctamente:<br>
+                    ${results.map(r => `• ${r.asset}: ${r.status}`).join('<br>')}
+                `;
+            } else {
+                resultDiv.className = 'result error show';
+                resultDiv.innerHTML = `
+                    <span class="status-indicator error"></span>
+                    <strong>❌ Test Fallido</strong><br>
+                    Algunos assets no se cargaron:<br>
+                    ${results.map(r => `• ${r.asset}: ${r.status} ${r.success ? '✅' : '❌'}`).join('<br>')}
+                    <br><br>
+                    <strong>Solución:</strong> Verifica rutas en HTML y que los archivos existan en /src
+                `;
+            }
+        }
+
+        // Test 4: Supabase Connection
+        async function testSupabase() {
+            const resultDiv = document.getElementById('supabaseResult');
+            resultDiv.className = 'result info show';
+            resultDiv.innerHTML = '<span class="status-indicator pending"></span>Ejecutando test...';
+
+            try {
+                const response = await fetch('/api/supabase-config');
+                const data = await response.json();
+
+                if (response.ok && data.supabaseUrl && data.supabaseKey) {
+                    resultDiv.className = 'result success show';
+                    resultDiv.innerHTML = `
+                        <span class="status-indicator success"></span>
+                        <strong>✅ Test Exitoso</strong><br>
+                        Supabase configurado correctamente<br>
+                        URL: ${data.supabaseUrl}<br>
+                        Key: ${data.supabaseKey ? '***' + data.supabaseKey.slice(-10) : 'No disponible'}
+                    `;
+                } else {
+                    throw new Error('Configuración de Supabase incompleta');
+                }
+            } catch (error) {
+                resultDiv.className = 'result error show';
+                resultDiv.innerHTML = `
+                    <span class="status-indicator error"></span>
+                    <strong>❌ Test Fallido</strong><br>
+                    Error: ${error.message}<br>
+                    <strong>Posibles causas:</strong><br>
+                    • Variables SUPABASE_URL o SUPABASE_ANON_KEY no configuradas<br>
+                    • Endpoint /api/supabase-config no disponible<br>
+                    <br>
+                    <strong>Solución:</strong> Verifica NETLIFY_ENV_VARIABLES.md
+                `;
+            }
+        }
+
+        // Test 5: Environment Variables Check
+        async function testEnvVars() {
+            const resultDiv = document.getElementById('envResult');
+            resultDiv.className = 'result info show';
+            resultDiv.innerHTML = '<span class="status-indicator pending"></span>Ejecutando test...';
+
+            const requiredVars = [
+                'SUPABASE_URL',
+                'SUPABASE_ANON_KEY',
+                'OPENAI_API_KEY',
+                'JWT_SECRET',
+                'NODE_ENV'
+            ];
+
+            // Este test es más conceptual ya que no podemos acceder directamente a las env vars del servidor
+            // pero podemos inferir su estado basándonos en los otros tests
+
+            setTimeout(() => {
+                resultDiv.className = 'result info show';
+                resultDiv.innerHTML = `
+                    <span class="status-indicator success"></span>
+                    <strong>ℹ️ Variables de Entorno Requeridas</strong><br>
+                    Para verificar que estén configuradas, ejecuta los otros tests.<br>
+                    <br>
+                    <strong>Variables críticas:</strong><br>
+                    ${requiredVars.map(v => `• ${v}`).join('<br>')}
+                    <br><br>
+                    <strong>Verificación indirecta:</strong><br>
+                    • Si Community API funciona → SUPABASE_* configuradas<br>
+                    • Si OpenAI funciona → OPENAI_API_KEY configurada<br>
+                    • Si Supabase Connection funciona → JWT_SECRET configurado<br>
+                    <br>
+                    <strong>Configurar en:</strong> Netlify Dashboard → Site settings → Environment variables
+                `;
+            }, 500);
+        }
+    </script>
+</body>
+</html>

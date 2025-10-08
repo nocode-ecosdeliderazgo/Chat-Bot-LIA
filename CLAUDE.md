@@ -2,84 +2,683 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Common Commands
+## Project Overview
 
-### Development
-- `npm start` - Start the server (runs server.js)
-- `npm run dev` - Start development server with nodemon
-- `npm test` - Run Jest tests
-- `npm run lint` - Lint JavaScript files in src/
-- `npm run format` - Format code with Prettier
-- `npm run security-check` - Run npm audit and fix vulnerabilities
-- `npm run setup` - Install dependencies and run security check
+**Coach Lia IA** is an AI-powered educational chatbot platform with OpenAI integration and PostgreSQL database support. The application provides personalized learning experiences through interactive courses, real-time chat, and multimedia content delivery.
 
-### Testing
-- Tests are configured with Jest using jsdom environment
-- Test files: `**/__tests__/**/*.js` or `**/?(*.)+(spec|test).js`
-- Coverage reports generated in `coverage/` directory
-- Setup file: `tests/setup.js`
+**Technology Stack**: Node.js/Express backend with vanilla JavaScript frontend, Supabase integration, and Netlify Functions for serverless deployment.
 
-## Project Architecture
+## Development Commands
 
-### Application Structure
-This is a full-stack educational chatbot application with:
+### Server & Development
+```bash
+# Start production server
+npm start
 
-**Backend (server.js):**
-- Express.js server with comprehensive security middleware
-- JWT-based authentication with session fingerprinting
-- PostgreSQL database integration for course content and user data
-- OpenAI API integration for AI responses
-- Rate limiting, CORS, and Helmet security headers
-- File upload support with Multer
+# Start development server with nodemon
+npm run dev
 
-**Frontend:**
-- Vanilla JavaScript (ES6+) in `src/scripts/main.js`
-- Modern CSS with responsive design in `src/styles/main.css`
-- Login system in `src/login/`
-- Main chat interface in `src/chat.html`
+# Start with environment setup (Windows)
+npm run dev:win
 
-### Key Components
+# Force development mode (kills port 3000 first)
+npm run dev:force
 
-**Chat System (`src/scripts/main.js`):**
-- Chatbot configuration with OpenAI GPT-4 integration
-- Real-time typing simulation and message handling
-- Audio features with welcome sounds
-- Conversation history and state management
-- Dynamic API key loading from backend
+# Kill specific ports
+npm run port:kill        # Kills port 3000
+npm run port:kill:3001   # Kills port 3001
+```
 
-**Security Implementation:**
-- Environment variables for sensitive data (API keys, database URLs)
-- JWT tokens with session fingerprinting
-- API key authentication for all endpoints
-- Content Security Policy and security headers
-- Parameterized SQL queries to prevent injection
+### Testing & Quality
+```bash
+# Run Jest tests
+npm test
 
-**Database Schema:**
-- PostgreSQL with tables for course content, users, conversations, and sessions
-- Content categorization by difficulty and topic
-- User progress tracking and conversation history
+# Lint JavaScript code
+npm run lint
 
-### Configuration Files
-- `jest.config.js` - Jest testing configuration with jsdom environment
+# Format code with Prettier  
+npm run format
+
+# Security audit
+npm run security-check
+
+# Complete setup (install + security check)
+npm run setup
+```
+
+### Database Operations
+```bash
+# Initialize progress database tables
+npm run init:database
+# or
+npm run init:progress
+
+# Extract Supabase configuration
+node scripts/extract-supabase-config.js
+
+# Initial project setup
+node scripts/setup.js
+
+# Test and manage activities
+node scripts/test-activities.js
+node scripts/insert-sample-activities.js
+node scripts/run-activity-migration.js
+
+# Check and fix progress data
+node scripts/check-progress-data.js
+node scripts/fix-progress-function.js
+node scripts/reset-user-progress.js
+
+# Update specific activities
+node scripts/update-specific-activities.js
+
+# Import GenAI questions (if using Supabase)
+SUPABASE_URL="your_url" SUPABASE_SERVICE_KEY="your_key" node scripts/import-genai-questions.js --clear --verbose
+```
+
+### Development Testing
+```bash
+# Test the activity migration functionality
+start test-activity-migration.html
+
+# Test specific Chat-Online components
+start src/Chat-Online/chat-online.html
+
+# Test community functionality
+start test-community-functionality.html
+
+# Test database integration
+start test-database-integration.html
+```
+
+## Architecture Overview
+
+### Core Application Structure
+- **`server.js`** - Main Express server with comprehensive security middleware, PostgreSQL connection, and API routing
+- **`src/`** - Frontend application with modular component structure
+- **`netlify/functions/`** - Serverless functions for authentication, OpenAI integration, and database operations
+
+### Frontend Architecture
+The frontend follows a multi-page application (MPA) pattern with shared components:
+
+**Main Pages**:
+- `src/index.html` - Landing page with animated hero section and theme switching
+- `src/login/new-auth.html` - Authentication system with OTP verification
+- `src/chat.html` - Main chat interface with OpenAI integration
+- `src/Chat-Online/chat-online.html` - Interactive course chat with video player and LIA assistant
+- `src/ChatGeneral/chat-general.html` - General chat system for non-course conversations
+- `src/courses.html` / `src/cursos.html` - Course catalog and management
+- `src/profile.html` - User profile and progress tracking
+- `src/Community/community.html` - Community features and discussions
+- `src/Notices/notices.html` - Announcements and notifications
+- `src/instructors/instructor-dashboard.html` - Teaching interface and instructor tools
+- `src/apps-directory.html` - Application catalog and directory
+- `src/admin/admin.html` - Administrative dashboard
+
+**Modular Components**:
+- `src/scripts/` - JavaScript modules for animations, theme management, API integration
+- `src/styles/` - CSS modules with responsive design and theme system
+- `src/utils/` - Utility functions for authentication, email services, and data helpers
+- `src/Chat-Online/components/` - Specialized chat components:
+  - `lia-chat.js` - LIA assistant integration
+  - `video-player.js` - Video playback management
+  - `course-viewer.js` - Course content display
+
+### Backend Architecture
+**Express Server Features**:
+- Helmet.js security middleware with CSP policies
+- Rate limiting and CORS configuration
+- PostgreSQL connection pooling
+- Supabase integration for extended functionality
+- Socket.IO for real-time features
+
+**API Structure**:
+- RESTful endpoints for user management, courses, and chat
+- Netlify Functions for serverless operations
+- OpenAI API integration for chat responses
+- Email service for OTP verification
+
+### Database Integration
+- **Primary**: PostgreSQL with connection pooling
+- **Secondary**: Supabase for real-time features and extended functionality
+- **Key Tables**:
+  - `courses`, `course_modules`, `module_videos` - Course structure
+  - `actividad_detalle` - Normalized activity content (new)
+  - `users`, `user_progress` - User management and progress tracking
+  - `community_posts`, `community_comments`, `community_reactions` - Community system
+  - `analysis_messages` - Dynamic AI statistics messaging system
+  - Chat history, OTP verification tables
+
+## Key Features & Integrations
+
+### AI Chat System
+- OpenAI GPT integration through Netlify Functions
+- Context-aware conversations with course knowledge
+- Real-time message processing with Socket.IO
+- Chat history persistence and user context
+- **Markdown Support**: Full markdown rendering in chat messages with syntax highlighting
+- **Enhanced Message Processing**: Improved chat bubble design with better typography and spacing
+
+### Authentication System
+- **Hybrid Authentication**: Multi-source authentication system combining:
+  - Supabase Auth for database operations
+  - LocalStorage/SessionStorage for basic functionality
+  - JWT token management with cross-platform sync
+  - Graceful degradation to read-only mode when authentication fails
+- Email-based OTP verification with `src/utils/otp-service.js`
+- Enhanced authentication utilities in `src/utils/auth-utils.js`
+- Role-based access control with RLS policies
+
+### Course Management
+- Dynamic course data from database
+- Progress tracking and analytics
+- Interactive multimedia content
+- PDF generation and file management
+
+### Community System
+- **Advanced Community Architecture**:
+  - `CommunityDatabase` class (`src/scripts/community-database.js`) for Supabase operations
+  - `CommunityPage` class for main community orchestration
+  - Dedicated API client (`src/Chat-Online/api/community-api.js`)
+- User-generated content with questions, answers, and voting
+- Real-time profile modals with database-driven activity metrics
+- Role-based access control with RLS policies and hybrid authentication
+- Comprehensive moderation, search, and filtering capabilities
+- League/points system integrated with community actions
+
+### Notes System
+- **NotebookLM-style Interface**: Integrated notes system within the chat-online environment
+- **Real-time Note Management**: Create, edit, search, and organize notes during course interactions
+- **Persistent Storage**: Notes are saved to localStorage with automatic persistence
+- **Search and Filter**: Full-text search capabilities across all saved notes
+- **Integration with Chat**: Seamless note-taking during AI conversations and video lessons
+- **Key Functions**: `saveNote()`, `renderNotes()`, `searchNotes()`, `deleteNote()` in ChatOnline class
+
+### Theme System
+- Dark/light mode with system preference detection
+- CSS custom properties for consistent theming
+- Animated transitions and particle effects
+- Responsive design across all breakpoints
+
+## Development Guidelines
+
+### Environment Configuration
+Create `.env` file with required variables (see `.env.example` for complete reference):
+```
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Database Configuration  
+DATABASE_URL=your_database_url_here
+
+# Supabase Configuration
+SUPABASE_URL=your_supabase_url_here
+SUPABASE_SERVICE_KEY=your_supabase_service_key_here
+
+# Security Configuration
+NODE_ENV=production
+SESSION_SECRET=your-session-secret-here
+API_SECRET_KEY=your-api-secret-key-here
+USER_JWT_SECRET=your_jwt_secret_here
+
+# Google OAuth (optional)
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+
+# Server Configuration
+PORT=3000
+ALLOWED_ORIGINS=http://localhost:3000,https://yourdomain.com
+
+# Chatbot Configuration (optional)
+CHATBOT_NAME=Asistente Educativo
+CHATBOT_MODEL=gpt-4
+CHATBOT_MAX_TOKENS=1000
+CHATBOT_TEMPERATURE=0.7
+
+# Audio Configuration (optional)
+AUDIO_ENABLED=true
+AUDIO_VOLUME=0.7
+```
+
+### Frontend Development
+- Vanilla JavaScript with ES6+ features
+- CSS custom properties for theming
+- Responsive-first design approach
+- Accessibility compliance (ARIA attributes)
+
+### Backend Development  
+- Express.js with modern middleware stack
+- Async/await for database operations
+- Error handling with proper HTTP status codes
+- Security-first approach with CSP and rate limiting
+
+### Deployment Architecture
+**Netlify Deployment** (Primary):
+- Functions in `netlify/functions/` for serverless API endpoints
+- Static site deployment from `src/` directory
+- Comprehensive redirect rules in `netlify.toml` for API routing
+- Environment variables managed through Netlify UI
+- Node.js 18+ runtime environment
+
+**Heroku Deployment** (Alternative):
+- `Procfile` configured for Express server deployment
+- PostgreSQL add-on support with connection pooling
+- Environment variable configuration through Heroku Config Vars
+- Suitable for applications requiring persistent server instances
+
+## Testing Strategy
+
+### Jest Configuration
+- Test environment: jsdom for DOM testing
+- Coverage reporting with text, lcov, and HTML output
+- Module path mapping with `@/` prefix for src directory
+- Setup files for test utilities with Babel transformation
+- Tests located in `tests/__tests__/` and matching `*.test.js` or `*.spec.js`
+
+### Test Structure
+```
+tests/
+  ├── setup.js           # Test environment setup
+  ├── __tests__/         # Unit tests
+  └── integration/       # Integration tests
+```
+
+**Note**: Jest is fully configured but no formal test files exist yet. The project uses extensive manual testing with HTML files in the root directory (e.g., `test-community-functionality.html`, `test-activity-migration.html`) for integration testing.
+
+### Running Specific Tests
+```bash
+# Run a specific test file
+npm test -- tests/__tests__/specific-test.js
+
+# Run tests in watch mode
+npm test -- --watch
+
+# Run tests with coverage report
+npm test -- --coverage
+```
+
+## Security Considerations
+
+### Content Security Policy
+- Strict CSP with nonce-based script execution
+- External resource whitelisting for CDNs
+- Frame ancestors protection
+- XSS and injection prevention
+
+### Authentication Security
+- JWT token validation
+- OTP-based email verification
+- Session timeout management
+- Rate limiting on auth endpoints
+
+### Data Protection
+- Input validation and sanitization
+- SQL injection prevention through parameterized queries
+- Sensitive data encryption
+- CORS configuration for API access
+
+## Performance Optimizations
+
+### Frontend Optimizations
+- Resource preloading for critical assets
+- CSS and JavaScript minification
+- Image optimization and lazy loading
+- Particle system with requestAnimationFrame
+
+### Backend Optimizations
+- Connection pooling for database
+- Response compression with gzip
+- Caching strategies for static content
+- Rate limiting to prevent abuse
+
+## Common Development Patterns
+
+### API Integration Pattern
+```javascript
+// Typical API call with error handling
+async function apiCall(endpoint, data) {
+    try {
+        const response = await fetch(`/api/${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('API call failed:', error);
+        throw error;
+    }
+}
+```
+
+### Theme Management Pattern
+```javascript
+// Theme switching with persistence
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('preferred-theme', newTheme);
+}
+```
+
+### Animation Pattern
+```javascript
+// Intersection Observer for scroll animations
+const observeElements = () => {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate');
+            }
+        });
+    });
+    
+    document.querySelectorAll('.animate-on-scroll').forEach(el => {
+        observer.observe(el);
+    });
+};
+```
+
+## File Structure Context
+
+### Critical Configuration Files
 - `package.json` - Dependencies and npm scripts
-- Environment variables expected in `.env` file (see docs/SECURITY.md)
+- `netlify.toml` - Deployment and redirect configuration with API routing
+- `jest.config.js` - Testing framework configuration with jsdom environment
+- `server.js` - Express server with security middleware and database connections
+- `Procfile` - Heroku deployment configuration (if using Heroku)
 
-### Important Notes
-- The application uses a security-first approach with multiple layers of protection
-- Database connections and OpenAI API keys are loaded dynamically from environment variables
-- Frontend does not store sensitive credentials - all API calls go through authenticated backend endpoints
-- The chatbot is configured as "Asistente de Aprende y Aplica IA" (AI Learning Assistant)
-- Audio features are integrated but optional for users
+### Entry Points
+- `server.js` - Backend server entry point
+- `src/index.html` - Frontend application entry point
+- `src/scripts/main.js` - Frontend JavaScript entry point
 
-### Development Workflow
-1. Set up environment variables (see docs/SECURITY.md for required variables)
-2. Run `npm run setup` to install dependencies and check security
-3. Use `npm run dev` for development with auto-restart
-4. Run `npm test` to execute the test suite
-5. Use `npm run lint` and `npm run format` to maintain code quality
+### Modular Components
+- **Authentication**: `src/login/`, `src/utils/auth-guard.js`, `src/utils/auth-utils.js`
+- **Chat Systems**:
+  - Course Chat: `src/Chat-Online/` with specialized components
+  - General Chat: `src/ChatGeneral/` for non-course conversations
+  - AI integration through Netlify Functions
+- **Course System**: `src/courses.html`, `src/data/course-data.js`, dynamic database loading
+- **Community**: `src/Community/`, `src/scripts/community-database.js`, API client integration
+- **Content Management**: `src/Notices/` (announcements), `src/instructors/` (teaching tools)
+- **Video Integration**: YouTube tracking, Zoom integration, progress management
+- **UI Framework**: Animations, themes, particles, responsive components in `src/scripts/`
 
-### Documentation
-- Comprehensive security documentation in `docs/SECURITY.md`
-- Database structure defined in `docs/DATABASE_STRUCTURE.md`
-- Setup instructions in `PROJECT_SETUP.md`
-- Login implementation details in `LOGIN_IMPLEMENTATION.md`
+## Important Development Notes
+
+### Recent Development Context
+- Current branch: `Israel-chat-online` (chat online development branch)
+- **Recent major improvements**:
+  - **Notes System Implementation**: NotebookLM-style notes system with search and editing capabilities
+  - **Markdown Support**: Full markdown processing in chat messages and responses
+  - **Video Navigation**: Enhanced video navigation with interactive buttons and improved mobile support
+  - **Enhanced Chat Interface**: Improved chat bubble design and typography
+  - Real-time user data integration replacing hardcoded profile values
+  - Community voting system fully operational
+  - Comments functionality fixes and improvements
+- Active development of chat-online features including notes management, markdown rendering, and video integration
+- Community system with RLS policies and diagnostic tools for debugging
+- Enhanced authentication system with hybrid user ID handling for cross-platform compatibility
+- Comprehensive CSP configuration optimized for YouTube embeds and external integrations
+- Focus on educational content delivery and user experience improvements
+
+### Database Scripts & Operations
+The project includes several utility scripts for database management:
+- `scripts/init-progress-database.js` - Initialize progress tracking tables
+- `scripts/insert-sample-activities.js` - Add sample video activities
+- `scripts/run-activity-migration.js` - Migrate activity data
+- `scripts/test-activities.js` - Test activity functionality
+- `scripts/update-specific-activities.js` - Update specific activity records
+- `scripts/check-progress-data.js` - Validate progress data integrity
+- `scripts/fix-progress-function.js` - Repair progress functions
+- `scripts/reset-user-progress.js` - Reset user progress data
+
+### Chat System Architecture
+The chat system has dual deployment modes:
+1. **Local Development**: Uses `server.js` with `/api/openai` endpoint
+2. **Netlify Production**: Uses `netlify/functions/openai.js` serverless function
+
+The LIA (Learning Intelligence Assistant) is integrated into `chat-online.html` and provides context-aware responses based on course content defined in prompts under `prompts/` directory.
+
+### Video & Progress Tracking
+- YouTube integration with progress tracking via `scripts/youtube-progress-tracker.js`
+- Zoom video integration for live sessions
+- Module and video progress stored in Supabase with real-time updates
+- Course progress management through specialized components
+- **Enhanced Video Navigation**: Interactive navigation buttons with FontAwesome icons
+- **Mobile-Optimized Controls**: Responsive video controls with improved touch interface
+- **Real-time Notifications**: Video transition notifications with visual feedback
+
+### Activity System Architecture
+The application features a dual-mode activity system for video activities:
+
+**Normalized Data Structure** (`actividad_detalle` table):
+- `id` (uuid), `actividad_id` (FK to module_videos), `seccion` ('descripcion'|'prompts')
+- `orden` (integer), `tipo` ('titulo'|'parrafo'|'lista'|'prompt'|'nota'), `contenido` (text)
+- Allows structured content with individual copy buttons for prompts
+
+**Legacy Compatibility**:
+- Falls back to `descripcion_actividad` and `prompts_actividad` text fields when structured data unavailable
+- Automatic header detection and formatting (Contexto, Pautas de la actividad, Objetivo, etc.)
+- Smart prompt detection via patterns (bullets, numbers, questions, keywords)
+
+**Key Components**:
+- `module1-videos-loader.js`: Handles dual-mode rendering and individual prompt copying
+- `chat-online.html`: Contains `copyActivityToClipboard()` function with format switching
+- Both modes support individual prompt copy buttons with visual feedback
+
+### Module Loading System
+The Chat-Online module uses a specialized loader architecture:
+- `src/Chat-Online/module1-videos-loader.js` - Handles video list rendering and activity updates
+- Supports both Netlify Functions (production) and Express server (development)
+- Auto-fallback to demo content when database unavailable
+- Real-time DOM updates with glass morphism styling
+
+### Port Management & Development Scripts
+The project includes specialized port management for cross-platform development:
+- `npm run port:kill` - Kills processes on port 3000 (requires manual setup of kill script)
+- `npm run port:kill:3001` - Kills processes on port 3001 (requires manual setup of kill script)
+- `npm run dev:force` - Kills port 3000 first, then starts development server
+- `npm run dev:win` - Windows-specific command with environment variable setup
+
+**Note**: Port kill scripts (`scripts/kill-port-3000.cjs`, `scripts/kill-port-3001.cjs`) are referenced in package.json but not present in the repository. These should be created if port management is needed.
+
+### Security Headers Configuration (netlify.toml)
+The application has comprehensive security headers configured in `netlify.toml`:
+
+**Content Security Policy (CSP)**:
+- **Script Sources**: Self, unsafe-inline/eval (for dynamic content), YouTube, Google APIs, CDNs, Supabase
+- **Style Sources**: Self, unsafe-inline, Google Fonts, external CDNs
+- **Frame Sources**: YouTube embedding support (`https://www.youtube.com`, `https://youtube.com`)
+- **Connect Sources**: API domains, YouTube, Google services, Supabase, WebSocket (`wss:`, `ws:`)
+- **Media/Image Sources**: Comprehensive blob, data, and HTTPS support
+
+**Additional Security Headers**:
+- **X-Frame-Options**: `SAMEORIGIN` (allows YouTube embeds)
+- **X-Content-Type-Options**: `nosniff` (prevents MIME sniffing)
+- **X-XSS-Protection**: `1; mode=block` (XSS attack prevention)
+- **Referrer-Policy**: `strict-origin-when-cross-origin` (optimized for YouTube)
+
+**Performance Optimizations**:
+- **Preconnect hints** for YouTube domains (`youtube.com`, `i.ytimg.com`, `s.ytimg.com`)
+
+### Environment Requirements
+- **Node.js**: 18+ (specified in package.json engines)
+- **npm**: 8+
+- **PostgreSQL**: Primary database for courses, users, progress tracking
+- **Supabase**: Secondary database for real-time features and extended functionality
+- **OpenAI API**: Required for chat functionality
+
+### Dual-Environment API Architecture
+The application supports both local development and production deployment:
+
+**Local Development Mode** (`server.js`):
+- Express server with `/api/*` endpoints
+- Direct PostgreSQL connections
+- Real-time Socket.IO support
+- Environment variables loaded from `.env`
+
+**Production Mode** (Netlify Functions):
+- Serverless functions in `netlify/functions/`
+- API routing through comprehensive `netlify.toml` redirects
+- Stateless operations with Netlify environment variables
+- No persistent connections
+
+### API Routing Strategy (netlify.toml)
+The netlify.toml file contains comprehensive API routing with specific redirects prioritized over wildcards:
+
+**Core System APIs**:
+- Authentication: `/api/login`, `/api/register`, `/api/auth/issue`, `/api/verify-email`
+- OpenAI: `/api/openai`
+- User Management: `/api/profile`, `/api/update-profile`, `/api/update-avatar`
+- Session Management: `/api/user/session`, `/api/test-profile`
+
+**Course System APIs**:
+- Courses: `/api/courses/*/full-structure`, `/api/courses/*/current-module/*`
+- Modules: `/api/modules/*/video-data`, `/api/modules/*/videos`
+- Progress: `/api/users/*/progress/*`, `/api/users/*/video-progress`
+- Video Management: `/api/video-debug`, `/api/video-fix`
+
+**Community System APIs**:
+- Community Posts: `/api/community/questions`, `/api/community/questions/*/answers`
+- Voting System: `/api/community/questions/*/vote`, `/api/community/answers/*/vote`
+- Public Community: `/api/community-public` (read-only access)
+- General Community: `/api/community/*`
+
+**Analytics & Monitoring**:
+- GenAI Radar: `/api/genai-radar/*`, `/api/adopcion-genai`
+- Grafana: `/grafana/health`, `/grafana/panel/*.png`
+- Debugging: `/api/debug-cors`, `/api/debug-register`
+
+**Infrastructure**:
+- Supabase Config: `/api/supabase-config`
+- Database Setup: `/api/setup-activity-columns`, `/api/setup-otps-table`
+- Wildcard: `/api/*` → `/.netlify/functions/:splat` (lowest priority)
+
+## Community System Architecture
+
+### Core Components
+The community system is built with a modular architecture centered around user-generated content and real-time interactions:
+
+**Database Layer**:
+- `CommunityDatabase` class handles all Supabase operations with error handling and fallbacks
+- Tables: `community_posts`, `community_comments`, `community_reactions`, `community_members`
+- RLS (Row Level Security) policies for data protection and access control
+
+**Frontend Architecture**:
+- `CommunityPage` class (community.js) - Main orchestrator for community features
+- `CommunitySystem` class (community-view.html) - Handles community detail views and interactions
+- Profile modal system with real-time activity data from database queries
+
+**Key Features**:
+- Real-time posting, commenting, and reaction system
+- Interactive polls/surveys with real-time voting and results display
+- User profile modals with activity statistics pulled from database
+- League/points system integrated with community actions
+- Member management with role-based permissions
+- Search and filtering capabilities across posts and members
+
+### Profile Modal Data Sources
+The profile modal displays real-time activity data sourced directly from Supabase:
+
+**Activity Metrics**:
+- **Posts**: `SELECT COUNT(*) FROM community_posts WHERE user_id = ?`
+- **Comments**: `SELECT COUNT(*) FROM community_comments WHERE user_id = ?`
+- **Reactions**: `SELECT COUNT(*) FROM community_reactions WHERE user_id = ?`
+
+**Data Updates**: Metrics update automatically when users perform actions (post, comment, react)
+**Function**: `populateUserProfileModal()` in community-view.html handles data retrieval and DOM updates
+
+### Authentication Integration
+The community system uses a hybrid authentication approach:
+- Primary: Supabase Auth for database operations
+- Fallback: LocalStorage user data for basic functionality
+- Session validation through `hasCommunitySession()` function
+- Graceful degradation to read-only mode when authentication fails
+
+### Poll/Survey System
+The community includes a comprehensive polling system with real-time voting:
+
+**Database Structure**:
+- Polls stored in `community_posts` table with `attachment_type = 'poll'`
+- Poll data stored in `attachment_data` JSONB column with structure: `{question, options, votes}`
+- PostgreSQL RPC functions: `cast_poll_vote()`, `get_poll_results()`, `initialize_poll_votes()`
+
+**Frontend Implementation**:
+- Unified rendering system using global functions `window.loadPostsFromDatabase()` and `window.renderPosts()`
+- Real-time UI updates after voting without page refresh
+- Dual API support: Netlify Functions (production) and Express endpoints (development)
+- Error handling with fallback mechanisms for different deployment environments
+
+**Key Functions**:
+- `CommunitySystem.voteInPoll()` - Handles vote submission with automatic UI refresh
+- `CommunitySystem.renderPoll()` - Renders interactive poll components with voting buttons
+- Global scope functions ensure cross-system compatibility and prevent rendering conflicts
+
+## Code Quality & Maintenance Patterns
+
+### Error Handling Pattern
+```javascript
+// Standard error handling with user feedback
+try {
+    const result = await databaseOperation();
+    notifications.success('Operation completed');
+} catch (error) {
+    console.error('Operation failed:', error);
+    notifications.error('User-friendly error message');
+    // Fallback behavior
+}
+```
+
+### Supabase Integration Pattern
+```javascript
+// Proper Supabase client initialization and usage
+const { data, error } = await window.supabase
+    .from('table_name')
+    .select('*')
+    .eq('column', value);
+
+if (error) throw error;
+return data;
+```
+
+### Community Data Loading Pattern
+```javascript
+// Real-time data loading with fallbacks
+async function loadDataFromDatabase() {
+    try {
+        await window.waitForSupabase(); // Wait for client initialization
+        const data = await queryDatabase();
+        updateUI(data);
+    } catch (error) {
+        console.warn('Database failed, using fallback:', error);
+        loadFromLocalStorage();
+    }
+}
+```
+
+## Important Development Guidelines
+
+### File Creation and Modification Philosophy
+- **ALWAYS prefer editing existing files** to creating new ones
+- **NEVER create files unless absolutely necessary** for achieving your goal
+- **NEVER proactively create documentation files** (*.md) or README files unless explicitly requested by the user
+- Focus on "doing what has been asked; nothing more, nothing less"
+
+### Current Development Focus
+- **Chat-Online System**: Primary focus on educational chat experience with integrated learning tools
+  - **Notes System**: NotebookLM-style note-taking with search, edit, and organization capabilities
+  - **Markdown Rendering**: Full markdown support in chat messages and AI responses
+  - **Video Navigation**: Enhanced video controls with interactive buttons and mobile optimization
+  - **UI/UX Improvements**: Professional chat bubble design with improved typography and spacing
+- **Learning Experience**: Enhanced educational content delivery and user interaction
+  - Integration between video lessons, AI chat, and note-taking workflows
+  - Real-time progress tracking and course navigation improvements
+  - Mobile-first responsive design for educational accessibility
+- **Technical Architecture**: Continued development of modular components and dual-environment support
+  - Enhanced ChatOnline class with comprehensive feature integration
+  - Improved error handling and fallback mechanisms
+  - Performance optimizations for real-time educational interactions

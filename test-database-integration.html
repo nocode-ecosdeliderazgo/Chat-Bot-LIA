@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Database Integration - Video Loading</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        
+        .container {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .button {
+            background: #0066CC;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .button:hover {
+            background: #0052A3;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        h1 {
+            color: #44e5ff;
+            text-align: center;
+        }
+        
+        iframe {
+            border: 1px solid #555;
+            border-radius: 4px;
+            width: 100%;
+            height: 315px;
+            margin: 10px 0;
+        }
+        
+        pre {
+            background: #333;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Test Database Integration - Video Loading</h1>
+    
+    <div class="container">
+        <h2>🔍 Environment Detection</h2>
+        <p><strong>Hostname:</strong> <span id="hostname"></span></p>
+        <p><strong>Is Localhost:</strong> <span id="isLocalhost"></span></p>
+        <p><strong>Is Netlify:</strong> <span id="isNetlify"></span></p>
+        <p><strong>API Base URL:</strong> <span id="apiBaseUrl"></span></p>
+    </div>
+    
+    <div class="container">
+        <h2>🎬 Test Dynamic Video Loading</h2>
+        <p>Esta página prueba la nueva funcionalidad que carga videos dinámicamente desde la base de datos.</p>
+        <button id="testDynamicBtn" class="button">🔄 Test Dynamic Video Loading</button>
+        <div id="dynamicResult"></div>
+    </div>
+    
+    <div class="container">
+        <h2>📊 Console Test Functions</h2>
+        <p>Abre la consola del navegador (F12) para usar estas funciones de testing:</p>
+        <ul>
+            <li><code>showModuleVideos()</code> - Mostrar todos los videos desde la base de datos</li>
+            <li><code>selectModule(1)</code> - Cargar video del módulo 1 dinámicamente</li>
+            <li><code>testEnvironment()</code> - Verificar detección de entorno</li>
+        </ul>
+        <button id="consoleTestBtn" class="button">📋 Run Console Tests</button>
+        <div id="consoleResult"></div>
+    </div>
+
+    <script>
+        // Simular las funciones del chat-online.js
+        class TestVideoLoader {
+            constructor() {
+                this.apiBaseUrl = this.getApiBaseUrl();
+                this.displayEnvironment();
+            }
+
+            getApiBaseUrl() {
+                const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const currentPort = window.location.port;
+                const isNetlify = window.location.hostname.includes('netlify') || 
+                                  window.location.hostname.includes('app') ||
+                                  window.location.hostname === 'aprendeyaplica.ai' ||
+                                  window.location.protocol === 'https:' && !isLocalhost;
+                
+                if (isLocalhost && currentPort === '8888') {
+                    return '/.netlify/functions';
+                } else if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
+                    return '/api';
+                } else if (isNetlify) {
+                    return '/.netlify/functions';
+                } else {
+                    return '/api';
+                }
+            }
+
+            displayEnvironment() {
+                const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const isNetlify = window.location.hostname.includes('netlify') || 
+                                  window.location.hostname.includes('app') ||
+                                  window.location.hostname === 'aprendeyaplica.ai' ||
+                                  window.location.protocol === 'https:' && !isLocalhost;
+
+                document.getElementById('hostname').textContent = window.location.hostname;
+                document.getElementById('isLocalhost').textContent = isLocalhost ? 'SÍ' : 'NO';
+                document.getElementById('isNetlify').textContent = isNetlify ? 'SÍ' : 'NO';
+                document.getElementById('apiBaseUrl').textContent = this.apiBaseUrl;
+            }
+
+            async getFirstVideoIdFromDatabase(moduleNumber) {
+                try {
+                    console.log(`🔍 Cargando primer video para módulo ${moduleNumber} desde base de datos...`);
+                    
+                    const cacheBuster = new Date().getTime();
+                    const response = await fetch(`${this.apiBaseUrl}/courses/module1-videos?t=${cacheBuster}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache',
+                            'Expires': '0'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.videos && data.videos.length > 0) {
+                            // Obtener el primer video ordenado por video_order
+                            const sortedVideos = data.videos.sort((a, b) => (a.video_order || 0) - (b.video_order || 0));
+                            const firstVideo = sortedVideos[0];
+                            console.log(`✅ Primer video cargado desde BD: ${firstVideo.youtube_video_id} - ${firstVideo.video_title}`);
+                            return { 
+                                id: firstVideo.youtube_video_id, 
+                                title: firstVideo.video_title,
+                                duration: Math.floor(firstVideo.duration_seconds / 60) + ':' + (firstVideo.duration_seconds % 60).toString().padStart(2, '0'),
+                                allVideos: data.videos
+                            };
+                        } else {
+                            console.error('❌ No se encontraron videos en la respuesta');
+                            return null;
+                        }
+                    } else {
+                        console.error(`❌ Error en API: ${response.status}`);
+                        return null;
+                    }
+                } catch (error) {
+                    console.error('❌ Error obteniendo primer video desde BD:', error);
+                    return null;
+                }
+            }
+
+            async testDynamicLoading() {
+                const resultDiv = document.getElementById('dynamicResult');
+                resultDiv.innerHTML = '<div style="color: #44e5ff;">🔄 Probando carga dinámica de video...</div>';
+
+                try {
+                    const videoData = await this.getFirstVideoIdFromDatabase(1);
+                    
+                    if (videoData) {
+                        const embedUrl = `https://www.youtube.com/embed/${videoData.id}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0`;
+                        
+                        resultDiv.innerHTML = `
+                            <div class="status success">✅ Video cargado dinámicamente desde la base de datos</div>
+                            <h3>📊 Información del Video:</h3>
+                            <p><strong>Título:</strong> ${videoData.title}</p>
+                            <p><strong>YouTube ID:</strong> ${videoData.id}</p>
+                            <p><strong>Duración:</strong> ${videoData.duration}</p>
+                            <p><strong>Total Videos Disponibles:</strong> ${videoData.allVideos.length}</p>
+                            
+                            <h3>🎬 Video Player:</h3>
+                            <iframe 
+                                src="${embedUrl}" 
+                                frameborder="0" 
+                                allowfullscreen>
+                            </iframe>
+                            
+                            <div class="status success">
+                                🎯 <strong>¡ÉXITO!</strong> El video se carga dinámicamente desde la base de datos.
+                                <br><br>
+                                <strong>Esto significa:</strong>
+                                <ul>
+                                    <li>✅ No hay datos hardcodeados</li>
+                                    <li>✅ La API funciona correctamente</li>
+                                    <li>✅ Environment detection es correcto</li>
+                                    <li>✅ Videos se cargan desde Supabase</li>
+                                </ul>
+                            </div>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="status error">❌ No se pudo cargar el video desde la base de datos</div>
+                            <p>Revisa la consola para más detalles del error.</p>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('❌ Error en test:', error);
+                    resultDiv.innerHTML = `
+                        <div class="status error">❌ Error en la prueba: ${error.message}</div>
+                    `;
+                }
+            }
+        }
+
+        // Funciones globales para testing en consola
+        window.testLoader = new TestVideoLoader();
+
+        window.showModuleVideos = async function() {
+            return await window.testLoader.getFirstVideoIdFromDatabase(1);
+        };
+
+        window.selectModule = async function(moduleNumber) {
+            console.log(`🎯 Testing módulo ${moduleNumber}...`);
+            const videoData = await window.testLoader.getFirstVideoIdFromDatabase(moduleNumber);
+            if (videoData) {
+                console.log(`✅ Video para módulo ${moduleNumber}:`, videoData);
+            } else {
+                console.error(`❌ No se pudo cargar video para módulo ${moduleNumber}`);
+            }
+            return videoData;
+        };
+
+        window.testEnvironment = function() {
+            console.log('🌐 Environment Test Results:');
+            console.log('   - Hostname:', window.location.hostname);
+            console.log('   - Protocol:', window.location.protocol);
+            console.log('   - Is Localhost:', window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+            console.log('   - Is Netlify:', window.location.hostname.includes('netlify') || window.location.hostname.includes('app') || window.location.hostname === 'ecosdeliderazgo.com');
+            console.log('   - API Base URL:', window.testLoader.apiBaseUrl);
+        };
+
+        // Event listeners
+        document.getElementById('testDynamicBtn').addEventListener('click', () => {
+            window.testLoader.testDynamicLoading();
+        });
+
+        document.getElementById('consoleTestBtn').addEventListener('click', () => {
+            const resultDiv = document.getElementById('consoleResult');
+            resultDiv.innerHTML = `
+                <div class="status success">
+                    ✅ Funciones de testing habilitadas en la consola:
+                    <pre>
+// Mostrar todos los videos desde la base de datos
+await showModuleVideos()
+
+// Cargar video específico del módulo
+await selectModule(1)
+
+// Verificar detección de entorno
+testEnvironment()
+                    </pre>
+                </div>
+            `;
+        });
+
+        // Información de inicialización
+        console.log('🔧 Test Database Integration loaded');
+        console.log('🌐 Environment Detection:');
+        console.log('   - Hostname:', window.location.hostname);
+        console.log('   - API Base URL:', window.testLoader.apiBaseUrl);
+        console.log('🎯 Use showModuleVideos(), selectModule(1), testEnvironment() in console');
+    </script>
+</body>
+</html>

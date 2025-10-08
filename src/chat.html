@@ -2,67 +2,258 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lia IA — Chat</title>
+    <meta name="viewport" content="width=1280, initial-scale=0.6, maximum-scale=0.6, user-scalable=yes">
+    <title>Lia — Chat</title>
     <link rel="stylesheet" href="styles/main.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
-    <meta name="description" content="Lia IA: asistente inteligente para una experiencia educativa interactiva y personalizada">
-    <meta name="keywords" content="coach lia ia, asistente, educativo, inteligencia artificial, curso">
+    <link rel="icon" type="image/png" href="assets/images/icono.png">
+    <meta name="description" content="Lia: asistente inteligente para una experiencia educativa interactiva y personalizada">
+    <meta name="keywords" content="coach lia ia, asistente, educativo, inteligencia artificial, taller">
     <meta name="author" content="Tu Nombre">
+    
+    <!-- Auth Guard - Protección de autenticación -->
+    <script src="utils/auth-guard.js"></script>
+    
+    <!-- Supabase Client - Base de datos -->
+    <script src="scripts/supabase-client.js"></script>
+    
+    <!-- Global theme setup - Configuración global del tema -->
+    <script src="scripts/global-theme-setup.js"></script>
+    <!-- Enlazar archivo CSS separado -->
+    <link rel="stylesheet" href="styles/chat.css">
+    <!-- Estilos responsive para móviles -->
+    <link rel="stylesheet" href="styles/chat-responsive.css">
+    
+    <!-- Estilos para el selector de tipo de mensaje -->
+    <style>
+        .message-type-selector {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .type-selector-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .type-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            margin-right: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .type-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .type-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .type-btn i {
+            font-size: 14px;
+        }
+        
+        .type-btn span {
+            font-weight: 500;
+        }
+        
+        /* Estilos para modo oscuro */
+        [data-theme="dark"] .message-type-selector {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="dark"] .type-selector-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        [data-theme="dark"] .type-btn {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        [data-theme="dark"] .type-btn:hover {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Asegurar que el input esté visible en paneles angostos */
+        .livestream-chat-input .input-wrapper {
+            display: flex !important;
+            gap: 8px !important;
+            align-items: flex-end !important;
+            margin-top: 12px !important;
+            width: 100% !important;
+        }
+        
+        .livestream-chat-input input {
+            flex: 1 !important;
+            min-width: 0 !important;
+            background: rgba(30, 41, 59, 0.8) !important;
+            border: 1px solid rgba(68, 229, 255, 0.2) !important;
+            border-radius: 8px !important;
+            padding: 10px !important;
+            color: #e2e8f0 !important;
+            font-size: 0.8rem !important;
+        }
+        
+        .livestream-send-btn {
+            flex-shrink: 0 !important;
+            background: linear-gradient(135deg, #44e5ff 0%, #1e40af 100%) !important;
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 10px !important;
+            color: white !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+            cursor: pointer !important;
+        }
+        
+        .livestream-send-btn:disabled {
+            background: #666 !important;
+            cursor: not-allowed !important;
+            opacity: 0.5 !important;
+        }
+        
+        /* Botones de tipo responsive */
+        .type-buttons-container {
+            display: flex !important;
+            gap: 6px !important;
+            flex-wrap: wrap !important;
+        }
+        
+        .type-btn {
+            flex: 1 !important;
+            min-width: 100px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            padding: 8px 12px !important;
+            font-size: 0.75rem !important;
+            white-space: nowrap !important;
+        }
+        
+        /* Panel izquierdo y estructura flex */
+        .sidebar-left {
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100vh !important;
+        }
+        
+        .tool-list {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow-y: auto !important;
+        }
+        
+        .tool-group.collapsible {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        
+        .collapsible-content {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        
+        /* Contenedor de chat usa todo el espacio restante */
+        .livestream-chat-container {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
+            min-height: 0 !important;
+        }
+        
+        /* Área de mensajes con más espacio */
+        .livestream-chat-messages {
+            flex: 1 !important;
+            min-height: 150px !important;
+            overflow-y: auto !important;
+        }
+        
+        /* Forzar visibilidad en pantallas angostas */
+        @media (max-width: 1200px) {
+            .type-buttons-container {
+                flex-direction: column !important;
+            }
+            
+            .type-btn {
+                width: 100% !important;
+                min-width: auto !important;
+            }
+            
+            .livestream-chat-container {
+                min-height: 450px !important;
+                max-height: 550px !important;
+            }
+        }
+        
+        @media (max-width: 1000px) {
+            .livestream-chat-container {
+                min-height: 400px !important;
+                max-height: 500px !important;
+            }
+        }
+    </style>
 </head>
-<body class="layout-notebook">
+<body class="layout-notebook bg-glow-global">
+    <!-- Header móvil con navegación -->
+    <div class="mobile-header">
+        <h3 style="margin: 0; color: #44e5ff; font-size: 1rem;">Lia</h3>
+        <nav class="mobile-nav">
+            <button class="mobile-nav-btn active" id="mobileMainBtn">Principal</button>
+            <button class="mobile-nav-btn" id="mobileToolsBtn">Herramientas</button>
+            <button class="mobile-nav-btn" id="mobileStudioBtn">Studio</button>
+        </nav>
+    </div>
+    
     <div class="layout-3panels">
-        <aside class="sidebar-left" id="sidebarLeft">
+        <aside class="sidebar-left" id="sidebarLeft" style="display: flex !important; flex-direction: column !important; height: 100vh !important;">
             <div class="sidebar-header">
                 <h3>Herramientas</h3>
+                <button class="mobile-close-btn" id="mobileToolsClose" style="display: none;">Cerrar</button>
                 <button class="collapse-btn" id="collapseLeft" title="Ocultar/mostrar">⟨⟩</button>
             </div>
-            <nav class="tool-list">
-                <div class="tool-group collapsible" id="videosSection">
-                    <div class="collapsible-header">
-                        <h4 style="margin:0">Videos</h4>
-                        <button id="videosToggle" class="collapsible-toggle" aria-expanded="false" aria-controls="videosList" title="Mostrar/Ocultar">
-                            <i class='bx bx-chevron-down'></i>
-                        </button>
-                    </div>
-                    <div class="collapsible-content" id="videosList">
-                        <button class="tool-btn video-select" data-video-label="Bienvenida al curso" data-video-url="https://www.youtube.com/watch?v=y7xsTTRmk88">
-                            <i class='bx bx-play-circle'></i><span>Bienvenida al curso</span>
-                        </button>
-                        <button class="tool-btn video-select" data-video-label="Introducción a IA" data-video-url="https://www.youtube.com/watch?v=DPyJmxgUGk8">
-                            <i class='bx bx-play-circle'></i><span>Introducción a IA</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="tool-group collapsible" id="glossarySection">
-                    <div class="collapsible-header">
-                        <h4 style="margin:0">Glosario</h4>
-                        <button id="glossaryToggle" class="collapsible-toggle" aria-expanded="false" aria-controls="glossaryLeftMount" title="Mostrar/Ocultar">
-                            <i class='bx bx-chevron-down'></i>
-                        </button>
-                    </div>
-                    <div class="collapsible-content">
-                        <div id="glossaryLeftMount" class="glossary-left"></div>
-                    </div>
-                </div>
+            <nav class="tool-list" style="flex: 1 !important; display: flex !important; flex-direction: column !important; overflow-y: auto !important;">
 
-                <div class="tool-group collapsible" id="livestreamSection">
+                <div class="tool-group collapsible" id="livestreamSection" style="flex: 1 !important; display: flex !important; flex-direction: column !important;">
                     <div class="collapsible-header">
-                        <h4 style="margin:0">Livestream</h4>
-                        <button id="livestreamToggle" class="collapsible-toggle" aria-expanded="false" aria-controls="livestreamContent" title="Mostrar/Ocultar">
-                            <i class='bx bx-chevron-down'></i>
+                        <h4 style="margin:0">Chat en vivo</h4>
+                        <button id="livestreamToggle" class="collapsible-toggle" aria-expanded="true" aria-controls="livestreamContent" title="Mostrar/Ocultar">
+                            <i class='bx bx-chevron-up'></i>
                         </button>
                     </div>
-                    <div class="collapsible-content" id="livestreamContent">
-                        <div id="leftLivestreamPlayer" class="left-video-player" aria-label="Livestream"></div>
-                        <div id="livestreamNotice" class="note" style="margin-top:8px; display:none"></div>
-                        
+                    <div class="collapsible-content" id="livestreamContent" style="display: flex !important; flex: 1 !important; flex-direction: column !important;">
                         <!-- Chat del Livestream -->
-                        <div class="livestream-chat-container">
+                        <div class="livestream-chat-container" style="height: 100% !important; min-height: 100% !important; display: flex !important; flex-direction: column !important; flex: 1 !important;">
                             <div class="livestream-chat-header">
                                 <h5>Chat en vivo</h5>
                                 <span class="users-count" id="livestreamUsersCount">0 usuarios</span>
@@ -76,39 +267,75 @@
                             </div>
                             
                             <div class="livestream-chat-input">
-                                <input 
-                                    type="text" 
-                                    id="livestreamMessageInput" 
-                                    placeholder="Conectando al chat…"
-                                    maxlength="200"
-                                >
-                                <button id="livestreamSendBtn" class="livestream-send-btn" disabled title="Enviar mensaje">
-                                    <i class='bx bx-send'></i>
-                                </button>
+                                <div class="message-type-selector" id="messageTypeSelector">
+                                    <div class="type-selector-label" style="display: block; text-align: center; font-size: 0.8rem; margin-bottom: 8px; color: #44e5ff;">
+                                        Selecciona el tipo de mensaje:
+                                    </div>
+                                    <div class="type-buttons-container" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                        <button class="type-btn" data-type="live" title="Enviar al chat en vivo" style="flex: 1; min-width: 120px;">
+                                            <i class='bx bx-message'></i>
+                                            <span>Chat en Vivo</span>
+                                        </button>
+                                        <button class="type-btn" data-type="lia" title="Enviar a LIA (Chatbot)" style="flex: 1; min-width: 120px;">
+                                            <i class='bx bx-brain'></i>
+                                            <span>LIA</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="input-wrapper">
+                                    <input 
+                                        type="text" 
+                                        id="livestreamMessageInput" 
+                                        placeholder="Escribe tu mensaje..."
+                                        maxlength="200"
+                                    >
+                                    <button id="livestreamSendBtn" class="livestream-send-btn" disabled title="Enviar mensaje">
+                                        <i class='bx bx-send'></i>
+                                    </button>
+                                </div>
                             </div>
                             
-                            <div class="livestream-connection-status" id="livestreamConnectionStatus">
-                                <span class="status-indicator offline"></span>
-                                <span class="status-text">Desconectado</span>
+                            <!-- Panel de Estado - Toggle entre Chat en Vivo y Chat con LIA -->
+                            <div class="contenedor-botones">
+                                <div class="botones-principales">
+                                    <button class="toggle-btn active" data-target="lia-chat" id="btnChatLIA">
+                                        <i class='bx bx-brain'></i>
+                                        <span>Chat LIA</span>
+                                    </button>
+                                    <button class="toggle-btn" data-target="live-chat" id="btnChatEnVivo">
+                                        <i class='bx bx-broadcast'></i>
+                                        <span>Chat en Vivo</span>
+                                    </button>
+                                </div>
+                                <div class="livestream-connection-status" id="btnDesconectar">
+                                    <span class="status-indicator offline"></span>
+                                    <span class="status-text">Desconectado</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="tool-group">
-                    <div id="leftVideoPlayerContainer" class="left-video-player" aria-label="Reproductor de video"></div>
-                </div>
+
+
             </nav>
             <div class="left-resizer" id="leftResizer" title="Ajustar ancho"></div>
         </aside>
 
         <main class="chat-main">
-            <div class="telegram-container">
+            <!-- Contenedor Principal del Chat (Centro) - Necesario para la lógica -->
+            <div class="main-chat-container" id="mainChatContainer" style="display: none;">
+                <!-- Chat en Vivo (OCULTO - solo para mantener la lógica) -->
+                <div class="live-chat-content active" id="liveChatContent">
+                    <div class="telegram-container" id="liveChatPanel">
                 <div class="chat-header">
+                    <button id="backToCoursesBtn" class="back-to-courses-btn" onclick="window.location.href='cursos.html'" title="Volver a Mis Talleres">
+                        <i class='bx bx-chevron-left'></i>
+                    </button>
                     <div class="bot-avatar">
-                        <img id="botAvatarImg" src="assets/images/FOTO%20LIA.png" alt="Lia IA" onerror="this.onerror=null;this.src='assets/images/brain-icon.jpg'">
+                        <img id="botAvatarImg" src="assets/images/FOTO%20LIA.png" alt="Lia" onerror="this.onerror=null;this.src='assets/images/brain-icon.jpg'">
                     </div>
                     <div class="chat-info">
-                        <h3>Lia IA</h3>
+                        <h3>Lia</h3>
                         <p>En línea</p>
                     </div>
                 </div>
@@ -117,35 +344,221 @@
                     <!-- Los mensajes se generarán dinámicamente aquí -->
                 </div>
 
-                <div class="chat-input">
-                    <div class="input-container" id="inputContainer" style="position:relative">
-                        <button id="sessionMenuButton" class="session-menu-button" aria-label="Gestión de sesiones" title="Gestionar sesiones">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 6V18M6 12H18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
+                <!-- Dynamic Island flotante -->
+                <div class="message-input-area">
+                    <div class="message-input-wrapper">
+                        <div class="input-container" id="inputContainer">
+                            <button class="plus-btn" id="sessionMenuButton" type="button" title="Más opciones" aria-label="Más opciones" onclick="(function(){var gm=document.getElementById('globalMenu'); if(gm){ gm.classList.toggle('show'); }})();">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                            <textarea id="messageInput" placeholder="Escribe tu mensaje..." rows="1" maxlength="500"></textarea>
+                            <button id="actionButton" class="action-button" aria-label="Hablar / Enviar" title="Hablar / Enviar">
+                                <svg class="mic-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 14a3 3 0 0 0 3-3V7a3 3 0 0 0-6 0v4a3 3 0 0 0 3 3z" fill="currentColor"/>
+                                    <path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M12 18v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <svg class="send-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menú global (Sesiones e Informes) -->
+                <div class="global-menu" id="globalMenu" aria-hidden="true" style="position:fixed; bottom:84px; z-index:5000;">
+                    <div class="gm-group">
+                        <button class="gm-item" data-toggle="sessions">Sesiones</button>
+                        <div class="gm-submenu" id="gmSessions">
+                            <button class="gm-subitem" data-session="1">Sesión 1</button>
+                            <button class="gm-subitem" data-session="2">Sesión 2</button>
+                            <button class="gm-subitem" data-session="3">Sesión 3</button>
+                            <button class="gm-subitem" data-session="4">Sesión 4</button>
+                        </div>
+                    </div>
+                    <div class="gm-group">
+                        <button class="gm-item" data-toggle="reports">Informes</button>
+                        <div class="gm-submenu" id="gmReports">
+                            <button class="gm-subitem" data-report="docs">Documentos</button>
+                            <button class="gm-subitem" data-report="bonos">Bonos</button>
+                                </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Live Stream (Centro - Arriba) -->
+            <div class="live-stream-main-panel" id="liveStreamMainPanel">
+                <div class="live-stream-main-header">
+                    <h3>
+                        <i class='bx bx-broadcast'></i>
+                        Live Stream
+                    </h3>
+                    <div class="live-stream-main-controls">
+                        <button class="live-stream-main-control-btn" id="liveStreamMainToggleBtn" title="Unirse a Sesión de Video">
+                            <i class='bx bx-video' id="liveStreamIcon"></i>
                         </button>
-                        <!-- Botón de audio removido a petición del usuario -->
-                        <input type="text" id="messageInput" placeholder="Escribe tu mensaje..." maxlength="500">
-                        <button id="actionButton" class="action-button" aria-label="Hablar" title="Hablar / Enviar">
-                            <svg class="mic-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 14a3 3 0 0 0 3-3V7a3 3 0 0 0-6 0v4a3 3 0 0 0 3 3z" fill="currentColor"/>
-                                <path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <path d="M12 18v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                            <svg class="send-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
-                            </svg>
+
+                        <!-- Controles de video diferenciados por rol -->
+                        <div class="video-basic-controls" id="videoBasicControls" style="display: none;">
+                            <!-- Controles SOLO para HOSTS (transmiten) -->
+                            <button class="video-control-btn host-only" id="cameraToggleBtn" title="Encender/Apagar Cámara" style="display: none;">
+                                <i class='bx bx-video'></i>
+                            </button>
+                            <button class="video-control-btn host-only" id="microphoneToggleBtn" title="Silenciar/Activar Micrófono" style="display: none;">
+                                <i class='bx bx-microphone'></i>
+                            </button>
+                            
+                            <!-- Controles para TODOS (participantes y hosts) -->
+                            <button class="video-control-btn" id="volumeControlBtn" title="Control de Volumen">
+                                <i class='bx bx-volume-full'></i>
+                            </button>
+                            <button class="video-control-btn" id="fullscreenToggleBtn" title="Pantalla Completa">
+                                <i class='bx bx-fullscreen'></i>
+                            </button>
+                        </div>
+
+                        <!-- Controles de grabación (solo hosts) -->
+                        <div class="recording-controls" id="recordingControls" style="display: none;">
+                            <button class="recording-control-btn" id="recordingStartBtn" title="Iniciar grabación">
+                                <i class='bx bx-video-recording'></i>
+                            </button>
+                            <button class="recording-control-btn" id="recordingPauseBtn" title="Pausar grabación" style="display: none;">
+                                <i class='bx bx-pause-circle'></i>
+                            </button>
+                            <button class="recording-control-btn" id="recordingResumeBtn" title="Reanudar grabación" style="display: none;">
+                                <i class='bx bx-play-circle'></i>
+                            </button>
+                            <button class="recording-control-btn recording-stop" id="recordingStopBtn" title="Detener grabación" style="display: none;">
+                                <i class='bx bx-stop-circle'></i>
+                            </button>
+                        </div>
+
+                        <button class="live-stream-main-collapse-btn" id="liveStreamMainCollapseBtn" title="Colapsar/Expandir">
+                            <i class='bx bx-chevron-up'></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="live-stream-main-content">
+                    <!-- Banner de estado de grabación -->
+                    <div class="recording-status-banner" id="recordingStatusBanner" style="display: none;">
+                        <div class="recording-status-content">
+                            <div class="recording-status-indicator">
+                                <div class="recording-dot" id="recordingDot"></div>
+                                <span class="recording-status-text" id="recordingStatusText">Grabando...</span>
+                            </div>
+                            <div class="recording-timer" id="recordingTimer">00:00</div>
+                        </div>
+                    </div>
+
+                    <div class="live-stream-main-placeholder" id="liveStreamMainPlaceholder">
+                        <i class='bx bx-video'></i>
+                        <p>Únete a una sesión de video para comenzar</p>
+                        <button class="live-stream-main-connect-btn" id="liveStreamMainConnectBtnLarge">
+                            <i class='bx bx-video'></i>
+                            Unirse a Video Sesión
                         </button>
                     </div>
                     
-                    <!-- Panel de selector de sesiones y módulos -->
-                    <div class="session-menu" id="sessionMenu">
-                        <div class="session-header">
-                            <h4>Sesiones y Módulos</h4>
-                            <span class="current-session" id="currentSessionTitle">Selecciona una sesión</span>
+                    <!-- Contenedor principal de Zoom Video SDK -->
+                    <div id="zoom-video-container" class="zoom-video-wrapper" style="display: none;">
+                        <div id="zoom-video-canvas" class="zoom-video-canvas"></div>
+                        <!-- Overlay para controles -->
+                        <div class="zoom-controls-overlay" id="zoomControlsOverlay">
+                            <div class="zoom-participant-info">
+                                <span class="participant-count" id="participantCount">0 participantes</span>
+                                <span class="connection-status" id="connectionStatus">Conectando...</span>
+                            </div>
+                            
+                            <!-- Controles básicos para todos los usuarios -->
+                            <div class="zoom-basic-controls" id="videoBasicControls" style="display: none;">
+                                <!-- Control de volumen - TODOS los usuarios -->
+                                <button class="zoom-control-btn" id="volumeControlBtn" title="Controlar volumen">
+                                    <i class='bx bx-volume-full'></i>
+                                </button>
+                                
+                                <!-- Pantalla completa - TODOS los usuarios -->
+                                <button class="zoom-control-btn" id="fullscreenToggleBtn" title="Pantalla completa">
+                                    <i class='bx bx-fullscreen'></i>
+                                </button>
+                                
+                                <!-- Controles HOST - Solo para usuarios con role_zoom = 'host' -->
+                                <div class="zoom-host-controls host-only" style="display: none;">
+                                    <div class="host-controls-separator"></div>
+                                    
+                                    <!-- Cámara - Solo HOST -->
+                                    <button class="zoom-control-btn camera-control" id="cameraToggleBtn" title="Encender/Apagar cámara">
+                                        <i class='bx bx-video'></i>
+                                    </button>
+                                    
+                                    <!-- Micrófono - Solo HOST -->
+                                    <button class="zoom-control-btn microphone-control" id="microphoneToggleBtn" title="Silenciar/Activar micrófono">
+                                        <i class='bx bx-microphone'></i>
+                                    </button>
+                                    
+                                    <!-- Screen Sharing - Solo HOST -->
+                                    <button class="zoom-control-btn screen-share-control" id="screenShareBtn" title="Compartir pantalla">
+                                        <i class='bx bx-desktop'></i>
+                                    </button>
+                                    
+                                    <!-- Grabación - Solo HOST -->
+                                    <button class="zoom-control-btn recording-control" id="recordingToggleBtn" title="Iniciar/Detener grabación">
+                                        <i class='bx bx-video-recording'></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Indicador de rol de usuario -->
+                                <div class="user-role-indicator" id="userRoleIndicator">
+                                    <span class="role-badge participant-badge" id="roleBadge">Participant</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="session-picker" id="sessionPicker">
-                            <!-- Render dinámico de sesiones y módulos -->
+                    </div>
+                    
+                    <!-- Live Stream container eliminado - Solo Zoom Video SDK -->
+                </div>
+            </div>
+
+            <!-- Panel de Presentación (Centro - Abajo) -->
+            <div class="presentation-main-panel" id="presentationMainPanel">
+                <div class="presentation-main-header">
+                    <h3>
+                        <i class='bx bx-presentation'></i>
+                        Presentación
+                    </h3>
+                    <div class="presentation-main-controls">
+                        <button class="presentation-main-control-btn" id="presentationMainPrevBtn" title="Anterior">
+                            <i class='bx bx-chevron-left'></i>
+                        </button>
+                        <span class="presentation-main-counter" id="presentationMainCounter">1 / 10</span>
+                        <button class="presentation-main-control-btn" id="presentationMainNextBtn" title="Siguiente">
+                            <i class='bx bx-chevron-right'></i>
+                        </button>
+
+                        <button class="presentation-main-collapse-btn" id="presentationMainCollapseBtn" title="Colapsar/Expandir">
+                            <i class='bx bx-chevron-down'></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="presentation-main-content">
+                    <div class="presentation-main-placeholder" id="presentationMainPlaceholder">
+                        <i class='bx bx-file-blank'></i>
+                        <p>No hay presentación cargada</p>
+                        <button class="load-presentation-main-btn" id="loadPresentationMainBtn">
+                            <i class='bx bx-upload'></i>
+                            Cargar Presentación
+                        </button>
+                    </div>
+                    
+                    <!-- Aquí se mostrará la presentación -->
+                    <div class="presentation-main-embed-container" id="presentationMainEmbedContainer" style="display: none; background: rgba(20, 30, 45, 0.95);">
+                        <!-- Contenido directo sin iframe para compatibilidad con Brave -->
+                        <div id="presentationContent" class="presentation-content" style="background: rgba(20, 30, 45, 0.95);">
+                            <!-- El contenido se insertará dinámicamente aquí -->
                         </div>
                     </div>
                 </div>
@@ -155,47 +568,10 @@
         <aside class="studio-right" id="studioRight">
             <div class="studio-header">
                 <h3>Studio</h3>
+                <button class="mobile-close-btn" id="mobileStudioClose" style="display: none;">Cerrar</button>
                 <button class="collapse-btn" id="collapseRight" title="Ocultar/mostrar">⟨⟩</button>
             </div>
-            <div class="studio-tiles" aria-label="Accesos principales">
-                <button class="tile" data-action="open-audio" title="Resumen de audio">
-                    <i class='bx bx-analyse'></i>
-                    <span>Resumen de audio</span>
-                </button>
-                <button class="tile disabled" data-action="open-video" title="Resumen de video" id="videoSummaryTile">
-                    <i class='bx bx-movie-play'></i>
-                    <span>Resumen de video</span>
-                </button>
-                <button class="tile" data-action="open-notes" title="Notas">
-                    <i class='bx bx-notepad'></i>
-                    <span>Notas</span>
-                </button>
-                <button class="tile" data-action="open-report" title="Informes/Resúmenes">
-                    <i class='bx bx-file-blank'></i>
-                    <span>Informes/Resúmenes</span>
-                </button>
-                <button class="tile" data-action="open-zoom" title="Sesiones Zoom">
-                    <i class='bx bx-video'></i>
-                    <span>Sesiones Zoom</span>
-                </button>
-                <button class="tile" data-action="open-teachers" title="Docentes">
-                    <i class='bx bx-user-voice'></i>
-                    <span>Docentes</span>
-                </button>
-                <button class="tile full" data-action="open-glossary" title="Glosario">
-                    <i class='bx bx-book-open'></i>
-                    <span>Glosario</span>
-                </button>
-            </div>
-            <nav class="studio-rail" aria-label="Accesos Studio (colapsado)">
-                <button class="rail-btn" data-action="open-audio" title="Audio"><i class='bx bx-microphone'></i></button>
-                <button class="rail-btn" data-action="open-video" title="Video"><i class='bx bx-movie-play'></i></button>
-                <button class="rail-btn" data-action="open-report" title="Informe"><i class='bx bx-file-blank'></i></button>
-                <button class="rail-btn" data-action="open-zoom" title="Zoom"><i class='bx bx-video'></i></button>
-                <button class="rail-btn" data-action="open-teachers" title="Docentes"><i class='bx bx-user-voice'></i></button>
-                <button class="rail-btn" data-action="open-notes" title="Notas"><i class='bx bx-notepad'></i></button>
-                <button class="rail-btn" data-action="open-glossary" title="Glosario"><i class='bx bx-book-open'></i></button>
-            </nav>
+            
             <div class="studio-cards" id="studioCards"></div>
             <div class="right-resizer" id="rightResizer" title="Ajustar ancho"></div>
         </aside>
@@ -203,12 +579,2548 @@
 
     <div id="avatarLightbox" class="avatar-lightbox" aria-hidden="true">
         <div class="avatar-lightbox-backdrop"></div>
-        <img id="avatarLightboxImg" src="assets/images/FOTO%20LIA.png" alt="Lia IA">
+        <img id="avatarLightboxImg" src="assets/images/FOTO%20LIA.png" alt="Lia">
         <button id="avatarLightboxClose" class="avatar-close" aria-label="Cerrar">×</button>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Socket.IO client: autodetecta origen del servidor en producción y permite override por localStorage -->
+    <script>
+        (function() {
+            try {
+                var current = localStorage.getItem('SOCKET_IO_ORIGIN');
+                var heroku = 'https://lia-ia-live-1da7d26ba883.herokuapp.com';
+                var host = (window.location && window.location.hostname) ? window.location.hostname : '';
+
+                // Si no hay configuración previa, elegir origen según dominio público
+                if (!current) {
+                    if (host.includes('aprendeyaplica.ai')) {
+                        // Producción: API en Netlify, WebSocket en Heroku
+                        var netlify = 'https://bot-lia-ai.netlify.app';
+                        var heroku = 'https://lia-ia-live-1da7d26ba883.herokuapp.com';
+                        window.API_BASE = netlify;
+                        window.SOCKET_IO_ORIGIN = heroku;
+                        try { localStorage.setItem('API_BASE', netlify); } catch(_) {}
+                        try { localStorage.setItem('SOCKET_IO_ORIGIN', heroku); } catch(_) {}
+                    } else if (host.endsWith('.netlify.app')) {
+                        // Cuando se sirve desde el mismo sitio de Netlify
+                        window.SOCKET_IO_ORIGIN = '';
+                        window.API_BASE = '';
+                    } else {
+                        window.SOCKET_IO_ORIGIN = heroku;
+                        window.API_BASE = heroku;
+                    }
+                } else {
+                    if (host.includes('aprendeyaplica.ai')) {
+                        var n = 'https://bot-lia-ai.netlify.app';
+                        var h = 'https://lia-ia-live-1da7d26ba883.herokuapp.com';
+                        window.API_BASE = n;
+                        window.SOCKET_IO_ORIGIN = h;
+                        try { localStorage.setItem('API_BASE', n); } catch(_) {}
+                        try { localStorage.setItem('SOCKET_IO_ORIGIN', h); } catch(_) {}
+                    } else {
+                        window.SOCKET_IO_ORIGIN = current;
+                        window.API_BASE = current;
+                    }
+                }
+            } catch (_) { window.SOCKET_IO_ORIGIN = window.SOCKET_IO_ORIGIN || ''; }
+        })();
+    </script>
+    <!-- Nota: Se omite 'integrity' porque el CDN puede rotar hashes; esto evitaba que el navegador bloquee la carga -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" 
+            onload="console.log('✅ Socket.IO script loaded successfully')"
+            onerror="console.error('❌ Failed to load Socket.IO from CDN')"></script>
+            
+    <!-- Zoom Video SDK - Mock para Desarrollo -->
+    <script>
+        // Crear mock inmediatamente para desarrollo
+        console.warn('🧪 Cargando Zoom Video SDK Mock para desarrollo local...');
+        
+        window.ZoomVideo = {
+            createClient: function() {
+                console.log('🧪 Mock: Cliente de Zoom Video SDK creado');
+                return {
+                    join: async function(topic, signature, meetingNumber, userName, password) {
+                        console.log('🧪 Mock: Uniéndose a sesión', { topic, meetingNumber, userName });
+                        
+                        // Simular proceso de conexión
+                        setTimeout(() => {
+                            if (this.onConnectionChange) {
+                                this.onConnectionChange({ state: 'Connected' });
+                            }
+                            console.log('🧪 Mock: Conexión establecida exitosamente');
+                        }, 1500);
+                        
+                        return Promise.resolve();
+                    },
+                    leave: async function() {
+                        console.log('🧪 Mock: Saliendo de sesión');
+                        
+                        // Simular desconexión
+                        setTimeout(() => {
+                            if (this.onConnectionChange) {
+                                this.onConnectionChange({ state: 'Disconnected' });
+                            }
+                        }, 500);
+                        
+                        return Promise.resolve();
+                    },
+                    on: function(event, callback) {
+                        console.log('🧪 Mock: Event listener agregado para:', event);
+                        // Guardar callbacks para simular eventos
+                        if (event === 'connection-change') {
+                            this.onConnectionChange = callback;
+                        } else if (event === 'user-added') {
+                            this.onUserAdded = callback;
+                        } else if (event === 'user-removed') {
+                            this.onUserRemoved = callback;
+                        } else if (event === 'user-video-active') {
+                            this.onVideoActive = callback;
+                        }
+                    },
+                    getMediaStream: function() {
+                        return {
+                            startVideo: async function(options) {
+                                console.log('🧪 Mock: Iniciando video', options);
+                                // Simular video activado
+                                setTimeout(() => {
+                                    const client = this;
+                                    if (client.onVideoActive) {
+                                        client.onVideoActive({ userId: 'mock-user-1' });
+                                    }
+                                }, 1000);
+                                return Promise.resolve();
+                            },
+                            stopVideo: async function() {
+                                console.log('🧪 Mock: Deteniendo video');
+                                return Promise.resolve();
+                            },
+                            muteAudio: async function() {
+                                console.log('🧪 Mock: Silenciando audio');
+                                return Promise.resolve();
+                            },
+                            unmuteAudio: async function() {
+                                console.log('🧪 Mock: Activando audio');
+                                return Promise.resolve();
+                            },
+                            renderVideo: async function(canvas, userId, width, height, x, y, quality) {
+                                console.log('🧪 Mock: Renderizando video', { userId, width, height });
+                                
+                                // Crear contenido visual simulado
+                                if (canvas) {
+                                    canvas.innerHTML = `
+                                        <div style="
+                                            width: 100%; 
+                                            height: 100%; 
+                                            background: linear-gradient(45deg, #1e3a8a, #3b82f6);
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            color: white;
+                                            font-family: Arial, sans-serif;
+                                            text-align: center;
+                                            flex-direction: column;
+                                        ">
+                                            <div style="font-size: 2rem; margin-bottom: 1rem;">📹</div>
+                                            <div style="font-size: 1.2rem; font-weight: bold;">Mock Video Feed</div>
+                                            <div style="font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem;">
+                                                Usuario: ${userId || 'Usuario Desarrollo'}
+                                            </div>
+                                            <div style="font-size: 0.8rem; opacity: 0.6; margin-top: 1rem;">
+                                                🧪 Zoom SDK Simulado - Fase 1
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                                return Promise.resolve();
+                            }
+                        };
+                    },
+                    getAllUser: function() {
+                        return [
+                            { userId: 'mock-user-1', displayName: 'Usuario Desarrollo' },
+                            { userId: 'mock-user-2', displayName: 'Usuario Prueba' }
+                        ];
+                    }
+                };
+            }
+        };
+        
+        console.log('✅ Zoom Video SDK Mock inicializado correctamente');
+    </script>
+            
+    <!-- Zoom Video Integration - Nuestro código -->
+    <script src="scripts/zoom-video-integration.js"></script>
+    
     <script src="scripts/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ===== NAVEGACIÓN MÓVIL =====
+            function initializeMobileNavigation() {
+                const mobileMainBtn = document.getElementById('mobileMainBtn');
+                const mobileToolsBtn = document.getElementById('mobileToolsBtn');
+                const mobileStudioBtn = document.getElementById('mobileStudioBtn');
+                const mobileToolsClose = document.getElementById('mobileToolsClose');
+                const mobileStudioClose = document.getElementById('mobileStudioClose');
+                const sidebarLeft = document.getElementById('sidebarLeft');
+                const studioRight = document.getElementById('studioRight');
+                const chatMain = document.querySelector('.chat-main');
+                
+                // Detectar si es móvil
+                function isMobile() {
+                    return window.innerWidth <= 768;
+                }
+                
+                // Mostrar/ocultar botones de cerrar en móvil
+                function updateMobileUI() {
+                    if (isMobile()) {
+                        if (mobileToolsClose) mobileToolsClose.style.display = 'block';
+                        if (mobileStudioClose) mobileStudioClose.style.display = 'block';
+                    } else {
+                        if (mobileToolsClose) mobileToolsClose.style.display = 'none';
+                        if (mobileStudioClose) mobileStudioClose.style.display = 'none';
+                    }
+                }
+                
+                // Función para mostrar vista principal
+                function showMain() {
+                    if (!isMobile()) return;
+                    
+                    // Actualizar botones
+                    mobileMainBtn.classList.add('active');
+                    mobileToolsBtn.classList.remove('active');
+                    mobileStudioBtn.classList.remove('active');
+                    
+                    // Ocultar paneles
+                    sidebarLeft.classList.remove('mobile-show');
+                    studioRight.classList.remove('mobile-show');
+                    
+                    console.log('📱 Vista principal móvil activada');
+                }
+                
+                // Función para mostrar herramientas
+                function showTools() {
+                    if (!isMobile()) return;
+                    
+                    // Actualizar botones
+                    mobileMainBtn.classList.remove('active');
+                    mobileToolsBtn.classList.add('active');
+                    mobileStudioBtn.classList.remove('active');
+                    
+                    // Mostrar herramientas, ocultar studio
+                    sidebarLeft.classList.add('mobile-show');
+                    studioRight.classList.remove('mobile-show');
+                    
+                    console.log('📱 Vista herramientas móvil activada');
+                }
+                
+                // Función para mostrar studio
+                function showStudio() {
+                    if (!isMobile()) return;
+                    
+                    // Actualizar botones
+                    mobileMainBtn.classList.remove('active');
+                    mobileToolsBtn.classList.remove('active');
+                    mobileStudioBtn.classList.add('active');
+                    
+                    // Mostrar studio, ocultar herramientas
+                    studioRight.classList.add('mobile-show');
+                    sidebarLeft.classList.remove('mobile-show');
+                    
+                    console.log('📱 Vista studio móvil activada');
+                }
+                
+                // Event listeners
+                if (mobileMainBtn) {
+                    mobileMainBtn.addEventListener('click', showMain);
+                }
+                
+                if (mobileToolsBtn) {
+                    mobileToolsBtn.addEventListener('click', showTools);
+                }
+                
+                if (mobileStudioBtn) {
+                    mobileStudioBtn.addEventListener('click', showStudio);
+                }
+                
+                if (mobileToolsClose) {
+                    mobileToolsClose.addEventListener('click', showMain);
+                }
+                
+                if (mobileStudioClose) {
+                    mobileStudioClose.addEventListener('click', showMain);
+                }
+                
+                // Inicializar UI
+                updateMobileUI();
+                
+                // Actualizar en resize
+                window.addEventListener('resize', function() {
+                    updateMobileUI();
+                    if (!isMobile()) {
+                        // En desktop, resetear clases móviles
+                        sidebarLeft.classList.remove('mobile-show');
+                        studioRight.classList.remove('mobile-show');
+                    }
+                });
+                
+                console.log('📱 Sistema de navegación móvil inicializado');
+            }
+            
+            // Inicializar navegación móvil
+            initializeMobileNavigation();
+            
+            const input = document.getElementById('messageInput');
+            const container = document.getElementById('inputContainer');
+            const sessionMenuButton = document.getElementById('sessionMenuButton');
+            const globalMenu = document.getElementById('globalMenu');
+
+            function updateState(){
+                if (!input || !container) return;
+                if (input.value.trim().length > 0) container.classList.add('input-has-text');
+                else container.classList.remove('input-has-text');
+            }
+            if (input){
+                ['input','keyup','change'].forEach(ev=> input.addEventListener(ev, updateState));
+                updateState();
+            }
+
+            // Abrir/cerrar menú global (sesiones/reportes)
+            if (sessionMenuButton && globalMenu){
+                sessionMenuButton.addEventListener('click', function(e){
+                    e.preventDefault(); e.stopPropagation();
+                    // Anclar el menú a la izquierda de la isla
+                    const island = document.getElementById('inputContainer');
+                    if (island){
+                        const rect = island.getBoundingClientRect();
+                        // 12px de margen desde el borde izquierdo de la isla
+                        globalMenu.style.left = (rect.left + 12) + 'px';
+                    }
+                    globalMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function(e){
+                    if (!e.target.closest('#globalMenu') && !e.target.closest('#sessionMenuButton')){
+                        globalMenu.classList.remove('show');
+                    }
+                });
+            }
+
+            // ===== NUEVA FUNCIONALIDAD - SISTEMA DE TOGGLE =====
+            
+            // Elementos principales
+            const liveChatToggle = document.getElementById('liveChatToggle');
+            const liaChatToggle = document.getElementById('liaChatToggle');
+
+            // Sistema de toggle - solo visual para el chat en vivo
+            function initializeToggleSystem() {
+                console.log('🔧 Inicializando sistema de toggle para el chat...');
+                
+                // Toggle Chat en Vivo
+                if (liveChatToggle) {
+                    liveChatToggle.addEventListener('click', function() {
+                        console.log('📺 Chat en Vivo seleccionado');
+                        
+                        // Actualizar botones
+                        liveChatToggle.classList.add('active');
+                        liaChatToggle.classList.remove('active');
+                        
+                        // Aquí se puede agregar lógica específica para el chat en vivo
+                        console.log('✅ Chat en Vivo activado');
+                    });
+                }
+
+                // Toggle Chat con LIA (integrado en el chat en vivo)
+                if (liaChatToggle) {
+                    liaChatToggle.addEventListener('click', function() {
+                        console.log('🤖 Chat con LIA seleccionado');
+                        
+                        // Actualizar botones
+                        liaChatToggle.classList.add('active');
+                        liveChatToggle.classList.remove('active');
+                        
+                        // Aquí se integrará LIA dentro del chat en vivo existente
+                        console.log('✅ Chat con LIA activado (integrado en chat en vivo)');
+                    });
+                }
+            }
+
+            // Funcionalidad de colapsar/expandir paneles laterales
+            function initializePanelCollapse() {
+                console.log('🔧 Inicializando colapso de paneles...');
+                
+                const collapseLeft = document.getElementById('collapseLeft');
+                const collapseRight = document.getElementById('collapseRight');
+                const sidebarLeft = document.getElementById('sidebarLeft');
+                const studioRight = document.getElementById('studioRight');
+                
+                // Colapsar/expandir panel izquierdo
+                if (collapseLeft && sidebarLeft) {
+                    collapseLeft.addEventListener('click', function() {
+                        sidebarLeft.classList.toggle('collapsed');
+                        console.log('📱 Panel izquierdo:', sidebarLeft.classList.contains('collapsed') ? 'colapsado' : 'expandido');
+                    });
+                }
+                
+                // Colapsar/expandir panel derecho
+                if (collapseRight && studioRight) {
+                    collapseRight.addEventListener('click', function() {
+                        studioRight.classList.toggle('collapsed');
+                        console.log('📱 Panel derecho:', studioRight.classList.contains('collapsed') ? 'colapsado' : 'expandido');
+                    });
+                }
+            }
+
+            // Funcionalidad de resizer para paneles
+            function initializeResizers() {
+                console.log('🔧 Inicializando resizers...');
+                
+                const leftResizer = document.getElementById('leftResizer');
+                const rightResizer = document.getElementById('rightResizer');
+                const sidebarLeft = document.getElementById('sidebarLeft');
+                const studioRight = document.getElementById('studioRight');
+                
+                // Resizer izquierdo
+                if (leftResizer && sidebarLeft) {
+                    leftResizer.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const startX = e.clientX;
+                        const startWidth = sidebarLeft.offsetWidth;
+                        const minWidth = 250;
+                        const maxWidth = 500;
+                        
+                        function onMouseMove(e) {
+                            e.preventDefault();
+                            const deltaX = e.clientX - startX;
+                            const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth + deltaX));
+                            
+                            sidebarLeft.style.width = newWidth + 'px';
+                            console.log('📏 Panel izquierdo:', newWidth + 'px');
+                        }
+                        
+                        function onMouseUp() {
+                            document.removeEventListener('mousemove', onMouseMove);
+                            document.removeEventListener('mouseup', onMouseUp);
+                            document.body.classList.remove('resizing');
+                        }
+                        
+                        document.body.classList.add('resizing');
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                    });
+                }
+                
+                // Resizer derecho
+                if (rightResizer && studioRight) {
+                    rightResizer.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const startX = e.clientX;
+                        const startWidth = studioRight.offsetWidth;
+                        const minWidth = 200;
+                        const maxWidth = 400;
+                        
+                        function onMouseMove(e) {
+                            e.preventDefault();
+                            const deltaX = startX - e.clientX;
+                            const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth + deltaX));
+                            
+                            studioRight.style.width = newWidth + 'px';
+                            console.log('📏 Panel derecho:', newWidth + 'px');
+                        }
+                        
+                        function onMouseUp() {
+                            document.removeEventListener('mousemove', onMouseMove);
+                            document.removeEventListener('mouseup', onMouseUp);
+                            document.body.classList.remove('resizing');
+                        }
+                        
+                        document.body.classList.add('resizing');
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                    });
+                }
+            }
+
+            // Funcionalidad de colapsar/expandir secciones
+            function initializeCollapsibleSections() {
+                console.log('🔧 Inicializando secciones colapsibles...');
+                
+                // Toggle para Chat en Vivo
+                const livestreamToggle = document.getElementById('livestreamToggle');
+                const livestreamContent = document.getElementById('livestreamContent');
+                
+                if (livestreamToggle && livestreamContent) {
+                    livestreamToggle.addEventListener('click', function() {
+                        const isExpanded = livestreamToggle.getAttribute('aria-expanded') === 'true';
+                        livestreamToggle.setAttribute('aria-expanded', !isExpanded);
+                        livestreamContent.style.display = isExpanded ? 'none' : 'block';
+                        console.log('📺 Chat en Vivo:', isExpanded ? 'colapsado' : 'expandido');
+                    });
+                }
+                
+                // Toggle para Zoom Session
+                const zoomToggle = document.getElementById('zoomToggle');
+                const zoomContent = document.getElementById('zoomContent');
+                
+                if (zoomToggle && zoomContent) {
+                    zoomToggle.addEventListener('click', function() {
+                        const isExpanded = zoomToggle.getAttribute('aria-expanded') === 'true';
+                        zoomToggle.setAttribute('aria-expanded', !isExpanded);
+                        zoomContent.style.display = isExpanded ? 'none' : 'block';
+                        console.log('🎥 Zoom Session:', isExpanded ? 'colapsado' : 'expandido');
+                    });
+                }
+            }
+
+            // Funcionalidad de Zoom Session (dentro del panel de herramientas)
+            function initializeZoomSection() {
+                console.log('🎥 Inicializando sección de Zoom...');
+                
+                const zoomConnectBtn = document.getElementById('zoomConnectBtn');
+                const zoomStatus = document.getElementById('zoomStatus');
+                const zoomPlaceholder = document.getElementById('zoomEmbedPlaceholder');
+                const zoomContainer = document.getElementById('zoomWebSDKContainer');
+                
+                // Conectar con Zoom
+                if (zoomConnectBtn) {
+                    zoomConnectBtn.addEventListener('click', function() {
+                        console.log('🔗 Conectando con Zoom...');
+                        
+                        // Cambiar texto del botón y estado
+                        zoomConnectBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Conectando...';
+                        zoomConnectBtn.disabled = true;
+                        
+                        // Actualizar estado
+                        if (zoomStatus) {
+                            const statusIndicator = zoomStatus.querySelector('.status-indicator');
+                            const statusText = zoomStatus.querySelector('.status-text');
+                            if (statusIndicator) statusIndicator.className = 'status-indicator connecting';
+                            if (statusText) statusText.textContent = 'Conectando...';
+                        }
+                        
+                        // Simular conexión
+                        setTimeout(() => {
+                            // Ocultar placeholder y mostrar SDK
+                            if (zoomPlaceholder) zoomPlaceholder.style.display = 'none';
+                            if (zoomContainer) {
+                                zoomContainer.style.display = 'block';
+                                zoomContainer.innerHTML = `
+                                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; 
+                                         background: rgba(0,0,0,0.8); border-radius: 6px; color: #44e5ff; font-size: 0.8rem;">
+                                        <div style="text-align: center;">
+                                            <i class='bx bx-video' style="font-size: 1.5rem; margin-bottom: 4px; display: block;"></i>
+                                            <p style="margin: 0; font-size: 0.75rem;">Zoom Web SDK</p>
+                                            <small style="color: #94a3b8; font-size: 0.65rem;">Demo activo</small>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            
+                            // Actualizar estado y botón
+                            if (zoomStatus) {
+                                const statusIndicator = zoomStatus.querySelector('.status-indicator');
+                                const statusText = zoomStatus.querySelector('.status-text');
+                                if (statusIndicator) statusIndicator.className = 'status-indicator online';
+                                if (statusText) statusText.textContent = 'Conectado';
+                            }
+                            
+                            zoomConnectBtn.innerHTML = '<i class="bx bx-video-off"></i> Desconectar';
+                            zoomConnectBtn.disabled = false;
+                            
+                            console.log('✅ Zoom conectado (demo)');
+                        }, 2000);
+                    });
+                }
+            }
+
+            // Funcionalidad del Panel de Live Stream Principal (centro)
+            function initializeLiveStreamMainPanel() {
+                console.log('📺 Inicializando panel de Live Stream principal...');
+                
+                const liveStreamMainConnectBtn = document.getElementById('liveStreamMainConnectBtn');
+                const liveStreamMainConnectBtnLarge = document.getElementById('liveStreamMainConnectBtnLarge');
+                const liveStreamMainDisconnectBtn = document.getElementById('liveStreamMainDisconnectBtn');
+            
+                const liveStreamMainCollapseBtn = document.getElementById('liveStreamMainCollapseBtn');
+                const liveStreamMainPlaceholder = document.getElementById('liveStreamMainPlaceholder');
+                const liveStreamMainEmbedContainer = document.getElementById('liveStreamMainEmbedContainer');
+                const liveStreamMainPanel = document.getElementById('liveStreamMainPanel');
+                
+                // Iniciar Live Stream (botón pequeño)
+                if (liveStreamMainConnectBtn) {
+                    liveStreamMainConnectBtn.addEventListener('click', function() {
+                        console.log('📺 Iniciando Live Stream (header)...');
+                        startLiveStream();
+                    });
+                }
+                
+                // Iniciar Live Stream (botón grande)
+                if (liveStreamMainConnectBtnLarge) {
+                    liveStreamMainConnectBtnLarge.addEventListener('click', function() {
+                        console.log('📺 Iniciando Live Stream (placeholder)...');
+                        startLiveStream();
+                    });
+                }
+                
+                // Detener Live Stream
+                if (liveStreamMainDisconnectBtn) {
+                    liveStreamMainDisconnectBtn.addEventListener('click', function() {
+                        console.log('⏹️ Deteniendo Live Stream...');
+                        stopLiveStream();
+                    });
+                }
+                
+
+                
+                // Función para iniciar Live Stream
+                function startLiveStream() {
+                    // Cambiar texto del botón y estado
+                    if (liveStreamMainConnectBtn) {
+                        liveStreamMainConnectBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>';
+                        liveStreamMainConnectBtn.disabled = true;
+                    }
+                    if (liveStreamMainConnectBtnLarge) {
+                        liveStreamMainConnectBtnLarge.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Iniciando...';
+                        liveStreamMainConnectBtnLarge.disabled = true;
+                    }
+                    
+                    // Simular inicio de stream
+                    setTimeout(() => {
+                        // Ocultar placeholder y mostrar stream
+                        if (liveStreamMainPlaceholder) liveStreamMainPlaceholder.style.display = 'none';
+                        if (liveStreamMainEmbedContainer) {
+                            liveStreamMainEmbedContainer.style.display = 'block';
+                            liveStreamMainEmbedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
+                            liveStreamMainEmbedContainer.innerHTML = `
+                                <div style="display: flex; align-items: center; justify-content: center; height: 100%; 
+                                     background: rgba(20, 30, 45, 0.95); border-radius: 8px; color: #44e5ff; font-size: 0.8rem;">
+                                    <div style="text-align: center;">
+                                        <i class='bx bx-broadcast' style="font-size: 2rem; margin-bottom: 8px; display: block;"></i>
+                                        <p style="margin: 0; font-size: 1rem;">Live Stream Activo</p>
+                                        <small style="color: #94a3b8; font-size: 0.8rem;">Transmitiendo en vivo</small>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        // Restaurar botones
+                        if (liveStreamMainConnectBtn) {
+                            liveStreamMainConnectBtn.innerHTML = '<i class="bx bx-stop-circle"></i>';
+                            liveStreamMainConnectBtn.disabled = false;
+                        }
+                        if (liveStreamMainConnectBtnLarge) {
+                            liveStreamMainConnectBtnLarge.innerHTML = '<i class="bx bx-broadcast"></i> Iniciar Live Stream';
+                            liveStreamMainConnectBtnLarge.disabled = false;
+                        }
+                        
+                        console.log('✅ Live Stream iniciado (demo)');
+                    }, 2000);
+                }
+                
+                // Función para detener Live Stream
+                function stopLiveStream() {
+                    // Mostrar placeholder y ocultar stream
+                    if (liveStreamMainPlaceholder) liveStreamMainPlaceholder.style.display = 'flex';
+                    if (liveStreamMainEmbedContainer) liveStreamMainEmbedContainer.style.display = 'none';
+                    
+                    console.log('✅ Live Stream detenido');
+                }
+
+                // Funcionalidad de colapso del panel
+                if (liveStreamMainCollapseBtn && liveStreamMainPanel) {
+                    liveStreamMainCollapseBtn.addEventListener('click', function() {
+                        console.log('📺 Alternando colapso del panel Live Stream...');
+                        
+                        const isCollapsed = liveStreamMainPanel.classList.contains('collapsed');
+                        const liveStreamContent = liveStreamMainPanel.querySelector('.live-stream-main-content');
+                        const liveStreamPlaceholder = liveStreamMainPanel.querySelector('.live-stream-main-placeholder');
+                        const liveStreamEmbedContainer = liveStreamMainPanel.querySelector('.live-stream-main-embed-container');
+                        
+                        if (isCollapsed) {
+                            // Expandir panel
+                            liveStreamMainPanel.classList.remove('collapsed');
+                            liveStreamMainCollapseBtn.classList.remove('collapsed');
+                            liveStreamMainCollapseBtn.querySelector('i').className = 'bx bx-chevron-up';
+                            
+                            // Mostrar contenido con transición suave
+                            setTimeout(() => {
+                                if (liveStreamContent) {
+                                    liveStreamContent.style.display = 'flex';
+                                    liveStreamContent.style.opacity = '1';
+                                    liveStreamContent.style.visibility = 'visible';
+                                }
+                                if (liveStreamPlaceholder) {
+                                    liveStreamPlaceholder.style.display = 'flex';
+                                    liveStreamPlaceholder.style.opacity = '1';
+                                    liveStreamPlaceholder.style.visibility = 'visible';
+                                }
+                                if (liveStreamEmbedContainer) {
+                                    liveStreamEmbedContainer.style.display = 'block';
+                                    liveStreamEmbedContainer.style.opacity = '1';
+                                    liveStreamEmbedContainer.style.visibility = 'visible';
+                                }
+                            }, 100);
+                            
+                            console.log('📺 Panel Live Stream expandido');
+                        } else {
+                            // Ocultar contenido primero
+                            if (liveStreamContent) {
+                                liveStreamContent.style.opacity = '0';
+                                liveStreamContent.style.visibility = 'hidden';
+                            }
+                            if (liveStreamPlaceholder) {
+                                liveStreamPlaceholder.style.opacity = '0';
+                                liveStreamPlaceholder.style.visibility = 'hidden';
+                            }
+                            if (liveStreamEmbedContainer) {
+                                liveStreamEmbedContainer.style.opacity = '0';
+                                liveStreamEmbedContainer.style.visibility = 'hidden';
+                            }
+                            
+                            // Colapsar panel después de la transición
+                            setTimeout(() => {
+                                liveStreamMainPanel.classList.add('collapsed');
+                                liveStreamMainCollapseBtn.classList.add('collapsed');
+                                liveStreamMainCollapseBtn.querySelector('i').className = 'bx bx-chevron-down';
+                                
+                                // Ocultar completamente
+                                if (liveStreamContent) {
+                                    liveStreamContent.style.display = 'none';
+                                }
+                                if (liveStreamPlaceholder) {
+                                    liveStreamPlaceholder.style.display = 'none';
+                                }
+                                if (liveStreamEmbedContainer) {
+                                    liveStreamEmbedContainer.style.display = 'none';
+                                }
+                            }, 150);
+                            
+                            console.log('📺 Panel Live Stream colapsado');
+                        }
+                        
+                        // Forzar actualización del layout y expandir presentación
+                        setTimeout(() => {
+                            liveStreamMainPanel.style.height = isCollapsed ? '50%' : '60px';
+                            
+                            // Expandir presentación cuando se colapsa Live Stream
+                            const presentationPanel = document.getElementById('presentationMainPanel');
+                            if (presentationPanel && !isCollapsed) {
+                                // Cuando se colapsa Live Stream, expandir presentación
+                                presentationPanel.style.height = 'calc(100% - 76px)'; // 100% - 60px del panel colapsado - 16px de gap
+                                presentationPanel.style.minHeight = 'calc(100% - 76px)';
+                                console.log('📊 Presentación expandida automáticamente');
+                            } else if (presentationPanel && isCollapsed) {
+                                // Cuando se expande Live Stream, restaurar presentación
+                                presentationPanel.style.height = '50%';
+                                presentationPanel.style.minHeight = '300px';
+                                console.log('📊 Presentación restaurada a tamaño normal');
+                            }
+                            
+                            console.log('🔄 Layout actualizado');
+                        }, 10);
+                    });
+                } else {
+                    console.warn('⚠️ No se encontró el botón de colapso del Live Stream');
+                }
+            }
+
+            function initializePresentationMainPanel() {
+                console.log('📊 Inicializando panel de presentación principal...');
+                
+                const loadPresentationMainBtn = document.getElementById('loadPresentationMainBtn');
+                const presentationMainPrevBtn = document.getElementById('presentationMainPrevBtn');
+                const presentationMainNextBtn = document.getElementById('presentationMainNextBtn');
+
+                const presentationMainCollapseBtn = document.getElementById('presentationMainCollapseBtn');
+                const presentationMainCounter = document.getElementById('presentationMainCounter');
+                const presentationMainPlaceholder = document.getElementById('presentationMainPlaceholder');
+                const presentationMainEmbedContainer = document.getElementById('presentationMainEmbedContainer');
+                const presentationMainPanel = document.getElementById('presentationMainPanel');
+                
+                // Verificar que todos los elementos existen
+                if (!loadPresentationMainBtn) {
+                    console.error('❌ No se encontró el botón de cargar presentación');
+                    return;
+                }
+                if (!presentationMainPlaceholder) {
+                    console.error('❌ No se encontró el placeholder de presentación');
+                    return;
+                }
+                if (!presentationMainEmbedContainer) {
+                    console.error('❌ No se encontró el contenedor de presentación');
+                    return;
+                }
+                
+                let currentSlide = 1;
+                const totalSlides = 10;
+                let currentPresentation = null;
+                
+                // Cargar presentación
+                    loadPresentationMainBtn.addEventListener('click', function() {
+                    console.log('📤 Iniciando carga de presentación...');
+                        
+                    try {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = '.pdf,.ppt,.pptx,.key,.odp';
+                        input.multiple = false;
+                        
+                        input.onchange = function(e) {
+                            try {
+                            const file = e.target.files[0];
+                                if (!file) {
+                                    console.log('❌ No se seleccionó ningún archivo');
+                                    return;
+                                }
+                                
+                                console.log('📄 Archivo seleccionado:', file.name, 'Tamaño:', file.size, 'bytes');
+                                
+                                // Validar tipo de archivo
+                                const allowedTypes = ['.pdf', '.ppt', '.pptx', '.key', '.odp'];
+                                const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+                                
+                                if (!allowedTypes.includes(fileExtension)) {
+                                    alert('❌ Tipo de archivo no soportado. Use: PDF, PPT, PPTX, KEY, ODP');
+                                    console.error('❌ Tipo de archivo no válido:', fileExtension);
+                                    return;
+                                }
+                                
+                                // Validar tamaño (máximo 50MB)
+                                if (file.size > 50 * 1024 * 1024) {
+                                    alert('❌ Archivo demasiado grande. Máximo 50MB');
+                                    console.error('❌ Archivo demasiado grande:', file.size);
+                                    return;
+                                }
+                                
+                                // Cambiar estado del botón
+                                loadPresentationMainBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Cargando...';
+                                loadPresentationMainBtn.disabled = true;
+                                
+                                // Simular carga (en producción aquí iría la lógica real)
+                                setTimeout(() => {
+                                    try {
+                                                                        // Ocultar placeholder y limpiar cualquier contenido residual
+                                        presentationMainPlaceholder.style.display = 'none';
+                                        
+                                        // Limpiar cualquier iframe residual que pueda estar causando problemas
+                                        const embedContainer = document.getElementById('presentationMainEmbedContainer');
+                                        if (embedContainer) {
+                                            // Eliminar cualquier iframe que pueda estar presente
+                                            const existingIframes = embedContainer.querySelectorAll('iframe');
+                                            existingIframes.forEach(iframe => {
+                                                console.log('🗑️ Eliminando iframe residual:', iframe);
+                                                iframe.remove();
+                                            });
+                                            
+                                            // Limpiar todo el contenido
+                                            embedContainer.innerHTML = '';
+                                            console.log('🧹 Contenedor limpiado completamente');
+                                            
+                                            // Asegurar que el contenedor tenga el fondo correcto
+                                            embedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
+                                        }
+                                        
+                                        presentationMainEmbedContainer.style.display = 'block';
+                                        presentationMainEmbedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
+                                        
+                                                                                // Limpiar completamente el contenedor y mostrar contenido directo (compatible con Brave)
+                                        const presentationContent = document.getElementById('presentationContent');
+                                        
+                                        if (presentationContent && embedContainer) {
+                                            // Limpiar completamente el contenedor
+                                            embedContainer.innerHTML = '';
+                                            
+                                            // Crear nuevo contenedor de contenido
+                                            const newContentDiv = document.createElement('div');
+                                            newContentDiv.id = 'presentationContent';
+                                            newContentDiv.className = 'presentation-content';
+                                            newContentDiv.style.background = 'rgba(20, 30, 45, 0.95)';
+                                            
+                                            // Insertar el contenido
+                                            newContentDiv.innerHTML = `
+                                                <div class="presentation-container">
+                                                    <h1 class="presentation-title">📊 ${file.name}</h1>
+                                                    <p class="presentation-status">Presentación cargada correctamente</p>
+                                                    <p class="presentation-info">Use los controles del header para navegar entre diapositivas</p>
+                                                    
+                                                    <div class="demo-slide">
+                                                        <div class="slide-number">Diapositiva 1 de 10</div>
+                                                        <div class="slide-content">
+                                                            <h2>Bienvenidos a la Presentación</h2>
+                                                            <p>Esta es una vista previa de su presentación "${file.name}".</p>
+                                                            <p>En una implementación completa, aquí se mostraría el contenido real de la diapositiva.</p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="file-details">
+                                                        <p><strong>Tipo de archivo:</strong> ${fileExtension.toUpperCase()}</p>
+                                                        <p><strong>Tamaño:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                                        <p><strong>Fecha de carga:</strong> ${new Date().toLocaleString()}</p>
+                                                    </div>
+                                                </div>
+                                            `;
+                                            
+                                            // Agregar el nuevo contenido al contenedor
+                                            embedContainer.appendChild(newContentDiv);
+                                            
+                                            // Asegurar que todos los elementos tengan el fondo correcto
+                                            embedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
+                                            newContentDiv.style.background = 'rgba(20, 30, 45, 0.95)';
+                                            
+                                            // Forzar actualización del DOM
+                                            embedContainer.style.display = 'none';
+                                            setTimeout(() => {
+                                                embedContainer.style.display = 'block';
+                                                embedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
+                                                console.log('🔄 DOM actualizado forzadamente');
+                                            }, 10);
+                                            
+                                            console.log('✅ Presentación cargada directamente en el DOM (compatible con Brave)');
+                                            console.log('📄 Archivo procesado:', file.name);
+                                            console.log('📊 Contenido generado correctamente');
+                                            
+                                            // Verificar que el contenido se mostró correctamente
+                                            setTimeout(() => {
+                                                const finalContent = document.getElementById('presentationContent');
+                                                if (finalContent && finalContent.innerHTML.includes(file.name)) {
+                                                    console.log('✅ Verificación exitosa: Contenido visible');
+                                                } else {
+                                                    console.warn('⚠️ Verificación fallida: Contenido no visible');
+                                                }
+                                            }, 100);
+                                        } else {
+                                            console.error('❌ No se encontró el contenedor de presentación');
+                                            alert('❌ Error: No se pudo cargar la presentación');
+                                        }
+                                        
+                                        // Restaurar botón
+                                        loadPresentationMainBtn.innerHTML = '<i class="bx bx-upload"></i> Cargar Presentación';
+                                        loadPresentationMainBtn.disabled = false;
+                                        
+                                        currentPresentation = file.name;
+                                        console.log('✅ Presentación cargada exitosamente:', file.name);
+                                        
+                                    } catch (error) {
+                                        console.error('❌ Error al procesar la presentación:', error);
+                                        alert('❌ Error al cargar la presentación: ' + error.message);
+                                        
+                                        // Restaurar botón en caso de error
+                                        loadPresentationMainBtn.innerHTML = '<i class="bx bx-upload"></i> Cargar Presentación';
+                                        loadPresentationMainBtn.disabled = false;
+                                    }
+                                }, 1500); // Simular tiempo de carga
+                                
+                            } catch (error) {
+                                console.error('❌ Error al procesar archivo:', error);
+                                alert('❌ Error al procesar el archivo: ' + error.message);
+                                
+                                // Restaurar botón en caso de error
+                                loadPresentationMainBtn.innerHTML = '<i class="bx bx-upload"></i> Cargar Presentación';
+                                loadPresentationMainBtn.disabled = false;
+                            }
+                        };
+                        
+                        input.onerror = function() {
+                            console.error('❌ Error al abrir selector de archivos');
+                            alert('❌ Error al abrir selector de archivos');
+                        };
+                        
+                        input.click();
+                        
+                    } catch (error) {
+                        console.error('❌ Error al inicializar carga de presentación:', error);
+                        alert('❌ Error al cargar presentación: ' + error.message);
+                }
+                });
+                
+                // Navegación de diapositivas
+                if (presentationMainPrevBtn) {
+                    presentationMainPrevBtn.addEventListener('click', function() {
+                        if (currentSlide > 1) {
+                            currentSlide--;
+                            if (presentationMainCounter) {
+                            presentationMainCounter.textContent = `${currentSlide} / ${totalSlides}`;
+                            }
+                            console.log(`⬅️ Diapositiva anterior: ${currentSlide}`);
+                            
+                            // Actualizar contenido del iframe si existe
+                            updateSlideContent(currentSlide);
+                        } else {
+                            console.log('⚠️ Ya estás en la primera diapositiva');
+                        }
+                    });
+                } else {
+                    console.warn('⚠️ No se encontró el botón de diapositiva anterior');
+                }
+                    
+                if (presentationMainNextBtn) {
+                    presentationMainNextBtn.addEventListener('click', function() {
+                        if (currentSlide < totalSlides) {
+                            currentSlide++;
+                            if (presentationMainCounter) {
+                            presentationMainCounter.textContent = `${currentSlide} / ${totalSlides}`;
+                            }
+                            console.log(`➡️ Diapositiva siguiente: ${currentSlide}`);
+                            
+                            // Actualizar contenido del iframe si existe
+                            updateSlideContent(currentSlide);
+                        } else {
+                            console.log('⚠️ Ya estás en la última diapositiva');
+                        }
+                    });
+                } else {
+                    console.warn('⚠️ No se encontró el botón de diapositiva siguiente');
+                }
+
+                // Función para actualizar el contenido de la diapositiva
+                function updateSlideContent(slideNumber) {
+                    const presentationContent = document.getElementById('presentationContent');
+                    if (presentationContent) {
+                        try {
+                            const slideNumberElement = presentationContent.querySelector('.slide-number');
+                            if (slideNumberElement) {
+                                slideNumberElement.textContent = `Diapositiva ${slideNumber} de ${totalSlides}`;
+                            }
+                            
+                            const slideContent = presentationContent.querySelector('.slide-content');
+                            if (slideContent) {
+                                const slideTitles = [
+                                    'Bienvenidos a la Presentación',
+                                    'Agenda del Día',
+                                    'Objetivos Principales',
+                                    'Metodología',
+                                    'Recursos Disponibles',
+                                    'Cronograma',
+                                    'Resultados Esperados',
+                                    'Preguntas y Respuestas',
+                                    'Próximos Pasos',
+                                    'Cierre y Conclusiones'
+                                ];
+                                
+                                const slideContents = [
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>Esta es la diapositiva ${slideNumber} de su presentación.</p><p>Contenido de ejemplo para demostrar la navegación.</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><ul><li>Introducción al tema</li><li>Desarrollo de conceptos</li><li>Ejemplos prácticos</li><li>Conclusiones</li></ul>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>• Comprender los conceptos fundamentales</p><p>• Aplicar conocimientos en casos reales</p><p>• Desarrollar habilidades prácticas</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>Metodología interactiva que combina:</p><p>• Teoría y práctica</p><p>• Ejemplos del mundo real</p><p>• Participación activa</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>• Material de apoyo</p><p>• Herramientas digitales</p><p>• Biblioteca de recursos</p><p>• Soporte técnico</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>📅 Semana 1: Introducción</p><p>📅 Semana 2: Desarrollo</p><p>📅 Semana 3: Práctica</p><p>📅 Semana 4: Evaluación</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>✅ Mejora en comprensión</p><p>✅ Aplicación práctica</p><p>✅ Desarrollo de habilidades</p><p>✅ Evaluación positiva</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>¿Tiene alguna pregunta sobre el contenido?</p><p>Estamos aquí para ayudarle a comprender mejor los conceptos.</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>🔄 Revisar material</p><p>📝 Completar ejercicios</p><p>📚 Investigar más</p><p>👥 Participar en discusiones</p>`,
+                                    `<h2>${slideTitles[slideNumber - 1]}</h2><p>Gracias por su atención y participación.</p><p>Esperamos que esta presentación haya sido útil.</p><p>¡Hasta la próxima!</p>`
+                                ];
+                                
+                                slideContent.innerHTML = slideContents[slideNumber - 1] || `<h2>Diapositiva ${slideNumber}</h2><p>Contenido de la diapositiva ${slideNumber}.</p>`;
+                                
+                                console.log(`✅ Diapositiva ${slideNumber} actualizada correctamente`);
+                            }
+                        } catch (error) {
+                            console.warn('⚠️ No se pudo actualizar el contenido de la presentación:', error);
+                        }
+                        } else {
+                        console.warn('⚠️ No se encontró el contenedor de presentación para actualizar');
+                    }
+                }
+                
+                if (!presentationMainCounter) {
+                    console.warn('⚠️ No se encontró el contador de diapositivas');
+                }
+                
+                
+
+                // Funcionalidad de colapso del panel
+                if (presentationMainCollapseBtn && presentationMainPanel) {
+                    presentationMainCollapseBtn.addEventListener('click', function() {
+                        console.log('📊 Alternando colapso del panel Presentación...');
+                        
+                        const isCollapsed = presentationMainPanel.classList.contains('collapsed');
+                        const presentationContent = document.getElementById('presentationContent');
+                        const embedContainer = document.getElementById('presentationMainEmbedContainer');
+                        
+                        if (isCollapsed) {
+                            // Expandir panel
+                            presentationMainPanel.classList.remove('collapsed');
+                            presentationMainCollapseBtn.classList.remove('collapsed');
+                            presentationMainCollapseBtn.querySelector('i').className = 'bx bx-chevron-down';
+                            
+                            // Mostrar contenido con transición suave
+                            setTimeout(() => {
+                                if (embedContainer) {
+                                    embedContainer.style.display = 'block';
+                                    embedContainer.style.opacity = '1';
+                                    embedContainer.style.visibility = 'visible';
+                                }
+                                if (presentationContent) {
+                                    presentationContent.style.display = 'flex';
+                                    presentationContent.style.opacity = '1';
+                                    presentationContent.style.visibility = 'visible';
+                                }
+                            }, 100);
+                            
+                            console.log('📊 Panel Presentación expandido');
+                        } else {
+                            // Ocultar contenido primero
+                            if (embedContainer) {
+                                embedContainer.style.opacity = '0';
+                                embedContainer.style.visibility = 'hidden';
+                            }
+                            if (presentationContent) {
+                                presentationContent.style.opacity = '0';
+                                presentationContent.style.visibility = 'hidden';
+                            }
+                            
+                            // Colapsar panel después de la transición
+                            setTimeout(() => {
+                                presentationMainPanel.classList.add('collapsed');
+                                presentationMainCollapseBtn.classList.add('collapsed');
+                                presentationMainCollapseBtn.querySelector('i').className = 'bx bx-chevron-up';
+                                
+                                // Ocultar completamente
+                                if (embedContainer) {
+                                    embedContainer.style.display = 'none';
+                                }
+                                if (presentationContent) {
+                                    presentationContent.style.display = 'none';
+                                }
+                            }, 150);
+                            
+                            console.log('📊 Panel Presentación colapsado');
+                        }
+                        
+                        // Forzar actualización del layout
+                        setTimeout(() => {
+                            presentationMainPanel.style.height = isCollapsed ? '50%' : '60px';
+                            
+                            // Expandir Live Stream cuando se colapsa la presentación
+                            const liveStreamPanel = document.getElementById('liveStreamMainPanel');
+                            if (liveStreamPanel && !isCollapsed) {
+                                // Cuando se colapsa la presentación, expandir Live Stream
+                                liveStreamPanel.style.height = 'calc(100% - 76px)'; // 100% - 60px del panel colapsado - 16px de gap
+                                liveStreamPanel.style.minHeight = 'calc(100% - 76px)';
+                                console.log('📺 Live Stream expandido automáticamente');
+                            } else if (liveStreamPanel && isCollapsed) {
+                                // Cuando se expande la presentación, restaurar Live Stream
+                                liveStreamPanel.style.height = '50%';
+                                liveStreamPanel.style.minHeight = '300px';
+                                console.log('📺 Live Stream restaurado a tamaño normal');
+                            }
+                            
+                            console.log('🔄 Layout actualizado');
+                        }, 10);
+                    });
+                } else {
+                    console.warn('⚠️ No se encontró el botón de colapso de Presentación');
+                }
+            }
+
+            // Funcionalidad del Chat con LIA - LÓGICA COMPLETA
+            function initializeLiaChat() {
+                console.log('🤖 Inicializando Chat con LIA - Lógica Completa...');
+                
+                // Estado del chat LIA
+                let liaChatState = {
+                    isTyping: false,
+                    conversationHistory: [],
+                    currentTopic: null,
+                    userName: '',
+                    currentState: 'start',
+                    typingToken: 0
+                };
+                
+                // Elementos del DOM del chat LIA
+                const liaMessageInput = document.getElementById('livestreamMessageInput');
+                const liaSendBtn = document.getElementById('livestreamSendBtn');
+                const liaChatMessages = document.getElementById('livestreamChatMessages');
+                const btnChatLIA = document.getElementById('btnChatLIA');
+                const btnChatEnVivo = document.getElementById('btnChatEnVivo');
+                
+                // Configuración del chatbot LIA
+                const LIA_CONFIG = {
+                    name: 'Lia',
+                    typingSpeed: 50,
+                    responseDelay: 1000,
+                    audioEnabled: false,
+                    openai: {
+                        model: 'gpt-4',
+                        maxTokens: 1000,
+                        temperature: 0.5
+                    }
+                };
+                
+                // HTML helpers para avatares estilo Messenger
+                function getLiaBotAvatarHTML() {
+                    return `
+                        <div class="msg-avatar bot">
+                            <div class="avatar-circle">
+                                <img src="assets/images/AprendeIA.png" alt="Lia" onerror="this.onerror=null;this.src='assets/images/AprendeIA.jpg'" />
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                function getLiaUserAvatarHTML() {
+                    const userProfilePicture = getCurrentUserProfilePicture();
+                    return `
+                        <div class="msg-avatar user">
+                            <div class="avatar-circle">
+                                <img src="${userProfilePicture}" alt="Usuario" onerror="this.onerror=null;this.src='assets/images/default-avatar.jpg'" />
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                function getCurrentUserProfilePicture() {
+                    try {
+                        const currentUserData = localStorage.getItem('currentUser');
+                        if (currentUserData) {
+                            const user = JSON.parse(currentUserData);
+                            return user.profile_picture || 'assets/images/default-avatar.jpg';
+                        }
+                    } catch (error) {
+                        console.error('Error obteniendo foto de perfil:', error);
+                    }
+                    return 'assets/images/default-avatar.jpg';
+                }
+                
+                // Función para obtener el usuario actual
+                function getCurrentUser() {
+                    try {
+                        const currentUserData = localStorage.getItem('currentUser');
+                        if (!currentUserData) {
+                            return null;
+                        }
+                        return JSON.parse(currentUserData);
+                    } catch (error) {
+                        console.error('❌ Error obteniendo usuario actual:', error);
+                        return null;
+                    }
+                }
+                
+                // Función para obtener información del usuario
+                async function getCurrentUserInfo() {
+                    try {
+                        const currentUser = getCurrentUser();
+                        if (!currentUser) {
+                            return { display_name: 'Usuario', first_name: 'Usuario' };
+                        }
+                        
+                        // Intentar obtener información de Supabase si está disponible
+                        if (window.supabase) {
+                            const { data, error } = await window.supabase
+                                .from('users')
+                                .select('display_name, first_name, last_name, email')
+                                .eq('id', currentUser.id)
+                                .single();
+                            
+                            if (data && !error) {
+                                return data;
+                            }
+                        }
+                        
+                        // Fallback a datos locales
+                        return {
+                            display_name: currentUser.display_name || currentUser.username || 'Usuario',
+                            first_name: currentUser.first_name || currentUser.username || 'Usuario',
+                            last_name: currentUser.last_name || '',
+                            email: currentUser.email || ''
+                        };
+                    } catch (error) {
+                        console.error('Error obteniendo información del usuario:', error);
+                        return { display_name: 'Usuario', first_name: 'Usuario' };
+                    }
+                }
+                
+                // Clasificar pregunta mejorada
+                function classifyQuestion(question) {
+                    const lowerQuestion = question.toLowerCase();
+                    
+                    // Preguntas sobre TEMAS/CONTENIDO de cursos
+                    const courseContentTerms = [
+                        'que temas tiene', 'qué temas tiene', 'temas del curso', 'contenido del curso',
+                        'que incluye el curso', 'qué incluye el curso', 'temario', 'programa',
+                        'que voy a aprender', 'qué voy a aprender', 'que aprenderé', 'qué aprenderé',
+                        'modulos', 'módulos', 'sesiones', 'lecciones', 'estructura del curso',
+                        'plan de estudios', 'curriculum', 'currículum', 'contenido', 'materias',
+                        'que se enseña', 'qué se enseña', 'que enseñan', 'qué enseñan'
+                    ];
+                    
+                    if (courseContentTerms.some(term => lowerQuestion.includes(term))) {
+                        return 'course_content';
+                    }
+                    
+                    // Preguntas sobre el curso actual del usuario
+                    const currentCourseTerms = [
+                        'curso en el que estoy', 'curso actual', 'en el que estoy', 'actualmente', 
+                        'inscrito en', 'mi curso', 'como se llama el curso', 'cuál es mi curso',
+                        'curso que estoy tomando', 'curso al que pertenezco', 'donde estoy',
+                        'dónde estoy', 'progreso', 'avance', 'estado', 'siguiente', 'próximo',
+                        'que sigue', 'qué sigue', 'continuar', 'seguir'
+                    ];
+                    if (currentCourseTerms.some(term => lowerQuestion.includes(term))) {
+                        return 'current_course';
+                    }
+                    
+                    // Preguntas generales de definición - Mejorada para detectar mejor
+                    const generalTerms = ['que es', 'qué es', 'que significa', 'qué significa', 'definición', 'definir', 'explica', 'explicame', 'como funciona', 'cómo funciona', 'que hace', 'qué hace', 'para que sirve', 'para qué sirve'];
+                    const techTerms = [
+                        'chatgpt', 'chat gpt', 'gpt', 'llm', 'large language model', 'modelo de lenguaje',
+                        'ia', 'inteligencia artificial', 'artificial intelligence', 'deepseek', 'deep seek', 'prompt',
+                        'machine learning', 'aprendizaje automático', 'deep learning', 'aprendizaje profundo',
+                        'neural network', 'red neuronal', 'algoritmo', 'modelo', 'automation', 'automatización',
+                        'claude', 'gemini', 'bard', 'openai', 'anthropic', 'google ai'
+                    ];
+                    
+                    // Detectar preguntas de definición de manera más flexible
+                    const hasGeneralTerm = generalTerms.some(term => lowerQuestion.includes(term));
+                    const hasTechTerm = techTerms.some(term => lowerQuestion.includes(term));
+                    
+                    // Si tiene término general Y término técnico, o si es claramente una pregunta de definición
+                    if ((hasGeneralTerm && hasTechTerm) || 
+                        (hasGeneralTerm && (lowerQuestion.includes('chatgpt') || lowerQuestion.includes('prompt') || lowerQuestion.includes('ia') || lowerQuestion.includes('inteligencia artificial')))) {
+                        return 'general_definition';
+                    }
+                    
+                    // Preguntas sobre inscripción
+                    const enrollmentTerms = [
+                        'inscribirme', 'inscribir', 'registrarme', 'registrar', 'matricularme', 'matricular',
+                        'como me inscribo', 'cómo me inscribo', 'quiero inscribirme', 'quiero registrarme',
+                        'inscripción', 'registro', 'matrícula', 'admisión', 'entrar al curso',
+                        'comenzar el curso', 'empezar', 'iniciar', 'unirme', 'participar'
+                    ];
+                    if (enrollmentTerms.some(term => lowerQuestion.includes(term))) {
+                        return 'enrollment';
+                    }
+                    
+                    // Preguntas sobre precios
+                    const priceTerms = [
+                        'precio', 'costo', 'valor', 'cuánto cuesta', 'cuanto cuesta', 'pago', 'tarifa',
+                        'gratis', 'gratuito', 'sin costo', 'promoción', 'descuento', 'planes',
+                        'opciones de pago', 'inversión', 'cuota', 'mensualidad', 'anualidad'
+                    ];
+                    if (priceTerms.some(term => lowerQuestion.includes(term))) {
+                        return 'pricing';
+                    }
+                    
+                    // Preguntas sobre herramientas y recursos
+                    const toolsTerms = [
+                        'herramientas', 'recursos', 'software', 'aplicaciones', 'plataformas',
+                        'que necesito', 'qué necesito', 'requisitos', 'equipamiento', 'tecnología',
+                        'programas', 'apps', 'utilidades', 'instrumentos'
+                    ];
+                    if (toolsTerms.some(term => lowerQuestion.includes(term))) {
+                        return 'tools_resources';
+                    }
+                    
+                    // Preguntas sobre aplicaciones prácticas
+                    const practicalTerms = [
+                        'aplicaciones', 'casos de uso', 'ejemplos prácticos', 'implementación',
+                        'como usar', 'cómo usar', 'donde aplicar', 'dónde aplicar', 'usos',
+                        'beneficios', 'ventajas', 'resultados', 'impacto', 'transformación'
+                    ];
+                    if (practicalTerms.some(term => lowerQuestion.includes(term))) {
+                        return 'practical_applications';
+                    }
+                    
+                    // Preguntas sobre dificultad y nivel
+                    const difficultyTerms = [
+                        'dificultad', 'nivel', 'complejidad', 'fácil', 'difícil', 'principiante',
+                        'avanzado', 'intermedio', 'experiencia', 'conocimientos previos',
+                        'requisitos previos', 'preparación', 'apto para', 'recomendado para'
+                    ];
+                    if (difficultyTerms.some(term => lowerQuestion.includes(term))) {
+                        return 'difficulty_level';
+                    }
+                    
+                    // Preguntas sobre tiempo y duración
+                    const timeTerms = [
+                        'duración', 'tiempo', 'horas', 'semanas', 'meses', 'cuanto tiempo',
+                        'cuánto tiempo', 'duración del curso', 'cronograma', 'calendario',
+                        'fechas', 'horarios', 'flexibilidad', 'ritmo'
+                    ];
+                    if (timeTerms.some(term => lowerQuestion.includes(term))) {
+                        return 'time_duration';
+                    }
+                    
+                    // Preguntas sobre certificación
+                    const certificationTerms = [
+                        'certificado', 'certificación', 'diploma', 'título', 'acreditación',
+                        'reconocimiento', 'validez', 'oficial', 'universidad', 'institución'
+                    ];
+                    if (certificationTerms.some(term => lowerQuestion.includes(term))) {
+                        return 'certification';
+                    }
+                    
+                    // Confirmaciones positivas
+                    const confirmationTerms = ['sí', 'si', 'yes', 'ok', 'okay', 'perfecto', 'excelente', 'genial', 'me interesa', 'quiero', 'deseo'];
+                    if (confirmationTerms.some(term => lowerQuestion.includes(term))) {
+                        return 'confirmation_yes';
+                    }
+                    
+                    // Confirmaciones negativas
+                    const negationTerms = ['no', 'nope', 'negativo', 'cancelar', 'no gracias', 'no me interesa', 'no quiero', 'no deseo'];
+                    if (negationTerms.some(term => lowerQuestion.includes(term))) {
+                        return 'confirmation_no';
+                    }
+                    
+                    // Preguntas sobre soporte y ayuda
+                    const supportTerms = [
+                        'soporte', 'ayuda', 'asistencia', 'mentor', 'tutor', 'instructor',
+                        'dudas', 'preguntas', 'problemas', 'solución', 'resolver'
+                    ];
+                    if (supportTerms.some(term => lowerQuestion.includes(term))) {
+                        return 'support_help';
+                    }
+                    
+                    // Preguntas sobre comunidad
+                    const communityTerms = [
+                        'comunidad', 'estudiantes', 'compañeros', 'grupo', 'red', 'networking',
+                        'compartir', 'colaborar', 'interactuar', 'foro', 'discusión'
+                    ];
+                    if (communityTerms.some(term => lowerQuestion.includes(term))) {
+                        return 'community';
+                    }
+                    
+                    return 'general';
+                }
+                
+                // Generar respuesta personalizada mejorada
+                async function generatePersonalizedResponse(userQuestion, userId) {
+                    const userInfo = await getCurrentUserInfo();
+                    const questionType = classifyQuestion(userQuestion);
+                    
+                    console.log('[LIA] 🚀 Iniciando generación de respuesta...');
+                    console.log('[LIA] 📝 Pregunta del usuario:', userQuestion);
+                    console.log('[LIA] 🏷️ Tipo de pregunta detectado:', questionType);
+                    console.log('[LIA] 👤 Información del usuario:', userInfo);
+                    
+                    // Intentar usar la API de OpenAI para respuestas más inteligentes
+                    try {
+                        console.log('[LIA] 🔄 Intentando conectar con API de OpenAI...');
+                        
+                        const apiResponse = await fetch('/api/openai', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('authToken') || 'fake-token-for-dev'}`,
+                                'X-User-Id': userId || 'dev-user'
+                            },
+                            body: JSON.stringify({
+                                prompt: `Usuario: ${userQuestion}\n\nContexto: El usuario está en el curso "Aprende y Aplica IA". Su nombre es ${userInfo.display_name || userInfo.first_name}. Tipo de pregunta identificada: ${questionType}.`,
+                                context: `Información del usuario: ${JSON.stringify(userInfo)}`
+                            })
+                        });
+                        
+                        console.log('[LIA] 📡 Respuesta del servidor:', apiResponse.status, apiResponse.statusText);
+                        
+                        if (apiResponse.ok) {
+                            const data = await apiResponse.json();
+                            console.log('[LIA] ✅ Datos recibidos:', data);
+                            
+                            if (data.response) {
+                                console.log('[LIA] 🎯 Respuesta de API obtenida exitosamente');
+                                console.log('[LIA] 📊 Tokens utilizados:', data.usage?.total_tokens || 'No disponible');
+                                console.log('[LIA] 💰 Costo estimado:', data.cost || 'No disponible');
+                                return data.response;
+                            } else {
+                                console.log('[LIA] ⚠️ Respuesta vacía de la API');
+                            }
+                        } else {
+                            const errorText = await apiResponse.text();
+                            console.log('[LIA] ❌ API respondió con error:', apiResponse.status, errorText);
+                        }
+                    } catch (error) {
+                        console.log('[LIA] 💥 Error al conectar con API:', error.message);
+                        console.log('[LIA] 🔍 Stack trace:', error.stack);
+                    }
+                    
+                    // Respuestas locales mejoradas como fallback
+                    let response = '';
+                    
+                    switch (questionType) {
+                        case 'course_content':
+                            response = `🎯 **Contenido del Curso "Aprende y Aplica IA"**\n\n` +
+                                `¡Excelente pregunta ${userInfo.display_name || userInfo.first_name}! Te explico todo lo que incluye nuestro programa integral:\n\n` +
+                                `📚 **Módulos Principales:**\n` +
+                                `• **Fundamentos de IA**: Conceptos básicos, historia y evolución\n` +
+                                `• **Comunicación Efectiva**: Técnicas de prompts y diálogo con IA\n` +
+                                `• **Aplicaciones Prácticas**: Casos de uso reales en diferentes industrias\n` +
+                                `• **Estrategias Empresariales**: Implementación de IA en negocios\n\n` +
+                                `🎯 **Contenido Práctico:**\n` +
+                                `• Ejercicios hands-on con herramientas reales\n` +
+                                `• Casos de estudio de empresas exitosas\n` +
+                                `• Proyectos aplicados para tu portafolio\n` +
+                                `• Herramientas y recursos actualizados\n\n` +
+                                `💡 **Metodología:**\n` +
+                                `• Aprendizaje progresivo y adaptativo\n` +
+                                `• Mentoring personalizado\n` +
+                                `• Comunidad de práctica activa\n` +
+                                `• Certificación reconocida\n\n` +
+                                `🚀 **¿Te interesa algún módulo específico o quieres que profundicemos en algún aspecto particular?**`;
+                            break;
+                            
+                        case 'current_course':
+                            response = `🎯 **Tu Progreso en el Curso**\n\n` +
+                                `¡Hola ${userInfo.display_name || userInfo.first_name}! Veo que estás inscrito en nuestro curso "Aprende y Aplica IA".\n\n` +
+                                `📖 **Estado Actual:**\n` +
+                                `• **Módulo**: Fundamentos de Inteligencia Artificial\n` +
+                                `• **Sesión**: Introducción a la IA y sus aplicaciones\n` +
+                                `• **Progreso**: En desarrollo activo\n` +
+                                `• **Próxima sesión**: Comunicación efectiva con IA\n\n` +
+                                `🎯 **Próximos Temas:**\n` +
+                                `• Técnicas avanzadas de prompts\n` +
+                                `• Integración de IA en procesos empresariales\n` +
+                                `• Análisis de casos de éxito\n` +
+                                `• Desarrollo de proyectos prácticos\n\n` +
+                                `💡 **Recursos Disponibles:**\n` +
+                                `• Materiales descargables actualizados\n` +
+                                `• Sesiones de Q&A en vivo\n` +
+                                `• Foro de discusión con otros estudiantes\n` +
+                                `• Biblioteca de recursos complementarios\n\n` +
+                                `🚀 **¿En qué tema específico te gustaría que profundicemos o tienes alguna duda sobre el contenido actual?**`;
+                            break;
+                            
+                        case 'general_definition':
+                            // Detectar qué término específico se está preguntando
+                            const questionForGeneralDefinition = userQuestion.toLowerCase();
+                            
+                            if (questionForGeneralDefinition.includes('chatgpt') || questionForGeneralDefinition.includes('chat gpt')) {
+                                response = `🎯 **¿Qué es ChatGPT?**\n\n` +
+                                    `¡Excelente pregunta ${userInfo.display_name || userInfo.first_name}! Te explico qué es ChatGPT de manera simple:\n\n` +
+                                    `🤖 **ChatGPT en términos simples:**\n` +
+                                    `ChatGPT es como tener una conversación con un asistente muy inteligente que puede ayudarte con casi cualquier cosa que necesites escribir o investigar.\n\n` +
+                                    `📝 **¿Qué hace ChatGPT?**\n` +
+                                    `• **Conversa contigo** de manera natural, como un amigo experto\n` +
+                                    `• **Escribe textos** como ensayos, emails, historias, código\n` +
+                                    `• **Responde preguntas** sobre cualquier tema\n` +
+                                    `• **Ayuda con tareas** como planificar, analizar, crear\n` +
+                                    `• **Aprende de la conversación** para darte mejores respuestas\n\n` +
+                                    `💡 **Ejemplo práctico:**\n` +
+                                    `Es como tener un compañero de trabajo súper inteligente que puede ayudarte a escribir un email profesional, explicarte un concepto complicado, o incluso ayudarte a planificar tu día.\n\n` +
+                                    `🚀 **¿Te gustaría que te muestre cómo usar ChatGPT efectivamente o que profundicemos en algún aspecto específico?**`;
+                            } else if (lowerQuestion.includes('prompt')) {
+                                response = `🎯 **¿Qué es un Prompt?**\n\n` +
+                                    `¡Perfecto ${userInfo.display_name || userInfo.first_name}! Te explico qué es un prompt de manera clara:\n\n` +
+                                    `📝 **Prompt en términos simples:**\n` +
+                                    `Un prompt es como las instrucciones que le das a la IA para que haga exactamente lo que necesitas. Es como explicarle a un asistente muy inteligente qué quieres que haga.\n\n` +
+                                    `🤖 **¿Cómo funciona?**\n` +
+                                    `• **Escribes** lo que quieres que la IA haga\n` +
+                                    `• **La IA lee** tus instrucciones\n` +
+                                    `• **Genera** una respuesta basada en lo que le pediste\n` +
+                                    `• **Cuanto más claro seas**, mejor será el resultado\n\n` +
+                                    `💡 **Ejemplos de prompts:**\n` +
+                                    `❌ **Prompt vago**: "Escribe algo sobre IA"\n` +
+                                    `✅ **Prompt claro**: "Escribe un párrafo explicando qué es la IA para un estudiante de secundaria"\n\n` +
+                                    `🚀 **¿Te gustaría que te enseñe cómo escribir prompts efectivos o que veamos más ejemplos?**`;
+                            } else {
+                                response = `🎯 **¿Qué es la Inteligencia Artificial?**\n\n` +
+                                    `¡Perfecto ${userInfo.display_name || userInfo.first_name}! Te explico de manera clara y práctica qué es la IA:\n\n` +
+                                    `🤖 **Definición Simple:**\n` +
+                                    `La Inteligencia Artificial es como enseñar a una computadora a "pensar" y aprender de manera similar a como lo hacemos los humanos.\n\n` +
+                                    `📝 **En términos técnicos:**\n` +
+                                    `• Es la simulación de inteligencia humana en máquinas\n` +
+                                    `• Permite a las computadoras aprender, razonar y tomar decisiones\n` +
+                                    `• Incluye machine learning, deep learning y procesamiento de lenguaje natural\n` +
+                                    `• Se mejora con la experiencia y los datos\n\n` +
+                                    `💡 **Ejemplo Práctico:**\n` +
+                                    `Imagina que tienes un asistente que aprende tus preferencias. Al principio no te conoce, pero con el tiempo aprende qué te gusta y puede sugerirte cosas que te interesan.\n\n` +
+                                    `🚀 **Aplicaciones Principales:**\n` +
+                                    `• Chatbots y asistentes virtuales (como yo 😊)\n` +
+                                    `• Análisis de datos y predicciones\n` +
+                                    `• Automatización de procesos empresariales\n` +
+                                    `• Creación de contenido y diseño\n` +
+                                    `• Diagnóstico médico y análisis de imágenes\n\n` +
+                                    `🚀 **¿Te gustaría que profundicemos en algún aspecto específico de la IA o que te muestre ejemplos más concretos?**`;
+                            }
+                            break;
+                            
+                        case 'enrollment':
+                            response = `🎯 **Proceso de Inscripción - Guía Completa**\n\n` +
+                                `¡Genial ${userInfo.display_name || userInfo.first_name}! Me alegra que quieras unirte a nuestro programa. Te guío paso a paso:\n\n` +
+                                `📝 **Proceso Simple y Rápido:**\n` +
+                                `• **Paso 1**: Completa el formulario de registro con tus datos\n` +
+                                `• **Paso 2**: Selecciona el plan que mejor se adapte a tus necesidades\n` +
+                                `• **Paso 3**: Realiza el pago seguro (múltiples opciones disponibles)\n` +
+                                `• **Paso 4**: Recibe acceso inmediato al curso y materiales\n` +
+                                `• **Paso 5**: Comienza tu aprendizaje desde hoy mismo\n\n` +
+                                `🎁 **Beneficios Incluidos:**\n` +
+                                `• Acceso completo al curso "Aprende y Aplica IA"\n` +
+                                `• Certificado de finalización reconocido\n` +
+                                `• Soporte personalizado durante todo el proceso\n` +
+                                `• Comunidad de estudiantes y networking\n` +
+                                `• Acceso a recursos exclusivos y actualizaciones\n` +
+                                `• Mentoring individual y sesiones de Q&A\n\n` +
+                                `💡 **Garantía de Satisfacción:**\n` +
+                                `• 30 días de garantía de devolución\n` +
+                                `• Acceso de por vida al contenido\n` +
+                                `• Actualizaciones gratuitas del curso\n\n` +
+                                `🚀 **¿Te gustaría que te ayude con el proceso de inscripción o tienes alguna pregunta específica sobre los planes disponibles?**`;
+                            break;
+                            
+                        case 'pricing':
+                            response = `🎯 **Planes y Precios - Opciones Flexibles**\n\n` +
+                                `¡Excelente pregunta ${userInfo.display_name || userInfo.first_name}! Tenemos planes diseñados para diferentes necesidades y presupuestos:\n\n` +
+                                `💰 **Planes Disponibles:**\n\n` +
+                                `**📚 Plan Básico - $99 USD**\n` +
+                                `• Acceso completo al curso principal\n` +
+                                `• Materiales descargables\n` +
+                                `• Certificado de finalización\n` +
+                                `• Soporte por email\n\n` +
+                                `**🚀 Plan Premium - $149 USD**\n` +
+                                `• Todo del Plan Básico\n` +
+                                `• Sesiones de Q&A en vivo\n` +
+                                `• Mentoring individual (2 sesiones)\n` +
+                                `• Acceso a comunidad exclusiva\n` +
+                                `• Recursos adicionales y bonus\n\n` +
+                                `**💼 Plan Empresarial - $299 USD**\n` +
+                                `• Todo del Plan Premium\n` +
+                                `• Implementación guiada en tu empresa\n` +
+                                `• Consultoría personalizada (5 sesiones)\n` +
+                                `• Plan de implementación personalizado\n` +
+                                `• Soporte prioritario\n\n` +
+                                `💡 **Opciones de Pago:**\n` +
+                                `• Pago único (mejor valor)\n` +
+                                `• Pago en cuotas (sin intereses)\n` +
+                                `• Descuentos para grupos y empresas\n\n` +
+                                `🚀 **¿Te gustaría conocer más detalles sobre algún plan específico o que te ayude a elegir el más adecuado para ti?**`;
+                            break;
+                            
+                        case 'confirmation_yes':
+                            response = `🎯 **¡Excelente Decisión! - Próximos Pasos**\n\n` +
+                                `¡Perfecto ${userInfo.display_name || userInfo.first_name}! Me alegra que estés interesado en nuestro programa. Estoy aquí para guiarte en cada paso.\n\n` +
+                                `🎯 **¿Qué te gustaría hacer ahora?**\n\n` +
+                                `**📋 Opciones Disponibles:**\n` +
+                                `• Ver una demostración del contenido del curso\n` +
+                                `• Revisar testimonios de estudiantes exitosos\n` +
+                                `• Iniciar el proceso de inscripción inmediatamente\n` +
+                                `• Explorar el contenido de muestra gratuito\n` +
+                                `• Hablar con un asesor personal\n` +
+                                `• Conocer más sobre la metodología de enseñanza\n\n` +
+                                `💡 **Recursos Inmediatos:**\n` +
+                                `• Puedo responder todas tus dudas sobre el curso\n` +
+                                `• Te puedo mostrar ejemplos del contenido\n` +
+                                `• Te ayudo a evaluar si es el momento adecuado\n\n` +
+                                `🚀 **¡Estoy aquí para ayudarte en cada paso de tu viaje de aprendizaje en IA! ¿Por dónde te gustaría comenzar?**`;
+                            break;
+                            
+                        case 'confirmation_no':
+                            response = `🎯 **Entiendo Perfectamente - Alternativas Disponibles**\n\n` +
+                                `Entiendo ${userInfo.display_name || userInfo.first_name}. No hay problema en absoluto. Cada persona tiene su momento y sus prioridades.\n\n` +
+                                `💡 **¿Te interesa algo más?**\n\n` +
+                                `**📚 Recursos Gratuitos:**\n` +
+                                `• Artículos y blogs sobre IA\n` +
+                                `• Webinars gratuitos mensuales\n` +
+                                `• Comunidad de aprendizaje abierta\n` +
+                                `• Recursos de práctica y ejercicios\n\n` +
+                                `**🔍 Explorar Otras Opciones:**\n` +
+                                `• Otros temas relacionados con IA\n` +
+                                `• Diferentes formatos de aprendizaje\n` +
+                                `• Recursos específicos para tu industria\n` +
+                                `• Herramientas y plataformas gratuitas\n\n` +
+                                `**📧 Mantener Contacto:**\n` +
+                                `• Recibir información por email\n` +
+                                `• Notificaciones sobre nuevos cursos\n` +
+                                `• Invitaciones a eventos especiales\n` +
+                                `• Ofertas y descuentos exclusivos\n\n` +
+                                `🚀 **¡Estoy aquí cuando quieras! ¿Hay algo específico en lo que pueda ayudarte hoy?**`;
+                            break;
+                            
+                        case 'tools_resources':
+                            response = `🎯 **Herramientas y Recursos para tu Aprendizaje**\n\n` +
+                                `¡Excelente pregunta ${userInfo.display_name || userInfo.first_name}! Te comparto las herramientas y recursos que necesitarás para tu viaje de aprendizaje en IA.\n\n` +
+                                `💻 **Herramientas Principales:**\n` +
+                                `• **ChatGPT/Claude**: Para práctica de prompts y conversaciones\n` +
+                                `• **Google Colab**: Para experimentar con código sin instalación\n` +
+                                `• **GitHub**: Para proyectos y colaboración\n` +
+                                `• **Notion/Trello**: Para organización y seguimiento\n\n` +
+                                `📚 **Recursos de Aprendizaje:**\n` +
+                                `• Biblioteca digital con más de 100 recursos\n` +
+                                `• Videos explicativos y tutoriales\n` +
+                                `• Casos de estudio actualizados\n` +
+                                `• Templates y plantillas descargables\n\n` +
+                                `🔧 **Herramientas Especializadas:**\n` +
+                                `• APIs de OpenAI, Google AI, y otros proveedores\n` +
+                                `• Herramientas de análisis de datos\n` +
+                                `• Plataformas de automatización\n` +
+                                `• Software de visualización\n\n` +
+                                `🚀 **¿Te gustaría que profundicemos en alguna herramienta específica o que te ayude a configurar tu entorno de trabajo?**`;
+                            break;
+                            
+                        case 'practical_applications':
+                            response = `🎯 **Aplicaciones Prácticas de la IA - Casos Reales**\n\n` +
+                                `¡Perfecto ${userInfo.display_name || userInfo.first_name}! Te muestro cómo la IA se aplica en el mundo real y los beneficios que puede traer.\n\n` +
+                                `💼 **Aplicaciones Empresariales:**\n` +
+                                `• **Atención al Cliente**: Chatbots 24/7 que resuelven consultas\n` +
+                                `• **Marketing**: Personalización de contenido y análisis de audiencias\n` +
+                                `• **Operaciones**: Automatización de procesos repetitivos\n` +
+                                `• **Análisis**: Predicción de tendencias y toma de decisiones\n\n` +
+                                `🏥 **Sector Salud:**\n` +
+                                `• Diagnóstico asistido por IA\n` +
+                                `• Análisis de imágenes médicas\n` +
+                                `• Predicción de enfermedades\n` +
+                                `• Optimización de tratamientos\n\n` +
+                                `🎓 **Educación:**\n` +
+                                `• Tutores personalizados\n` +
+                                `• Generación de contenido educativo\n` +
+                                `• Evaluación automática\n` +
+                                `• Adaptación del aprendizaje\n\n` +
+                                `🚀 **¿En qué sector o industria te gustaría que profundicemos con ejemplos específicos?**`;
+                            break;
+                            
+                        case 'difficulty_level':
+                            response = `🎯 **Nivel de Dificultad - Adaptado a Ti**\n\n` +
+                                `¡Excelente pregunta ${userInfo.display_name || userInfo.first_name}! Nuestro curso está diseñado para adaptarse a diferentes niveles de experiencia.\n\n` +
+                                `📊 **Estructura por Niveles:**\n\n` +
+                                `**🌱 Principiantes (Sin experiencia previa):**\n` +
+                                `• Conceptos básicos explicados desde cero\n` +
+                                `• Ejercicios guiados paso a paso\n` +
+                                `• Soporte adicional y mentoría\n` +
+                                `• Ritmo adaptativo según tu progreso\n\n` +
+                                `**🚀 Intermedios (Conocimiento básico):**\n` +
+                                `• Profundización en conceptos avanzados\n` +
+                                `• Proyectos prácticos más complejos\n` +
+                                `• Optimización de técnicas existentes\n` +
+                                `• Casos de estudio reales\n\n` +
+                                `**⚡ Avanzados (Experiencia previa):**\n` +
+                                `• Implementación en entornos empresariales\n` +
+                                `• Estrategias de optimización\n` +
+                                `• Consultoría personalizada\n` +
+                                `• Networking con expertos\n\n` +
+                                `💡 **Evaluación Personalizada:**\n` +
+                                `Al inicio del curso, hacemos una evaluación para adaptar el contenido a tu nivel específico.\n\n` +
+                                `🚀 **¿Te gustaría que evaluemos tu nivel actual para recomendarte el mejor punto de partida?**`;
+                            break;
+                            
+                        case 'time_duration':
+                            response = `🎯 **Duración y Flexibilidad del Curso**\n\n` +
+                                `¡Excelente pregunta ${userInfo.display_name || userInfo.first_name}! Te explico la duración y la flexibilidad que ofrecemos.\n\n` +
+                                `⏰ **Duración del Programa:**\n\n` +
+                                `**📅 Estructura General:**\n` +
+                                `• **Duración total**: 12 semanas (3 meses)\n` +
+                                `• **Horas de contenido**: 60+ horas de material\n` +
+                                `• **Sesiones semanales**: 2-3 sesiones de 2 horas cada una\n` +
+                                `• **Proyectos prácticos**: 4 proyectos aplicados\n\n` +
+                                `🔄 **Flexibilidad Completa:**\n` +
+                                `• **Ritmo personalizado**: Avanzas a tu propio ritmo\n` +
+                                `• **Acceso 24/7**: Contenido disponible cuando quieras\n` +
+                                `• **Sesiones grabadas**: Puedes verlas cuando sea conveniente\n` +
+                                `• **Extensión gratuita**: Si necesitas más tiempo\n\n` +
+                                `📋 **Cronograma Sugerido:**\n` +
+                                `• **Semana 1-4**: Fundamentos de IA\n` +
+                                `• **Semana 5-8**: Aplicaciones prácticas\n` +
+                                `• **Semana 9-12**: Proyectos y certificación\n\n` +
+                                `🚀 **¿Te gustaría que creemos un cronograma personalizado según tu disponibilidad de tiempo?**`;
+                            break;
+                            
+                        case 'certification':
+                            response = `🎯 **Certificación y Reconocimiento**\n\n` +
+                                `¡Excelente pregunta ${userInfo.display_name || userInfo.first_name}! Te explico todo sobre la certificación que obtendrás.\n\n` +
+                                `🏆 **Certificado de Finalización:**\n\n` +
+                                `**📜 Características del Certificado:**\n` +
+                                `• **Reconocimiento oficial**: Certificado con validez internacional\n` +
+                                `• **Acreditación**: Respaldado por instituciones educativas\n` +
+                                `• **Verificación digital**: Código QR para verificar autenticidad\n` +
+                                `• **Contenido detallado**: Especifica habilidades adquiridas\n\n` +
+                                `💼 **Valor Profesional:**\n` +
+                                `• **LinkedIn**: Certificación verificable en tu perfil\n` +
+                                `• **CV/Resume**: Aumenta tu valor en el mercado laboral\n` +
+                                `• **Networking**: Acceso a comunidad de profesionales certificados\n` +
+                                `• **Oportunidades**: Conecta con empresas que buscan talento en IA\n\n` +
+                                `📈 **Beneficios Adicionales:**\n` +
+                                `• **Actualizaciones gratuitas**: Acceso a nuevas versiones del curso\n` +
+                                `• **Comunidad exclusiva**: Red de profesionales certificados\n` +
+                                `• **Oportunidades laborales**: Bolsa de trabajo especializada\n` +
+                                `• **Mentoring continuo**: Soporte post-certificación\n\n` +
+                                `🚀 **¿Te gustaría ver un ejemplo del certificado o conocer más sobre su reconocimiento en la industria?**`;
+                            break;
+                            
+                        case 'support_help':
+                            response = `🎯 **Soporte y Ayuda - Estamos Aquí para Ti**\n\n` +
+                                `¡Perfecto ${userInfo.display_name || userInfo.first_name}! Quiero que sepas que tienes todo nuestro apoyo durante tu viaje de aprendizaje.\n\n` +
+                                `🤝 **Sistema de Soporte Integral:**\n\n` +
+                                `**👨‍🏫 Mentoring Personalizado:**\n` +
+                                `• **Sesiones 1:1**: Reuniones individuales con expertos\n` +
+                                `• **Revisión de proyectos**: Feedback detallado de tu trabajo\n` +
+                                `• **Planificación de carrera**: Orientación profesional\n` +
+                                `• **Resolución de dudas**: Soporte técnico especializado\n\n` +
+                                `💬 **Canales de Ayuda:**\n` +
+                                `• **Chat en vivo**: Respuestas inmediatas durante sesiones\n` +
+                                `• **Foro de estudiantes**: Comunidad de apoyo mutuo\n` +
+                                `• **Email prioritario**: Respuesta en menos de 24 horas\n` +
+                                `• **WhatsApp**: Soporte rápido para urgencias\n\n` +
+                                `📚 **Recursos de Apoyo:**\n` +
+                                `• **FAQ actualizado**: Preguntas frecuentes y respuestas\n` +
+                                `• **Tutoriales adicionales**: Material complementario\n` +
+                                `• **Biblioteca de recursos**: Documentación y guías\n` +
+                                `• **Sesiones de refuerzo**: Clases adicionales gratuitas\n\n` +
+                                `🚀 **¿En qué área específica necesitas ayuda o tienes alguna duda particular que quieras resolver?**`;
+                            break;
+                            
+                        case 'community':
+                            response = `🎯 **Comunidad de Aprendizaje - Conecta y Crece**\n\n` +
+                                `¡Excelente pregunta ${userInfo.display_name || userInfo.first_name}! Nuestra comunidad es uno de los aspectos más valiosos del programa.\n\n` +
+                                `👥 **Comunidad Activa y Diversa:**\n\n` +
+                                `**🌍 Perfil de Miembros:**\n` +
+                                `• **Profesionales**: De diferentes industrias y niveles\n` +
+                                `• **Emprendedores**: Buscando implementar IA en sus negocios\n` +
+                                `• **Estudiantes**: Ampliando sus conocimientos y habilidades\n` +
+                                `• **Consultores**: Compartiendo experiencias y mejores prácticas\n\n` +
+                                `🤝 **Actividades de Networking:**\n` +
+                                `• **Eventos mensuales**: Conferencias y workshops\n` +
+                                `• **Grupos de estudio**: Sesiones colaborativas\n` +
+                                `• **Proyectos en equipo**: Aprendizaje colaborativo\n` +
+                                `• **Mentoring peer-to-peer**: Apoyo entre estudiantes\n\n` +
+                                `💡 **Plataformas de Interacción:**\n` +
+                                `• **Slack/Discord**: Comunicación en tiempo real\n` +
+                                `• **LinkedIn**: Grupo profesional exclusivo\n` +
+                                `• **Foro interno**: Discusiones técnicas y generales\n` +
+                                `• **Meetups virtuales**: Reuniones temáticas\n\n` +
+                                `🚀 **¿Te gustaría conocer más sobre las actividades específicas o cómo participar activamente en la comunidad?**`;
+                            break;
+                            
+                        default:
+                            // Intentar dar una respuesta más específica basada en palabras clave
+                            const questionForDefault = userQuestion.toLowerCase();
+                            
+                            if (questionForDefault.includes('chatgpt') || questionForDefault.includes('chat gpt')) {
+                                response = `🎯 **¿Qué es ChatGPT?**\n\n` +
+                                    `¡Excelente pregunta ${userInfo.display_name || userInfo.first_name}! Te explico qué es ChatGPT de manera simple:\n\n` +
+                                    `🤖 **ChatGPT en términos simples:**\n` +
+                                    `ChatGPT es como tener una conversación con un asistente muy inteligente que puede ayudarte con casi cualquier cosa que necesites escribir o investigar.\n\n` +
+                                    `📝 **¿Qué hace ChatGPT?**\n` +
+                                    `• **Conversa contigo** de manera natural, como un amigo experto\n` +
+                                    `• **Escribe textos** como ensayos, emails, historias, código\n` +
+                                    `• **Responde preguntas** sobre cualquier tema\n` +
+                                    `• **Ayuda con tareas** como planificar, analizar, crear\n` +
+                                    `• **Aprende de la conversación** para darte mejores respuestas\n\n` +
+                                    `💡 **Ejemplo práctico:**\n` +
+                                    `Es como tener un compañero de trabajo súper inteligente que puede ayudarte a escribir un email profesional, explicarte un concepto complicado, o incluso ayudarte a planificar tu día.\n\n` +
+                                    `🚀 **¿Te gustaría que te muestre cómo usar ChatGPT efectivamente o que profundicemos en algún aspecto específico?**`;
+                            } else if (lowerQuestion.includes('prompt')) {
+                                response = `🎯 **¿Qué es un Prompt?**\n\n` +
+                                    `¡Perfecto ${userInfo.display_name || userInfo.first_name}! Te explico qué es un prompt de manera clara:\n\n` +
+                                    `📝 **Prompt en términos simples:**\n` +
+                                    `Un prompt es como las instrucciones que le das a la IA para que haga exactamente lo que necesitas. Es como explicarle a un asistente muy inteligente qué quieres que haga.\n\n` +
+                                    `🤖 **¿Cómo funciona?**\n` +
+                                    `• **Escribes** lo que quieres que la IA haga\n` +
+                                    `• **La IA lee** tus instrucciones\n` +
+                                    `• **Genera** una respuesta basada en lo que le pediste\n` +
+                                    `• **Cuanto más claro seas**, mejor será el resultado\n\n` +
+                                    `💡 **Ejemplos de prompts:**\n` +
+                                    `❌ **Prompt vago**: "Escribe algo sobre IA"\n` +
+                                    `✅ **Prompt claro**: "Escribe un párrafo explicando qué es la IA para un estudiante de secundaria"\n\n` +
+                                    `🚀 **¿Te gustaría que te enseñe cómo escribir prompts efectivos o que veamos más ejemplos?**`;
+                            } else if (questionForDefault.includes('ia') || questionForDefault.includes('inteligencia artificial')) {
+                                response = `🎯 **¿Qué es la Inteligencia Artificial?**\n\n` +
+                                    `¡Perfecto ${userInfo.display_name || userInfo.first_name}! Te explico de manera clara y práctica qué es la IA:\n\n` +
+                                    `🤖 **Definición Simple:**\n` +
+                                    `La Inteligencia Artificial es como enseñar a una computadora a "pensar" y aprender de manera similar a como lo hacemos los humanos.\n\n` +
+                                    `📝 **En términos técnicos:**\n` +
+                                    `• Es la simulación de inteligencia humana en máquinas\n` +
+                                    `• Permite a las computadoras aprender, razonar y tomar decisiones\n` +
+                                    `• Incluye machine learning, deep learning y procesamiento de lenguaje natural\n` +
+                                    `• Se mejora con la experiencia y los datos\n\n` +
+                                    `💡 **Ejemplo Práctico:**\n` +
+                                    `Imagina que tienes un asistente que aprende tus preferencias. Al principio no te conoce, pero con el tiempo aprende qué te gusta y puede sugerirte cosas que te interesan.\n\n` +
+                                    `🚀 **Aplicaciones Principales:**\n` +
+                                    `• Chatbots y asistentes virtuales (como yo 😊)\n` +
+                                    `• Análisis de datos y predicciones\n` +
+                                    `• Automatización de procesos empresariales\n` +
+                                    `• Creación de contenido y diseño\n` +
+                                    `• Diagnóstico médico y análisis de imágenes\n\n` +
+                                    `🚀 **¿Te gustaría que profundicemos en algún aspecto específico de la IA o que te muestre ejemplos más concretos?**`;
+                            } else {
+                                response = `🎯 **¡Hola! Soy LIA, tu Asistente de IA**\n\n` +
+                                    `¡Hola ${userInfo.display_name || userInfo.first_name}! Gracias por tu mensaje. Soy **LIA** (Learning Intelligence Assistant), tu asistente especializado en inteligencia artificial.\n\n` +
+                                    `🤖 **¿En qué puedo ayudarte?**\n\n` +
+                                    `**📚 Información Educativa:**\n` +
+                                    `• Explicaciones sobre conceptos de IA\n` +
+                                    `• Guías paso a paso para aprender\n` +
+                                    `• Recursos y herramientas recomendadas\n` +
+                                    `• Casos de uso y aplicaciones prácticas\n\n` +
+                                    `**🎓 Sobre Nuestros Cursos:**\n` +
+                                    `• Información detallada del programa "Aprende y Aplica IA"\n` +
+                                    `• Contenido y metodología de enseñanza\n` +
+                                    `• Proceso de inscripción y precios\n` +
+                                    `• Beneficios y resultados esperados\n\n` +
+                                    `**💡 Asesoría Personalizada:**\n` +
+                                    `• Evaluación de tus necesidades específicas\n` +
+                                    `• Recomendaciones personalizadas\n` +
+                                    `• Ayuda con problemas técnicos\n` +
+                                    `• Orientación en tu camino de aprendizaje\n\n` +
+                                    `🚀 **¿En qué área específica te gustaría que te ayude hoy? Puedes preguntarme cualquier cosa sobre IA, nuestros cursos, o cualquier tema relacionado.**`;
+                            }
+                            break;
+                    }
+                    
+                    return response;
+                }
+                
+                // Mostrar indicador de escritura
+                function showLiaTypingIndicator() {
+                    if (!liaChatMessages || liaChatState.isTyping) return;
+                    
+                    liaChatState.isTyping = true;
+                    
+                    const typingDiv = document.createElement('div');
+                    typingDiv.className = 'message bot-message typing-indicator';
+                    typingDiv.id = 'liaTypingIndicator';
+                    
+                    typingDiv.innerHTML = `
+                        <div class="typing-avatar">
+                            <div class="avatar-circle"><span class="avatar-emoji">🤖</span></div>
+                            <div class="typing-dots">
+                                <span class="typing-dot"></span>
+                                <span class="typing-dot"></span>
+                                <span class="typing-dot"></span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    liaChatMessages.appendChild(typingDiv);
+                    liaChatMessages.scrollTop = liaChatMessages.scrollHeight;
+                }
+                
+                // Ocultar indicador de escritura
+                function hideLiaTypingIndicator() {
+                    const typingIndicator = document.getElementById('liaTypingIndicator');
+                    if (typingIndicator) {
+                        typingIndicator.remove();
+                    }
+                    liaChatState.isTyping = false;
+                }
+                
+                // Agregar mensaje del usuario
+                function addLiaUserMessage(text) {
+                    if (!liaChatMessages) return;
+                    
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message user-message';
+                    const avatarHTML = getLiaUserAvatarHTML();
+                    messageDiv.innerHTML = `
+                        <div class="message-bubble">${text}</div>
+                        ${avatarHTML}
+                    `;
+                    liaChatMessages.appendChild(messageDiv);
+                    liaChatMessages.scrollTop = liaChatMessages.scrollHeight;
+                    
+                    // Agregar al historial
+                    liaChatState.conversationHistory.push({
+                        type: 'user',
+                        content: text,
+                        timestamp: new Date()
+                    });
+                }
+                
+                // Agregar mensaje del bot
+                function addLiaBotMessage(text) {
+                    if (!liaChatMessages) return;
+                    
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message bot-message';
+                    const avatarHTML = getLiaBotAvatarHTML();
+                    
+                    messageDiv.innerHTML = `
+                        ${avatarHTML}
+                        <div class="message-bubble">
+                            ${String(text).replace(/\*\*/g, '')}
+                        </div>
+                    `;
+                    
+                    liaChatMessages.appendChild(messageDiv);
+                    liaChatMessages.scrollTop = liaChatMessages.scrollHeight;
+                    
+                    // Agregar al historial
+                    liaChatState.conversationHistory.push({
+                        type: 'bot',
+                        content: text,
+                        timestamp: new Date()
+                    });
+                }
+                
+                // Enviar mensaje a LIA
+                async function sendMessageToLia(message) {
+                    if (!message.trim()) return;
+                    
+                    console.log('💬 Enviando mensaje a LIA:', message);
+                    
+                    // Obtener usuario actual
+                    const currentUser = getCurrentUser();
+                    if (!currentUser) {
+                        console.error('❌ No se pudo obtener usuario actual');
+                        addLiaBotMessage('Error: No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.');
+                        return;
+                    }
+                    
+                    console.log('[LIA] 👤 Usuario identificado:', currentUser.username || currentUser.email);
+                    
+                    // Cancelar cualquier escritura del bot en curso
+                    try {
+                        liaChatState.typingToken++;
+                        hideLiaTypingIndicator();
+                        liaChatState.isTyping = false;
+                    } catch (_) {}
+                    
+                    // Agregar mensaje del usuario
+                    addLiaUserMessage(message);
+                    
+                    // Mostrar indicador de escritura
+                    showLiaTypingIndicator();
+                    
+                    try {
+                        // Generar respuesta personalizada
+                        console.log('[LIA] 🤖 Generando respuesta personalizada...');
+                        const response = await generatePersonalizedResponse(message, currentUser.id);
+                        
+                        hideLiaTypingIndicator();
+                        console.log('[LIA] ✅ Respuesta personalizada generada exitosamente');
+                        
+                        // Mostrar respuesta
+                        addLiaBotMessage(response);
+                        
+                    } catch (error) {
+                        hideLiaTypingIndicator();
+                        console.error('[LIA] ❌ Error generando respuesta:', error);
+                        
+                        const userInfo = await getCurrentUserInfo();
+                        addLiaBotMessage(`Hola ${userInfo.display_name || userInfo.first_name}, disculpa, tuve un problema técnico. ¿Podrías repetir tu pregunta?`);
+                    }
+                }
+                
+                // Función para cambiar entre Chat LIA y Chat en Vivo
+                function toggleChatMode(mode) {
+                    if (mode === 'lia') {
+                        btnChatLIA.classList.add('active');
+                        btnChatEnVivo.classList.remove('active');
+                        
+                        // Actualizar también los botones de tipo de mensaje ocultos para compatibilidad
+                        const typeBtns = document.querySelectorAll('.type-btn');
+                        typeBtns.forEach(btn => btn.classList.remove('active'));
+                        const liaTypeBtn = document.querySelector('.type-btn[data-type="lia"]');
+                        if (liaTypeBtn) liaTypeBtn.classList.add('active');
+                        
+                        // Desconectar del chat en vivo si está conectado
+                        if (window.livestreamSocket && window.livestreamSocket.connected) {
+                            console.log('📡 Desconectando del chat en vivo...');
+                            window.livestreamSocket.disconnect();
+                        }
+                        
+                        // Cambiar placeholder y habilitar input para LIA
+                        if (liaMessageInput) {
+                            liaMessageInput.placeholder = 'Escribe tu pregunta para LIA...';
+                            liaMessageInput.disabled = false;
+                        }
+                        if (liaSendBtn) {
+                            liaSendBtn.disabled = false;
+                        }
+                        
+                        // Limpiar mensajes del chat en vivo y mostrar bienvenida de LIA
+                        if (liaChatMessages) {
+                            const welcomeMessage = `
+                                <div class="message bot-message">
+                                    ${getLiaBotAvatarHTML()}
+                                    <div class="message-bubble">
+                                        ¡Hola! Soy <strong>LIA</strong>, tu asistente de Inteligencia Artificial. 🤖<br><br>
+                                        Puedo ayudarte con:<br>
+                                        • Información sobre nuestros cursos de IA<br>
+                                        • Explicaciones sobre conceptos de inteligencia artificial<br>
+                                        • Ayuda con el proceso de inscripción<br>
+                                        • Recursos y materiales de aprendizaje<br><br>
+                                        ¿En qué puedo ayudarte hoy?
+                                    </div>
+                                </div>
+                            `;
+                            liaChatMessages.innerHTML = welcomeMessage;
+                        }
+                        
+                        // Actualizar estado de conexión
+                        const btnDesconectar = document.getElementById('btnDesconectar');
+                        if (btnDesconectar) {
+                            const statusIndicator = btnDesconectar.querySelector('.status-indicator');
+                            const statusText = btnDesconectar.querySelector('.status-text');
+                            if (statusIndicator) statusIndicator.className = 'status-indicator offline';
+                            if (statusText) statusText.textContent = 'Desconectado';
+                        }
+                        
+                        console.log('🤖 Modo Chat LIA activado');
+                        
+                    } else if (mode === 'live') {
+                        btnChatLIA.classList.remove('active');
+                        btnChatEnVivo.classList.add('active');
+                        
+                        // Actualizar también los botones de tipo de mensaje ocultos para compatibilidad
+                        const typeBtns = document.querySelectorAll('.type-btn');
+                        typeBtns.forEach(btn => btn.classList.remove('active'));
+                        const liveTypeBtn = document.querySelector('.type-btn[data-type="live"]');
+                        if (liveTypeBtn) liveTypeBtn.classList.add('active');
+                        
+                        // Conectar al chat en vivo
+                        console.log('📡 Conectando al chat en vivo...');
+                        
+                        // Cambiar placeholder y habilitar input inmediatamente
+                        if (liaMessageInput) {
+                            liaMessageInput.placeholder = 'Escribe un mensaje para el chat en vivo...';
+                            liaMessageInput.disabled = false;
+                        }
+                        if (liaSendBtn) {
+                            liaSendBtn.disabled = false;
+                        }
+                        
+                        // Limpiar mensajes y mostrar mensaje de conexión
+                        if (liaChatMessages) {
+                            liaChatMessages.innerHTML = `
+                                <div class="welcome-message">
+                                    <i class='bx bx-loader-alt bx-spin'></i>
+                                    <span>Conectando al chat en vivo...</span>
+                                </div>
+                            `;
+                        }
+                        
+                        // Inicializar conexión Socket.IO si no existe
+                        if (typeof io !== 'undefined' && !window.livestreamSocket) {
+                            try {
+                                const ioOrigin = (typeof window !== 'undefined' && window.SOCKET_IO_ORIGIN) ? window.SOCKET_IO_ORIGIN : '';
+                                window.livestreamSocket = io(ioOrigin || undefined, {
+                                    transports: ['websocket', 'polling'],
+                                    timeout: 10000,
+                                    withCredentials: false
+                                });
+                                
+                                // Configurar eventos del socket
+                                window.livestreamSocket.on('connect', () => {
+                                    console.log('📡 Conectado al chat en vivo');
+                                    
+                                    // Habilitar input
+                                    if (liaMessageInput) {
+                                        liaMessageInput.placeholder = 'Escribe un mensaje...';
+                                        liaMessageInput.disabled = false;
+                                    }
+                                    if (liaSendBtn) {
+                                        liaSendBtn.disabled = false;
+                                    }
+                                    
+                                    // Actualizar estado de conexión
+                                    const btnDesconectar = document.getElementById('btnDesconectar');
+                                    if (btnDesconectar) {
+                                        const statusIndicator = btnDesconectar.querySelector('.status-indicator');
+                                        const statusText = btnDesconectar.querySelector('.status-text');
+                                        if (statusIndicator) statusIndicator.className = 'status-indicator online';
+                                        if (statusText) statusText.textContent = 'Conectado';
+                                    }
+                                    
+                                    // Limpiar mensaje de conexión
+                                    if (liaChatMessages) {
+                                        const connectingMessage = liaChatMessages.querySelector('.welcome-message');
+                                        if (connectingMessage) {
+                                            connectingMessage.innerHTML = `
+                                                <i class='bx bx-message-dots'></i>
+                                                <span>¡Únete a la conversación!</span>
+                                            `;
+                                        }
+                                    }
+                                    
+                                    // Unirse al chat
+                                    window.livestreamSocket.emit('join-livestream-chat', {
+                                        username: getCurrentUser()?.display_name || getCurrentUser()?.first_name || 'Usuario'
+                                    });
+                                });
+                                
+                                window.livestreamSocket.on('disconnect', () => {
+                                    console.log('📡 Desconectado del chat en vivo');
+                                    
+                                    // Deshabilitar input
+                                    if (liaMessageInput) {
+                                        liaMessageInput.placeholder = 'Desconectado del chat...';
+                                        liaMessageInput.disabled = true;
+                                    }
+                                    if (liaSendBtn) {
+                                        liaSendBtn.disabled = true;
+                                    }
+                                    
+                                    // Actualizar estado de conexión
+                                    const btnDesconectar = document.getElementById('btnDesconectar');
+                                    if (btnDesconectar) {
+                                        const statusIndicator = btnDesconectar.querySelector('.status-indicator');
+                                        const statusText = btnDesconectar.querySelector('.status-text');
+                                        if (statusIndicator) statusIndicator.className = 'status-indicator offline';
+                                        if (statusText) statusText.textContent = 'Desconectado';
+                                    }
+                                });
+                                
+                                // Eventos de mensajes
+                                window.livestreamSocket.on('new-livestream-message', (messageData) => {
+                                    addLivestreamMessage(messageData);
+                                });
+                                
+                                window.livestreamSocket.on('user-joined', (data) => {
+                                    addLivestreamMessage(data);
+                                });
+                                
+                                window.livestreamSocket.on('user-left', (data) => {
+                                    addLivestreamMessage(data);
+                                });
+                                
+                            } catch (error) {
+                                console.error('❌ Error conectando al chat en vivo:', error);
+                                
+                                // Mostrar error
+                                if (liaChatMessages) {
+                                    liaChatMessages.innerHTML = `
+                                        <div class="welcome-message">
+                                            <i class='bx bx-error-circle'></i>
+                                            <span>Error al conectar al chat en vivo</span>
+                                        </div>
+                                    `;
+                                }
+                                
+                                // Habilitar input para permitir volver a intentar
+                                if (liaMessageInput) {
+                                    liaMessageInput.placeholder = 'Error de conexión. Intenta de nuevo...';
+                                    liaMessageInput.disabled = false;
+                                }
+                                if (liaSendBtn) {
+                                    liaSendBtn.disabled = false;
+                                }
+                            }
+                        } else if (window.livestreamSocket && !window.livestreamSocket.connected) {
+                            // Reconectar si ya existe el socket pero no está conectado
+                            window.livestreamSocket.connect();
+                        }
+                        
+                        console.log('📡 Modo Chat en Vivo activado');
+                    }
+                }
+                
+                // Función para inicializar conexión Socket.IO del chat en vivo
+                function initializeLivestreamSocket() {
+                    // Si ya existe y está conectado, no hacer nada
+                    if (window.livestreamSocket && window.livestreamSocket.connected) {
+                        console.log('📡 Socket.IO ya está conectado');
+                        liaMessageInput.placeholder = 'Escribe un mensaje...';
+                        return;
+                    }
+                    
+                    // Inicializar conexión Socket.IO si no existe
+                    console.log('🔍 Verificando disponibilidad de Socket.IO:', typeof io);
+                    if (typeof io !== 'undefined' && io) {
+                        try {
+                            const ioOrigin = (typeof window !== 'undefined' && window.SOCKET_IO_ORIGIN) ? window.SOCKET_IO_ORIGIN : '';
+                            window.livestreamSocket = io(ioOrigin || undefined, {
+                                transports: ['websocket', 'polling'],
+                                timeout: 10000,
+                                withCredentials: false
+                            });
+                            
+                            // Configurar eventos del socket
+                            window.livestreamSocket.on('connect', () => {
+                                console.log('📡 Socket.IO conectado para chat en vivo');
+                                
+                                // Habilitar input
+                                if (liaMessageInput) {
+                                    liaMessageInput.placeholder = 'Escribe un mensaje...';
+                                    liaMessageInput.disabled = false;
+                                }
+                                if (liaSendBtn) {
+                                    liaSendBtn.disabled = false;
+                                }
+                                
+                                // Unirse al chat
+                                window.livestreamSocket.emit('join-livestream-chat', {
+                                    username: getCurrentUser()?.display_name || getCurrentUser()?.first_name || 'Usuario'
+                                });
+                            });
+                            
+                            window.livestreamSocket.on('disconnect', () => {
+                                console.log('📡 Socket.IO desconectado del chat en vivo');
+                            });
+                            
+                            // Eventos de mensajes
+                            window.livestreamSocket.on('new-livestream-message', (messageData) => {
+                                addLivestreamMessage(messageData);
+                            });
+                            
+                            window.livestreamSocket.on('user-joined', (data) => {
+                                addLivestreamMessage(data);
+                            });
+                            
+                            window.livestreamSocket.on('user-left', (data) => {
+                                addLivestreamMessage(data);
+                            });
+                            
+                        } catch (error) {
+                            console.error('❌ Error conectando Socket.IO:', error);
+                            
+                            // Mostrar error y habilitar input para retry
+                            if (liaMessageInput) {
+                                liaMessageInput.placeholder = 'Error de conexión. Intenta de nuevo...';
+                                liaMessageInput.disabled = false;
+                            }
+                            if (liaSendBtn) {
+                                liaSendBtn.disabled = false;
+                            }
+                        }
+                    } else {
+                        console.error('❌ Socket.IO no está disponible');
+                        if (liaMessageInput) {
+                            liaMessageInput.placeholder = 'Socket.IO no disponible...';
+                            liaMessageInput.disabled = false;
+                        }
+                    }
+                }
+                
+                // Función para agregar mensajes del chat en vivo
+                function addLivestreamMessage(messageData) {
+                    if (!liaChatMessages) return;
+                    
+                    // Remover mensaje de bienvenida si existe
+                    const welcomeMessage = liaChatMessages.querySelector('.welcome-message');
+                    if (welcomeMessage) {
+                        welcomeMessage.remove();
+                    }
+                    
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'livestream-message';
+                    
+                    const time = new Date(messageData.timestamp || Date.now()).toLocaleTimeString('es-ES', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                    
+                    if (messageData.type === 'system') {
+                        // Mensaje del sistema (usuario se unió/salió)
+                        messageDiv.innerHTML = `
+                            <div class="system-message">
+                                <span class="system-text">${messageData.message}</span>
+                                <span class="timestamp">${time}</span>
+                            </div>
+                        `;
+                    } else {
+                        // Mensaje de usuario
+                        const isOwn = messageData.username === (getCurrentUser()?.display_name || getCurrentUser()?.first_name || 'Usuario');
+                        messageDiv.innerHTML = `
+                            <div class="message-content user ${isOwn ? 'own' : ''}">
+                                <div class="message-header">
+                                    <span class="username">${messageData.username}</span>
+                                    <span class="timestamp">${time}</span>
+                                </div>
+                                <div class="message-text">${messageData.message}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    liaChatMessages.appendChild(messageDiv);
+                    liaChatMessages.scrollTop = liaChatMessages.scrollHeight;
+                }
+                
+                // Función para enviar mensaje al chat en vivo
+                function sendLivestreamMessage() {
+                    const message = liaMessageInput.value.trim();
+                    if (!message) return;
+                    
+                    // Si no hay socket o no está conectado, mostrar mensaje de error
+                    if (!window.livestreamSocket || !window.livestreamSocket.connected) {
+                        addLivestreamMessage({
+                            username: 'Sistema',
+                            message: 'No se pudo enviar el mensaje. Intentando reconectar...',
+                            timestamp: new Date().toISOString(),
+                            type: 'system'
+                        });
+                        
+                        // Intentar reconectar
+                        if (typeof initializeLivestreamSocket === 'function') {
+                            initializeLivestreamSocket();
+                        }
+                        return;
+                    }
+                    
+                    const clientMessageId = `c_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+                    
+                    // Render inmediato
+                    addLivestreamMessage({
+                        username: getCurrentUser()?.display_name || getCurrentUser()?.first_name || 'Usuario',
+                        message,
+                        timestamp: new Date().toISOString(),
+                        type: 'user',
+                        clientMessageId
+                    });
+                    
+                    // Enviar al servidor
+                    window.livestreamSocket.emit('livestream-message', { 
+                        message, 
+                        clientMessageId 
+                    });
+                    
+                    liaMessageInput.value = '';
+                }
+                
+                // Función para obtener el tipo de mensaje seleccionado
+                function getSelectedMessageType() {
+                    // Primero verificar si hay un botón toggle activo
+                    const activeToggleBtn = document.querySelector('.toggle-btn.active');
+                    if (activeToggleBtn) {
+                        const target = activeToggleBtn.dataset.target;
+                        if (target === 'lia-chat') return 'lia';
+                        if (target === 'live-chat') return 'live';
+                    }
+                    
+                    // Fallback: verificar botones de tipo de mensaje (para compatibilidad)
+                    const activeTypeBtn = document.querySelector('.type-btn.active');
+                    return activeTypeBtn ? activeTypeBtn.dataset.type : null;
+                }
+
+                // Función para validar que se haya seleccionado un tipo de mensaje
+                function validateMessageTypeSelection() {
+                    const selectedType = getSelectedMessageType();
+                    if (!selectedType) {
+                        // Mostrar mensaje de alerta solo si no hay un botón toggle activo
+                        const activeToggleBtn = document.querySelector('.toggle-btn.active');
+                        if (!activeToggleBtn) {
+                            alert('Por favor, selecciona si quieres enviar el mensaje al chat en vivo o a LIA antes de enviar.');
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+
+                // Event listeners para los botones de tipo de mensaje
+                const typeBtns = document.querySelectorAll('.type-btn');
+                typeBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        // Remover clase active de todos los botones
+                        typeBtns.forEach(b => b.classList.remove('active'));
+                        // Agregar clase active al botón clickeado
+                        this.classList.add('active');
+                        
+                        // Log para debugging
+                        console.log('🎯 Tipo de mensaje seleccionado:', this.dataset.type);
+                        console.log('🎯 Habilitando input y botón...');
+                        
+                        // Habilitar input y botón de envío
+                        if (liaMessageInput) {
+                            liaMessageInput.disabled = false;
+                            console.log('✅ Input habilitado:', !liaMessageInput.disabled);
+                        }
+                        if (liaSendBtn) {
+                            liaSendBtn.disabled = false;
+                            console.log('✅ Botón habilitado:', !liaSendBtn.disabled);
+                        }
+                        
+                        // Actualizar placeholder del input y configurar conexión
+                        const messageType = this.dataset.type;
+                        if (messageType === 'lia') {
+                            liaMessageInput.placeholder = 'Escribe tu mensaje para LIA...';
+                            
+                            // Desconectar del chat en vivo si está conectado
+                            if (window.livestreamSocket && window.livestreamSocket.connected) {
+                                console.log('📡 Desconectando del chat en vivo para usar LIA...');
+                                window.livestreamSocket.disconnect();
+                            }
+                        } else if (messageType === 'live') {
+                            liaMessageInput.placeholder = 'Conectando al chat en vivo...';
+                            
+                            // Inicializar conexión Socket.IO para chat en vivo
+                            console.log('📡 Inicializando conexión al chat en vivo...');
+                            initializeLivestreamSocket();
+                        }
+                    });
+                });
+
+                // Event listeners para el chat
+                if (liaSendBtn && liaMessageInput) {
+                    liaSendBtn.addEventListener('click', function() {
+                        // Validar que se haya seleccionado un tipo de mensaje
+                        if (!validateMessageTypeSelection()) {
+                            return;
+                        }
+
+                        // Determinar qué tipo de mensaje enviar basado en el tipo seleccionado
+                        const selectedType = getSelectedMessageType();
+                        
+                        if (selectedType === 'lia') {
+                            // Modo Chat LIA
+                            const message = liaMessageInput.value.trim();
+                            if (message) {
+                                sendMessageToLia(message);
+                                liaMessageInput.value = '';
+                            }
+                        } else if (selectedType === 'live') {
+                            // Modo Chat en Vivo
+                            sendLivestreamMessage();
+                        }
+                    });
+                    
+                    liaMessageInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            
+                            // Validar que se haya seleccionado un tipo de mensaje
+                            if (!validateMessageTypeSelection()) {
+                                return;
+                            }
+                            
+                            // Determinar qué tipo de mensaje enviar basado en el tipo seleccionado
+                            const selectedType = getSelectedMessageType();
+                            
+                            if (selectedType === 'lia') {
+                                // Modo Chat LIA
+                                const message = liaMessageInput.value.trim();
+                                if (message) {
+                                    sendMessageToLia(message);
+                                    liaMessageInput.value = '';
+                                }
+                            } else if (selectedType === 'live') {
+                                // Modo Chat en Vivo
+                                sendLivestreamMessage();
+                            }
+                        }
+                    });
+                }
+                
+                // Event listeners para los botones de toggle
+                if (btnChatLIA) {
+                    btnChatLIA.addEventListener('click', function() {
+                        toggleChatMode('lia');
+                    });
+                }
+                
+                if (btnChatEnVivo) {
+                    btnChatEnVivo.addEventListener('click', function() {
+                        toggleChatMode('live');
+                    });
+                }
+                
+                // Inicializar con Chat LIA activo por defecto
+                // El botón Chat LIA ya tiene la clase 'active' en el HTML
+                if (liaMessageInput) {
+                    liaMessageInput.placeholder = 'Escribe tu pregunta para LIA...';
+                    liaMessageInput.disabled = false; // Habilitar por defecto
+                }
+                if (liaSendBtn) {
+                    liaSendBtn.disabled = false; // Habilitar por defecto
+                }
+                
+                // Asegurar que el botón de tipo de mensaje LIA esté activo para compatibilidad
+                const liaTypeBtn = document.querySelector('.type-btn[data-type="lia"]');
+                if (liaTypeBtn) liaTypeBtn.classList.add('active');
+                
+                console.log('✅ Chat inicializado - Usuario debe seleccionar tipo de mensaje');
+                console.log('🔧 VERSIÓN CORREGIDA - Timestamp:', new Date().toLocaleTimeString());
+            }
+
+            // Inicializar todas las funcionalidades nuevas
+            console.log('🚀 Inicializando nuevas funcionalidades...');
+            initializePanelCollapse();
+            initializeResizers();
+            initializeCollapsibleSections();
+            initializeToggleSystem();
+            initializeZoomSection();
+            // initializeLiveStreamMainPanel(); // Eliminado - Solo Zoom Video SDK
+            initializePresentationMainPanel();
+            initializeLiaChat();
+            console.log('✅ Todas las funcionalidades inicializadas correctamente');
+        });
+    </script>
 </body>
 </html>
 

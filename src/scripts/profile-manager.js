@@ -1,0 +1,1041 @@
+/* ===== GESTOR DE PERFIL DE USUARIO ===== */
+class ProfileManager {
+    constructor() {
+        this.currentUser = null;
+        this.profileData = null;
+        this.isLoading = false;
+        this.hasChanges = false;
+        this.init();
+    }
+
+    async init() {
+        try {
+            // Esperar a que Supabase esté listo antes de continuar
+            console.log('🔄 ProfileManager: Esperando a que Supabase esté listo...');
+            await this.waitForSupabase();
+            console.log('✅ ProfileManager: Supabase está listo, cargando perfil...');
+
+            await this.loadCurrentUser();
+            await this.loadProfileData();
+            this.populateForm();
+            this.updateStats();
+            this.setupEventListeners();
+            this.setupAutoSave();
+        } catch (error) {
+            console.error('Error inicializando ProfileManager:', error);
+            this.showError('Error al cargar el perfil. Algunos datos pueden no estar disponibles.');
+        }
+    }
+
+    // Esperar a que Supabase esté inicializado
+    async waitForSupabase(maxWaitMs = 10000) {
+        const startTime = Date.now();
+
+        while (Date.now() - startTime < maxWaitMs) {
+            // Verificar si Supabase está listo
+            if (window.supabaseInitialized && window.supabase) {
+                console.log('✅ Supabase está inicializado y listo');
+                return true;
+            }
+
+            // Verificar si hay credenciales en localStorage
+            const hasCredentials = localStorage.getItem('supabaseUrl') &&
+                                   localStorage.getItem('supabaseAnonKey');
+
+            if (hasCredentials && !window.supabaseLoading) {
+                console.log('🔄 Credenciales encontradas, intentando inicializar Supabase...');
+                if (typeof initializeSupabaseClient === 'function') {
+                    try {
+                        await initializeSupabaseClient();
+                    } catch (err) {
+                        console.warn('⚠️ Error inicializando Supabase:', err);
+                    }
+                }
+            }
+
+            // Esperar 100ms antes de verificar nuevamente
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        console.warn('⚠️ Timeout esperando a Supabase - continuando sin conexión completa');
+        return false;
+    }
+
+    async loadCurrentUser() {
+        try {
+            // Leer sesión guardada por new-auth
+            const raw = localStorage.getItem('currentUser');
+            if (!raw) {
+                this.showError('Inicia sesión para ver tu perfil');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+                return;
+            }
+            const sessionUser = JSON.parse(raw);
+
+            console.log('📋 Cargando perfil de usuario:', {
+                id: sessionUser.id,
+                username: sessionUser.username,
+                email: sessionUser.email
+            });
+
+            // Obtener perfil desde backend por username o email
+            const tryFetch = async () => {
+                const attempts = [];
+                if (sessionUser.id && !String(sessionUser.id).startsWith('dev-')) attempts.push(`userId=${encodeURIComponent(sessionUser.id)}`);
+                if (sessionUser.username) attempts.push(`username=${encodeURIComponent(sessionUser.username)}`);
+                if (sessionUser.email) attempts.push(`email=${encodeURIComponent(sessionUser.email)}`);
+
+                for (const q of attempts) {
+                    try {
+                        console.log(`🔄 Intentando obtener perfil: /api/profile?${q}`);
+                        const r = await fetch(`/api/profile?${q}`);
+                        if (r.ok) {
+                            const result = await r.json();
+                            console.log('✅ Perfil obtenido exitosamente desde API');
+                            return result;
+                        } else if (r.status === 404 && attempts.indexOf(q) === 0) {
+                            // Si el primer intento retorna 404, intentar sincronizar usuario
+                            console.log('⚠️ Usuario no encontrado, intentando sincronizar...');
+                            await this.syncUserToDatabase(sessionUser);
+                            // Reintentar después de sincronizar
+                            const retry = await fetch(`/api/profile?${q}`);
+                            if (retry.ok) {
+                                const result = await retry.json();
+                                console.log('✅ Perfil obtenido exitosamente después de sincronizar');
+                                return result;
+                            }
+                        } else {
+                            console.warn(`⚠️ API retornó ${r.status} para ${q}`);
+                        }
+                    } catch(err) {
+                        console.warn(`⚠️ Error en fetch para ${q}:`, err);
+                    }
+                }
+
+                // Fallback: construir perfil completo desde localStorage si backend falla
+                console.warn('⚠️ API no disponible, usando datos de localStorage como fallback');
+
+                // Intentar obtener datos adicionales de localStorage
+                const storedProfile = localStorage.getItem('user_profile_local');
+                let profileFromStorage = null;
+                if (storedProfile) {
+                    try {
+                        const profiles = JSON.parse(storedProfile);
+                        profileFromStorage = profiles[sessionUser.username] || profiles[sessionUser.email];
+                    } catch(e) {
+                        console.warn('Error parseando profile local:', e);
+                    }
+                }
+
+                return {
+                    user: {
+                        id: sessionUser.id || null,
+                        username: sessionUser.username || 'usuario',
+                        email: sessionUser.email || '',
+                        display_name: sessionUser.display_name || sessionUser.name || sessionUser.username || '',
+                        first_name: sessionUser.first_name || profileFromStorage?.first_name || '',
+                        last_name: sessionUser.last_name || profileFromStorage?.last_name || '',
+                        phone: sessionUser.phone || profileFromStorage?.phone || '',
+                        location: sessionUser.location || profileFromStorage?.location || '',
+                        bio: sessionUser.bio || profileFromStorage?.bio || '',
+                        cargo_rol: sessionUser.cargo_rol || sessionUser.company_role || profileFromStorage?.cargo_rol || 'Usuario',
+                        company_role: sessionUser.company_role || profileFromStorage?.company_role || '',
+                        type_rol: sessionUser.type_rol || profileFromStorage?.type_rol || 'usuario',
+                        profile_picture_url: sessionUser.profile_picture_url || sessionUser.avatar_url || null,
+                        avatar_url: sessionUser.avatar_url || sessionUser.profile_picture_url || null,
+                        linkedin_url: sessionUser.linkedin_url || profileFromStorage?.linkedin_url || '',
+                        github_url: sessionUser.github_url || profileFromStorage?.github_url || '',
+                        portfolio_url: sessionUser.portfolio_url || sessionUser.website_url || profileFromStorage?.portfolio_url || '',
+                        website_url: sessionUser.website_url || profileFromStorage?.website_url || '',
+                        created_at: sessionUser.created_at || new Date().toISOString(),
+                        last_login_at: sessionUser.last_login_at || new Date().toISOString()
+                    }
+                };
+            };
+            const { user: data } = await tryFetch();
+
+            // Verificar si se usó fallback y mostrar warning
+            if (!data.created_at || data.created_at === new Date().toISOString().split('T')[0]) {
+                this.showWarning('Trabajando en modo offline. Los datos se cargan desde el almacenamiento local.');
+            }
+
+            console.log('✅ Datos de perfil obtenidos:', {
+                username: data.username,
+                email: data.email,
+                first_name: data.first_name,
+                last_name: data.last_name,
+                hasProfilePicture: !!data.profile_picture_url
+            });
+
+            this.currentUser = {
+                id: data.id,
+                full_name: data.display_name || `${data.first_name || ''} ${data.last_name || ''}`.trim() || data.username,
+                username: data.username,
+                email: data.email,
+                cargo_rol: data.cargo_rol || data.company_role || 'Usuario',
+                type_rol: data.type_rol || 'usuario',
+                profile_picture_url: data.profile_picture_url || data.avatar_url || null,
+                curriculum_url: data.curriculum_url || null,
+                created_at: data.created_at,
+                last_login_at: data.last_login_at
+            };
+            this.profileData = {
+                first_name: data.first_name || '',
+                last_name: data.last_name || '',
+                display_name: data.display_name || '',
+                phone: data.phone || '',
+                bio: data.bio || '',
+                location: data.location || '',
+                linkedin_url: data.linkedin_url || '',
+                github_url: data.github_url || '',
+                portfolio_url: data.portfolio_url || data.website_url || ''
+            };
+
+            console.log('✅ profileData cargado:', {
+                first_name: this.profileData.first_name,
+                last_name: this.profileData.last_name,
+                phone: this.profileData.phone,
+                location: this.profileData.location,
+                bio: this.profileData.bio
+            });
+
+            console.log('🔄 Actualizando visualización del perfil...');
+            this.updateCurrentProfileDisplay();
+        } catch (error) {
+            console.error('Error cargando usuario actual:', error);
+            throw error;
+        }
+    }
+
+    async syncUserToDatabase(userData) {
+        try {
+            console.log('🔄 Sincronizando usuario a la base de datos...');
+
+            const response = await fetch('/api/sync-user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id: userData.id,
+                    username: userData.username,
+                    email: userData.email,
+                    first_name: userData.first_name || '',
+                    last_name: userData.last_name || '',
+                    display_name: userData.display_name || userData.name || userData.username,
+                    cargo_rol: userData.cargo_rol || userData.company_role || 'Usuario',
+                    type_rol: userData.type_rol || 'usuario',
+                    avatar_url: userData.profile_picture_url || userData.avatar_url || null
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('✅ Usuario sincronizado correctamente:', result);
+                return true;
+            } else {
+                console.warn('⚠️ Error sincronizando usuario:', await response.text());
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ Error en syncUserToDatabase:', error);
+            return false;
+        }
+    }
+
+    async loadProfileData() { /* ya poblado desde loadCurrentUser */ }
+
+    updateCurrentProfileDisplay() {
+        if (!this.currentUser) return;
+
+        // Actualizar información del perfil actual
+        const fullNameElement = document.getElementById('currentFullName');
+        const emailElement = document.getElementById('currentEmail');
+        const cargoRolElement = document.getElementById('currentCargoRol');
+        const typeRolElement = document.getElementById('currentTypeRol');
+
+        if (fullNameElement) fullNameElement.textContent = this.currentUser.full_name;
+        if (emailElement) emailElement.textContent = this.currentUser.email;
+        if (cargoRolElement) cargoRolElement.textContent = this.currentUser.cargo_rol;
+        if (typeRolElement) typeRolElement.textContent = this.currentUser.type_rol;
+
+        // Actualizar avatar si existe
+        if (this.currentUser.profile_picture_url) {
+            const avatarImage = document.getElementById('avatarImage');
+            if (avatarImage) {
+                avatarImage.src = this.currentUser.profile_picture_url;
+            }
+        }
+
+        // Actualizar curriculum si existe
+        if (this.currentUser.curriculum_url) {
+            this.updateCurriculumDisplay('Curriculum cargado', this.currentUser.curriculum_url);
+        }
+
+        // Mostrar panel de administración si el usuario es administrador
+        this.updateAdminPanel();
+    }
+
+    updateAdminPanel() {
+        const adminPanel = document.getElementById('adminPanel');
+        if (!adminPanel) return;
+
+        // Verificar si el usuario es administrador
+        const isAdmin = this.currentUser && 
+            (this.currentUser.cargo_rol === 'Administrador' || 
+             this.currentUser.cargo_rol === 'administrador' ||
+             this.currentUser.type_rol === 'administrador');
+
+        if (isAdmin) {
+            console.log('Usuario es administrador, mostrando panel de administración');
+            adminPanel.style.display = 'block';
+        } else {
+            console.log('Usuario no es administrador, ocultando panel de administración');
+            adminPanel.style.display = 'none';
+        }
+    }
+
+    populateForm() {
+        if (!this.currentUser || !this.profileData) {
+            console.error('❌ No hay datos de usuario o perfil para poblar el formulario');
+            return;
+        }
+
+        console.log('📝 Poblando formulario con datos completos:', {
+            'currentUser': this.currentUser,
+            'profileData': this.profileData
+        });
+
+        // Información básica
+        this.setFormValue('username', this.currentUser.username);
+        this.setFormValue('email', this.currentUser.email);
+
+        // Información del perfil - TODOS los campos
+        console.log('📋 Estableciendo firstName:', this.profileData.first_name);
+        this.setFormValue('firstName', this.profileData.first_name);
+
+        console.log('📋 Estableciendo lastName:', this.profileData.last_name);
+        this.setFormValue('lastName', this.profileData.last_name);
+
+        console.log('📋 Estableciendo companyRole:', this.currentUser.cargo_rol, 'o', this.currentUser.company_role);
+        this.setFormValue('companyRole', this.currentUser.cargo_rol || this.currentUser.company_role);
+
+        console.log('📋 Estableciendo phone:', this.profileData.phone);
+        this.setFormValue('phone', this.profileData.phone);
+
+        console.log('📋 Estableciendo location:', this.profileData.location);
+        this.setFormValue('location', this.profileData.location);
+
+        console.log('📋 Estableciendo bio:', this.profileData.bio);
+        this.setFormValue('bio', this.profileData.bio);
+
+        // URLs profesionales
+        this.setFormValue('linkedinUrl', this.profileData.linkedin_url || this.currentUser.linkedin_url || '');
+        this.setFormValue('githubUrl', this.profileData.github_url || this.currentUser.github_url || '');
+        this.setFormValue('portfolioUrl', this.profileData.portfolio_url || this.currentUser.website_url || '');
+
+        console.log('✅ Formulario poblado - verificar valores en los elementos del DOM');
+    }
+
+    setFormValue(fieldId, value) {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            // Establecer valor incluso si es vacío, para limpiar campos
+            element.value = value || '';
+            console.log(`✅ Campo ${fieldId} establecido:`, value || '(vacío)');
+        } else {
+            console.warn(`⚠️ Campo ${fieldId} no encontrado en el DOM`);
+        }
+    }
+
+    async updateStats() {
+        const coursesElement = document.getElementById('coursesCount');
+        const progressElement = document.getElementById('progressValue');
+        const streakElement = document.getElementById('streakValue');
+
+        // Inicial por defecto
+        if (coursesElement) coursesElement.textContent = '0';
+        if (progressElement) progressElement.textContent = '0%';
+        if (streakElement) streakElement.textContent = '0';
+
+        try {
+            const supabaseUrl = localStorage.getItem('supabaseUrl');
+            const supabaseKey = localStorage.getItem('supabaseAnonKey');
+            const userId = this.currentUser?.id;
+            if (!supabaseUrl || !supabaseKey || !userId) return;
+
+            // 1) Minutos de la semana actual (lunes-domingo)
+            const monday = new Date();
+            const day = monday.getDay();
+            const diff = (day === 0 ? -6 : 1) - day; // ir al lunes
+            monday.setDate(monday.getDate() + diff);
+            const from = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate());
+
+            const minutesResp = await fetch(`${supabaseUrl}/rest/v1/study_session?user_id=eq.${userId}&started_at=gte.${from.toISOString()}&select=duration_minutes`, {
+                headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+            });
+            let minutes = 0;
+            if (minutesResp.ok) {
+                const rows = await minutesResp.json();
+                minutes = rows.reduce((sum, r) => sum + (r.duration_minutes || 0), 0);
+            }
+
+            // 2) Visitas del día (para racha diaria)
+            const today = new Date().toISOString().slice(0,10);
+            const visitResp = await fetch(`${supabaseUrl}/rest/v1/course_visit?user_id=eq.${userId}&visited_on=eq.${today}&select=visits`, {
+                headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+            });
+            let todayVisits = 0;
+            if (visitResp.ok) {
+                const rows = await visitResp.json();
+                todayVisits = rows.reduce((sum, r) => sum + (r.visits || 0), 0);
+            }
+
+            // 3) Racha: contar días consecutivos hacia atrás con al menos 1 minuto o 1 visita
+            let streak = 0;
+            for (let i = 0; i < 30; i++) { // mirar hasta 30 días hacia atrás
+                const d = new Date(); d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().slice(0,10);
+
+                const dayVisitsResp = await fetch(`${supabaseUrl}/rest/v1/course_visit?user_id=eq.${userId}&visited_on=eq.${dateStr}&select=visits`, {
+                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                });
+                const dayMinutesResp = await fetch(`${supabaseUrl}/rest/v1/study_session?user_id=eq.${userId}&started_at=gte.${dateStr}T00:00:00Z&started_at=lte.${dateStr}T23:59:59Z&select=duration_minutes`, {
+                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                });
+                const v = dayVisitsResp.ok ? (await dayVisitsResp.json()).reduce((s,r)=>s+(r.visits||0),0) : 0;
+                const m = dayMinutesResp.ok ? (await dayMinutesResp.json()).reduce((s,r)=>s+(r.duration_minutes||0),0) : 0;
+                if (v > 0 || m > 0) streak += 1; else break;
+            }
+
+            // 4) Cursos (placeholder: si tienes tabla de inscripciones, cámbialo a real)
+            const courses = 2;
+
+            if (coursesElement) coursesElement.textContent = String(courses);
+            if (progressElement) progressElement.textContent = `${Math.min(100, Math.round((minutes/30)*100))}%`;
+            if (streakElement) streakElement.textContent = String(streak);
+        } catch (err) {
+            console.warn('[PROFILE] No se pudieron cargar estadísticas reales', err);
+        }
+    }
+
+    setupEventListeners() {
+        // Botón de volver
+        const backBtn = document.getElementById('backToCoursesBtn');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                window.location.href = 'cursos.html';
+            });
+        }
+
+        // Botón de guardar
+        const saveBtn = document.getElementById('saveProfileBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                this.showConfirmModal();
+            });
+        }
+
+        // Configurar botones para cambiar foto - SOLO botones, no el input
+        // El input de archivo es manejado completamente por file-upload-manager.js
+        const changeAvatarBtn = document.getElementById('changeAvatarBtn');
+        const avatar = document.getElementById('currentAvatar');
+        const profilePictureInput = document.getElementById('profilePicture');
+        
+        if (profilePictureInput && !this.photoListenersConfigured) {
+            console.log('📸 Configurando botones de foto de perfil...');
+            
+            // Función para abrir selector de archivos
+            const openFileChooser = (event) => {
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                
+                // Verificar que no hay diálogos abiertos
+                if (document.querySelector('.password-required-notification') || 
+                    document.querySelector('.email-not-confirmed-notification')) {
+                    console.log('⚠️ Hay un diálogo abierto, cancelando file chooser');
+                    return;
+                }
+                
+                console.log('📸 Abriendo selector de imagen...');
+                profilePictureInput.click();
+            };
+            
+            // Configurar botón "Cambiar foto" (solo una vez)
+            if (changeAvatarBtn) {
+                changeAvatarBtn.addEventListener('click', openFileChooser);
+                console.log('✅ Botón "Cambiar foto" configurado');
+            }
+            
+            // Configurar avatar clickeable (solo una vez)
+            if (avatar) {
+                avatar.addEventListener('click', openFileChooser);
+                avatar.style.cursor = 'pointer';
+                console.log('✅ Avatar clickeable configurado');
+            }
+            
+            // Marcar como configurado para evitar duplicación
+            this.photoListenersConfigured = true;
+        }
+
+        // Subida de archivos
+        this.setupFileUploads();
+
+        // Formulario
+        const form = document.getElementById('profileForm');
+        if (form) {
+            form.addEventListener('input', () => {
+                this.hasChanges = true;
+            });
+        }
+
+        // Modal de confirmación
+        this.setupModalEvents();
+    }
+
+    setupFileUploads() {
+        // NOTA: Las fotos de perfil son manejadas por file-upload-manager.js
+        // Este método solo maneja curriculum (CV) para evitar conflictos
+        console.log('📝 ProfileManager: Configurando solo upload de CV (fotos manejadas por FileUploadManager)');
+
+        // Curriculum
+        const curriculumInput = document.getElementById('curriculum');
+        const curriculumBtn = document.getElementById('curriculumBtn');
+        const curriculumName = document.getElementById('curriculumName');
+
+        if (curriculumInput && curriculumBtn) {
+            // Prevenir clics duplicados con flag de protección
+            let cvClickInProgress = false;
+            
+            // Remover listeners previos clonando el elemento
+            const newCvBtn = curriculumBtn.cloneNode(true);
+            curriculumBtn.parentNode.replaceChild(newCvBtn, curriculumBtn);
+            
+            newCvBtn.addEventListener('click', (event) => {
+                // Prevenir clics duplicados
+                if (cvClickInProgress) {
+                    console.log('⚠️ Click ya en progreso, ignorando...');
+                    event.preventDefault();
+                    return;
+                }
+                
+                // VERIFICAR QUE ES UNA ACTIVACIÓN DEL USUARIO
+                if (!event.isTrusted) {
+                    console.error('❌ Error: File chooser requiere activación del usuario');
+                    return;
+                }
+                
+                // Prevenir propagación de eventos
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Verificar que no haya otros diálogos abiertos
+                if (document.querySelector('.password-required-notification') || 
+                    document.querySelector('.email-not-confirmed-notification')) {
+                    console.log('⚠️ Diálogo de notificación abierto, esperando...');
+                    return;
+                }
+                
+                cvClickInProgress = true;
+                
+                try {
+                    console.log('📝 Abriendo selector de archivos para CV...');
+                    
+                    // Usar setTimeout para asegurar que se ejecute en el contexto correcto
+                    setTimeout(() => {
+                        try {
+                            curriculumInput.click();
+                        } catch (error) {
+                            console.error('❌ Error en setTimeout click:', error);
+                        } finally {
+                            // Resetear flag después de un tiempo
+                            setTimeout(() => {
+                                cvClickInProgress = false;
+                            }, 1000);
+                        }
+                    }, 0);
+                    
+                } catch (error) {
+                    console.error('❌ Error abriendo file chooser:', error);
+                    cvClickInProgress = false;
+                    // No mostrar alert inmediatamente, puede interferir
+                    setTimeout(() => {
+                        alert('Error al abrir el selector de archivos. Por favor, intenta de nuevo.');
+                    }, 100);
+                }
+            });
+
+            // NOTA: El upload de curriculum es manejado por file-upload-manager.js
+            // Solo configuramos el display del nombre de archivo aquí
+            curriculumInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file && curriculumName) {
+                    curriculumName.textContent = file.name;
+                    console.log('📝 Archivo CV seleccionado:', file.name);
+                }
+                // El upload real es manejado por FileUploadManager
+            });
+        }
+    }
+
+    async uploadToServer(file) {
+        const form = new FormData();
+        form.append('file', file);
+        const resp = await fetch('/api/profile/upload', { method: 'POST', body: form });
+        if (!resp.ok) throw new Error('Upload failed');
+        const { url } = await resp.json();
+        return url;
+    }
+
+    async persistPartial(updates) {
+        const body = { ...updates };
+        if (this.currentUser?.id) body.id = this.currentUser.id; else body.username = this.currentUser.username;
+        try {
+            const resp = await fetch('/api/profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!resp.ok) throw new Error('Persist failed');
+            const { user } = await resp.json();
+            Object.assign(this.currentUser, user);
+        } catch (e) {
+            // Fallback local: guardar en localStorage cuando el backend no está disponible
+            try {
+                const KEY = 'user_profile_local';
+                const store = JSON.parse(localStorage.getItem(KEY) || '{}');
+                const key = this.currentUser?.username || 'usuario';
+                store[key] = { ...(store[key] || {}), ...body };
+                localStorage.setItem(KEY, JSON.stringify(store));
+                Object.assign(this.currentUser, body);
+            } catch (_) { /* ignore */ }
+        }
+    }
+
+    validateFile(file, type) {
+        const maxSize = type === 'profile_picture' ? 5 * 1024 * 1024 : 10 * 1024 * 1024; // 5MB para imagen, 10MB para CV
+        const allowedTypes = type === 'profile_picture' 
+            ? ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+            : ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
+        if (file.size > maxSize) {
+            this.showError(`El archivo es demasiado grande. Máximo ${type === 'profile_picture' ? '5MB' : '10MB'}`);
+            return false;
+        }
+
+        if (!allowedTypes.includes(file.type)) {
+            this.showError(`Tipo de archivo no permitido. ${type === 'profile_picture' ? 'Solo imágenes' : 'Solo PDF y Word'}`);
+            return false;
+        }
+
+        return true;
+    }
+
+    showImagePreview(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const avatarImage = document.getElementById('avatarImage');
+            if (avatarImage) {
+                avatarImage.src = e.target.result;
+            }
+            
+            // Actualizar avatares en otras páginas inmediatamente
+            if (window.updateProfileAvatars) {
+                window.updateProfileAvatars();
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    setupModalEvents() {
+        const modal = document.getElementById('confirmModal');
+        const closeBtn = document.getElementById('closeConfirmModal');
+        const cancelBtn = document.getElementById('cancelConfirmBtn');
+        const confirmBtn = document.getElementById('confirmSaveBtn');
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                this.hideConfirmModal();
+            });
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                this.hideConfirmModal();
+            });
+        }
+
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', () => {
+                this.saveProfile();
+            });
+        }
+
+        // Cerrar modal al hacer clic fuera
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.hideConfirmModal();
+                }
+            });
+        }
+    }
+
+    showConfirmModal() {
+        const modal = document.getElementById('confirmModal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+
+    hideConfirmModal() {
+        const modal = document.getElementById('confirmModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    async saveProfile() {
+        if (this.isLoading) return;
+
+        try {
+            this.isLoading = true;
+            this.hideConfirmModal();
+
+            // Validar formulario
+            if (!this.validateForm()) {
+                return;
+            }
+
+            // Recopilar datos del formulario
+            const formData = this.collectFormData();
+
+            // Subir archivos si existen
+            await this.uploadFilesAndPersist(formData);
+
+            this.hasChanges = false;
+            this.showSuccess('Perfil actualizado correctamente');
+
+        } catch (error) {
+            console.error('Error guardando perfil:', error);
+            this.showError('Error al guardar el perfil');
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    validateForm() {
+        // Campos presentes en el formulario
+        const requiredFields = ['firstName', 'lastName', 'username', 'email'];
+        
+        for (const fieldId of requiredFields) {
+            const field = document.getElementById(fieldId);
+            if (!field) continue; // si no existe, lo omitimos
+            if (!String(field.value || '').trim()) {
+                const label = (document.querySelector(`label[for="${fieldId}"]`)?.textContent || fieldId).replace('*','').trim();
+                this.showError(`El campo ${label} es obligatorio`);
+                field.focus();
+                return false;
+            }
+        }
+
+        // Validar email
+        const emailEl = document.getElementById('email');
+        if (emailEl) {
+            const email = emailEl.value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                this.showError('El formato del email no es válido');
+                emailEl.focus();
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    collectFormData() {
+        const formData = new FormData();
+        const getVal = (id) => (document.getElementById(id) ? document.getElementById(id).value : '');
+        
+        // Información básica
+        formData.append('username', getVal('username'));
+        formData.append('email', getVal('email'));
+        
+        // Información del perfil
+        formData.append('first_name', getVal('firstName'));
+        formData.append('last_name', getVal('lastName'));
+        formData.append('display_name', getVal('displayName'));
+        formData.append('phone', getVal('phone'));
+        formData.append('bio', getVal('bio'));
+        formData.append('location', getVal('location'));
+
+        // Archivos (opcionales)
+        const profilePictureEl = document.getElementById('profilePicture');
+        const curriculumEl = document.getElementById('curriculum');
+        const profilePicture = profilePictureEl ? profilePictureEl.files[0] : null;
+        const curriculum = curriculumEl ? curriculumEl.files[0] : null;
+        if (profilePicture) formData.append('profile_picture', profilePicture);
+        if (curriculum) formData.append('curriculum', curriculum);
+
+        return formData;
+    }
+
+    async uploadFilesAndPersist(formData) {
+        // Construir payload de actualización
+        const updates = {
+            username: formData.get('username'),
+            email: formData.get('email'),
+            first_name: formData.get('first_name'),
+            last_name: formData.get('last_name'),
+            display_name: formData.get('display_name') || `${formData.get('first_name') || ''} ${formData.get('last_name') || ''}`.trim(),
+            phone: formData.get('phone'),
+            bio: formData.get('bio'),
+            location: formData.get('location'),
+            linkedin_url: document.getElementById('linkedinUrl')?.value || null,
+            github_url: document.getElementById('githubUrl')?.value || null,
+            website_url: document.getElementById('portfolioUrl')?.value || null
+        };
+
+        console.log('Actualizando perfil con datos:', updates);
+
+        let user;
+        try {
+            // Usar Supabase directamente
+            const supabaseUrl = localStorage.getItem('supabaseUrl');
+            const supabaseKey = localStorage.getItem('supabaseAnonKey');
+            
+            if (!supabaseUrl || !supabaseKey) {
+                throw new Error('Credenciales de Supabase no encontradas');
+            }
+
+            // Importar Supabase si no está disponible
+            let supabase;
+            if (typeof window.supabase === 'undefined') {
+                const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+                supabase = createClient(supabaseUrl, supabaseKey);
+            } else {
+                supabase = window.supabase;
+            }
+
+            // Actualizar en Supabase con identificación robusta
+            let query = supabase.from('users').update(updates);
+            
+            // CRUCIAL: Usar identificación robusta para evitar mezclar cuentas
+            if (this.currentUser.id && 
+                !String(this.currentUser.id).startsWith('dev-') && 
+                !String(this.currentUser.id).includes('test')) {
+                // Usar ID si es válido y real de BD
+                query = query.eq('id', this.currentUser.id);
+            } else if (this.currentUser.username) {
+                // Usar username como fallback
+                query = query.eq('username', this.currentUser.username);
+            } else if (this.currentUser.email) {
+                // Usar email como último recurso
+                query = query.eq('email', this.currentUser.email);
+            } else {
+                throw new Error('No se puede identificar al usuario actual');
+            }
+            
+            const { data, error } = await query.select();
+
+            if (error) {
+                throw error;
+            }
+
+            user = data[0];
+            console.log('Perfil actualizado en Supabase:', user);
+
+        } catch (err) {
+            console.error('Error actualizando en Supabase:', err);
+            
+            // Fallback local: persistir en localStorage
+            const KEY = 'user_profile_local';
+            try {
+                const store = JSON.parse(localStorage.getItem(KEY) || '{}');
+                const key = this.currentUser?.username || updates.username || 'usuario';
+                store[key] = { ...(store[key] || {}), ...updates };
+                localStorage.setItem(KEY, JSON.stringify(store));
+                user = { ...store[key] };
+                console.log('Perfil guardado localmente:', user);
+            } catch (localErr) {
+                console.error('Error guardando localmente:', localErr);
+                throw err; // si no podemos guardar localmente, re-lanzamos el error original
+            }
+        }
+
+        // Refrescar datos locales y UI
+        Object.assign(this.profileData, {
+            first_name: user.first_name || updates.first_name,
+            last_name: user.last_name || updates.last_name,
+            display_name: user.display_name || updates.display_name,
+            phone: user.phone || updates.phone,
+            bio: user.bio || updates.bio,
+            location: user.location || updates.location
+        });
+        
+        this.currentUser.email = user.email || updates.email;
+        this.currentUser.username = user.username || updates.username;
+        if (user.profile_picture_url) this.currentUser.profile_picture_url = user.profile_picture_url;
+        if (user.curriculum_url) this.currentUser.curriculum_url = user.curriculum_url;
+        this.currentUser.full_name = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || updates.display_name;
+        this.currentUser.linkedin_url = user.linkedin_url || updates.linkedin_url;
+        this.currentUser.github_url = user.github_url || updates.github_url;
+        this.currentUser.website_url = user.website_url || updates.website_url;
+        
+        // Actualizar localStorage con los nuevos datos
+        localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+        
+        this.updateCurrentProfileDisplay();
+        
+        // Actualizar avatares en otras páginas si existe la función
+        if (window.updateProfileAvatars) {
+            window.updateProfileAvatars();
+        }
+    }
+
+    setupAutoSave() {
+        // Auto-guardado deshabilitado para evitar logs repetitivos
+        // Los usuarios deben guardar manualmente usando el botón "Guardar"
+        console.log('ℹ️ Auto-guardado deshabilitado - usar botón "Guardar" para persistir cambios');
+    }
+
+    showSuccess(message) {
+        this.showNotification(message, 'success');
+    }
+
+    showError(message) {
+        this.showNotification(message, 'error');
+    }
+
+    showWarning(message) {
+        this.showNotification(message, 'warning');
+    }
+
+    showNotification(message, type) {
+        // Crear notificación temporal
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        
+        // Estilos de la notificación
+        const backgrounds = {
+            success: '#10B981',
+            error: '#EF4444',
+            warning: '#F59E0B'
+        };
+
+        Object.assign(notification.style, {
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            padding: '1rem 1.5rem',
+            borderRadius: '8px',
+            color: 'white',
+            fontWeight: '500',
+            zIndex: '10000',
+            transform: 'translateX(100%)',
+            transition: 'transform 0.3s ease',
+            background: backgrounds[type] || '#6B7280'
+        });
+
+        document.body.appendChild(notification);
+
+        // Animar entrada
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+
+        // Remover después de 3 segundos
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    updateCurriculumDisplay(fileName, fileUrl) {
+        const curriculumName = document.getElementById('curriculumName');
+        if (curriculumName) {
+            curriculumName.textContent = fileName;
+            curriculumName.style.color = 'var(--color-primary)';
+        }
+
+        // Agregar link para descargar
+        const curriculumBtn = document.getElementById('curriculumBtn');
+        if (curriculumBtn) {
+            curriculumBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Descargar CV</span>
+            `;
+            curriculumBtn.onclick = () => window.open(fileUrl, '_blank');
+        }
+    }
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    window.profileManager = new ProfileManager();
+    
+    // Función global de debug disponible en consola
+    window.debugProfile = () => {
+        if (window.profileManager) {
+            console.log('=== DEBUG PROFILE STATE ===');
+            console.log('Current User:', window.profileManager.currentUser);
+            console.log('Profile Data:', window.profileManager.profileData);
+            console.log('LocalStorage currentUser:', localStorage.getItem('currentUser'));
+            
+            // Mostrar todas las claves de perfil en localStorage
+            const profileKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('profile_')) {
+                    profileKeys.push(key);
+                }
+            }
+            console.log('Profile keys in localStorage:', profileKeys);
+            console.log('=== END DEBUG ===');
+        } else {
+            console.log('ProfileManager no está inicializado');
+        }
+    };
+});
+
+// ===== FUNCIONES UTILITARIAS =====
+
+// Función para formatear números
+function formatNumber(num) {
+    return new Intl.NumberFormat('es-ES').format(num);
+}
+
+// Función para formatear fechas
+function formatDate(dateString) {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+// Función para validar email
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+// Función para validar teléfono
+function isValidPhone(phone) {
+    const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
+    return phoneRegex.test(phone);
+}

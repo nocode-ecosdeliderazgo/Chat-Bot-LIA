@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Base de Datos - Encuestas</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .step { margin: 10px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Test de Base de Datos - Encuestas</h1>
+
+        <div class="step">
+            <h3>Paso 1: Verificar conexión a Supabase</h3>
+            <button onclick="testConnection()">Probar Conexión</button>
+            <div id="connection-result"></div>
+        </div>
+
+        <div class="step">
+            <h3>Paso 2: Verificar estructura de tabla community_posts</h3>
+            <button onclick="checkTableStructure()">Verificar Tabla</button>
+            <div id="table-result"></div>
+        </div>
+
+        <div class="step">
+            <h3>Paso 3: Verificar constraint de attachment_type</h3>
+            <button onclick="checkConstraints()">Verificar Constraints</button>
+            <div id="constraint-result"></div>
+        </div>
+
+        <div class="step">
+            <h3>Paso 4: Verificar funciones de encuesta</h3>
+            <button onclick="checkFunctions()">Verificar Funciones</button>
+            <div id="function-result"></div>
+        </div>
+
+        <div class="step">
+            <h3>Paso 5: Probar creación de encuesta</h3>
+            <button onclick="testPollCreation()">Crear Encuesta de Prueba</button>
+            <div id="poll-creation-result"></div>
+        </div>
+
+        <div class="step">
+            <h3>Paso 6: Probar votación</h3>
+            <button onclick="testVoting()">Probar Votación</button>
+            <div id="voting-result"></div>
+        </div>
+
+        <div class="step">
+            <h3>Paso 7: Ejecutar migración automáticamente</h3>
+            <button onclick="runMigration()">Ejecutar Migración</button>
+            <div id="migration-result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Supabase
+        const supabaseUrl = 'https://miwbzotcuaywpdbidpwo.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd2J6b3RjdWF5d3BkYmlkcHdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTEyMjksImV4cCI6MjA3MDE4NzIyOX0.IKXYAe1JBFc_pcaS6OjxKUVJePwnfHgc0sRO6WpJSBY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let testUserId = null;
+        let testPostId = null;
+
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="test-section ${type}">${message}</div>`;
+        }
+
+        async function testConnection() {
+            try {
+                const { data, error } = await supabase.from('community_posts').select('count').limit(1);
+                if (error) {
+                    showResult('connection-result', `❌ Error de conexión: ${error.message}`, 'error');
+                } else {
+                    showResult('connection-result', '✅ Conexión exitosa a Supabase', 'success');
+                }
+            } catch (error) {
+                showResult('connection-result', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkTableStructure() {
+            try {
+                // Intentar obtener información de la tabla
+                const { data, error } = await supabase
+                    .from('community_posts')
+                    .select('attachment_data')
+                    .limit(1);
+
+                if (error) {
+                    if (error.message.includes('column "attachment_data" does not exist')) {
+                        showResult('table-result', '❌ La columna attachment_data NO existe. Necesita ejecutar la migración.', 'error');
+                    } else {
+                        showResult('table-result', `❌ Error verificando tabla: ${error.message}`, 'error');
+                    }
+                } else {
+                    showResult('table-result', '✅ La columna attachment_data existe correctamente', 'success');
+                }
+            } catch (error) {
+                showResult('table-result', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkConstraints() {
+            try {
+                // Intentar crear un post con tipo 'poll' para verificar el constraint
+                const { error } = await supabase
+                    .from('community_posts')
+                    .insert({
+                        community_id: '00000000-0000-0000-0000-000000000000',
+                        user_id: '00000000-0000-0000-0000-000000000000',
+                        content: 'Test constraint',
+                        attachment_type: 'poll'
+                    });
+
+                if (error) {
+                    if (error.message.includes('violates check constraint') || error.message.includes('invalid input value for enum')) {
+                        showResult('constraint-result', '❌ El constraint de attachment_type NO incluye "poll". Necesita ejecutar la migración.', 'error');
+                    } else {
+                        showResult('constraint-result', `⚠️ Otro error (probablemente permisos): ${error.message}`, 'info');
+                    }
+                } else {
+                    showResult('constraint-result', '✅ El constraint permite tipo "poll" correctamente', 'success');
+                }
+            } catch (error) {
+                showResult('constraint-result', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkFunctions() {
+            try {
+                // Verificar si existe la función cast_poll_vote
+                const { data, error } = await supabase.rpc('cast_poll_vote', {
+                    post_id_param: '00000000-0000-0000-0000-000000000000',
+                    user_id_param: '00000000-0000-0000-0000-000000000000',
+                    option_index_param: 0
+                });
+
+                if (error) {
+                    if (error.message.includes('function cast_poll_vote') && error.message.includes('does not exist')) {
+                        showResult('function-result', '❌ Las funciones de encuesta NO existen. Necesita ejecutar la migración.', 'error');
+                    } else {
+                        showResult('function-result', `✅ Las funciones existen (error esperado por datos inválidos): ${error.message}`, 'success');
+                    }
+                } else {
+                    showResult('function-result', '✅ Las funciones de encuesta existen y funcionan', 'success');
+                }
+            } catch (error) {
+                showResult('function-result', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testPollCreation() {
+            try {
+                // Primero obtener un usuario real
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    showResult('poll-creation-result', '❌ No hay sesión activa. Necesita estar logueado.', 'error');
+                    return;
+                }
+
+                testUserId = session.user.id;
+
+                // Obtener una comunidad real
+                const { data: communities } = await supabase.from('communities').select('id').limit(1);
+                if (!communities || communities.length === 0) {
+                    showResult('poll-creation-result', '❌ No hay comunidades disponibles.', 'error');
+                    return;
+                }
+
+                const communityId = communities[0].id;
+
+                // Crear encuesta de prueba
+                const pollData = {
+                    question: "¿Funciona la encuesta?",
+                    options: ["Sí", "No", "No sé"],
+                    votes: { "0": [], "1": [], "2": [] }
+                };
+
+                const { data, error } = await supabase
+                    .from('community_posts')
+                    .insert({
+                        community_id: communityId,
+                        user_id: testUserId,
+                        content: 'Encuesta de prueba',
+                        attachment_type: 'poll',
+                        attachment_data: pollData
+                    })
+                    .select()
+                    .single();
+
+                if (error) {
+                    showResult('poll-creation-result', `❌ Error creando encuesta: ${error.message}`, 'error');
+                } else {
+                    testPostId = data.id;
+                    showResult('poll-creation-result', `✅ Encuesta creada exitosamente. ID: ${testPostId}`, 'success');
+                }
+            } catch (error) {
+                showResult('poll-creation-result', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testVoting() {
+            if (!testUserId || !testPostId) {
+                showResult('voting-result', '❌ Primero debe crear una encuesta de prueba.', 'error');
+                return;
+            }
+
+            try {
+                // Probar votación
+                const { data, error } = await supabase.rpc('cast_poll_vote', {
+                    post_id_param: testPostId,
+                    user_id_param: testUserId,
+                    option_index_param: 0
+                });
+
+                if (error) {
+                    showResult('voting-result', `❌ Error votando: ${error.message}`, 'error');
+                } else {
+                    showResult('voting-result', '✅ Voto registrado exitosamente!', 'success');
+
+                    // Obtener resultados
+                    const { data: results, error: resultsError } = await supabase.rpc('get_poll_results', {
+                        post_id_param: testPostId
+                    });
+
+                    if (results) {
+                        showResult('voting-result',
+                            `✅ Voto registrado exitosamente!<br>
+                            <strong>Resultados:</strong><br>
+                            <pre>${JSON.stringify(results, null, 2)}</pre>`, 'success');
+                    }
+                }
+            } catch (error) {
+                showResult('voting-result', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function runMigration() {
+            try {
+                showResult('migration-result', '🔄 Ejecutando migración...', 'info');
+
+                // Ejecutar los comandos de migración uno por uno
+                const migrations = [
+                    // 1. Agregar columna attachment_data
+                    `ALTER TABLE public.community_posts ADD COLUMN IF NOT EXISTS attachment_data jsonb;`,
+
+                    // 2. Actualizar constraint de attachment_type
+                    `ALTER TABLE public.community_posts DROP CONSTRAINT IF EXISTS community_posts_attachment_type_check;`,
+                    `ALTER TABLE public.community_posts ADD CONSTRAINT community_posts_attachment_type_check CHECK (attachment_type = ANY (ARRAY['image'::text, 'video'::text, 'document'::text, 'link'::text, 'poll'::text]));`,
+
+                    // 3. Agregar índice
+                    `CREATE INDEX IF NOT EXISTS idx_community_posts_attachment_data ON public.community_posts USING gin (attachment_data);`
+                ];
+
+                let results = [];
+                for (const sql of migrations) {
+                    try {
+                        const { data, error } = await supabase.rpc('exec_sql', { sql_query: sql });
+                        if (error) {
+                            results.push(`❌ ${sql}: ${error.message}`);
+                        } else {
+                            results.push(`✅ ${sql}: OK`);
+                        }
+                    } catch (err) {
+                        results.push(`❌ ${sql}: ${err.message}`);
+                    }
+                }
+
+                showResult('migration-result',
+                    `Migración completada:<br><pre>${results.join('\n')}</pre><br>
+                    <strong>⚠️ Si hay errores, necesita ejecutar la migración manualmente en el SQL Editor de Supabase.</strong>`,
+                    'info');
+
+            } catch (error) {
+                showResult('migration-result', `❌ Error ejecutando migración: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-ejecutar test de conexión al cargar
+        window.addEventListener('load', testConnection);
+    </script>
+</body>
+</html>

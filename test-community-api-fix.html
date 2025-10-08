@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Community API Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .status.error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .status.info { background-color: #cce7ff; border: 1px solid #b3d9ff; color: #004085; }
+        .status.warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        
+        .test-button {
+            display: inline-block;
+            padding: 10px 15px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .test-button:hover { background: #0056b3; }
+        .test-button:disabled { background: #6c757d; cursor: not-allowed; }
+        
+        .log-area {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 15px;
+            min-height: 200px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+        .question-preview {
+            background: #f0f8ff;
+            border: 1px solid #b0d4f1;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        .user-info {
+            background: #e8f5e8;
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 Test Community API Fix</h1>
+        <p>Verificación del arreglo del error "column users_1.name does not exist"</p>
+        
+        <div class="test-section">
+            <h3>🌐 Test Endpoint Community Questions</h3>
+            <button class="test-button" onclick="testCommunityQuestions()">
+                Test GET /api/community/questions
+            </button>
+            <button class="test-button" onclick="testWithFilters()">
+                Test con Filtros
+            </button>
+            <button class="test-button" onclick="testDifferentSorts()">
+                Test con Diferentes Ordenamientos
+            </button>
+            <div id="questions-status" class="status info">
+                Status: Esperando test...
+            </div>
+            <div id="questions-preview"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Test Response Structure</h3>
+            <button class="test-button" onclick="testResponseStructure()">
+                Verificar Estructura de Respuesta
+            </button>
+            <div id="structure-status" class="status info">
+                Status: No verificado
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>❌ Test Error Handling</h3>
+            <button class="test-button" onclick="testErrorHandling()">
+                Test Manejo de Errores
+            </button>
+            <div id="error-status" class="status info">
+                Status: No probado
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Test Performance</h3>
+            <button class="test-button" onclick="testPerformance()">
+                Medir Tiempo de Respuesta
+            </button>
+            <div id="performance-status" class="status info">
+                Status: No medido
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Registro de Pruebas</h3>
+            <div id="log-area" class="log-area">Iniciando tests del API fix...\n</div>
+            <button class="test-button" onclick="clearLog()">Limpiar Log</button>
+            <button class="test-button" onclick="runAllTests()">Ejecutar Todos los Tests</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://aprendeyaplica.ai/api/community';
+        let logArea = document.getElementById('log-area');
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logArea.textContent += `[${timestamp}] ${message}\n`;
+            logArea.scrollTop = logArea.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            logArea.textContent = 'Log limpiado...\n';
+        }
+
+        function updateStatus(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.className = `status ${type}`;
+                element.textContent = `Status: ${message}`;
+            }
+        }
+
+        async function makeRequest(url, options = {}) {
+            const startTime = Date.now();
+            try {
+                log(`🌐 Request: ${options.method || 'GET'} ${url}`);
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                log(`⏱️ Response time: ${duration}ms`);
+                log(`📊 Status: ${response.status} ${response.statusText}`);
+                
+                const data = await response.json();
+                
+                return {
+                    ok: response.ok,
+                    status: response.status,
+                    data: data,
+                    duration: duration
+                };
+            } catch (error) {
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                log(`❌ Request error after ${duration}ms: ${error.message}`);
+                throw error;
+            }
+        }
+
+        async function testCommunityQuestions() {
+            log('🧪 Testing Community Questions Endpoint...');
+            updateStatus('questions-status', 'info', 'Ejecutando...');
+            
+            try {
+                const result = await makeRequest(`${API_BASE}/questions?sort=recent&limit=5`);
+                
+                if (result.ok) {
+                    log(`✅ API Response OK: ${result.status}`);
+                    log(`📋 Questions received: ${result.data.data?.length || 0}`);
+                    
+                    if (result.data.success && result.data.data) {
+                        updateStatus('questions-status', 'success', `${result.data.data.length} preguntas obtenidas`);
+                        displayQuestionsPreview(result.data.data);
+                        
+                        // Verificar estructura de usuarios
+                        const hasUserData = result.data.data.some(q => q.users);
+                        if (hasUserData) {
+                            log('✅ User data structure present');
+                            const firstUser = result.data.data.find(q => q.users)?.users;
+                            if (firstUser) {
+                                log(`👤 User fields available: ${Object.keys(firstUser).join(', ')}`);
+                                if (firstUser.username) log('✅ username field present');
+                                if (firstUser.display_name) log('✅ display_name field present');
+                                if (!firstUser.name) log('✅ No "name" field (correct)');
+                            }
+                        }
+                    } else {
+                        log('⚠️ Unexpected response structure');
+                        updateStatus('questions-status', 'warning', 'Estructura de respuesta inesperada');
+                    }
+                } else {
+                    log(`❌ API Error: ${result.status}`);
+                    log(`❌ Error details: ${JSON.stringify(result.data, null, 2)}`);
+                    updateStatus('questions-status', 'error', `Error ${result.status}: ${result.data.error || 'Unknown'}`);
+                }
+                
+            } catch (error) {
+                log(`❌ Test failed: ${error.message}`);
+                updateStatus('questions-status', 'error', `Test failed: ${error.message}`);
+            }
+        }
+
+        async function testWithFilters() {
+            log('🧪 Testing with different filters...');
+            
+            const filters = [
+                { filter: 'all', description: 'All questions' },
+                { filter: 'unanswered', description: 'Unanswered questions' },
+                { filter: 'answered', description: 'Answered questions' }
+            ];
+            
+            for (const filterTest of filters) {
+                try {
+                    log(`🔍 Testing filter: ${filterTest.description}`);
+                    const result = await makeRequest(`${API_BASE}/questions?filter=${filterTest.filter}&limit=3`);
+                    
+                    if (result.ok) {
+                        log(`✅ Filter "${filterTest.filter}" works: ${result.data.data?.length || 0} results`);
+                    } else {
+                        log(`❌ Filter "${filterTest.filter}" failed: ${result.data.error}`);
+                    }
+                } catch (error) {
+                    log(`❌ Filter "${filterTest.filter}" error: ${error.message}`);
+                }
+            }
+        }
+
+        async function testDifferentSorts() {
+            log('🧪 Testing different sort options...');
+            
+            const sorts = ['recent', 'votes', 'answers', 'views'];
+            
+            for (const sort of sorts) {
+                try {
+                    log(`📊 Testing sort: ${sort}`);
+                    const result = await makeRequest(`${API_BASE}/questions?sort=${sort}&limit=2`);
+                    
+                    if (result.ok) {
+                        log(`✅ Sort "${sort}" works: ${result.data.data?.length || 0} results`);
+                    } else {
+                        log(`❌ Sort "${sort}" failed: ${result.data.error}`);
+                    }
+                } catch (error) {
+                    log(`❌ Sort "${sort}" error: ${error.message}`);
+                }
+            }
+        }
+
+        async function testResponseStructure() {
+            log('🧪 Testing response structure...');
+            updateStatus('structure-status', 'info', 'Verificando...');
+            
+            try {
+                const result = await makeRequest(`${API_BASE}/questions?limit=1`);
+                
+                if (result.ok && result.data.data && result.data.data.length > 0) {
+                    const question = result.data.data[0];
+                    const requiredFields = ['id', 'title', 'content', 'created_at', 'user_id'];
+                    const userFields = ['id', 'username', 'display_name'];
+                    
+                    log('📋 Checking question structure...');
+                    let missingFields = [];
+                    
+                    requiredFields.forEach(field => {
+                        if (question[field] !== undefined) {
+                            log(`✅ Field present: ${field}`);
+                        } else {
+                            log(`❌ Field missing: ${field}`);
+                            missingFields.push(field);
+                        }
+                    });
+                    
+                    if (question.users) {
+                        log('👤 Checking user structure...');
+                        userFields.forEach(field => {
+                            if (question.users[field] !== undefined) {
+                                log(`✅ User field present: ${field}`);
+                            } else {
+                                log(`⚠️ User field missing: ${field}`);
+                            }
+                        });
+                        
+                        // Check that 'name' field is NOT present
+                        if (question.users.name === undefined) {
+                            log('✅ Confirmed: "name" field correctly absent');
+                        } else {
+                            log('❌ Unexpected: "name" field still present');
+                        }
+                    }
+                    
+                    if (missingFields.length === 0) {
+                        updateStatus('structure-status', 'success', 'Estructura correcta');
+                    } else {
+                        updateStatus('structure-status', 'warning', `Faltan campos: ${missingFields.join(', ')}`);
+                    }
+                } else {
+                    updateStatus('structure-status', 'error', 'No se pudo verificar estructura');
+                }
+                
+            } catch (error) {
+                log(`❌ Structure test error: ${error.message}`);
+                updateStatus('structure-status', 'error', `Error: ${error.message}`);
+            }
+        }
+
+        async function testErrorHandling() {
+            log('🧪 Testing error handling...');
+            updateStatus('error-status', 'info', 'Probando...');
+            
+            try {
+                // Test invalid endpoint
+                log('🔍 Testing invalid endpoint...');
+                const invalidResult = await makeRequest(`${API_BASE}/invalid-endpoint`);
+                
+                if (!invalidResult.ok) {
+                    log('✅ Invalid endpoint correctly returns error');
+                } else {
+                    log('⚠️ Invalid endpoint should return error');
+                }
+                
+                // Test with invalid parameters
+                log('🔍 Testing invalid parameters...');
+                const invalidParams = await makeRequest(`${API_BASE}/questions?sort=invalid&filter=badfilter`);
+                
+                if (invalidParams.ok) {
+                    log('✅ API handles invalid parameters gracefully');
+                } else {
+                    log(`⚠️ API rejects invalid parameters: ${invalidParams.data.error}`);
+                }
+                
+                updateStatus('error-status', 'success', 'Manejo de errores verificado');
+                
+            } catch (error) {
+                log(`❌ Error handling test failed: ${error.message}`);
+                updateStatus('error-status', 'error', `Test falló: ${error.message}`);
+            }
+        }
+
+        async function testPerformance() {
+            log('🧪 Testing performance...');
+            updateStatus('performance-status', 'info', 'Midiendo...');
+            
+            const tests = [
+                { desc: 'Small query', params: 'limit=5' },
+                { desc: 'Medium query', params: 'limit=20' },
+                { desc: 'With filters', params: 'filter=all&sort=recent&limit=10' }
+            ];
+            
+            let totalTime = 0;
+            let successCount = 0;
+            
+            for (const test of tests) {
+                try {
+                    const result = await makeRequest(`${API_BASE}/questions?${test.params}`);
+                    totalTime += result.duration;
+                    
+                    if (result.ok) {
+                        successCount++;
+                        log(`✅ ${test.desc}: ${result.duration}ms`);
+                    } else {
+                        log(`❌ ${test.desc}: failed in ${result.duration}ms`);
+                    }
+                } catch (error) {
+                    log(`❌ ${test.desc}: error - ${error.message}`);
+                }
+            }
+            
+            const avgTime = totalTime / tests.length;
+            log(`📊 Average response time: ${avgTime.toFixed(2)}ms`);
+            log(`📊 Success rate: ${successCount}/${tests.length}`);
+            
+            if (avgTime < 2000 && successCount === tests.length) {
+                updateStatus('performance-status', 'success', `Promedio: ${avgTime.toFixed(0)}ms`);
+            } else {
+                updateStatus('performance-status', 'warning', `Promedio: ${avgTime.toFixed(0)}ms, Éxitos: ${successCount}/${tests.length}`);
+            }
+        }
+
+        function displayQuestionsPreview(questions) {
+            const previewDiv = document.getElementById('questions-preview');
+            previewDiv.innerHTML = '<h4>🔍 Preview de Preguntas:</h4>';
+            
+            questions.slice(0, 3).forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-preview';
+                
+                const userName = question.users?.display_name || question.users?.username || 'Usuario desconocido';
+                const userInfo = question.users ? 
+                    `👤 ${userName} (ID: ${question.users.id})` : 
+                    '👤 No user info';
+                
+                questionDiv.innerHTML = `
+                    <strong>Pregunta ${index + 1}:</strong> ${question.title}<br>
+                    <small>ID: ${question.id}</small><br>
+                    <div class="user-info">${userInfo}</div>
+                    <small>📅 ${new Date(question.created_at).toLocaleDateString()}</small>
+                `;
+                
+                previewDiv.appendChild(questionDiv);
+            });
+        }
+
+        async function runAllTests() {
+            log('🚀 Running all tests...');
+            
+            await testCommunityQuestions();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testResponseStructure();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testWithFilters();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testDifferentSorts();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testErrorHandling();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testPerformance();
+            
+            log('🏁 All tests completed!');
+        }
+
+        // Auto-run basic test on load
+        window.onload = function() {
+            log('🔧 Community API Fix Test Page Loaded');
+            log('🎯 Target: Fix "column users_1.name does not exist" error');
+            log('📋 Ready to test endpoints...');
+        };
+    </script>
+</body>
+</html>

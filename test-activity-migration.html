@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba - Migración Actividades del Video</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .test-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        .btn-copy {
+            margin-left: 0.5rem;
+            padding: 0.3rem 0.6rem;
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.4);
+            border-radius: 4px;
+            color: #e0e0e0;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-copy:hover {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: rgba(76, 175, 80, 0.6);
+            transform: translateY(-1px);
+        }
+        .activity-prompt-item {
+            background: rgba(68, 229, 255, 0.08);
+            border: 1px solid rgba(68, 229, 255, 0.2);
+            border-radius: 6px;
+            padding: 0.8rem;
+            margin: 0.6rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.8rem;
+            transition: all 0.3s ease;
+        }
+        .activity-prompt-item:hover {
+            background: rgba(68, 229, 255, 0.12);
+            border-color: rgba(68, 229, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        .prompt-text {
+            flex: 1;
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+        .activity-list-item {
+            margin-left: 0.75rem;
+            padding: 0.4rem 0;
+            color: #e0e0e0;
+            position: relative;
+        }
+        .activity-list-item::before {
+            content: "•";
+            color: #44e5ff;
+            margin-right: 0.5rem;
+            font-weight: bold;
+        }
+        .activity-note {
+            opacity: 0.85;
+            font-style: italic;
+            color: #b0b0b0;
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 3px solid rgba(255, 193, 7, 0.4);
+            padding: 0.5rem 0.8rem;
+            margin: 0.5rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+        h2 {
+            color: #44e5ff;
+            border-bottom: 2px solid rgba(68, 229, 255, 0.3);
+            padding-bottom: 0.5rem;
+        }
+        h3 {
+            color: #ffc107;
+        }
+        code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        .success {
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .warning {
+            color: #ff9800;
+            font-weight: bold;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Prueba - Migración Actividades del Video</h1>
+    
+    <div class="test-container">
+        <h2>📋 Caso 1: Actividad con actividad_detalle (Nuevo formato)</h2>
+        <div class="activity-content" id="test-new-format">
+            <h4>Actividades del Video - Introducción a GPT-4</h4>
+            
+            <div class="activity-description">
+                <!-- Se llenará dinámicamente -->
+            </div>
+            
+            <div class="activity-prompts">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>📜 Caso 2: Actividad modo legacy (Campos de texto plano)</h2>
+        <div class="activity-content" id="test-legacy-format">
+            <h4>Actividades del Video - Fundamentos de IA</h4>
+            
+            <div class="activity-description">
+                <!-- Se llenará dinámicamente -->
+            </div>
+            
+            <div class="activity-prompts">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h3>🎯 Instrucciones de prueba:</h3>
+        <ol>
+            <li>Los <code>botones Copiar</code> aparecen junto a cada prompt individual</li>
+            <li>Click en cualquier botón <strong>Copiar</strong> para copiar ese prompt específico</li>
+            <li>Verifica que el feedback visual funcione (botón verde "Copiado!")</li>
+            <li>Pega en un editor de texto para confirmar que el contenido es correcto</li>
+        </ol>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Simulamos los datos de actividad_detalle (nuevo formato)
+        const mockVideoWithDetalle = {
+            id: 'test-video-1',
+            video_title: 'Introducción a GPT-4',
+            actividad_detalle: [
+                {
+                    id: 'det-1',
+                    seccion: 'descripcion',
+                    orden: 1,
+                    tipo: 'titulo',
+                    contenido: 'Contexto del ejercicio'
+                },
+                {
+                    id: 'det-2',
+                    seccion: 'descripcion',
+                    orden: 2,
+                    tipo: 'parrafo',
+                    contenido: 'En esta actividad exploraremos las capacidades de GPT-4 para generar contenido educativo de alta calidad.'
+                },
+                {
+                    id: 'det-3',
+                    seccion: 'descripcion',
+                    orden: 3,
+                    tipo: 'lista',
+                    contenido: 'Comprenderás la arquitectura de transformers'
+                },
+                {
+                    id: 'det-4',
+                    seccion: 'descripcion',
+                    orden: 4,
+                    tipo: 'nota',
+                    contenido: 'Nota: Asegúrate de tener acceso a la API de OpenAI'
+                },
+                {
+                    id: 'det-5',
+                    seccion: 'prompts',
+                    orden: 1,
+                    tipo: 'titulo',
+                    contenido: 'Ejercicios prácticos'
+                },
+                {
+                    id: 'det-6',
+                    seccion: 'prompts',
+                    orden: 2,
+                    tipo: 'prompt',
+                    contenido: 'Genera un plan de estudios de 4 semanas para aprender inteligencia artificial, incluyendo recursos y evaluaciones.'
+                },
+                {
+                    id: 'det-7',
+                    seccion: 'prompts',
+                    orden: 3,
+                    tipo: 'prompt',
+                    contenido: 'Crea 5 preguntas de opción múltiple sobre redes neuronales con sus respectivas respuestas y explicaciones.'
+                },
+                {
+                    id: 'det-8',
+                    seccion: 'prompts',
+                    orden: 4,
+                    tipo: 'parrafo',
+                    contenido: 'Recuerda revisar y ajustar los prompts según tus necesidades específicas.'
+                }
+            ]
+        };
+
+        // Simulamos video legacy
+        const mockVideoLegacy = {
+            id: 'test-video-2',
+            video_title: 'Fundamentos de IA',
+            descripcion_actividad: `Contexto
+En esta sesión exploraremos los conceptos fundamentales de la inteligencia artificial.
+
+Objetivo
+Comprender los diferentes tipos de IA y sus aplicaciones prácticas.
+
+Pautas de la actividad
+- Toma notas durante todo el video
+- Realiza los ejercicios propuestos
+- Participa activamente en la discusión`,
+
+            prompts_actividad: `1. ¿Cuáles son las principales diferencias entre IA débil y IA fuerte?
+2. Menciona 3 ejemplos de aplicaciones de machine learning en la vida cotidiana
+3. Explica qué es una red neuronal artificial
+- Define el concepto de perceptrón
+- Describe cómo funciona el aprendizaje por retroalimentación
+• ¿Qué ventajas tiene el deep learning sobre el machine learning tradicional?`
+        };
+
+        // Simulamos las funciones del loader
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function buildDescriptionHTMLFromDetalle(items) {
+            if (!items || items.length === 0) {
+                return '<p class="no-activity">No hay descripción de actividad disponible.</p>';
+            }
+
+            const filteredItems = items.filter(item => item.seccion === 'descripcion');
+            if (filteredItems.length === 0) {
+                return '<p class="no-activity">No hay descripción de actividad disponible.</p>';
+            }
+
+            let html = '';
+            filteredItems.forEach(item => {
+                switch (item.tipo) {
+                    case 'titulo':
+                        html += `<p><strong>${escapeHtml(item.contenido)}</strong></p>`;
+                        break;
+                    case 'parrafo':
+                        html += `<p>${escapeHtml(item.contenido)}</p>`;
+                        break;
+                    case 'lista':
+                        html += `<div class="activity-list-item">• ${escapeHtml(item.contenido)}</div>`;
+                        break;
+                    case 'nota':
+                        html += `<p class="activity-note">${escapeHtml(item.contenido)}</p>`;
+                        break;
+                    default:
+                        html += `<p>${escapeHtml(item.contenido)}</p>`;
+                }
+            });
+
+            return html;
+        }
+
+        function buildPromptsHTMLFromDetalle(items) {
+            if (!items || items.length === 0) {
+                return '<p class="no-activity">No hay prompts de actividad disponibles.</p>';
+            }
+
+            const filteredItems = items.filter(item => item.seccion === 'prompts');
+            if (filteredItems.length === 0) {
+                return '<p class="no-activity">No hay prompts de actividad disponibles.</p>';
+            }
+
+            let html = '';
+            filteredItems.forEach(item => {
+                switch (item.tipo) {
+                    case 'titulo':
+                        html += `<p><strong>${escapeHtml(item.contenido)}</strong></p>`;
+                        break;
+                    case 'parrafo':
+                        html += `<p>${escapeHtml(item.contenido)}</p>`;
+                        break;
+                    case 'lista':
+                        html += `<div class="activity-list-item">• ${escapeHtml(item.contenido)}</div>`;
+                        break;
+                    case 'nota':
+                        html += `<p class="activity-note">${escapeHtml(item.contenido)}</p>`;
+                        break;
+                    case 'prompt':
+                        html += `<div class="activity-prompt-item" data-prompt-id="${item.id}">
+                            <span class="prompt-text">${escapeHtml(item.contenido)}</span>
+                            <button class="btn-copy" data-copy="${escapeHtml(item.contenido)}">Copiar</button>
+                        </div>`;
+                        break;
+                    default:
+                        html += `<p>${escapeHtml(item.contenido)}</p>`;
+                }
+            });
+
+            return html;
+        }
+
+        function formatLegacyContent(content) {
+            if (!content) return content;
+            
+            return content
+                // Poner en negritas los encabezados reconocibles
+                .replace(/^(Contexto[:.]?)\s*/gm, '<strong>$1</strong> ')
+                .replace(/^(Pautas de la actividad[:.]?)\s*/gm, '<strong>$1</strong> ')
+                .replace(/^(Objetivo\(?s?\)?[:.]?)\s*/gm, '<strong>$1</strong> ')
+                .replace(/^(Paso \d+[:.]?)\s*/gm, '<strong>$1</strong> ')
+                .replace(/^(Instrucciones[:.]?)\s*/gm, '<strong>$1</strong> ')
+                .replace(/^(Requerimientos[:.]?)\s*/gm, '<strong>$1</strong> ');
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Renderizar caso 1: Nuevo formato
+        function renderNewFormat() {
+            const container = document.getElementById('test-new-format');
+            const activityDescription = container.querySelector('.activity-description');
+            const activityPrompts = container.querySelector('.activity-prompts');
+
+            const descripcionItems = mockVideoWithDetalle.actividad_detalle.filter(item => item.seccion === 'descripcion');
+            const promptsItems = mockVideoWithDetalle.actividad_detalle.filter(item => item.seccion === 'prompts');
+
+            activityDescription.innerHTML = buildDescriptionHTMLFromDetalle(descripcionItems);
+            activityPrompts.innerHTML = buildPromptsHTMLFromDetalle(promptsItems);
+
+            console.log('✅ Nuevo formato renderizado');
+        }
+
+        // Renderizar caso 2: Modo legacy
+        function renderLegacyFormat() {
+            const container = document.getElementById('test-legacy-format');
+            const activityDescription = container.querySelector('.activity-description');
+            const activityPrompts = container.querySelector('.activity-prompts');
+
+            // Modo legacy
+            const formattedDescription = formatLegacyContent(mockVideoLegacy.descripcion_actividad);
+            const formattedPrompts = formatLegacyContent(mockVideoLegacy.prompts_actividad);
+
+            activityDescription.innerHTML = `
+                <div class="activity-description-content">
+                    ${formattedDescription.split('\n').map(paragraph => 
+                        paragraph.trim() ? `<p>${paragraph.trim()}</p>` : ''
+                    ).join('')}
+                </div>
+            `;
+
+            const promptsHtml = `
+                <div class="activity-prompts-content">
+                    ${formattedPrompts.split('\n').map((prompt, index) => {
+                        const trimmedPrompt = prompt.trim();
+                        if (trimmedPrompt) {
+                            // Detectar bullets, numerados y preguntas
+                            if (trimmedPrompt.match(/^[\-\•\*]\s/) || 
+                                trimmedPrompt.match(/^\d+[\.\)]\s/) || 
+                                trimmedPrompt.includes('?') || 
+                                trimmedPrompt.toLowerCase().includes('prompt') ||
+                                trimmedPrompt.toLowerCase().includes('ejercicio')) {
+                                // Remover el bullet/número para el botón de copiar
+                                const cleanPrompt = trimmedPrompt
+                                    .replace(/^[\-\•\*]\s*/, '')
+                                    .replace(/^\d+[\.\)]\s*/, '')
+                                    .trim();
+                                return `<div class="activity-prompt-item" data-prompt-index="${index}">
+                                    <span class="prompt-text">${trimmedPrompt}</span>
+                                    <button class="btn-copy" data-copy="${escapeHtml(cleanPrompt)}">Copiar</button>
+                                </div>`;
+                            } else {
+                                // Títulos y párrafos normales sin botón copiar
+                                return `<p>${trimmedPrompt}</p>`;
+                            }
+                        }
+                        return '';
+                    }).join('')}
+                </div>
+            `;
+
+            activityPrompts.innerHTML = promptsHtml;
+            console.log('✅ Modo legacy renderizado');
+        }
+
+        // Event delegation para botones de copiar
+        document.addEventListener('click', (event) => {
+            const btn = event.target.closest('button[data-copy]');
+            if (!btn) return;
+            
+            const text = btn.getAttribute('data-copy') || '';
+            if (text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    console.log('📋 Texto copiado al portapapeles:', text.substring(0, 50) + '...');
+                    
+                    // Mostrar feedback visual
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copiado!';
+                    btn.style.backgroundColor = '#4CAF50';
+                    
+                    showNotification('¡Prompt copiado al portapapeles!');
+                    
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.backgroundColor = '';
+                    }, 2000);
+                    
+                }).catch(err => {
+                    console.error('❌ Error copiando al portapapeles:', err);
+                    
+                    // Fallback - crear un textarea temporal
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    
+                    // Feedback visual
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copiado!';
+                    btn.style.backgroundColor = '#4CAF50';
+                    
+                    showNotification('¡Prompt copiado al portapapeles!');
+                    
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.backgroundColor = '';
+                    }, 2000);
+                });
+            }
+        });
+
+        // Inicializar las pruebas
+        document.addEventListener('DOMContentLoaded', () => {
+            renderNewFormat();
+            renderLegacyFormat();
+            console.log('🧪 Pruebas de migración inicializadas');
+        });
+    </script>
+</body>
+</html>

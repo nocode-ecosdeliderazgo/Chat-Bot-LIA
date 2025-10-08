@@ -1,0 +1,271 @@
+/* ===== ESTILOS PARA ALINEACIÓN HORIZONTAL DE BOTONES ===== */
+
+/* Contenedor principal de botones */
+.contenedor-botones {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    margin-top: 16px !important;
+    padding: 12px 0 !important;
+    width: 100% !important;
+}
+
+/* Contenedor para los botones principales - FORZAR ALINEACIÓN HORIZONTAL */
+.contenedor-botones .botones-principales {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 10px !important;
+    width: 100% !important;
+    height: 50px !important;
+}
+
+/* Botones principales - FORZAR MISMO TAMAÑO */
+.contenedor-botones .botones-principales .toggle-btn {
+    flex: 1 !important;
+    width: 50% !important;
+    max-width: 50% !important;
+    min-width: 0 !important;
+    height: 50px !important;
+    min-height: 50px !important;
+    max-height: 50px !important;
+    background: rgba(30, 41, 59, 0.8) !important;
+    border: 2px solid rgba(68, 229, 255, 0.2) !important;
+    border-radius: 12px !important;
+    padding: 8px 12px !important;
+    color: #e2e8f0 !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+    outline: none !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+}
+
+/* Estado activo del botón */
+.contenedor-botones .botones-principales .toggle-btn.active {
+    background: linear-gradient(135deg, rgba(68, 229, 255, 0.2) 0%, rgba(30, 64, 175, 0.2) 100%) !important;
+    border-color: rgba(68, 229, 255, 0.5) !important;
+    color: #44e5ff !important;
+    box-shadow: 0 4px 16px rgba(68, 229, 255, 0.3) !important;
+}
+
+/* Hover del botón */
+.contenedor-botones .botones-principales .toggle-btn:hover {
+    background: rgba(68, 229, 255, 0.1) !important;
+    border-color: rgba(68, 229, 255, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Iconos de los botones */
+.contenedor-botones .botones-principales .toggle-btn i {
+    font-size: 1.2rem !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+}
+
+/* Texto de los botones */
+.contenedor-botones .botones-principales .toggle-btn span {
+    display: inline-block !important;
+    line-height: 1 !important;
+    vertical-align: middle !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    color: inherit !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Indicador de desconectado - DEBAJO DE LOS BOTONES */
+.contenedor-botones .livestream-connection-status {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 8px 12px !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+    border: 2px solid rgba(239, 68, 68, 0.3) !important;
+    border-radius: 12px !important;
+    color: #ef4444 !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    min-height: 40px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
+    width: 100% !important;
+}
+
+/* Estado conectado */
+.contenedor-botones .livestream-connection-status.connected {
+    background: rgba(34, 197, 94, 0.1) !important;
+    border-color: rgba(34, 197, 94, 0.3) !important;
+    color: #22c55e !important;
+}
+
+/* Indicador de estado */
+.contenedor-botones .livestream-connection-status .status-indicator {
+    width: 10px !important;
+    height: 10px !important;
+    border-radius: 50% !important;
+    background: currentColor !important;
+    flex-shrink: 0 !important;
+}
+
+/* Texto del estado */
+.contenedor-botones .livestream-connection-status .status-text {
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+}
+
+/* ===== OCULTAR SELECTOR DE TIPO DE MENSAJE PARA MÁS ESPACIO ===== */
+
+/* Ocultar completamente el selector de tipo de mensaje */
+.message-type-selector {
+    display: none !important;
+}
+
+/* Ocultar el label del selector */
+.type-selector-label {
+    display: none !important;
+}
+
+/* Ocultar los botones de tipo de mensaje */
+.type-buttons-container {
+    display: none !important;
+}
+
+/* Ocultar botones individuales de tipo */
+.type-btn {
+    display: none !important;
+}
+
+/* Ajustar el input para que ocupe más espacio */
+.livestream-chat-input .input-wrapper {
+    margin-top: 0 !important;
+}
+
+/* Cambiar el placeholder del input */
+#livestreamMessageInput::placeholder {
+    content: "Escribe tu mensaje..." !important;
+}
+
+/* FORZAR QUE LOS CONTENEDORES PADRES NO LIMITEN EL ANCHO */
+.telegram-container, 
+.sidebar-left, 
+.collapsible-content, 
+.livestream-chat-container { 
+    max-width: none !important; 
+    width: 100% !important; 
+    overflow: visible !important;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .contenedor-botones {
+        gap: 8px !important;
+    }
+    
+    .contenedor-botones .botones-principales {
+        gap: 8px !important;
+        height: 45px !important;
+    }
+    
+    .contenedor-botones .botones-principales .toggle-btn {
+        height: 45px !important;
+        min-height: 45px !important;
+        max-height: 45px !important;
+        font-size: 0.8rem !important;
+        padding: 6px 10px !important;
+    }
+    
+    .contenedor-botones .livestream-connection-status {
+        font-size: 0.75rem !important;
+        padding: 6px 10px !important;
+        min-height: 35px !important;
+    }
+}
+
+/* Tablets y pantallas medianas */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .mobile-header {
+        display: none !important;
+    }
+    
+    .layout-3panels {
+        flex-direction: row !important;
+    }
+    
+    .sidebar-left {
+        width: 280px !important;
+        display: flex !important;
+        position: relative !important;
+        transform: none !important;
+        top: auto !important;
+        bottom: auto !important;
+    }
+    
+    .studio-right {
+        width: 220px !important;
+        display: flex !important;
+        position: relative !important;
+        transform: none !important;
+        top: auto !important;
+        bottom: auto !important;
+    }
+    
+    .chat-main {
+        margin-top: 0 !important;
+        flex: 1 !important;
+    }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+    .mobile-header {
+        display: none !important;
+    }
+    
+    .mobile-nav {
+        display: none !important;
+    }
+    
+    .mobile-close-btn {
+        display: none !important;
+    }
+    
+    .layout-3panels {
+        flex-direction: row !important;
+    }
+    
+    .sidebar-left,
+    .studio-right {
+        display: flex !important;
+        position: relative !important;
+        transform: none !important;
+        top: auto !important;
+        bottom: auto !important;
+        width: auto !important;
+    }
+    
+    .chat-main {
+        margin-top: 0 !important;
+    }
+}

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Community Buttons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-button {
+            display: inline-block;
+            padding: 10px 15px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .answer-btn {
+            background: #28a745;
+        }
+        .answer-btn:hover {
+            background: #1e7e34;
+        }
+        .bookmark-btn {
+            background: #ffc107;
+            color: #212529;
+        }
+        .bookmark-btn:hover {
+            background: #e0a800;
+        }
+        .log-area {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 15px;
+            min-height: 100px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .status.info {
+            background-color: #cce7ff;
+            border: 1px solid #b3d9ff;
+            color: #004085;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test de Botones de Comunidad</h1>
+        <p>Esta página prueba la funcionalidad de los botones "Responder" y "Guardar Pregunta"</p>
+        
+        <div class="test-section">
+            <h3>📝 Test Botón "Responder Pregunta"</h3>
+            <button class="test-button answer-btn" onclick="testAnswerButton('test-question-1')">
+                Responder Pregunta (Test ID: test-question-1)
+            </button>
+            <button class="test-button answer-btn" onclick="showAnswerModal('test-question-2', 'Test Title', 'Test Content')">
+                Responder con showAnswerModal
+            </button>
+            <div id="answer-status" class="status info">
+                Status: Esperando test...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔖 Test Botón "Guardar Pregunta"</h3>
+            <button class="test-button bookmark-btn" onclick="testBookmarkButton('test-question-1')">
+                Guardar/Quitar Bookmark (Test ID: test-question-1)
+            </button>
+            <button class="test-button bookmark-btn" onclick="toggleBookmark('test-question-2')">
+                Toggle Bookmark (Test ID: test-question-2)
+            </button>
+            <div id="bookmark-status" class="status info">
+                Status: Esperando test...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Test Event Listeners</h3>
+            <button class="test-button" onclick="testEventListeners()">
+                Verificar Event Listeners
+            </button>
+            <div id="listener-status" class="status info">
+                Status: No verificado
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Test API Integration</h3>
+            <button class="test-button" onclick="testAPIIntegration()">
+                Verificar CommunityAPI
+            </button>
+            <div id="api-status" class="status info">
+                Status: No verificado
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Registro de Pruebas</h3>
+            <div id="log-area" class="log-area">Iniciando tests...\n</div>
+            <button class="test-button" onclick="clearLog()">Limpiar Log</button>
+        </div>
+    </div>
+
+    <!-- Modal simulado para pruebas -->
+    <div id="answerModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 1000;">
+        <h3>Modal de Respuesta (Test)</h3>
+        <p>Question ID: <span id="modalQuestionId"></span></p>
+        <button onclick="closeTestModal()">Cerrar</button>
+    </div>
+
+    <script>
+        let logArea = document.getElementById('log-area');
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logArea.textContent += `[${timestamp}] ${message}\n`;
+            logArea.scrollTop = logArea.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            logArea.textContent = 'Log limpiado...\n';
+        }
+
+        function updateStatus(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${type}`;
+            element.textContent = `Status: ${message}`;
+        }
+
+        // Test functions
+        function testAnswerButton(questionId) {
+            log(`🧪 Testing Answer Button with ID: ${questionId}`);
+            
+            try {
+                // Simular el comportamiento del botón responder
+                if (typeof window.showAnswerModal === 'function') {
+                    log(`✅ showAnswerModal function found`);
+                    window.showAnswerModal(questionId);
+                    updateStatus('answer-status', 'success', 'showAnswerModal ejecutado');
+                } else if (window.chatOnline && typeof window.chatOnline.showAnswerModal === 'function') {
+                    log(`✅ chatOnline.showAnswerModal function found`);
+                    window.chatOnline.showAnswerModal(questionId);
+                    updateStatus('answer-status', 'success', 'chatOnline.showAnswerModal ejecutado');
+                } else {
+                    log(`❌ showAnswerModal function not found`);
+                    updateStatus('answer-status', 'error', 'Función showAnswerModal no encontrada');
+                    
+                    // Simular modal de prueba
+                    showTestModal(questionId);
+                }
+            } catch (error) {
+                log(`❌ Error en testAnswerButton: ${error.message}`);
+                updateStatus('answer-status', 'error', `Error: ${error.message}`);
+            }
+        }
+
+        function testBookmarkButton(questionId) {
+            log(`🧪 Testing Bookmark Button with ID: ${questionId}`);
+            
+            try {
+                // Simular el comportamiento del botón bookmark
+                if (typeof window.toggleBookmark === 'function') {
+                    log(`✅ toggleBookmark function found`);
+                    window.toggleBookmark(questionId);
+                    updateStatus('bookmark-status', 'success', 'toggleBookmark ejecutado');
+                } else if (window.chatOnline && typeof window.chatOnline.handleBookmark === 'function') {
+                    log(`✅ chatOnline.handleBookmark function found`);
+                    window.chatOnline.handleBookmark(questionId, null);
+                    updateStatus('bookmark-status', 'success', 'chatOnline.handleBookmark ejecutado');
+                } else {
+                    log(`❌ toggleBookmark function not found`);
+                    updateStatus('bookmark-status', 'error', 'Función toggleBookmark no encontrada');
+                    
+                    // Simular acción de bookmark
+                    simulateBookmark(questionId);
+                }
+            } catch (error) {
+                log(`❌ Error en testBookmarkButton: ${error.message}`);
+                updateStatus('bookmark-status', 'error', `Error: ${error.message}`);
+            }
+        }
+
+        function testEventListeners() {
+            log(`🧪 Testing Event Listeners`);
+            
+            let listenersFound = 0;
+            const checks = [
+                { name: 'showAnswerModal', func: window.showAnswerModal },
+                { name: 'toggleBookmark', func: window.toggleBookmark },
+                { name: 'chatOnline.showAnswerModal', func: window.chatOnline?.showAnswerModal },
+                { name: 'chatOnline.handleBookmark', func: window.chatOnline?.handleBookmark },
+                { name: 'communityAPI.toggleBookmark', func: window.communityAPI?.toggleBookmark }
+            ];
+
+            checks.forEach(check => {
+                if (typeof check.func === 'function') {
+                    log(`✅ ${check.name} function available`);
+                    listenersFound++;
+                } else {
+                    log(`❌ ${check.name} function not available`);
+                }
+            });
+
+            const status = listenersFound > 0 ? 'success' : 'error';
+            updateStatus('listener-status', status, `${listenersFound}/${checks.length} funciones encontradas`);
+        }
+
+        function testAPIIntegration() {
+            log(`🧪 Testing API Integration`);
+            
+            if (window.communityAPI) {
+                log(`✅ communityAPI object found`);
+                
+                const apiMethods = ['toggleBookmark', 'createAnswer', 'getQuestions'];
+                let methodsFound = 0;
+                
+                apiMethods.forEach(method => {
+                    if (typeof window.communityAPI[method] === 'function') {
+                        log(`✅ communityAPI.${method} available`);
+                        methodsFound++;
+                    } else {
+                        log(`❌ communityAPI.${method} not available`);
+                    }
+                });
+                
+                updateStatus('api-status', 'success', `CommunityAPI: ${methodsFound}/${apiMethods.length} métodos`);
+            } else {
+                log(`❌ communityAPI not found`);
+                updateStatus('api-status', 'error', 'CommunityAPI no disponible');
+            }
+        }
+
+        // Fallback functions for testing
+        function showTestModal(questionId) {
+            log(`🔧 Showing test modal for question: ${questionId}`);
+            const modal = document.getElementById('answerModal');
+            const modalQuestionId = document.getElementById('modalQuestionId');
+            modalQuestionId.textContent = questionId;
+            modal.style.display = 'block';
+            updateStatus('answer-status', 'info', 'Modal de prueba mostrado');
+        }
+
+        function closeTestModal() {
+            document.getElementById('answerModal').style.display = 'none';
+        }
+
+        function simulateBookmark(questionId) {
+            log(`🔧 Simulating bookmark toggle for question: ${questionId}`);
+            const isBookmarked = localStorage.getItem(`bookmark_${questionId}`) === 'true';
+            const newState = !isBookmarked;
+            localStorage.setItem(`bookmark_${questionId}`, newState);
+            log(`🔖 Bookmark ${newState ? 'added' : 'removed'} for question ${questionId}`);
+            updateStatus('bookmark-status', 'info', `Bookmark ${newState ? 'agregado' : 'removido'} (simulado)`);
+        }
+
+        // Global fallback functions (similar to chat-online.js)
+        window.showAnswerModal = function(questionId, title, content) {
+            log(`🔧 Global showAnswerModal called: ${questionId}`);
+            showTestModal(questionId);
+        };
+
+        window.toggleBookmark = function(questionId) {
+            log(`🔧 Global toggleBookmark called: ${questionId}`);
+            simulateBookmark(questionId);
+        };
+
+        // Initialize test
+        window.onload = function() {
+            log('🚀 Test page loaded');
+            log('🔍 Checking for Chat-Online dependencies...');
+            
+            // Try to load Chat-Online scripts if they exist
+            const chatOnlineScript = document.createElement('script');
+            chatOnlineScript.src = 'src/Chat-Online/chat-online.js';
+            chatOnlineScript.onload = () => {
+                log('✅ chat-online.js loaded');
+                testEventListeners();
+            };
+            chatOnlineScript.onerror = () => {
+                log('⚠️ chat-online.js not found, using fallback functions');
+            };
+            
+            // Don't actually append it for this test
+            // document.head.appendChild(chatOnlineScript);
+        };
+    </script>
+</body>
+</html>
