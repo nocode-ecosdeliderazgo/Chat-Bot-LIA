@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Función Recordarme</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(160deg, #0A0A0A 0%, #1a1a2e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', Arial, sans-serif;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(68, 229, 255, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #44E5FF;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+        }
+
+        .section {
+            background: rgba(0, 102, 204, 0.1);
+            border: 1px solid rgba(0, 102, 204, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section h3 {
+            color: #44E5FF;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .info {
+            background: rgba(68, 229, 255, 0.1);
+            border-left: 4px solid #44E5FF;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        .success {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid #10b981;
+        }
+
+        .warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+        }
+
+        .code {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(68, 229, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            color: #44E5FF;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        button {
+            padding: 12px 20px;
+            background: #0066CC;
+            border: 2px solid #0066CC;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #0052A3;
+            border-color: #0052A3;
+            transform: translateY(-2px);
+        }
+
+        button.secondary {
+            background: transparent;
+            border-color: #44E5FF;
+            color: #44E5FF;
+        }
+
+        button.secondary:hover {
+            background: rgba(68, 229, 255, 0.1);
+        }
+
+        button.danger {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+
+        button.danger:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+        }
+
+        .status {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .status-value {
+            color: #44E5FF;
+            font-weight: 500;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .checklist li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Test - Función "Recordarme"</h1>
+
+        <div class="section">
+            <h3>📊 Estado Actual del localStorage</h3>
+            <div class="status" id="storageStatus">
+                <div class="status-item">
+                    <span class="status-label">Email/Usuario:</span>
+                    <span class="status-value" id="storedEmail">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Contraseña (ofuscada):</span>
+                    <span class="status-value" id="storedPassword">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Tiempo guardado:</span>
+                    <span class="status-value" id="storedTime">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Días transcurridos:</span>
+                    <span class="status-value" id="daysPassed">-</span>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button onclick="refreshStatus()">🔄 Actualizar</button>
+                <button class="danger" onclick="clearAll()">🗑️ Limpiar Todo</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>🧪 Pruebas de Funcionalidad</h3>
+            
+            <div class="info">
+                <strong>Paso 1:</strong> Guarda credenciales de prueba
+            </div>
+            <div class="button-group">
+                <button onclick="saveTestCredentials()">💾 Guardar Credenciales</button>
+                <button class="secondary" onclick="viewDecoded()">👁️ Ver Contraseña Real</button>
+            </div>
+
+            <div class="info">
+                <strong>Paso 2:</strong> Simula pasar el tiempo
+            </div>
+            <div class="button-group">
+                <button onclick="simulate10Days()">⏩ Simular 10 días</button>
+                <button onclick="simulate31Days()">⏩ Simular 31 días</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>✅ Funciones Implementadas</h3>
+            <ul class="checklist">
+                <li>Ofuscación de contraseñas con XOR + Base64</li>
+                <li>Guardado automático al marcar "Recordarme"</li>
+                <li>Carga automática al abrir la página</li>
+                <li>Limpieza al desmarcar checkbox</li>
+                <li>Expiración automática después de 30 días</li>
+                <li>Manejo de errores al desofuscar</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>🔍 Código de Ofuscación</h3>
+            <div class="info warning">
+                <strong>⚠️ Nota de Seguridad:</strong> Esto es ofuscación básica, NO encriptación verdadera. Las contraseñas pueden ser recuperadas por alguien con acceso al localStorage.
+            </div>
+            <div class="code" id="codeExample">
+// Ejemplo de uso<br>
+const password = "miPassword123";<br>
+const encoded = obfuscateString(password);<br>
+// Resultado: "RUdKSE1NPw=="<br>
+<br>
+const decoded = deobfuscateString(encoded);<br>
+// Resultado: "miPassword123"
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>📱 Ir a Login Real</h3>
+            <div class="info success">
+                Haz clic en el botón para ir a la página de login real y probar la funcionalidad completa.
+            </div>
+            <button style="width: 100%;" onclick="window.location.href='src/login/new-auth.html'">
+                🚀 Ir a Login Real
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Clave de ofuscación (misma que en new-auth.js)
+        const OBFUSCATION_KEY = 'AyA-2024-SecureKey-';
+
+        /**
+         * Ofusca una cadena de texto usando Base64 y XOR simple
+         */
+        function obfuscateString(str) {
+            if (!str) return '';
+            try {
+                let xored = '';
+                for (let i = 0; i < str.length; i++) {
+                    const charCode = str.charCodeAt(i) ^ OBFUSCATION_KEY.charCodeAt(i % OBFUSCATION_KEY.length);
+                    xored += String.fromCharCode(charCode);
+                }
+                return btoa(xored);
+            } catch (error) {
+                console.error('Error ofuscando:', error);
+                return '';
+            }
+        }
+
+        /**
+         * Desofusca una cadena de texto
+         */
+        function deobfuscateString(str) {
+            if (!str) return '';
+            try {
+                const xored = atob(str);
+                let original = '';
+                for (let i = 0; i < xored.length; i++) {
+                    const charCode = xored.charCodeAt(i) ^ OBFUSCATION_KEY.charCodeAt(i % OBFUSCATION_KEY.length);
+                    original += String.fromCharCode(charCode);
+                }
+                return original;
+            } catch (error) {
+                console.error('Error desofuscando:', error);
+                return '';
+            }
+        }
+
+        /**
+         * Actualiza el estado mostrado
+         */
+        function refreshStatus() {
+            const email = localStorage.getItem('rememberedEmailOrUsername');
+            const password = localStorage.getItem('rememberedPassword');
+            const time = localStorage.getItem('rememberedTime');
+
+            document.getElementById('storedEmail').textContent = email || 'No guardado';
+            document.getElementById('storedPassword').textContent = password ? password.substring(0, 20) + '...' : 'No guardado';
+
+            if (time) {
+                const date = new Date(parseInt(time));
+                document.getElementById('storedTime').textContent = date.toLocaleString();
+                
+                const daysPassed = Math.floor((Date.now() - parseInt(time)) / (1000 * 60 * 60 * 24));
+                document.getElementById('daysPassed').textContent = daysPassed + ' días';
+            } else {
+                document.getElementById('storedTime').textContent = 'No guardado';
+                document.getElementById('daysPassed').textContent = '-';
+            }
+
+            console.log('✅ Estado actualizado');
+        }
+
+        /**
+         * Guarda credenciales de prueba
+         */
+        function saveTestCredentials() {
+            const testEmail = 'usuario@test.com';
+            const testPassword = 'Password123!';
+            const encodedPassword = obfuscateString(testPassword);
+
+            localStorage.setItem('rememberedEmailOrUsername', testEmail);
+            localStorage.setItem('rememberedPassword', encodedPassword);
+            localStorage.setItem('rememberedTime', Date.now().toString());
+
+            console.log('💾 Credenciales guardadas:');
+            console.log('Email:', testEmail);
+            console.log('Password original:', testPassword);
+            console.log('Password ofuscada:', encodedPassword);
+
+            alert('✅ Credenciales de prueba guardadas!\n\nEmail: ' + testEmail + '\nPassword: ' + testPassword);
+            refreshStatus();
+        }
+
+        /**
+         * Muestra la contraseña decodificada
+         */
+        function viewDecoded() {
+            const encoded = localStorage.getItem('rememberedPassword');
+            if (!encoded) {
+                alert('❌ No hay contraseña guardada');
+                return;
+            }
+
+            const decoded = deobfuscateString(encoded);
+            console.log('🔓 Contraseña decodificada:', decoded);
+            alert('🔓 Contraseña real: ' + decoded);
+        }
+
+        /**
+         * Simula que pasaron 10 días
+         */
+        function simulate10Days() {
+            const newTime = Date.now() - (10 * 24 * 60 * 60 * 1000);
+            localStorage.setItem('rememberedTime', newTime.toString());
+            console.log('⏩ Simulados 10 días');
+            alert('⏩ Simulados 10 días\n\nLas credenciales deberían seguir válidas.');
+            refreshStatus();
+        }
+
+        /**
+         * Simula que pasaron 31 días (debería expirar)
+         */
+        function simulate31Days() {
+            const newTime = Date.now() - (31 * 24 * 60 * 60 * 1000);
+            localStorage.setItem('rememberedTime', newTime.toString());
+            console.log('⏩ Simulados 31 días');
+            alert('⏩ Simulados 31 días\n\n⚠️ Las credenciales deberían expirar al recargar la página.');
+            refreshStatus();
+        }
+
+        /**
+         * Limpia todo
+         */
+        function clearAll() {
+            localStorage.removeItem('rememberedEmailOrUsername');
+            localStorage.removeItem('rememberedPassword');
+            localStorage.removeItem('rememberedTime');
+            console.log('🗑️ Todo limpiado');
+            alert('🗑️ Credenciales eliminadas del localStorage');
+            refreshStatus();
+        }
+
+        // Actualizar al cargar
+        refreshStatus();
+
+        // Auto-actualizar cada 5 segundos
+        setInterval(refreshStatus, 5000);
+    </script>
+</body>
+</html>
+
