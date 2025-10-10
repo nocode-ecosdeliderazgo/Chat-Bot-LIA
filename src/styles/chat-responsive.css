@@ -269,3 +269,261 @@
         margin-top: 0 !important;
     }
 }
+
+/* ===== MEJORAS DE LEGIBILIDAD PARA PANEL DE LIA (ECOS-379) ===== */
+
+/* Ajustes generales para el panel de LIA */
+.lia-chat-panel {
+    font-size: 16px !important; /* Tamaño base de fuente más grande */
+    line-height: 1.6 !important; /* Mayor interlineado para legibilidad */
+}
+
+/* Mensajes de LIA - Mejorar legibilidad */
+.lia-message-content,
+.message-content {
+    font-size: 15px !important;
+    line-height: 1.7 !important;
+    padding: 14px 16px !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+}
+
+/* Asegurar que el texto del usuario también sea legible */
+.user-message .message-content,
+.lia-message.user .message-content {
+    font-size: 15px !important;
+    line-height: 1.7 !important;
+    padding: 14px 16px !important;
+}
+
+/* Mejorar altura del panel de LIA */
+.lia-chat-panel {
+    height: auto !important;
+    min-height: 400px !important;
+    max-height: calc(100vh - 150px) !important;
+}
+
+/* Contenedor de mensajes de LIA */
+.lia-chat-messages {
+    padding: 20px !important;
+    gap: 20px !important;
+}
+
+/* Headers más legibles */
+.lia-chat-header h3 {
+    font-size: 1.1rem !important;
+}
+
+.lia-info p {
+    font-size: 0.9rem !important;
+}
+
+/* ===== RESPONSIVE PARA PANTALLAS PEQUEÑAS (480px - 768px) ===== */
+@media (max-width: 768px) {
+    /* Panel de LIA en móviles */
+    .lia-chat-panel {
+        height: auto !important;
+        min-height: 300px !important;
+        max-height: calc(100vh - 120px) !important;
+        font-size: 15px !important;
+    }
+    
+    /* Mensajes más legibles en móviles */
+    .lia-message-content,
+    .message-content {
+        font-size: 14px !important;
+        line-height: 1.65 !important;
+        padding: 12px 14px !important;
+    }
+    
+    /* Mensajes del usuario */
+    .user-message .message-content,
+    .lia-message.user .message-content {
+        font-size: 14px !important;
+        line-height: 1.65 !important;
+        padding: 12px 14px !important;
+    }
+    
+    /* Reducir gaps para aprovechar espacio */
+    .lia-chat-messages {
+        padding: 16px !important;
+        gap: 16px !important;
+    }
+    
+    /* Header compacto pero legible */
+    .lia-chat-header {
+        padding: 10px 14px !important;
+    }
+    
+    .lia-chat-header h3 {
+        font-size: 1rem !important;
+    }
+    
+    .lia-info p {
+        font-size: 0.85rem !important;
+    }
+    
+    /* Avatar más pequeño en móviles */
+    .lia-avatar img,
+    .lia-message-avatar img {
+        width: 36px !important;
+        height: 36px !important;
+    }
+}
+
+/* ===== PANTALLAS MUY PEQUEÑAS (hasta 480px) ===== */
+@media (max-width: 480px) {
+    /* Panel de LIA optimizado para pantallas pequeñas */
+    .lia-chat-panel {
+        height: auto !important;
+        min-height: 250px !important;
+        max-height: calc(100vh - 100px) !important;
+        font-size: 14px !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Mensajes con tamaño mínimo legible */
+    .lia-message-content,
+    .message-content {
+        font-size: 13px !important;
+        line-height: 1.6 !important;
+        padding: 10px 12px !important;
+        min-font-size: 13px !important; /* Evitar que se reduzca más */
+    }
+    
+    /* Mensajes del usuario */
+    .user-message .message-content,
+    .lia-message.user .message-content {
+        font-size: 13px !important;
+        line-height: 1.6 !important;
+        padding: 10px 12px !important;
+    }
+    
+    /* Contenedor de mensajes compacto */
+    .lia-chat-messages {
+        padding: 12px !important;
+        gap: 14px !important;
+    }
+    
+    /* Header más compacto */
+    .lia-chat-header {
+        padding: 8px 12px !important;
+    }
+    
+    .lia-chat-header h3 {
+        font-size: 0.95rem !important;
+    }
+    
+    .lia-info p {
+        font-size: 0.8rem !important;
+    }
+    
+    /* Avatar más pequeño */
+    .lia-avatar img,
+    .lia-message-avatar img {
+        width: 32px !important;
+        height: 32px !important;
+    }
+    
+    /* Botones de control más compactos */
+    .lia-control-btn {
+        padding: 6px !important;
+        font-size: 0.85rem !important;
+    }
+}
+
+/* ===== TABLETS EN ORIENTACIÓN VERTICAL (481px - 768px) ===== */
+@media (min-width: 481px) and (max-width: 768px) and (orientation: portrait) {
+    .lia-chat-panel {
+        max-height: calc(100vh - 130px) !important;
+    }
+    
+    .lia-message-content,
+    .message-content {
+        font-size: 14px !important;
+        line-height: 1.7 !important;
+    }
+}
+
+/* ===== TABLETS EN ORIENTACIÓN HORIZONTAL (769px - 1024px) ===== */
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+    .lia-chat-panel {
+        max-height: calc(100vh - 100px) !important;
+    }
+    
+    .lia-message-content,
+    .message-content {
+        font-size: 15px !important;
+        line-height: 1.7 !important;
+    }
+}
+
+/* ===== ASEGURAR LEGIBILIDAD EN TODOS LOS DISPOSITIVOS ===== */
+
+/* Evitar que los navegadores reduzcan el texto automáticamente */
+.lia-chat-panel *,
+.lia-chat-messages *,
+.lia-message-content *,
+.message-content * {
+    -webkit-text-size-adjust: 100% !important;
+    -moz-text-size-adjust: 100% !important;
+    -ms-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+}
+
+/* Mejorar contraste para legibilidad */
+.lia-message-content,
+.message-content {
+    color: rgba(255, 255, 255, 0.95) !important;
+    background: rgba(30, 41, 59, 0.6) !important;
+}
+
+/* Mensajes del usuario con buen contraste */
+.user-message .message-content,
+.lia-message.user .message-content {
+    color: rgba(255, 255, 255, 0.98) !important;
+    background: rgba(0, 102, 204, 0.6) !important;
+}
+
+/* Asegurar que los enlaces sean legibles */
+.lia-message-content a,
+.message-content a {
+    color: #44E5FF !important;
+    text-decoration: underline !important;
+    font-weight: 500 !important;
+}
+
+/* Listas más legibles */
+.lia-message-content ul,
+.lia-message-content ol,
+.message-content ul,
+.message-content ol {
+    padding-left: 24px !important;
+    margin: 8px 0 !important;
+}
+
+.lia-message-content li,
+.message-content li {
+    margin-bottom: 6px !important;
+    line-height: 1.7 !important;
+}
+
+/* Código más legible */
+.lia-message-content code,
+.message-content code {
+    font-size: 0.9em !important;
+    padding: 2px 6px !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-radius: 4px !important;
+}
+
+.lia-message-content pre,
+.message-content pre {
+    font-size: 0.85em !important;
+    padding: 12px !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-radius: 8px !important;
+    overflow-x: auto !important;
+    margin: 10px 0 !important;
+}
