@@ -708,7 +708,7 @@ async function handleLogin(e) {
         return;
     }
     
-    setLoadingState(true, 'loginSubmit');
+    setLoadingState(true, 'loginSubmit', 'Validando...');
     
     devLog('Iniciando proceso de login');
     devLog('ENABLE_SUPABASE_AUTH:', ENABLE_SUPABASE_AUTH);
@@ -956,7 +956,7 @@ async function handleRegister(e) {
     // Validaciones
     if (!validateRegisterForm(userData)) return;
     
-    setLoadingState(true, 'registerSubmit');
+    setLoadingState(true, 'registerSubmit', 'Creando cuenta...');
     showNotification('Creando cuenta en la base de datos...', 'info');
     
     try {
@@ -1345,8 +1345,8 @@ async function handleSuccessfulAuth(emailOrUsername, remember, isNewUser = false
     }, AUTH_CONFIG.redirectDelay);
 }
 
-// Estado de carga
-function setLoadingState(loading, buttonId) {
+// Estado de carga con texto opcional
+function setLoadingState(loading, buttonId, loadingText = null) {
     authState.isLoading = loading;
     const button = document.getElementById(buttonId);
     if (!button) return;
@@ -1354,14 +1354,68 @@ function setLoadingState(loading, buttonId) {
     const btnText = button.querySelector('.btn-text');
     const btnLoader = button.querySelector('.btn-loader');
     
+    // Guardar el texto original si no existe
+    if (!button.dataset.originalText && btnText) {
+        button.dataset.originalText = btnText.textContent;
+    }
+    
     if (loading) {
+        // Deshabilitar el botón y agregar clase de loading
         button.disabled = true;
-        if (btnText) btnText.style.opacity = '0';
-        if (btnLoader) btnLoader.style.display = 'block';
+        button.classList.add('loading');
+        button.style.cursor = 'not-allowed';
+        
+        // Cambiar el texto del botón y mostrar el spinner
+        if (btnText) {
+            btnText.textContent = loadingText || 'Cargando...';
+            btnText.style.opacity = '1';
+            btnText.style.paddingRight = '30px'; // Espacio para el spinner
+        }
+        
+        if (btnLoader) {
+            btnLoader.style.display = 'flex';
+            btnLoader.style.alignItems = 'center';
+            btnLoader.style.justifyContent = 'center';
+            btnLoader.style.position = 'absolute';
+            btnLoader.style.right = '20px';
+            btnLoader.style.top = '50%';
+            btnLoader.style.transform = 'translateY(-50%)';
+            btnLoader.style.width = '20px';
+            btnLoader.style.height = '20px';
+            btnLoader.style.zIndex = '100';
+            // Pequeño delay para asegurar que el spinner se vea
+            setTimeout(() => {
+                if (btnLoader) {
+                    btnLoader.style.opacity = '1';
+                    btnLoader.style.visibility = 'visible';
+                }
+            }, 100);
+        }
+        
+        devLog('Estado de carga activado para botón:', buttonId);
     } else {
+        // Habilitar el botón y quitar clase de loading
         button.disabled = false;
-        if (btnText) btnText.style.opacity = '1';
-        if (btnLoader) btnLoader.style.display = 'none';
+        button.classList.remove('loading');
+        button.style.cursor = 'pointer';
+        
+        // Restaurar texto original y ocultar loader
+        if (btnText && button.dataset.originalText) {
+            btnText.textContent = button.dataset.originalText;
+            btnText.style.paddingRight = '0';
+        }
+        
+        if (btnLoader) {
+            btnLoader.style.opacity = '0';
+            btnLoader.style.visibility = 'hidden';
+            setTimeout(() => {
+                if (btnLoader) {
+                    btnLoader.style.display = 'none';
+                }
+            }, 300);
+        }
+        
+        devLog('Estado de carga desactivado para botón:', buttonId);
     }
 }
 
