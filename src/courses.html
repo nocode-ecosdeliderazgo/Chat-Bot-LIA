@@ -332,5 +332,48 @@ o a                                 <p class="course-instructor">Instructor: Ern
     <script src="scripts/force-theme-init.js"></script>
     <script src="scripts/theme-manager.js"></script>
     <script src="scripts/theme-toggle.js"></script>
+
+    <!-- Script para cargar progreso desde localStorage -->
+    <script>
+        // Cargar y mostrar progreso del curso desde localStorage
+        function loadCourseProgress() {
+            try {
+                // Obtener progreso guardado
+                const savedProgress = localStorage.getItem('courseProgress_chatgpt-gemini');
+
+                if (savedProgress) {
+                    const progressData = JSON.parse(savedProgress);
+
+                    // Actualizar el curso principal
+                    const courseCard = document.getElementById('course-main');
+                    if (courseCard) {
+                        const progressBar = courseCard.querySelector('.progress-fill');
+                        const progressText = courseCard.querySelector('.progress-text');
+
+                        if (progressBar && progressData.percentage !== undefined) {
+                            // Actualizar barra y texto simultáneamente
+                            progressBar.style.transition = 'width 0.6s ease-in-out';
+                            progressBar.style.width = progressData.percentage + '%';
+
+                            // Esperar a que la animación de la barra inicie antes de mostrar el texto
+                            setTimeout(() => {
+                                if (progressText) {
+                                    progressText.textContent = progressData.percentage + '% completado';
+                                }
+                            }, 100);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error cargando progreso:', error);
+            }
+        }
+
+        // Ejecutar al cargar la página
+        document.addEventListener('DOMContentLoaded', loadCourseProgress);
+
+        // Actualizar cada 5 segundos (por si el usuario tiene ambas páginas abiertas)
+        setInterval(loadCourseProgress, 5000);
+    </script>
 </body>
 </html>
