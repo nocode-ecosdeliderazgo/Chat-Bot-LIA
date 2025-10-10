@@ -5765,6 +5765,10 @@ Cargando información...
                 const tags = Array.isArray(question.tags) ? question.tags : [];
                 const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
 
+                // Clases para botones votados
+                const upvoteClass = question.user_vote === 'up' ? 'voted upvoted' : '';
+                const downvoteClass = question.user_vote === 'down' ? 'voted downvoted' : '';
+
                 return `
                     <div class="question-item" data-question-id="${question.id}" data-user-id="${question.user_id || question.users?.id || ''}" data-module-name="${moduleName}">
                         <div class="question-content">
@@ -5783,18 +5787,18 @@ Cargando información...
                                 <p>${question.content.length > 200 ? question.content.substring(0, 200) + '...' : question.content}</p>
                             </div>
                             ${tagsHTML ? `<div class="question-tags">${tagsHTML}</div>` : ''}
-                            
+
                             <div class="question-footer">
                                 <div class="question-actions">
                                     <div class="question-votes">
-                                        <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
+                                        <button class="vote-btn upvote ${upvoteClass}" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <line x1="12" y1="5" x2="12" y2="19"/>
                                                 <line x1="5" y1="12" x2="19" y2="12"/>
                                             </svg>
                                         </button>
                                         <span class="vote-count">${question.votes_count || 0}</span>
-                                        <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
+                                        <button class="vote-btn downvote ${downvoteClass}" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <line x1="5" y1="12" x2="19" y2="12"/>
                                             </svg>
@@ -5859,6 +5863,10 @@ Cargando información...
                 const tags = Array.isArray(question.tags) ? question.tags : [];
                 const tagsHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
 
+                // Clases para botones votados
+                const upvoteClass = question.user_vote === 'up' ? 'voted upvoted' : '';
+                const downvoteClass = question.user_vote === 'down' ? 'voted downvoted' : '';
+
                 return `
                     <div class="question-item" data-question-id="${question.id}" data-user-id="${question.user_id || question.users?.id || ''}" data-module-name="${question.module_name || 'General'}">
                         <div class="question-content">
@@ -5877,18 +5885,18 @@ Cargando información...
                                 <p>${question.content.length > 200 ? question.content.substring(0, 200) + '...' : question.content}</p>
                             </div>
                             ${tagsHTML ? `<div class="question-tags">${tagsHTML}</div>` : ''}
-                            
+
                             <div class="question-footer">
                                 <div class="question-actions">
                                     <div class="question-votes">
-                                        <button class="vote-btn upvote" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
+                                        <button class="vote-btn upvote ${upvoteClass}" type="button" title="Votar positivamente" onclick="voteQuestion('${question.id}', 'up')">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <line x1="12" y1="5" x2="12" y2="19"/>
                                                 <line x1="5" y1="12" x2="19" y2="12"/>
                                             </svg>
                                         </button>
                                         <span class="vote-count">${question.votes_count || 0}</span>
-                                        <button class="vote-btn downvote" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
+                                        <button class="vote-btn downvote ${downvoteClass}" type="button" title="Votar negativamente" onclick="voteQuestion('${question.id}', 'down')">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <line x1="5" y1="12" x2="19" y2="12"/>
                                             </svg>

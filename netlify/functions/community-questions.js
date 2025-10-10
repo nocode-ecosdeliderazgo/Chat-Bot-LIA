@@ -62,6 +62,7 @@ exports.handler = async (event, context) => {
         if (httpMethod === 'GET') {
             const filters = queryStringParameters || {};
             console.log('📊 Building query with filters:', filters);
+            console.log('👤 Requesting user votes for userId:', userId);
 
             let query = supabase
                 .from('community_questions')
@@ -125,10 +126,43 @@ exports.handler = async (event, context) => {
             }
 
             console.log(`✅ Query successful - Found ${data?.length || 0} questions`);
+
+            // Si hay un usuario autenticado, obtener sus votos
+            if (userId && data && data.length > 0) {
+                console.log('🗳️ Fetching user votes...');
+                const questionIds = data.map(q => q.id);
+
+                const { data: userVotes, error: votesError } = await supabase
+                    .from('community_votes')
+                    .select('target_id, vote_type')
+                    .eq('user_id', userId)
+                    .eq('target_type', 'question')
+                    .in('target_id', questionIds);
+
+                if (votesError) {
+                    console.error('⚠️ Error obteniendo votos del usuario:', votesError);
+                } else {
+                    console.log(`✅ Found ${userVotes?.length || 0} user votes`);
+                    // Crear un mapa de votos para acceso rápido
+                    const votesMap = {};
+                    if (userVotes) {
+                        userVotes.forEach(vote => {
+                            votesMap[vote.target_id] = vote.vote_type;
+                        });
+                    }
+
+                    // Enriquecer preguntas con información de votos del usuario
+                    data.forEach(question => {
+                        question.user_vote = votesMap[question.id] || null;
+                    });
+                }
+            }
+
             console.log('📦 Sample data:', data?.[0] ? {
                 id: data[0].id,
                 title: data[0].title?.substring(0, 50),
-                hasUser: !!data[0].users
+                hasUser: !!data[0].users,
+                userVote: data[0].user_vote || 'none'
             } : 'No questions');
 
             return {
