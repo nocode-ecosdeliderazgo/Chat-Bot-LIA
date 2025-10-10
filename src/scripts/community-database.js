@@ -1252,4 +1252,17 @@ class CommunityDatabase {
 // Exportar para uso global
 window.CommunityDatabase = CommunityDatabase;
 
+/*
+ * OPTIMIZACIÓN DE COMENTARIOS IMPLEMENTADA:
+ * 
+ * El método createComment() ya incluye las siguientes optimizaciones:
+ * 1. Separación de consultas para evitar joins lentos
+ * 2. Inserción rápida sin select inicial
+ * 3. Consulta separada de datos del usuario
+ * 4. Fallback para datos del usuario en caso de error
+ * 
+ * Estas optimizaciones reducen significativamente el delay
+ * al crear comentarios y mejoran la experiencia del usuario.
+ */
+
 
