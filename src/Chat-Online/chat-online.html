@@ -7433,17 +7433,17 @@ INSTRUCCIONES:
 
                     console.log('✅ Chat Online V2 inicializado');
 
-                // ===== SISTEMA DE HISTORIAL CONVERSACIONAL DE LIA =====
-                // Almacena los últimos 3 pares de mensajes (usuario + LIA)
-                // para mantener continuidad conversacional
-                window.liaConversationHistory = [];
-                console.log('✅ Sistema de historial conversacional inicializado');
-
                 } else {
 
                     console.error('❌ ChatOnlineV2 no encontrado');
 
                 }
+
+                // ===== SISTEMA DE HISTORIAL CONVERSACIONAL DE LIA =====
+                // Almacena los últimos 3 pares de mensajes (usuario + LIA)
+                // para mantener continuidad conversacional
+                window.liaConversationHistory = [];
+                console.log('✅ Sistema de historial conversacional inicializado');
 
                 // 4. Inicializar protección de mensajes de chat
                 setTimeout(() => {
@@ -7815,6 +7815,10 @@ INSTRUCCIONES:
                             // Obtener historial conversacional
                             const conversationHistory = getFormattedConversationHistory();
                             console.log('[LIA] 💬 Historial conversacional obtenido');
+                            console.log('[LIA] 📚 Mensajes en historial:', window.liaConversationHistory?.length || 0);
+                            if (window.liaConversationHistory?.length > 0) {
+                                console.log('[LIA] 📋 Contenido del historial:', window.liaConversationHistory);
+                            }
 
                             // Preparar prompt con historial y contexto
                             let prompt;
@@ -7826,13 +7830,15 @@ Usuario: ${mensaje}
 CONTEXTO DEL CURSO:
 El usuario está en el curso "Aprende y Aplica IA" - Chat Online.
 ${context}`;
+                                console.log('[LIA] ✅ Prompt CON historial conversacional');
                             } else {
                                 // Prompt sin historial (primer mensaje)
                                 prompt = `Usuario: ${mensaje}\n\nContexto: El usuario está en el curso "Aprende y Aplica IA" - Chat Online. ${context}`;
+                                console.log('[LIA] ℹ️ Prompt SIN historial (primer mensaje o historial vacío)');
                             }
 
-                            console.log('[LIA] 📝 Prompt preparado con', conversationHistory ? 'historial conversacional' : 'sin historial');
                             console.log('[LIA] 📊 Tamaño del prompt:', prompt.length, 'caracteres');
+                            console.log('[LIA] 📝 Preview del prompt (primeros 500 chars):', prompt.substring(0, 500));
 
                             
 
@@ -8008,7 +8014,11 @@ ${context}`;
                                 console.log('[LIA] ✅ Respuesta de LIA mostrada');
 
                                 // Agregar al historial conversacional
+                                console.log('[LIA] 💾 Guardando mensaje en historial...');
+                                console.log('[LIA] 📤 Mensaje del usuario:', mensaje.substring(0, 100));
+                                console.log('[LIA] 📥 Respuesta de LIA:', respuestaLIA.substring(0, 100));
                                 addToConversationHistory(mensaje, respuestaLIA);
+                                console.log('[LIA] ✅ Mensaje guardado. Total en historial:', window.liaConversationHistory?.length || 0);
 
                                 
 
@@ -8232,6 +8242,12 @@ ${context}`;
          */
         function addToConversationHistory(userMessage, liaResponse) {
             try {
+                // Inicializar el array si no existe (fallback de seguridad)
+                if (!window.liaConversationHistory) {
+                    window.liaConversationHistory = [];
+                    console.log('[LIA] ⚠️ Historial no estaba inicializado, creando nuevo array');
+                }
+
                 // Truncar mensajes largos para optimizar tokens
                 const truncatedUserMessage = userMessage.length > 300
                     ? userMessage.substring(0, 297) + '...'
