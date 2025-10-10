@@ -268,25 +268,29 @@ async function handleVote(req, res) {
 
         // Validar datos
         if (!user_id || !target_type || !target_id || !vote_type) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: 'Datos requeridos faltantes',
                 message: 'user_id, target_type, target_id y vote_type son requeridos'
             });
         }
 
         if (!['question', 'answer', 'comment'].includes(target_type)) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: 'Tipo de objetivo inválido',
                 message: 'target_type debe ser: question, answer o comment'
             });
         }
 
-        if (!['upvote', 'downvote'].includes(vote_type)) {
-            return res.status(400).json({ 
+        if (!['upvote', 'downvote', 'up', 'down'].includes(vote_type)) {
+            return res.status(400).json({
                 error: 'Tipo de voto inválido',
-                message: 'vote_type debe ser: upvote o downvote'
+                message: 'vote_type debe ser: upvote, downvote, up o down'
             });
         }
+
+        // Normalizar tipo de voto a 'up' o 'down' para la base de datos
+        const normalizedVoteType = vote_type === 'upvote' ? 'up' :
+                                 vote_type === 'downvote' ? 'down' : vote_type;
 
         // Verificar si ya existe un voto
         const { data: existingVote } = await supabase
@@ -298,10 +302,11 @@ async function handleVote(req, res) {
             .single();
 
         let result;
+        let voteAction = 'created';
 
         if (existingVote) {
             // Si el voto es el mismo, eliminarlo (toggle)
-            if (existingVote.vote_type === vote_type) {
+            if (existingVote.vote_type === normalizedVoteType) {
                 const { error: deleteError } = await supabase
                     .from('community_votes')
                     .delete()
@@ -309,31 +314,33 @@ async function handleVote(req, res) {
 
                 if (deleteError) {
                     console.error('❌ Error eliminando voto:', deleteError);
-                    return res.status(500).json({ 
+                    return res.status(500).json({
                         error: 'Error eliminando voto',
-                        details: deleteError.message 
+                        details: deleteError.message
                     });
                 }
 
+                voteAction = 'removed';
                 result = { action: 'removed', vote_type: null };
             } else {
                 // Si es diferente, actualizarlo
                 const { data: updatedVote, error: updateError } = await supabase
                     .from('community_votes')
-                    .update({ vote_type })
+                    .update({ vote_type: normalizedVoteType })
                     .eq('id', existingVote.id)
                     .select()
                     .single();
 
                 if (updateError) {
                     console.error('❌ Error actualizando voto:', updateError);
-                    return res.status(500).json({ 
+                    return res.status(500).json({
                         error: 'Error actualizando voto',
-                        details: updateError.message 
+                        details: updateError.message
                     });
                 }
 
-                result = { action: 'updated', vote_type, data: updatedVote };
+                voteAction = 'updated';
+                result = { action: 'updated', vote_type: normalizedVoteType, data: updatedVote };
             }
         } else {
             // Crear nuevo voto
@@ -343,27 +350,66 @@ async function handleVote(req, res) {
                     user_id,
                     target_type,
                     target_id,
-                    vote_type
+                    vote_type: normalizedVoteType
                 })
                 .select()
                 .single();
 
             if (insertError) {
                 console.error('❌ Error creando voto:', insertError);
-                return res.status(500).json({ 
+                return res.status(500).json({
                     error: 'Error creando voto',
-                    details: insertError.message 
+                    details: insertError.message
                 });
             }
 
-            result = { action: 'created', vote_type, data: newVote };
+            voteAction = 'created';
+            result = { action: 'created', vote_type: normalizedVoteType, data: newVote };
         }
 
-        console.log(`✅ Voto procesado: ${result.action}`);
+        // Actualizar contador de votos en la tabla correspondiente
+        const tableName = target_type === 'question' ? 'community_questions' : 'community_answers';
+
+        // Contar votos actuales
+        const { data: upVotes } = await supabase
+            .from('community_votes')
+            .select('id', { count: 'exact' })
+            .eq('target_type', target_type)
+            .eq('target_id', target_id)
+            .eq('vote_type', 'up');
+
+        const { data: downVotes } = await supabase
+            .from('community_votes')
+            .select('id', { count: 'exact' })
+            .eq('target_type', target_type)
+            .eq('target_id', target_id)
+            .eq('vote_type', 'down');
+
+        const upCount = upVotes?.length || 0;
+        const downCount = downVotes?.length || 0;
+        const totalVotes = upCount - downCount;
+
+        // Actualizar contador en la tabla principal
+        const { error: updateCountError } = await supabase
+            .from(tableName)
+            .update({ votes_count: totalVotes })
+            .eq('id', target_id);
+
+        if (updateCountError) {
+            console.error('❌ Error actualizando contador de votos:', updateCountError);
+        }
+
+        console.log(`✅ Voto procesado: ${voteAction}`);
         res.json({
             success: true,
-            data: result,
-            message: `Voto ${result.action} exitosamente`
+            data: {
+                action: voteAction,
+                vote_type: normalizedVoteType,
+                total_votes: totalVotes,
+                up_votes: upCount,
+                down_votes: downCount
+            },
+            message: `Voto ${voteAction === 'removed' ? 'eliminado' : voteAction === 'updated' ? 'actualizado' : 'registrado'} exitosamente`
         });
 
     } catch (error) {
@@ -605,7 +651,7 @@ exports.handler = async (event, context) => {
     // Configurar CORS
     const headers = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-User-Id',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Content-Type': 'application/json'
     };
@@ -695,6 +741,50 @@ exports.handler = async (event, context) => {
         // POST /api/community/bookmarks
         if (path === '/api/community/bookmarks' && method === 'POST') {
             return await toggleBookmark(req, res);
+        }
+
+        // POST /api/community/questions/:questionId/vote
+        if (path.match(/^\/api\/community\/questions\/[^\/]+\/vote$/) && method === 'POST') {
+            const targetId = path.split('/')[4]; // Extract question ID
+            const userId = event.headers['x-user-id'] || event.headers['X-User-Id'];
+
+            if (!userId) {
+                return {
+                    statusCode: 401,
+                    headers,
+                    body: JSON.stringify({
+                        success: false,
+                        error: 'Usuario no autenticado. Header X-User-Id requerido.'
+                    })
+                };
+            }
+
+            req.body.user_id = userId;
+            req.body.target_id = targetId;
+            req.body.target_type = 'question';
+            return await handleVote(req, res);
+        }
+
+        // POST /api/community/answers/:answerId/vote
+        if (path.match(/^\/api\/community\/answers\/[^\/]+\/vote$/) && method === 'POST') {
+            const targetId = path.split('/')[4]; // Extract answer ID
+            const userId = event.headers['x-user-id'] || event.headers['X-User-Id'];
+
+            if (!userId) {
+                return {
+                    statusCode: 401,
+                    headers,
+                    body: JSON.stringify({
+                        success: false,
+                        error: 'Usuario no autenticado. Header X-User-Id requerido.'
+                    })
+                };
+            }
+
+            req.body.user_id = userId;
+            req.body.target_id = targetId;
+            req.body.target_type = 'answer';
+            return await handleVote(req, res);
         }
 
         // Endpoint no encontrado
