@@ -117,13 +117,13 @@ async function getQuestions(req, res) {
         };
 
         console.log(`✅ ${questions.length} preguntas obtenidas`);
-        res.json(response);
+        return res.json(response);
 
     } catch (error) {
         console.error('💥 Error en getQuestions:', error);
-        res.status(500).json({ 
+        return res.status(500).json({
             error: 'Error interno del servidor',
-            details: error.message 
+            details: error.message
         });
     }
 }
@@ -400,7 +400,7 @@ async function handleVote(req, res) {
         }
 
         console.log(`✅ Voto procesado: ${voteAction}`);
-        res.json({
+        return res.json({
             success: true,
             data: {
                 action: voteAction,
@@ -414,9 +414,9 @@ async function handleVote(req, res) {
 
     } catch (error) {
         console.error('💥 Error en handleVote:', error);
-        res.status(500).json({ 
+        return res.status(500).json({
             error: 'Error interno del servidor',
-            details: error.message 
+            details: error.message
         });
     }
 }
@@ -486,7 +486,7 @@ async function createAnswer(req, res) {
         }
 
         console.log(`✅ Respuesta creada exitosamente: ${answer.id}`);
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             data: answer,
             message: 'Respuesta creada exitosamente'
@@ -494,9 +494,9 @@ async function createAnswer(req, res) {
 
     } catch (error) {
         console.error('💥 Error en createAnswer:', error);
-        res.status(500).json({ 
+        return res.status(500).json({
             error: 'Error interno del servidor',
-            details: error.message 
+            details: error.message
         });
     }
 }
@@ -551,16 +551,16 @@ async function getQuestionAnswers(req, res) {
         }
 
         console.log(`✅ ${answers.length} respuestas obtenidas`);
-        res.json({
+        return res.json({
             success: true,
             data: answers
         });
 
     } catch (error) {
         console.error('💥 Error en getQuestionAnswers:', error);
-        res.status(500).json({ 
+        return res.status(500).json({
             error: 'Error interno del servidor',
-            details: error.message 
+            details: error.message
         });
     }
 }
@@ -628,7 +628,7 @@ async function toggleBookmark(req, res) {
         }
 
         console.log(`✅ Marcador ${result.action} exitosamente`);
-        res.json({
+        return res.json({
             success: true,
             data: result,
             message: `Marcador ${result.action} exitosamente`
@@ -636,9 +636,9 @@ async function toggleBookmark(req, res) {
 
     } catch (error) {
         console.error('💥 Error en toggleBookmark:', error);
-        res.status(500).json({ 
+        return res.status(500).json({
             error: 'Error interno del servidor',
-            details: error.message 
+            details: error.message
         });
     }
 }
