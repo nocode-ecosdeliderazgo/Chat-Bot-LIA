@@ -2739,7 +2739,16 @@
                     card.addEventListener('click', (e)=>{
                         // evitar disparar desde botones internos
                         const target = e.target;
-                        if(target.closest('.post-interactions') || target.closest('.post-actions')) return;
+                        // No abrir modal si se hace click en:
+                        // - Botones de interacción (like, comentar, compartir)
+                        // - Botones de acciones (menú de opciones)
+                        // - Encuestas (opciones de votación)
+                        if(target.closest('.post-interactions') ||
+                           target.closest('.post-actions') ||
+                           target.closest('.post-poll-container') ||
+                           target.closest('.poll-option-interactive')) {
+                            return;
+                        }
                         const id = card.getAttribute('data-open-post');
                         openPostModal(id);
                     });
@@ -2835,7 +2844,11 @@
                 });
                 // Votación en encuestas
                 list.querySelectorAll('.poll-option-interactive').forEach(optionEl => {
-                    optionEl.addEventListener('click', async () => {
+                    optionEl.addEventListener('click', async (e) => {
+                        // Prevenir que se abra el modal de post al votar
+                        e.stopPropagation();
+                        e.preventDefault();
+
                         const postId = optionEl.getAttribute('data-poll-id');
                         const option = optionEl.getAttribute('data-option');
 
@@ -3380,7 +3393,11 @@
 
                                 // Re-agregar event listeners para votación
                                 document.querySelectorAll(`.poll-option-interactive[data-poll-id="${a.postId}"]`).forEach(optionEl => {
-                                    optionEl.addEventListener('click', async () => {
+                                    optionEl.addEventListener('click', async (e) => {
+                                        // Prevenir que se abra el modal de post al votar
+                                        e.stopPropagation();
+                                        e.preventDefault();
+
                                         const postId = optionEl.getAttribute('data-poll-id');
                                         const option = optionEl.getAttribute('data-option');
                                         await voteInPoll(postId, option);
