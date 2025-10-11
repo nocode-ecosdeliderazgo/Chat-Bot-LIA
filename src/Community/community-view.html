@@ -2879,14 +2879,77 @@
 
             // Función para renderizar encuesta interactiva
             function renderPollInteractive(poll) {
-                // Calcular votos totales
-                const votes = poll.votes || {};
-                const totalVotes = Object.values(votes).reduce((sum, count) => sum + (parseInt(count) || 0), 0);
+                console.log('📊 [POLL RENDER] Iniciando renderizado de encuesta:', poll);
+                console.log('  - Poll ID:', poll.postId);
+                console.log('  - Question:', poll.question);
+                console.log('  - Options:', poll.options);
+                console.log('  - Votes (raw):', poll.votes);
+                console.log('  - Votes type:', typeof poll.votes);
+
+                // SANITIZAR Y VALIDAR datos de votos
+                let votes = {};
+
+                // Si votes es un objeto válido
+                if (poll.votes && typeof poll.votes === 'object' && !Array.isArray(poll.votes)) {
+                    console.log('🔍 [VOTES DEBUG] Analizando estructura de votes...');
+
+                    // Recorrer cada clave en votes
+                    Object.keys(poll.votes).forEach(key => {
+                        console.log(`  - Key: "${key}", Value:`, poll.votes[key], `Type: ${typeof poll.votes[key]}`);
+
+                        // SOLO incluir claves que sean opciones válidas de la encuesta
+                        if (poll.options.includes(key)) {
+                            const value = poll.votes[key];
+
+                            // Validar que el valor sea un número válido
+                            if (typeof value === 'number' && !isNaN(value) && value >= 0) {
+                                votes[key] = value;
+                                console.log(`    ✅ Voto válido para "${key}": ${value}`);
+                            } else if (typeof value === 'string') {
+                                const parsed = parseInt(value, 10);
+                                if (!isNaN(parsed) && parsed >= 0) {
+                                    votes[key] = parsed;
+                                    console.log(`    ✅ Voto convertido para "${key}": ${parsed}`);
+                                } else {
+                                    console.warn(`    ⚠️ Valor no válido para "${key}":`, value);
+                                    votes[key] = 0;
+                                }
+                            } else {
+                                console.warn(`    ⚠️ Tipo no válido para "${key}":`, typeof value, value);
+                                votes[key] = 0;
+                            }
+                        } else {
+                            console.warn(`    ⚠️ Key "${key}" no es una opción válida de la encuesta`);
+                        }
+                    });
+
+                    // Inicializar opciones que no tienen votos
+                    poll.options.forEach(option => {
+                        if (!(option in votes)) {
+                            votes[option] = 0;
+                            console.log(`    ℹ️ Inicializando "${option}" con 0 votos`);
+                        }
+                    });
+                } else {
+                    console.warn('⚠️ [VOTES DEBUG] votes no es un objeto válido, inicializando con 0s');
+                    // Inicializar todos con 0
+                    poll.options.forEach(option => {
+                        votes[option] = 0;
+                    });
+                }
+
+                console.log('✅ [VOTES DEBUG] Votos sanitizados:', votes);
+
+                // Calcular votos totales SOLO de las opciones válidas
+                const totalVotes = Object.values(votes).reduce((sum, count) => sum + count, 0);
+                console.log('📊 [VOTES DEBUG] Total de votos calculado:', totalVotes);
 
                 // Generar HTML de opciones con barras de progreso
                 const optionsHtml = poll.options.map((option, index) => {
                     const voteCount = votes[option] || 0;
                     const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+
+                    console.log(`  Opción ${index + 1}: "${option}" - ${voteCount} votos (${percentage}%)`);
 
                     return `
                         <div class="poll-option-interactive" data-poll-id="${poll.postId}" data-option="${option}">
@@ -2916,6 +2979,161 @@
                     </div>
                 `;
             }
+
+            // Función auxiliar para limpiar datos de encuestas corruptas
+            async function cleanCorruptedPollData(postId) {
+                try {
+                    console.log('🧹 [POLL CLEANUP] Intentando limpiar datos corruptos del post:', postId);
+
+                    // Obtener datos actuales
+                    const { data: currentPost, error: fetchError } = await window.supabase
+                        .from('community_posts')
+                        .select('attachment_data')
+                        .eq('id', postId)
+                        .single();
+
+                    if (fetchError || !currentPost) {
+                        console.error('❌ Error obteniendo post:', fetchError);
+                        return false;
+                    }
+
+                    const pollData = currentPost.attachment_data;
+                    if (!pollData || !pollData.options || !Array.isArray(pollData.options)) {
+                        console.error('❌ Datos de encuesta inválidos');
+                        return false;
+                    }
+
+                    console.log('📊 Datos actuales:', pollData);
+
+                    // Crear objeto de votos limpio basado en las opciones válidas
+                    const cleanVotes = {};
+                    pollData.options.forEach(option => {
+                        // Si existe un voto para esta opción y es válido, mantenerlo
+                        if (pollData.votes && pollData.votes[option]) {
+                            const value = pollData.votes[option];
+                            if (typeof value === 'number' && !isNaN(value) && value >= 0) {
+                                cleanVotes[option] = value;
+                            } else if (typeof value === 'string') {
+                                const parsed = parseInt(value, 10);
+                                if (!isNaN(parsed) && parsed >= 0) {
+                                    cleanVotes[option] = parsed;
+                                } else {
+                                    cleanVotes[option] = 0;
+                                }
+                            } else {
+                                cleanVotes[option] = 0;
+                            }
+                        } else {
+                            cleanVotes[option] = 0;
+                        }
+                    });
+
+                    console.log('✅ Votos limpiados:', cleanVotes);
+
+                    // Actualizar en la base de datos
+                    const cleanedPollData = {
+                        question: pollData.question,
+                        options: pollData.options,
+                        votes: cleanVotes
+                    };
+
+                    const { error: updateError } = await window.supabase
+                        .from('community_posts')
+                        .update({ attachment_data: cleanedPollData })
+                        .eq('id', postId);
+
+                    if (updateError) {
+                        console.error('❌ Error actualizando datos limpios:', updateError);
+                        return false;
+                    }
+
+                    console.log('✅ Datos de encuesta limpiados exitosamente');
+                    return true;
+
+                } catch (error) {
+                    console.error('❌ Error en cleanCorruptedPollData:', error);
+                    return false;
+                }
+            }
+
+            // Hacer función disponible globalmente para uso manual
+            window.cleanCorruptedPollData = cleanCorruptedPollData;
+
+            // Función para limpiar automáticamente TODAS las encuestas corruptas
+            async function cleanAllCorruptedPolls() {
+                try {
+                    console.log('🧹 [POLL CLEANUP] Buscando encuestas corruptas en la comunidad...');
+
+                    if (!currentCommunity) {
+                        console.warn('⚠️ No hay comunidad activa');
+                        return;
+                    }
+
+                    // Obtener TODOS los posts con encuestas
+                    const { data: pollPosts, error } = await window.supabase
+                        .from('community_posts')
+                        .select('id, attachment_data')
+                        .eq('community_id', currentCommunity.id)
+                        .eq('attachment_type', 'poll');
+
+                    if (error) {
+                        console.error('❌ Error obteniendo encuestas:', error);
+                        return;
+                    }
+
+                    if (!pollPosts || pollPosts.length === 0) {
+                        console.log('ℹ️ No hay encuestas en esta comunidad');
+                        return;
+                    }
+
+                    console.log(`📊 Encontradas ${pollPosts.length} encuestas, verificando integridad...`);
+
+                    let corruptedCount = 0;
+                    let cleanedCount = 0;
+
+                    for (const post of pollPosts) {
+                        const pollData = post.attachment_data;
+
+                        // Verificar si tiene datos corruptos
+                        if (!pollData || !pollData.votes || !pollData.options) {
+                            console.log(`⚠️ Post ${post.id}: Faltan datos básicos, omitiendo...`);
+                            continue;
+                        }
+
+                        // Verificar si hay claves extrañas en votes
+                        const voteKeys = Object.keys(pollData.votes);
+                        const invalidKeys = voteKeys.filter(key => !pollData.options.includes(key));
+
+                        if (invalidKeys.length > 0) {
+                            console.warn(`🔍 Post ${post.id}: Encontradas ${invalidKeys.length} claves inválidas:`, invalidKeys);
+                            corruptedCount++;
+
+                            // Limpiar automáticamente
+                            const cleaned = await cleanCorruptedPollData(post.id);
+                            if (cleaned) {
+                                cleanedCount++;
+                                console.log(`✅ Post ${post.id}: Datos limpiados`);
+                            }
+                        }
+                    }
+
+                    if (corruptedCount === 0) {
+                        console.log('✅ Todas las encuestas tienen datos válidos');
+                    } else {
+                        console.log(`🧹 Limpieza completada: ${cleanedCount}/${corruptedCount} encuestas limpiadas`);
+
+                        // Recargar posts para mostrar datos limpios
+                        await loadPostsFromDatabase();
+                        notifications.success(`${cleanedCount} encuestas limpiadas exitosamente`);
+                    }
+
+                } catch (error) {
+                    console.error('❌ Error en cleanAllCorruptedPolls:', error);
+                }
+            }
+
+            // Hacer función disponible globalmente
+            window.cleanAllCorruptedPolls = cleanAllCorruptedPolls;
 
             // Función para votar en encuestas
             async function voteInPoll(postId, option) {
