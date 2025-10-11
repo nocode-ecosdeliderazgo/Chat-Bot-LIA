@@ -873,6 +873,252 @@
                 font-size: 12px;
             }
         }
+
+        /* ===================================================================
+           ESTILOS PARA SISTEMA DE CONTENIDO INTERACTIVO - ACERCA DE
+           Modal de video y guideline cards clickeables
+           ================================================================ */
+
+        /* ===== MODAL DE VIDEO ===== */
+        .video-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .video-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+        }
+
+        .video-modal-content {
+            position: relative;
+            background: var(--surface);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            animation: slideUp 0.4s ease;
+        }
+
+        .video-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .video-modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .video-modal-close {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .video-modal-close:hover {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            transform: rotate(90deg);
+        }
+
+        .video-modal-body {
+            padding: 24px;
+        }
+
+        .video-player-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .video-player-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .video-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fff;
+        }
+
+        .video-loading i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .video-loading p {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .video-error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fff;
+        }
+
+        .video-error i {
+            font-size: 3rem;
+            color: #ff6b6b;
+            margin-bottom: 16px;
+        }
+
+        .video-error p {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .video-description {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ===== GUIDELINE CARDS CLICKEABLES ===== */
+        .guideline-card.clickable {
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .guideline-card.clickable:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(68, 229, 255, 0.3);
+            border-color: var(--primary-color);
+        }
+
+        .guideline-card.clickable::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .guideline-card.clickable:hover::after {
+            opacity: 1;
+        }
+
+        .card-click-hint {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .guideline-card.clickable:hover .card-click-hint {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card-click-hint i {
+            margin-right: 6px;
+            animation: bounce 2s infinite;
+        }
+
+        /* ===== ANIMACIONES ===== */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .video-modal-content {
+                width: 95%;
+                max-height: 85vh;
+            }
+
+            .video-modal-header {
+                padding: 16px;
+            }
+
+            .video-modal-header h3 {
+                font-size: 1.2rem;
+            }
+
+            .video-modal-body {
+                padding: 16px;
+            }
+
+            .video-player-wrapper {
+                padding-bottom: 75%; /* Más cuadrado en móvil */
+            }
+        }
+
+        /* FIN ESTILOS SISTEMA DE CONTENIDO INTERACTIVO */
     </style>
 </head>
 <body class="bg-glow-global">
@@ -1125,20 +1371,31 @@
                     <p class="section-subtitle">Descripción general y recursos.</p>
                 </div>
                 <div class="guidelines-grid">
-                    <div class="guideline-card">
+                    <!-- Card "Comienza aquí" - CLICKEABLE -->
+                    <div class="guideline-card clickable" data-action="show-intro-video">
                         <div class="guideline-icon"><i class="fas fa-play"></i></div>
                         <h3 class="guideline-title">Comienza aquí</h3>
                         <p class="guideline-description">Mira el video de introducción y conoce las reglas básicas.</p>
+                        <div class="card-click-hint">
+                            <i class="fas fa-hand-pointer"></i> Click para ver
+                        </div>
                     </div>
+
+                    <!-- Card "Recursos" - NO CLICKEABLE (por ahora) -->
                     <div class="guideline-card">
                         <div class="guideline-icon"><i class="fas fa-bolt"></i></div>
                         <h3 class="guideline-title">Recursos</h3>
                         <p class="guideline-description">Plantillas, guías y descuentos para acelerar tu aprendizaje.</p>
                     </div>
-                    <div class="guideline-card">
+
+                    <!-- Card "Mejora" - CLICKEABLE -->
+                    <div class="guideline-card clickable" data-action="redirect-leagues">
                         <div class="guideline-icon"><i class="fas fa-arrow-trend-up"></i></div>
                         <h3 class="guideline-title">Mejora</h3>
                         <p class="guideline-description">Sube de nivel participando y compartiendo aportes de calidad.</p>
+                        <div class="card-click-hint">
+                            <i class="fas fa-hand-pointer"></i> Click para ir a Ligas
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1576,6 +1833,224 @@
                     }
                 });
             });
+
+            // ===================================================================
+            // SISTEMA DE CONTENIDO INTERACTIVO - ACERCA DE
+            // Gestiona videos de introducción y redirección a ligas
+            // ===================================================================
+
+            // Función para obtener el slug de la comunidad actual
+            function getCurrentCommunitySlug() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('slug') || 'profesionales';
+            }
+
+            // Función para cargar video de introducción desde la base de datos
+            async function loadCommunityIntroVideo() {
+                const communitySlug = getCurrentCommunitySlug();
+
+                try {
+                    console.log('📹 Cargando video de introducción para:', communitySlug);
+
+                    // Intentar cargar desde Supabase
+                    if (window.supabase) {
+                        const { data: community, error: communityError } = await window.supabase
+                            .from('communities')
+                            .select('id')
+                            .eq('slug', communitySlug)
+                            .single();
+
+                        if (communityError) throw communityError;
+
+                        const { data: video, error: videoError } = await window.supabase
+                            .from('community_videos')
+                            .select('*')
+                            .eq('community_id', community.id)
+                            .eq('video_type', 'intro')
+                            .eq('is_active', true)
+                            .order('order_index', { ascending: true })
+                            .limit(1)
+                            .single();
+
+                        if (videoError) throw videoError;
+
+                        return video;
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Error cargando video desde BD, usando fallback:', error);
+                }
+
+                // Fallback: Video demo de YouTube
+                return {
+                    title: 'Video de Introducción a la Comunidad',
+                    description: 'Conoce cómo funciona nuestra comunidad y cómo puedes aprovechar al máximo tu experiencia.',
+                    video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                    video_provider: 'youtube',
+                    thumbnail_url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg'
+                };
+            }
+
+            // Función para construir URL de embed según el proveedor
+            function buildEmbedUrl(videoUrl, provider) {
+                if (provider === 'youtube') {
+                    // Extraer video ID de diferentes formatos de URL de YouTube
+                    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                    const match = videoUrl.match(regExp);
+                    const videoId = (match && match[2].length === 11) ? match[2] : null;
+
+                    if (videoId) {
+                        return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+                    }
+                } else if (provider === 'vimeo') {
+                    const videoId = videoUrl.split('/').pop();
+                    return `https://player.vimeo.com/video/${videoId}?autoplay=1`;
+                }
+
+                // Para videos directos, retornar la URL tal cual
+                return videoUrl;
+            }
+
+            // Función para mostrar el modal de video
+            async function showVideoModal() {
+                const modal = document.getElementById('introVideoModal');
+                const playerWrapper = document.getElementById('videoPlayerWrapper');
+                const titleElement = document.getElementById('videoModalTitle');
+                const descriptionElement = document.getElementById('videoDescription');
+
+                // Mostrar el modal con loading
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+
+                try {
+                    // Cargar datos del video
+                    const videoData = await loadCommunityIntroVideo();
+
+                    // Actualizar título y descripción
+                    titleElement.textContent = videoData.title;
+                    descriptionElement.textContent = videoData.description || '';
+
+                    // Construir URL de embed
+                    const embedUrl = buildEmbedUrl(videoData.video_url, videoData.video_provider);
+
+                    // Crear iframe del video
+                    const iframe = document.createElement('iframe');
+                    iframe.src = embedUrl;
+                    iframe.setAttribute('frameborder', '0');
+                    iframe.setAttribute('allowfullscreen', '');
+                    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+                    iframe.style.width = '100%';
+                    iframe.style.height = '100%';
+
+                    // Limpiar wrapper e insertar iframe
+                    playerWrapper.innerHTML = '';
+                    playerWrapper.appendChild(iframe);
+
+                    console.log('✅ Video modal mostrado correctamente');
+
+                } catch (error) {
+                    console.error('❌ Error mostrando video modal:', error);
+                    playerWrapper.innerHTML = `
+                        <div class="video-error">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error cargando el video. Por favor, intenta de nuevo más tarde.</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // Función para cerrar el modal de video
+            function closeVideoModal() {
+                const modal = document.getElementById('introVideoModal');
+                const playerWrapper = document.getElementById('videoPlayerWrapper');
+
+                // Ocultar modal
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+
+                // Limpiar contenido del player para detener el video
+                playerWrapper.innerHTML = `
+                    <div class="video-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando video...</p>
+                    </div>
+                `;
+
+                console.log('ℹ️ Video modal cerrado');
+            }
+
+            // Función para redireccionar a la pestaña de Ligas
+            function redirectToLeaguesTab() {
+                console.log('🏆 Redireccionando a pestaña de Ligas...');
+
+                // Remover clase active de todos los tabs
+                document.querySelectorAll('.subnav-link').forEach(btn => btn.classList.remove('active'));
+
+                // Activar tab de Ligas
+                const leaguesTab = document.querySelector('[data-tab="leagues"]');
+                if (leaguesTab) {
+                    leaguesTab.classList.add('active');
+                }
+
+                // Ocultar todas las secciones
+                document.querySelectorAll('main > section').forEach(s => s.style.display = 'none');
+
+                // Mostrar sección de Ligas
+                const leaguesSection = document.getElementById('tab-leagues');
+                if (leaguesSection) {
+                    leaguesSection.style.display = 'block';
+
+                    // Scroll suave a la parte superior
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                    console.log('✅ Redireccionado a Ligas exitosamente');
+                } else {
+                    console.error('❌ Sección de Ligas no encontrada');
+                }
+            }
+
+            // Event Listeners para las guideline-cards
+            document.addEventListener('DOMContentLoaded', () => {
+                // Listener para cards clickeables
+                document.querySelectorAll('.guideline-card.clickable').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const action = card.getAttribute('data-action');
+
+                        if (action === 'show-intro-video') {
+                            showVideoModal();
+                        } else if (action === 'redirect-leagues') {
+                            redirectToLeaguesTab();
+                        }
+                    });
+
+                    // Agregar efecto hover
+                    card.style.cursor = 'pointer';
+                });
+
+                // Listener para cerrar modal de video
+                const closeModalBtn = document.getElementById('closeVideoModal');
+                if (closeModalBtn) {
+                    closeModalBtn.addEventListener('click', closeVideoModal);
+                }
+
+                const modalOverlay = document.getElementById('videoModalOverlay');
+                if (modalOverlay) {
+                    modalOverlay.addEventListener('click', closeVideoModal);
+                }
+
+                // Cerrar modal con tecla ESC
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        const modal = document.getElementById('introVideoModal');
+                        if (modal && modal.style.display === 'flex') {
+                            closeVideoModal();
+                        }
+                    }
+                });
+            });
+
+            // FIN SISTEMA DE CONTENIDO INTERACTIVO
+            // ===================================================================
+
                          // Feed mock con persistencia
              let posts = [];
              
@@ -9507,7 +9982,32 @@
 
         </div>
     </div>
-            
+
+    <!-- ===================================================================
+         MODAL DE VIDEO DE INTRODUCCIÓN
+         Muestra videos desde la base de datos (tabla community_videos)
+         ================================================================ -->
+    <div class="video-modal" id="introVideoModal" style="display: none;">
+        <div class="video-modal-overlay" id="videoModalOverlay"></div>
+        <div class="video-modal-content">
+            <div class="video-modal-header">
+                <h3 id="videoModalTitle">Video de Introducción</h3>
+                <button class="video-modal-close" id="closeVideoModal" aria-label="Cerrar modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="video-modal-body">
+                <div class="video-player-wrapper" id="videoPlayerWrapper">
+                    <!-- El iframe del video se insertará aquí dinámicamente -->
+                    <div class="video-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando video...</p>
+                    </div>
+                </div>
+                <div class="video-description" id="videoDescription"></div>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>
