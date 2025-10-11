@@ -808,6 +808,18 @@
             box-shadow: 0 4px 12px rgba(68, 229, 255, 0.2);
         }
 
+        /* Estilos para opción votada por el usuario */
+        .poll-option-interactive.user-voted {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.15), rgba(68, 229, 255, 0.05));
+            box-shadow: 0 2px 8px rgba(68, 229, 255, 0.3);
+        }
+
+        .poll-option-interactive.user-voted:hover {
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.2), rgba(68, 229, 255, 0.08));
+            box-shadow: 0 4px 12px rgba(68, 229, 255, 0.4);
+        }
+
         .poll-option-content {
             display: flex;
             justify-content: space-between;
@@ -857,6 +869,19 @@
             font-size: 14px;
             color: var(--text-secondary);
             font-weight: 500;
+        }
+
+        .poll-user-hint {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .poll-user-hint i {
+            color: var(--primary-color);
         }
 
         /* Responsive para encuestas */
@@ -3343,23 +3368,53 @@
                     if(a.type==='link') return `<div class="post-link-container"><a href='${a.url}' target='_blank' class='attachment-link'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a></div>`;
                     if(a.type==='poll') {
                         console.log('📊 [RENDER] Renderizando encuesta:', a);
-                        const pollHtml = renderPollInteractive(a);
-                        console.log('  - HTML generado:', pollHtml.substring(0, 100) + '...');
-                        return pollHtml;
+                        // Nota: renderPollInteractive es async, pero no podemos usar await en map
+                        // La encuesta se renderizará y luego se actualizará con el voto del usuario
+                        const placeholderId = `poll-placeholder-${a.postId}`;
+                        // Renderizar la encuesta de forma asíncrona después de que se inserte el placeholder
+                        setTimeout(async () => {
+                            const placeholder = document.getElementById(placeholderId);
+                            if (placeholder) {
+                                const pollHtml = await renderPollInteractive(a);
+                                placeholder.outerHTML = pollHtml;
+
+                                // Re-agregar event listeners para votación
+                                document.querySelectorAll(`.poll-option-interactive[data-poll-id="${a.postId}"]`).forEach(optionEl => {
+                                    optionEl.addEventListener('click', async () => {
+                                        const postId = optionEl.getAttribute('data-poll-id');
+                                        const option = optionEl.getAttribute('data-option');
+                                        await voteInPoll(postId, option);
+                                    });
+                                });
+                            }
+                        }, 100);
+                        return `<div id="${placeholderId}" class="poll-placeholder" data-poll-id="${a.postId}"><div style="text-align: center; padding: 20px; color: var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Cargando encuesta...</div></div>`;
                     }
                     console.warn('⚠️ [RENDER] Tipo de attachment desconocido:', a.type);
                     return '';
                 }).join('');
             }
 
-            // Función para renderizar encuesta interactiva
-            function renderPollInteractive(poll) {
+            // Función para renderizar encuesta interactiva (MEJORADA: muestra voto del usuario)
+            async function renderPollInteractive(poll) {
                 console.log('📊 [POLL RENDER] Iniciando renderizado de encuesta:', poll);
                 console.log('  - Poll ID:', poll.postId);
                 console.log('  - Question:', poll.question);
                 console.log('  - Options:', poll.options);
                 console.log('  - Votes (raw):', poll.votes);
                 console.log('  - Votes type:', typeof poll.votes);
+
+                // Obtener el voto del usuario actual
+                let userVote = null;
+                try {
+                    const userResult = await getCurrentUserForCommunity();
+                    if (userResult.id) {
+                        userVote = await getUserPollVote(poll.postId, userResult.id);
+                        console.log('📊 [POLL RENDER] Voto del usuario:', userVote);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Error obteniendo voto del usuario:', error);
+                }
 
                 // SANITIZAR Y VALIDAR datos de votos
                 let votes = {};
@@ -3423,13 +3478,17 @@
                 const optionsHtml = poll.options.map((option, index) => {
                     const voteCount = votes[option] || 0;
                     const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+                    const isUserVoted = userVote === option;
 
-                    console.log(`  Opción ${index + 1}: "${option}" - ${voteCount} votos (${percentage}%)`);
+                    console.log(`  Opción ${index + 1}: "${option}" - ${voteCount} votos (${percentage}%)${isUserVoted ? ' [VOTADA]' : ''}`);
 
                     return `
-                        <div class="poll-option-interactive" data-poll-id="${poll.postId}" data-option="${option}">
+                        <div class="poll-option-interactive ${isUserVoted ? 'user-voted' : ''}" data-poll-id="${poll.postId}" data-option="${option}">
                             <div class="poll-option-content">
-                                <span class="poll-option-text">${option}</span>
+                                <span class="poll-option-text">
+                                    ${isUserVoted ? '<i class="fas fa-check-circle" style="color: var(--primary-color); margin-right: 8px;"></i>' : ''}
+                                    ${option}
+                                </span>
                                 <span class="poll-option-votes">${voteCount} votos (${percentage}%)</span>
                             </div>
                             <div class="poll-progress-bar">
@@ -3450,6 +3509,7 @@
                         </div>
                         <div class="poll-footer">
                             <span class="poll-total-votes">${totalVotes} votos totales</span>
+                            ${userVote ? `<span class="poll-user-hint"><i class="fas fa-info-circle"></i> Haz click en tu voto para cancelarlo o en otra opción para cambiar</span>` : ''}
                         </div>
                     </div>
                 `;
@@ -3610,7 +3670,104 @@
             // Hacer función disponible globalmente
             window.cleanAllCorruptedPolls = cleanAllCorruptedPolls;
 
-            // Función para votar en encuestas
+            // Función para obtener el voto del usuario en una encuesta específica
+            async function getUserPollVote(postId, userId) {
+                try {
+                    const voteKey = `poll_vote_${postId}_${userId}`;
+
+                    // Primero intentar obtener desde localStorage
+                    const localVote = localStorage.getItem(voteKey);
+                    if (localVote) {
+                        console.log('📊 [POLL] Voto encontrado en localStorage:', localVote);
+                        return localVote;
+                    }
+
+                    // Si hay Supabase, intentar obtener desde base de datos
+                    if (window.supabase) {
+                        const { data, error } = await window.supabase
+                            .from('community_poll_votes')
+                            .select('option')
+                            .eq('post_id', postId)
+                            .eq('user_id', userId)
+                            .maybeSingle();
+
+                        if (!error && data) {
+                            // Guardar en localStorage para cache
+                            localStorage.setItem(voteKey, data.option);
+                            console.log('📊 [POLL] Voto encontrado en BD:', data.option);
+                            return data.option;
+                        }
+                    }
+
+                    return null;
+                } catch (error) {
+                    console.warn('⚠️ Error obteniendo voto del usuario:', error);
+                    return null;
+                }
+            }
+
+            // Función para guardar el voto del usuario
+            async function saveUserPollVote(postId, userId, option) {
+                try {
+                    const voteKey = `poll_vote_${postId}_${userId}`;
+
+                    // Guardar en localStorage
+                    localStorage.setItem(voteKey, option);
+                    console.log('📊 [POLL] Voto guardado en localStorage:', option);
+
+                    // Si hay Supabase, guardar también en BD
+                    if (window.supabase) {
+                        // Usar upsert para insertar o actualizar
+                        const { error } = await window.supabase
+                            .from('community_poll_votes')
+                            .upsert({
+                                post_id: postId,
+                                user_id: userId,
+                                option: option
+                            }, {
+                                onConflict: 'post_id,user_id'
+                            });
+
+                        if (error) {
+                            console.warn('⚠️ Error guardando voto en BD:', error);
+                        } else {
+                            console.log('📊 [POLL] Voto guardado en BD exitosamente');
+                        }
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Error guardando voto del usuario:', error);
+                }
+            }
+
+            // Función para eliminar el voto del usuario
+            async function removeUserPollVote(postId, userId) {
+                try {
+                    const voteKey = `poll_vote_${postId}_${userId}`;
+
+                    // Eliminar de localStorage
+                    localStorage.removeItem(voteKey);
+                    console.log('📊 [POLL] Voto eliminado de localStorage');
+
+                    // Si hay Supabase, eliminar también de BD
+                    if (window.supabase) {
+                        const { error } = await window.supabase
+                            .from('community_poll_votes')
+                            .delete()
+                            .eq('post_id', postId)
+                            .eq('user_id', userId);
+
+                        if (error) {
+                            console.warn('⚠️ Error eliminando voto en BD:', error);
+                        } else {
+                            console.log('📊 [POLL] Voto eliminado de BD exitosamente');
+                        }
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Error eliminando voto del usuario:', error);
+                }
+            }
+
+            // Función para votar en encuestas (MEJORADA: permitir cambiar y cancelar voto)
             async function voteInPoll(postId, option) {
                 try {
                     console.log('🗳️ [POLL] Iniciando votación en encuesta:', { postId, option });
@@ -3629,6 +3786,10 @@
                         return;
                     }
 
+                    // Obtener el voto anterior del usuario (si existe)
+                    const previousVote = await getUserPollVote(postId, userResult.id);
+                    console.log('📊 [POLL] Voto anterior del usuario:', previousVote);
+
                     // Obtener datos actuales de la encuesta desde la base de datos
                     const { data: currentPost, error: fetchError } = await window.supabase
                         .from('community_posts')
@@ -3645,8 +3806,45 @@
                     const pollData = currentPost.attachment_data || { votes: {} };
                     const votes = pollData.votes || {};
 
-                    // Incrementar el contador de votos para la opción seleccionada
-                    votes[option] = (parseInt(votes[option]) || 0) + 1;
+                    // CASO 1: Usuario hace click en la opción que ya votó (CANCELAR VOTO)
+                    if (previousVote === option) {
+                        console.log('🗳️ [POLL] Cancelando voto en:', option);
+
+                        // Decrementar el contador de la opción
+                        votes[option] = Math.max(0, (parseInt(votes[option]) || 0) - 1);
+
+                        // Eliminar el registro del voto del usuario
+                        await removeUserPollVote(postId, userResult.id);
+
+                        notifications.info('Voto cancelado');
+                    }
+                    // CASO 2: Usuario hace click en una opción diferente (CAMBIAR VOTO)
+                    else if (previousVote) {
+                        console.log('🗳️ [POLL] Cambiando voto de:', previousVote, 'a:', option);
+
+                        // Decrementar el contador de la opción anterior
+                        votes[previousVote] = Math.max(0, (parseInt(votes[previousVote]) || 0) - 1);
+
+                        // Incrementar el contador de la nueva opción
+                        votes[option] = (parseInt(votes[option]) || 0) + 1;
+
+                        // Actualizar el registro del voto del usuario
+                        await saveUserPollVote(postId, userResult.id, option);
+
+                        notifications.success(`Voto cambiado a: ${option}`);
+                    }
+                    // CASO 3: Usuario vota por primera vez (NUEVO VOTO)
+                    else {
+                        console.log('🗳️ [POLL] Nuevo voto en:', option);
+
+                        // Incrementar el contador de votos para la opción seleccionada
+                        votes[option] = (parseInt(votes[option]) || 0) + 1;
+
+                        // Guardar el registro del voto del usuario
+                        await saveUserPollVote(postId, userResult.id, option);
+
+                        notifications.success(`Votaste por: ${option}`);
+                    }
 
                     // Actualizar attachment_data en la base de datos
                     const updatedPollData = {
@@ -3666,7 +3864,6 @@
                     }
 
                     console.log('✅ Voto registrado exitosamente');
-                    notifications.success(`Votaste por: ${option}`);
 
                     // Recargar posts para mostrar resultados actualizados
                     await loadPostsFromDatabase();
