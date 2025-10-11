@@ -387,7 +387,7 @@
     </div> <!-- Cierre del auth-container -->
 
     <script src="scripts/main.js"></script>
-    <script src="scripts/hybrid-progress-manager.js"></script>
+    <script src="scripts/hybrid-progress-manager.js?v=2.0"></script>
     <script src="scripts/dynamic-course-loader.js"></script>
     <script src="scripts/courses.js"></script>
     <script src="scripts/profile-avatar-manager.js"></script>
@@ -446,8 +446,8 @@
                     // Buscar en múltiples claves posibles
                     const possibleKeys = [
                         this.storagePrefix + this.courseId, // courseProgress_intro-to-ai
-                        'courseProgress_chatgpt-gemini',    // Clave usada en chat-online
-                        'courseProgress_chatgpt-gemini-course', // Variante
+                        'courseProgress_intro-to-ai',    // Clave usada en chat-online
+                        'courseProgress_intro-to-ai', // Variante
                         'lessonProgress'                    // Clave usada en module1-videos-loader
                     ];
 
@@ -503,7 +503,7 @@
 
                 console.log('📊 Calculando progreso desde:', progressData);
 
-                // Formato de chat-online.html (courseProgress_chatgpt-gemini)
+                // Formato de chat-online.html (courseProgress_intro-to-ai)
                 if (progressData.percentage !== undefined) {
                     console.log(`📊 Progreso directo: ${progressData.percentage}%`);
                     return progressData.percentage;
@@ -553,7 +553,7 @@
                     if (!courseCard) {
                         const possibleIds = [
                             'course-chatgpt-gemini-productividad',
-                            'course-chatgpt-gemini-course',
+                            'course-intro-to-ai',
                             'course-550e8400-e29b-41d4-a716-446655440001'
                         ];
                         
@@ -863,19 +863,19 @@
         // Función para simular progreso (solo para testing)
         window.simulateProgress = function(percentage = 50) {
             const progressData = {
-                courseId: 'chatgpt-gemini-course',
+                courseId: 'intro-to-ai',
                 completedVideos: Math.floor(percentage / 5),
                 totalVideos: 20,
                 percentage: percentage,
                 lastUpdated: new Date().toISOString()
             };
             
-            localStorage.setItem('courseProgress_chatgpt-gemini', JSON.stringify(progressData));
+            localStorage.setItem('courseProgress_intro-to-ai', JSON.stringify(progressData));
             
             // Emitir evento
             window.dispatchEvent(new CustomEvent('courseProgressUpdated', {
                 detail: {
-                    courseId: 'chatgpt-gemini-course',
+                    courseId: 'intro-to-ai',
                     progress: progressData,
                     source: 'debug'
                 }
@@ -886,7 +886,7 @@
 
         // Función para ver el progreso actual
         window.showCurrentProgress = function() {
-            const keys = ['courseProgress_chatgpt-gemini', 'courseProgress_intro-to-ai', 'lessonProgress'];
+            const keys = ['courseProgress_intro-to-ai', 'lessonProgress'];
             console.log('📊 === PROGRESO ACTUAL ===');
             
             keys.forEach(key => {
@@ -912,14 +912,14 @@
             
             // Simular progreso en localStorage
             const progressData = {
-                courseId: 'chatgpt-gemini-course',
+                courseId: 'intro-to-ai',
                 completedVideos: 8,
                 totalVideos: 20,
                 percentage: 40,
                 lastUpdated: new Date().toISOString()
             };
             
-            localStorage.setItem('courseProgress_chatgpt-gemini', JSON.stringify(progressData));
+            localStorage.setItem('courseProgress_intro-to-ai', JSON.stringify(progressData));
             console.log('💾 Progreso simulado guardado en localStorage');
             
             // Recargar progreso (debería usar solo localStorage)
@@ -943,7 +943,7 @@
             console.log('🧹 === LIMPIANDO Y PROBANDO DESDE CERO ===');
             
             // Limpiar localStorage
-            const keys = ['courseProgress_chatgpt-gemini', 'courseProgress_intro-to-ai', 'lessonProgress'];
+            const keys = ['courseProgress_intro-to-ai', 'lessonProgress'];
             keys.forEach(key => localStorage.removeItem(key));
             console.log('🗑️ localStorage limpiado');
             

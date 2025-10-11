@@ -6788,6 +6788,37 @@ app.get('/api/progress/sync', async (req, res) => {
 
         await client.query('BEGIN');
 
+        // Obtener el ID real del curso desde la tabla courses
+        let actualCourseId = null;
+        if (courseId === 'intro-to-ai' || courseId === 'chatgpt-gemini') {
+            // Buscar curso por slug o título
+            const courseQuery = await client.query(`
+                SELECT id FROM courses 
+                WHERE slug = 'introduccion-a-la-ia' OR title ILIKE '%introducción%' OR title ILIKE '%inteligencia artificial%'
+                LIMIT 1
+            `);
+            if (courseQuery.rows.length > 0) {
+                actualCourseId = courseQuery.rows[0].id;
+                console.log(`✅ ID real del curso encontrado: ${actualCourseId}`);
+            }
+        } else if (courseId === 'intro-to-ai') {
+            // Buscar curso por slug
+            const courseQuery = await client.query(`
+                SELECT id FROM courses 
+                WHERE slug = 'introduccion-a-la-ia' OR title ILIKE '%introducción%'
+                LIMIT 1
+            `);
+            if (courseQuery.rows.length > 0) {
+                actualCourseId = courseQuery.rows[0].id;
+                console.log(`✅ ID real del curso encontrado: ${actualCourseId}`);
+            }
+        }
+
+        if (!actualCourseId) {
+            console.log(`⚠️ No se encontró curso para identifier: ${courseId}`);
+            return res.status(400).json({ success: false, error: 'Curso no encontrado' });
+        }
+
         // Obtener o crear progreso
         let { rows } = await client.query(
             'SELECT * FROM course_progress WHERE user_id = $1 AND course_identifier = $2',
@@ -6796,14 +6827,6 @@ app.get('/api/progress/sync', async (req, res) => {
 
         if (rows.length === 0) {
             console.log(`📝 Creando progreso inicial para ${userId}`);
-
-            // Mapeo de course_identifier a course_id UUID
-            const courseIdMap = {
-                'intro-to-ai': '550e8400-e29b-41d4-a716-446655440001',
-                'chatgpt-gemini': '550e8400-e29b-41d4-a716-446655440001' // Usando el mismo por ahora
-            };
-
-            const actualCourseId = courseIdMap[courseId] || null;
 
             const { rows: newRows } = await client.query(`
                 INSERT INTO course_progress (id, user_id, course_id, course_identifier, overall_progress_percentage, status, started_at, created_at, updated_at)
@@ -6903,6 +6926,37 @@ app.post('/api/progress/sync', async (req, res) => {
 
         await client.query('BEGIN');
 
+        // Obtener el ID real del curso desde la tabla courses
+        let actualCourseId = null;
+        if (courseId === 'intro-to-ai' || courseId === 'chatgpt-gemini') {
+            // Buscar curso por slug o título
+            const courseQuery = await client.query(`
+                SELECT id FROM courses 
+                WHERE slug = 'introduccion-a-la-ia' OR title ILIKE '%introducción%' OR title ILIKE '%inteligencia artificial%'
+                LIMIT 1
+            `);
+            if (courseQuery.rows.length > 0) {
+                actualCourseId = courseQuery.rows[0].id;
+                console.log(`✅ ID real del curso encontrado: ${actualCourseId}`);
+            }
+        } else if (courseId === 'intro-to-ai') {
+            // Buscar curso por slug
+            const courseQuery = await client.query(`
+                SELECT id FROM courses 
+                WHERE slug = 'introduccion-a-la-ia' OR title ILIKE '%introducción%'
+                LIMIT 1
+            `);
+            if (courseQuery.rows.length > 0) {
+                actualCourseId = courseQuery.rows[0].id;
+                console.log(`✅ ID real del curso encontrado: ${actualCourseId}`);
+            }
+        }
+
+        if (!actualCourseId) {
+            console.log(`⚠️ No se encontró curso para identifier: ${courseId}`);
+            return res.status(400).json({ success: false, error: 'Curso no encontrado' });
+        }
+
         // Obtener o crear progreso del curso
         let { rows } = await client.query(
             'SELECT * FROM course_progress WHERE user_id = $1 AND course_identifier = $2',
@@ -6910,13 +6964,6 @@ app.post('/api/progress/sync', async (req, res) => {
         );
 
         if (rows.length === 0) {
-            // Mapeo de course_identifier a course_id UUID
-            const courseIdMap = {
-                'intro-to-ai': '550e8400-e29b-41d4-a716-446655440001',
-                'chatgpt-gemini': '550e8400-e29b-41d4-a716-446655440001' // Usando el mismo por ahora
-            };
-
-            const actualCourseId = courseIdMap[courseId] || null;
 
             const { rows: newRows } = await client.query(`
                 INSERT INTO course_progress (id, user_id, course_id, course_identifier, overall_progress_percentage, status, started_at, created_at, updated_at)
@@ -6982,22 +7029,61 @@ app.post('/api/progress/sync', async (req, res) => {
             }
         }
 
-        // Recalcular progreso general
+        // Actualizar progreso general con el porcentaje enviado
+        const overallProgress = progressData.overall_progress_percentage || 0;
+        console.log(`📊 Progreso recibido: ${overallProgress}%`);
+        console.log(`📊 Datos completos recibidos:`, JSON.stringify(progressData, null, 2));
+        
+        let newStatus = 'not_started';
+        
+        // Determinar status basado en el progreso
+        if (overallProgress >= 100) {
+            newStatus = 'completed';
+        } else if (overallProgress > 0) {
+            newStatus = 'in_progress';
+        }
+        
+        console.log(`📊 Nuevo status calculado: ${newStatus}`);
+        
+        // Obtener status actual para no sobrescribir si ya está en 'in_progress'
+        const currentStatusQuery = await client.query(
+            'SELECT status FROM course_progress WHERE id = $1 AND user_id = $2',
+            [courseProgressId, userId]
+        );
+        
+        const currentStatus = currentStatusQuery.rows[0]?.status || 'not_started';
+        console.log(`📊 Status actual en BD: ${currentStatus}`);
+        
+        // Solo actualizar status si es necesario
+        let finalStatus = currentStatus;
+        if (currentStatus === 'not_started' && newStatus === 'in_progress') {
+            finalStatus = 'in_progress';
+        } else if (newStatus === 'completed') {
+            finalStatus = 'completed';
+        }
+        
+        console.log(`📊 Status final a guardar: ${finalStatus}`);
+        
         await client.query(`
-            WITH module_stats AS (
-                SELECT COUNT(*) as total_modules, COUNT(*) FILTER (WHERE status = 'completed') as completed_modules, AVG(video_progress_percentage) as avg_progress
-                FROM module_progress WHERE course_progress_id = $1 AND user_id = $2
-            )
-            UPDATE course_progress cp
-            SET overall_progress_percentage = COALESCE((SELECT ROUND(avg_progress) FROM module_stats), 0),
-                status = CASE
-                    WHEN (SELECT completed_modules FROM module_stats) = (SELECT total_modules FROM module_stats) AND (SELECT total_modules FROM module_stats) > 0 THEN 'completed'
-                    WHEN (SELECT avg_progress FROM module_stats) > 0 THEN 'in_progress'
-                    ELSE 'not_started'
-                END,
-                last_accessed_at = NOW(), updated_at = NOW()
+            UPDATE course_progress 
+            SET overall_progress_percentage = $3,
+                status = $4,
+                last_accessed_at = NOW(), 
+                updated_at = NOW(),
+                completed_at = CASE WHEN $4 = 'completed' AND completed_at IS NULL THEN NOW() ELSE completed_at END
             WHERE id = $1 AND user_id = $2
-        `, [courseProgressId, userId]);
+        `, [courseProgressId, userId, overallProgress, finalStatus]);
+        
+        console.log(`✅ Progreso actualizado en BD: ${overallProgress}% - Status: ${finalStatus}`);
+        
+        // Verificar que se guardó correctamente
+        const verifyQuery = await client.query(
+            'SELECT overall_progress_percentage, status FROM course_progress WHERE id = $1 AND user_id = $2',
+            [courseProgressId, userId]
+        );
+        if (verifyQuery.rows.length > 0) {
+            console.log(`✅ Verificación BD: ${verifyQuery.rows[0].overall_progress_percentage}% - ${verifyQuery.rows[0].status}`);
+        }
 
         // Obtener progreso actualizado
         const { rows: fullProgress } = await client.query(`

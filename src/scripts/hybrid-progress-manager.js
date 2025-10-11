@@ -11,7 +11,7 @@ class HybridProgressManager {
         this.syncInProgress = false;
         this.isOnline = navigator.onLine;
         this.lastSyncTime = null;
-        this.syncInterval = 10 * 60 * 1000; // 10 minutos
+        this.syncInterval = 30 * 1000; // 30 segundos
         this.eventListeners = new Map();
 
         // Monitorear conexión
@@ -62,8 +62,8 @@ class HybridProgressManager {
             // Buscar en múltiples claves posibles
             const possibleKeys = [
                 this.storagePrefix + this.courseId, // courseProgress_intro-to-ai
-                'courseProgress_chatgpt-gemini',    // Clave usada en chat-online
-                'courseProgress_chatgpt-gemini-course', // Variante
+                'courseProgress_intro-to-ai',    // Clave usada en chat-online
+                'courseProgress_intro-to-ai', // Variante
                 'lessonProgress'                    // Clave usada en module1-videos-loader
             ];
 
@@ -110,7 +110,7 @@ class HybridProgressManager {
 
         console.log('📊 Calculando progreso desde:', progressData);
 
-        // Formato de chat-online.html (courseProgress_chatgpt-gemini)
+        // Formato de chat-online.html (courseProgress_intro-to-ai)
         if (progressData.percentage !== undefined) {
             console.log(`📊 Progreso directo: ${progressData.percentage}%`);
             return progressData.percentage;
@@ -173,8 +173,11 @@ class HybridProgressManager {
             });
 
             // Intentar sincronizar con BD en background
-            if (this.isOnline && this.shouldSync()) {
-                this.syncWithDatabase();
+            if (this.isOnline) {
+                // Sincronizar inmediatamente si es la primera vez o si han pasado 30 segundos
+                if (this.shouldSync()) {
+                    this.syncWithDatabase(progressData);
+                }
             }
 
             return true;
@@ -185,7 +188,7 @@ class HybridProgressManager {
     }
 
     // Sincronizar con base de datos
-    async syncWithDatabase() {
+    async syncWithDatabase(localProgressData = null) {
         if (this.syncInProgress || !this.isOnline) return;
 
         this.syncInProgress = true;
@@ -204,11 +207,27 @@ class HybridProgressManager {
 
             console.log(`👤 Sincronizando para usuario: ${userId}`);
             
+            // Obtener datos locales para enviar
+            const progressToSync = localProgressData || this.loadFromLocalStorage();
+            
+            if (!progressToSync) {
+                console.log('⚠️ No hay datos locales para sincronizar');
+                this.emit('syncError', { error: 'No hay datos para sincronizar' });
+                return;
+            }
+
+            // Preparar datos para enviar a BD
+            const syncData = this.prepareDataForSync(progressToSync);
+            console.log('📤 Enviando datos a BD:', syncData);
+
+            // Usar POST para enviar datos actualizados
             const response = await fetch(`/api/progress/sync?courseId=${this.courseId}`, {
-                method: 'GET',
+                method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-User-Id': userId
-                }
+                },
+                body: JSON.stringify(syncData)
             });
 
             if (response.ok) {
@@ -216,9 +235,9 @@ class HybridProgressManager {
                 console.log('📡 Respuesta de BD recibida:', data);
 
                 if (data.success && data.progress) {
-                    console.log('✅ Datos de BD válidos, actualizando localStorage...');
+                    console.log('✅ Datos sincronizados exitosamente con BD');
                     
-                    // Actualizar localStorage con datos de BD
+                    // Actualizar localStorage con datos de BD (por si hay cambios)
                     const storageData = {
                         version: '2.0',
                         data: data.progress,
@@ -257,6 +276,93 @@ class HybridProgressManager {
             this.syncInProgress = false;
             console.log('🏁 Sincronización finalizada');
         }
+    }
+
+    // Preparar datos para sincronización con BD
+    prepareDataForSync(progressData) {
+        console.log('🔄 Preparando datos para sincronización:', progressData);
+
+        // Formato de chat-online.html (courseProgress_intro-to-ai)
+        if (progressData.percentage !== undefined) {
+            console.log('📊 Formato chat-online detectado');
+            
+            // Convertir a formato de módulos para BD
+            const modules = [];
+            const totalVideos = progressData.totalVideos || 18;
+            const completedVideos = progressData.completedVideos || 0;
+            
+            // Crear módulos basados en el progreso
+            for (let i = 1; i <= Math.ceil(totalVideos / 3); i++) {
+                const moduleStart = (i - 1) * 3 + 1;
+                const moduleEnd = Math.min(i * 3, totalVideos);
+                const moduleCompleted = completedVideos >= moduleEnd;
+                const moduleProgress = moduleCompleted ? 100 : Math.max(0, Math.min(100, ((completedVideos - moduleStart + 1) / (moduleEnd - moduleStart + 1)) * 100));
+                
+                modules.push({
+                    module_number: i,
+                    module_identifier: `module_${i}`,
+                    video_progress_percentage: Math.round(moduleProgress),
+                    video_completed: moduleCompleted,
+                    status: moduleCompleted ? 'completed' : (moduleProgress > 0 ? 'in_progress' : 'not_started')
+                });
+            }
+            
+            return {
+                overall_progress_percentage: progressData.percentage,
+                modules: modules
+            };
+        }
+
+        // Formato de lessonProgress (module1-videos-loader)
+        if (typeof progressData === 'object' && !Array.isArray(progressData)) {
+            console.log('📊 Formato lessonProgress detectado');
+            
+            const lessons = Object.values(progressData);
+            const completedLessons = lessons.filter(lesson => lesson.completed).length;
+            const totalLessons = lessons.length;
+            const percentage = Math.round((completedLessons / totalLessons) * 100);
+            
+            // Agrupar lecciones en módulos
+            const modules = [];
+            const lessonsPerModule = 3;
+            
+            for (let i = 0; i < Math.ceil(totalLessons / lessonsPerModule); i++) {
+                const moduleStart = i * lessonsPerModule;
+                const moduleEnd = Math.min((i + 1) * lessonsPerModule, totalLessons);
+                const moduleLessons = lessons.slice(moduleStart, moduleEnd);
+                const moduleCompleted = moduleLessons.every(lesson => lesson.completed);
+                const moduleProgress = moduleCompleted ? 100 : Math.round((moduleLessons.filter(l => l.completed).length / moduleLessons.length) * 100);
+                
+                modules.push({
+                    module_number: i + 1,
+                    module_identifier: `module_${i + 1}`,
+                    video_progress_percentage: moduleProgress,
+                    video_completed: moduleCompleted,
+                    status: moduleCompleted ? 'completed' : (moduleProgress > 0 ? 'in_progress' : 'not_started')
+                });
+            }
+            
+            return {
+                overall_progress_percentage: percentage,
+                modules: modules
+            };
+        }
+
+        // Formato con modules array
+        if (progressData.modules && Array.isArray(progressData.modules)) {
+            console.log('📊 Formato modules detectado');
+            return {
+                overall_progress_percentage: progressData.overall_progress_percentage || 0,
+                modules: progressData.modules
+            };
+        }
+
+        // Formato por defecto
+        console.log('📊 Formato por defecto');
+        return {
+            overall_progress_percentage: 0,
+            modules: []
+        };
     }
 
     // Obtener ID del usuario
@@ -319,6 +425,17 @@ class HybridProgressManager {
         } else {
             console.log('📴 Sin conexión - usando solo datos locales');
         }
+    }
+
+    // Sincronización inmediata (para eventos como clicks en checkboxes)
+    async forceSync(progressData = null) {
+        console.log('🚀 Forzando sincronización inmediata...');
+        
+        // Resetear tiempo de última sincronización para forzar sync
+        this.lastSyncTime = null;
+        
+        // Sincronizar inmediatamente
+        await this.syncWithDatabase(progressData);
     }
 
     // Obtener estado de sincronización

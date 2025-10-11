@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Sistema Híbrido de Progreso</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .status-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-section h2 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .status-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .status-card .label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .status-card .value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .status-card.online {
+            border-left-color: #22c55e;
+        }
+
+        .status-card.offline {
+            border-left-color: #ef4444;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+        }
+
+        .test-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #22c55e;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-info {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .log-section {
+            background: #1e1e1e;
+            color: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry.success {
+            color: #22c55e;
+        }
+
+        .log-entry.error {
+            color: #ef4444;
+        }
+
+        .log-entry.warning {
+            color: #f59e0b;
+        }
+
+        .log-entry.info {
+            color: #3b82f6;
+        }
+
+        .progress-demo {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+            margin-top: 15px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background: #e5e7eb;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.6s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .syncing {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test - Sistema Híbrido de Progreso</h1>
+        <p class="subtitle">Prueba de sincronización localStorage + Base de Datos con retry logic y cola de sincronización</p>
+
+        <!-- Estado del Sistema -->
+        <div class="status-section">
+            <h2>📊 Estado del Sistema</h2>
+            <div class="status-grid">
+                <div class="status-card" id="onlineStatus">
+                    <div class="label">Conexión</div>
+                    <div class="value" id="connectionStatus">-</div>
+                </div>
+                <div class="status-card">
+                    <div class="label">Cola de Sync</div>
+                    <div class="value" id="syncQueue">0</div>
+                </div>
+                <div class="status-card">
+                    <div class="label">Cache Items</div>
+                    <div class="value" id="cacheSize">0</div>
+                </div>
+                <div class="status-card">
+                    <div class="label">Último Sync</div>
+                    <div class="value" id="lastSync">Nunca</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controles de Conexión -->
+        <div class="test-section">
+            <h3>🌐 Simular Conexión</h3>
+            <div class="button-group">
+                <button class="btn-success" onclick="testSystem.simulateOnline()">
+                    <span class="icon">✅</span> Online
+                </button>
+                <button class="btn-danger" onclick="testSystem.simulateOffline()">
+                    <span class="icon">❌</span> Offline
+                </button>
+            </div>
+        </div>
+
+        <!-- Tests de Progreso -->
+        <div class="test-section">
+            <h3>📈 Pruebas de Progreso</h3>
+            <div class="button-group">
+                <button class="btn-primary" onclick="testSystem.saveProgress(25)">
+                    Guardar 25%
+                </button>
+                <button class="btn-primary" onclick="testSystem.saveProgress(50)">
+                    Guardar 50%
+                </button>
+                <button class="btn-primary" onclick="testSystem.saveProgress(75)">
+                    Guardar 75%
+                </button>
+                <button class="btn-primary" onclick="testSystem.saveProgress(100)">
+                    Guardar 100%
+                </button>
+                <button class="btn-info" onclick="testSystem.loadProgress()">
+                    <span class="icon">📥</span> Cargar Progreso
+                </button>
+            </div>
+
+            <div class="progress-demo">
+                <strong>Progreso Actual:</strong>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progressBar" style="width: 0%">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tests de Sincronización -->
+        <div class="test-section">
+            <h3>🔄 Pruebas de Sincronización</h3>
+            <div class="button-group">
+                <button class="btn-warning" onclick="testSystem.forceSyncWithRetry()">
+                    <span class="icon">🔄</span> Forzar Sync (con retry)
+                </button>
+                <button class="btn-info" onclick="testSystem.checkSyncStatus()">
+                    <span class="icon">📊</span> Ver Estado Sync
+                </button>
+                <button class="btn-danger" onclick="testSystem.clearAll()">
+                    <span class="icon">🗑️</span> Limpiar Todo
+                </button>
+            </div>
+        </div>
+
+        <!-- Logs -->
+        <div class="test-section">
+            <h3>📝 Console Log</h3>
+            <div class="log-section" id="logSection">
+                <div class="log-entry info">Sistema iniciado - Esperando comandos...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cargar el sistema híbrido -->
+    <script src="src/scripts/course-progress-manager-v2.js"></script>
+
+    <script>
+        // Sistema de pruebas
+        class HybridProgressTestSystem {
+            constructor() {
+                this.hybridManager = null;
+                this.userId = 'test-user-hybrid-123';
+                this.courseId = 'intro-to-ai';
+                this.apiBaseUrl = '/api';
+
+                this.init();
+            }
+
+            init() {
+                this.log('🚀 Inicializando sistema de pruebas...', 'info');
+
+                // Crear instancia del HybridProgressManager
+                try {
+                    this.hybridManager = new HybridProgressManager(this.apiBaseUrl, this.userId);
+                    this.log('✅ HybridProgressManager inicializado correctamente', 'success');
+                } catch (error) {
+                    this.log('❌ Error inicializando HybridProgressManager: ' + error.message, 'error');
+                }
+
+                // Actualizar UI inicial
+                this.updateConnectionStatus();
+                this.updateSyncStatus();
+
+                // Monitorear cambios de conexión
+                window.addEventListener('online', () => {
+                    this.log('🌐 Conexión restaurada', 'success');
+                    this.updateConnectionStatus();
+                });
+
+                window.addEventListener('offline', () => {
+                    this.log('❌ Conexión perdida', 'warning');
+                    this.updateConnectionStatus();
+                });
+
+                // Monitorear eventos de sincronización
+                window.addEventListener('progressSynced', (event) => {
+                    this.log('✅ Progreso sincronizado: ' + JSON.stringify(event.detail), 'success');
+                    this.updateSyncStatus();
+                });
+
+                // Actualizar estado cada 2 segundos
+                setInterval(() => {
+                    this.updateSyncStatus();
+                }, 2000);
+
+                this.log('✅ Sistema de pruebas listo', 'success');
+            }
+
+            log(message, type = 'info') {
+                const logSection = document.getElementById('logSection');
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${type}`;
+                entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+
+                logSection.appendChild(entry);
+                logSection.scrollTop = logSection.scrollHeight;
+
+                // Limitar a 100 entradas
+                if (logSection.children.length > 100) {
+                    logSection.removeChild(logSection.firstChild);
+                }
+            }
+
+            updateConnectionStatus() {
+                const status = navigator.onLine;
+                const statusEl = document.getElementById('connectionStatus');
+                const statusCard = document.getElementById('onlineStatus');
+
+                statusEl.textContent = status ? 'Online' : 'Offline';
+                statusCard.className = 'status-card ' + (status ? 'online' : 'offline');
+            }
+
+            updateSyncStatus() {
+                if (!this.hybridManager) return;
+
+                const status = this.hybridManager.getSyncStatus();
+
+                document.getElementById('syncQueue').textContent = status.pendingSync;
+                document.getElementById('cacheSize').textContent = status.cacheSize;
+
+                // Actualizar último sync
+                const stored = localStorage.getItem('courseProgress_' + this.courseId);
+                if (stored) {
+                    try {
+                        const parsed = JSON.parse(stored);
+                        if (parsed.lastSyncTime) {
+                            const date = new Date(parsed.lastSyncTime);
+                            document.getElementById('lastSync').textContent = date.toLocaleTimeString();
+                        }
+                    } catch (e) {}
+                }
+            }
+
+            async saveProgress(percentage) {
+                this.log(`📊 Guardando progreso: ${percentage}%`, 'info');
+
+                try {
+                    const progressData = {
+                        overall_progress_percentage: percentage,
+                        last_accessed_at: new Date().toISOString(),
+                        modules: [
+                            {
+                                module_number: 1,
+                                video_progress_percentage: percentage,
+                                status: percentage === 100 ? 'completed' : 'in_progress'
+                            }
+                        ]
+                    };
+
+                    await this.hybridManager.saveProgress(this.courseId, progressData);
+
+                    // Actualizar barra de progreso
+                    const progressBar = document.getElementById('progressBar');
+                    progressBar.style.width = percentage + '%';
+                    progressBar.textContent = percentage + '%';
+
+                    this.log(`✅ Progreso guardado: ${percentage}%`, 'success');
+                    this.updateSyncStatus();
+
+                } catch (error) {
+                    this.log(`❌ Error guardando progreso: ${error.message}`, 'error');
+                }
+            }
+
+            async loadProgress() {
+                this.log('📥 Cargando progreso...', 'info');
+
+                try {
+                    const progressData = await this.hybridManager.loadProgress(this.courseId);
+
+                    if (progressData) {
+                        const percentage = progressData.overall_progress_percentage || 0;
+
+                        // Actualizar barra de progreso
+                        const progressBar = document.getElementById('progressBar');
+                        progressBar.style.width = percentage + '%';
+                        progressBar.textContent = percentage + '%';
+
+                        this.log(`✅ Progreso cargado: ${percentage}%`, 'success');
+                        this.log(`Datos: ${JSON.stringify(progressData)}`, 'info');
+                    } else {
+                        this.log('⚠️ No hay progreso guardado', 'warning');
+                    }
+
+                    this.updateSyncStatus();
+
+                } catch (error) {
+                    this.log(`❌ Error cargando progreso: ${error.message}`, 'error');
+                }
+            }
+
+            async forceSyncWithRetry() {
+                this.log('🔄 Forzando sincronización con retry logic...', 'info');
+
+                try {
+                    await this.hybridManager.syncPendingData();
+                    this.log('✅ Sincronización completada', 'success');
+                    this.updateSyncStatus();
+                } catch (error) {
+                    this.log(`❌ Error en sincronización: ${error.message}`, 'error');
+                }
+            }
+
+            checkSyncStatus() {
+                const status = this.hybridManager.getSyncStatus();
+
+                this.log('📊 Estado de Sincronización:', 'info');
+                this.log(`  - Online: ${status.isOnline}`, 'info');
+                this.log(`  - Pendientes: ${status.pendingSync}`, 'info');
+                this.log(`  - Cache: ${status.cacheSize} items`, 'info');
+            }
+
+            simulateOnline() {
+                this.log('✅ Simulando conexión online...', 'success');
+                window.dispatchEvent(new Event('online'));
+            }
+
+            simulateOffline() {
+                this.log('❌ Simulando conexión offline...', 'warning');
+                window.dispatchEvent(new Event('offline'));
+            }
+
+            clearAll() {
+                this.log('🗑️ Limpiando todos los datos...', 'warning');
+
+                // Limpiar localStorage
+                localStorage.removeItem('courseProgress_' + this.courseId);
+
+                // Limpiar cache
+                if (this.hybridManager) {
+                    this.hybridManager.cache.clear();
+                }
+
+                // Resetear barra de progreso
+                const progressBar = document.getElementById('progressBar');
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
+
+                this.log('✅ Datos limpiados', 'success');
+                this.updateSyncStatus();
+            }
+        }
+
+        // Inicializar sistema de pruebas
+        let testSystem;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            testSystem = new HybridProgressTestSystem();
+        });
+    </script>
+</body>
+</html>
