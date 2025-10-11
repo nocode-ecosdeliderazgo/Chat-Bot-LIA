@@ -1,24 +1,417 @@
 // =====================================================
-// COURSE PROGRESS MANAGER V2
-// Gestión completa de progreso con APIs dinámicas
-// Integrado con sistema de base de datos
+// COURSE PROGRESS MANAGER V2 - HYBRID SYSTEM
+// Gestión completa de progreso con sistema híbrido
+// localStorage + Base de Datos con sincronización automática
 // =====================================================
 
+// =====================================================
+// LOCAL STORAGE MANAGER - Gestión de localStorage con versionado
+// =====================================================
+class LocalStorageManager {
+    constructor() {
+        this.version = '2.0';
+        this.prefix = 'courseProgress_';
+    }
+
+    save(courseId, progressData) {
+        try {
+            const dataWithVersion = {
+                version: this.version,
+                data: progressData,
+                timestamp: Date.now(),
+                synced: false
+            };
+
+            localStorage.setItem(this.prefix + courseId, JSON.stringify(dataWithVersion));
+            return true;
+        } catch (error) {
+            console.error('❌ Error guardando en localStorage:', error);
+            return false;
+        }
+    }
+
+    load(courseId) {
+        try {
+            const stored = localStorage.getItem(this.prefix + courseId);
+            if (!stored) return null;
+
+            const parsed = JSON.parse(stored);
+
+            // Verificar versión
+            if (parsed.version !== this.version) {
+                return this.migrate(parsed);
+            }
+
+            return parsed.data;
+        } catch (error) {
+            console.error('❌ Error cargando de localStorage:', error);
+            return null;
+        }
+    }
+
+    markAsSynced(courseId) {
+        try {
+            const stored = localStorage.getItem(this.prefix + courseId);
+            if (!stored) return false;
+
+            const parsed = JSON.parse(stored);
+            parsed.synced = true;
+            parsed.lastSyncTime = Date.now();
+
+            localStorage.setItem(this.prefix + courseId, JSON.stringify(parsed));
+            return true;
+        } catch (error) {
+            console.error('❌ Error marcando como sincronizado:', error);
+            return false;
+        }
+    }
+
+    needsSync(courseId) {
+        try {
+            const stored = localStorage.getItem(this.prefix + courseId);
+            if (!stored) return false;
+
+            const parsed = JSON.parse(stored);
+            return !parsed.synced;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    migrate(oldData) {
+        // Migrar datos de versiones anteriores
+        return oldData.data || oldData;
+    }
+}
+
+// =====================================================
+// DATABASE MANAGER - Gestión de BD con retry logic robusto
+// =====================================================
+class DatabaseManager {
+    constructor(apiBaseUrl) {
+        this.apiBaseUrl = apiBaseUrl;
+        this.maxRetries = 3;
+        this.retryDelay = 1000;
+        this.timeout = 10000;
+    }
+
+    async makeRequest(endpoint, options = {}) {
+        for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+                const response = await fetch(this.apiBaseUrl + endpoint, {
+                    ...options,
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Respuesta no es JSON válido');
+                }
+
+                return await response.json();
+
+            } catch (error) {
+
+                if (attempt === this.maxRetries) {
+                    throw new Error(`Falló después de ${this.maxRetries} intentos: ${error.message}`);
+                }
+
+                // Esperar antes del siguiente intento (exponential backoff)
+                await this.delay(this.retryDelay * attempt);
+            }
+        }
+    }
+
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+}
+
+// =====================================================
+// SYNC QUEUE - Cola de sincronización diferida
+// =====================================================
+class SyncQueue {
+    constructor(databaseManager, localStorageManager) {
+        this.queue = [];
+        this.databaseManager = databaseManager;
+        this.localStorageManager = localStorageManager;
+        this.isProcessing = false;
+        this.maxQueueSize = 50;
+    }
+
+    add(syncTask) {
+        if (this.queue.length >= this.maxQueueSize) {
+            this.queue.shift(); // Remover el más antiguo
+        }
+
+        this.queue.push({
+            ...syncTask,
+            timestamp: Date.now(),
+            attempts: 0
+        });
+
+        this.process();
+    }
+
+    async process() {
+        if (this.isProcessing || this.queue.length === 0) return;
+
+        this.isProcessing = true;
+
+        while (this.queue.length > 0) {
+            const task = this.queue[0];
+
+            try {
+                await this.executeTask(task);
+
+                // Marcar como sincronizado en localStorage
+                this.localStorageManager.markAsSynced(task.courseId);
+
+                // Remover de la cola
+                this.queue.shift();
+
+            } catch (error) {
+                task.attempts++;
+
+                if (task.attempts >= 3) {
+                    // Remover después de 3 intentos
+                    this.queue.shift();
+                } else {
+                    // Mover al final de la cola
+                    this.queue.push(this.queue.shift());
+                }
+
+                // Esperar antes de siguiente tarea
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+        }
+
+        this.isProcessing = false;
+    }
+
+    async executeTask(task) {
+        const { endpoint, method, data } = task;
+
+        return await this.databaseManager.makeRequest(endpoint, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-User-Id': task.userId
+            },
+            body: JSON.stringify(data)
+        });
+    }
+
+    getQueueLength() {
+        return this.queue.length;
+    }
+}
+
+// =====================================================
+// PROGRESS CACHE - Sistema de cache inteligente
+// =====================================================
+class ProgressCache {
+    constructor() {
+        this.cache = new Map();
+        this.cacheTimeout = 5 * 60 * 1000; // 5 minutos
+        this.maxCacheSize = 100;
+    }
+
+    get(key) {
+        const item = this.cache.get(key);
+        if (!item) return null;
+
+        if (Date.now() - item.timestamp > this.cacheTimeout) {
+            this.cache.delete(key);
+            return null;
+        }
+
+        return item.data;
+    }
+
+    set(key, data) {
+        // Limpiar cache si está lleno
+        if (this.cache.size >= this.maxCacheSize) {
+            const firstKey = this.cache.keys().next().value;
+            this.cache.delete(firstKey);
+        }
+
+        this.cache.set(key, {
+            data,
+            timestamp: Date.now()
+        });
+    }
+
+    clear() {
+        this.cache.clear();
+    }
+
+    has(key) {
+        return this.get(key) !== null;
+    }
+}
+
+// =====================================================
+// HYBRID PROGRESS MANAGER - Sistema híbrido principal
+// =====================================================
+class HybridProgressManager {
+    constructor(apiBaseUrl, userId) {
+        this.localStorage = new LocalStorageManager();
+        this.database = new DatabaseManager(apiBaseUrl);
+        this.syncQueue = new SyncQueue(this.database, this.localStorage);
+        this.cache = new ProgressCache();
+        this.isOnline = navigator.onLine;
+        this.userId = userId;
+
+        // Monitorear estado de conexión
+        window.addEventListener('online', () => {
+            this.isOnline = true;
+            this.syncPendingData();
+        });
+
+        window.addEventListener('offline', () => {
+            this.isOnline = false;
+        });
+    }
+
+    async saveProgress(courseId, progressData) {
+        // 1. Guardar en localStorage inmediatamente
+        this.localStorage.save(courseId, progressData);
+
+        // 2. Actualizar cache
+        this.cache.set(`progress_${courseId}`, progressData);
+
+        // 3. Intentar guardar en BD si está online usando endpoint unificado
+        if (this.isOnline) {
+            try {
+                await this.database.makeRequest(`/progress/sync?courseId=${courseId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Id': this.userId
+                    },
+                    body: JSON.stringify(progressData)
+                });
+
+                // Marcar como sincronizado
+                this.localStorage.markAsSynced(courseId);
+
+            } catch (error) {
+                // Agregar a cola de sincronización
+                this.syncQueue.add({
+                    courseId,
+                    userId: this.userId,
+                    endpoint: `/progress/sync?courseId=${courseId}`,
+                    method: 'POST',
+                    data: progressData
+                });
+            }
+        } else {
+            // Offline - agregar a cola
+            this.syncQueue.add({
+                courseId,
+                userId: this.userId,
+                endpoint: `/progress/sync?courseId=${courseId}`,
+                method: 'POST',
+                data: progressData
+            });
+        }
+    }
+
+    async loadProgress(courseId) {
+        // 1. Intentar desde cache primero
+        const cached = this.cache.get(`progress_${courseId}`);
+        if (cached) {
+            return cached;
+        }
+
+        // 2. Cargar desde localStorage (rápido)
+        const localData = this.localStorage.load(courseId);
+
+        // 3. Si está online, sincronizar en background
+        if (this.isOnline) {
+            this.syncInBackground(courseId, localData);
+        }
+
+        return localData;
+    }
+
+    async syncInBackground(courseId, localData) {
+        try {
+            const response = await this.database.makeRequest(`/progress/sync?courseId=${courseId}`, {
+                method: 'GET',
+                headers: {
+                    'X-User-Id': this.userId
+                }
+            });
+
+            if (response.success && response.progress) {
+                const dbData = response.progress;
+
+                // Comparar timestamps y usar el más reciente
+                if (!localData || this.isNewerData(dbData, localData)) {
+                    this.localStorage.save(courseId, dbData);
+                    this.cache.set(`progress_${courseId}`, dbData);
+
+                    // Emitir evento de actualización
+                    window.dispatchEvent(new CustomEvent('progressSynced', {
+                        detail: { courseId, data: dbData }
+                    }));
+                }
+            }
+
+        } catch (error) {
+            // Silencioso - el usuario ya tiene datos locales
+        }
+    }
+
+    isNewerData(dbData, localData) {
+        const dbTime = new Date(dbData.last_accessed_at || 0).getTime();
+        const localTime = new Date(localData.last_accessed_at || 0).getTime();
+        return dbTime > localTime;
+    }
+
+    async syncPendingData() {
+        // Procesar cola de sincronización
+        await this.syncQueue.process();
+    }
+
+    getSyncStatus() {
+        return {
+            isOnline: this.isOnline,
+            pendingSync: this.syncQueue.getQueueLength(),
+            cacheSize: this.cache.cache.size
+        };
+    }
+}
+
+// =====================================================
+// COURSE PROGRESS MANAGER V2 - Versión híbrida mejorada
+// =====================================================
 class CourseProgressManagerV2 {
     constructor() {
         this.userId = null;
         this.courseId = '550e8400-e29b-41d4-a716-446655440001'; // UUID real del curso
         this.currentProgress = null;
         this.videoTracker = null;
-        this.progressCache = new Map();
-        this.cacheTimestamp = null;
-        this.cacheDuration = 5 * 60 * 1000; // 5 minutos
         this.isUpdating = false;
         this.apiBaseUrl = this.getApiBaseUrl();
         this.updateInterval = null;
         this.lastVideoTime = 0;
-        
-        console.log('📈 Course Progress Manager V2 creado');
+
+        // Sistema híbrido
+        this.hybridManager = null;
+
+        console.log('📈 Course Progress Manager V2 (Hybrid) creado');
         this.init();
     }
 
@@ -28,50 +421,98 @@ class CourseProgressManagerV2 {
 
     async init() {
         try {
-            console.log('🚀 Inicializando Course Progress Manager V2...');
-            
+            console.log('🚀 Inicializando Course Progress Manager V2 (Hybrid System)...');
+
             // 1. Obtener usuario actual
             this.userId = this.getCurrentUserId();
             console.log('👤 Usuario:', this.userId);
 
-            // 2. Cargar progreso inicial
+            // 2. Inicializar sistema híbrido
+            this.hybridManager = new HybridProgressManager(this.apiBaseUrl, this.userId);
+            console.log('✅ Sistema híbrido inicializado');
+
+            // 3. Cargar progreso inicial (usando sistema híbrido)
             await this.loadInitialProgress();
 
-            // 3. Cargar progreso de módulos y actualizar UI
+            // 4. Cargar progreso de módulos y actualizar UI
             await this.loadModulesProgress();
 
-            // 4. Configurar tracking de video
+            // 5. Configurar tracking de video
             this.setupVideoTracking();
 
-            // 5. Configurar auto-guardado
+            // 6. Configurar auto-guardado
             this.setupAutoSave();
 
-            console.log('✅ Course Progress Manager V2 inicializado exitosamente');
+            // 7. Mostrar estado de sincronización
+            this.setupSyncMonitor();
+
+            console.log('✅ Course Progress Manager V2 (Hybrid) inicializado exitosamente');
 
         } catch (error) {
             console.error('💥 Error inicializando Progress Manager:', error);
         }
     }
 
+    setupSyncMonitor() {
+        // Monitorear estado de sincronización cada 10 segundos
+        setInterval(() => {
+            if (this.hybridManager) {
+                const status = this.hybridManager.getSyncStatus();
+
+                if (status.pendingSync > 0) {
+                    console.log(`📊 Estado sincronización: ${status.pendingSync} pendientes, ${status.isOnline ? 'Online' : 'Offline'}`);
+                }
+            }
+        }, 10000);
+
+        // Escuchar eventos de sincronización
+        window.addEventListener('progressSynced', (event) => {
+            console.log('🔄 Progreso sincronizado desde BD:', event.detail);
+
+            // Recargar UI si es necesario
+            if (event.detail.courseId === this.courseId) {
+                this.loadModulesProgress();
+            }
+        });
+    }
+
     async loadInitialProgress() {
         try {
-            console.log('📊 Cargando progreso inicial...');
+            console.log('📊 Cargando progreso inicial (Hybrid System)...');
 
-            const response = await this.apiCall(`/users/${this.userId}/course/intro-to-ai/progress`, {
-                method: 'GET'
-            });
+            // Usar sistema híbrido para cargar progreso
+            const localProgress = await this.hybridManager.loadProgress('intro-to-ai');
 
-            if (response.success) {
-                this.currentProgress = response;
-                console.log('✅ Progreso inicial cargado:', response.summary);
+            if (localProgress) {
+                this.currentProgress = localProgress;
+                console.log('✅ Progreso inicial cargado desde sistema híbrido');
             } else {
-                console.warn('⚠️ No se pudo cargar progreso inicial');
-                this.currentProgress = this.getDefaultProgress();
+                console.log('⚠️ No hay progreso local, cargando desde BD...');
+
+                // Intentar cargar desde BD
+                const response = await this.apiCall(`/users/${this.userId}/course/intro-to-ai/progress`, {
+                    method: 'GET'
+                });
+
+                if (response.success && response.progress) {
+                    this.currentProgress = response.progress;
+
+                    // Guardar en sistema híbrido
+                    await this.hybridManager.saveProgress('intro-to-ai', response.progress);
+
+                    console.log('✅ Progreso cargado desde BD y guardado localmente');
+                } else {
+                    console.warn('⚠️ No se pudo cargar progreso, usando predeterminado');
+                    this.currentProgress = this.getDefaultProgress();
+                }
             }
 
         } catch (error) {
             console.error('❌ Error cargando progreso inicial:', error);
-            this.currentProgress = this.getDefaultProgress();
+
+            // Fallback: intentar cargar solo desde localStorage
+            const fallbackProgress = this.hybridManager.localStorage.load('intro-to-ai');
+            this.currentProgress = fallbackProgress || this.getDefaultProgress();
         }
     }
 
@@ -508,7 +949,6 @@ class CourseProgressManagerV2 {
 
     async updateProgressImmediate(currentTime) {
         if (this.isUpdating) {
-            console.log('⏳ Actualización ya en progreso...');
             return;
         }
 
@@ -531,53 +971,83 @@ class CourseProgressManagerV2 {
 
             // Determinar número de módulo desde el currentVideo
             const moduleNumber = currentVideo.module_number || this.extractModuleNumber(currentVideo.module_id) || 1;
-            
-            const response = await this.apiCall(`/api/users/${this.userId}/course/intro-to-ai/module/${moduleNumber}/progress`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    video_progress_percentage: Math.round(completionPercentage),
-                    last_video_position: Math.round(time),
-                    video_completed: isCompleted,
-                    time_watched_seconds: Math.round(time),
-                    video_id: currentVideo.youtube_video_id || currentVideo.id
-                })
+
+            const progressData = {
+                video_progress_percentage: Math.round(completionPercentage),
+                last_video_position: Math.round(time),
+                video_completed: isCompleted,
+                time_watched_seconds: Math.round(time),
+                video_id: currentVideo.youtube_video_id || currentVideo.id,
+                module_number: moduleNumber,
+                last_accessed_at: new Date().toISOString()
+            };
+
+            // 1. Guardar inmediatamente en sistema híbrido (localStorage + intento BD)
+            await this.hybridManager.saveProgress('intro-to-ai', {
+                ...this.currentProgress,
+                modules: this.updateModuleInProgress(this.currentProgress.modules, moduleNumber, progressData),
+                last_accessed_at: new Date().toISOString()
             });
 
-            if (response.success) {
-                this.currentProgress.video_progress = response.video_progress;
-                this.lastProgressUpdate = Date.now();
-                
-                // Actualizar progreso local
-                this.lastVideoTime = time;
-                this.lastCompletion = completionPercentage;
-                
-                // Recargar y actualizar UI completa del progreso de módulos
-                await this.loadModulesProgress();
-                
-                // Si el video se completó, emitir evento
-                if (isCompleted) {
-                    this.emitVideoCompletedEvent(currentVideo);
-                }
-                
-                // Emitir evento de progreso actualizado
-                window.dispatchEvent(new CustomEvent('videoProgressUpdated', {
-                    detail: {
-                        moduleNumber,
-                        completionPercentage,
-                        isCompleted,
-                        time,
-                        videoDuration
-                    }
-                }));
-                
-                console.log('✅ Progreso actualizado exitosamente');
+            // 2. Actualizar estado local
+            this.lastProgressUpdate = Date.now();
+            this.lastVideoTime = time;
+            this.lastCompletion = completionPercentage;
+
+            // 3. Recargar y actualizar UI completa del progreso de módulos
+            await this.loadModulesProgress();
+
+            // 4. Si el video se completó, emitir evento
+            if (isCompleted) {
+                this.emitVideoCompletedEvent(currentVideo);
             }
+
+            // 5. Emitir evento de progreso actualizado
+            window.dispatchEvent(new CustomEvent('videoProgressUpdated', {
+                detail: {
+                    moduleNumber,
+                    completionPercentage,
+                    isCompleted,
+                    time,
+                    videoDuration
+                }
+            }));
+
+            console.log('✅ Progreso actualizado exitosamente (Hybrid System)');
 
         } catch (error) {
             console.error('❌ Error actualizando progreso:', error);
+
+            // Fallback: guardar solo en localStorage
+            try {
+                this.hybridManager.localStorage.save('intro-to-ai', this.currentProgress);
+            } catch (fallbackError) {
+                console.error('❌ Error en fallback:', fallbackError);
+            }
         } finally {
             this.isUpdating = false;
         }
+    }
+
+    updateModuleInProgress(modules, moduleNumber, progressData) {
+        if (!modules || !Array.isArray(modules)) {
+            return [];
+        }
+
+        return modules.map(module => {
+            if (module.module_number === moduleNumber) {
+                return {
+                    ...module,
+                    video_progress_percentage: progressData.video_progress_percentage,
+                    last_video_position: progressData.last_video_position,
+                    video_completed: progressData.video_completed,
+                    time_watched_seconds: progressData.time_watched_seconds,
+                    status: progressData.video_completed ? 'completed' : 'in_progress',
+                    last_accessed_at: progressData.last_accessed_at
+                };
+            }
+            return module;
+        });
     }
 
     updateProgressUI(progressData) {

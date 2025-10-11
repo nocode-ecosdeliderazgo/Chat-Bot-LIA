@@ -8,59 +8,53 @@ const COURSES_CONFIG = {
     searchDebounceDelay: 300,
 };
 
-// Datos de talleres
-const COURSES_DATA = {
-    enrolled: [
-        {
-            id: 'chatgpt-gemini-productividad',
-            title: 'Dominando ChatGPT y Gemini para la Productividad',
-            instructor: 'Lia IA',
-            image: 'assets/images/brain-icon.jpg',
-            progress: 0,
-            totalLessons: 10,
-            completedLessons: 0,
-            lastAccessed: null,
-            estimatedTime: '15 horas',
-            category: 'Inteligencia Artificial',
-            difficulty: 'Intermedio',
-            rating: 4.9,
-            isActive: true
-        },
-        {
-            id: 'curso-ia-completo',
-            title: 'Aprende y Aplica IA — Curso Completo',
-            instructor: 'Lia IA',
-            image: 'assets/images/brain-icon.jpg',
-            progress: 0,
-            totalLessons: 8,
-            completedLessons: 0,
-            lastAccessed: null,
-            estimatedTime: '12 horas',
-            category: 'Inteligencia Artificial',
-            difficulty: 'Intermedio',
-            rating: 4.8,
-            isActive: true
-        },
-        {
-            id: 'ml-fundamentos',
-            title: 'Fundamentos de Machine Learning',
-            instructor: 'Lia IA',
-            image: 'assets/images/brain-icon.jpg',
-            progress: 0,
-            totalLessons: 12,
-            completedLessons: 0,
-            lastAccessed: null,
-            estimatedTime: '20 horas',
-            category: 'Machine Learning',
-            difficulty: 'Principiante',
-            rating: 4.9,
-            isActive: false
-        }
-    ],
+// Datos de talleres - Ahora se cargan dinámicamente desde la BD
+let COURSES_DATA = {
+    enrolled: [],
     wishlist: [],
     archived: [],
     lists: []
 };
+
+// Función para cargar cursos dinámicamente
+async function loadDynamicCourses() {
+    try {
+        console.log('🔄 Cargando cursos dinámicamente...');
+        
+        if (window.dynamicCourseLoader) {
+            const courses = await window.dynamicCourseLoader.loadCourses();
+            
+            // Mapear cursos a la estructura esperada
+            COURSES_DATA.enrolled = courses.map(course => ({
+                id: course.id,
+                title: course.title,
+                instructor: course.instructor,
+                image: course.image,
+                progress: course.progress,
+                totalLessons: course.totalLessons,
+                completedLessons: course.completedLessons,
+                lastAccessed: null,
+                estimatedTime: course.estimatedTime,
+                category: course.category,
+                difficulty: course.difficulty,
+                rating: course.rating,
+                isActive: course.isActive
+            }));
+            
+            console.log(`✅ ${COURSES_DATA.enrolled.length} cursos cargados dinámicamente`);
+            
+            // Renderizar los cursos después de cargarlos
+            renderCourses();
+            return true;
+        } else {
+            console.warn('⚠️ Dynamic Course Loader no disponible, usando datos por defecto');
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ Error cargando cursos dinámicamente:', error);
+        return false;
+    }
+}
 
 // Sistema de datos del usuario
 class UserLearningData {
@@ -202,12 +196,19 @@ class UserLearningData {
 const userData = new UserLearningData();
 
 // ===== INICIALIZACIÓN =====
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     console.log('[COURSES] Inicializando página de cursos...');
     
     try {
         hydrateUserHeader();
         setupProfileMenu();
+        
+        // Cargar cursos dinámicamente antes de inicializar la página
+        const coursesLoaded = await loadDynamicCourses();
+        if (!coursesLoaded) {
+            console.warn('[COURSES] Usando datos por defecto');
+        }
+        
         initializeCoursesPage();
         setupEventListeners();
         updateLearningStreak();
@@ -225,8 +226,11 @@ function initializeCoursesPage() {
     const initialTab = getUrlParameter('tab') || 'all-courses';
     switchTab(initialTab);
     
-    renderCourses();
+    // renderCourses() ya se llama desde loadDynamicCourses()
+    // Solo actualizar barras de progreso si hay cursos
+    if (COURSES_DATA.enrolled.length > 0) {
     updateProgressBars();
+    }
     
     console.log('[COURSES] Configuración inicial completada');
 }
@@ -390,7 +394,7 @@ function setupCourseButtons() {
             let courseId = this.getAttribute('data-course-id');
             
             if (!courseId) {
-                if (index === 0 || courseTitle.includes('Dominando ChatGPT')) {
+                if (index === 0 || courseTitle.includes('Introducción a la IA')) {
                     courseId = 'chatgpt-gemini-productividad';
                 } else if (index === 1 || courseTitle.includes('Aprende y Aplica IA')) {
                     courseId = 'curso-ia-completo';
@@ -428,10 +432,10 @@ function continueCourse(courseId, buttonElement = null) {
                     timestamp: Date.now()
                 }));
                 
-                console.log(`[COURSES] Redirigiendo a la información del taller: ${courseId}`);
+                console.log(`[COURSES] Redirigiendo al taller: ${courseId}`);
                 // Iniciar tracking en background (contador por minuto)
                 try { await startMinuteTracking(courseId); } catch (e) { console.warn('Minute tracking init failed', e); }
-                window.location.href = `taller-info.html?taller=${courseId}`;
+                window.location.href = `Chat-Online/chat-online.html?course=${courseId}`;
             } catch (error) {
                 console.error('[COURSES] Error al procesar el taller:', error);
                 
@@ -443,7 +447,7 @@ function continueCourse(courseId, buttonElement = null) {
     } else {
         console.error('[COURSES] No se encontró el botón del taller');
         setTimeout(() => {
-            window.location.href = `taller-info.html?taller=${courseId}`;
+            window.location.href = `Chat-Online/chat-online.html?course=${courseId}`;
         }, 500);
     }
 }
@@ -819,20 +823,87 @@ function dismissReminder() {
 
 // ===== RENDERIZADO DE CURSOS =====
 function renderCourses() {
-    const coursesGrid = document.querySelector('.courses-grid');
-    if (!coursesGrid) return;
+    const coursesGrid = document.getElementById('courses-grid');
+    if (!coursesGrid) {
+        console.error('[COURSES] No se encontró el contenedor de cursos');
+        return;
+    }
     
-    const courseCards = document.querySelectorAll('.course-card');
-    courseCards.forEach((card, index) => {
-        const courseData = COURSES_DATA.enrolled[index];
-        if (courseData) {
-            enhanceCourseCard(card, courseData);
-        }
-        
-        card.style.animationDelay = `${index * 0.1}s`;
+    // Limpiar contenido existente
+    coursesGrid.innerHTML = '';
+    
+    if (!COURSES_DATA.enrolled || COURSES_DATA.enrolled.length === 0) {
+        // Mostrar mensaje si no hay cursos
+        coursesGrid.innerHTML = `
+            <div class="no-courses-message">
+                <i class='bx bx-book-open'></i>
+                <h3>No hay cursos disponibles</h3>
+                <p>Los cursos se cargarán automáticamente cuando estén disponibles.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Renderizar cada curso dinámicamente
+    COURSES_DATA.enrolled.forEach((courseData, index) => {
+        const courseCard = createCourseCard(courseData, index);
+        coursesGrid.appendChild(courseCard);
     });
+
+    console.log(`[COURSES] ${COURSES_DATA.enrolled.length} cursos renderizados dinámicamente`);
+
+    // Emitir evento para indicar que los cursos se han renderizado
+    window.dispatchEvent(new CustomEvent('coursesRendered', {
+        detail: { count: COURSES_DATA.enrolled.length }
+    }));
+}
+
+// Función para crear una tarjeta de curso dinámicamente
+function createCourseCard(courseData, index) {
+    const card = document.createElement('div');
+    card.className = `course-card ${!courseData.isActive ? 'disabled' : ''}`;
+    card.id = `course-${courseData.id}`;
+    card.style.animationDelay = `${index * 0.1}s`;
     
-    console.log('[COURSES] Cursos renderizados');
+    // Determinar el texto del botón y la acción
+    const buttonText = courseData.progress > 0 ? 'Continuar taller' : 'Iniciar taller';
+    const buttonIcon = courseData.progress > 0 ? 'bx-right-arrow-circle' : '▶';
+    const buttonAction = courseData.isActive ? 
+        `onclick="continueCourse('${courseData.id}', this)"` : 
+        'disabled';
+    
+    card.innerHTML = `
+        <div class="course-image">
+            <img src="${courseData.image}" alt="${courseData.title}">
+            <div class="course-menu">
+                <button class="menu-btn">
+                    <i class='bx bx-dots-vertical-rounded'></i>
+                </button>
+            </div>
+        </div>
+        <div class="course-info">
+            <h3>${courseData.title}</h3>
+            <p class="course-instructor">Instructor: ${courseData.instructor}</p>
+            <div class="course-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${courseData.progress}%"></div>
+                </div>
+                <span class="progress-text">${courseData.progress}% completado</span>
+                <div class="sync-indicator synced" id="sync-indicator-${courseData.id}">
+                    <i class='bx bx-check-circle'></i>
+                    <span class="sync-text">Actualizado</span>
+                </div>
+            </div>
+            <div class="course-actions">
+                <button class="btn-course-primary" ${buttonAction} data-course-id="${courseData.id}">
+                    ${buttonIcon.startsWith('bx-') ? `<i class='${buttonIcon}'></i>` : buttonIcon}
+                    ${courseData.isActive ? buttonText : 'Próximamente'}
+                </button>
+            </div>
+        </div>
+    `;
+    
+    return card;
 }
 
 function enhanceCourseCard(card, courseData) {
@@ -858,7 +929,7 @@ function enhanceCourseCard(card, courseData) {
         if (icon) {
             actionButton.innerHTML = `<i class='${icon.className}'></i>${buttonText}`;
         } else {
-            actionButton.innerHTML = `<i class='bx bx-play-circle'></i>${buttonText}`;
+            actionButton.innerHTML = `▶${buttonText}`;
         }
         
         actionButton.setAttribute('data-course-id', courseData.id);

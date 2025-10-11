@@ -2746,17 +2746,17 @@ app.get('/api/admin/courses', async (req, res) => {
             return res.json(mockCourses);
         }
 
-        // Verificar si la tabla ai_courses existe
+        // Verificar si la tabla courses existe
         const tableCheck = await pool.query(`
             SELECT EXISTS (
                 SELECT FROM information_schema.tables 
                 WHERE table_schema = 'public' 
-                AND table_name = 'ai_courses'
+                AND table_name = 'courses'
             );
         `);
 
         if (!tableCheck.rows[0].exists) {
-            console.log('Tabla ai_courses no existe, retornando talleres simulados');
+            console.log('Tabla courses no existe, retornando talleres simulados');
             const mockCourses = [
                 {
                     id: 1,
@@ -2791,21 +2791,19 @@ app.get('/api/admin/courses', async (req, res) => {
         // Consultar talleres reales de la base de datos
         const result = await pool.query(`
             SELECT 
-                id_ai_courses as id,
-                name,
-                short_description,
-                long_description,
-                status,
-                modality,
-                session_count,
-                total_duration,
-                price,
-                currency,
+                id,
+                title,
+                description,
+                category,
+                level,
+                duration_total_minutes,
+                thumbnail_url,
+                slug,
+                is_active,
                 created_at,
-                purchase_url,
-                course_url,
-                roi
-            FROM ai_courses 
+                updated_at
+            FROM courses 
+            WHERE is_active = true
             ORDER BY created_at DESC
             LIMIT 50
         `);
@@ -2815,19 +2813,16 @@ app.get('/api/admin/courses', async (req, res) => {
         // Formatear datos para el frontend
         const courses = result.rows.map(course => ({
             id: course.id,
-            name: course.name || 'Taller sin nombre',
-            short_description: course.short_description || 'Sin descripción',
-            long_description: course.long_description || 'Sin descripción detallada',
-            status: course.status || 'draft',
-            modality: course.modality || 'online',
-            session_count: course.session_count || 0,
-            total_duration: course.total_duration || 0,
-            price: course.price || 'Gratis',
-            currency: course.currency || 'USD',
+            title: course.title || 'Taller sin nombre',
+            description: course.description || 'Sin descripción',
+            category: course.category || 'ia',
+            level: course.level || 'beginner',
+            duration_total_minutes: course.duration_total_minutes || 0,
+            thumbnail_url: course.thumbnail_url,
+            slug: course.slug || '',
+            is_active: course.is_active,
             created_at: course.created_at,
-            purchase_url: course.purchase_url,
-            course_url: course.course_url,
-            roi: course.roi
+            updated_at: course.updated_at || course.created_at
         }));
 
         res.json(courses);
@@ -6697,6 +6692,345 @@ app.get('/api/community/comments', async (req, res) => {
 // RUTAS DE PROGRESO DE CURSO
 // Sistema integrado con course_progress y module_progress
 // =====================================================
+
+// =====================================================
+// UNIFIED PROGRESS SYNC API - Endpoint centralizado
+// =====================================================
+
+// Validadores
+class ProgressDataValidator {
+    static validateUserId(userId) {
+        if (!userId || typeof userId !== 'string') {
+            return { valid: false, error: 'userId es requerido y debe ser string' };
+        }
+        if (userId.length < 3 || userId.length > 255) {
+            return { valid: false, error: 'userId debe tener entre 3 y 255 caracteres' };
+        }
+        return { valid: true };
+    }
+
+    static validateCourseId(courseId) {
+        if (!courseId || typeof courseId !== 'string') {
+            return { valid: false, error: 'courseId es requerido y debe ser string' };
+        }
+        const validCourseIds = ['intro-to-ai', 'chatgpt-gemini'];
+        if (!validCourseIds.includes(courseId)) {
+            return { valid: false, error: `courseId debe ser uno de: ${validCourseIds.join(', ')}` };
+        }
+        return { valid: true };
+    }
+
+    static validateModuleData(moduleData) {
+        if (!moduleData || typeof moduleData !== 'object') {
+            return { valid: false, error: 'moduleData debe ser un objeto' };
+        }
+        const { module_number, video_progress_percentage } = moduleData;
+        if (typeof module_number !== 'number' || module_number < 1 || module_number > 10) {
+            return { valid: false, error: 'module_number debe ser un número entre 1 y 10' };
+        }
+        if (video_progress_percentage !== undefined) {
+            if (typeof video_progress_percentage !== 'number' || video_progress_percentage < 0 || video_progress_percentage > 100) {
+                return { valid: false, error: 'video_progress_percentage debe ser un número entre 0 y 100' };
+            }
+        }
+        return { valid: true };
+    }
+
+    static validateProgressData(progressData) {
+        if (!progressData || typeof progressData !== 'object') {
+            return { valid: false, error: 'progressData debe ser un objeto' };
+        }
+        const errors = [];
+        if (progressData.overall_progress_percentage !== undefined) {
+            const val = progressData.overall_progress_percentage;
+            if (typeof val !== 'number' || val < 0 || val > 100) {
+                errors.push('overall_progress_percentage debe ser un número entre 0 y 100');
+            }
+        }
+        if (progressData.modules !== undefined) {
+            if (!Array.isArray(progressData.modules)) {
+                errors.push('modules debe ser un array');
+            } else {
+                progressData.modules.forEach((module, index) => {
+                    const validation = this.validateModuleData(module);
+                    if (!validation.valid) {
+                        errors.push(`Módulo ${index}: ${validation.error}`);
+                    }
+                });
+            }
+        }
+        if (errors.length > 0) {
+            return { valid: false, error: errors.join(', ') };
+        }
+        return { valid: true };
+    }
+}
+
+// GET: Obtener progreso
+app.get('/api/progress/sync', async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const userId = req.headers['x-user-id'] || req.query.userId;
+        const courseId = req.query.courseId || 'intro-to-ai';
+
+        console.log(`📊 [Progress Sync] GET - Usuario: ${userId}, Curso: ${courseId}`);
+
+        // Validar
+        const userValidation = ProgressDataValidator.validateUserId(userId);
+        if (!userValidation.valid) {
+            return res.status(400).json({ success: false, error: userValidation.error });
+        }
+
+        const courseValidation = ProgressDataValidator.validateCourseId(courseId);
+        if (!courseValidation.valid) {
+            return res.status(400).json({ success: false, error: courseValidation.error });
+        }
+
+        await client.query('BEGIN');
+
+        // Obtener o crear progreso
+        let { rows } = await client.query(
+            'SELECT * FROM course_progress WHERE user_id = $1 AND course_identifier = $2',
+            [userId, courseId]
+        );
+
+        if (rows.length === 0) {
+            console.log(`📝 Creando progreso inicial para ${userId}`);
+
+            // Mapeo de course_identifier a course_id UUID
+            const courseIdMap = {
+                'intro-to-ai': '550e8400-e29b-41d4-a716-446655440001',
+                'chatgpt-gemini': '550e8400-e29b-41d4-a716-446655440001' // Usando el mismo por ahora
+            };
+
+            const actualCourseId = courseIdMap[courseId] || null;
+
+            const { rows: newRows } = await client.query(`
+                INSERT INTO course_progress (id, user_id, course_id, course_identifier, overall_progress_percentage, status, started_at, created_at, updated_at)
+                VALUES ($1, $2, $3, $4, 0, 'not_started', NOW(), NOW(), NOW())
+                RETURNING *
+            `, [require('crypto').randomUUID(), userId, actualCourseId, courseId]);
+            rows = newRows;
+        }
+
+        const courseProgressId = rows[0].id;
+
+        // Obtener progreso completo con módulos
+        const { rows: fullProgress } = await client.query(`
+            SELECT
+                cp.id as course_progress_id,
+                cp.user_id,
+                cp.course_identifier,
+                cp.overall_progress_percentage,
+                cp.status as course_status,
+                cp.started_at as course_started_at,
+                cp.completed_at as course_completed_at,
+                cp.last_accessed_at,
+                cp.updated_at,
+                COALESCE(
+                    json_agg(
+                        json_build_object(
+                            'id', mp.id,
+                            'module_number', mp.module_number,
+                            'module_identifier', mp.module_identifier,
+                            'progress_percentage', mp.progress_percentage,
+                            'video_progress_percentage', mp.video_progress_percentage,
+                            'video_completed', mp.video_completed,
+                            'last_video_position', mp.last_video_position,
+                            'time_spent_minutes', mp.time_spent_minutes,
+                            'status', mp.status,
+                            'started_at', mp.started_at,
+                            'completed_at', mp.completed_at,
+                            'last_accessed_at', mp.last_accessed_at
+                        ) ORDER BY mp.module_number
+                    ) FILTER (WHERE mp.id IS NOT NULL),
+                    '[]'::json
+                ) as modules
+            FROM course_progress cp
+            LEFT JOIN module_progress mp ON mp.course_progress_id = cp.id AND mp.user_id = cp.user_id
+            WHERE cp.user_id = $1 AND cp.course_identifier = $2
+            GROUP BY cp.id
+        `, [userId, courseId]);
+
+        await client.query('COMMIT');
+
+        console.log(`✅ Progreso obtenido exitosamente`);
+
+        res.json({
+            success: true,
+            progress: fullProgress[0],
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('❌ Error en GET /api/progress/sync:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error obteniendo progreso',
+            details: error.message
+        });
+    } finally {
+        client.release();
+    }
+});
+
+// POST: Sincronizar progreso
+app.post('/api/progress/sync', async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const userId = req.headers['x-user-id'] || req.query.userId;
+        const courseId = req.query.courseId || 'intro-to-ai';
+        const progressData = req.body;
+
+        console.log(`📤 [Progress Sync] POST - Usuario: ${userId}, Curso: ${courseId}`);
+
+        // Validar
+        const userValidation = ProgressDataValidator.validateUserId(userId);
+        if (!userValidation.valid) {
+            return res.status(400).json({ success: false, error: userValidation.error });
+        }
+
+        const courseValidation = ProgressDataValidator.validateCourseId(courseId);
+        if (!courseValidation.valid) {
+            return res.status(400).json({ success: false, error: courseValidation.error });
+        }
+
+        const dataValidation = ProgressDataValidator.validateProgressData(progressData);
+        if (!dataValidation.valid) {
+            return res.status(400).json({ success: false, error: 'Datos de progreso inválidos', details: dataValidation.error });
+        }
+
+        await client.query('BEGIN');
+
+        // Obtener o crear progreso del curso
+        let { rows } = await client.query(
+            'SELECT * FROM course_progress WHERE user_id = $1 AND course_identifier = $2',
+            [userId, courseId]
+        );
+
+        if (rows.length === 0) {
+            // Mapeo de course_identifier a course_id UUID
+            const courseIdMap = {
+                'intro-to-ai': '550e8400-e29b-41d4-a716-446655440001',
+                'chatgpt-gemini': '550e8400-e29b-41d4-a716-446655440001' // Usando el mismo por ahora
+            };
+
+            const actualCourseId = courseIdMap[courseId] || null;
+
+            const { rows: newRows } = await client.query(`
+                INSERT INTO course_progress (id, user_id, course_id, course_identifier, overall_progress_percentage, status, started_at, created_at, updated_at)
+                VALUES ($1, $2, $3, $4, 0, 'not_started', NOW(), NOW(), NOW())
+                RETURNING *
+            `, [require('crypto').randomUUID(), userId, actualCourseId, courseId]);
+            rows = newRows;
+        }
+
+        const courseProgressId = rows[0].id;
+
+        // Actualizar módulos si se proporcionaron
+        if (progressData.modules && Array.isArray(progressData.modules)) {
+            for (const moduleData of progressData.modules) {
+                const updates = [];
+                const values = [userId, courseProgressId, moduleData.module_number];
+                let paramCount = 3;
+
+                if (moduleData.video_progress_percentage !== undefined) {
+                    updates.push(`video_progress_percentage = $${++paramCount}`);
+                    values.push(moduleData.video_progress_percentage);
+                }
+                if (moduleData.last_video_position !== undefined) {
+                    updates.push(`last_video_position = $${++paramCount}`);
+                    values.push(moduleData.last_video_position);
+                }
+                if (moduleData.video_completed !== undefined) {
+                    updates.push(`video_completed = $${++paramCount}`);
+                    values.push(moduleData.video_completed);
+                }
+                if (moduleData.status !== undefined) {
+                    updates.push(`status = $${++paramCount}`);
+                    values.push(moduleData.status);
+                }
+
+                updates.push(`last_accessed_at = NOW()`, `updated_at = NOW()`);
+
+                if (moduleData.status === 'completed' || moduleData.video_completed === true) {
+                    updates.push(`completed_at = COALESCE(completed_at, NOW())`);
+                }
+                if (moduleData.status === 'in_progress') {
+                    updates.push(`started_at = COALESCE(started_at, NOW())`);
+                }
+
+                const query = `
+                    UPDATE module_progress
+                    SET ${updates.join(', ')}
+                    WHERE user_id = $1 AND course_progress_id = $2 AND module_number = $3
+                    RETURNING *
+                `;
+
+                await client.query(query, values);
+
+                // Desbloquear siguiente módulo si completó
+                if (moduleData.status === 'completed' || moduleData.video_completed === true) {
+                    const nextModule = moduleData.module_number + 1;
+                    await client.query(`
+                        UPDATE module_progress
+                        SET status = 'not_started', updated_at = NOW()
+                        WHERE course_progress_id = $1 AND user_id = $2 AND module_number = $3 AND status = 'locked'
+                    `, [courseProgressId, userId, nextModule]);
+                }
+            }
+        }
+
+        // Recalcular progreso general
+        await client.query(`
+            WITH module_stats AS (
+                SELECT COUNT(*) as total_modules, COUNT(*) FILTER (WHERE status = 'completed') as completed_modules, AVG(video_progress_percentage) as avg_progress
+                FROM module_progress WHERE course_progress_id = $1 AND user_id = $2
+            )
+            UPDATE course_progress cp
+            SET overall_progress_percentage = COALESCE((SELECT ROUND(avg_progress) FROM module_stats), 0),
+                status = CASE
+                    WHEN (SELECT completed_modules FROM module_stats) = (SELECT total_modules FROM module_stats) AND (SELECT total_modules FROM module_stats) > 0 THEN 'completed'
+                    WHEN (SELECT avg_progress FROM module_stats) > 0 THEN 'in_progress'
+                    ELSE 'not_started'
+                END,
+                last_accessed_at = NOW(), updated_at = NOW()
+            WHERE id = $1 AND user_id = $2
+        `, [courseProgressId, userId]);
+
+        // Obtener progreso actualizado
+        const { rows: fullProgress } = await client.query(`
+            SELECT cp.id as course_progress_id, cp.user_id, cp.course_identifier, cp.overall_progress_percentage, cp.status as course_status,
+                COALESCE(json_agg(json_build_object('module_number', mp.module_number, 'video_progress_percentage', mp.video_progress_percentage, 'status', mp.status) ORDER BY mp.module_number) FILTER (WHERE mp.id IS NOT NULL), '[]'::json) as modules
+            FROM course_progress cp
+            LEFT JOIN module_progress mp ON mp.course_progress_id = cp.id AND mp.user_id = cp.user_id
+            WHERE cp.user_id = $1 AND cp.course_identifier = $2
+            GROUP BY cp.id
+        `, [userId, courseId]);
+
+        await client.query('COMMIT');
+
+        console.log(`✅ Progreso sincronizado exitosamente`);
+
+        res.json({
+            success: true,
+            progress: fullProgress[0],
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('❌ Error en POST /api/progress/sync:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error sincronizando progreso',
+            details: error.message
+        });
+    } finally {
+        client.release();
+    }
+});
 
 // GET /api/users/:userId/course/:courseId/progress - Obtener progreso del usuario
 app.get('/api/users/:userId/course/:courseId/progress', async (req, res) => {

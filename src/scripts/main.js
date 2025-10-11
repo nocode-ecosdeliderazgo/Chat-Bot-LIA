@@ -511,9 +511,9 @@ async function getCourseDetails(courseId) {
         
         // Consultar información específica del curso
         const { data: courseInfo, error: courseError } = await window.supabase
-            .from('ai_courses')
-            .select('name, short_description, long_description, course_url, session_count, total_duration, price, currency')
-            .eq('id_ai_courses', courseId)
+            .from('courses')
+            .select('title, description, category, level, duration_total_minutes, slug, is_active')
+            .eq('id', courseId)
             .single();
         
         // Consultar módulos del curso
@@ -992,9 +992,10 @@ async function getAvailableCourses() {
     
     try {
         const { data: coursesData, error: coursesError } = await window.supabase
-            .from('ai_courses')
-            .select('id_ai_courses, name, short_description, long_description, session_count, total_duration, price, currency')
-            .order('name', { ascending: true });
+            .from('courses')
+            .select('id, title, description, category, level, duration_total_minutes, is_active')
+            .eq('is_active', true)
+            .order('title', { ascending: true });
         
         // // console.log('🎓 [COURSES] Cursos encontrados:', coursesData?.length || 0);
         // // console.log('🎓 [COURSES] Error:', coursesError);

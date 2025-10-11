@@ -3958,6 +3958,7 @@
             color: rgba(255, 255, 255, 0.9);
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
@@ -5525,6 +5526,9 @@ Cargando información...
     
     <!-- Supabase Client -->
     <script src="/scripts/supabase-client.js"></script>
+
+    <!-- Hybrid Progress Manager -->
+    <script src="/scripts/hybrid-progress-manager.js"></script>
 
     <!-- Community Database -->
     <script src="/scripts/community-database.js"></script>
@@ -9050,7 +9054,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 }, 500);
             }
 
-            // ===== GUARDAR EN LOCALSTORAGE =====
+            // ===== GUARDAR USANDO SISTEMA HÍBRIDO =====
             try {
                 const progressData = {
                     courseId: 'chatgpt-gemini-course',
@@ -9059,9 +9063,18 @@ Generado desde Coach LIA IA - ${currentDate}
                     percentage: percentageRounded,
                     lastUpdated: new Date().toISOString()
                 };
-                localStorage.setItem('courseProgress_chatgpt-gemini', JSON.stringify(progressData));
+                
+                // Usar HybridProgressManager si está disponible
+                if (window.hybridProgressManager) {
+                    window.hybridProgressManager.saveProgress(progressData);
+                    console.log('📡 Progreso guardado usando HybridProgressManager');
+                } else {
+                    // Fallback al método anterior
+                    localStorage.setItem('courseProgress_chatgpt-gemini', JSON.stringify(progressData));
+                    console.log('📡 Progreso guardado usando localStorage (fallback)');
+                }
             } catch (error) {
-                console.warn('⚠️ Error guardando en localStorage:', error);
+                console.warn('⚠️ Error guardando progreso:', error);
             }
         }
 
@@ -9100,6 +9113,14 @@ Generado desde Coach LIA IA - ${currentDate}
 
         // ===== ACTUALIZAR PROGRESO AL CARGAR LA PÁGINA =====
         document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar HybridProgressManager de manera simple
+            if (window.HybridProgressManager) {
+                window.hybridProgressManager = new window.HybridProgressManager('chatgpt-gemini-course');
+                console.log('✅ HybridProgressManager inicializado en chat-online');
+            } else {
+                console.warn('⚠️ HybridProgressManager no está disponible');
+            }
+
             // Actualizar progreso inicial desde DOM
             setTimeout(() => {
                 const videoCounts = countCompletedVideos();
@@ -9129,6 +9150,32 @@ Generado desde Coach LIA IA - ${currentDate}
                 updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
             }, 500);
         });
+
+        // ===== FUNCIÓN SIMPLE PARA PROBAR SISTEMA HÍBRIDO =====
+        window.testHybrid = function() {
+            console.log('🧪 === PROBANDO SISTEMA HÍBRIDO ===');
+            
+            if (!window.hybridProgressManager) {
+                console.log('❌ HybridProgressManager no está disponible');
+                return;
+            }
+            
+            // Simular progreso
+            const testProgress = {
+                courseId: 'chatgpt-gemini-course',
+                completedVideos: 3,
+                totalVideos: 20,
+                percentage: 15,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            console.log('📊 Guardando progreso de prueba:', testProgress);
+            window.hybridProgressManager.saveProgress(testProgress);
+            
+            // Ver estado
+            const status = window.hybridProgressManager.getSyncStatus();
+            console.log('📈 Estado:', status);
+        };
 
         // ===== EXPONER FUNCIONES GLOBALMENTE =====
         window.updateHeaderProgressBar = updateHeaderProgressBar;
